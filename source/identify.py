@@ -48,7 +48,16 @@ class Accelerator():
 
                 # ID element:
                 line = line.split()
-                if(line[0] == 'FIELD_MAP'):
+
+                if(line[0] == 'DRIFT'):
+                    self.structure[i] = Drift(line, i)
+                    i += 1
+
+                elif(line[0] == 'QUAD'):
+                    self.structure[i] = Quad(line, i)
+                    i += 1
+
+                elif(line[0] == 'FIELD_MAP'):
                     self.structure[i] = FieldMap(line, i)
                     i += 1
 
@@ -135,6 +144,35 @@ class Drift(Element):
             self.R_y_shift = line[5]
 
 
+class Quad(Element):
+    """Quadrupole."""
+
+    def __init__(self, line, i):
+        """Add a quadrupole to structure."""
+        super().__init__(line, i)
+
+        # First, check validity of input
+        if((self.n_attributes < 3) or
+           (self.n_attributes > 9)):
+            raise IOError(
+                'Wrong number of arguments for QUAD element at position '
+                + str(self.element_pos))
+
+        self.L = line[1]
+        self.G = line[2]
+        self.R = line[3]
+
+        try:
+            self.Theta = line[4]
+            self.G3_over_u3 = line[5]
+            self.G4_over_u4 = line[6]
+            self.G5_over_u5 = line[7]
+            self.G6_over_u6 = line[8]
+            self.GFR = line[9]
+        except IndexError:
+            pass
+
+
 class FieldMap(Element):
     """Field map."""
 
@@ -143,7 +181,7 @@ class FieldMap(Element):
         super().__init__(line, i)
 
         # TODO check input validity
-        if((self.n_attributes < 9) and (self.n_attributes > 10)):
+        if((self.n_attributes < 9) or (self.n_attributes > 10)):
             raise IOError(
                 'Wrong number of arguments for FIELD_MAP element at position '
                 + str(self.element_pos))
