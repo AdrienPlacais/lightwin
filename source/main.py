@@ -17,7 +17,7 @@ import identify
 # User inputs
 # =============================================================================
 Tk().withdraw()
-filepath = '/home/placais/LightWin/data/dummy.dat'  # askopenfilename()
+# filepath = '/home/placais/LightWin/data/dummy.dat'
+filepath = askopenfilename()
 
-LINAC = identify.accelerator(filepath)
-
+LINAC = identify.Accelerator(filepath)
