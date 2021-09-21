@@ -136,12 +136,12 @@ class Drift(Element):
         self.L = line[1]
         self.R = line[2]
 
-        if(self.n_attributes >= 3):
+        try:
             self.R_y = line[3]
-
-        if(self.n_attributes == 5):
             self.R_x_shift = line[4]
             self.R_y_shift = line[5]
+        except IndexError:
+            pass
 
 
 class Quad(Element):
@@ -196,5 +196,7 @@ class FieldMap(Element):
         self.K_a = line[8]
         self.FileName = line[9]
 
-        if(self.n_attributes == 10):
+        try:
             self.P = line[10]
+        except IndexError:
+            pass
