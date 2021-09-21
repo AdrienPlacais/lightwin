@@ -32,6 +32,8 @@ class Accelerator():
         """Read datafile and create structure."""
         i = 0
 
+        list_of_non_elements = ['FIELD_MAP_PATH', 'LATTICE', 'FREQ', 'END', ]
+
         # Load and read data file
         with open(self.filename) as file:
             for line in file:
@@ -48,22 +50,26 @@ class Accelerator():
 
                 # ID element:
                 line = line.split()
+                element_name = line[0]
 
-                if(line[0] == 'DRIFT'):
+                if(element_name == 'DRIFT'):
                     self.structure[i] = Drift(line, i)
                     i += 1
 
-                elif(line[0] == 'QUAD'):
+                elif(element_name == 'QUAD'):
                     self.structure[i] = Quad(line, i)
                     i += 1
 
-                elif(line[0] == 'FIELD_MAP'):
+                elif(element_name == 'FIELD_MAP'):
                     self.structure[i] = FieldMap(line, i)
                     i += 1
 
-                elif(line[0] == 'DRIFT'):
+                elif(element_name == 'DRIFT'):
                     self.structure[i] = Drift(line, i)
                     i += 1
+
+                elif(element_name in list_of_non_elements):
+                    continue
 
                 else:
                     print('Element not yet implemented: ' + line[0])
