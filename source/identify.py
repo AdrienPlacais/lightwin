@@ -32,6 +32,7 @@ class Accelerator():
         """Read datafile and create structure."""
         i = 0
 
+        # TODO: LATTICE and FREQ will be needed someday
         list_of_non_elements = ['FIELD_MAP_PATH', 'LATTICE', 'FREQ', 'END', ]
 
         # Load and read data file
