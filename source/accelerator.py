@@ -12,25 +12,30 @@ import elements as elem
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, filename):
+    def __init__(self):
         """
-        Create class and structure by calling create_struture_from_dat_file.
+        Create Accelerator object.
+
+        The different elements constituting the accelerator will be stored
+        in a numpy array self.structure.
+        """
+        self.n_elements = 5000
+        # TODO: handle cases were there the number of elements in the line
+        # is different from 5000
+        self.structure = np.empty((self.n_elements), dtype=object)
+
+    def create_struture_from_dat_file(self, filename):
+        """
+        Read datafile and create structure.
 
         Parameters
         ----------
         filename: string
             Path to the .dat file to study.
-
         """
         self.filename = filename
-        self.n_elements = 5000
-        # TODO: handle cases were there the number of elements in the line
-        # is different from 5000
-        self.structure = np.empty((self.n_elements), dtype=object)
-        self.create_struture_from_dat_file()
 
-    def create_struture_from_dat_file(self):
-        """Read datafile and create structure."""
+        # To keep track of the number of elements in the list of elements
         i = 0
 
         # TODO: LATTICE and FREQ will be needed someday
@@ -74,7 +79,12 @@ class Accelerator():
                     continue
 
                 else:
-                    print('Element not yet implemented: ' + line[0])
+                    print('i = ' + str(i) + ' -- element not yet implemented: '
+                          + line[0])
+
+        # Resize array of elements
+        self.n_elements = i
+        self.structure = np.resize(self.structure, (self.n_elements))
 
     def show_all_elements_info(self, idx_min=0, idx_max=0):
         """
@@ -90,5 +100,5 @@ class Accelerator():
         if(idx_max == 0):
             idx_max = self.n_elements
 
-        for i in range(idx_min, idx_max + 1):
+        for i in range(idx_min, idx_max):
             self.structure[i].show_element_info()
