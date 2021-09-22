@@ -7,6 +7,7 @@ Created on Tue Sep 21 11:54:19 2021
 """
 import numpy as np
 import elements as elem
+import helper
 
 
 class Accelerator():
@@ -79,8 +80,9 @@ class Accelerator():
                     continue
 
                 else:
-                    print('i = ' + str(i) + ' -- element not yet implemented: '
-                          + line[0])
+                    msg = "Element not yet implemented: "
+                    opt_msg = line[0] + '\t\t (i=' + str(i) + ')'
+                    helper.printc(msg, color='info', opt_message=opt_msg)
 
         # Resize array of elements
         self.n_elements = i

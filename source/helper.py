@@ -9,6 +9,28 @@ Created on Wed Sep 22 14:15:48 2021
 import numpy as np
 
 
+def printc(message, color='red', opt_message=''):
+    """Print colored messages."""
+    if color in ('red', 'r', 'warning'):
+        escape_code = '\x1B[31m'
+
+    if color in ('blue', 'b', 'message'):
+        escape_code = '\x1b[34m'
+
+    if color in ('green', 'g', 'results'):
+        escape_code = '\x1b[32m'
+
+    if color in ('magenta', 'm', 'error'):
+        escape_code = '\x1b[35m'
+
+    if color in ('cyan', 'c', 'info'):
+        escape_code = '\x1b[36m'
+
+    normal_code = '\x1b[0m'
+
+    print(escape_code + message + normal_code + opt_message)
+
+
 def load_electric_field_1D(path):
     """
     Load a 1D electric field (.edz extension).
