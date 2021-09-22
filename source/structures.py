@@ -13,7 +13,7 @@ class Accelerator():
 
     def __init__(self, filename):
         """
-        Create class and structure by calling read_datafile.
+        Create class and structure by calling create_struture_from_dat_file.
 
         Parameters
         ----------
@@ -24,11 +24,11 @@ class Accelerator():
         self.filename = filename
         self.n_elements = 5000
         # TODO: handle cases were there the number of elements in the line
-        # is different from 500
+        # is different from 5000
         self.structure = np.empty((self.n_elements), dtype=object)
-        self.read_datafile()
+        self.create_struture_from_dat_file()
 
-    def read_datafile(self):
+    def create_struture_from_dat_file(self):
         """Read datafile and create structure."""
         i = 0
 
@@ -75,7 +75,7 @@ class Accelerator():
                 else:
                     print('Element not yet implemented: ' + line[0])
 
-    def structure_info(self, idx_min=0, idx_max=0):
+    def show_all_elements_info(self, idx_min=0, idx_max=0):
         """
         Recursively call info function of all structure's elements.
 
@@ -90,7 +90,7 @@ class Accelerator():
             idx_max = self.n_elements
 
         for i in range(idx_min, idx_max + 1):
-            self.structure[i].info()
+            self.structure[i].show_element_info()
 
 
 class Element():
@@ -116,7 +116,7 @@ class Element():
         self.resume = [str(self.element_pos)] + line
         self.resume = ' '.join(self.resume)
 
-    def info(self):
+    def show_element_info(self):
         """
         Output information on the element.
 

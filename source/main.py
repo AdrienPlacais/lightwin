@@ -11,13 +11,13 @@ Created on Tue Sep 21 11:32:12 2021
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-import identify
+import structures
 
 # =============================================================================
 # User inputs
 # =============================================================================
 Tk().withdraw()
-# filepath = '/home/placais/LightWin/data/dummy.dat'
-filepath = askopenfilename()
+filepath = '/home/placais/LightWin/data/dummy.dat'
+# filepath = askopenfilename()
 
-LINAC = identify.Accelerator(filepath)
+LINAC = structures.Accelerator(filepath)
