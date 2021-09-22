@@ -68,7 +68,7 @@ class Accelerator():
                     i += 1
 
                 elif(element_name == 'FIELD_MAP'):
-                    self.structure[i] = elem.FieldMap(line, i)
+                    self.structure[i] = elem.FieldMap(line, i, self.filename)
                     i += 1
 
                 elif(element_name == 'DRIFT'):

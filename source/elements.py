@@ -5,6 +5,9 @@ Created on Wed Sep 22 10:26:19 2021
 
 @author: placais
 """
+import os
+import numpy as np
+import helper
 
 
 class Element():
@@ -97,27 +100,113 @@ class Quad(Element):
 class FieldMap(Element):
     """Field map."""
 
-    def __init__(self, line, i):
+    def __init__(self, line, i, TraceWin_dat_filename):
         """Add a field map to the structure."""
         super().__init__(line, i)
 
-        # TODO check input validity
+        self.TraceWin_dat_filename = TraceWin_dat_filename
+
         if((self.n_attributes < 9) or (self.n_attributes > 10)):
             raise IOError(
                 'Wrong number of arguments for FIELD_MAP element at position '
                 + str(self.element_pos))
 
-        self.geom = line[1]
-        self.L = line[2]
-        self.theta_i = line[3]
-        self.R = line[4]
-        self. k_b = line[5]
-        self.k_e = line[6]
-        self.K_i = line[7]
-        self.K_a = line[8]
-        self.FileName = line[9]
+        self.geom = int(line[1])
+        self.L = float(line[2])
+        self.theta_i = float(line[3])
+        self.R = float(line[4])
+        self.k_b = float(line[5])
+        self.k_e = float(line[6])
+        self.K_i = float(line[7])
+        self.K_a = int(line[8])     # FIXME according to doc, may also be float
+        self.FileName = str(line[9])
 
         try:
-            self.P = line[10]
+            self.P = int(line[10])
         except IndexError:
             pass
+
+        self.select_and_load_field_map_file()
+
+    def select_and_load_field_map_file(self):
+        """
+        Select the field map file and call the proper loading function.
+
+        Warning, FileName is directly extracted from the .dat file used by
+        TraceWin. Thus, the relative filepath may be misunderstood by this
+        script.
+        Also check that the extension of the file is .edz, or manually change
+        this function.
+        Finally, only 1D electric field map are implemented.
+        """
+        # Flag to show or not the loading file info:
+        debug_verbose = False
+
+        # Check nature and geometry of the field map, and select proper file
+        # extension and import function
+        extension, import_function = self.check_geom()
+
+        # Now we select the proper filepath
+        # Warning, the "/"s may have to be changed to "\"s on Windows.
+        absolute_path = self.TraceWin_dat_filename.split('/')[:-1]
+
+        # Hypothesis on the structure of the TraceWin project
+        absolute_path = "/".join(absolute_path) + "/field_maps_1D/"
+        absolute_path = absolute_path + self.FileName + extension
+
+        if(os.path.exists(self.FileName)):
+            path = self.FileName
+            if(debug_verbose):
+                self.show_element_info()
+                print("Loading field map with relative filepath...")
+
+        elif(os.path.exists(absolute_path)):
+            path = absolute_path
+            if(debug_verbose):
+                self.show_element_info()
+                print("Loading field map with absolute filepath...")
+
+        else:
+            msg = "Field Map file not found.\n"
+            msg = msg + "Please check FieldMap.load_field_map_file function."
+            raise IOError(msg)
+        # TODO check doc, this part may be simpler
+
+        # Finally, load the field map
+        self.map = import_function(path)
+        if(debug_verbose):
+            print("Field map loaded.")
+
+    def check_geom(self):
+        """
+        Verify that the file can be correctly imported.
+
+        Returns
+        -------
+        extension: str
+            Extension of the file to load. See TraceWin documentation.
+        import_function: fun
+            Function adapted to the nature and geometry of the field.
+        """
+        # TODO: autodetect extensions
+        # TODO: implement import of magnetic fields
+        # TODO: implement 2D and 3D maps
+        # First, we check the nature of the given file
+        if(self.geom < 0):
+            raise IOError("Second order off-axis development not implemented.")
+
+        self.field_nature = int(np.log10(self.geom))
+        self.field_geometry = int(str(self.geom)[0])
+
+        if(self.field_nature != 2):
+            raise IOError("Only RF electric fields implemented.")
+
+        if(self.field_geometry != 1):
+            raise IOError("Only 1D field implemented.")
+
+        if(self.K_a > 0):
+            print("Warning! Space charge compensation maps not implemented.")
+
+        extension = ".edz"
+        import_function = helper.load_electric_field_1D
+        return extension, import_function

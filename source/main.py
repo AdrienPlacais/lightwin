@@ -20,5 +20,6 @@ LINAC = acc.Accelerator()
 
 Tk().withdraw()
 # filepath = '/home/placais/LightWin/data/dummy.dat'
-filepath = askopenfilename(filetypes=[("TraceWin file", ".dat")])
+filepath = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
+# filepath = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 LINAC.create_struture_from_dat_file(filepath)
