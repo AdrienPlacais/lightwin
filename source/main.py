@@ -16,10 +16,24 @@ import accelerator as acc
 # =============================================================================
 # User inputs
 # =============================================================================
-LINAC = acc.Accelerator()
+# Kinetic beam energy in MeV
+E_MeV = 1.
 
+# Current in mA
+I_mA = 0.5
+
+# Bunch frequency in MHz
+f_MHz = 575.
+
+# Select .dat file
 Tk().withdraw()
 # filepath = '/home/placais/LightWin/data/dummy.dat'
 filepath = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
 # filepath = askopenfilename(filetypes=[("TraceWin file", ".dat")])
+
+
+# =============================================================================
+# End of user inputs
+# =============================================================================
+LINAC = acc.Accelerator(E_MeV, I_mA, f_MHz)
 LINAC.create_struture_from_dat_file(filepath)

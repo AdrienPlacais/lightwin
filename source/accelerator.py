@@ -13,13 +13,25 @@ import helper
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self):
+    def __init__(self, E_MeV, I_mA, f_MHz):
         """
         Create Accelerator object.
 
         The different elements constituting the accelerator will be stored
         in a numpy array self.structure.
+
+        Parameters
+        ----------
+        E_MeV: float
+            Beam energy in MeV.
+        I_mA: float
+            Beam current in mA.
+        f_MHz: float
+            Bunch frequency in MHz.
         """
+        self.E_MeV = E_MeV
+        self.I_mA = I_mA
+        self.f_MHz = f_MHz
         self.n_elements = 5000
         # TODO: handle cases were there the number of elements in the line
         # is different from 5000
