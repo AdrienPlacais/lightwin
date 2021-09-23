@@ -290,3 +290,40 @@ class FieldMap(Element):
         extension = ".edz"
         import_function = helper.load_electric_field_1D
         return extension, import_function
+
+
+class SpaceChargeComp(Element):
+    """Space charge compensation."""
+
+    def __init__(self, line, i):
+        """Add a space charge compensator to structure."""
+        super().__init__(line, i)
+
+        # First, check validity of input
+        if(self.n_attributes != 1):
+            raise IOError(
+                'Wrong number of arguments for SPACE_CHARGE_COMP element '
+                + 'at position ' + str(self.element_pos))
+
+        self.k = float(line[1])
+        # TODO:
+        msg = "SPACE_CHARGE_COMP has no effect on the beam current: "
+        helper.printc(msg, "info", self.resume)
+
+    def transfer_matrix_z(self, gamma):
+        """
+        Compute the longitudinal transfer matrix of the space charge comp.
+
+        Parameters
+        ----------
+        gamma: float
+            Lorentz factor of the particle.
+
+        Returns
+        -------
+        R_zz: np.array
+            Transfer longitudinal sub-matrix.
+        """
+        R_zz = transfer_matrices.not_an_element()
+        return R_zz
+    

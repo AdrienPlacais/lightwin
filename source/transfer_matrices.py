@@ -43,3 +43,9 @@ def z_drift(Delta_s, gamma):
     R_zz = np.array(([1., Delta_s/gamma**2],
                      [0., 1.]))
     return R_zz
+
+
+def not_an_element():
+    """Return identity matrix."""
+    R_zz = np.eye(2, 2)
+    return R_zz

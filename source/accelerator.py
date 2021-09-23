@@ -106,6 +106,10 @@ class Accelerator():
                 elif(element_name == 'SOLENOID'):
                     self.structure[i] = elem.Solenoid(line, i)
                     i += 1
+                
+                elif(element_name == 'SPACE_CHARGE_COMP'):
+                    self.structure[i] = elem.SpaceChargeComp(line, i)
+                    i += 1
 
                 elif(element_name in list_of_non_elements):
                     continue
