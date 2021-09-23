@@ -4,6 +4,9 @@
 Created on Wed Sep 22 16:04:34 2021
 
 @author: placais
+
+File holding all the longitudinal transfer sub-matrices. Units are taken
+exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np

@@ -17,6 +17,7 @@ import transfer_matrices
 c = 2.99792458e8
 m_proton = 938.272  # In MeV/c**2
 
+
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
@@ -39,9 +40,11 @@ class Accelerator():
         self.E_MeV = E_MeV
         self.I_mA = I_mA
         self.f_MHz = f_MHz
-        self.gamma = 1. + self.E_MeV / m_proton
 
         self.n_elements = 5000
+        # Array containing gamma at each in/out element
+        self.gamma = np.full((self.n_elements + 1), np.NaN)
+        self.gamma[0] = 1. + self.E_MeV / m_proton
         # TODO: handle cases were there the number of elements in the line
         # is different from 5000
 
@@ -100,6 +103,10 @@ class Accelerator():
                     self.structure[i] = elem.Drift(line, i)
                     i += 1
 
+                elif(element_name == 'SOLENOID'):
+                    self.structure[i] = elem.Solenoid(line, i)
+                    i += 1
+
                 elif(element_name in list_of_non_elements):
                     continue
 
@@ -129,7 +136,7 @@ class Accelerator():
         for i in range(idx_min, idx_max):
             self.structure[i].show_element_info()
 
-    def compute_transfer_matrix(self, idx_min=0, idx_max=0):
+    def compute_transfer_matrix_and_gamma(self, idx_min=0, idx_max=0):
         """
         Compute the longitudinal transfer matrix of the line.
 
@@ -154,7 +161,8 @@ class Accelerator():
         R_zz_tot = np.eye(2, 2)
 
         for i in range(idx_min, idx_max):
-            R_zz_next = self.structure[i].transfer_matrix_z(self.gamma)
+            R_zz_next = self.structure[i].transfer_matrix_z(self.gamma[i])
             R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
+            self.gamma[i+1] = self.gamma[i]  # TODO check
 
         return R_zz_tot

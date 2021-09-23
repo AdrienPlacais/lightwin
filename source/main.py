@@ -39,5 +39,5 @@ filepath = '/home/placais/LightWin/data/dummy.dat'
 # =============================================================================
 LINAC = acc.Accelerator(E_MeV, I_mA, f_MHz)
 LINAC.create_struture_from_dat_file(filepath)
-R_zz_tot = LINAC.compute_transfer_matrix(idx_min=0, idx_max=5)
+R_zz_tot = LINAC.compute_transfer_matrix_and_gamma(idx_min=0, idx_max=8)
 print("Transfer matrix:\n", R_zz_tot)

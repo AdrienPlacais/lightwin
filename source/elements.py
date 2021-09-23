@@ -141,6 +141,42 @@ class Quad(Element):
         return R_zz
 
 
+class Solenoid(Element):
+    """Solenoid."""
+
+    def __init__(self, line, i):
+        """Add a solenoid to structure."""
+        super().__init__(line, i)
+
+        # First, check validity of input
+        if(self.n_attributes != 3):
+            raise IOError(
+                'Wrong number of arguments for SOLENOID element at position '
+                + str(self.element_pos))
+
+        self.L_mm = float(line[1])
+        self.L_m = self.L_mm * 1e-3
+        self.B = float(line[2])
+        self.R = float(line[3])
+
+    def transfer_matrix_z(self, gamma):
+        """
+        Compute the longitudinal transfer matrix of the solenoid.
+
+        Parameters
+        ----------
+        gamma: float
+            Lorentz factor of the particle.
+
+        Returns
+        -------
+        R_zz: np.array
+            Transfer longitudinal sub-matrix.
+        """
+        R_zz = transfer_matrices.z_drift(self.L_m, gamma)
+        return R_zz
+
+
 class FieldMap(Element):
     """Field map."""
 
