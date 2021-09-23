@@ -8,6 +8,7 @@ Created on Wed Sep 22 10:26:19 2021
 import os
 import numpy as np
 import helper
+import transfer_matrices
 
 
 class Element():
@@ -41,6 +42,13 @@ class Element():
         """
         print(self.resume)
 
+    def transfer_matrix_z(self, gamma):
+        """Return dummy transfer matrix."""
+        msg = "Transfer matrix not yet implemented: "
+        helper.printc(msg, color="info", opt_message=self.resume)
+        R_zz = np.full((2, 2), np.NaN)
+        return R_zz
+
 
 class Drift(Element):
     """Linear drift."""
@@ -57,7 +65,8 @@ class Drift(Element):
                 'Wrong number of arguments for DRIFT element at position '
                 + str(self.element_pos))
 
-        self.L = float(line[1])
+        self.L_mm = float(line[1])
+        self.L_m = self.L_mm * 1e-3
         self.R = float(line[2])
 
         try:
@@ -66,6 +75,23 @@ class Drift(Element):
             self.R_y_shift = float(line[5])
         except IndexError:
             pass
+
+    def transfer_matrix_z(self, gamma):
+        """
+        Compute the longitudinal transfer matrix of the drift.
+
+        Parameters
+        ----------
+        gamma: float
+            Lorentz factor of the particle.
+
+        Returns
+        -------
+        R_zz: np.array
+            Transfer longitudinal sub-matrix.
+        """
+        R_zz = transfer_matrices.z_drift(self.L_m, gamma)
+        return R_zz
 
 
 class Quad(Element):
@@ -82,7 +108,8 @@ class Quad(Element):
                 'Wrong number of arguments for QUAD element at position '
                 + str(self.element_pos))
 
-        self.L = float(line[1])
+        self.L_mm = float(line[1])
+        self.L_m = self.L_mm * 1e-3
         self.G = float(line[2])
         self.R = float(line[3])
 
@@ -95,6 +122,23 @@ class Quad(Element):
             self.GFR = float(line[9])
         except IndexError:
             pass
+
+    def transfer_matrix_z(self, gamma):
+        """
+        Compute the longitudinal transfer matrix of the quadrupole.
+
+        Parameters
+        ----------
+        gamma: float
+            Lorentz factor of the particle.
+
+        Returns
+        -------
+        R_zz: np.array
+            Transfer longitudinal sub-matrix.
+        """
+        R_zz = transfer_matrices.z_drift(self.L_m, gamma)
+        return R_zz
 
 
 class FieldMap(Element):

@@ -16,6 +16,8 @@ import accelerator as acc
 # =============================================================================
 # User inputs
 # =============================================================================
+# TODO: direct import of this parameters from the .ini file
+# TODO: handle different particles
 # Kinetic beam energy in MeV
 E_MeV = 1.
 
@@ -27,8 +29,8 @@ f_MHz = 575.
 
 # Select .dat file
 Tk().withdraw()
-# filepath = '/home/placais/LightWin/data/dummy.dat'
-filepath = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
+filepath = '/home/placais/LightWin/data/dummy.dat'
+# filepath = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
 # filepath = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
 
@@ -37,3 +39,5 @@ filepath = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
 # =============================================================================
 LINAC = acc.Accelerator(E_MeV, I_mA, f_MHz)
 LINAC.create_struture_from_dat_file(filepath)
+R_zz_tot = LINAC.compute_transfer_matrix(idx_min=0, idx_max=5)
+print("Transfer matrix:\n", R_zz_tot)

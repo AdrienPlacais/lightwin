@@ -10,22 +10,25 @@ import numpy as np
 
 
 # =============================================================================
-# Physical constants
-# =============================================================================
-c = 2.99792458e8
-
-
-# =============================================================================
 # Transfer matrices
 # =============================================================================
-def transfer_matrix_z_drift(Delta_s, gamma):
+def dummy(Delta_s, gamma):
+    """Return a dummy transfer matrix."""
+    R_zz = np.full((2, 2), np.NaN)
+    return R_zz
+
+
+def z_drift(Delta_s, gamma):
     """
     Compute the longitudinal sub-matrix of a drift.
+
+    On a more general point of view, this is the longitudinal transfer sub-
+    matrix of every non-accelerating element.
 
     Parameters
     ----------
     Delta_s: float
-        Drift length (mm).
+        Drift length (m).
     gamma: float
         lala
 
@@ -34,6 +37,6 @@ def transfer_matrix_z_drift(Delta_s, gamma):
     R_zz: np.array
         Transfer longitudinal sub-matrix.
     """
-    R_zz = np.array([1., Delta_s/gamma**2],
-                    [0., 1.])
+    R_zz = np.array(([1., Delta_s/gamma**2],
+                     [0., 1.]))
     return R_zz

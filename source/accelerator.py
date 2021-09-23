@@ -8,7 +8,14 @@ Created on Tue Sep 21 11:54:19 2021
 import numpy as np
 import elements as elem
 import helper
+import transfer_matrices
 
+
+# =============================================================================
+# Physical constants
+# =============================================================================
+c = 2.99792458e8
+m_proton = 938.272  # In MeV/c**2
 
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
@@ -32,10 +39,15 @@ class Accelerator():
         self.E_MeV = E_MeV
         self.I_mA = I_mA
         self.f_MHz = f_MHz
+        self.gamma = 1. + self.E_MeV / m_proton
+
         self.n_elements = 5000
         # TODO: handle cases were there the number of elements in the line
         # is different from 5000
+
+        # Init empty structures and transfer matrix function
         self.structure = np.empty((self.n_elements), dtype=object)
+        self.transfer_matrix_z = transfer_matrices.dummy
 
     def create_struture_from_dat_file(self, filename):
         """
@@ -116,3 +128,33 @@ class Accelerator():
 
         for i in range(idx_min, idx_max):
             self.structure[i].show_element_info()
+
+    def compute_transfer_matrix(self, idx_min=0, idx_max=0):
+        """
+        Compute the longitudinal transfer matrix of the line.
+
+        Optional indexes allow one to compute the transfer matrix of some
+        elements of the line only.
+
+        Parameters
+        ----------
+        gamma: float
+            Lorentz factor of the particle.
+        idx_min: int, optional
+            Position of first element.
+        idx_max: int, optional
+            Position of last element.
+        """
+        # TODO: handle acceleration of particle
+        # TODO: precompute gamma at each element entrance. Required in order
+        # to compute transfer natrics of a subset of elements.
+        if(idx_max == 0):
+            idx_max = self.n_elements
+
+        R_zz_tot = np.eye(2, 2)
+
+        for i in range(idx_min, idx_max):
+            R_zz_next = self.structure[i].transfer_matrix_z(self.gamma)
+            R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
+
+        return R_zz_tot
