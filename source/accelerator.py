@@ -37,19 +37,58 @@ class Accelerator():
         f_MHz: float
             Bunch frequency in MHz.
         """
-        self.E_MeV = E_MeV
-        self.I_mA = I_mA
-        self.f_MHz = f_MHz
-
         self.n_elements = 5000
-        # Array containing gamma at each in/out element
-        self.gamma = np.full((self.n_elements + 1), np.NaN)
-        self.gamma[0] = 1. + self.E_MeV / m_proton
         # TODO: handle cases were there the number of elements in the line
         # is different from 5000
 
+        # Beam arrays; by default, they are considered as constant along the
+        # line
+        self.E_MeV = np.full((self.n_elements), E_MeV)
+        self.I_mA = np.full((self.n_elements), I_mA)
+        self.f_MHz = np.full((self.n_elements), f_MHz)
+
+        # Array containing gamma at each in/out element
+        self.gamma = np.full((self.n_elements + 1), np.NaN)
+        self.gamma[0] = 1. + E_MeV / m_proton
+
+        # Elements length, apertures
+        self.L_mm = np.full((self.n_elements), np.NaN)
+        self.L_m = np.full((self.n_elements), np.NaN)
+        self.R = np.full((self.n_elements), np.NaN)
+
+        # Specific to drift
+        self.R_y = np.full((self.n_elements), np.NaN)
+        self.R_x_shift = np.full((self.n_elements), np.NaN)
+        self.R_y_shift = np.full((self.n_elements), np.NaN)
+
+        # Specific to QUAD
+        self.G = np.full((self.n_elements), np.NaN)
+        self.Theta = np.full((self.n_elements), np.NaN)
+        self.G3_over_u3 = np.full((self.n_elements), np.NaN)
+        self.G4_over_u4 = np.full((self.n_elements), np.NaN)
+        self.G5_over_u5 = np.full((self.n_elements), np.NaN)
+        self.G6_over_u6 = np.full((self.n_elements), np.NaN)
+        self.GFR = np.full((self.n_elements), np.NaN)
+
+        # Specific to SOLENOID
+        self.B = np.full((self.n_elements), np.NaN)
+
+        # Specific to FIELD_MAP
+        self.geom = np.full((self.n_elements), np.NaN)
+        self.theta_i = np.full((self.n_elements), np.NaN)
+        self.k_b = np.full((self.n_elements), np.NaN)
+        self.k_e = np.full((self.n_elements), np.NaN)
+        self.K_i = np.full((self.n_elements), np.NaN)
+        self.K_a = np.full((self.n_elements), np.NaN)
+        self.FileName = np.full((self.n_elements), np.NaN, dtype=object)
+        self.P = np.full((self.n_elements), np.NaN)
+
+        # Specific to SPACE_CHARGE_COMP
+        self.k = np.full((self.n_elements), np.NaN)
+
         # Init empty structures and transfer matrix function
-        self.structure = np.empty((self.n_elements), dtype=object)
+        self.structure = np.empty((self.n_elements), dtype=str)
+        self.resume = np.empty((self.n_elements), dtype=str)
         self.transfer_matrix_z = transfer_matrices.dummy
 
     def create_struture_from_dat_file(self, filename):
@@ -66,7 +105,7 @@ class Accelerator():
         # To keep track of the number of elements in the list of elements
         i = 0
 
-        # TODO: LATTICE and FREQ will be needed someday
+        # TODO: LATTICE will be needed someday
         list_of_non_elements = ['FIELD_MAP_PATH', 'LATTICE', 'END', ]
         current_f_MHz = self.f_MHz
 
@@ -89,32 +128,35 @@ class Accelerator():
                 element_name = line[0]
 
                 if(element_name == 'DRIFT'):
-                    self.structure[i] = elem.Drift(line, i)
+                    elem.add_drift(self, line, i)
                     i += 1
 
                 elif(element_name == 'QUAD'):
-                    self.structure[i] = elem.Quad(line, i)
+                    elem.add_quad(self, line, i)
                     i += 1
 
                 elif(element_name == 'FIELD_MAP'):
-                    self.structure[i] = elem.FieldMap(line, i, self.filename,
-                                                      current_f_MHz)
+                    elem.add_field_map(self, line, i, self.filename,
+                                       current_f_MHz)
                     i += 1
 
                 elif(element_name == 'DRIFT'):
-                    self.structure[i] = elem.Drift(line, i)
+                    elem.add_drift(self, line, i)
                     i += 1
 
                 elif(element_name == 'SOLENOID'):
-                    self.structure[i] = elem.Solenoid(line, i)
+                    elem.add_solenoid(self, line, i)
                     i += 1
 
                 elif(element_name == 'SPACE_CHARGE_COMP'):
-                    self.structure[i] = elem.SpaceChargeComp(line, i)
                     i += 1
+                    #  elem.add_space_charge_comp(line, i)
+                    self.I_mA[i:] = self.I_mA[i] * (1 - line[1])
 
                 elif(element_name == 'FREQ'):
-                    current_f_MHz = line[1]
+                    # We change frequency from next element up to the end of
+                    # the line
+                    self.f_MHz[i+1:] = line[1]
 
                 elif(element_name in list_of_non_elements):
                     continue
@@ -125,53 +167,53 @@ class Accelerator():
                     helper.printc(msg, color='info', opt_message=opt_msg)
 
         # Resize array of elements
-        self.n_elements = i
-        self.structure = np.resize(self.structure, (self.n_elements))
+        #  self.n_elements = i
+        #  self.structure = np.resize(self.structure, (self.n_elements))
 
-    def show_all_elements_info(self, idx_min=0, idx_max=0):
-        """
-        Recursively call info function of all structure's elements.
+    # def show_all_elements_info(self, idx_min=0, idx_max=0):
+    #     """
+    #     Recursively call info function of all structure's elements.
 
-        Parameters
-        ----------
-        idx_min: int, optional
-            Position of first element to output.
-        idx_max: int, optional
-            Position of last element to output.
-        """
-        if(idx_max == 0):
-            idx_max = self.n_elements
+    #     Parameters
+    #     ----------
+    #     idx_min: int, optional
+    #         Position of first element to output.
+    #     idx_max: int, optional
+    #         Position of last element to output.
+    #     """
+    #     if(idx_max == 0):
+    #         idx_max = self.n_elements
 
-        for i in range(idx_min, idx_max):
-            self.structure[i].show_element_info()
+    #     for i in range(idx_min, idx_max):
+    #         self.structure[i].show_element_info()
 
-    def compute_transfer_matrix_and_gamma(self, idx_min=0, idx_max=0):
-        """
-        Compute the longitudinal transfer matrix of the line.
+    # def compute_transfer_matrix_and_gamma(self, idx_min=0, idx_max=0):
+    #     """
+    #     Compute the longitudinal transfer matrix of the line.
 
-        Optional indexes allow one to compute the transfer matrix of some
-        elements of the line only.
+    #     Optional indexes allow one to compute the transfer matrix of some
+    #     elements of the line only.
 
-        Parameters
-        ----------
-        gamma: float
-            Lorentz factor of the particle.
-        idx_min: int, optional
-            Position of first element.
-        idx_max: int, optional
-            Position of last element.
-        """
-        # TODO: handle acceleration of particle
-        # TODO: precompute gamma at each element entrance. Required in order
-        # to compute transfer natrics of a subset of elements.
-        if(idx_max == 0):
-            idx_max = self.n_elements
+    #     Parameters
+    #     ----------
+    #     gamma: float
+    #         Lorentz factor of the particle.
+    #     idx_min: int, optional
+    #         Position of first element.
+    #     idx_max: int, optional
+    #         Position of last element.
+    #     """
+    #     # TODO: handle acceleration of particle
+    #     # TODO: precompute gamma at each element entrance. Required in order
+    #     # to compute transfer natrics of a subset of elements.
+    #     if(idx_max == 0):
+    #         idx_max = self.n_elements
 
-        R_zz_tot = np.eye(2, 2)
+    #     R_zz_tot = np.eye(2, 2)
 
-        for i in range(idx_min, idx_max):
-            R_zz_next = self.structure[i].transfer_matrix_z(self.gamma[i])
-            R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
-            self.gamma[i+1] = self.gamma[i]  # TODO check
+    #     for i in range(idx_min, idx_max):
+    #         R_zz_next = self.structure[i].transfer_matrix_z(self.gamma[i])
+    #         R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
+    #         self.gamma[i+1] = self.gamma[i]  # TODO check
 
-        return R_zz_tot
+    #     return R_zz_tot
