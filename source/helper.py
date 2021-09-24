@@ -44,15 +44,15 @@ def load_electric_field_1D(path):
     -------
     Fz: np.array
         Array of electric field in MV/m.
+    zmax: float
+        z position of the filemap end.
+    Norm: float
+        Norm of the electric field.
 
     Currently not returned
     ----------------------
     nz: int
         Number of points in the array minus one.
-    zmax: float
-        z position of the filemap end.
-    Norm: float
-        Norm of the electric field.
     """
     i = 0
     k = 0
@@ -80,4 +80,4 @@ def load_electric_field_1D(path):
 
             i += 1
 
-    return Fz
+    return nz, zmax, Norm, Fz

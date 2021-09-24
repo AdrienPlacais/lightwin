@@ -67,7 +67,8 @@ class Accelerator():
         i = 0
 
         # TODO: LATTICE and FREQ will be needed someday
-        list_of_non_elements = ['FIELD_MAP_PATH', 'LATTICE', 'FREQ', 'END', ]
+        list_of_non_elements = ['FIELD_MAP_PATH', 'LATTICE', 'END', ]
+        current_f_MHz = self.f_MHz
 
         # Load and read data file
         with open(self.filename) as file:
@@ -96,7 +97,8 @@ class Accelerator():
                     i += 1
 
                 elif(element_name == 'FIELD_MAP'):
-                    self.structure[i] = elem.FieldMap(line, i, self.filename)
+                    self.structure[i] = elem.FieldMap(line, i, self.filename,
+                                                      current_f_MHz)
                     i += 1
 
                 elif(element_name == 'DRIFT'):
@@ -106,10 +108,13 @@ class Accelerator():
                 elif(element_name == 'SOLENOID'):
                     self.structure[i] = elem.Solenoid(line, i)
                     i += 1
-                
+
                 elif(element_name == 'SPACE_CHARGE_COMP'):
                     self.structure[i] = elem.SpaceChargeComp(line, i)
                     i += 1
+
+                elif(element_name == 'FREQ'):
+                    current_f_MHz = line[1]
 
                 elif(element_name in list_of_non_elements):
                     continue

@@ -9,7 +9,11 @@ import os
 import numpy as np
 import helper
 import transfer_matrices
+from scipy.interpolate import interp1d
+from scipy.integrate import quad
 
+
+c = 2.99792458e8
 
 class Element():
     """Super class holding methods and properties common to all elements."""
@@ -178,9 +182,35 @@ class Solenoid(Element):
 
 
 class FieldMap(Element):
-    """Field map."""
+    """
+    Field map.
 
-    def __init__(self, line, i, TraceWin_dat_filename):
+    Attributes
+    ----------
+    geom: int
+        Field map type.
+    L_mm: float
+        Field map length (mm).
+    theta_i: float
+        RF input field phase (deg).
+    R: float
+        Aperture (mm).
+    k_b: float
+        Magnetic field intensity factor.
+    k_e: float
+        Electric field intensity factor.
+    K_i: float
+        Space charge compensation factor.
+    K_a: int
+        Aperture flag.
+    FileName: string
+        File name without extension (abs. or relative path).
+    P: int, opt
+        0: theta_i is relative phase.
+        1: theta_i is absolute phase.
+    """
+
+    def __init__(self, line, i, TraceWin_dat_filename, f_MHz):
         """Add a field map to the structure."""
         super().__init__(line, i)
 
@@ -192,7 +222,8 @@ class FieldMap(Element):
                 + str(self.element_pos))
 
         self.geom = int(line[1])
-        self.L = float(line[2])
+        self.L_mm = float(line[2])
+        self.L_m = self.L_mm * 1e-3
         self.theta_i = float(line[3])
         self.R = float(line[4])
         self.k_b = float(line[5])
@@ -205,6 +236,8 @@ class FieldMap(Element):
             self.P = int(line[10])
         except IndexError:
             pass
+
+        self.element_f_MHz = f_MHz
 
         self.select_and_load_field_map_file()
 
@@ -252,10 +285,35 @@ class FieldMap(Element):
             raise IOError(msg)
         # TODO check doc, this part may be simpler
 
-        # Finally, load the field map
-        self.map = import_function(path)
+        # Load the field map
+        self.nz, self.zmax, self.Norm, self.Fz = import_function(path)
+        # Make it a function:
+        z_imported = np.linspace(0., self.zmax, self.nz + 1)
+        self.E_z0 = interp1d(z_imported, self.Fz)
+
+        # Compute cavity tension
+        # omega_0 = 2. * np.pi * self.element_f_MHz
+        # beta = np.sqrt(1. - self.gamma())
+        # V_cav = np.abs(
+        #     quad(
+        #         func=lambda z:
+        #             self.E_z0 * np.exp(1j * omega_0 * z / (beta * c)),
+        #         a=0, b=self.zmax,
+        #         )
+        #     )
+
         if(debug_verbose):
             print("Field map loaded.")
+
+    def essais_map(self):
+        """Truc."""
+        phi_0 = np.pi
+        z0 = 0.
+        vz0 = 0.
+        
+        z = z0
+        
+        self.Ez = self.Norm * self.E_z0_interpolated()
 
     def check_geom(self):
         """
@@ -326,4 +384,3 @@ class SpaceChargeComp(Element):
         """
         R_zz = transfer_matrices.not_an_element()
         return R_zz
-    
