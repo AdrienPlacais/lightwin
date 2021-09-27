@@ -43,13 +43,15 @@ class Accelerator():
 
         # Beam arrays; by default, they are considered as constant along the
         # line
-        self.E_MeV = np.full((self.n_elements), E_MeV)
+        self.E_MeV = np.full((self.n_elements + 1), E_MeV)
         self.I_mA = np.full((self.n_elements), I_mA)
         self.f_MHz = np.full((self.n_elements), f_MHz)
 
         # Array containing gamma at each in/out element
         self.gamma = np.full((self.n_elements + 1), np.NaN)
         self.gamma[0] = 1. + E_MeV / m_proton
+
+        self.elements_nature = np.full((self.n_elements), np.NaN, dtype=object)
 
         # Elements length, apertures
         self.L_mm = np.full((self.n_elements), np.NaN)
@@ -149,8 +151,8 @@ class Accelerator():
                     i += 1
 
                 elif(element_name == 'SPACE_CHARGE_COMP'):
+                    # TODO: check if i += 1 should be after the current mod
                     i += 1
-                    #  elem.add_space_charge_comp(line, i)
                     self.I_mA[i:] = self.I_mA[i] * (1 - line[1])
 
                 elif(element_name == 'FREQ'):
@@ -166,26 +168,22 @@ class Accelerator():
                     opt_msg = line[0] + '\t\t (i=' + str(i) + ')'
                     helper.printc(msg, color='info', opt_message=opt_msg)
 
-        # Resize array of elements
-        #  self.n_elements = i
-        #  self.structure = np.resize(self.structure, (self.n_elements))
+    def show_elements_info(self, idx_min=0, idx_max=0):
+        """
+        Recursively call info function of all structure's elements.
 
-    # def show_all_elements_info(self, idx_min=0, idx_max=0):
-    #     """
-    #     Recursively call info function of all structure's elements.
+        Parameters
+        ----------
+        idx_min: int, optional
+            Position of first element to output.
+        idx_max: int, optional
+            Position of last element to output.
+        """
+        if(idx_max == 0):
+            idx_max = self.n_elements
 
-    #     Parameters
-    #     ----------
-    #     idx_min: int, optional
-    #         Position of first element to output.
-    #     idx_max: int, optional
-    #         Position of last element to output.
-    #     """
-    #     if(idx_max == 0):
-    #         idx_max = self.n_elements
-
-    #     for i in range(idx_min, idx_max):
-    #         self.structure[i].show_element_info()
+        for i in range(idx_min, idx_max):
+            print(self.elements_nature[i])
 
     # def compute_transfer_matrix_and_gamma(self, idx_min=0, idx_max=0):
     #     """

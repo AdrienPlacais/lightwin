@@ -33,7 +33,7 @@ def z_drift(Delta_s, gamma):
     Delta_s: float
         Drift length (m).
     gamma: float
-        lala
+        Lorentz factor.
 
     Returns
     -------

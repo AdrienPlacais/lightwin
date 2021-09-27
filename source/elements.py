@@ -15,30 +15,6 @@ from scipy.integrate import quad
 
 c = 2.99792458e8
 
-# class Element():
-#     """Super class holding methods and properties common to all elements."""
-# 
-#     def __init__(Accelerator, line, i):
-#         """
-#         Initialize what is common to all ELEMENTs.
-# 
-#         Attributes
-#         ----------
-#         n_attributes: integer
-#             The number of attributes in the .dat file.
-#         element_pos: integer
-#             Position of the element. Should match TraceWin's.
-#         resume: string
-#             Resume of the element properties. Should match the corresponding
-#             line in the .dat file, at the exception of the first character
-#             that is the elemet position.
-#         """
-#         n_attributes = len(line) - 1
-#         Accelerator.element_pos = i
-#         Accelerator.resume = [str(Accelerator.element_pos)] + line
-#         Accelerator.resume = ' '.join(Accelerator.resume)
-# 
-
 
 def add_drift(Accelerator, line, i):
     """Add a linear drift to the Accelerator object."""
@@ -52,6 +28,7 @@ def add_drift(Accelerator, line, i):
             'Wrong number of arguments for DRIFT element at position '
             + str(i))
 
+    Accelerator.elements_nature[i] = str(i) + ' \t' + '\t'.join(line)
     Accelerator.L_mm[i] = float(line[1])
     Accelerator.L_m[i] = Accelerator.L_mm[i] * 1e-3
     Accelerator.R[i] = float(line[2])
@@ -91,6 +68,8 @@ def add_quad(Accelerator, line, i):
         raise IOError(
             'Wrong number of arguments for QUAD element at position '
             + str(i))
+
+    Accelerator.elements_nature[i] = str(i) + ' \t' + '\t'.join(line)
 
     Accelerator.L_mm[i] = float(line[1])
     Accelerator.L_m[i] = Accelerator.L_mm[i] * 1e-3
@@ -134,6 +113,8 @@ def add_solenoid(Accelerator, line, i):
         raise IOError(
             'Wrong number of arguments for SOLENOID element at position '
             + str(i))
+
+    Accelerator.elements_nature[i] = str(i) + ' \t' + '\t'.join(line)
 
     Accelerator.L_mm[i] = float(line[1])
     Accelerator.L_m[i] = Accelerator.L_mm[i] * 1e-3
@@ -195,6 +176,8 @@ def add_field_map(Accelerator, line, i, TraceWin_dat_filename, f_MHz):
         raise IOError(
             'Wrong number of arguments for FIELD_MAP element at position '
             + str(i))
+
+    Accelerator.elements_nature[i] = str(i) + ' \t' + '\t'.join(line)
 
     Accelerator.geom[i] = int(line[1])
     Accelerator.L_mm[i] = float(line[2])
