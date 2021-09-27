@@ -51,7 +51,9 @@ class Accelerator():
         self.gamma = np.full((self.n_elements + 1), np.NaN)
         self.gamma[0] = 1. + E_MeV / m_proton
 
+        # Common to every element
         self.elements_nature = np.full((self.n_elements), np.NaN, dtype=object)
+        self.z_transfer_func = np.full((self.n_elements), np.NaN, dtype=object)
 
         # Elements length, apertures
         self.L_mm = np.full((self.n_elements), np.NaN)
@@ -152,6 +154,7 @@ class Accelerator():
 
                 elif(element_name == 'SPACE_CHARGE_COMP'):
                     # TODO: check if i += 1 should be after the current mod
+                    self.z_transfer_func[i] = transfer_matrices.not_an_element
                     i += 1
                     self.I_mA[i:] = self.I_mA[i] * (1 - line[1])
 
@@ -185,33 +188,33 @@ class Accelerator():
         for i in range(idx_min, idx_max):
             print(self.elements_nature[i])
 
-    # def compute_transfer_matrix_and_gamma(self, idx_min=0, idx_max=0):
-    #     """
-    #     Compute the longitudinal transfer matrix of the line.
+    def compute_transfer_matrix_and_gamma(self, idx_min=0, idx_max=0):
+        """
+        Compute the longitudinal transfer matrix of the line.
 
-    #     Optional indexes allow one to compute the transfer matrix of some
-    #     elements of the line only.
+        Optional indexes allow one to compute the transfer matrix of some
+        elements of the line only.
 
-    #     Parameters
-    #     ----------
-    #     gamma: float
-    #         Lorentz factor of the particle.
-    #     idx_min: int, optional
-    #         Position of first element.
-    #     idx_max: int, optional
-    #         Position of last element.
-    #     """
-    #     # TODO: handle acceleration of particle
-    #     # TODO: precompute gamma at each element entrance. Required in order
-    #     # to compute transfer natrics of a subset of elements.
-    #     if(idx_max == 0):
-    #         idx_max = self.n_elements
+        Parameters
+        ----------
+        gamma: float
+            Lorentz factor of the particle.
+        idx_min: int, optional
+            Position of first element.
+        idx_max: int, optional
+            Position of last element.
+        """
+        # TODO: handle acceleration of particle
+        # TODO: precompute gamma at each element entrance. Required in order
+        # to compute transfer natrics of a subset of elements.
+        if(idx_max == 0):
+            idx_max = self.n_elements
 
-    #     R_zz_tot = np.eye(2, 2)
+        R_zz_tot = np.eye(2, 2)
 
-    #     for i in range(idx_min, idx_max):
-    #         R_zz_next = self.structure[i].transfer_matrix_z(self.gamma[i])
-    #         R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
-    #         self.gamma[i+1] = self.gamma[i]  # TODO check
+        for i in range(idx_min, idx_max):
+            R_zz_next = self.z_transfer_func[i](self.L_m[i], self.gamma[i])
+            R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
+            self.gamma[i+1] = self.gamma[i]  # TODO check
 
-    #     return R_zz_tot
+        return R_zz_tot

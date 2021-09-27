@@ -40,22 +40,7 @@ def add_drift(Accelerator, line, i):
     except IndexError:
         pass
 
-    #  def transfer_matrix_z(Accelerator, gamma):
-        #  """
-        #  Compute the longitudinal transfer matrix of the drift.
-
-        #  Parameters
-        #  ----------
-        #  gamma: float
-            #  Lorentz factor of the particle.
-
-        #  Returns
-        #  -------
-        #  R_zz: np.array
-            #  Transfer longitudinal sub-matrix.
-        #  """
-        #  R_zz = transfer_matrices.z_drift(Accelerator.L_m, gamma)
-        #  return R_zz
+    Accelerator.z_transfer_func[i] = transfer_matrices.z_drift
 
 
 def add_quad(Accelerator, line, i):
@@ -86,22 +71,7 @@ def add_quad(Accelerator, line, i):
     except IndexError:
         pass
 
-    #  def transfer_matrix_z(Accelerator, gamma):
-        #  """
-        #  Compute the longitudinal transfer matrix of the quadrupole.
-
-        #  Parameters
-        #  ----------
-        #  gamma: float
-            #  Lorentz factor of the particle.
-
-        #  Returns
-        #  -------
-        #  R_zz: np.array
-            #  Transfer longitudinal sub-matrix.
-        #  """
-        #  R_zz = transfer_matrices.z_drift(Accelerator.L_m, gamma)
-        #  return R_zz
+    Accelerator.z_transfer_func[i] = transfer_matrices.z_drift
 
 
 def add_solenoid(Accelerator, line, i):
@@ -121,22 +91,7 @@ def add_solenoid(Accelerator, line, i):
     Accelerator.B[i] = float(line[2])
     Accelerator.R[i] = float(line[3])
 
-    #  def transfer_matrix_z(Accelerator, gamma):
-        #  """
-        #  Compute the longitudinal transfer matrix of the solenoid.
-
-        #  Parameters
-        #  ----------
-        #  gamma: float
-            #  Lorentz factor of the particle.
-
-        #  Returns
-        #  -------
-        #  R_zz: np.array
-            #  Transfer longitudinal sub-matrix.
-        #  """
-        #  R_zz = transfer_matrices.z_drift(Accelerator.L_m, gamma)
-        #  return R_zz
+    Accelerator.z_transfer_func[i] = transfer_matrices.z_drift
 
 
 def add_field_map(Accelerator, line, i, TraceWin_dat_filename, f_MHz):
@@ -199,6 +154,8 @@ def add_field_map(Accelerator, line, i, TraceWin_dat_filename, f_MHz):
                                    Accelerator.geom[i],
                                    Accelerator.K_a[i],
                                    Accelerator.FileName[i])
+
+    Accelerator.z_transfer_func[i] = transfer_matrices.dummy
 
 
 def select_and_load_field_map_file(TraceWin_dat_filename, geom, K_a, FileName):
@@ -298,39 +255,3 @@ def check_geom(geom, K_a):
     extension = ".edz"
     import_function = helper.load_electric_field_1D
     return extension, import_function
-
-
-#  def add_space_charge_comp(Accelerator):
-    #  """Add a space charge compensation to Accelerator object."""
-
-    #  def __init__(Accelerator, line, i):
-        #  """Add a space charge compensator to structure."""
-        #  super().__init__(line, i)
-
-        #  # First, check validity of input
-        #  if(n_attributes != 1):
-            #  raise IOError(
-                #  'Wrong number of arguments for SPACE_CHARGE_COMP element '
-                #  + 'at position ' + str(i))
-
-        #  Accelerator.k = float(line[1])
-        #  # TODO:
-        #  msg = "SPACE_CHARGE_COMP has no effect on the beam current: "
-        #  helper.printc(msg, "info", Accelerator.resume)
-
-    #  def transfer_matrix_z(Accelerator, gamma):
-        #  """
-        #  Compute the longitudinal transfer matrix of the space charge comp.
-
-        #  Parameters
-        #  ----------
-        #  gamma: float
-            #  Lorentz factor of the particle.
-
-        #  Returns
-        #  -------
-        #  R_zz: np.array
-            #  Transfer longitudinal sub-matrix.
-        #  """
-        #  R_zz = transfer_matrices.not_an_element()
-        #  return R_zz
