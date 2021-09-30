@@ -136,10 +136,7 @@ for i in range(idx_max):
     M_out = z_drift(.5 * step, gamma_out)
 
     # Compute M_in * M_mid * M_out * M_t
-    Mt = np.matmul(Mt,
-                   np.matmul(M_out,
-                             np.matmul(M_mid,
-                                       M_in)))
+    Mt = np.matmul(np.matmul(np.matmul(M_in, M_mid), M_out), Mt)
 
     # Next step
     z += step
