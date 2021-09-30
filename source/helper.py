@@ -81,3 +81,15 @@ def load_electric_field_1D(path):
             i += 1
 
     return nz, zmax, Norm, Fz
+
+
+def v_to_MeV(v, m_over_q):
+    """Convert m/s to MeV."""
+    E_eV = 0.5 * m_over_q * v**2
+    return E_eV * 1e-6
+
+
+def MeV_to_v(E_MeV, q_over_m):
+    """Convert MeV to m/s."""
+    v = np.sqrt(2. * q_over_m * 1e6 * E_MeV)
+    return v

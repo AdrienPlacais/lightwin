@@ -12,6 +12,9 @@ from elements import select_and_load_field_map_file
 from essais import electric_field
 from scipy.interpolate import interp1d
 from transfer_matrices import z_drift
+from helper import MeV_to_v, v_to_MeV
+
+plt.rc('axes.formatter', useoffset=False)
 
 # =============================================================================
 # Physical constants
@@ -21,6 +24,8 @@ m_MeV = 938.27202900
 m_kg = 1.672649e-27
 q_adim = 1.
 q_C = 1.602e-19
+q_over_m = q_C / m_kg
+m_over_q = m_kg / q_C
 
 debug_plot = True
 
@@ -49,14 +54,20 @@ k = 1.68927 * 1.000092819734090     # LINAC.k_e[36] * ?
 nz, zmax, Norm, Fz_array = select_and_load_field_map_file(
     '/home/placais/TraceWin/work_field_map/work_field_map.dat',
     100., 0.0, 'Simple_Spoke_1D')
-z_array = np.linspace(0., zmax, nz + 1)         # z cav local coordinates
-Fz_func = interp1d(z_array, 1.68927 * Fz_array)           # interpolate field
+
+z_cavity_array = np.linspace(0., zmax, nz + 1)      # z cav local coordinates
+Fz_func = interp1d(z_cavity_array, 1.68927 * Fz_array)    # interpolate field
 
 cavity_field = electric_field(Norm, Fz_func, omega_0, phi_RF)
 
-dz = z_array[1] - z_array[0]
+dz = z_cavity_array[1] - z_cavity_array[0]
 dE_dz_array = np.diff(1.68927 * Fz_array) / dz
-dE_dz_func = interp1d((z_array[:-1] + z_array[1:]) * 0.5, dE_dz_array)
+# Interpolate dE/dz on the middle of every cell
+dE_dz_func = interp1d((z_cavity_array[:-1] + z_cavity_array[1:]) * 0.5,
+                      dE_dz_array,
+                      fill_value='extrapolate')
+# We use fill_value=extrapolate to define the function on [0, .5*dz] and
+# [zmax-.5*dz, zmax].
 
 # =============================================================================
 # Simulation parameters
@@ -83,7 +94,7 @@ E_i = 0.
 
 t = step / (2. * beta_0 * c)
 
-z_array = [0.]
+z_pos_array = [0.]
 energy_array = [E_0_MeV]
 beta_array = [beta_0]
 gamma_array = [gamma_0]
@@ -102,8 +113,7 @@ for i in range(idx_max):
     # Energy and gamma at the exit of current cell
     E_out_MeV = q_adim * Fz_func(z) * np.cos(phi_RF) * step + E_in_MeV
     gamma_out = gamma_in + q_adim * Fz_func(z) * np.cos(phi_RF) * step / m_MeV
-    print(gamma_in, gamma_out)
-    
+
     # Synchronous gamma
     gamma_s = (gamma_out + gamma_in) * .5
     beta_s = np.sqrt(1. - 1. / gamma_s**2)
@@ -135,7 +145,7 @@ for i in range(idx_max):
     phi = omega_0 * t
 
     # Save data
-    z_array.append(z)
+    z_pos_array.append(z)
     energy_array.append(E_out_MeV)
     beta_array.append(beta_out)   # TODO: check this!
     gamma_array.append(gamma_out)     # TODO: check this!
@@ -143,17 +153,23 @@ for i in range(idx_max):
 # =============================================================================
 # End of loop
 # =============================================================================
-z_array = np.array(z_array)
+z_pos_array = np.array(z_pos_array)
 energy_array = np.array(energy_array)
 beta_array = np.array(beta_array)
 gamma_array = np.array(gamma_array)
 
-Mt_TW = np.array(([0.90134141, 0.38549457],
-                  [-0.34179967, 0.95212012]))
+Mt_TW = np.array(([0.90142688, 0.38549366],
+                  [-0.34169225, 0.95204762]))
+E_MeV_TW = 19.173416
+
+print('Difference between transfer matrices:')
+print(Mt - Mt_TW)
+print('Difference between out energies (MeV):')
+print(energy_array[-1] - E_MeV_TW)
 
 if(debug_plot):
-    if(not plt.fignum_exists((11))):
-        fig = plt.figure(11)
+    if(not plt.fignum_exists((10))):
+        fig = plt.figure(10)
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
 
@@ -161,13 +177,13 @@ if(debug_plot):
         fig = plt.figure(10)
         ax1, ax2 = fig.get_axes()
 
-    ax1.plot(z_array, energy_array)
+    ax1.plot(z_pos_array*1e3, energy_array, label='Fred')
     ax1.set_ylabel('Energy [MeV]')
     ax1.grid(True)
+    ax1.legend()
 
     # ax2.plot(t_z, z*1e3, label=phi_0)
     ax2.set_ylabel('Position [mm]')
     ax2.set_xlabel('Time [ns]')
     ax2.grid(True)
-    ax2.legend()
     fig.show()

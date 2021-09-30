@@ -11,6 +11,9 @@ from elements import select_and_load_field_map_file
 from scipy.interpolate import interp1d
 from scipy.integrate import quad
 import matplotlib.pyplot as plt
+from helper import MeV_to_v, v_to_MeV
+
+plt.rc('axes.formatter', useoffset=False)
 
 # =============================================================================
 # Physical constants
@@ -123,7 +126,7 @@ def compute_acceleration_with_PIC(elec_f, v_0, dt, z_0=0., t_0=0.):
     beta = v / c
 
     if(debug_plot):
-        E_MeV = (0.5 * m_over_q * v**2)*1e-6
+        E_MeV = v_to_MeV(v, m_over_q)
 
         t_z = np.linspace(0., i * dt, i) * 1e9
         t_v = np.linspace(-.5 * dt, t_z[-1] - 0.5 * dt, i) * 1e9
@@ -137,15 +140,17 @@ def compute_acceleration_with_PIC(elec_f, v_0, dt, z_0=0., t_0=0.):
             fig = plt.figure(10)
             ax1, ax2 = fig.get_axes()
 
-        ax1.plot(t_v, E_MeV)
-        ax1.set_ylabel('Energy [MeV]')
-        ax1.grid(True)
+        # ax1.plot(t_v, E_MeV, label='leapfrog')
+        # ax1.set_ylabel('Energy [MeV]')
+        # ax2.plot(t_z, z*1e3, label='leapfrog')
+        # ax2.set_ylabel('Position [mm]')
 
-        ax2.plot(t_z, z*1e3, label=phi_0)
-        ax2.set_ylabel('Position [mm]')
-        ax2.set_xlabel('Time [ns]')
+        ax1.plot(z*1e3, E_MeV, label='leapfrog')
+        ax1.set_ylabel('Energy [MeV]')
+        ax2.set_xlabel('Position [mm]')
+
+        ax1.grid(True)
         ax2.grid(True)
-        ax2.legend()
         fig.show()
 
     return beta
@@ -169,7 +174,7 @@ Fz_func = interp1d(z_array, Fz_array)           # interpolate field
 phi_0 = np.deg2rad(142.089)     # LINAC.theta_i[36]
 t_0 = 0.
 E_MeV = 18.793905
-v_0 = np.sqrt(2. * E_MeV * 1e6 * q / m)
+v_0 = MeV_to_v(E_MeV, q_over_m)
 dt = 1e-12
 t = 0.
 z = [0.]
@@ -180,3 +185,8 @@ cavity_field = electric_field(Norm * 1.68927, Fz_func, omega_0, phi_0)
 
 beta = compute_acceleration_with_PIC(cavity_field, v_0, dt)
 gamma = 1. / np.sqrt(1. - beta**2)
+
+E_out_MeV = 1e-6 * 0.5 * m_over_q * (beta[-1] * c)**2
+E_MeV_TW = 19.173416
+print('Difference between out energies (MeV):')
+print(E_out_MeV - E_MeV_TW)

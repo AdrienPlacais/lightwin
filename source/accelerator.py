@@ -37,7 +37,7 @@ class Accelerator():
         f_MHz: float
             Bunch frequency in MHz.
         """
-        self.n_elements = 40
+        self.n_elements = 41
         # TODO: handle cases were there the number of elements in the line
         # is different from 5000
 
