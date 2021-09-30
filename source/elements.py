@@ -150,12 +150,16 @@ def add_field_map(Accelerator, line, i, TraceWin_dat_filename, f_MHz):
     except IndexError:
         pass
 
-    select_and_load_field_map_file(Accelerator.TraceWin_dat_filename,
-                                   Accelerator.geom[i],
-                                   Accelerator.K_a[i],
-                                   Accelerator.FileName[i])
-
     Accelerator.z_transfer_func[i] = transfer_matrices.dummy
+
+    nz, zmax, Norm, Fz_array = select_and_load_field_map_file(
+        Accelerator.TraceWin_dat_filename,
+        Accelerator.geom[i],
+        Accelerator.K_a[i],
+        Accelerator.FileName[i])
+
+    # Calculate synchronous phase
+    omega_0 = 2. * np.pi * Accelerator.f_MHz[i]     # Pulsation
 
 
 def select_and_load_field_map_file(TraceWin_dat_filename, geom, K_a, FileName):
@@ -203,23 +207,7 @@ def select_and_load_field_map_file(TraceWin_dat_filename, geom, K_a, FileName):
 
     # Load the field map
     nz, zmax, Norm, Fz = import_function(path)
-    # Make it a function:
-    #  z_imported = np.linspace(0., Accelerator.zmax, Accelerator.nz + 1)
-    #  Accelerator.E_z0 = interp1d(z_imported, Accelerator.Fz)
-
-    # Compute cavity tension
-    # omega_0 = 2. * np.pi * Accelerator.element_f_MHz
-    # beta = np.sqrt(1. - Accelerator.gamma())
-    # V_cav = np.abs(
-    #     quad(
-    #         func=lambda z:
-    #             Accelerator.E_z0 * np.exp(1j * omega_0 * z / (beta * c)),
-    #         a=0, b=Accelerator.zmax,
-    #         )
-    #     )
-
-    if(debug_verbose):
-        print("Field map loaded.")
+    return nz, zmax, Norm, Fz
 
 
 def check_geom(geom, K_a):
