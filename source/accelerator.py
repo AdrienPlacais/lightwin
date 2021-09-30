@@ -9,13 +9,7 @@ import numpy as np
 import elements as elem
 import helper
 import transfer_matrices
-
-
-# =============================================================================
-# Physical constants
-# =============================================================================
-c = 2.99792458e8
-m_proton = 938.272  # In MeV/c**2
+from constants import c, m_MeV
 
 
 class Accelerator():
@@ -49,10 +43,11 @@ class Accelerator():
 
         # Array containing gamma at each in/out element
         self.gamma = np.full((self.n_elements + 1), np.NaN)
-        self.gamma[0] = 1. + E_MeV / m_proton
+        self.gamma[0] = 1. + E_MeV / m_MeV
 
         # Common to every element
         self.elements_nature = np.full((self.n_elements), np.NaN, dtype=object)
+        self.elements_resume = np.full((self.n_elements), np.NaN, dtype=object)
         self.z_transfer_func = np.full((self.n_elements), np.NaN, dtype=object)
 
         # Elements length, apertures
@@ -86,6 +81,11 @@ class Accelerator():
         self.K_a = np.full((self.n_elements), np.NaN)
         self.FileName = np.full((self.n_elements), np.NaN, dtype=object)
         self.P = np.full((self.n_elements), np.NaN)
+        # Import
+        self.nz = np.full((self.n_elements), np.NaN, dtype=int)
+        self.zmax = np.full((self.n_elements), np.NaN)
+        self.Norm = np.full((self.n_elements), np.NaN)
+        self.Fz_array = np.full((self.n_elements), np.NaN, dtype=object)
 
         # Specific to SPACE_CHARGE_COMP
         self.k = np.full((self.n_elements), np.NaN)
@@ -186,7 +186,7 @@ class Accelerator():
             idx_max = self.n_elements
 
         for i in range(idx_min, idx_max):
-            print(self.elements_nature[i])
+            print(self.elements_resume[i])
 
     def compute_transfer_matrix_and_gamma(self, idx_min=0, idx_max=0):
         """
@@ -206,15 +206,31 @@ class Accelerator():
         """
         # TODO: handle acceleration of particle
         # TODO: precompute gamma at each element entrance. Required in order
-        # to compute transfer natrics of a subset of elements.
+        # to compute transfer matrice of a subset of elements.
         if(idx_max == 0):
             idx_max = self.n_elements
 
         R_zz_tot = np.eye(2, 2)
 
         for i in range(idx_min, idx_max):
-            R_zz_next = self.z_transfer_func[i](self.L_m[i], self.gamma[i])
+            if(self.elements_nature[i] == 'FIELD_MAP'):
+                # FIXME harmonize with other elements
+                # TODO Check this Ncell truc.
+                R_zz_next, self.E_MeV[i+1:] = transfer_matrices.z_field_map_electric_field(
+                        self.E_MeV[i], self.f_MHz[i], self.Fz_array[i],
+                        self.k_e[i], self.theta_i[i], 2, self.nz[i],
+                        self.zmax[i])
+                beta = np.sqrt((1. + self.E_MeV[i+1] / m_MeV)**2 - 1.) / (1. +
+                                                                          self.E_MeV[i+1] / m_MeV)
+                # TODO Functions MeV to beta, beta to MeV, MeV to gamma, etc
+                # TODO Even better: a setter to update all these arrays
+                # together.
+                self.gamma[i+1] = 1. / np.sqrt(1. - beta**2)
+
+            else:
+                R_zz_next = self.z_transfer_func[i](self.L_m[i], self.gamma[i])
+                self.gamma[i+1] = self.gamma[i]
+
             R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
-            self.gamma[i+1] = self.gamma[i]  # TODO check
 
         return R_zz_tot

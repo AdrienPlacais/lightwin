@@ -9,14 +9,9 @@ import os
 import numpy as np
 import helper
 import transfer_matrices
-from scipy.interpolate import interp1d
-from scipy.integrate import quad
 
 
-c = 2.99792458e8
-
-
-def add_drift(Accelerator, line, i):
+def add_drift(accelerator, line, i):
     """Add a linear drift to the Accelerator object."""
     n_attributes = len(line) - 1
 
@@ -28,22 +23,23 @@ def add_drift(Accelerator, line, i):
             'Wrong number of arguments for DRIFT element at position '
             + str(i))
 
-    Accelerator.elements_nature[i] = str(i) + ' \t' + '\t'.join(line)
-    Accelerator.L_mm[i] = float(line[1])
-    Accelerator.L_m[i] = Accelerator.L_mm[i] * 1e-3
-    Accelerator.R[i] = float(line[2])
+    accelerator.elements_resume[i] = str(i) + ' \t' + '\t'.join(line)
+    accelerator.elements_nature[i] = 'DRIFT'
+    accelerator.L_mm[i] = float(line[1])
+    accelerator.L_m[i] = accelerator.L_mm[i] * 1e-3
+    accelerator.R[i] = float(line[2])
 
     try:
-        Accelerator.R_y[i] = float(line[3])
-        Accelerator.R_x_shift[i] = float(line[4])
-        Accelerator.R_y_shift[i] = float(line[5])
+        accelerator.R_y[i] = float(line[3])
+        accelerator.R_x_shift[i] = float(line[4])
+        accelerator.R_y_shift[i] = float(line[5])
     except IndexError:
         pass
 
-    Accelerator.z_transfer_func[i] = transfer_matrices.z_drift
+    accelerator.z_transfer_func[i] = transfer_matrices.z_drift
 
 
-def add_quad(Accelerator, line, i):
+def add_quad(accelerator, line, i):
     """Add a quadrupole to the Accelerator object."""
     n_attributes = len(line) - 1
 
@@ -54,27 +50,28 @@ def add_quad(Accelerator, line, i):
             'Wrong number of arguments for QUAD element at position '
             + str(i))
 
-    Accelerator.elements_nature[i] = str(i) + ' \t' + '\t'.join(line)
+    accelerator.elements_resume[i] = str(i) + ' \t' + '\t'.join(line)
+    accelerator.elements_nature[i] = 'QUAD'
 
-    Accelerator.L_mm[i] = float(line[1])
-    Accelerator.L_m[i] = Accelerator.L_mm[i] * 1e-3
-    Accelerator.G[i] = float(line[2])
-    Accelerator.R[i] = float(line[3])
+    accelerator.L_mm[i] = float(line[1])
+    accelerator.L_m[i] = accelerator.L_mm[i] * 1e-3
+    accelerator.G[i] = float(line[2])
+    accelerator.R[i] = float(line[3])
 
     try:
-        Accelerator.Theta[i] = float(line[4])
-        Accelerator.G3_over_u3[i] = float(line[5])
-        Accelerator.G4_over_u4[i] = float(line[6])
-        Accelerator.G5_over_u5[i] = float(line[7])
-        Accelerator.G6_over_u6[i] = float(line[8])
-        Accelerator.GFR[i] = float(line[9])
+        accelerator.Theta[i] = float(line[4])
+        accelerator.G3_over_u3[i] = float(line[5])
+        accelerator.G4_over_u4[i] = float(line[6])
+        accelerator.G5_over_u5[i] = float(line[7])
+        accelerator.G6_over_u6[i] = float(line[8])
+        accelerator.GFR[i] = float(line[9])
     except IndexError:
         pass
 
-    Accelerator.z_transfer_func[i] = transfer_matrices.z_drift
+    accelerator.z_transfer_func[i] = transfer_matrices.z_drift
 
 
-def add_solenoid(Accelerator, line, i):
+def add_solenoid(accelerator, line, i):
     """Add a solenoid to the Accelerator object."""
     n_attributes = len(line) - 1
 
@@ -84,17 +81,18 @@ def add_solenoid(Accelerator, line, i):
             'Wrong number of arguments for SOLENOID element at position '
             + str(i))
 
-    Accelerator.elements_nature[i] = str(i) + ' \t' + '\t'.join(line)
+    accelerator.elements_resume[i] = str(i) + ' \t' + '\t'.join(line)
+    accelerator.elements_nature[i] = 'SOLENOID'
 
-    Accelerator.L_mm[i] = float(line[1])
-    Accelerator.L_m[i] = Accelerator.L_mm[i] * 1e-3
-    Accelerator.B[i] = float(line[2])
-    Accelerator.R[i] = float(line[3])
+    accelerator.L_mm[i] = float(line[1])
+    accelerator.L_m[i] = accelerator.L_mm[i] * 1e-3
+    accelerator.B[i] = float(line[2])
+    accelerator.R[i] = float(line[3])
 
-    Accelerator.z_transfer_func[i] = transfer_matrices.z_drift
+    accelerator.z_transfer_func[i] = transfer_matrices.z_drift
 
 
-def add_field_map(Accelerator, line, i, TraceWin_dat_filename, f_MHz):
+def add_field_map(accelerator, line, i, TraceWin_dat_filename, f_MHz):
     """
     Add a field map to the Accelerator object.
 
@@ -125,41 +123,46 @@ def add_field_map(Accelerator, line, i, TraceWin_dat_filename, f_MHz):
     n_attributes = len(line) - 1
 
     # FIXME
-    Accelerator.TraceWin_dat_filename = TraceWin_dat_filename
+    accelerator.TraceWin_dat_filename = TraceWin_dat_filename
 
     if((n_attributes < 9) or (n_attributes > 10)):
         raise IOError(
             'Wrong number of arguments for FIELD_MAP element at position '
             + str(i))
 
-    Accelerator.elements_nature[i] = str(i) + ' \t' + '\t'.join(line)
+    accelerator.elements_resume[i] = str(i) + ' \t' + '\t'.join(line)
+    accelerator.elements_nature[i] = 'FIELD_MAP'
 
-    Accelerator.geom[i] = int(line[1])
-    Accelerator.L_mm[i] = float(line[2])
-    Accelerator.L_m[i] = Accelerator.L_mm[i] * 1e-3
-    Accelerator.theta_i[i] = float(line[3])
-    Accelerator.R[i] = float(line[4])
-    Accelerator.k_b[i] = float(line[5])
-    Accelerator.k_e[i] = float(line[6])
-    Accelerator.K_i[i] = float(line[7])
-    Accelerator.K_a[i] = int(line[8])     # FIXME according to doc, may also be float
-    Accelerator.FileName[i] = str(line[9])
+    accelerator.geom[i] = int(line[1])
+    accelerator.L_mm[i] = float(line[2])
+    accelerator.L_m[i] = accelerator.L_mm[i] * 1e-3
+    accelerator.theta_i[i] = float(line[3])
+    accelerator.R[i] = float(line[4])
+    accelerator.k_b[i] = float(line[5])
+    accelerator.k_e[i] = float(line[6])
+    accelerator.K_i[i] = float(line[7])
+    accelerator.K_a[i] = int(line[8])     # FIXME according to doc, may also be float
+    accelerator.FileName[i] = str(line[9])
 
     try:
-        Accelerator.P[i] = int(line[10])
+        accelerator.P[i] = int(line[10])
     except IndexError:
         pass
 
-    Accelerator.z_transfer_func[i] = transfer_matrices.dummy
+    accelerator.z_transfer_func[i] = transfer_matrices.dummy
 
     nz, zmax, Norm, Fz_array = select_and_load_field_map_file(
-        Accelerator.TraceWin_dat_filename,
-        Accelerator.geom[i],
-        Accelerator.K_a[i],
-        Accelerator.FileName[i])
+        accelerator.TraceWin_dat_filename,
+        accelerator.geom[i],
+        accelerator.K_a[i],
+        accelerator.FileName[i])
 
-    # Calculate synchronous phase
-    omega_0 = 2. * np.pi * Accelerator.f_MHz[i]     # Pulsation
+    accelerator.nz[i] = nz
+    accelerator.zmax[i] = zmax
+    accelerator.Norm[i] = Norm
+    accelerator.Fz_array[i] = Fz_array
+    
+    return 
 
 
 def select_and_load_field_map_file(TraceWin_dat_filename, geom, K_a, FileName):
@@ -190,13 +193,13 @@ def select_and_load_field_map_file(TraceWin_dat_filename, geom, K_a, FileName):
     if(os.path.exists(FileName)):
         path = FileName
         if(debug_verbose):
-            #  Accelerator.show_element_info()  # FIXME
+            #  accelerator.show_element_info()  # FIXME
             print("Loading field map with relative filepath...")
 
     elif(os.path.exists(absolute_path)):
         path = absolute_path
         if(debug_verbose):
-            #  Accelerator.show_element_info()  # FIXME
+            #  accelerator.show_element_info()  # FIXME
             print("Loading field map with absolute filepath...")
 
     else:

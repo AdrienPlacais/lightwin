@@ -43,4 +43,3 @@ LINAC.create_struture_from_dat_file(filepath)
 LINAC.show_elements_info(0, 40)
 R_zz_tot = LINAC.compute_transfer_matrix_and_gamma(idx_min=0, idx_max=6)
 print("Transfer matrix:\n", R_zz_tot)
-

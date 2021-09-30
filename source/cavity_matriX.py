@@ -9,7 +9,6 @@ Created on Wed Sep 29 14:10:33 2021
 import numpy as np
 import matplotlib.pyplot as plt
 from elements import select_and_load_field_map_file
-from essais import electric_field
 from scipy.interpolate import interp1d
 from transfer_matrices import z_drift
 from helper import MeV_to_v, v_to_MeV
@@ -35,7 +34,7 @@ debug_plot = True
 f_Hz = 352.2e6
 omega_0 = 2. * np.pi * f_Hz
 
-N_cell = 500
+N_cell = 2
 
 phi_RG_deg = 142.089    # LINAC.theta_i[36]
 phi_RF = np.deg2rad(phi_RG_deg)
@@ -48,7 +47,7 @@ beta_0 = np.sqrt((1. + E_0_MeV / m_MeV)**2 - 1.) / (1. + E_0_MeV / m_MeV)
 gamma_0 = 1. / np.sqrt(1. - beta_0**2)
 
 # Coef on the field
-k = 1.68927 * 1.000092819734090     # LINAC.k_e[36] * ?
+k = 1.68927  # * 1.000092819734090     # LINAC.k_e[36] * ?
 # Load electric field
 nz, zmax, Norm, Fz_array = select_and_load_field_map_file(
     '/home/placais/TraceWin/work_field_map/work_field_map.dat',
@@ -57,8 +56,6 @@ Fz_array *= k
 
 z_cavity_array = np.linspace(0., zmax, nz + 1)      # z cav local coordinates
 Fz_func = interp1d(z_cavity_array, Fz_array)    # interpolate field
-
-cavity_field = electric_field(Norm, Fz_func, omega_0, phi_RF)
 
 dz = z_cavity_array[1] - z_cavity_array[0]
 dE_dz_array = np.diff(Fz_array) / dz
@@ -73,7 +70,7 @@ dE_dz_func = interp1d((z_cavity_array[:-1] + z_cavity_array[1:]) * 0.5,
 # Simulation parameters
 # =============================================================================
 # Initial step size calculated with betalambda
-factor = 2.
+factor = 100.
 lambda_RF = c / f_Hz
 # Spatial step
 step = beta_0 * lambda_RF / (2. * N_cell * factor)

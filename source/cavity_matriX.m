@@ -16,7 +16,7 @@ tic
 c=299792458;
 mp = 938.27202900; % masse proton en Mev
 q=1;
-Ncell=2;
+Ncell=2;    %AP: could be increased, eg to 50
 
 % frequence RF
 f= 352.2*10^6;
@@ -46,7 +46,7 @@ step = zmat(10)-zmat(9);
 dE_dz = diff(Ez)/step;
 clear step
 Li=length(dE_dz);
-dE_dz(Li+1,1)=dE_dz(Li,1);
+dE_dz(Li+1,1)=dE_dz(Li,1);    %AP: dE_dz should be evaluated at the middle of the cells
 clear Li
 
 % *****************************
@@ -154,12 +154,12 @@ Mt = SLASH*AXL*DUFF *Mt;
  phi = phi+(Pas*w0)/(betas*c);
  Z= horzcat(Z,z) ;
  Ener=horzcat(Ener,Wc);
- Betas = horzcat(Betas, beta);   %AP: beta not updated in loop?
+ Betas = horzcat(Betas, beta);   %AP: beta not updated in loop!
 
 end
 %Energie de sortie de lasynchrone 
 Wcout_Synch = Wc;
-Beta_synch = beta;   %AP: beta not updated in loop?
+Beta_synch = beta;   %AP: beta not updated in loop!
 Gamma_synch = 1/sqrt(1-Beta_synch^2);
 %Phase synchrone
 Phase_synch =phis
