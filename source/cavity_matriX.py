@@ -35,7 +35,7 @@ debug_plot = True
 f_Hz = 352.2e6
 omega_0 = 2. * np.pi * f_Hz
 
-N_cell = 50
+N_cell = 500
 
 phi_RG_deg = 142.089    # LINAC.theta_i[36]
 phi_RF = np.deg2rad(phi_RG_deg)
@@ -73,7 +73,7 @@ dE_dz_func = interp1d((z_cavity_array[:-1] + z_cavity_array[1:]) * 0.5,
 # Simulation parameters
 # =============================================================================
 # Initial step size calculated with betalambda
-factor = 50.
+factor = 2.
 lambda_RF = c / f_Hz
 # Spatial step
 step = beta_0 * lambda_RF / (2. * N_cell * factor)
@@ -144,7 +144,6 @@ for i in range(idx_max):
     # Next step
     z += step
     t += step / (beta_s * c)
-    # phi_RF = omega_0 * t
     phi_RF += step * omega_0 / (beta_s * c)
 
     # Save data
@@ -164,13 +163,32 @@ gamma_array = np.array(gamma_array)
 Mt_TW = np.array(([0.90142688, 0.38549366],
                   [-0.34169225, 0.95204762]))
 E_MeV_TW = 19.173416
-phi_s_TW = -41.583201
+phi_s_deg_TW = -41.583201
+V_cav_MV_TW = 0.50737183
 
-print('Difference between transfer matrices:')
-print(Mt - Mt_TW)
-print('Difference between out energies (MeV):')
-print(energy_array[-1] - E_MeV_TW)
-print('Difference between synchronous phases:')
+E_MeV = energy_array[-1]
+err_E = 100. * (E_MeV_TW - E_MeV) / E_MeV_TW
+err_phi_s = 100. * (phi_s_deg_TW - phi_s_deg) / phi_s_deg_TW
+V_cav_MV = np.abs((E_MeV - E_0_MeV) / np.cos(phi_s))
+err_V_cav = 100. * (V_cav_MV_TW - V_cav_MV) / V_cav_MV_TW
+err_Mt = 100. * np.divide(Mt_TW - Mt, Mt_TW)
+
+np.set_printoptions(precision=4)
+print('-----------------------------------------------------')
+print('                 TW          here      Rel. error (%)')
+print('E_out (MeV): ', '{:.6f}'.format(E_MeV_TW), '  ',
+      '{:.6f}'.format(E_MeV), '  ', '{:+.5f}'.format(err_E))
+print('phi_s (deg): ', '{:+.5f}'.format(phi_s_deg_TW), '  ',
+      '{:+.5f}'.format(phi_s_deg), '  ', '{:+.5f}'.format(err_phi_s))
+print('V_cav (MV):   ', '{:.6f}'.format(V_cav_MV_TW), '    ',
+      '{:.6f}'.format(V_cav_MV), ' ', '{:+.5f}'.format(err_V_cav))
+print('-----------------------------------------------------')
+print('MT TW:')
+print(Mt_TW)
+print('MT here:')
+print(Mt)
+print('Matrix of rel. error, element-wise (%):')
+print(err_Mt)
 
 
 if(debug_plot):
