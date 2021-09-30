@@ -35,7 +35,7 @@ comp = beta_init-betaTwin
 gamma_init = 1/sqrt(1-beta_init^2);
 
 % coeff multiplicateur sur le champ
-k=1.68927*1.000092819734090;
+k=1.68927*1.000092819734090;     %AP: where does the second factor comes from?
 %k=2.77692*1.2688;
 
 % import de la carte de champ et calcul de dE/dz

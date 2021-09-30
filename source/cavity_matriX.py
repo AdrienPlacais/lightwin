@@ -35,7 +35,7 @@ debug_plot = True
 f_Hz = 352.2e6
 omega_0 = 2. * np.pi * f_Hz
 
-N_cell = 2
+N_cell = 50
 
 phi_RG_deg = 142.089    # LINAC.theta_i[36]
 phi_RF = np.deg2rad(phi_RG_deg)
@@ -44,24 +44,24 @@ E_0_MeV = 18.793905
 
 # Beta, manually calculated and imported from TW
 beta_TW = 0.1972014
-beta_0 = np.sqrt((1. + E_0_MeV / m_MeV)**2 - 1) / (1. + E_0_MeV / m_MeV)
+beta_0 = np.sqrt((1. + E_0_MeV / m_MeV)**2 - 1.) / (1. + E_0_MeV / m_MeV)
 gamma_0 = 1. / np.sqrt(1. - beta_0**2)
 
 # Coef on the field
 k = 1.68927 * 1.000092819734090     # LINAC.k_e[36] * ?
-
 # Load electric field
 nz, zmax, Norm, Fz_array = select_and_load_field_map_file(
     '/home/placais/TraceWin/work_field_map/work_field_map.dat',
     100., 0.0, 'Simple_Spoke_1D')
+Fz_array *= k
 
 z_cavity_array = np.linspace(0., zmax, nz + 1)      # z cav local coordinates
-Fz_func = interp1d(z_cavity_array, 1.68927 * Fz_array)    # interpolate field
+Fz_func = interp1d(z_cavity_array, Fz_array)    # interpolate field
 
 cavity_field = electric_field(Norm, Fz_func, omega_0, phi_RF)
 
 dz = z_cavity_array[1] - z_cavity_array[0]
-dE_dz_array = np.diff(1.68927 * Fz_array) / dz
+dE_dz_array = np.diff(Fz_array) / dz
 # Interpolate dE/dz on the middle of every cell
 dE_dz_func = interp1d((z_cavity_array[:-1] + z_cavity_array[1:]) * 0.5,
                       dE_dz_array,
@@ -76,7 +76,7 @@ dE_dz_func = interp1d((z_cavity_array[:-1] + z_cavity_array[1:]) * 0.5,
 factor = 50.
 lambda_RF = c / f_Hz
 # Spatial step
-step = beta_0 * lambda_RF / (N_cell * factor)
+step = beta_0 * lambda_RF / (2. * N_cell * factor)
 
 # =============================================================================
 # Compute energy gain and synchronous phase
@@ -107,12 +107,14 @@ for i in range(idx_max):
     gamma_in = gamma_out
 
     # Compute energy gain
-    E_r += q_adim * Fz_func(z) * np.cos(phi_RF)
-    E_i += q_adim * Fz_func(z) * np.sin(phi_RF)
+    E_interp = Fz_func(z)[()]
+    acceleration = q_adim * E_interp * np.cos(phi_RF)
+    E_r += acceleration
+    E_i += q_adim * E_interp * np.sin(phi_RF)
 
     # Energy and gamma at the exit of current cell
-    E_out_MeV = q_adim * Fz_func(z) * np.cos(phi_RF) * step + E_in_MeV
-    gamma_out = gamma_in + q_adim * Fz_func(z) * np.cos(phi_RF) * step / m_MeV
+    E_out_MeV = acceleration * step + E_in_MeV
+    gamma_out = gamma_in + acceleration * step / m_MeV
 
     # Synchronous gamma
     gamma_s = (gamma_out + gamma_in) * .5
@@ -142,7 +144,8 @@ for i in range(idx_max):
     # Next step
     z += step
     t += step / (beta_s * c)
-    phi = omega_0 * t
+    # phi_RF = omega_0 * t
+    phi_RF += step * omega_0 / (beta_s * c)
 
     # Save data
     z_pos_array.append(z)
@@ -161,11 +164,14 @@ gamma_array = np.array(gamma_array)
 Mt_TW = np.array(([0.90142688, 0.38549366],
                   [-0.34169225, 0.95204762]))
 E_MeV_TW = 19.173416
+phi_s_TW = -41.583201
 
 print('Difference between transfer matrices:')
 print(Mt - Mt_TW)
 print('Difference between out energies (MeV):')
 print(energy_array[-1] - E_MeV_TW)
+print('Difference between synchronous phases:')
+
 
 if(debug_plot):
     if(not plt.fignum_exists((10))):
