@@ -12,7 +12,7 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
 import accelerator as acc
-
+import transfer_matrices
 # =============================================================================
 # User inputs
 # =============================================================================
@@ -40,6 +40,15 @@ filepath = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
 # =============================================================================
 LINAC = acc.Accelerator(E_MeV, I_mA, f_MHz)
 LINAC.create_struture_from_dat_file(filepath)
-LINAC.show_elements_info(0, 40)
-R_zz_tot = LINAC.compute_transfer_matrix_and_gamma(idx_min=0, idx_max=6)
+# LINAC.show_elements_info(0, 40)
+R_zz_tot = LINAC.compute_transfer_matrix_and_gamma(idx_min=0, idx_max=39)
 print("Transfer matrix:\n", R_zz_tot)
+print("E = ", LINAC.E_MeV[-1])
+
+# i = 37
+# lala, bu = transfer_matrices.z_field_map_electric_field(
+#                         18.793905, LINAC.f_MHz[i], LINAC.Fz_array[i],
+#                         LINAC.k_e[i], LINAC.theta_i[i], 2, LINAC.nz[i],
+#                         LINAC.zmax[i])
+# print('MT', lala)
+# print('E_out', bu, 'MeV')

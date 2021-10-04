@@ -93,7 +93,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     dz = z_cavity_array[1] - z_cavity_array[0]
 
     Ez_func = interp1d(z_cavity_array, k_e * Fz_array)
-    dE_dz_array = np.diff(Fz_array) / dz
+    dE_dz_array = np.diff(k_e * Fz_array) / dz
 
     # Interpolate dE/dz on the middle of every cell
     dE_dz_func = interp1d((z_cavity_array[:-1] + z_cavity_array[1:]) * 0.5,
@@ -106,7 +106,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # Simulation parameters
     # =========================================================================
     # Initial step size calculated with betalambda
-    factor = 100.
+    factor = 1000.
     lambda_RF = 1e-6 * c / f_MHz
     # Spatial step
     step = beta_0 * lambda_RF / (2. * N_cell * factor)
@@ -194,8 +194,10 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     E_MeV = energy_array[-1]
 
     # TODO: save and/or output V_cav and phi_s
-    # V_cav_MV = np.abs((E_MeV - E_0_MeV) / np.cos(phi_s))
+    V_cav_MV = np.abs((E_MeV - E_0_MeV) / np.cos(phi_s))
     # phi_s_deg = phi_s_deg
+    print('V_cav = ', V_cav_MV, 'MV')
+    print('phi_s = ', phi_s_deg, 'deg')
 
     return R_zz, E_MeV
 

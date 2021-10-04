@@ -161,8 +161,8 @@ def add_field_map(accelerator, line, i, TraceWin_dat_filename, f_MHz):
     accelerator.zmax[i] = zmax
     accelerator.Norm[i] = Norm
     accelerator.Fz_array[i] = Fz_array
-    
-    return 
+
+    return
 
 
 def select_and_load_field_map_file(TraceWin_dat_filename, geom, K_a, FileName):
