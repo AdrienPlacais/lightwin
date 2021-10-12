@@ -11,7 +11,7 @@ from tkinter.filedialog import askopenfilename
 
 import accelerator as acc
 # import transfer_matrices
-from debug import plot_error_on_transfer_matrices_components
+from debug import plot_error_on_transfer_matrices_components, compare_energies
 
 
 # =============================================================================
@@ -41,5 +41,7 @@ filepath = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
 # =============================================================================
 LINAC = acc.Accelerator(E_MeV, I_mA, f_MHz)
 LINAC.create_struture_from_dat_file(filepath)
+LINAC.compute_transfer_matrix_and_gamma()
 
-plot_error_on_transfer_matrices_components(LINAC)
+# plot_error_on_transfer_matrices_components(LINAC)
+compare_energies(LINAC)

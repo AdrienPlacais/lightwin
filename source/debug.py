@@ -70,7 +70,7 @@ def compare_to_TW(R_zz, idx_min, idx_max):
     idx_max: integer
         index.
     """
-    filepath = '/home/placais/LightWin/data/matrix_ref.txt'
+    filepath = '../data/matrix_ref.txt'
     flag_output_errors = False
     R_zz_ref = np.eye(2)
     i = 0
@@ -106,3 +106,50 @@ def compare_to_TW(R_zz, idx_min, idx_max):
         print('==============================================================')
         print(' ')
     return R_zz_comp
+
+
+def compare_energies(LINAC):
+    """
+    Comparison of beam energy with TW data.
+
+    Parameters
+    ----------
+    LINAC: Accelerator object
+        Accelerator under study.
+    """
+    filepath = '../data/energy_ref.txt'
+    elt_array = np.linspace(1, 39, 39, dtype=int)
+    E_MeV_ref = np.full((39), np.NaN)
+
+    i = 0
+    with open(filepath) as file:
+        for line in file:
+            try:
+                current_element = line.split('\t')[0]
+                current_element = int(current_element)
+            except ValueError:
+                continue
+            E_MeV_ref[i] = line.split('\t')[9]
+            i += 1
+
+    error = (E_MeV_ref - LINAC.E_MeV[1:]) / E_MeV_ref * 100.
+
+    if(plt.fignum_exists(21)):
+        fig = plt.figure(21)
+        ax1 = fig.axes[0]
+        ax2 = fig.axes[1]
+    else:
+        fig = plt.figure(21)
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+    ax1.plot(elt_array, LINAC.E_MeV[1:], label='LightWin')
+    ax1.plot(elt_array, E_MeV_ref, label='TraceWin')
+    ax2.plot(elt_array, error)
+    ax1.grid(True)
+    ax2.grid(True)
+    ax2.set_xlabel('Element #')
+    ax1.set_ylabel('Beam energy [MeV]')
+    ax2.set_ylabel('Relative error [%]')
+
+    ax1.legend()
+

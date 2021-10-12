@@ -31,7 +31,7 @@ class Accelerator():
         f_MHz: float
             Bunch frequency in MHz.
         """
-        self.n_elements = 41
+        self.n_elements = 39
         # TODO: handle cases were there the number of elements in the line
         # is different from 5000
 
@@ -231,8 +231,6 @@ class Accelerator():
                 self.gamma[i+1] = 1. / np.sqrt(1. - beta**2)
 
             else:
-                # print(self.L_m[i])
-                # print(self.gamma[i])
                 R_zz_next = self.z_transfer_func[i](self.L_m[i], self.gamma[i])
                 self.gamma[i+1] = self.gamma[i]
 
