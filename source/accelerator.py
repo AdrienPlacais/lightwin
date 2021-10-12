@@ -94,6 +94,7 @@ class Accelerator():
         self.structure = np.empty((self.n_elements), dtype=str)
         self.resume = np.empty((self.n_elements), dtype=str)
         self.transfer_matrix_z = transfer_matrices.dummy
+        self.R_zz = np.full((2, 2, self.n_elements), np.NaN)
 
     def create_struture_from_dat_file(self, filename):
         """
@@ -234,6 +235,7 @@ class Accelerator():
                 R_zz_next = self.z_transfer_func[i](self.L_m[i], self.gamma[i])
                 self.gamma[i+1] = self.gamma[i]
 
+            self.R_zz[:, :, i] = R_zz_next
             R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
 
         return R_zz_tot

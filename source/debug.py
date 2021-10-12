@@ -29,13 +29,15 @@ def plot_error_on_transfer_matrices_components(LINAC):
     LINAC: accelerator object.
         Accelerator under study.
     """
-    n_elts = 6
+    n_elts = LINAC.n_elements
     err = np.full((2, 2, n_elts), np.NaN)
     idx_min = 0
     i = 0
+    R_zz_tot = np.eye(2)
+
     for idx_max in range(idx_min + 1, idx_min + 1 + n_elts):
-        R_zz_tot = LINAC.compute_transfer_matrix_and_gamma(idx_min=idx_min,
-                                                           idx_max=idx_max)
+        R_zz_next = LINAC.R_zz[:, :, idx_max - 1]
+        R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
         err[:, :, i] = compare_to_TW(R_zz_tot, idx_min=idx_min,
                                      idx_max=idx_max)
         i += 1
@@ -152,4 +154,3 @@ def compare_energies(LINAC):
     ax2.set_ylabel('Relative error [%]')
 
     ax1.legend()
-
