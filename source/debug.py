@@ -30,60 +30,75 @@ def plot_error_on_transfer_matrices_components(LINAC):
         Accelerator under study.
     """
     n_elts = LINAC.n_elements
-    err = np.full((2, 2, n_elts), np.NaN)
-    idx_min = 0
-    i = 0
+    # In this array we store the errors of individual elements
+    err_single = np.full((2, 2, n_elts), np.NaN)
+    # Here we store the error of the line
+    err_tot = np.full((2, 2, n_elts), np.NaN)
     R_zz_tot = np.eye(2)
+    R_zz_tot_ref = np.eye(2)
 
-    for idx_max in range(idx_min + 1, idx_min + 1 + n_elts):
-        R_zz_next = LINAC.R_zz[:, :, idx_max - 1]
+    for i in range(n_elts):
+        R_zz_next = LINAC.R_zz[:, :, i]
         R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
-        err[:, :, i] = compare_to_TW(R_zz_tot, idx_min=idx_min,
-                                     idx_max=idx_max)
-        i += 1
+
+        R_zz_single_ref = import_transfer_matrix_single(i)
+        R_zz_tot_ref = np.matmul(R_zz_tot_ref, R_zz_single_ref)
+
+        err_single[:, :, i] = 100. * np.divide(
+            (R_zz_single_ref - R_zz_next),
+            R_zz_single_ref)
+
+        err_tot[:, :, i] = 100. * np.divide((R_zz_tot_ref - R_zz_tot),
+                                            R_zz_tot_ref)
 
     if(plt.fignum_exists(20)):
         fig = plt.figure(20)
-        ax = fig.axes[0]
+        ax1 = fig.axes[0]
+        ax2 = fig.axes[1]
     else:
         fig = plt.figure(20)
-        ax = fig.add_subplot(111)
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+
     elt_array = np.linspace(1, n_elts, n_elts, dtype=int)
-    ax.plot(elt_array, err[0, 0, :], label=r'$R_{11}$')
-    ax.plot(elt_array, err[0, 1, :], label=r'$R_{12}$')
-    ax.plot(elt_array, err[1, 0, :], label=r'$R_{21}$')
-    ax.plot(elt_array, err[1, 1, :], label=r'$R_{22}$')
-    ax.legend()
-    ax.grid(True)
-    ax.set_xlabel('Element #')
-    ax.set_ylabel('Error [%]')
+    ax1.plot(elt_array, err_single[0, 0, :], label=r'$R_{11}$')
+    ax1.plot(elt_array, err_single[0, 1, :], label=r'$R_{12}$')
+    ax1.plot(elt_array, err_single[1, 0, :], label=r'$R_{21}$')
+    ax1.plot(elt_array, err_single[1, 1, :], label=r'$R_{22}$')
+    ax2.plot(elt_array, err_tot[0, 0, :])
+    ax2.plot(elt_array, err_tot[0, 1, :])
+    ax2.plot(elt_array, err_tot[1, 0, :])
+    ax2.plot(elt_array, err_tot[1, 1, :])
+    ax1.legend()
+    ax1.grid(True)
+    ax2.grid(True)
+    ax1.set_ylabel('Error on single element [%]')
+    ax2.set_ylabel('Error from line start [%]')
+    ax2.set_xlabel('Element #')
 
 
-def compare_to_TW(R_zz, idx_min, idx_max):
+def import_transfer_matrix_single(idx_element):
     """
-    Compare the transfer matrix calculated by LightWin with TraceWin.
+    Import the i-th element transfer matrix.
 
     Parameters
     ----------
-    R_zz: np.array
-        Transfer matrix between elements idx_min and idx_max.
-    idx_min: integer
-        Min index.
-    idx_max: integer
-        index.
+    idx_element: integer
+        Index of the desired transfer matrix.
     """
     filepath = '../data/matrix_ref.txt'
-    flag_output_errors = False
-    R_zz_ref = np.eye(2)
+    flag_output = False
     i = 0
+    R_zz_single_ref = np.full((2, 2), np.NaN)
 
     with open(filepath) as file:
         for line in file:
             elt_number = i // 8
-            if(elt_number < idx_min):
+
+            if(elt_number < idx_element):
                 i += 1
                 continue
-            elif(elt_number == idx_max):
+            elif(elt_number > idx_element):
                 break
             else:
                 if(i % 8 == 6):
@@ -93,21 +108,15 @@ def compare_to_TW(R_zz, idx_min, idx_max):
                 elif(i % 8 == 7):
                     line2 = np.fromstring(line, dtype=float,
                                           count=6, sep=' ')[-2:]
-                    R_zz_elt = np.vstack((line1, line2))
-                    R_zz_ref = np.matmul(R_zz_ref, R_zz_elt)
-                i += 1
+                    R_zz_single_ref = np.vstack((line1, line2))
+            i += 1
 
-    R_zz_comp = np.divide((R_zz_ref - R_zz), R_zz_ref) * 100.
-
-    if(flag_output_errors):
-        print('TraceWin R_zz:\n', R_zz_ref)
-        print(' ')
-        print('LightWin R_zz:\n', R_zz)
-        print(' ')
-        print('Comparison:\n', R_zz_comp)
+    if(flag_output):
+        print('TraceWin R_zz:\n', R_zz_single_ref)
+        print(' ', i)
         print('==============================================================')
         print(' ')
-    return R_zz_comp
+    return R_zz_single_ref
 
 
 def compare_energies(LINAC):

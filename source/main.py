@@ -44,4 +44,4 @@ LINAC.create_struture_from_dat_file(filepath)
 LINAC.compute_transfer_matrix_and_gamma()
 
 plot_error_on_transfer_matrices_components(LINAC)
-# compare_energies(LINAC)
+compare_energies(LINAC)
