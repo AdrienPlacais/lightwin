@@ -9,10 +9,13 @@ Created on Tue Oct 12 13:50:44 2021
 import numpy as np
 import matplotlib.pyplot as plt
 from palettable.colorbrewer.qualitative import Set1_9
+from cycler import cycler
 
 font = {'family': 'serif',
         'size':   25}
 plt.rc('font', **font)
+plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
+plt.rc('mathtext', fontset='cm')
 
 
 def plot_error_on_transfer_matrices_components(LINAC):
@@ -26,17 +29,24 @@ def plot_error_on_transfer_matrices_components(LINAC):
     LINAC: accelerator object.
         Accelerator under study.
     """
-    err = np.full((2, 2, 39), np.NaN)
+    n_elts = 6
+    err = np.full((2, 2, n_elts), np.NaN)
     idx_min = 0
-    for idx_max in range(1, 39):
+    i = 0
+    for idx_max in range(idx_min + 1, idx_min + 1 + n_elts):
         R_zz_tot = LINAC.compute_transfer_matrix_and_gamma(idx_min=idx_min,
                                                            idx_max=idx_max)
-        err[:, :, idx_max] = compare_to_TW(R_zz_tot, idx_min=idx_min,
-                                           idx_max=idx_max)
+        err[:, :, i] = compare_to_TW(R_zz_tot, idx_min=idx_min,
+                                     idx_max=idx_max)
+        i += 1
 
-    fig = plt.figure(20)
-    ax = fig.add_subplot(111)
-    elt_array = np.linspace(1, 39, 39, dtype=int)
+    if(plt.fignum_exists(20)):
+        fig = plt.figure(20)
+        ax = fig.axes[0]
+    else:
+        fig = plt.figure(20)
+        ax = fig.add_subplot(111)
+    elt_array = np.linspace(1, n_elts, n_elts, dtype=int)
     ax.plot(elt_array, err[0, 0, :], label=r'$R_{11}$')
     ax.plot(elt_array, err[0, 1, :], label=r'$R_{12}$')
     ax.plot(elt_array, err[1, 0, :], label=r'$R_{21}$')

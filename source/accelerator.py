@@ -231,6 +231,8 @@ class Accelerator():
                 self.gamma[i+1] = 1. / np.sqrt(1. - beta**2)
 
             else:
+                # print(self.L_m[i])
+                # print(self.gamma[i])
                 R_zz_next = self.z_transfer_func[i](self.L_m[i], self.gamma[i])
                 self.gamma[i+1] = self.gamma[i]
 
