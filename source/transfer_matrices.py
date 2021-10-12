@@ -48,7 +48,7 @@ def z_drift(Delta_s, gamma):
 
 
 def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
-                               N_cell, nz, zmax):
+                               N_cells, nz, zmax):
     """
     Compute the transfer matrix of an accelerating cavity.
 
@@ -67,12 +67,12 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         Electric field multiplication factor.
     theta_i: float
         Phase of particles at the cavity's entrance in deg.
-    N_cell: int
+    N_cells: int
         Number of cells in the cavity.
     nz: int
         Number of points (minus one) in the Fz_array.
     zmax: float
-        Relative position of the cavity's exit in mm.
+        Relative position of the cavity's exit in m.
 
     Returns
     -------
@@ -84,103 +84,103 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     """
     # Set useful parameters
     omega_0 = 2e6 * np.pi * f_MHz
-    beta_0 = np.sqrt((1. + E_0_MeV / m_MeV)**2 - 1.) / (1. + E_0_MeV / m_MeV)
-    gamma_0 = 1. / np.sqrt(1. - beta_0**2)
-    phi_RF = np.deg2rad(theta_i)
+    gamma_0 = 1. + E_0_MeV / m_MeV
+    beta_0 = np.sqrt(1. - gamma_0**-2)
+    # phi_RF is a 'whole-step' phase
+    phi_0 = np.deg2rad(theta_i)
 
     # Local coordinates of the cavity:
     z_cavity_array = np.linspace(0., zmax, nz + 1)
-    dz = z_cavity_array[1] - z_cavity_array[0]
+    dz_cavity = z_cavity_array[1] - z_cavity_array[0]
 
+    # Ez and its derivative functions:
     Ez_func = interp1d(z_cavity_array, k_e * Fz_array)
-    dE_dz_array = np.diff(k_e * Fz_array) / dz
 
-    # Interpolate dE/dz on the middle of every cell
-    dE_dz_func = interp1d((z_cavity_array[:-1] + z_cavity_array[1:]) * 0.5,
-                          dE_dz_array,
-                          fill_value='extrapolate')
-    # We use fill_value=extrapolate to define the function on [0, .5*dz] and
-    # [zmax-.5*dz, zmax].
+    dE_dz_array = np.gradient(k_e * Fz_array, dz_cavity)
+    dE_dz_func = interp1d(z_cavity_array, dE_dz_array)
 
     # =========================================================================
     # Simulation parameters
     # =========================================================================
     # Initial step size calculated with betalambda
-    factor = 1000.
-    lambda_RF = 1e-6 * c / f_MHz
-    # Spatial step
-    step = beta_0 * lambda_RF / (2. * N_cell * factor)
+    n = 1000
+    # The N_cells cells cavity is divided in n*N_cells steps of length dz:
+    dz = zmax / (n * N_cells)
 
     # =========================================================================
     # Compute energy gain and synchronous phase
     # =========================================================================
-    # Step size
-    idx_max = int(np.floor(zmax / step))
-
-    # Init synchronous particle
-    E_out_MeV = E_0_MeV
+    # Particle coordinates at cavity input
+    E_MeV = E_0_MeV
     gamma_out = gamma_0
-    z = .5 * step   # Middle of first spatial step
+    # Position of synch. particle advanced by a half-step
+    z_s = .5 * dz
+    # Time corresponding to this position (we consider that speed is constant
+    # during this short half-step)
+    t_s = z_s / (beta_0 * c)
+    phi_s = omega_0 * t_s
+    phi_RF = phi_0 + phi_s     # AP
 
     E_r = 0.
     E_i = 0.
 
-    t = step / (2. * beta_0 * c)
-
     # TODO: check if script is faster with numpy arrays
     z_pos_array = [0.]
     energy_array = [E_0_MeV]
-    beta_array = [beta_0]
     gamma_array = [gamma_0]
 
     R_zz = np.eye(2, 2)
 
-    # Loop over the spatial steps
-    for i in range(idx_max):
-        E_in_MeV = E_out_MeV
+    # Then, we loop until reaching the end of the cavity
+    for i in range(n * N_cells):
         gamma_in = gamma_out
 
         # Compute energy gain
-        E_interp = Ez_func(z)[()]
-        acceleration = q_adim * E_interp * np.cos(phi_RF)
-        E_r += acceleration
-        E_i += q_adim * E_interp * np.sin(phi_RF)
+        E_interp = Ez_func(z_s)[()]
+        delta_E_r = q_adim * E_interp * np.cos(phi_RF)
+        E_r += delta_E_r
+        # E_i += q_adim * E_interp * np.sin(phi_RF)
 
         # Energy and gamma at the exit of current cell
-        E_out_MeV = acceleration * step + E_in_MeV
-        gamma_out = gamma_in + acceleration * step / m_MeV
+        delta_E_MeV = delta_E_r * dz
 
-        # Synchronous gamma
+        E_MeV += delta_E_MeV
+        gamma_out = gamma_in + delta_E_MeV / m_MeV
+        beta_out = np.sqrt(1. - gamma_out**-2)
+
+        # We take gamma and beta at the middle of current cell
         gamma_s = (gamma_out + gamma_in) * .5
-        beta_s = np.sqrt(1. - 1. / gamma_s**2)
-        beta_out = np.sqrt(1. - 1. / gamma_out**2)
+        beta_s = np.sqrt(1. - gamma_s**-2)
 
         # Synchronous phase
-        phi_s = np.arctan(E_i / E_r)
-        phi_s_deg = np.rad2deg(phi_s)
+        # phi_s = np.arctan(E_i / E_r)
+        # phi_s_deg = np.rad2deg(phi_s)
 
-        # Compute transfer matrix
-        K_0 = q_adim * np.cos(phi_RF) * step / (gamma_s * beta_s**2 * m_MeV)
-        K_1 = dE_dz_func(z) * K_0
-        K_2 = 1. - (2. - beta_s**2) * Ez_func(z) * K_0
+        # Compute transfer matrix using thin lens approximation
+        K_0 = q_adim * np.cos(phi_RF) * dz / (gamma_s * beta_s**2 * m_MeV)
+        K_1 = dE_dz_func(z_s)[()] * K_0
+        K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
 
-        M_in = z_drift(.5 * step, gamma_in)
+        M_in = z_drift(.5 * dz, gamma_in)
         M_mid = np.array(([1., 0.],
                           [K_1, K_2]))
-        M_out = z_drift(.5 * step, gamma_out)
+        M_out = z_drift(.5 * dz, gamma_out)
 
         # Compute M_in * M_mid * M_out * M_t
         R_zz = np.matmul(np.matmul(np.matmul(M_in, M_mid), M_out), R_zz)
 
         # Next step
-        z += step
-        t += step / (beta_s * c)
-        phi_RF += step * omega_0 / (beta_s * c)
+        z_s += dz
+        t_s += dz / (beta_s * c)
+        # t_s += dz / (beta_out * c)    # AP replaced beta_out by beta_s
+        # print((phi_s - np.mod(omega_0 * t_s, 2.*np.pi))/np.pi)
+        phi_RF = omega_0 * t_s + phi_0      # AP
+        # phi_RF += dz * omega_0 / (beta_s * c)
+        # print(phi_RF - (omega_0 * t_s + phi_0))
 
         # Save data
-        z_pos_array.append(z)
-        energy_array.append(E_out_MeV)
-        beta_array.append(beta_out)   # TODO: check this!
+        z_pos_array.append(z_s)
+        energy_array.append(E_MeV)
         gamma_array.append(gamma_out)     # TODO: check this!
 
     # =========================================================================
@@ -188,18 +188,15 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # =========================================================================
     z_pos_array = np.array(z_pos_array)
     energy_array = np.array(energy_array)
-    beta_array = np.array(beta_array)
     gamma_array = np.array(gamma_array)
 
-    E_MeV = energy_array[-1]
+    E_out_MeV = energy_array[-1]
 
     # TODO: save and/or output V_cav and phi_s
-    V_cav_MV = np.abs((E_MeV - E_0_MeV) / np.cos(phi_s))
+    V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
     # phi_s_deg = phi_s_deg
-    print('V_cav = ', V_cav_MV, 'MV')
-    print('phi_s = ', phi_s_deg, 'deg')
 
-    return R_zz, E_MeV
+    return R_zz, E_out_MeV
 
     def not_an_element(Delta_s, gamma):
         """Return identity matrix."""

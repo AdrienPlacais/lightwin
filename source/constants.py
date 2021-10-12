@@ -20,4 +20,3 @@ q_adim = 1.
 q_C = 1.602e-19
 q_over_m = q_C / m_kg
 m_over_q = m_kg / q_C
-

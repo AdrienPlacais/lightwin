@@ -216,12 +216,15 @@ class Accelerator():
             if(self.elements_nature[i] == 'FIELD_MAP'):
                 # FIXME harmonize with other elements
                 # TODO Check this Ncell truc.
-                R_zz_next, self.E_MeV[i+1:] = transfer_matrices.z_field_map_electric_field(
+                R_zz_next, E_out_MeV = \
+                    transfer_matrices.z_field_map_electric_field(
                         self.E_MeV[i], self.f_MHz[i], self.Fz_array[i],
                         self.k_e[i], self.theta_i[i], 2, self.nz[i],
                         self.zmax[i])
-                beta = np.sqrt((1. + self.E_MeV[i+1] / m_MeV)**2 - 1.) / (1. +
-                                                                          self.E_MeV[i+1] / m_MeV)
+
+                self.E_MeV[i+1:] = E_out_MeV
+                beta = np.sqrt((1. + E_out_MeV / m_MeV)**2 - 1.) /    \
+                    (1. + E_out_MeV / m_MeV)
                 # TODO Functions MeV to beta, beta to MeV, MeV to gamma, etc
                 # TODO Even better: a setter to update all these arrays
                 # together.
