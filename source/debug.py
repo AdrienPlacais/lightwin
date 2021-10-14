@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
-import os
+import os.path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
