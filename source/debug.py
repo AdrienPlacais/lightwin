@@ -10,6 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
+import os
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 
 font = {'family': 'serif',
         'size':   25}
@@ -18,7 +21,7 @@ plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
-def plot_error_on_transfer_matrices_components(LINAC):
+def plot_error_on_transfer_matrices_components(filepath_dat, LINAC):
     """
     Estimate the error on transfer matrix calculation.
 
@@ -26,9 +29,24 @@ def plot_error_on_transfer_matrices_components(LINAC):
 
     Parameters
     ----------
+    filepath_dat: str
+        Path to the .dat file. The file containing the transfer matrices
+        exported by TraceWin is expected to be
+        /project_folder/results/matrix_ref.txt, the .dat beeing in
+        /project_folder/.
     LINAC: accelerator object.
         Accelerator under study.
     """
+    filepath_ref = '/'.join(filepath_dat.split('/')[:-1])
+    filepath_ref = filepath_ref + '/results/matrix_ref.txt'
+    if(not os.path.isfile(filepath_ref)):
+        print('debug/plot_error_on_transfer_matrices_components error:')
+        print('The filepath to the transfer matrices file is invalid. Please')
+        print('check the source code for more info. Enter a valid filepath:')
+        Tk().withdraw()
+        filepath_ref = askopenfilename(
+            filetypes=[("TraceWin transfer matrices file", ".txt")])
+
     n_elts = LINAC.n_elements
     # In this array we store the errors of individual elements
     err_single = np.full((2, 2, n_elts), np.NaN)
@@ -41,15 +59,11 @@ def plot_error_on_transfer_matrices_components(LINAC):
         R_zz_next = LINAC.R_zz[:, :, i]
         R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
 
-        R_zz_single_ref = import_transfer_matrix_single(i)
+        R_zz_single_ref = import_transfer_matrix_single(filepath_ref, i)
         R_zz_tot_ref = np.matmul(R_zz_tot_ref, R_zz_single_ref)
 
-        err_single[:, :, i] = 100. * np.divide(
-            (R_zz_single_ref - R_zz_next),
-            R_zz_single_ref)
-
-        err_tot[:, :, i] = 100. * np.divide((R_zz_tot_ref - R_zz_tot),
-                                            R_zz_tot_ref)
+        err_single[:, :, i] = np.abs(R_zz_single_ref - R_zz_next)
+        err_tot[:, :, i] = np.abs(R_zz_tot_ref - R_zz_tot)
 
     if(plt.fignum_exists(20)):
         fig = plt.figure(20)
@@ -65,33 +79,36 @@ def plot_error_on_transfer_matrices_components(LINAC):
     ax1.plot(elt_array, err_single[0, 1, :], label=r'$R_{12}$')
     ax1.plot(elt_array, err_single[1, 0, :], label=r'$R_{21}$')
     ax1.plot(elt_array, err_single[1, 1, :], label=r'$R_{22}$')
+
     ax2.plot(elt_array, err_tot[0, 0, :])
     ax2.plot(elt_array, err_tot[0, 1, :])
     ax2.plot(elt_array, err_tot[1, 0, :])
     ax2.plot(elt_array, err_tot[1, 1, :])
+
     ax1.legend()
     ax1.grid(True)
     ax2.grid(True)
-    ax1.set_ylabel('Error on single element [%]')
-    ax2.set_ylabel('Error from line start [%]')
+    ax1.set_ylabel('Error on single element')
+    ax2.set_ylabel('Error from line start')
     ax2.set_xlabel('Element #')
 
 
-def import_transfer_matrix_single(idx_element):
+def import_transfer_matrix_single(filepath_ref, idx_element):
     """
     Import the i-th element transfer matrix.
 
     Parameters
     ----------
+    filepath_ref: str
+        Filepath to the matrix_ref.txt file.
     idx_element: integer
         Index of the desired transfer matrix.
     """
-    filepath = '../data/matrix_ref.txt'
     flag_output = False
     i = 0
     R_zz_single_ref = np.full((2, 2), np.NaN)
 
-    with open(filepath) as file:
+    with open(filepath_ref) as file:
         for line in file:
             elt_number = i // 8
 
@@ -119,21 +136,35 @@ def import_transfer_matrix_single(idx_element):
     return R_zz_single_ref
 
 
-def compare_energies(LINAC):
+def compare_energies(filepath_dat, LINAC):
     """
     Comparison of beam energy with TW data.
 
     Parameters
     ----------
+    filepath_dat: str
+        Path to the .dat file. The file containing the energies
+        exported by TraceWin ('Save table to file' button in 'Data' tab) is
+        expected to be /project_folder/results/energy_ref.txt, the .dat beeing
+        in /project_folder/.
     LINAC: Accelerator object
         Accelerator under study.
     """
-    filepath = '../data/energy_ref.txt'
+    filepath_ref = '/'.join(filepath_dat.split('/')[:-1])
+    filepath_ref = filepath_ref + '/results/energy_ref.txt'
+    if(not os.path.isfile(filepath_ref)):
+        print('debug/compare_energies error:')
+        print('The filepath to the energy file is invalid. Please check the')
+        print('source code for more info. Enter a valid filepath:')
+        Tk().withdraw()
+        filepath_ref = askopenfilename(
+            filetypes=[("TraceWin energies file", ".txt")])
+
     elt_array = np.linspace(1, 39, 39, dtype=int)
     E_MeV_ref = np.full((39), np.NaN)
 
     i = 0
-    with open(filepath) as file:
+    with open(filepath_ref) as file:
         for line in file:
             try:
                 current_element = line.split('\t')[0]

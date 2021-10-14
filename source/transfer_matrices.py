@@ -122,7 +122,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     phi_RF = phi_0 + phi_s     # AP
 
     E_r = 0.
-    E_i = 0.
+    # E_i = 0.
 
     # TODO: check if script is faster with numpy arrays
     z_pos_array = [0.]
@@ -146,7 +146,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         E_MeV += delta_E_MeV
         gamma_out = gamma_in + delta_E_MeV / m_MeV
-        beta_out = np.sqrt(1. - gamma_out**-2)
+        # beta_out = np.sqrt(1. - gamma_out**-2)
 
         # We take gamma and beta at the middle of current cell
         gamma_s = (gamma_out + gamma_in) * .5
@@ -193,7 +193,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     E_out_MeV = energy_array[-1]
 
     # TODO: save and/or output V_cav and phi_s
-    V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
+    # V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
     # phi_s_deg = phi_s_deg
 
     return R_zz, E_out_MeV
