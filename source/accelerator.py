@@ -72,6 +72,14 @@ class Accelerator():
         # Specific to SOLENOID
         self.B = np.full((self.n_elements), np.NaN)
 
+        # Specific to SPACE_CHARGE_COMP
+        self.k = np.full((self.n_elements), np.NaN)
+
+        # Specific to accelerating strutures
+        self.EoT = np.full((self.n_elements), np.NaN)
+        self.theta_s = np.full((self.n_elements), np.NaN)
+        self.P = np.full((self.n_elements), np.NaN, dtype=int)
+
         # Specific to FIELD_MAP
         self.geom = np.full((self.n_elements), np.NaN)
         self.theta_i = np.full((self.n_elements), np.NaN)
@@ -80,15 +88,14 @@ class Accelerator():
         self.K_i = np.full((self.n_elements), np.NaN)
         self.K_a = np.full((self.n_elements), np.NaN)
         self.FileName = np.full((self.n_elements), np.NaN, dtype=object)
-        self.P = np.full((self.n_elements), np.NaN)
         # Import
         self.nz = np.full((self.n_elements), np.NaN, dtype=int)
         self.zmax = np.full((self.n_elements), np.NaN)
         self.Norm = np.full((self.n_elements), np.NaN)
         self.Fz_array = np.full((self.n_elements), np.NaN, dtype=object)
 
-        # Specific to SPACE_CHARGE_COMP
-        self.k = np.full((self.n_elements), np.NaN)
+        # Specific to Sinus cavity or CCL
+        self.N = np.full((self.n_elements), np.NaN, dtype=int)
 
         # Init empty structures and transfer matrix function
         self.structure = np.empty((self.n_elements), dtype=str)
@@ -143,6 +150,11 @@ class Accelerator():
                 elif(element_name == 'FIELD_MAP'):
                     elem.add_field_map(self, line, i, self.filename,
                                        current_f_MHz)
+                    i += 1
+
+                elif(element_name == 'CAVSIN'):
+                    elem.add_sinus_cavity(self, line, i, self.filename,
+                                          current_f_MHz)
                     i += 1
 
                 elif(element_name == 'DRIFT'):
@@ -223,16 +235,21 @@ class Accelerator():
                         self.k_e[i], self.theta_i[i], 2, self.nz[i],
                         self.zmax[i])
 
-                self.E_MeV[i+1:] = E_out_MeV
-                beta = np.sqrt((1. + E_out_MeV / m_MeV)**2 - 1.) /    \
-                    (1. + E_out_MeV / m_MeV)
-                # TODO Functions MeV to beta, beta to MeV, MeV to gamma, etc
-                # TODO Even better: a setter to update all these arrays
-                # together.
-                self.gamma[i+1] = 1. / np.sqrt(1. - beta**2)
+                self.E_MeV[i+1] = E_out_MeV
+                self.gamma[i+1] = 1. + E_out_MeV / m_MeV
+
+            elif(self.elements_nature[i] == 'CAVSIN'):
+                R_zz_next, E_out_MeV =                      \
+                    transfer_matrices.z_sinus_cavity(
+                        self.L_m[i], self.E_MeV[i], self.f_MHz[i],
+                        self.EoT[i], self.theta_s[i], self.N[i])
+
+                self.E_MeV[i+1] = E_out_MeV
+                self.gamma[i+1] = 1. + E_out_MeV / m_MeV
 
             else:
                 R_zz_next = self.z_transfer_func[i](self.L_m[i], self.gamma[i])
+                self.E_MeV[i+1] = self.E_MeV[i]
                 self.gamma[i+1] = self.gamma[i]
 
             self.R_zz[:, :, i] = R_zz_next

@@ -246,3 +246,46 @@ def check_geom(geom, K_a):
     extension = ".edz"
     import_function = helper.load_electric_field_1D
     return extension, import_function
+
+
+def add_sinus_cavity(accelerator, line, i, TraceWin_dat_filename, f_MHz):
+    """
+    Add a sinus cavity to the Accelerator object.
+
+    Attributes
+    ----------
+    L_mm: float
+        Field map length (mm).
+    N: int
+        Cell number.
+    EoT: float
+        Average accelerating field (V/m).
+    theta_s: float
+        Phase of the synchronous particle at the entrance (deg). Can be
+        absolute or relative.
+    R: float
+        Aperture (mm).
+    P: int
+        0: theta_s is relative phase.
+        1: theta_s is absolute phase.
+    """
+    n_attributes = len(line) - 1
+
+    # First, check validity of input
+    if(n_attributes != 6):
+        raise IOError(
+            'Wrong number of arguments for CAVSIN element at position '
+            + str(i))
+
+    accelerator.elements_resume[i] = str(i) + ' \t' + '\t'.join(line)
+    accelerator.elements_nature[i] = 'CAVSIN'
+
+    accelerator.L_mm[i] = float(line[1])
+    accelerator.L_m[i] = accelerator.L_mm[i] * 1e-3
+    accelerator.N[i] = int(line[2])
+    accelerator.EoT[i] = float(line[3])
+    accelerator.theta_s[i] = float(line[4])
+    accelerator.R[i] = float(line[5])
+    accelerator.P[i] = int(line[6])
+
+    accelerator.z_transfer_func[i] = transfer_matrices.z_sinus_cavity

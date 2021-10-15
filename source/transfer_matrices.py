@@ -10,8 +10,9 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, m_MeV
+from constants import c, q_adim, m_MeV, m_kg, q_C
 from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
 
 
 # =============================================================================
@@ -42,7 +43,7 @@ def z_drift(Delta_s, gamma):
     R_zz: np.array
         Transfer longitudinal sub-matrix.
     """
-    R_zz = np.array(([1., Delta_s/gamma**2],
+    R_zz = np.array(([1., Delta_s*gamma**-2],
                      [0., 1.]))
     return R_zz
 
@@ -50,7 +51,7 @@ def z_drift(Delta_s, gamma):
 def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                                N_cells, nz, zmax):
     """
-    Compute the transfer matrix of an accelerating cavity.
+    Compute the z transfer submatrix of an accelerating cavity.
 
     In the process, it also computes the variation of energy, the synchronous
     phase, the accelerating field.
@@ -167,7 +168,9 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         M_out = z_drift(.5 * dz, gamma_out)
 
         # Compute M_in * M_mid * M_out * M_t
-        R_zz = np.matmul(np.matmul(np.matmul(M_in, M_mid), M_out), R_zz)
+        M_z = M_in @ M_mid @ M_out
+        R_zz = M_z @ R_zz
+        # @ is an operator used as a shorthand for np.matmul.
 
         # Next step
         z_s += dz
@@ -198,7 +201,149 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
     return R_zz, E_out_MeV
 
-    def not_an_element(Delta_s, gamma):
-        """Return identity matrix."""
-        R_zz = np.eye(2, 2)
-        return R_zz
+
+def not_an_element(Delta_s, gamma):
+    """Return identity matrix."""
+    R_zz = np.eye(2, 2)
+    return R_zz
+
+
+def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
+    """
+    Compute the z transfer submatrix of a sinus cavity.
+
+    In the process, it also computes the variation of energy, the synchronous
+    phase, the accelerating field.
+
+    Parameters
+    ----------
+    L_m: float
+        Cavity length in m.
+    E_0_MeV: float
+        Energy at the cavity's entrance in MeV.
+    f_MHz: float
+        Frequency of the cavity in MHz.
+    EoT: float
+        Mean electric field of the cavity in V/m.
+    theta_s: float
+        Phase of the synchronous particle at the entrance of the cavity,
+        in deg and relative to the RF phase.
+    N: int
+        Number of cells in the cavity.
+
+    Returns
+    -------
+    R_zz: np.array
+        Transfer matrix of the cavity.
+    E_MeV: float
+        Energy of the particle beam when it goes out of the cavity.
+    """
+    # Set useful parameters
+    omega_0 = 2e6 * np.pi * f_MHz
+    gamma_0 = 1. + E_0_MeV / m_MeV
+    beta_0 = np.sqrt(1. - gamma_0**-2)
+    lambda_RF = 1e-6 * c / f_MHz
+    beta_c = 2. * L_m / (N * lambda_RF)
+    K = omega_0 / c
+    phi_0 = np.deg2rad(theta_s)
+    EoT_MV_m = 1e-6 * EoT
+
+    # =========================================================================
+    # Simulation parameters
+    # =========================================================================
+    # Initial step size calculated with betalambda
+    n = 100
+    # The N_cells cells cavity is divided in n*N_cells steps of length dz:
+    dz = L_m / (n * N)
+
+    # =========================================================================
+    # Compute energy gain and synchronous phase
+    # =========================================================================
+    # Position of synch. particle advanced by a half-step
+    z_s = .5 * dz
+    # Time corresponding to this position (we consider that speed is constant
+    # during this short half-step)
+    t_s = z_s / (beta_0 * c)
+    phi_s = omega_0 * t_s
+    # phi_RF = phi_0 + phi_s
+    phi_RF = phi_s
+
+    E_MeV = E_0_MeV
+    gamma_out = gamma_0
+
+    z_pos_array = [0.]
+    energy_array = [E_0_MeV]
+    gamma_array = [gamma_0]
+
+    R_zz = np.eye(2, 2)
+    M_z_list = np.zeros((2, 2, n*N))
+
+    # Then, we loop until reaching the end of the cavity
+    for i in range(n * N):
+        gamma_in = gamma_out
+
+        # Compute energy gain
+        E_z = 2. * EoT_MV_m * np.sin(phi_RF) * np.sin(K * z_s / beta_c)
+        delta_E_MeV = q_adim * E_z * dz
+        E_MeV += delta_E_MeV
+        # gamma_out = gamma_in + delta_E_MeV / m_MeV
+        gamma_out = 1. + E_MeV / m_MeV
+
+        # We take gamma and beta at the middle of current cell
+        gamma_s = (gamma_out + gamma_in) * .5
+        beta_s = np.sqrt(1. - gamma_s**-2)
+
+        # Compute transfer matrix using thin lens approximation
+        K_0 = 2. * q_adim * EoT_MV_m * np.sin(K * z_s / beta_c)  \
+            / (gamma_s * beta_s**2 * m_MeV)
+        K_1 = -K_0 * K * np.cos(phi_RF) / (beta_s)
+        K_2 = 1. - K_0 * np.sin(phi_RF)
+
+        M_in = z_drift(.5 * dz, gamma_in)
+        M_mid = np.array(([1., 0.],
+                          [K_1, K_2]))
+        M_out = z_drift(.5 * dz, gamma_out)
+
+        # Compute M_in * M_mid * M_out * M_t
+        M_z = M_in @ M_mid @ M_out
+        R_zz = M_z @ R_zz
+
+        M_z_list[:, :, i] = np.copy(M_z)
+
+        # Next step
+        z_s += dz
+        t_s += dz / (beta_s * c)
+        phi_RF = omega_0 * t_s + phi_0
+
+        # Save data
+        z_pos_array.append(z_s)
+        energy_array.append(E_MeV)
+        gamma_array.append(gamma_out)
+
+    # =========================================================================
+    # End of loop
+    # =========================================================================
+    z_pos_array = np.array(z_pos_array)
+    energy_array = np.array(energy_array)
+    gamma_array = np.array(gamma_array)
+
+    E_out_MeV = energy_array[-1]
+
+    if(plt.fignum_exists(22)):
+        fig = plt.figure(22)
+        ax = fig.axes[0]
+    else:
+        fig = plt.figure(22)
+        ax = fig.add_subplot(111)
+    iter_array = np.linspace(0, n*N-1, n*N)
+    ax.plot(iter_array, M_z_list[0, 0, :], label='M_11')
+    ax.plot(iter_array, M_z_list[0, 1, :], label='M_12')
+    ax.plot(iter_array, M_z_list[1, 0, :], label='M_21')
+    ax.plot(iter_array, M_z_list[1, 1, :], label='M_22')
+    ax.grid(True)
+    ax.legend()
+
+    print('R_zz:\n', R_zz)
+    print('M_z:\n', M_z)
+
+    return M_z, E_out_MeV

@@ -174,7 +174,7 @@ def compare_energies(filepath_dat, LINAC):
             E_MeV_ref[i] = line.split('\t')[9]
             i += 1
 
-    error = (E_MeV_ref - LINAC.E_MeV[1:]) / E_MeV_ref * 100.
+    error = np.abs(E_MeV_ref - LINAC.E_MeV[1:])
 
     if(plt.fignum_exists(21)):
         fig = plt.figure(21)
@@ -186,11 +186,11 @@ def compare_energies(filepath_dat, LINAC):
         ax2 = fig.add_subplot(212)
     ax1.plot(elt_array, LINAC.E_MeV[1:], label='LightWin')
     ax1.plot(elt_array, E_MeV_ref, label='TraceWin')
-    ax2.plot(elt_array, error)
+    ax2.plot(elt_array, error*1e3)
     ax1.grid(True)
     ax2.grid(True)
     ax2.set_xlabel('Element #')
     ax1.set_ylabel('Beam energy [MeV]')
-    ax2.set_ylabel('Relative error [%]')
+    ax2.set_ylabel('Absolute error [keV]')
 
     ax1.legend()
