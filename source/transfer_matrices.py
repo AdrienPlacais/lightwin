@@ -342,7 +342,7 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
     ax.plot(iter_array, M_z_list[1, 1, :], label='M_22')
     ax.grid(True)
     ax.legend()
-
+    
     print('R_zz:\n', R_zz)
     print('M_z:\n', M_z)
 
