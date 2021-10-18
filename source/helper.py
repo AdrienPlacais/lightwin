@@ -93,3 +93,24 @@ def MeV_to_v(E_MeV, q_over_m):
     """Convert MeV to m/s."""
     v = np.sqrt(2. * q_over_m * 1e6 * E_MeV)
     return v
+
+
+def recursive_matrix_product(M, idx_min, idx_max):
+    """
+    Compute the matrix product along the last array. For transfer matrices.
+
+    Parameters
+    ----------
+    M: dim 3 np.array
+        Array of the form (2, 2, n).
+    idx_min: int
+        First index to consider.
+    idx_max: int
+        Last index to consider.
+    """
+    M_out = np.eye(2)
+
+    for i in range(idx_min, idx_max + 1):
+        M_out = M[:, :, i] @ M_out
+
+    return M_out

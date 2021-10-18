@@ -253,6 +253,9 @@ class Accelerator():
                 self.gamma[i+1] = self.gamma[i]
 
             self.R_zz[:, :, i] = R_zz_next
-            R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
+
+        R_zz_tot = helper.recursive_matrix_product(self.R_zz,
+                                                   idx_min=0,
+                                                   idx_max=self.n_elements - 1)
 
         return R_zz_tot
