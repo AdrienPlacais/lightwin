@@ -136,7 +136,7 @@ def import_transfer_matrix_single(filepath_ref, idx_element):
     return R_zz_single_ref
 
 
-def compare_energies(filepath_dat, LINAC):
+def compare_energies(filepath_dat, accelerator):
     """
     Comparison of beam energy with TW data.
 
@@ -147,9 +147,10 @@ def compare_energies(filepath_dat, LINAC):
         exported by TraceWin ('Save table to file' button in 'Data' tab) is
         expected to be /project_folder/results/energy_ref.txt, the .dat beeing
         in /project_folder/.
-    LINAC: Accelerator object
+    accelerator: Accelerator object
         Accelerator under study.
     """
+    flag_output_field_map_acceleration = True
     filepath_ref = '/'.join(filepath_dat.split('/')[:-1])
     filepath_ref = filepath_ref + '/results/energy_ref.txt'
     if(not os.path.isfile(filepath_ref)):
@@ -171,10 +172,32 @@ def compare_energies(filepath_dat, LINAC):
                 current_element = int(current_element)
             except ValueError:
                 continue
-            E_MeV_ref[i] = line.split('\t')[9]
+            splitted_line = line.split('\t')
+
+            # Concerns field maps only:
+            if(flag_output_field_map_acceleration and
+               accelerator.elements_nature[i] == 'FIELD_MAP'):
+                EoTLc_ref = splitted_line[6]
+                EoTLc = accelerator.V_cav_MV[i]
+                Sych_Phase_ref = splitted_line[8]
+                Sync_Phase = accelerator.phi_s_deg[i]
+                print('=====================================================')
+                print('FIELD_MAP #', i)
+                print('V_cav: ', EoTLc, 'MV')
+                print('V_cav_ref: ', EoTLc_ref, 'MV')
+                err = 1e3 * np.abs(EoTLc - float(EoTLc_ref))
+                print('Error: ', err, 'kV')
+                print('')
+                print('phi_s: ', Sync_Phase, 'deg')
+                print('phi_s_deg: ', Sych_Phase_ref, 'deg')
+                err = 1e3 * np.abs(Sync_Phase - float(Sych_Phase_ref))
+                print('Error: ', err, 'mdeg')
+                print('')
+
+            E_MeV_ref[i] = splitted_line[9]
             i += 1
 
-    error = np.abs(E_MeV_ref - LINAC.E_MeV[1:])
+    error = np.abs(E_MeV_ref - accelerator.E_MeV[1:])
 
     if(plt.fignum_exists(21)):
         fig = plt.figure(21)
@@ -184,7 +207,7 @@ def compare_energies(filepath_dat, LINAC):
         fig = plt.figure(21)
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
-    ax1.plot(elt_array, LINAC.E_MeV[1:], label='LightWin')
+    ax1.plot(elt_array, accelerator.E_MeV[1:], label='LightWin')
     ax1.plot(elt_array, E_MeV_ref, label='TraceWin')
     ax2.plot(elt_array, error*1e3)
     ax1.grid(True)

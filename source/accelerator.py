@@ -92,14 +92,17 @@ class Accelerator():
         self.nz = np.full((self.n_elements), np.NaN, dtype=int)
         self.zmax = np.full((self.n_elements), np.NaN)
         self.Norm = np.full((self.n_elements), np.NaN)
+        # As the size of the Fz_arrays is not known in advance, the Fz_array
+        # object is an array of arrays, not a matrix (such as R_zz for
+        # example).
         self.Fz_array = np.full((self.n_elements), np.NaN, dtype=object)
+        self.V_cav_MV = np.full((self.n_elements), np.NaN)
+        self.phi_s_deg = np.full((self.n_elements), np.NaN)
 
         # Specific to Sinus cavity or CCL
         self.N = np.full((self.n_elements), np.NaN, dtype=int)
 
         # Init empty structures and transfer matrix function
-        self.structure = np.empty((self.n_elements), dtype=str)
-        self.resume = np.empty((self.n_elements), dtype=str)
         self.transfer_matrix_z = transfer_matrices.dummy
         self.R_zz = np.full((2, 2, self.n_elements), np.NaN)
 
@@ -217,9 +220,6 @@ class Accelerator():
         idx_max: int, optional
             Position of last element.
         """
-        # TODO: handle acceleration of particle
-        # TODO: precompute gamma at each element entrance. Required in order
-        # to compute transfer matrice of a subset of elements.
         if(idx_max == 0):
             idx_max = self.n_elements
 
@@ -229,7 +229,7 @@ class Accelerator():
             if(self.elements_nature[i] == 'FIELD_MAP'):
                 # FIXME harmonize with other elements
                 # TODO Check this Ncell truc.
-                R_zz_next, E_out_MeV = \
+                R_zz_next, E_out_MeV, V_cav_MV, phi_s_deg = \
                     transfer_matrices.z_field_map_electric_field(
                         self.E_MeV[i], self.f_MHz[i], self.Fz_array[i],
                         self.k_e[i], self.theta_i[i], 2, self.nz[i],
@@ -237,6 +237,8 @@ class Accelerator():
 
                 self.E_MeV[i+1] = E_out_MeV
                 self.gamma[i+1] = 1. + E_out_MeV / m_MeV
+                self.V_cav_MV[i] = V_cav_MV
+                self.phi_s_deg[i] = phi_s_deg
 
             elif(self.elements_nature[i] == 'CAVSIN'):
                 R_zz_next, E_out_MeV =                      \

@@ -84,6 +84,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         Energy of the particle beam when it goes out of the cavity.
     ----------
     """
+    # print('Warning! May be error of units between electric field (V/m) and')
+    # print('m_MeV (MeV).')
     # Set useful parameters
     omega_0 = 2e6 * np.pi * f_MHz
     gamma_0 = 1. + E_0_MeV / m_MeV
@@ -95,10 +97,11 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     z_cavity_array = np.linspace(0., zmax, nz + 1)
     dz_cavity = z_cavity_array[1] - z_cavity_array[0]
 
-    # Ez and its derivative functions:
-    Ez_func = interp1d(z_cavity_array, k_e * Fz_array)
+    units = 1.
 
-    dE_dz_array = np.gradient(k_e * Fz_array, dz_cavity)
+    # Ez and its derivative functions:
+    Ez_func = interp1d(z_cavity_array, units * k_e * Fz_array)
+    dE_dz_array = np.gradient(units * k_e * Fz_array, dz_cavity)
     dE_dz_func = interp1d(z_cavity_array, dE_dz_array)
 
     # =========================================================================
@@ -121,17 +124,16 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # during this short half-step)
     t_s = z_s / (beta_0 * c)
     phi_s = omega_0 * t_s
-    phi_RF = phi_0 + phi_s     # AP
+    phi_RF = phi_0 + phi_s
 
-    E_r = 0.
-    # E_i = 0.
+    F_E_real = 0.
+    F_E_imag = 0.
 
-    # TODO: check if script is faster with numpy arrays
     z_pos_array = [0.]
     energy_array = [E_0_MeV]
     gamma_array = [gamma_0]
 
-    R_zz = np.eye(2, 2)
+    M_z_list = np.zeros((2, 2, n*N_cells))
 
     # Then, we loop until reaching the end of the cavity
     for i in range(n * N_cells):
@@ -139,24 +141,24 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         # Compute energy gain
         E_interp = Ez_func(z_s)[()]
-        delta_E_r = q_adim * E_interp * np.cos(phi_RF)
-        E_r += delta_E_r
-        # E_i += q_adim * E_interp * np.sin(phi_RF)
+        F_E_imag += q_adim * E_interp * np.sin(phi_RF)
+        E_r = E_interp * np.cos(phi_RF)
+        F_E_real += q_adim * E_r
 
         # Energy and gamma at the exit of current cell
-        delta_E_MeV = delta_E_r * dz
+        delta_E_MeV = q_adim * E_r * dz
 
         E_MeV += delta_E_MeV
         gamma_out = gamma_in + delta_E_MeV / m_MeV
-        # beta_out = np.sqrt(1. - gamma_out**-2)
+        beta_out = np.sqrt(1. - gamma_out**-2)
 
         # We take gamma and beta at the middle of current cell
         gamma_s = (gamma_out + gamma_in) * .5
         beta_s = np.sqrt(1. - gamma_s**-2)
 
         # Synchronous phase
-        # phi_s = np.arctan(E_i / E_r)
-        # phi_s_deg = np.rad2deg(phi_s)
+        phi_s = np.arctan(F_E_imag / F_E_real)
+        phi_s_deg = np.rad2deg(phi_s)
 
         # Compute transfer matrix using thin lens approximation
         K_0 = q_adim * np.cos(phi_RF) * dz / (gamma_s * beta_s**2 * m_MeV)
@@ -170,22 +172,18 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         # Compute M_in * M_mid * M_out * M_t
         M_z = M_in @ M_mid @ M_out
-        R_zz = M_z @ R_zz
+        M_z_list[:, :, i] = np.copy(M_z)
         # @ is an operator used as a shorthand for np.matmul.
 
         # Next step
         z_s += dz
-        t_s += dz / (beta_s * c)
-        # t_s += dz / (beta_out * c)    # AP replaced beta_out by beta_s
-        # print((phi_s - np.mod(omega_0 * t_s, 2.*np.pi))/np.pi)
-        phi_RF = omega_0 * t_s + phi_0      # AP
-        # phi_RF += dz * omega_0 / (beta_s * c)
-        # print(phi_RF - (omega_0 * t_s + phi_0))
+        t_s += dz / (beta_out * c)
+        phi_RF = omega_0 * t_s + phi_0
 
         # Save data
         z_pos_array.append(z_s)
         energy_array.append(E_MeV)
-        gamma_array.append(gamma_out)     # TODO: check this!
+        gamma_array.append(gamma_out)
 
     # =========================================================================
     # End of loop
@@ -193,14 +191,14 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     z_pos_array = np.array(z_pos_array)
     energy_array = np.array(energy_array)
     gamma_array = np.array(gamma_array)
-
+    R_zz = helper.recursive_matrix_product(M_z_list,
+                                           idx_min=0,
+                                           idx_max=n * N_cells - 1)
     E_out_MeV = energy_array[-1]
 
     # TODO: save and/or output V_cav and phi_s
-    # V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
-    # phi_s_deg = phi_s_deg
-
-    return R_zz, E_out_MeV
+    V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
+    return R_zz, E_out_MeV, V_cav_MV, phi_s_deg
 
 
 def not_an_element(Delta_s, gamma):
