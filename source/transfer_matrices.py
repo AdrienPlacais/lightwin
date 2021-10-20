@@ -97,15 +97,18 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
     # Ez and its derivative functions:
     kind = 'linear'
-    Ez_func = interp1d(z_cavity_array, k_e * Fz_array, kind=kind)
+    fill_value = 'extrapolate'
+    Ez_func = interp1d(z_cavity_array, k_e * Fz_array,
+                       kind=kind, fill_value=fill_value)
     dE_dz_array = np.gradient(k_e * Fz_array, dz_cavity)
-    dE_dz_func = interp1d(z_cavity_array, dE_dz_array, kind=kind)
+    dE_dz_func = interp1d(z_cavity_array, dE_dz_array,
+                          kind=kind, fill_value=fill_value)
 
     # =========================================================================
     # Simulation parameters
     # =========================================================================
     # Initial step size calculated with betalambda
-    n = 1000
+    n = 10000
     # The N_cells cells cavity is divided in n*N_cells steps of length dz:
     dz = zmax / (n * N_cells)
 
@@ -120,8 +123,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # Time corresponding to this position (we consider that speed is constant
     # during this short half-step)
     t_s = z_s / (beta_0 * c)
-    phi_s = omega_0 * t_s
-    phi_RF = phi_0 + phi_s
+    phi_RF = phi_0 + omega_0*t_s
 
     F_E_real = 0.
     F_E_imag = 0.
@@ -138,12 +140,17 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         # Compute energy gain
         E_interp = Ez_func(z_s)[()]
-        F_E_imag += q_adim * E_interp * np.sin(phi_RF)
         E_r = E_interp * np.cos(phi_RF)
         F_E_real += q_adim * E_r
+        F_E_imag += q_adim * E_interp * np.sin(phi_RF)
 
         # Energy and gamma at the exit of current cell
-        delta_E_MeV = q_adim * E_r * dz
+        if(i == 0 or i == n * N_cells - 1):
+            delta_E_MeV = q_adim * E_r * dz * .5
+            # During first iteration, we go from z = 0 to z = dz / 2
+            # During last, z = zmax - delta_z/2 to zmax
+        else:
+            delta_E_MeV = q_adim * E_r * dz
 
         E_MeV += delta_E_MeV
         gamma_out = gamma_in + delta_E_MeV / m_MeV
@@ -173,8 +180,15 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         # @ is an operator used as a shorthand for np.matmul.
 
         # Next step
-        z_s += dz
-        t_s += dz / (beta_out * c)
+        if(i < n * N_cells - 1):
+            z_s += dz
+            t_s += dz / (beta_out * c) # Error is lower with beta_s than with beta_out
+        else:
+            # This values will not be used again, so this has no influence on
+            # the results
+            z_s += .5 * dz
+            t_s += .5 * dz / (beta_out * c)
+
         phi_RF = omega_0 * t_s + phi_0
 
         # Save data
@@ -188,9 +202,10 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     z_pos_array = np.array(z_pos_array)
     energy_array = np.array(energy_array)
     gamma_array = np.array(gamma_array)
-    R_zz = helper.recursive_matrix_product(M_z_list,
-                                           idx_min=0,
-                                           idx_max=n * N_cells - 1)
+
+    R_zz = helper.right_recursive_matrix_product(M_z_list,
+                                                 idx_min=0,
+                                                 idx_max=n * N_cells - 1)
     E_out_MeV = energy_array[-1]
 
     V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
@@ -279,7 +294,12 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
 
         # Compute energy gain
         E_z = E0_MV_m * np.sin(phi_RF) * np.sin(K * z_s / beta_c)
-        delta_E_MeV = q_adim * E_z * dz
+        if(i == 0 or i == n * N - 1):
+            delta_E_MeV = q_adim * E_z * dz * .5
+            # During first iteration, we go from z = 0 to z = dz / 2
+            # During last, z = zmax - delta_z/2 to zmax
+        else:
+            delta_E_MeV = q_adim * E_z * dz
         E_MeV += delta_E_MeV
         gamma_out = 1. + E_MeV / m_MeV
         beta_out = np.sqrt(1. - gamma_out**-2)
@@ -304,8 +324,14 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
         M_z_list[:, :, i] = np.copy(M_z)
 
         # Next step
-        z_s += dz
-        t_s += dz / (beta_out * c)
+        if(i < n * N - 1):
+            z_s += dz
+            t_s += dz / (beta_s * c) # Error is lower with beta_s than with beta_out
+        else:
+            # This values will not be used again, so this has no influence on
+            # the results
+            z_s += .5 * dz
+            t_s += .5 * dz / (beta_s * c)
         phi_RF = omega_0 * t_s + phi_0
 
         # Save data
@@ -319,9 +345,9 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
     z_pos_array = np.array(z_pos_array)
     energy_array = np.array(energy_array)
     gamma_array = np.array(gamma_array)
-    R_zz = helper.recursive_matrix_product(M_z_list,
-                                           idx_min=0,
-                                           idx_max=n * N - 1)
+    R_zz = helper.right_recursive_matrix_product(M_z_list,
+                                                idx_min=0,
+                                                idx_max=n * N - 1)
 
     E_out_MeV = energy_array[-1]
 

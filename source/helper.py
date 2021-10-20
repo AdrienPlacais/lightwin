@@ -95,7 +95,30 @@ def MeV_to_v(E_MeV, q_over_m):
     return v
 
 
-def recursive_matrix_product(M, idx_min, idx_max):
+def left_recursive_matrix_product(M, idx_min, idx_max):
+    """
+    Compute the matrix product along the last array.
+
+    Parameters
+    ----------
+    M: dim 3 np.array
+        Array of the form (2, 2, n).
+    idx_min: int
+        First index to consider.
+    idx_max: int
+        Last index to consider.
+    """
+    print('Warning, this function does the matrix product in the wrong way')
+    print('for transfer matrices. Are you sure it is the function you want?')
+    M_out = np.eye(2)
+
+    for i in range(idx_min, idx_max + 1):
+        M_out = M_out @ M[:, :, i]
+
+    return M_out
+
+
+def right_recursive_matrix_product(M, idx_min, idx_max):
     """
     Compute the matrix product along the last array. For transfer matrices.
 
@@ -111,6 +134,6 @@ def recursive_matrix_product(M, idx_min, idx_max):
     M_out = np.eye(2)
 
     for i in range(idx_min, idx_max + 1):
-        M_out = M_out @ M[:, :, i]
+        M_out = M[:, :, i] @ M_out
 
     return M_out

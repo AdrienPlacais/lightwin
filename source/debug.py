@@ -63,16 +63,22 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
         R_zz_single_ref = import_transfer_matrix_single(filepath_ref, i)
         R_zz_tot_ref = R_zz_single_ref @ R_zz_tot_ref
 
-        err_single[:, :, i] = np.abs(R_zz_single_ref - R_zz_single)
-        err_tot[:, :, i] = np.abs(R_zz_tot_ref - R_zz_tot)
+        err_single[:, :, i] = R_zz_single_ref - R_zz_single
+        err_tot[:, :, i] = R_zz_tot_ref - R_zz_tot
 
-        if(i == n_elts - 1):
-            # print('Single LW: \n', R_zz_single)
-            # print('Single TW: \n', R_zz_single_ref)
-            # print('Single err: \n', err_single[:, :, i])
-            # print('Tot LW: \n', R_zz_tot)
-            # print('Tot TW: \n', R_zz_tot_ref)
+        if(i == 37):
+            print('LightWin version:')
+            print('Single LW: \n', R_zz_single)
+            print('Single TW: \n', R_zz_single_ref)
+            print('Single err: \n', err_single[:, :, i])
+            print(' ')
+            print('=========================================================')
+            print(' ')
+            print('Tot LW: \n', R_zz_tot)
+            print('Tot TW: \n', R_zz_tot_ref)
             print('Tot err: \n', err_tot[:, :, i])
+            print(' ')
+            print('=========================================================')
 
     if(plt.fignum_exists(20)):
         fig = plt.figure(20)

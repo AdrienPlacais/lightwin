@@ -255,6 +255,7 @@ class Accelerator():
             if(i > 0):
                 self.R_zz_tot_list[:, :, i] = \
                     R_zz_single @ self.R_zz_tot_list[:, :, i-1]
+
             else:
                 self.R_zz_tot_list[:, :, i] = R_zz_single
 
