@@ -64,7 +64,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     f_MHz: float
         Frequency of the cavity in MHz.
     Fz_array: numpy.array
-        Array of electric field values in V/m.
+        Array of electric field values in MV/m.
     k_e: float
         Electric field multiplication factor.
     theta_i: float
@@ -84,8 +84,6 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         Energy of the particle beam when it goes out of the cavity.
     ----------
     """
-    # print('Warning! May be error of units between electric field (V/m) and')
-    # print('m_MeV (MeV).')
     # Set useful parameters
     omega_0 = 2e6 * np.pi * f_MHz
     gamma_0 = 1. + E_0_MeV / m_MeV
@@ -97,11 +95,9 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     z_cavity_array = np.linspace(0., zmax, nz + 1)
     dz_cavity = z_cavity_array[1] - z_cavity_array[0]
 
-    units = 1.
-
     # Ez and its derivative functions:
-    Ez_func = interp1d(z_cavity_array, units * k_e * Fz_array)
-    dE_dz_array = np.gradient(units * k_e * Fz_array, dz_cavity)
+    Ez_func = interp1d(z_cavity_array, k_e * Fz_array)
+    dE_dz_array = np.gradient(k_e * Fz_array, dz_cavity)
     dE_dz_func = interp1d(z_cavity_array, dE_dz_array)
 
     # =========================================================================
@@ -196,7 +192,6 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                                            idx_max=n * N_cells - 1)
     E_out_MeV = energy_array[-1]
 
-    # TODO: save and/or output V_cav and phi_s
     V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
     return R_zz, E_out_MeV, V_cav_MV, phi_s_deg
 
