@@ -111,6 +111,6 @@ def recursive_matrix_product(M, idx_min, idx_max):
     M_out = np.eye(2)
 
     for i in range(idx_min, idx_max + 1):
-        M_out = M[:, :, i] @ M_out
+        M_out = M_out @ M[:, :, i]
 
     return M_out

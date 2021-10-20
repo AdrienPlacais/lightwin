@@ -21,7 +21,7 @@ plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
-def plot_error_on_transfer_matrices_components(filepath_dat, LINAC):
+def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
     """
     Estimate the error on transfer matrix calculation.
 
@@ -34,7 +34,7 @@ def plot_error_on_transfer_matrices_components(filepath_dat, LINAC):
         exported by TraceWin is expected to be
         /project_folder/results/matrix_ref.txt, the .dat beeing in
         /project_folder/.
-    LINAC: accelerator object.
+    accelerator: Accelerator object.
         Accelerator under study.
     """
     filepath_ref = '/'.join(filepath_dat.split('/')[:-1])
@@ -47,23 +47,32 @@ def plot_error_on_transfer_matrices_components(filepath_dat, LINAC):
         filepath_ref = askopenfilename(
             filetypes=[("TraceWin transfer matrices file", ".txt")])
 
-    n_elts = LINAC.n_elements
+    n_elts = accelerator.n_elements
     # In this array we store the errors of individual elements
     err_single = np.full((2, 2, n_elts), np.NaN)
     # Here we store the error of the line
     err_tot = np.full((2, 2, n_elts), np.NaN)
-    R_zz_tot = np.eye(2)
     R_zz_tot_ref = np.eye(2)
 
+    # FIXME DIAG element are considered as elements with 0 length, which
+    # completely mess the indices and comparisons
     for i in range(n_elts):
-        R_zz_next = LINAC.R_zz[:, :, i]
-        R_zz_tot = np.matmul(R_zz_tot, R_zz_next)
+        R_zz_single = accelerator.R_zz_single[:, :, i]
+        R_zz_tot = accelerator.R_zz_tot_list[:, :, i]
 
         R_zz_single_ref = import_transfer_matrix_single(filepath_ref, i)
-        R_zz_tot_ref = np.matmul(R_zz_tot_ref, R_zz_single_ref)
+        R_zz_tot_ref = R_zz_single_ref @ R_zz_tot_ref
 
-        err_single[:, :, i] = np.abs(R_zz_single_ref - R_zz_next)
+        err_single[:, :, i] = np.abs(R_zz_single_ref - R_zz_single)
         err_tot[:, :, i] = np.abs(R_zz_tot_ref - R_zz_tot)
+
+        if(i == n_elts - 1):
+            print('Single LW: \n', R_zz_single)
+            print('Single TW: \n', R_zz_single_ref)
+            print('Single err: \n', err_single[:, :, i])
+            print('Tot LW: \n', R_zz_tot)
+            print('Tot TW: \n', R_zz_tot_ref)
+            print('Tot err: \n', err_tot[:, :, i])
 
     if(plt.fignum_exists(20)):
         fig = plt.figure(20)
@@ -150,7 +159,7 @@ def compare_energies(filepath_dat, accelerator):
     accelerator: Accelerator object
         Accelerator under study.
     """
-    flag_output_field_map_acceleration = True
+    flag_output_field_map_acceleration = False
     filepath_ref = '/'.join(filepath_dat.split('/')[:-1])
     filepath_ref = filepath_ref + '/results/energy_ref.txt'
     if(not os.path.isfile(filepath_ref)):

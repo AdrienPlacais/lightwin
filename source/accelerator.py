@@ -9,7 +9,7 @@ import numpy as np
 import elements as elem
 import helper
 import transfer_matrices
-from constants import c, m_MeV
+from constants import m_MeV
 
 
 class Accelerator():
@@ -33,7 +33,7 @@ class Accelerator():
         """
         self.n_elements = 39
         # TODO: handle cases were there the number of elements in the line
-        # is different from 5000
+        # is different from 39
 
         # Beam arrays; by default, they are considered as constant along the
         # line
@@ -49,6 +49,8 @@ class Accelerator():
         self.elements_nature = np.full((self.n_elements), np.NaN, dtype=object)
         self.elements_resume = np.full((self.n_elements), np.NaN, dtype=object)
         self.z_transfer_func = np.full((self.n_elements), np.NaN, dtype=object)
+        self.R_zz_single = np.full((2, 2, self.n_elements), np.NaN)
+        self.R_zz_tot_list = np.full((2, 2, self.n_elements), np.NaN)
 
         # Elements length, apertures
         self.L_mm = np.full((self.n_elements), np.NaN)
@@ -101,10 +103,6 @@ class Accelerator():
 
         # Specific to Sinus cavity or CCL
         self.N = np.full((self.n_elements), np.NaN, dtype=int)
-
-        # Init empty structures and transfer matrix function
-        self.transfer_matrix_z = transfer_matrices.dummy
-        self.R_zz = np.full((2, 2, self.n_elements), np.NaN)
 
     def create_struture_from_dat_file(self, filename):
         """
@@ -223,13 +221,10 @@ class Accelerator():
         if(idx_max == 0):
             idx_max = self.n_elements
 
-        R_zz_tot = np.eye(2, 2)
-
         for i in range(idx_min, idx_max):
             if(self.elements_nature[i] == 'FIELD_MAP'):
-                # FIXME harmonize with other elements
                 # TODO Check this Ncell truc.
-                R_zz_next, E_out_MeV, V_cav_MV, phi_s_deg = \
+                R_zz_single, E_out_MeV, V_cav_MV, phi_s_deg = \
                     transfer_matrices.z_field_map_electric_field(
                         self.E_MeV[i], self.f_MHz[i], self.Fz_array[i],
                         self.k_e[i], self.theta_i[i], 2, self.nz[i],
@@ -241,7 +236,7 @@ class Accelerator():
                 self.phi_s_deg[i] = phi_s_deg
 
             elif(self.elements_nature[i] == 'CAVSIN'):
-                R_zz_next, E_out_MeV =                      \
+                R_zz_single, E_out_MeV =                      \
                     transfer_matrices.z_sinus_cavity(
                         self.L_m[i], self.E_MeV[i], self.f_MHz[i],
                         self.EoT[i], self.theta_s[i], self.N[i])
@@ -250,14 +245,17 @@ class Accelerator():
                 self.gamma[i+1] = 1. + E_out_MeV / m_MeV
 
             else:
-                R_zz_next = self.z_transfer_func[i](self.L_m[i], self.gamma[i])
+                R_zz_single = \
+                    self.z_transfer_func[i](self.L_m[i], self.gamma[i])
                 self.E_MeV[i+1] = self.E_MeV[i]
                 self.gamma[i+1] = self.gamma[i]
 
-            self.R_zz[:, :, i] = R_zz_next
+            self.R_zz_single[:, :, i] = R_zz_single
 
-        R_zz_tot = helper.recursive_matrix_product(self.R_zz,
-                                                   idx_min=0,
-                                                   idx_max=self.n_elements - 1)
+            if(i > 0):
+                self.R_zz_tot_list[:, :, i] = \
+                    R_zz_single @ self.R_zz_tot_list[:, :, i-1]
+            else:
+                self.R_zz_tot_list[:, :, i] = R_zz_single
 
-        return R_zz_tot
+        return
