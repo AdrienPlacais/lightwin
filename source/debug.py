@@ -8,7 +8,7 @@ Created on Tue Oct 12 13:50:44 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
-from palettable.colorbrewer.qualitative import Set1_9
+from palettable.colorbrewer.qualitative import Set1_4
 from cycler import cycler
 import os.path
 from tkinter import Tk
@@ -17,7 +17,7 @@ from tkinter.filedialog import askopenfilename
 font = {'family': 'serif',
         'size':   25}
 plt.rc('font', **font)
-plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
+plt.rc('axes', prop_cycle=(cycler('color', Set1_4.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
@@ -55,7 +55,7 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
     R_zz_tot_ref = np.eye(2)
 
     # FIXME DIAG element are considered as elements with 0 length, which
-    # completely mess the indices and comparisons
+    # completely messes with the indices and comparisons
     for i in range(n_elts):
         R_zz_single = accelerator.R_zz_single[:, :, i]
         R_zz_tot = accelerator.R_zz_tot_list[:, :, i]
@@ -67,32 +67,34 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
         err_tot[:, :, i] = np.abs(R_zz_tot_ref - R_zz_tot)
 
         if(i == n_elts - 1):
-            print('Single LW: \n', R_zz_single)
-            print('Single TW: \n', R_zz_single_ref)
-            print('Single err: \n', err_single[:, :, i])
-            print('Tot LW: \n', R_zz_tot)
-            print('Tot TW: \n', R_zz_tot_ref)
+            # print('Single LW: \n', R_zz_single)
+            # print('Single TW: \n', R_zz_single_ref)
+            # print('Single err: \n', err_single[:, :, i])
+            # print('Tot LW: \n', R_zz_tot)
+            # print('Tot TW: \n', R_zz_tot_ref)
             print('Tot err: \n', err_tot[:, :, i])
 
     if(plt.fignum_exists(20)):
         fig = plt.figure(20)
         ax1 = fig.axes[0]
         ax2 = fig.axes[1]
+        ls = '--'
     else:
         fig = plt.figure(20)
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
+        ls = '-'
 
     elt_array = np.linspace(1, n_elts, n_elts, dtype=int)
-    ax1.plot(elt_array, err_single[0, 0, :], label=r'$R_{11}$')
-    ax1.plot(elt_array, err_single[0, 1, :], label=r'$R_{12}$')
-    ax1.plot(elt_array, err_single[1, 0, :], label=r'$R_{21}$')
-    ax1.plot(elt_array, err_single[1, 1, :], label=r'$R_{22}$')
+    ax1.plot(elt_array, err_single[0, 0, :], label=r'$R_{11}$', ls=ls)
+    ax1.plot(elt_array, err_single[0, 1, :], label=r'$R_{12}$', ls=ls)
+    ax1.plot(elt_array, err_single[1, 0, :], label=r'$R_{21}$', ls=ls)
+    ax1.plot(elt_array, err_single[1, 1, :], label=r'$R_{22}$', ls=ls)
 
-    ax2.plot(elt_array, err_tot[0, 0, :])
-    ax2.plot(elt_array, err_tot[0, 1, :])
-    ax2.plot(elt_array, err_tot[1, 0, :])
-    ax2.plot(elt_array, err_tot[1, 1, :])
+    ax2.plot(elt_array, err_tot[0, 0, :], ls=ls)
+    ax2.plot(elt_array, err_tot[0, 1, :], ls=ls)
+    ax2.plot(elt_array, err_tot[1, 0, :], ls=ls)
+    ax2.plot(elt_array, err_tot[1, 1, :], ls=ls)
 
     ax1.legend()
     ax1.grid(True)
@@ -216,8 +218,8 @@ def compare_energies(filepath_dat, accelerator):
         fig = plt.figure(21)
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
+        ax1.plot(elt_array, E_MeV_ref, label='TraceWin')
     ax1.plot(elt_array, accelerator.E_MeV[1:], label='LightWin')
-    ax1.plot(elt_array, E_MeV_ref, label='TraceWin')
     ax2.plot(elt_array, error*1e3)
     ax1.grid(True)
     ax2.grid(True)

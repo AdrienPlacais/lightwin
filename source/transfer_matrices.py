@@ -96,9 +96,10 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     dz_cavity = z_cavity_array[1] - z_cavity_array[0]
 
     # Ez and its derivative functions:
-    Ez_func = interp1d(z_cavity_array, k_e * Fz_array)
+    kind = 'linear'
+    Ez_func = interp1d(z_cavity_array, k_e * Fz_array, kind=kind)
     dE_dz_array = np.gradient(k_e * Fz_array, dz_cavity)
-    dE_dz_func = interp1d(z_cavity_array, dE_dz_array)
+    dE_dz_func = interp1d(z_cavity_array, dE_dz_array, kind=kind)
 
     # =========================================================================
     # Simulation parameters

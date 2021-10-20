@@ -32,8 +32,8 @@ f_MHz = 176.1
 Tk().withdraw()
 # filepath = '/home/placais/LightWin/data/dummy.dat'
 # filepath = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
-# filepath = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
-filepath = '/home/placais/TraceWin/work_cavsin/work_cavsin.dat'
+filepath = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
+# filepath = '/home/placais/TraceWin/work_cavsin/work_cavsin.dat'
 # filepath = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
 
