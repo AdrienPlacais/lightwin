@@ -13,6 +13,7 @@ from cycler import cycler
 import os.path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+import helper
 
 font = {'family': 'serif',
         'size':   25}
@@ -82,32 +83,35 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
 
     if(plt.fignum_exists(20)):
         fig = plt.figure(20)
-        ax1 = fig.axes[0]
-        ax2 = fig.axes[1]
-        ls = '--'
+        axlist = [fig.axes[0], fig.axes[1]]
+
     else:
         fig = plt.figure(20)
-        ax1 = fig.add_subplot(211)
-        ax2 = fig.add_subplot(212)
+        axlist = [fig.add_subplot(211), fig.add_subplot(212)]
+
+    if(helper.empty_fig(20)):
         ls = '-'
+    else:
+        ls = '--'
 
     elt_array = np.linspace(1, n_elts, n_elts, dtype=int)
-    ax1.plot(elt_array, err_single[0, 0, :], label=r'$R_{11}$', ls=ls)
-    ax1.plot(elt_array, err_single[0, 1, :], label=r'$R_{12}$', ls=ls)
-    ax1.plot(elt_array, err_single[1, 0, :], label=r'$R_{21}$', ls=ls)
-    ax1.plot(elt_array, err_single[1, 1, :], label=r'$R_{22}$', ls=ls)
+    axlist[0].plot(elt_array, err_single[0, 0, :], label=r'$R_{11}$', ls=ls)
+    axlist[0].plot(elt_array, err_single[0, 1, :], label=r'$R_{12}$', ls=ls)
+    axlist[0].plot(elt_array, err_single[1, 0, :], label=r'$R_{21}$', ls=ls)
+    axlist[0].plot(elt_array, err_single[1, 1, :], label=r'$R_{22}$', ls=ls)
 
-    ax2.plot(elt_array, err_tot[0, 0, :], ls=ls)
-    ax2.plot(elt_array, err_tot[0, 1, :], ls=ls)
-    ax2.plot(elt_array, err_tot[1, 0, :], ls=ls)
-    ax2.plot(elt_array, err_tot[1, 1, :], ls=ls)
+    axlist[1].plot(elt_array, err_tot[0, 0, :], ls=ls)
+    axlist[1].plot(elt_array, err_tot[0, 1, :], ls=ls)
+    axlist[1].plot(elt_array, err_tot[1, 0, :], ls=ls)
+    axlist[1].plot(elt_array, err_tot[1, 1, :], ls=ls)
 
-    ax1.legend()
-    ax1.grid(True)
-    ax2.grid(True)
-    ax1.set_ylabel('Error on single element')
-    ax2.set_ylabel('Error from line start')
-    ax2.set_xlabel('Element #')
+    axlist[0].legend()
+
+    for ax in axlist:
+        ax.grid(True)
+    axlist[0].set_ylabel('Error on single element')
+    axlist[1].set_ylabel('Error from line start')
+    axlist[1].set_xlabel('Element #')
 
 
 def import_transfer_matrix_single(filepath_ref, idx_element):
@@ -218,19 +222,23 @@ def compare_energies(filepath_dat, accelerator):
 
     if(plt.fignum_exists(21)):
         fig = plt.figure(21)
-        ax1 = fig.axes[0]
-        ax2 = fig.axes[1]
+        axlist = [fig.axes[0], fig.axes[1]]
+
     else:
         fig = plt.figure(21)
-        ax1 = fig.add_subplot(211)
-        ax2 = fig.add_subplot(212)
-        ax1.plot(elt_array, E_MeV_ref, label='TraceWin')
-    ax1.plot(elt_array, accelerator.E_MeV[1:], label='LightWin')
-    ax2.plot(elt_array, error*1e3)
-    ax1.grid(True)
-    ax2.grid(True)
-    ax2.set_xlabel('Element #')
-    ax1.set_ylabel('Beam energy [MeV]')
-    ax2.set_ylabel('Absolute error [keV]')
+        axlist = [fig.add_subplot(211), fig.add_subplot(212)]
 
-    ax1.legend()
+    if(helper.empty_fig(21)):
+        axlist[0].plot(elt_array, E_MeV_ref, label='TraceWin')
+
+    axlist[0].plot(elt_array, accelerator.E_MeV[1:], label='LightWin')
+    axlist[1].plot(elt_array, error*1e6)
+
+    for ax in axlist:
+        ax.grid(True)
+
+    axlist[0].set_ylabel('Beam energy [MeV]')
+    axlist[1].set_xlabel('Element #')
+    axlist[1].set_ylabel('Absolute error [eV]')
+
+    axlist[0].legend()

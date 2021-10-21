@@ -7,6 +7,7 @@ Created on Wed Sep 22 14:15:48 2021
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def printc(message, color='red', opt_message=''):
@@ -137,3 +138,23 @@ def right_recursive_matrix_product(M, idx_min, idx_max):
         M_out = M[:, :, i] @ M_out
 
     return M_out
+
+
+def clean_fig(fignumlist):
+    """Clean axis of Figs in fignumlist."""
+    for fignum in fignumlist:
+        fig = plt.figure(fignum)
+        for ax in fig.get_axes():
+            ax.cla()
+
+
+def empty_fig(fignum):
+    """Return True if at least one axis of Fig(fignum) has no line."""
+    out = False
+    if(plt.fignum_exists(fignum)):
+        fig = plt.figure(fignum)
+        axlist = fig.get_axes()
+        for ax in axlist:
+            if(ax.lines == []):
+                out = True
+    return out
