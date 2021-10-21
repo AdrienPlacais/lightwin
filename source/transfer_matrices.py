@@ -113,7 +113,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # Simulation parameters
     # =========================================================================
     # The N_cells cells cavity is divided in n*N_cells steps of length dz:
-    n = 1000
+    n = 7000
     dz = zmax / (n * N_cells)
 
     # =========================================================================
@@ -146,6 +146,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         E_MeV -= q_adim * Ez_func(z_s)[()] * np.cos(phi_0) * .5 * dz
         # Set time to i=0
         t_s = z_s / (beta_0 * c)
+        #  t_s = (z_s+.5*dz) / (beta_0 * c)
         energy_array = [E_MeV]
 
     phi_RF = phi_0 + omega_0 * t_s
@@ -179,6 +180,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         elif(method == 'leapfrog'):
             E_interp = Ez_func(z_s)[()]
+            #  E_interp = Ez_func(z_s + .5 * dz)[()]
             E_r = E_interp * np.cos(phi_RF)             # E(i)
             delta_E_MeV = q_adim * E_r * dz             # W(i+1/2) - W(i-1/2)
 
@@ -189,8 +191,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         # gamma_s and beta_s are at the step i. They are used for the transfer
         # matrix calculation, but should not be used for the leapfrog
         # algorithm!
-        gamma_s = (gamma_out + gamma_in) * .5
-        beta_s = np.sqrt(1. - gamma_s**-2)
+        gamma_s = (gamma_out + gamma_in) * .5           # gamma(i)
+        beta_s = np.sqrt(1. - gamma_s**-2)              # beta(i)
 
         # Synchronous phase
         #  phi_s = np.arctan(F_E_imag / F_E_real)
@@ -203,10 +205,12 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
 
         elif(method == 'leapfrog'):
-            # Lower error, less logical
+            # Higher error, more logical
+            # More 'stable' with nsteps
             K_1 = dE_dz_func(z_s)[()] * K_0
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
-            # Higher error, more logical
+            # Lower error, less logical.
+            # 'instability', varies when nsteps=1000 or 10000
             #  K_1 = dE_dz_func(z_s + .5 * dz)[()] * K_0
             #  K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s + .5 * dz) * K_0
 
