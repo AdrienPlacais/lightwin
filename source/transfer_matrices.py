@@ -87,7 +87,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     method = 'leapfrog'
     #  method = 'classic'
     #  method = 'RK'
-    print('Method: ', method)
+    if(E_0_MeV == 16.6):
+        print('Method: ', method)
     # Set useful parameters
     omega_0 = 2e6 * np.pi * f_MHz
     gamma_0 = 1. + E_0_MeV / m_MeV
@@ -132,12 +133,19 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
     elif(method == 'leapfrog'):
         # Leapfrog method:
-        # pos(i+1) = pos(i) + speed(i+0.5) * dt
+        #   pos(i+1) = pos(i) + speed(i+0.5) * dt
+        #   speed(i+0.5) = speed(i-0.5) * accel(i) * dt
+        # Here, dt is not fixed but dz.
+        #   z(i+1) += dz
+        #   t(i+1) = t(i) + dz / (c beta(i+1/2))
+        #       (time and space variables are on whole steps)
+        #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
+        #       (speed/energy are on half steps)
         z_s = 0.
         # We need to rewind velocity (energy) of a half-step
         E_MeV -= q_adim * Ez_func(z_s)[()] * np.cos(phi_0) * .5 * dz
-        # Set time to i+0.5 (i=0)
-        t_s = (z_s + .5 * dz) / (beta_0 * c)
+        # Set time to i=0
+        t_s = z_s / (beta_0 * c)
         energy_array = [E_MeV]
 
     phi_RF = phi_0 + omega_0 * t_s
@@ -170,15 +178,17 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                 delta_E_MeV = q_adim * E_r * dz
 
         elif(method == 'leapfrog'):
-            E_interp = Ez_func(z_s + .5 * dz)[()]
-            E_r = E_interp * np.cos(phi_RF)
-            delta_E_MeV = q_adim * E_r * dz
+            E_interp = Ez_func(z_s)[()]
+            E_r = E_interp * np.cos(phi_RF)             # E(i)
+            delta_E_MeV = q_adim * E_r * dz             # W(i+1/2) - W(i-1/2)
 
-        E_MeV += delta_E_MeV
-        gamma_out = gamma_in + delta_E_MeV / m_MeV
-        beta_out = np.sqrt(1. - gamma_out**-2)
+        E_MeV += delta_E_MeV                            # W(i+1/2)
+        gamma_out = gamma_in + delta_E_MeV / m_MeV      # gamma(i+1/2)
+        beta_out = np.sqrt(1. - gamma_out**-2)          # beta(i+1/2)
 
-        # We take gamma and beta at the middle of current cell
+        # gamma_s and beta_s are at the step i. They are used for the transfer
+        # matrix calculation, but should not be used for the leapfrog
+        # algorithm!
         gamma_s = (gamma_out + gamma_in) * .5
         beta_s = np.sqrt(1. - gamma_s**-2)
 
@@ -193,8 +203,12 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
 
         elif(method == 'leapfrog'):
-            K_1 = dE_dz_func(z_s + .5 * dz)[()] * K_0
-            K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s + .5 * dz) * K_0
+            # Lower error, less logical
+            K_1 = dE_dz_func(z_s)[()] * K_0
+            K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
+            # Higher error, more logical
+            #  K_1 = dE_dz_func(z_s + .5 * dz)[()] * K_0
+            #  K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s + .5 * dz) * K_0
 
         M_in = z_drift(.5 * dz, gamma_in)
         M_mid = np.array(([1., 0.],
@@ -204,13 +218,12 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         # Compute M_in * M_mid * M_out * M_t
         M_z = M_in @ M_mid @ M_out
         M_z_list[:, :, i] = np.copy(M_z)
-        # @ is an operator used as a shorthand for np.matmul.
 
         if(method == 'classic'):
             # Next step
             if(i < n * N_cells - 1):
                 z_s += dz
-                t_s += dz / (beta_out * c) # Error is lower with beta_s than with beta_out
+                t_s += dz / (beta_out * c)
             else:
                 # This values will not be used again, so this has no influence on
                 # the results
@@ -218,10 +231,10 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                 t_s += .5 * dz / (beta_out * c)
 
         elif(method == 'leapfrog'):
-            z_s += dz
-            t_s += dz / (beta_out * c)
+            z_s += dz                       # z(i+1)
+            t_s += dz / (beta_out * c)      # t(i+1) = dz / (beta(i+1/2) * c)
 
-        phi_RF = omega_0 * t_s + phi_0
+        phi_RF = omega_0 * t_s + phi_0      # phi(i+1)
 
         # Save data
         energy_array.append(E_MeV)
