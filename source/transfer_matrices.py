@@ -84,8 +84,10 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         Energy of the particle beam when it goes out of the cavity.
     ----------
     """
-    leapfrog = True
-    print('Leapfrog: ', leapfrog)
+    method = 'leapfrog'
+    #  method = 'classic'
+    #  method = 'RK'
+    print('Method: ', method)
     # Set useful parameters
     omega_0 = 2e6 * np.pi * f_MHz
     gamma_0 = 1. + E_0_MeV / m_MeV
@@ -120,7 +122,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     E_MeV = E_0_MeV
     gamma_out = gamma_0
 
-    if(not leapfrog):
+    if(method == 'classic'):
         # Position of synch. particle advanced by a half-step
         z_s = .5 * dz
         # Time corresponding to this position (we consider that speed is constant
@@ -128,7 +130,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         t_s = z_s / (beta_0 * c)
         energy_array = [E_0_MeV]
 
-    else:
+    elif(method == 'leapfrog'):
         # Leapfrog method:
         # pos(i+1) = pos(i) + speed(i+0.5) * dt
         z_s = 0.
@@ -155,7 +157,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         #  F_E_real += q_adim * E_r
         #  F_E_imag += q_adim * E_interp * np.sin(phi_RF)
 
-        if(not leapfrog):
+        if(method == 'classic'):
             E_interp = Ez_func(z_s)[()]
             E_r = E_interp * np.cos(phi_RF)
 
@@ -166,7 +168,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                 # During last, z = zmax - delta_z/2 to zmax
             else:
                 delta_E_MeV = q_adim * E_r * dz
-        else:
+
+        elif(method == 'leapfrog'):
             E_interp = Ez_func(z_s + .5 * dz)[()]
             E_r = E_interp * np.cos(phi_RF)
             delta_E_MeV = q_adim * E_r * dz
@@ -185,10 +188,11 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         # Compute transfer matrix using thin lens approximation
         K_0 = q_adim * np.cos(phi_RF) * dz / (gamma_s * beta_s**2 * m_MeV)
-        if(not leapfrog):
+        if(method == 'classic'):
             K_1 = dE_dz_func(z_s)[()] * K_0
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
-        else:
+
+        elif(method == 'leapfrog'):
             K_1 = dE_dz_func(z_s + .5 * dz)[()] * K_0
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s + .5 * dz) * K_0
 
@@ -202,7 +206,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         M_z_list[:, :, i] = np.copy(M_z)
         # @ is an operator used as a shorthand for np.matmul.
 
-        if(not leapfrog):
+        if(method == 'classic'):
             # Next step
             if(i < n * N_cells - 1):
                 z_s += dz
@@ -212,7 +216,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                 # the results
                 z_s += .5 * dz
                 t_s += .5 * dz / (beta_out * c)
-        else:
+
+        elif(method == 'leapfrog'):
             z_s += dz
             t_s += dz / (beta_out * c)
 

@@ -68,6 +68,9 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
         err_tot[:, :, i] = R_zz_tot_ref - R_zz_tot
 
         if(i == 37):
+            print(' ')
+            print('=========================================================')
+            print(' ')
             print('LightWin version:')
             print('Single LW: \n', R_zz_single)
             print('Single TW: \n', R_zz_single_ref)
