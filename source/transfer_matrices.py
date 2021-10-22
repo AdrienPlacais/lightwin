@@ -84,16 +84,16 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         Energy of the particle beam when it goes out of the cavity.
     ----------
     """
-    method = 'leapfrog'
     #  method = 'classic'
-    #  method = 'RK'
-    if(E_0_MeV == 16.6):
-        print('Method: ', method)
+    #  method = 'leapfrog'
+    method = 'RK'
+
+    if(E_0_MeV == 16.6): print('Method: ', method)
+
     # Set useful parameters
     omega_0 = 2e6 * np.pi * f_MHz
     gamma_0 = 1. + E_0_MeV / m_MeV
     beta_0 = np.sqrt(1. - gamma_0**-2)
-    # phi_RF is a 'whole-step' phase
     phi_0 = np.deg2rad(theta_i)
 
     # Local coordinates of the cavity:
@@ -103,33 +103,27 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # Ez and its derivative functions:
     kind = 'linear'
     fill_value = 0.
-    Ez_func = interp1d(z_cavity_array, k_e * Fz_array,
-                       kind=kind, fill_value=fill_value)
+    Ez_func = interp1d(z_cavity_array, k_e * Fz_array, bounds_error=False,
+                       kind=kind, fill_value=fill_value, assume_sorted=True)
     dE_dz_array = np.gradient(k_e * Fz_array, dz_cavity)
-    dE_dz_func = interp1d(z_cavity_array, dE_dz_array,
-                          kind=kind, fill_value=fill_value)
+    dE_dz_func = interp1d(z_cavity_array, dE_dz_array, bounds_error=False,
+                          kind=kind, fill_value=fill_value, assume_sorted=True)
 
     # =========================================================================
     # Simulation parameters
     # =========================================================================
     # The N_cells cells cavity is divided in n*N_cells steps of length dz:
-    n = 7000
+    n = 3000
     dz = zmax / (n * N_cells)
 
     # =========================================================================
     # Compute energy gain and synchronous phase
     # =========================================================================
-    # Particle coordinates at cavity input
-    E_MeV = E_0_MeV
-    gamma_out = gamma_0
-
     if(method == 'classic'):
-        # Position of synch. particle advanced by a half-step
         z_s = .5 * dz
-        # Time corresponding to this position (we consider that speed is constant
-        # during this short half-step)
         t_s = z_s / (beta_0 * c)
-        energy_array = [E_0_MeV]
+        E_MeV = E_0_MeV
+        gamma_out = gamma_0
 
     elif(method == 'leapfrog'):
         # Leapfrog method:
@@ -142,19 +136,47 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
         #       (speed/energy are on half steps)
         z_s = 0.
-        # We need to rewind velocity (energy) of a half-step
-        E_MeV -= q_adim * Ez_func(z_s)[()] * np.cos(phi_0) * .5 * dz
-        # Set time to i=0
         t_s = z_s / (beta_0 * c)
-        #  t_s = (z_s+.5*dz) / (beta_0 * c)
-        energy_array = [E_MeV]
+        # Rewind energy
+        E_MeV = E_0_MeV - q_adim * Ez_func(z_s)[()] * np.cos(phi_0) * .5 * dz
+        gamma_out = 1. + E_MeV / m_MeV
+
+    elif(method == 'RK'):
+        z_s = 0.
+        t_s = z_s / (beta_0 * c)
+        E_MeV = E_0_MeV
+        gamma_out = gamma_0
+
+        def du_dz(z, u):
+            """
+            Parameters
+            ----------
+            u: np.array(2)
+                First component is E_MeV(i).
+                Second component is t(i).
+
+            Return
+            ------
+            v: np.array(2)
+                First component is (E_MeV(i+1) - E_MeV(i)) / dz.
+                Second component is (t(i+1) - t(i)) / dz.
+            """
+            v0 = q_adim * Ez_func(z)[()] * np.cos(omega_0*u[1] + phi_0)
+
+            gamma = 1. + u[0] / m_MeV
+            beta = np.sqrt(1. - gamma**-2)
+            v1 = 1. / (beta * c)
+
+            v = np.array(([v0, v1]))
+            return v
 
     phi_RF = phi_0 + omega_0 * t_s
 
     #  F_E_real = 0.
     #  F_E_imag = 0.
 
-    gamma_array = [gamma_0]
+    energy_array = [E_MeV]
+    gamma_array = [gamma_out]
 
     M_z_list = np.zeros((2, 2, n*N_cells))
 
@@ -180,39 +202,49 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         elif(method == 'leapfrog'):
             E_interp = Ez_func(z_s)[()]
-            #  E_interp = Ez_func(z_s + .5 * dz)[()]
-            E_r = E_interp * np.cos(phi_RF)             # E(i)
-            delta_E_MeV = q_adim * E_r * dz             # W(i+1/2) - W(i-1/2)
+            E_r = E_interp * np.cos(phi_RF)
+            delta_E_MeV = q_adim * E_r * dz
 
-        E_MeV += delta_E_MeV                            # W(i+1/2)
-        gamma_out = gamma_in + delta_E_MeV / m_MeV      # gamma(i+1/2)
-        beta_out = np.sqrt(1. - gamma_out**-2)          # beta(i+1/2)
+        elif(method == 'RK'):
+            u = np.array(([E_MeV, t_s]))
+            k_1 = du_dz(z_s          , u)
+            k_2 = du_dz(z_s + .5 * dz, u + .5 * dz * k_1)
+            k_3 = du_dz(z_s + .5 * dz, u + .5 * dz * k_2)
+            k_4 = du_dz(z_s +      dz, u +      dz * k_3)
+            delta_u = (k_1 + 2.*k_2 + 2.*k_3 + k_4) * dz / 6.
+            delta_E_MeV = delta_u[0]
+            delta_t = delta_u[1]
 
-        # gamma_s and beta_s are at the step i. They are used for the transfer
-        # matrix calculation, but should not be used for the leapfrog
-        # algorithm!
-        gamma_s = (gamma_out + gamma_in) * .5           # gamma(i)
-        beta_s = np.sqrt(1. - gamma_s**-2)              # beta(i)
+        E_MeV += delta_E_MeV
+        gamma_out = gamma_in + delta_E_MeV / m_MeV
+        beta_out = np.sqrt(1. - gamma_out**-2)
+
+        gamma_s = (gamma_out + gamma_in) * .5
+        beta_s = np.sqrt(1. - gamma_s**-2)
 
         # Synchronous phase
         #  phi_s = np.arctan(F_E_imag / F_E_real)
         #  phi_s_deg = np.rad2deg(phi_s)
 
         # Compute transfer matrix using thin lens approximation
-        K_0 = q_adim * np.cos(phi_RF) * dz / (gamma_s * beta_s**2 * m_MeV)
         if(method == 'classic'):
+            K_0 = q_adim * np.cos(phi_RF) * dz / (gamma_s * beta_s**2 * m_MeV)
             K_1 = dE_dz_func(z_s)[()] * K_0
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
 
         elif(method == 'leapfrog'):
-            # Higher error, more logical
-            # More 'stable' with nsteps
+            K_0 = q_adim * np.cos(phi_RF) * dz / (gamma_s * beta_s**2 * m_MeV)
             K_1 = dE_dz_func(z_s)[()] * K_0
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
-            # Lower error, less logical.
-            # 'instability', varies when nsteps=1000 or 10000
-            #  K_1 = dE_dz_func(z_s + .5 * dz)[()] * K_0
-            #  K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s + .5 * dz) * K_0
+
+        elif(method == 'RK'):
+            #  phi_essai = omega_0 * (t_s + .5*delta_t) + phi_0
+            phi_essai = phi_RF
+            z_essai = z_s + dz
+            K_0 = q_adim * np.cos(phi_essai) * dz / (gamma_s * beta_s**2 * m_MeV)
+            K_1 = dE_dz_func(z_essai)[()] * K_0
+            K_2 = 1. - (2. - beta_s**2) * Ez_func(z_essai) * K_0
+
 
         M_in = z_drift(.5 * dz, gamma_in)
         M_mid = np.array(([1., 0.],
@@ -235,10 +267,14 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                 t_s += .5 * dz / (beta_out * c)
 
         elif(method == 'leapfrog'):
-            z_s += dz                       # z(i+1)
-            t_s += dz / (beta_out * c)      # t(i+1) = dz / (beta(i+1/2) * c)
+            z_s += dz
+            t_s += dz / (beta_out * c)
 
-        phi_RF = omega_0 * t_s + phi_0      # phi(i+1)
+        elif(method == 'RK'):
+            z_s += dz
+            t_s += delta_t
+
+        phi_RF = omega_0 * t_s + phi_0
 
         # Save data
         energy_array.append(E_MeV)
