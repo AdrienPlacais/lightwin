@@ -158,3 +158,25 @@ def empty_fig(fignum):
             if(ax.lines == []):
                 out = True
     return out
+
+
+def save_full_MT_and_energy_evolution(accelerator):
+    """
+    Output the energy and transfer matrice components as a function of z.
+
+    z [m]   E[MeV]  M_11    M_12    M_21    M_22
+
+    Parameters
+    ----------
+    accelerator: Accelerator object
+        Object of corresponding to desired output.
+    """
+    data = accelerator.full_MT_and_energy_evolution
+    n_z = data.shape[0]
+    filepath = '../data/full_energy_and_MT.txt'
+    out = np.full((n_z, 6), np.NaN)
+
+    for i in range(n_z):
+        out[i, :] = data[i, :, :].flatten()
+
+    np.savetxt(filepath, out)

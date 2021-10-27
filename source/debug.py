@@ -58,8 +58,8 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
     # FIXME DIAG element are considered as elements with 0 length, which
     # completely messes with the indices and comparisons
     for i in range(n_elts):
-        R_zz_single = accelerator.R_zz_single[:, :, i]
-        R_zz_tot = accelerator.R_zz_tot_list[:, :, i]
+        R_zz_single = np.copy(accelerator.R_zz_single[:, :, i])
+        R_zz_tot = np.copy(accelerator.R_zz_tot_list[:, :, i])
 
         R_zz_single_ref = import_transfer_matrix_single(filepath_ref, i)
         R_zz_tot_ref = R_zz_single_ref @ R_zz_tot_ref
@@ -67,20 +67,20 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
         err_single[:, :, i] = R_zz_single_ref - R_zz_single
         err_tot[:, :, i] = R_zz_tot_ref - R_zz_tot
 
-        if(i == 37):
+        if(i == -1):
             print(' ')
             print('=========================================================')
             print(' ')
             print('LightWin version:')
-            print('Single LW: \n', R_zz_single)
-            print('Single TW: \n', R_zz_single_ref)
-            print('Single err*1e3: \n', 1e3*err_single[:, :, i])
+            print('Single LW: \n', R_zz_single, '\n')
+            print('Single TW: \n', R_zz_single_ref, '\n')
+            print('Single err*1e3: \n', 1e3*err_single[:, :, i], '\n')
             print(' ')
             print('=========================================================')
             print(' ')
-            print('Tot LW: \n', R_zz_tot)
-            print('Tot TW: \n', R_zz_tot_ref)
-            print('Tot err*1e3: \n', 1e3*err_tot[:, :, i])
+            print('Tot LW: \n', R_zz_tot, '\n')
+            print('Tot TW: \n', R_zz_tot_ref, '\n')
+            print('Tot err*1e3: \n', 1e3*err_tot[:, :, i], '\n')
             print(' ')
             print('=========================================================')
 
@@ -98,15 +98,12 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
         ls = '--'
 
     elt_array = np.linspace(1, n_elts, n_elts, dtype=int)
-    axlist[0].plot(elt_array, err_single[0, 0, :], label=r'$R_{11}$', ls=ls)
-    axlist[0].plot(elt_array, err_single[0, 1, :], label=r'$R_{12}$', ls=ls)
-    axlist[0].plot(elt_array, err_single[1, 0, :], label=r'$R_{21}$', ls=ls)
-    axlist[0].plot(elt_array, err_single[1, 1, :], label=r'$R_{22}$', ls=ls)
+    labels = [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$']
 
-    axlist[1].plot(elt_array, err_tot[0, 0, :], ls=ls)
-    axlist[1].plot(elt_array, err_tot[0, 1, :], ls=ls)
-    axlist[1].plot(elt_array, err_tot[1, 0, :], ls=ls)
-    axlist[1].plot(elt_array, err_tot[1, 1, :], ls=ls)
+    for i in range(4):
+        axlist[0].plot(elt_array, err_single[i//2, i % 2, :],
+                       label=labels[i], ls=ls)
+        axlist[1].plot(elt_array, err_tot[i//2, i % 2, :], ls=ls)
 
     axlist[0].legend()
 
@@ -236,7 +233,7 @@ def compare_energies(filepath_dat, accelerator):
 
     axlist[0].plot(elt_array, accelerator.E_MeV[1:], label='LightWin')
     axlist[1].plot(elt_array, error*1e6)
-
+    
     for ax in axlist:
         ax.grid(True)
 

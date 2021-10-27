@@ -88,7 +88,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     #  method = 'leapfrog'
     method = 'RK'
 
-    if(E_0_MeV == 16.6): print('Method: ', method)
+    if(E_0_MeV == 16.6):
+        print('Method: ', method)
 
     # Set useful parameters
     omega_0 = 2e6 * np.pi * f_MHz
@@ -113,7 +114,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # Simulation parameters
     # =========================================================================
     # The N_cells cells cavity is divided in n*N_cells steps of length dz:
-    n = 3000
+    n = 1000
     dz = zmax / (n * N_cells)
 
     # =========================================================================
@@ -175,7 +176,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     #  F_E_real = 0.
     #  F_E_imag = 0.
 
-    energy_array = [E_MeV]
+    energy_array = np.array(([z_s, E_MeV]))
     gamma_array = [gamma_out]
 
     M_z_list = np.zeros((2, 2, n*N_cells))
@@ -238,13 +239,16 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
 
         elif(method == 'RK'):
-            #  phi_essai = omega_0 * (t_s + .5*delta_t) + phi_0
-            phi_essai = phi_RF
-            z_essai = z_s + dz
-            K_0 = q_adim * np.cos(phi_essai) * dz / (gamma_s * beta_s**2 * m_MeV)
-            K_1 = dE_dz_func(z_essai)[()] * K_0
-            K_2 = 1. - (2. - beta_s**2) * Ez_func(z_essai) * K_0
-
+            K_0 = q_adim * dz / (gamma_s * beta_s**2 * m_MeV)
+            dv_of_temp = Ez_func(z_s) * np.sin(phi_RF) * omega_0 / (beta_s * c)
+            dv_of_spat = dE_dz_func(z_s)[()] * np.cos(phi_RF)
+            # Best for top line: dv_of_spat
+            # Best for bottom line: dv_of_temp
+            # More logical: dv_of_spat - dv_of_temp
+            # K_1 = K_0 * (dv_of_spat - dv_of_temp)
+            K_1 = K_0 * dv_of_spat
+            K_2 = 1. - K_0 * (2. - beta_s**2)   \
+                * Ez_func(z_s) * np.cos(phi_RF)
 
         M_in = z_drift(.5 * dz, gamma_in)
         M_mid = np.array(([1., 0.],
@@ -257,14 +261,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         if(method == 'classic'):
             # Next step
-            if(i < n * N_cells - 1):
-                z_s += dz
-                t_s += dz / (beta_out * c)
-            else:
-                # This values will not be used again, so this has no influence on
-                # the results
-                z_s += .5 * dz
-                t_s += .5 * dz / (beta_out * c)
+            z_s += dz
+            t_s += dz / (beta_out * c)
 
         elif(method == 'leapfrog'):
             z_s += dz
@@ -277,23 +275,31 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         phi_RF = omega_0 * t_s + phi_0
 
         # Save data
-        energy_array.append(E_MeV)
+        energy_array = np.vstack((energy_array, np.array(([z_s, E_MeV]))))
         gamma_array.append(gamma_out)
 
     # =========================================================================
     # End of loop
     # =========================================================================
-    energy_array = np.array(energy_array)
     gamma_array = np.array(gamma_array)
 
+    MT_and_energy_evolution = np.full((n * N_cells, 3, 2), np.NaN)
+    for i in range(n*N_cells):
+        # First line: position and energy
+        MT_and_energy_evolution[i, 0, :] = energy_array[i, :]
+        # Second and third line: transfer matrix components of slices
+        # (a recursive matrix product shall be performed in order to obtain
+        # real transfer matrix components)
+        MT_and_energy_evolution[i, 1:, :] = M_z_list[:, :, i]
+
+    # Global MT of element
     R_zz = helper.right_recursive_matrix_product(M_z_list,
                                                  idx_min=0,
                                                  idx_max=n * N_cells - 1)
-    E_out_MeV = energy_array[-1]
 
     # V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
     # return R_zz, E_out_MeV, V_cav_MV, phi_s_deg
-    return R_zz, E_out_MeV, 0., 0.
+    return R_zz, MT_and_energy_evolution, 0., 0.
 
 
 def not_an_element(Delta_s, gamma):

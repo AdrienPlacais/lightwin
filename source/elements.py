@@ -36,8 +36,6 @@ def add_drift(accelerator, line, i):
     except IndexError:
         pass
 
-    accelerator.z_transfer_func[i] = transfer_matrices.z_drift
-
 
 def add_quad(accelerator, line, i):
     """Add a quadrupole to the Accelerator object."""
@@ -68,8 +66,6 @@ def add_quad(accelerator, line, i):
     except IndexError:
         pass
 
-    accelerator.z_transfer_func[i] = transfer_matrices.z_drift
-
 
 def add_solenoid(accelerator, line, i):
     """Add a solenoid to the Accelerator object."""
@@ -88,8 +84,6 @@ def add_solenoid(accelerator, line, i):
     accelerator.L_m[i] = accelerator.L_mm[i] * 1e-3
     accelerator.B[i] = float(line[2])
     accelerator.R[i] = float(line[3])
-
-    accelerator.z_transfer_func[i] = transfer_matrices.z_drift
 
 
 def add_field_map(accelerator, line, i, TraceWin_dat_filename, f_MHz):
@@ -148,8 +142,6 @@ def add_field_map(accelerator, line, i, TraceWin_dat_filename, f_MHz):
         accelerator.P[i] = int(line[10])
     except IndexError:
         pass
-
-    accelerator.z_transfer_func[i] = transfer_matrices.dummy
 
     nz, zmax, Norm, Fz_array = select_and_load_field_map_file(
         accelerator.TraceWin_dat_filename,
@@ -287,5 +279,3 @@ def add_sinus_cavity(accelerator, line, i, TraceWin_dat_filename, f_MHz):
     accelerator.theta_s[i] = float(line[4])
     accelerator.R[i] = float(line[5])
     accelerator.P[i] = int(line[6])
-
-    accelerator.z_transfer_func[i] = transfer_matrices.z_sinus_cavity

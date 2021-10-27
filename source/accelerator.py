@@ -37,6 +37,7 @@ class Accelerator():
 
         # Beam arrays; by default, they are considered as constant along the
         # line
+        # Energy at each element in/out:
         self.E_MeV = np.full((self.n_elements + 1), E_MeV)
         self.I_mA = np.full((self.n_elements), I_mA)
         self.f_MHz = np.full((self.n_elements), f_MHz)
@@ -48,14 +49,26 @@ class Accelerator():
         # Common to every element
         self.elements_nature = np.full((self.n_elements), np.NaN, dtype=object)
         self.elements_resume = np.full((self.n_elements), np.NaN, dtype=object)
-        self.z_transfer_func = np.full((self.n_elements), np.NaN, dtype=object)
+
+        # Longitudinal transfer matrix of single elements:
         self.R_zz_single = np.full((2, 2, self.n_elements), np.NaN)
+        # Longitudinal transfer matrix of the first to the i-th element:
         self.R_zz_tot_list = np.full((2, 2, self.n_elements), np.NaN)
+
+        # Here we store the evolution of the energy and of the longitudinal
+        # transfer matrix components
+        self.full_MT_and_energy_evolution = np.array(([0., E_MeV],  # z_s, E
+                                                      [1., 0.],    # M_11, M_12
+                                                      [0., 1.]))   # M_21, M_22
+        # First axis will be used to store these data at different positions
+        self.full_MT_and_energy_evolution = \
+            np.expand_dims(self.full_MT_and_energy_evolution, axis=0)
 
         # Elements length, apertures
         self.L_mm = np.full((self.n_elements), np.NaN)
         self.L_m = np.full((self.n_elements), np.NaN)
         self.R = np.full((self.n_elements), np.NaN)
+        self.absolute_entrance_position = np.full((self.n_elements), 0.)
 
         # Specific to drift
         self.R_y = np.full((self.n_elements), np.NaN)
@@ -168,7 +181,6 @@ class Accelerator():
 
                 elif(element_name == 'SPACE_CHARGE_COMP'):
                     # TODO: check if i += 1 should be after the current mod
-                    self.z_transfer_func[i] = transfer_matrices.not_an_element
                     i += 1
                     self.I_mA[i:] = self.I_mA[i] * (1 - line[1])
 
@@ -184,6 +196,11 @@ class Accelerator():
                     msg = "Element not yet implemented: "
                     opt_msg = line[0] + '\t\t (i=' + str(i) + ')'
                     helper.printc(msg, color='info', opt_message=opt_msg)
+
+                if(i > 1):
+                    self.absolute_entrance_position[i - 1] =        \
+                        self.absolute_entrance_position[i - 2]  \
+                        + self.L_m[i - 2]
 
     def show_elements_info(self, idx_min=0, idx_max=0):
         """
@@ -218,22 +235,32 @@ class Accelerator():
         idx_max: int, optional
             Position of last element.
         """
+        # By default, idx_max = 0 indicares that the transfer matrix of the
+        # entire line should be calculated
         if(idx_max == 0):
             idx_max = self.n_elements
 
         for i in range(idx_min, idx_max):
             if(self.elements_nature[i] == 'FIELD_MAP'):
                 # TODO Check this Ncell truc.
-                R_zz_single, E_out_MeV, V_cav_MV, phi_s_deg = \
+                R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
                     transfer_matrices.z_field_map_electric_field(
                         self.E_MeV[i], self.f_MHz[i], self.Fz_array[i],
                         self.k_e[i], self.theta_i[i], 2, self.nz[i],
                         self.zmax[i])
 
-                self.E_MeV[i+1] = E_out_MeV
-                self.gamma[i+1] = 1. + E_out_MeV / m_MeV
+                self.E_MeV[i+1] = MT_and_energy_evolution[-1, 0, 1]
+                self.gamma[i+1] = 1. + self.E_MeV[i+1] / m_MeV
                 self.V_cav_MV[i] = V_cav_MV
                 self.phi_s_deg[i] = phi_s_deg
+
+                # Convert relative position to absolute position:
+                MT_and_energy_evolution[:, 0, 0] += \
+                    self.absolute_entrance_position[i]
+
+                self.full_MT_and_energy_evolution = \
+                    np.vstack((self.full_MT_and_energy_evolution,
+                               MT_and_energy_evolution))
 
             elif(self.elements_nature[i] == 'CAVSIN'):
                 R_zz_single, E_out_MeV =                      \
@@ -244,11 +271,32 @@ class Accelerator():
                 self.E_MeV[i+1] = E_out_MeV
                 self.gamma[i+1] = 1. + E_out_MeV / m_MeV
 
+                print("full_MT_and_energy_evolution not implemented for " +
+                      "cavsin")
+
             else:
                 R_zz_single = \
-                    self.z_transfer_func[i](self.L_m[i], self.gamma[i])
+                    transfer_matrices.z_drift(self.L_m[i], self.gamma[i])
                 self.E_MeV[i+1] = self.E_MeV[i]
                 self.gamma[i+1] = self.gamma[i]
+
+                MT_and_energy_evolution = np.expand_dims(
+                    np.vstack(
+                        (
+                            np.array(
+                                [self.absolute_entrance_position[i] +
+                                 self.L_m[i],
+                                 self.E_MeV[i+1]]
+                                ),
+                            R_zz_single
+                            )
+                        ),
+                    axis=0
+                    )
+
+                self.full_MT_and_energy_evolution = \
+                    np.vstack((self.full_MT_and_energy_evolution,
+                               MT_and_energy_evolution))
 
             self.R_zz_single[:, :, i] = R_zz_single
 
@@ -258,5 +306,12 @@ class Accelerator():
 
             else:
                 self.R_zz_tot_list[:, :, i] = R_zz_single
+
+        # Now compute the transfer matrix as a function of z:
+        N_z = self.full_MT_and_energy_evolution.shape[0]
+        for i in range(1, N_z):
+            self.full_MT_and_energy_evolution[i, 1:, :] = \
+                self.full_MT_and_energy_evolution[i, 1:, :] @ \
+                self.full_MT_and_energy_evolution[i-1, 1:, :]
 
         return
