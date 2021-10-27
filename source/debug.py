@@ -194,12 +194,56 @@ def plot_error_on_transfer_matrices_components_full(filepath_dat,
 
     # We calculate error by interpolating the tab with most points on the one
     # with least points.
-    if(n_z < n_z_ref):
-        n = n_z
-    else:
-        n = n_z_ref
+    kind = 'linear'
+    bounds_error = False
+    fill_value = 'extrapolate'
 
-    err = np.full((n, 2, 2), np.NaN)
+    if(n_z < n_z_ref):
+        z_error = z
+        err = np.full((n_z, 4), np.NaN)
+        for i in range(4):
+            f_interp = interp1d(x=R_zz_tot_ref[:, 0],
+                                y=R_zz_tot_ref[:, i+1],
+                                kind=kind, bounds_error=bounds_error,
+                                fill_value=fill_value)
+            err[:, i] = f_interp(z_error) - R_zz_tot[:, i // 2, i % 2]
+
+    else:
+        z_error = R_zz_tot_ref[:, 0]
+        err = np.full((n_z_ref, 4), np.NaN)
+        for i in range(4):
+            f_interp = interp1d(x=z,
+                                y=R_zz_tot[:, i // 2, i % 2],
+                                kind=kind, bounds_error=bounds_error,
+                                fill_value=fill_value)
+            err[:, i] = R_zz_tot_ref[:, i+1] - f_interp(z_error)
+
+    axlist = []
+    fignum *= 10
+    if(plt.fignum_exists(fignum)):
+        fig = plt.figure(fignum)
+        for i in range(4):
+            axlist.append(fig.axes[i])
+
+    else:
+        fig = plt.figure(fignum)
+        for i in range(221, 225):
+            axlist.append(fig.add_subplot(i))
+
+    if(helper.empty_fig(fignum)):
+        ls = '-'
+    else:
+        ls = '--'
+
+    xlabels = ['', '', 'z [m]', 'z [m]']
+    ylabels = [r'$\epsilon R_{11}$', r'$\epsilon R_{12}$',
+               r'$\epsilon R_{21}$', r'$\epsilon R_{22}$']
+
+    for i in range(4):
+        axlist[i].plot(z_error, err[:, i], ls=ls)
+        axlist[i].set_xlabel(xlabels[i])
+        axlist[i].set_ylabel(ylabels[i])
+        axlist[i].grid(True)
 
 
 def import_transfer_matrix_single(filepath_ref, idx_element):
