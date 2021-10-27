@@ -246,7 +246,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             # Best for bottom line: dv_of_temp
             # More logical: dv_of_spat - dv_of_temp
             # K_1 = K_0 * (dv_of_spat - dv_of_temp)
-            K_1 = K_0 * dv_of_spat
+            K_1 = K_0 * (dv_of_spat - dv_of_temp)
             K_2 = 1. - K_0 * (2. - beta_s**2)   \
                 * Ez_func(z_s) * np.cos(phi_RF)
 

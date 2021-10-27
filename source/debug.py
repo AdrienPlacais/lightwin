@@ -14,6 +14,7 @@ import os.path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import helper
+from scipy.interpolate import interp1d
 
 font = {'family': 'serif',
         'size':   25}
@@ -22,11 +23,13 @@ plt.rc('axes', prop_cycle=(cycler('color', Set1_4.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
-def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
+def plot_error_on_transfer_matrices_components_simple(filepath_dat,
+                                                      accelerator):
     """
     Estimate the error on transfer matrix calculation.
 
-    Compare transfer matrices with the one calculated by TraceWin.
+    Compare transfer matrices with the one calculated by TraceWin. Plot
+    as a function of element number.
 
     Parameters
     ----------
@@ -112,6 +115,91 @@ def plot_error_on_transfer_matrices_components(filepath_dat, accelerator):
     axlist[0].set_ylabel('Error on single element')
     axlist[1].set_ylabel('Error from line start')
     axlist[1].set_xlabel('Element #')
+
+
+def plot_error_on_transfer_matrices_components_full(filepath_dat,
+                                                    accelerator):
+    """
+    Estimate the error on transfer matrix calculation.
+
+    Compare transfer matrices with the one calculated by TraceWin. Plot as a
+    function of z.
+
+    Parameters
+    ----------
+    filepath_dat: str
+        Path to the .dat file. The file containing the transfer matrices
+        exported by TraceWin is expected to be
+        /project_folder/results/matrix_ref.txt, the .dat beeing in
+        /project_folder/.
+    accelerator: Accelerator object.
+        Accelerator under study.
+    """
+    filepath_ref = '/'.join(filepath_dat.split('/')[:-1])
+    filepath_ref = [filepath_ref + '/results/M_55_ref.txt',
+                    filepath_ref + '/results/M_56_ref.txt',
+                    filepath_ref + '/results/M_65_ref.txt',
+                    filepath_ref + '/results/M_66_ref.txt']
+    R_zz_tot = accelerator.full_MT_and_energy_evolution[:, 1:, :]
+    z = accelerator.full_MT_and_energy_evolution[:, 0, 0]
+
+    i = 0
+    for path in filepath_ref:
+        if(not os.path.isfile(path)):
+            print('debug/plot_error_on_transfer_matrices_components error.')
+
+        if(i == 0):
+            R_zz_tot_ref = np.loadtxt(filepath_ref[i])
+        else:
+            tmp = np.loadtxt(filepath_ref[i])[:, 1]
+            tmp = np.expand_dims(tmp, axis=1)
+            R_zz_tot_ref = np.hstack((R_zz_tot_ref, tmp))
+        i += 1
+
+    n_z_ref = R_zz_tot_ref.shape[0]
+    n_z = z.shape[0]
+
+    axlist = []
+    fignum = 25
+    if(plt.fignum_exists(fignum)):
+        fig = plt.figure(fignum)
+        for i in range(4):
+            axlist.append(fig.axes[i])
+
+    else:
+        fig = plt.figure(fignum)
+        for i in range(221, 225):
+            axlist.append(fig.add_subplot(i))
+
+    if(helper.empty_fig(fignum)):
+        ls = '-'
+    else:
+        ls = '--'
+
+    xlabels = ['', '', 'z [m]', 'z [m]']
+    ylabels = [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$']
+    labels_TW = ['TW', '', '', '']
+    labels_LW = ['LW', '', '', '']
+
+    for i in range(4):
+        axlist[i].plot(R_zz_tot_ref[:, 0], R_zz_tot_ref[:, i+1],
+                       label=labels_TW[i], ls=ls)
+        axlist[i].plot(z, R_zz_tot[:, i // 2, i % 2],
+                       label=labels_LW[i], ls=ls)
+        axlist[i].set_xlabel(xlabels[i])
+        axlist[i].set_ylabel(ylabels[i])
+        axlist[i].grid(True)
+
+    axlist[0].legend()
+
+    # We calculate error by interpolating the tab with most points on the one
+    # with least points.
+    if(n_z < n_z_ref):
+        n = n_z
+    else:
+        n = n_z_ref
+
+    err = np.full((n, 2, 2), np.NaN)
 
 
 def import_transfer_matrix_single(filepath_ref, idx_element):

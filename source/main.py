@@ -11,7 +11,8 @@ from tkinter.filedialog import askopenfilename
 import numpy as np
 import accelerator as acc
 # import transfer_matrices
-from debug import plot_error_on_transfer_matrices_components, compare_energies
+import debug
+import helper
 
 
 # =============================================================================
@@ -44,10 +45,9 @@ LINAC = acc.Accelerator(E_MeV, I_mA, f_MHz)
 LINAC.create_struture_from_dat_file(filepath)
 LINAC.compute_transfer_matrix_and_gamma()
 
-plot_error_on_transfer_matrices_components(filepath, LINAC)
-compare_energies(filepath, LINAC)
+debug.plot_error_on_transfer_matrices_components_full(filepath, LINAC)
+# debug.compare_energies(filepath, LINAC)
 
 save_MT_and_energy = False
 if(save_MT_and_energy):
-    np.savetxt('../data/full_energy_and_MT.txt',
-               LINAC.full_MT_and_energy_evolution)
+    helper.save_full_MT_and_energy_evolution(LINAC)
