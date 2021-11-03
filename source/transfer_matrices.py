@@ -150,6 +150,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         def du_dz(z, u):
             """
+            Return the derivative of u relative to z.
+
             Parameters
             ----------
             u: np.array(2)
@@ -173,8 +175,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
     phi_RF = phi_0 + omega_0 * t_s
 
-    #  F_E_real = 0.
-    #  F_E_imag = 0.
+    F_E_real = 0.
+    F_E_imag = 0.
 
     energy_array = np.array(([z_s, E_MeV]))
     gamma_array = [gamma_out]
@@ -185,9 +187,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     for i in range(n * N_cells):
         gamma_in = gamma_out
 
-        # Compute energy gain
-        #  F_E_real += q_adim * E_r
-        #  F_E_imag += q_adim * E_interp * np.sin(phi_RF)
+        F_E_real += q_adim * Ez_func(z_s)[()] * np.cos(phi_RF)
+        F_E_imag += q_adim * Ez_func(z_s)[()] * np.sin(phi_RF)
 
         if(method == 'classic'):
             E_interp = Ez_func(z_s)[()]
@@ -208,10 +209,10 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         elif(method == 'RK'):
             u = np.array(([E_MeV, t_s]))
-            k_1 = du_dz(z_s          , u)
+            k_1 = du_dz(z_s,           u)
             k_2 = du_dz(z_s + .5 * dz, u + .5 * dz * k_1)
             k_3 = du_dz(z_s + .5 * dz, u + .5 * dz * k_2)
-            k_4 = du_dz(z_s +      dz, u +      dz * k_3)
+            k_4 = du_dz(z_s + dz,      u + dz * k_3)
             delta_u = (k_1 + 2.*k_2 + 2.*k_3 + k_4) * dz / 6.
             delta_E_MeV = delta_u[0]
             delta_t = delta_u[1]
@@ -222,10 +223,6 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         gamma_s = (gamma_out + gamma_in) * .5
         beta_s = np.sqrt(1. - gamma_s**-2)
-
-        # Synchronous phase
-        #  phi_s = np.arctan(F_E_imag / F_E_real)
-        #  phi_s_deg = np.rad2deg(phi_s)
 
         # Compute transfer matrix using thin lens approximation
         if(method == 'classic'):
@@ -239,16 +236,18 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             K_2 = 1. - (2. - beta_s**2) * Ez_func(z_s) * K_0
 
         elif(method == 'RK'):
+            z_essai = z_s + .5*dz
+            delta_t_essai = dz / (2. * beta_s * c)
+            phi_essai = (t_s + delta_t_essai) * omega_0 + phi_0
             K_0 = q_adim * dz / (gamma_s * beta_s**2 * m_MeV)
-            dv_of_temp = Ez_func(z_s) * np.sin(phi_RF) * omega_0 / (beta_s * c)
-            dv_of_spat = dE_dz_func(z_s)[()] * np.cos(phi_RF)
-            # Best for top line: dv_of_spat
+            dv_of_temp = Ez_func(z_essai) * np.sin(phi_essai) * omega_0 \
+                / (beta_s * c)
+            dv_of_spat = dE_dz_func(z_essai)[()] * np.cos(phi_essai)
+            # Best for top line and more logicl: dv_of_spat
             # Best for bottom line: dv_of_temp
-            # More logical: dv_of_spat - dv_of_temp
-            # K_1 = K_0 * (dv_of_spat - dv_of_temp)
             K_1 = K_0 * (dv_of_spat)
             K_2 = 1. - K_0 * (2. - beta_s**2)   \
-                * Ez_func(z_s) * np.cos(phi_RF)
+                * Ez_func(z_essai) * np.cos(phi_essai)
 
         M_in = z_drift(.5 * dz, gamma_in)
         M_mid = np.array(([1., 0.],
@@ -297,9 +296,13 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                                                  idx_min=0,
                                                  idx_max=n * N_cells - 1)
 
-    # V_cav_MV = np.abs((E_0_MeV - E_out_MeV) / np.cos(phi_s))
-    # return R_zz, E_out_MeV, V_cav_MV, phi_s_deg
-    return R_zz, MT_and_energy_evolution, 0., 0.
+    # Synchronous phase
+    phi_s = np.arctan(F_E_imag / F_E_real)
+    phi_s_deg = np.rad2deg(phi_s)
+    V_cav_MV = np.abs((E_0_MeV - MT_and_energy_evolution[-1, 0, 1])
+                      / np.cos(phi_s))
+
+    return R_zz, MT_and_energy_evolution, V_cav_MV, phi_s_deg
 
 
 def not_an_element(Delta_s, gamma):

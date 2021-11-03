@@ -160,7 +160,7 @@ def plot_error_on_transfer_matrices_components_full(filepath_dat,
     n_z = z.shape[0]
 
     axlist = []
-    fignum = 25
+    fignum = 26
     if(plt.fignum_exists(fignum)):
         fig = plt.figure(fignum)
         for i in range(4):
@@ -217,6 +217,19 @@ def plot_error_on_transfer_matrices_components_full(filepath_dat,
                                 kind=kind, bounds_error=bounds_error,
                                 fill_value=fill_value)
             err[:, i] = R_zz_tot_ref[:, i+1] - f_interp(z_error)
+
+    if(True):
+        print('=============================================================')
+        print('Error matrix at end of line*1e3:\n',
+              err[-1, 0:2]*1e3, '\n',
+              err[-1, 2:4]*1e3)
+        print('')
+        print('Cumulated error:\n',
+              np.linalg.norm(err, axis=0)[0:2], '\n',
+              np.linalg.norm(err, axis=0)[2:4])
+        print('')
+        print('Tot error:\n', np.linalg.norm(err))
+        print('=============================================================')
 
     axlist = []
     fignum *= 10
@@ -365,7 +378,7 @@ def compare_energies(filepath_dat, accelerator):
 
     axlist[0].plot(elt_array, accelerator.E_MeV[1:], label='LightWin')
     axlist[1].plot(elt_array, error*1e6)
-    
+
     for ax in axlist:
         ax.grid(True)
 

@@ -180,3 +180,27 @@ def save_full_MT_and_energy_evolution(accelerator):
         out[i, :] = data[i, :, :].flatten()
 
     np.savetxt(filepath, out)
+
+
+def save_Vcav_and_phis(accelerator):
+    """
+    Output the Vcav and phi_s as a function of z.
+
+    z [m]   V_cav[MV]  phi_s[deg]
+
+    Parameters
+    ----------
+    accelerator: Accelerator object
+        Object of corresponding to desired output.
+    """
+    data_V = np.copy(accelerator.V_cav_MV)
+    valid_idx = np.where(~np.isnan(data_V))
+    data_V = data_V[valid_idx]
+    data_phi_s = np.copy(accelerator.phi_s_deg)[valid_idx]
+    data_z = np.copy(accelerator.absolute_entrance_position)[valid_idx] \
+        + np.copy(accelerator.L_m)[valid_idx]
+
+    out = np.transpose(np.vstack((data_z, data_V, data_phi_s)))
+    filepath = '../data/Vcav_and_phis.txt'
+
+    np.savetxt(filepath, out)
