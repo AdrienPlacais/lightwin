@@ -150,7 +150,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         def du_dz(z, u):
             """
-            Return the derivative of u relative to z.
+            Compute derivative of system energy/time
 
             Parameters
             ----------
@@ -175,6 +175,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
     phi_RF = phi_0 + omega_0 * t_s
 
+    # Used to compute Vcav and phis
     F_E_real = 0.
     F_E_imag = 0.
 
@@ -254,8 +255,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                           [K_1, K_2]))
         M_out = z_drift(.5 * dz, gamma_out)
 
-        # Compute M_in * M_mid * M_out * M_t
-        M_z = M_in @ M_mid @ M_out
+        # Compute M_out * M_mid * M_in * M_t
+        M_z = M_out @ M_mid @ M_in
         M_z_list[:, :, i] = np.copy(M_z)
 
         if(method == 'classic'):
