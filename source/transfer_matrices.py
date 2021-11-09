@@ -51,7 +51,8 @@ def z_drift(Delta_s, gamma):
 
 
 def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
-                               N_cells, nz, zmax):
+                               N_cells, nz, zmax,
+                               Nb_step_of_cal_per_beta_lambda = -1):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 
@@ -76,6 +77,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         Number of points (minus one) in the Fz_array.
     zmax: float
         Relative position of the cavity's exit in m.
+    Nb_step_of_cal_per_beta_lambda: int, opt
+        Number of calculation steps, as entered in TraceWin.
 
     Returns
     -------
@@ -85,8 +88,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         Energy of the particle beam when it goes out of the cavity.
     ----------
     """
-    method = 'leapfrog'
-    # method = 'RK'
+    # method = 'leapfrog'
+    method = 'RK'
     flag_correction_determinant = True
 
     if(E_0_MeV == 16.6):
@@ -117,8 +120,21 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # Simulation parameters
     # =========================================================================
     # The N_cells cells cavity is divided in n*N_cells steps of length dz:
-    n = 1000
-    dz = zmax / (n * N_cells)
+    Nb_step_of_cal_per_beta_lambda = -1
+    if(Nb_step_of_cal_per_beta_lambda != -1):
+        # lambda_RF = 1e-6 * c / f_MHz
+
+        # dz = beta_0 * lambda_RF / Nb_step_of_cal_per_beta_lambda
+        # n = int(zmax / (N_cells * dz))
+        # dz = zmax / (n * N_cells)
+        print('Warning, weird hack is enabled. cf transfer_matrices.')
+        n = 81
+        dz_array = np.full((n * N_cells + 1), 2.55979*1e-3)
+        dz_array[-1] = 0.47403*1e-3
+
+    else:
+        n = 1000
+        dz = zmax / (n * N_cells)
 
     # =========================================================================
     # Compute energy gain and synchronous phase
@@ -179,10 +195,18 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     energy_array = np.array(([z_s, E_MeV]))
     gamma_array = [gamma_out]
 
-    M_z_list = np.zeros((2, 2, n*N_cells))
-
     # Then, we loop until reaching the end of the cavity
-    for i in range(n * N_cells):
+    if(Nb_step_of_cal_per_beta_lambda != -1):
+        n_iter = n * N_cells + 1
+    else:
+        n_iter = n * N_cells
+
+    M_z_list = np.zeros((2, 2, n_iter))
+
+    for i in range(n_iter):
+        if(Nb_step_of_cal_per_beta_lambda != -1):
+            dz = dz_array[i]
+
         gamma_in = gamma_out
         # beta_in = np.sqrt(1. - gamma_in**-2)
 

@@ -27,7 +27,7 @@ E_MeV = 16.6
 I_mA = 4.
 
 # Bunch frequency in MHz
-f_MHz = 176.1
+f_MHz = 352.2
 
 # Select .dat file
 Tk().withdraw()
