@@ -10,10 +10,9 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import numpy as np
 import accelerator as acc
-# import transfer_matrices
 import debug
 import helper
-
+import transport
 
 # =============================================================================
 # User inputs
@@ -47,6 +46,8 @@ LINAC.compute_transfer_matrix_and_gamma()
 
 debug.plot_error_on_transfer_matrices_components_full(filepath, LINAC)
 # debug.compare_energies(filepath, LINAC)
+
+transport.transport_beam(LINAC)
 
 save_MT_and_energy = False
 if(save_MT_and_energy):

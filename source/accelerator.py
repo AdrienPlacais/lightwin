@@ -257,7 +257,6 @@ class Accelerator():
                 # Convert relative position to absolute position:
                 MT_and_energy_evolution[:, 0, 0] += \
                     self.absolute_entrance_position[i]
-
                 self.full_MT_and_energy_evolution = \
                     np.vstack((self.full_MT_and_energy_evolution,
                                MT_and_energy_evolution))
@@ -304,12 +303,12 @@ class Accelerator():
                 self.R_zz_tot_list[:, :, i] = \
                     R_zz_single @ self.R_zz_tot_list[:, :, i-1]
 
-
             else:
                 self.R_zz_tot_list[:, :, i] = R_zz_single
 
         # Now compute the transfer matrix as a function of z:
         N_z = self.full_MT_and_energy_evolution.shape[0]
+        self.individual_elements_MT = self.full_MT_and_energy_evolution.copy()
         for i in range(1, N_z):
             self.full_MT_and_energy_evolution[i, 1:, :] = \
                 self.full_MT_and_energy_evolution[i, 1:, :] @ \

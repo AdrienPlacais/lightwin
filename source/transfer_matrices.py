@@ -192,7 +192,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     F_E_real = 0.
     F_E_imag = 0.
 
-    energy_array = np.array(([z_s, E_MeV]))
+    # energy_array = np.array(([z_s, E_MeV]))
     gamma_array = [gamma_out]
 
     # Then, we loop until reaching the end of the cavity
@@ -280,7 +280,14 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             phi_RF += delta_phi
 
         # Save data
-        energy_array = np.vstack((energy_array, np.array(([z_s, E_MeV]))))
+        # if(i < 2):
+        #     print(i, z_s)
+        #     print(M_z_list[:, :, i])
+        #     print('=============================================')
+        if(i == 0):
+            energy_array = np.array(([z_s, E_MeV]))
+        else:
+            energy_array = np.vstack((energy_array, np.array(([z_s, E_MeV]))))
         gamma_array.append(gamma_out)
 
     # =========================================================================
