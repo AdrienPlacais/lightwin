@@ -304,6 +304,7 @@ class Accelerator():
                 self.R_zz_tot_list[:, :, i] = \
                     R_zz_single @ self.R_zz_tot_list[:, :, i-1]
 
+
             else:
                 self.R_zz_tot_list[:, :, i] = R_zz_single
 
@@ -313,5 +314,4 @@ class Accelerator():
             self.full_MT_and_energy_evolution[i, 1:, :] = \
                 self.full_MT_and_energy_evolution[i, 1:, :] @ \
                 self.full_MT_and_energy_evolution[i-1, 1:, :]
-
         return

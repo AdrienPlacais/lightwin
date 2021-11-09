@@ -8,7 +8,7 @@ Created on Tue Oct 12 13:50:44 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
-from palettable.colorbrewer.qualitative import Set1_4
+from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
 import os.path
 from tkinter import Tk
@@ -17,9 +17,9 @@ import helper
 from scipy.interpolate import interp1d
 
 font = {'family': 'serif',
-        'size':   25}
+        'size':   20}
 plt.rc('font', **font)
-plt.rc('axes', prop_cycle=(cycler('color', Set1_4.mpl_colors)))
+plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
@@ -173,17 +173,18 @@ def plot_error_on_transfer_matrices_components_full(filepath_dat,
 
     if(helper.empty_fig(fignum)):
         ls = '-'
+        labels_TW = ['TraceWin', '', '', '']
+        for i in range(4):
+            axlist[i].plot(R_zz_tot_ref[:, 0], R_zz_tot_ref[:, i+1],
+                           label=labels_TW[i], ls=ls)
     else:
         ls = '--'
 
     xlabels = ['', '', 'z [m]', 'z [m]']
     ylabels = [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$']
-    labels_TW = ['TW', '', '', '']
-    labels_LW = ['LW', '', '', '']
+    labels_LW = ['LightWin', '', '', '']
 
     for i in range(4):
-        axlist[i].plot(R_zz_tot_ref[:, 0], R_zz_tot_ref[:, i+1],
-                       label=labels_TW[i], ls=ls)
         axlist[i].plot(z, R_zz_tot[:, i // 2, i % 2],
                        label=labels_LW[i], ls=ls)
         axlist[i].set_xlabel(xlabels[i])

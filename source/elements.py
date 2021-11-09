@@ -143,11 +143,18 @@ def add_field_map(accelerator, line, i, TraceWin_dat_filename, f_MHz):
     except IndexError:
         pass
 
-    nz, zmax, Norm, Fz_array = select_and_load_field_map_file(
-        accelerator.TraceWin_dat_filename,
-        accelerator.geom[i],
-        accelerator.K_a[i],
-        accelerator.FileName[i])
+    if(i < -1):
+        print('Warning debug: loading higher res field map for i = ', i)
+        accelerator.FileName[i] = '../data/Ez.edz'
+        extension, import_function = check_geom(accelerator.geom[i], accelerator.K_a[i])
+        nz, zmax, Norm, Fz_array = import_function(accelerator.FileName[i])
+
+    else:
+        nz, zmax, Norm, Fz_array = select_and_load_field_map_file(
+            accelerator.TraceWin_dat_filename,
+            accelerator.geom[i],
+            accelerator.K_a[i],
+            accelerator.FileName[i])
 
     accelerator.nz[i] = nz
     accelerator.zmax[i] = zmax
