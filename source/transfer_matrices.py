@@ -16,7 +16,6 @@ import matplotlib.pyplot as plt
 import helper
 
 
-
 # =============================================================================
 # Transfer matrices
 # =============================================================================
@@ -133,7 +132,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         dz_array[-1] = 0.47403*1e-3
 
     else:
-        n = 1000
+        n = 100
         dz = zmax / (n * N_cells)
 
     # =========================================================================
@@ -247,7 +246,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             phi_K = phi_RF + delta_phi_half_step
 
         K_0 = q_adim * dz / (gamma_s * beta_s**2 * m_MeV)
-        # K_1 = dE_dz_func(z_K)[()] * K_0
+        # K_1 = dE_dz_func(z_K)[()] * K_0 * np.cos(phi_K)
         K_1 = K_0 * Ez_func(z_K)[()] * omega_0 \
             / (beta_s * c) * np.sin(phi_K)
         K_2 = 1. - (2. - beta_s**2) * K_0 \
@@ -255,8 +254,10 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         # Correction to ensure det < 1
         if(flag_correction_determinant):
-            K_3 = (1. - K_0 * Ez_func(z_K)[()]) \
-                / (1. - K_0 * (2. - beta_s**2) * Ez_func(z_K)[()])
+            K_3 = (1. - K_0 * Ez_func(z_K)[()] * np.cos(phi_K))  \
+                / (1. - K_0 * (2. - beta_s**2)
+                   * Ez_func(z_K)[()] * np.cos(phi_K))
+
             M_mid = np.array(([K_3, 0.],
                               [K_1, K_2]))
         else:
