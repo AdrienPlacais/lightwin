@@ -153,43 +153,43 @@ class Accelerator():
                 line = line.split()
                 element_name = line[0]
 
-                if(element_name == 'DRIFT'):
+                if element_name == 'DRIFT':
                     elem.add_drift(self, line, i)
                     i += 1
 
-                elif(element_name == 'QUAD'):
+                elif element_name == 'QUAD':
                     elem.add_quad(self, line, i)
                     i += 1
 
-                elif(element_name == 'FIELD_MAP'):
+                elif element_name == 'FIELD_MAP':
                     elem.add_field_map(self, line, i, self.filename,
                                        current_f_MHz)
                     i += 1
 
-                elif(element_name == 'CAVSIN'):
+                elif element_name == 'CAVSIN':
                     elem.add_sinus_cavity(self, line, i, self.filename,
                                           current_f_MHz)
                     i += 1
 
-                elif(element_name == 'DRIFT'):
+                elif element_name == 'DRIFT':
                     elem.add_drift(self, line, i)
                     i += 1
 
-                elif(element_name == 'SOLENOID'):
+                elif element_name == 'SOLENOID':
                     elem.add_solenoid(self, line, i)
                     i += 1
 
-                elif(element_name == 'SPACE_CHARGE_COMP'):
+                elif element_name == 'SPACE_CHARGE_COMP':
                     # TODO: check if i += 1 should be after the current mod
                     i += 1
                     self.I_mA[i:] = self.I_mA[i] * (1 - line[1])
 
-                elif(element_name == 'FREQ'):
+                elif element_name == 'FREQ':
                     # We change frequency from next element up to the end of
                     # the line
                     self.f_MHz[i+1:] = line[1]
 
-                elif(element_name in list_of_non_elements):
+                elif element_name in list_of_non_elements:
                     continue
 
                 else:
@@ -197,7 +197,7 @@ class Accelerator():
                     opt_msg = line[0] + '\t\t (i=' + str(i) + ')'
                     helper.printc(msg, color='info', opt_message=opt_msg)
 
-                if(i > 1):
+                if i > 1:
                     self.absolute_entrance_position[i - 1] =        \
                         self.absolute_entrance_position[i - 2]  \
                         + self.L_m[i - 2]
@@ -213,7 +213,7 @@ class Accelerator():
         idx_max: int, optional
             Position of last element to output.
         """
-        if(idx_max == 0):
+        if idx_max == 0:
             idx_max = self.n_elements
 
         for i in range(idx_min, idx_max):
@@ -237,11 +237,11 @@ class Accelerator():
         """
         # By default, idx_max = 0 indicares that the transfer matrix of the
         # entire line should be calculated
-        if(idx_max == 0):
+        if idx_max == 0:
             idx_max = self.n_elements
 
         for i in range(idx_min, idx_max):
-            if(self.elements_nature[i] == 'FIELD_MAP'):
+            if self.elements_nature[i] == 'FIELD_MAP':
                 # TODO Check this Ncell truc.
                 R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
                     transfer_matrices.z_field_map_electric_field(
@@ -261,7 +261,7 @@ class Accelerator():
                     np.vstack((self.full_MT_and_energy_evolution,
                                MT_and_energy_evolution))
 
-            elif(self.elements_nature[i] == 'CAVSIN'):
+            elif self.elements_nature[i] == 'CAVSIN':
                 R_zz_single, E_out_MeV =                      \
                     transfer_matrices.z_sinus_cavity(
                         self.L_m[i], self.E_MeV[i], self.f_MHz[i],
@@ -299,7 +299,7 @@ class Accelerator():
 
             self.R_zz_single[:, :, i] = R_zz_single
 
-            if(i > 0):
+            if i > 0:
                 self.R_zz_tot_list[:, :, i] = \
                     R_zz_single @ self.R_zz_tot_list[:, :, i-1]
 
@@ -313,4 +313,3 @@ class Accelerator():
             self.full_MT_and_energy_evolution[i, 1:, :] = \
                 self.full_MT_and_energy_evolution[i, 1:, :] @ \
                 self.full_MT_and_energy_evolution[i-1, 1:, :]
-        return

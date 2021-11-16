@@ -246,9 +246,14 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             phi_K = phi_RF + delta_phi_half_step
 
         K_0 = q_adim * dz / (gamma_s * beta_s**2 * m_MeV)
-        # K_1 = dE_dz_func(z_K)[()] * K_0 * np.cos(phi_K)
-        K_1 = K_0 * Ez_func(z_K)[()] * omega_0 \
-            / (beta_s * c) * np.sin(phi_K)
+        # Diff / t:
+        dE_dz = Ez_func(z_K)[()] * np.sin(phi_K) * omega_0 / (beta_s * c)
+        # Diff / z:
+        # dE_dz = dE_dz_func(z_K)[()] * np.cos(phi_K)
+        # Diff both:
+        # dE_dz = Ez_func(z_K)[()] * np.sin(phi_K) * omega_0 / (beta_s * c) \
+        # - dE_dz_func(z_K)[()] * np.cos(phi_K)
+        K_1 = K_0 * dE_dz
         K_2 = 1. - (2. - beta_s**2) * K_0 \
             * Ez_func(z_K)[()] * np.cos(phi_K)
 

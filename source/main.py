@@ -50,8 +50,8 @@ debug.plot_error_on_transfer_matrices_components_full(filepath, LINAC)
 transport.transport_beam(LINAC)
 
 save_MT_and_energy = False
-if(save_MT_and_energy):
+if save_MT_and_energy:
     helper.save_full_MT_and_energy_evolution(LINAC)
 save_Vcav_and_phi_s = False
-if(save_Vcav_and_phi_s):
+if save_Vcav_and_phi_s:
     helper.save_Vcav_and_phis(LINAC)
