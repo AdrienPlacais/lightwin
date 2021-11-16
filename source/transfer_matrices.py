@@ -10,16 +10,16 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, m_MeV
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+from constants import c, q_adim, m_MeV
 import helper
 
 
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def dummy(Delta_s, gamma):
+def dummy():
     """Return a dummy transfer matrix."""
     R_zz = np.full((2, 2), np.NaN)
     return R_zz
@@ -51,7 +51,7 @@ def z_drift(Delta_s, gamma):
 
 def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                                N_cells, nz, zmax,
-                               Nb_step_of_cal_per_beta_lambda = -1):
+                               Nb_step_of_cal_per_beta_lambda=-1):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 
@@ -91,7 +91,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     method = 'RK'
     flag_correction_determinant = True
 
-    if(E_0_MeV == 16.6):
+    if E_0_MeV == 16.6:
         print('Method: ', method)
 
     # Set useful parameters
@@ -102,7 +102,6 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
     # Local coordinates of the cavity:
     z_cavity_array = np.linspace(0., zmax, nz + 1)
-    dz_cavity = z_cavity_array[1] - z_cavity_array[0]
 
     # Ez and its derivative functions:
     kind = 'linear'
@@ -111,25 +110,21 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     Ez_func = interp1d(z_cavity_array, Fz_scaled, bounds_error=False,
                        kind=kind, fill_value=fill_value, assume_sorted=True)
 
+    dz_cavity = z_cavity_array[1] - z_cavity_array[0]
     dE_dz_array = np.gradient(Fz_scaled, dz_cavity)
     dE_dz_func = interp1d(z_cavity_array, dE_dz_array, bounds_error=False,
-                          kind=kind, fill_value=fill_value, assume_sorted=True)
+                           kind=kind, fill_value=fill_value, assume_sorted=True)
 
     # =========================================================================
     # Simulation parameters
     # =========================================================================
     # The N_cells cells cavity is divided in n*N_cells steps of length dz:
-    Nb_step_of_cal_per_beta_lambda = -1
-    if(Nb_step_of_cal_per_beta_lambda != -1):
-        # lambda_RF = 1e-6 * c / f_MHz
-
-        # dz = beta_0 * lambda_RF / Nb_step_of_cal_per_beta_lambda
-        # n = int(zmax / (N_cells * dz))
-        # dz = zmax / (n * N_cells)
-        print('Warning, weird hack is enabled. cf transfer_matrices.')
-        n = 81
-        dz_array = np.full((n * N_cells + 1), 2.55979*1e-3)
-        dz_array[-1] = 0.47403*1e-3
+    if Nb_step_of_cal_per_beta_lambda != -1:
+        lambda_RF = 1e-6 * c / f_MHz
+        dz = beta_0 * lambda_RF / Nb_step_of_cal_per_beta_lambda
+        n = int(zmax / (N_cells * dz))
+        dz = zmax / (n * N_cells)
+        dz_array = np.linspace(0., zmax, n * N_cells)
 
     else:
         n = 100
@@ -138,7 +133,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # =========================================================================
     # Compute energy gain and synchronous phase
     # =========================================================================
-    if(method == 'leapfrog'):
+    if method == 'leapfrog':
         # Leapfrog method:
         #   pos(i+1) = pos(i) + speed(i+0.5) * dt
         #   speed(i+0.5) = speed(i-0.5) * accel(i) * dt
@@ -154,7 +149,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         E_MeV = E_0_MeV - q_adim * Ez_func(z_s)[()] * np.cos(phi_0) * .5 * dz
         gamma_out = 1. + E_MeV / m_MeV
 
-    elif(method == 'RK'):
+    elif method == 'RK':
         z_s = 0.
         t_s = z_s / (beta_0 * c)
         E_MeV = E_0_MeV
@@ -195,7 +190,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     gamma_array = [gamma_out]
 
     # Then, we loop until reaching the end of the cavity
-    if(Nb_step_of_cal_per_beta_lambda != -1):
+    if Nb_step_of_cal_per_beta_lambda != -1:
         n_iter = n * N_cells + 1
     else:
         n_iter = n * N_cells
@@ -203,7 +198,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     M_z_list = np.zeros((2, 2, n_iter))
 
     for i in range(n_iter):
-        if(Nb_step_of_cal_per_beta_lambda != -1):
+        if Nb_step_of_cal_per_beta_lambda != -1:
             dz = dz_array[i]
 
         gamma_in = gamma_out
@@ -212,19 +207,14 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         F_E_real += q_adim * Ez_func(z_s)[()] * np.cos(phi_RF)
         F_E_imag += q_adim * Ez_func(z_s)[()] * np.sin(phi_RF)
 
-        if(method == 'leapfrog'):
+        if method == 'leapfrog':
             E_interp = Ez_func(z_s)[()]
             E_r = E_interp * np.cos(phi_RF)
             delta_E_MeV = q_adim * E_r * dz
 
-        elif(method == 'RK'):
-            # u = np.array(([E_MeV, t_s]))
+        elif method == 'RK':
             u = np.array(([E_MeV, phi_RF]))
-            k_1 = du_dz(z_s,           u)
-            k_2 = du_dz(z_s + .5 * dz, u + .5 * dz * k_1)
-            k_3 = du_dz(z_s + .5 * dz, u + .5 * dz * k_2)
-            k_4 = du_dz(z_s + dz,      u + dz * k_3)
-            delta_u = (k_1 + 2.*k_2 + 2.*k_3 + k_4) * dz / 6.
+            delta_u = helper.RK4(u, du_dz, z_s, dz) 
             delta_E_MeV = delta_u[0]
             delta_phi = delta_u[1]
 
@@ -236,11 +226,11 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         beta_s = np.sqrt(1. - gamma_s**-2)
 
         # Compute transfer matrix using thin lens approximation
-        if(method == 'leapfrog'):
+        if method == 'leapfrog':
             phi_K = phi_RF
             z_K = z_s
 
-        elif(method == 'RK'):
+        elif method == 'RK':
             z_K = z_s + .5 * dz
             delta_phi_half_step = (dz * omega_0) / (2. * beta_s * c)
             phi_K = phi_RF + delta_phi_half_step
@@ -251,14 +241,14 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         # Diff / z:
         # dE_dz = dE_dz_func(z_K)[()] * np.cos(phi_K)
         # Diff both:
-        # dE_dz = Ez_func(z_K)[()] * np.sin(phi_K) * omega_0 / (beta_s * c) \
-        # - dE_dz_func(z_K)[()] * np.cos(phi_K)
+        #  dE_dz = Ez_func(z_K)[()] * np.sin(phi_K) * omega_0 / (beta_s * c) \
+            #  + dE_dz_func(z_K)[()] * np.cos(phi_K)
         K_1 = K_0 * dE_dz
         K_2 = 1. - (2. - beta_s**2) * K_0 \
             * Ez_func(z_K)[()] * np.cos(phi_K)
 
         # Correction to ensure det < 1
-        if(flag_correction_determinant):
+        if flag_correction_determinant:
             K_3 = (1. - K_0 * Ez_func(z_K)[()] * np.cos(phi_K))  \
                 / (1. - K_0 * (2. - beta_s**2)
                    * Ez_func(z_K)[()] * np.cos(phi_K))
@@ -276,21 +266,21 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         M_z = M_out @ M_mid @ M_in
         M_z_list[:, :, i] = np.copy(M_z)
 
-        if(method == 'leapfrog'):
+        if method == 'leapfrog':
             z_s += dz
             t_s += dz / (beta_out * c)
             phi_RF = omega_0 * t_s + phi_0
 
-        elif(method == 'RK'):
+        elif method == 'RK':
             z_s += dz
             phi_RF += delta_phi
 
         # Save data
-        # if(i < 2):
+        # if i < 2:
         #     print(i, z_s)
         #     print(M_z_list[:, :, i])
         #     print('=============================================')
-        if(i == 0):
+        if i == 0:
             energy_array = np.array(([z_s, E_MeV]))
         else:
             energy_array = np.vstack((energy_array, np.array(([z_s, E_MeV]))))
@@ -324,7 +314,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     return R_zz, MT_and_energy_evolution, V_cav_MV, phi_s_deg
 
 
-def not_an_element(Delta_s, gamma):
+def not_an_element():
     """Return identity matrix."""
     R_zz = np.eye(2, 2)
     return R_zz
@@ -414,7 +404,7 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
             delta_E_MeV = q_adim * E_z * dz
         E_MeV += delta_E_MeV
         gamma_out = 1. + E_MeV / m_MeV
-        beta_out = np.sqrt(1. - gamma_out**-2)
+        # beta_out = np.sqrt(1. - gamma_out**-2)
 
         # We take gamma and beta at the middle of current cell
         gamma_s = (gamma_out + gamma_in) * .5
@@ -436,9 +426,10 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
         M_z_list[:, :, i] = np.copy(M_z)
 
         # Next step
-        if(i < n * N - 1):
+        if i < n * N - 1:
             z_s += dz
-            t_s += dz / (beta_s * c) # Error is lower with beta_s than with beta_out
+            t_s += dz / (beta_s * c)
+            # Error is lower with beta_s than with beta_out
         else:
             # This values will not be used again, so this has no influence on
             # the results
@@ -458,13 +449,13 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
     energy_array = np.array(energy_array)
     gamma_array = np.array(gamma_array)
     R_zz = helper.right_recursive_matrix_product(M_z_list,
-                                                idx_min=0,
-                                                idx_max=n * N - 1)
+                                                 idx_min=0,
+                                                 idx_max=n * N - 1)
 
     E_out_MeV = energy_array[-1]
 
-    if(flag_plot):
-        if(plt.fignum_exists(22)):
+    if flag_plot:
+        if plt.fignum_exists(22):
             fig = plt.figure(22)
             ax = fig.axes[0]
         else:
