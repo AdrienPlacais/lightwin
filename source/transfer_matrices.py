@@ -235,36 +235,10 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             delta_phi_half_step = (dz * omega_0) / (2. * beta_s * c)
             phi_K = phi_RF + delta_phi_half_step
 
-        K_0 = q_adim * dz / (gamma_s * beta_s**2 * m_MeV)
-        # Diff / t:
         dE_dz = Ez_func(z_K)[()] * np.sin(phi_K) * omega_0 / (beta_s * c)
-        # Diff / z:
-        # dE_dz = dE_dz_func(z_K)[()] * np.cos(phi_K)
-        # Diff both:
-        #  dE_dz = Ez_func(z_K)[()] * np.sin(phi_K) * omega_0 / (beta_s * c) \
-            #  + dE_dz_func(z_K)[()] * np.cos(phi_K)
-        K_1 = K_0 * dE_dz
-        K_2 = 1. - (2. - beta_s**2) * K_0 \
-            * Ez_func(z_K)[()] * np.cos(phi_K)
-
-        # Correction to ensure det < 1
-        if flag_correction_determinant:
-            K_3 = (1. - K_0 * Ez_func(z_K)[()] * np.cos(phi_K))  \
-                / (1. - K_0 * (2. - beta_s**2)
-                   * Ez_func(z_K)[()] * np.cos(phi_K))
-
-            M_mid = np.array(([K_3, 0.],
-                              [K_1, K_2]))
-        else:
-            M_mid = np.array(([1., 0.],
-                              [K_1, K_2]))
-
-        M_in = z_drift(.5 * dz, gamma_in)
-        M_out = z_drift(.5 * dz, gamma_out)
-
-        # Compute M_out * M_mid * M_in * M_t
-        M_z = M_out @ M_mid @ M_in
-        M_z_list[:, :, i] = np.copy(M_z)
+        gamma_array = [gamma_in, gamma_s, gamma_out]
+        M_z_list[:, :, i] = z_thin_lens(Ez_func(z_K)[()], dE_dz, dz,
+                gamma_array, beta_s, phi_K, omega_0)
 
         if method == 'leapfrog':
             z_s += dz
@@ -275,11 +249,6 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             z_s += dz
             phi_RF += delta_phi
 
-        # Save data
-        # if i < 2:
-        #     print(i, z_s)
-        #     print(M_z_list[:, :, i])
-        #     print('=============================================')
         if i == 0:
             energy_array = np.array(([z_s, E_MeV]))
         else:
@@ -312,6 +281,58 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                       / np.cos(phi_s))
 
     return R_zz, MT_and_energy_evolution, V_cav_MV, phi_s_deg
+
+def z_thin_lens(Ez, dEz_dt, dz, gamma_array, beta_s, phi, omega_0,
+        flag_correction_determinant=True):
+    """
+    Compute the longitudinal transfer matrix of a thin slice of cavity.
+
+    The slice is assimilated as a 'drift-gap-drift' (thin lens approximation).
+
+    Parameters
+    ----------
+    Ez: real
+        z-electric field at the center of the gap.
+    dEz_dt: real
+        Time derivative of the z electric field at the center of the gap.
+    gamma_array: list(3)
+        Lorentz factor of synchronous particle at entrance, middle and exit of
+        the drift-gap-drift.
+    beta_s:
+        Lorentz factor of synchronous particle.
+    phi: real
+        Synchronous phase.
+    omega_0: real
+        RF pulsation of cavity.
+    flag_correction_determinant: boolean, optional
+        To activate/deactivate the correction of the determinant (absent from
+        TraceWin documentation).
+
+    Return
+    ------
+    M_z: np.array((2, 2))
+        Longitudinal transfer matrix of the drift-gap-drift.
+    """
+    K_0 = q_adim * dz / (gamma_array[1] * beta_s**2 * m_MeV)
+    K_1 = K_0 * dEz_dt
+    K_2 = 1. - (2. - beta_s**2) * K_0 * Ez * np.cos(phi)
+
+    # Correction to ensure det < 1
+    if flag_correction_determinant:
+        K_3 = (1. - K_0 * Ez * np.cos(phi))  \
+                / (1. - K_0 * (2. - beta_s**2) * Ez * np.cos(phi))
+
+        M_mid = np.array(([K_3, 0.], [K_1, K_2]))
+
+    else:
+        M_mid = np.array(([1., 0.], [K_1, K_2]))
+
+    M_in = z_drift(.5 * dz, gamma_array[0])
+    M_out = z_drift(.5 * dz, gamma_array[1])
+
+    # Compute M_out * M_mid * M_in * M_t
+    M_z = M_out @ M_mid @ M_in
+    return M_z
 
 
 def not_an_element():
