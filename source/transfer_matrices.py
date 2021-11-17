@@ -321,7 +321,6 @@ def z_thin_lens(Ez, dEz_dt, dz, gamma_array, beta_s, phi, omega_0,
     if flag_correction_determinant:
         K_3 = (1. - K_0 * Ez * np.cos(phi))  \
                 / (1. - K_0 * (2. - beta_s**2) * Ez * np.cos(phi))
-
         M_mid = np.array(([K_3, 0.], [K_1, K_2]))
 
     else:
