@@ -40,13 +40,7 @@ class _Element():
         self.entrance_pos_m = np.NaN
         self.exit_pos_m = np.NaN
 
-        # TODO bidul_in and bidul_out in the same array.
-        # bidul_in = bidul[0] and bidul_out=bidul[-1].
-        # Other values in between if needed.
-        self.gamma_in = np.NaN      # TODO remove
-        self.gamma_out = np.NaN     # TODO remove
         self.gamma_array = np.full((2), np.NaN)
-
         self.energy_array_mev = np.full((2), np.NaN)
 
         self.frequency_mhz = 352.2  # FIXME import of frequency
@@ -91,6 +85,8 @@ class Drift(_Element):
         transfer_matrix = transfer_matrices.z_drift(self.length_m,
                                                     self.gamma_array[0])
         self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
+        self.gamma_array[-1] = self.gamma_array[0]
+        self.energy_array_mev[-1] = self.energy_array_mev[0]
 
 
 class Quad(_Element):
@@ -131,6 +127,8 @@ class Quad(_Element):
         transfer_matrix = transfer_matrices.z_drift(self.length_m,
                                                     self.gamma_array[0])
         self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
+        self.gamma_array[-1] = self.gamma_array[0]
+        self.energy_array_mev[-1] = self.energy_array_mev[0]
 
 
 class Solenoid(_Element):
@@ -149,6 +147,8 @@ class Solenoid(_Element):
         transfer_matrix = transfer_matrices.z_drift(self.length_m,
                                                     self.gamma_array[0])
         self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
+        self.gamma_array[-1] = self.gamma_array[0]
+        self.energy_array_mev[-1] = self.energy_array_mev[0]
 
 
 class FieldMap(_Element):
@@ -196,29 +196,28 @@ class FieldMap(_Element):
         this function.
         Finally, only 1D electric field map are implemented.
         """
-        # Flag to show or not the loading file info:
-        debug_verbose = False
+        flag_verbose = False
 
         # Check nature and geometry of the field map, and select proper file
         # extension and import function
         extension, import_function = self.check_geom()
 
-        # Warning, the "/"s may have to be changed to "\"s on Windows.
-        absolute_path = TraceWin_dat_filename.split('/')[:-1]
+        delimiter = '/'    # Warning, may be '\' on Windows
+        absolute_path = TraceWin_dat_filename.split(delimiter)[:-1]
 
         # Hypothesis on the structure of the TraceWin project
-        absolute_path = "/".join(absolute_path) + "/field_maps_1D/"
+        absolute_path = delimiter.join(absolute_path) + "/field_maps_1D/"
         absolute_path = absolute_path + self.field_map_file_name + extension
 
         # TODO check filename with assert
         if os.path.exists(self.field_map_file_name):
             path = self.field_map_file_name
-            if debug_verbose:
+            if flag_verbose:
                 print("Loading field map with relative filepath...")
 
         elif os.path.exists(absolute_path):
             path = absolute_path
-            if debug_verbose:
+            if flag_verbose:
                 print("Loading field map with absolute filepath...")
 
         else:
@@ -280,12 +279,8 @@ class FieldMap(_Element):
                         self.nz,
                         self.length_m)
 
-        #  self.E_MeV[i+1] = MT_and_energy_evolution[-1, 0, 1]
-        #  self.gamma[i+1] = 1. + self.E_MeV[i+1] / m_MeV
-        #  self.V_cav_MV[i] = V_cav_MV
-        #  self.phi_s_deg[i] = phi_s_deg
-        self.absolute_position_m = MT_and_energy_evolution[:, 0, 0]   \
-            + self.entrance_pos_m
+        entry = self.absolute_position_m[0]
+        self.absolute_position_m = MT_and_energy_evolution[:, 0, 0] + entry
         self.energy_array_mev = MT_and_energy_evolution[:, 0, 1]
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
         self.transfer_matrix = MT_and_energy_evolution[:, 1:, :]

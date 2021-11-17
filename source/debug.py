@@ -364,7 +364,12 @@ def compare_energies(filepath_dat, accelerator):
             E_MeV_ref[i] = splitted_line[9]
             i += 1
 
-    error = np.abs(E_MeV_ref - accelerator.E_MeV[1:])
+    # error = np.abs(E_MeV_ref - accelerator.E_MeV[1:])
+    calculated_energy = np.full((accelerator.n_elements), np.NaN)
+    for i in range(accelerator.n_elements):
+        calculated_energy[i] = accelerator.list_of_elements[i].energy_array_mev[-1]
+
+    error = np.abs(E_MeV_ref - calculated_energy)
 
     if(plt.fignum_exists(21)):
         fig = plt.figure(21)
@@ -377,7 +382,7 @@ def compare_energies(filepath_dat, accelerator):
     if(helper.empty_fig(21)):
         axlist[0].plot(elt_array, E_MeV_ref, label='TraceWin')
 
-    axlist[0].plot(elt_array, accelerator.E_MeV[1:], label='LightWin')
+    axlist[0].plot(elt_array, calculated_energy, label='LightWin')
     axlist[1].plot(elt_array, error*1e6)
 
     for ax in axlist:

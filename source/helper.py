@@ -170,10 +170,17 @@ def MeV_to_v(E_MeV, q_over_m):
     v = np.sqrt(2. * q_over_m * 1e6 * E_MeV)
     return v
 
+
 def mev_to_gamma(energy_mev, mass_mev):
     """Convert MeV energy into Lorentz gamma."""
     gamma = 1. + energy_mev / mass_mev
     return gamma
+
+
+def gamma_to_mev(gamma, mass_mev):
+    """Convert MeV energy into Lorentz gamma."""
+    energy_mev = mass_mev * (gamma - 1.)
+    return energy_mev
 
 
 # =============================================================================
@@ -244,7 +251,7 @@ def RK4(u, du_dx, x, dx):
         Where u is known.
     dx: real
         Integration step.
-        
+
     Return
     ------
     delta_u: real
@@ -257,4 +264,3 @@ def RK4(u, du_dx, x, dx):
     k_4 = du_dx(x + dx, u + dx * k_3)
     delta_u = (k_1 + 2.*k_2 + 2.*k_3 + k_4) * dx / 6.
     return delta_u
-
