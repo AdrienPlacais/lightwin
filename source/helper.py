@@ -170,10 +170,40 @@ def MeV_to_v(E_MeV, q_over_m):
     v = np.sqrt(2. * q_over_m * 1e6 * E_MeV)
     return v
 
+def mev_to_gamma(energy_mev, mass_mev):
+    """Convert MeV energy into Lorentz gamma."""
+    gamma = 1. + energy_mev / mass_mev
+    return gamma
+
 
 # =============================================================================
 # Matrix manipulation
 # =============================================================================
+def individual_to_global_transfer_matrix(M):
+    """
+    Compute the transfer matrix of several elements.
+
+    Parameters
+    ----------
+    M: dim 3 np.array
+        Array of the form (n, 2, 2). Transfer matrices of INDIVIDUAL elements.
+
+    Return
+    ------
+    M_tot: dim 3 np.array
+        Same shape as M. Contains transfer matrices of line from the start of
+        the line.
+    """
+    M_tot = np.full_like(M, np.NaN)
+    M_tot[0, :, :] = M[:, :, 0]
+
+    n = M.shape[0]
+    for i in range(1, n):
+        M_tot[i, :, :] = M[i, :, :] @ M_tot[i-1, :, :]
+
+    return M_tot
+
+
 def right_recursive_matrix_product(M, idx_min, idx_max):
     """
     Compute the matrix product along the last array. For transfer matrices.

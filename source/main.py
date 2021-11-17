@@ -40,16 +40,15 @@ filepath = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
 # =============================================================================
 # End of user inputs
 # =============================================================================
-LINAC = acc.Accelerator(E_MeV, I_mA, f_MHz)
-LINAC.create_struture_from_dat_file(filepath)
-LINAC.compute_transfer_matrix_and_gamma()
+LINAC = acc.Accelerator(E_MeV, filepath)
+LINAC.compute_transfer_matrices()
 
-debug.plot_error_on_transfer_matrices_components_full(filepath, LINAC)
+# debug.plot_error_on_transfer_matrices_components_full(filepath, LINAC)
 # debug.compare_energies(filepath, LINAC)
 
-transport.transport_beam(LINAC)
+# transport.transport_beam(LINAC)
 
-save_MT_and_energy = True
+save_MT_and_energy = False
 if save_MT_and_energy:
     helper.save_full_MT_and_energy_evolution(LINAC)
 save_Vcav_and_phi_s = False
