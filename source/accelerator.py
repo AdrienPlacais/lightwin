@@ -144,6 +144,37 @@ class Accelerator():
                 self.transfer_matrix_cumul
                 )
 
-    def get_attribute_of_elements(self, truc):
-        out = [element.truc for element in self.list_of_elements]
+    def get_from_elements(self, attribute):
+        """
+        Return the attribute of all elements.
+
+        Parameters
+        ----------
+        attribute: string
+            Name of the desired attribute.
+        """
+        init = vars(self.list_of_elements[0])
+
+        if type(init[attribute]) == np.ndarray:
+            out = np.copy(init[attribute])
+
+            for elt in self.list_of_elements[1:]:
+                subclass_attributes = vars(elt)
+
+                # For array holding in/out data, we remove the first which
+                # corresponds to precedent element out data.
+                data = np.copy(subclass_attributes[attribute])
+                if len(data.shape) == 1:
+                    data = data[1:]
+                    out = np.hstack((out, data))
+
+                else:
+                    out = np.vstack((out, data))
+
+        else:
+            out = []
+            for elt in self.list_of_elements:
+                subclass_attributes = vars(elt)
+                out.append(subclass_attributes[attribute])
+
         return out
