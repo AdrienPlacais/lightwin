@@ -113,13 +113,13 @@ class Accelerator():
     def _complementary_assignation(self, E_0_MeV):
         """Define Elements attributes that are dependent to each others."""
         entry = 0.
-        out = self.list_of_elements[0].length_m
+        out = 0.
 
         for i in range(self.n_elements):
             element = self.list_of_elements[i]
+            out += element.length_m
             element.pos_m = np.array(([entry, out]))
             entry = out
-            out += element.length_m
 
         # Initial energy:
         self.list_of_elements[0].energy_array_mev[0] = E_0_MeV
