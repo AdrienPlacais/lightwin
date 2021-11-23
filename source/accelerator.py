@@ -36,19 +36,19 @@ class Accelerator():
 
         # Load dat file and cleam it up (remove comments, etc)
         self.dat_file_content = []
-        self.load_dat_file()
+        self._load_dat_file()
 
         # Create empty list of elements and fill it
         self.list_of_elements = []
-        self.create_structure()
-        self.complementary_assignation(E_0_MeV)
-        self.load_filemaps()
+        self._create_structure()
+        self._complementary_assignation(E_0_MeV)
+        self._load_filemaps()
 
         # Longitudinal transfer matrix of the first to the i-th element:
         self.transfer_matrix_cumul = np.full((1, 2, 2), np.NaN)
         self.flag_first_calculation_of_transfer_matrix = True
 
-    def load_dat_file(self):
+    def _load_dat_file(self):
         """Load the dat file and convert it into a list of lines."""
         # Load and read data file
         with open(self.dat_filepath) as file:
@@ -67,7 +67,7 @@ class Accelerator():
 
                 self.dat_file_content.append(line)
 
-    def load_filemaps(self):
+    def _load_filemaps(self):
         """Assign filemaps paths and load them."""
         # Get folder of all field maps
         for line in self.dat_file_content:
@@ -83,7 +83,7 @@ class Accelerator():
                     + '/' + elt.field_map_file_name
                 elt.select_and_load_field_map_file()
 
-    def create_structure(self):
+    def _create_structure(self):
         """Create structure using the loaded dat file."""
         # Dictionnary linking element name with correct sub-class
         subclasses_dispatcher = {
@@ -110,7 +110,7 @@ class Accelerator():
 
         self.list_of_elements = list_of_elements
 
-    def complementary_assignation(self, E_0_MeV):
+    def _complementary_assignation(self, E_0_MeV):
         """Define Elements attributes that are dependent to each others."""
         entry = 0.
         out = self.list_of_elements[0].length_m
