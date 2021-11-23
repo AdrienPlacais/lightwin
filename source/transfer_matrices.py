@@ -195,9 +195,12 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     else:
         n_iter = n * N_cells
 
-    M_z_list = np.zeros((2, 2, n_iter))
+    M_z_list = np.zeros((n_iter, 2, 2))
+    M_z_list[0, :, :] = np.eye(2)
+    energy_array = np.array(([0, E_0_MeV]))
 
-    for i in range(n_iter):
+
+    for i in range(1, n_iter):
         if Nb_step_of_cal_per_beta_lambda != -1:
             dz = dz_array[i]
 
@@ -214,7 +217,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         elif method == 'RK':
             u = np.array(([E_MeV, phi_RF]))
-            delta_u = helper.RK4(u, du_dz, z_s, dz) 
+            delta_u = helper.RK4(u, du_dz, z_s, dz)
             delta_E_MeV = delta_u[0]
             delta_phi = delta_u[1]
 
@@ -237,8 +240,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         dE_dz = Ez_func(z_K)[()] * np.sin(phi_K) * omega_0 / (beta_s * c)
         gamma_array = [gamma_in, gamma_s, gamma_out]
-        M_z_list[:, :, i] = z_thin_lens(Ez_func(z_K)[()], dE_dz, dz,
-                gamma_array, beta_s, phi_K, omega_0)
+        M_z_list[i, :, :] = z_thin_lens(Ez_func(z_K)[()], dE_dz, dz,
+                                        gamma_array, beta_s, phi_K, omega_0)
 
         if method == 'leapfrog':
             z_s += dz
@@ -249,10 +252,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             z_s += dz
             phi_RF += delta_phi
 
-        if i == 0:
-            energy_array = np.array(([z_s, E_MeV]))
-        else:
-            energy_array = np.vstack((energy_array, np.array(([z_s, E_MeV]))))
+        energy_array = np.vstack((energy_array, np.array(([z_s, E_MeV]))))
         gamma_array.append(gamma_out)
 
     # =========================================================================
@@ -267,7 +267,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         # Second and third line: transfer matrix components of slices
         # (a recursive matrix product shall be performed in order to obtain
         # real transfer matrix components)
-        MT_and_energy_evolution[i, 1:, :] = M_z_list[:, :, i]
+        MT_and_energy_evolution[i, 1:, :] = M_z_list[i, :, :]
 
     # Global MT of element
     R_zz = helper.right_recursive_matrix_product(M_z_list,
@@ -281,6 +281,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
                       / np.cos(phi_s))
 
     return R_zz, MT_and_energy_evolution, V_cav_MV, phi_s_deg
+
 
 def z_thin_lens(Ez, dEz_dt, dz, gamma_array, beta_s, phi, omega_0,
         flag_correction_determinant=True):

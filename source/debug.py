@@ -23,107 +23,9 @@ plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
-def plot_error_on_transfer_matrices_components_simple(filepath_dat,
-                                                      accelerator):
+def plot_transfer_matrices(filepath_dat, accelerator):
     """
-    Estimate the error on transfer matrix calculation.
-
-    Compare transfer matrices with the one calculated by TraceWin. Plot
-    as a function of element number.
-
-    Parameters
-    ----------
-    filepath_dat: str
-        Path to the .dat file. The file containing the transfer matrices
-        exported by TraceWin is expected to be
-        /project_folder/results/matrix_ref.txt, the .dat beeing in
-        /project_folder/.
-    accelerator: Accelerator object.
-        Accelerator under study.
-    """
-    filepath_ref = '/'.join(filepath_dat.split('/')[:-1])
-    filepath_ref = filepath_ref + '/results/matrix_ref.txt'
-    if(not os.path.isfile(filepath_ref)):
-        print('debug/plot_error_on_transfer_matrices_components error:')
-        print('The filepath to the transfer matrices file is invalid. Please')
-        print('check the source code for more info. Enter a valid filepath:')
-        Tk().withdraw()
-        filepath_ref = askopenfilename(
-            filetypes=[("TraceWin transfer matrices file", ".txt")])
-
-    n_elts = accelerator.n_elements
-    # In this array we store the errors of individual elements
-    err_single = np.full((2, 2, n_elts), np.NaN)
-    # Here we store the error of the line
-    err_tot = np.full((2, 2, n_elts), np.NaN)
-    R_zz_tot_ref = np.eye(2)
-
-    # FIXME DIAG element are considered as elements with 0 length, which
-    # completely messes with the indices and comparisons
-    for i in range(n_elts):
-        R_zz_single = np.copy(accelerator.R_zz_single[:, :, i])
-        R_zz_tot = np.copy(accelerator.R_zz_tot_list[:, :, i])
-
-        R_zz_single_ref = import_transfer_matrix_single(filepath_ref, i)
-        R_zz_tot_ref = R_zz_single_ref @ R_zz_tot_ref
-
-        err_single[:, :, i] = R_zz_single_ref - R_zz_single
-        err_tot[:, :, i] = R_zz_tot_ref - R_zz_tot
-
-        if(i == -1):
-            print(' ')
-            print('=========================================================')
-            print(' ')
-            print('LightWin version:')
-            print('Single LW: \n', R_zz_single, '\n')
-            print('Single TW: \n', R_zz_single_ref, '\n')
-            print('Single err*1e3: \n', 1e3*err_single[:, :, i], '\n')
-            print(' ')
-            print('=========================================================')
-            print(' ')
-            print('Tot LW: \n', R_zz_tot, '\n')
-            print('Tot TW: \n', R_zz_tot_ref, '\n')
-            print('Tot err*1e3: \n', 1e3*err_tot[:, :, i], '\n')
-            print(' ')
-            print('=========================================================')
-
-    if(plt.fignum_exists(20)):
-        fig = plt.figure(20)
-        axlist = [fig.axes[0], fig.axes[1]]
-
-    else:
-        fig = plt.figure(20)
-        axlist = [fig.add_subplot(211), fig.add_subplot(212)]
-
-    if(helper.empty_fig(20)):
-        ls = '-'
-    else:
-        ls = '--'
-
-    elt_array = np.linspace(1, n_elts, n_elts, dtype=int)
-    labels = [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$']
-
-    for i in range(4):
-        axlist[0].plot(elt_array, err_single[i//2, i % 2, :],
-                       label=labels[i], ls=ls)
-        axlist[1].plot(elt_array, err_tot[i//2, i % 2, :], ls=ls)
-
-    axlist[0].legend()
-
-    for ax in axlist:
-        ax.grid(True)
-    axlist[0].set_ylabel('Error on single element')
-    axlist[1].set_ylabel('Error from line start')
-    axlist[1].set_xlabel('Element #')
-
-
-def plot_error_on_transfer_matrices_components_full(filepath_dat,
-                                                    accelerator):
-    """
-    Estimate the error on transfer matrix calculation.
-
-    Compare transfer matrices with the one calculated by TraceWin. Plot as a
-    function of z.
+    Plot the transfer matrix components of TraceWin and LightWin.
 
     Parameters
     ----------
@@ -140,8 +42,9 @@ def plot_error_on_transfer_matrices_components_full(filepath_dat,
                     filepath_ref + '/results/M_56_ref.txt',
                     filepath_ref + '/results/M_65_ref.txt',
                     filepath_ref + '/results/M_66_ref.txt']
-    R_zz_tot = accelerator.full_MT_and_energy_evolution[:, 1:, :]
-    z = accelerator.full_MT_and_energy_evolution[:, 0, 0]
+
+    R_zz_tot = accelerator.transfer_matrix_cumul
+    z = accelerator.get_from_elements('pos_m')
 
     i = 0
     for path in filepath_ref:

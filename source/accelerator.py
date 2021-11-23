@@ -8,6 +8,7 @@ Created on Tue Sep 21 11:54:19 2021
 import numpy as np
 import elements as elements
 import helper
+import os.path
 from constants import m_MeV
 
 
@@ -41,6 +42,7 @@ class Accelerator():
         self.list_of_elements = []
         self.create_structure()
         self.complementary_assignation(E_0_MeV)
+        self.load_filemaps()
 
         # Longitudinal transfer matrix of the first to the i-th element:
         self.transfer_matrix_cumul = np.full((1, 2, 2), np.NaN)
@@ -65,6 +67,22 @@ class Accelerator():
 
                 self.dat_file_content.append(line)
 
+    def load_filemaps(self):
+        """Assign filemaps paths and load them."""
+        # Get folder of all field maps
+        for line in self.dat_file_content:
+            if line[0] == 'FIELD_MAP_PATH':
+                field_map_folder = line[1]
+
+        field_map_folder = os.path.dirname(self.dat_filepath) \
+            + field_map_folder[1:]
+
+        for elt in self.list_of_elements:
+            if 'field_map_file_name' in vars(elt):
+                elt.field_map_file_name = field_map_folder \
+                    + '/' + elt.field_map_file_name
+                elt.select_and_load_field_map_file()
+
     def create_structure(self):
         """Create structure using the loaded dat file."""
         # Dictionnary linking element name with correct sub-class
@@ -74,11 +92,6 @@ class Accelerator():
             'FIELD_MAP': elements.FieldMap,
             'CAVSIN': elements.CavSin,
             'SOLENOID': elements.Solenoid,
-            'SPACE_CHARGE_COMP': elements.NotAnElement,
-            'FREQ': elements.NotAnElement,
-            'FIELD_MAP_PATH': elements.NotAnElement,
-            'LATTICE': elements.NotAnElement,
-            'END': elements.NotAnElement,
         }
         to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
                              'LATTICE', 'END']
@@ -102,9 +115,9 @@ class Accelerator():
         entry = 0.
         out = self.list_of_elements[0].length_m
 
-        for i in range(0, self.n_elements):
+        for i in range(self.n_elements):
             element = self.list_of_elements[i]
-            element.absolute_position_m = np.array(([entry, out]))
+            element.pos_m = np.array(([entry, out]))
             entry = out
             out += element.length_m
 
@@ -115,10 +128,9 @@ class Accelerator():
 
     def compute_transfer_matrices(self):
         """Compute the transfer matrices of Accelerator's elements."""
-        # TODO Maybe it would be better to compute transfer matrices at
-        # elements initialization?
         gamma_out = self.list_of_elements[0].gamma_array[0]
 
+        # Compute transfer matrix and acceleration (gamma) in each element
         for element in self.list_of_elements:
             element.gamma_array[0] = gamma_out
             element.energy_array_mev[0] = helper.gamma_to_mev(gamma_out,
@@ -133,16 +145,17 @@ class Accelerator():
                 np.vstack((self.transfer_matrix_cumul,
                            element.transfer_matrix))
 
-            # TODO better of elsewhere?
             element.energy_array_mev = helper.gamma_to_mev(element.gamma_array,
                                                            m_MeV)
-
             gamma_out = element.gamma_array[-1]
 
+        transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
+        transfer_matrix_indiv = np.vstack((transfer_matrix_indiv,
+                                           self.get_from_elements(
+                                              'transfer_matrix')
+                                           ))
         self.transfer_matrix_cumul = \
-            helper.individual_to_global_transfer_matrix(
-                self.transfer_matrix_cumul
-                )
+            helper.individual_to_global_transfer_matrix(transfer_matrix_indiv)
 
     def get_from_elements(self, attribute):
         """
@@ -153,6 +166,13 @@ class Accelerator():
         attribute: string
             Name of the desired attribute.
         """
+        # Some attributes such as enery hold in/out data: energy at the
+        # entrance and at the exit of the element. As energy at the entrance
+        # of an element is equal to the energy at the exit of the precedent,
+        # we discard all entrance data.
+        discard_list = ['pos_m', 'energy_array_mev', 'gamma_array']
+
+        # Get list of attributes of first element
         init = vars(self.list_of_elements[0])
 
         if type(init[attribute]) == np.ndarray:
@@ -161,15 +181,17 @@ class Accelerator():
             for elt in self.list_of_elements[1:]:
                 subclass_attributes = vars(elt)
 
-                # For array holding in/out data, we remove the first which
-                # corresponds to precedent element out data.
                 data = np.copy(subclass_attributes[attribute])
-                if len(data.shape) == 1:
+                if attribute in discard_list:
                     data = data[1:]
                     out = np.hstack((out, data))
 
-                else:
+                elif attribute in ['transfer_matrix']:
                     out = np.vstack((out, data))
+
+                else:
+                    print('Import of this attribute not implemented yet.')
+                    exit
 
         else:
             out = []

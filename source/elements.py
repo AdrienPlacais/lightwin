@@ -37,20 +37,15 @@ class _Element():
         self.length_mm = float(elem[1])
         self.length_m = 1e-3 * float(elem[1])
 
-        self.entrance_pos_m = np.NaN
-        self.exit_pos_m = np.NaN
-
+        # Absolute pos, gamma and energy of in and out.
+        # In accelerating elements, the size of these arrays will be > 2.
+        self.pos_m = np.full((2), np.NaN)
         self.gamma_array = np.full((2), np.NaN)
         self.energy_array_mev = np.full((2), np.NaN)
 
         self.frequency_mhz = 352.2  # FIXME import of frequency
 
-        self.transfer_matrix = np.full((2, 2), np.NaN)
-
-    def compute_acceleration(self):
-        """Compute acceleration in current element."""
-        print('Warning, compute_acceleration not yet implemented.')
-        return 1.
+        self.transfer_matrix = np.full((1, 2, 2), np.NaN)
 
 
 # =============================================================================
@@ -178,14 +173,7 @@ class FieldMap(_Element):
         except IndexError:
             pass
 
-        print('Warning, field map loading not fully implemented.')
-        print('Loading default field map...')
-        # FIXME
-        self.field_map_file_name = '../data/Ez.edz'
-        TraceWin_dat_filename = '~/TraceWin/work_field_map/work_field_map.dat'
-        self.select_and_load_field_map_file(TraceWin_dat_filename)
-
-    def select_and_load_field_map_file(self, TraceWin_dat_filename):
+    def select_and_load_field_map_file(self):
         """
         Select the field map file and call the proper loading function.
 
@@ -196,38 +184,14 @@ class FieldMap(_Element):
         this function.
         Finally, only 1D electric field map are implemented.
         """
-        flag_verbose = False
-
         # Check nature and geometry of the field map, and select proper file
         # extension and import function
         extension, import_function = self.check_geom()
-
-        delimiter = '/'    # Warning, may be '\' on Windows
-        absolute_path = TraceWin_dat_filename.split(delimiter)[:-1]
-
-        # Hypothesis on the structure of the TraceWin project
-        absolute_path = delimiter.join(absolute_path) + "/field_maps_1D/"
-        absolute_path = absolute_path + self.field_map_file_name + extension
-
-        # TODO check filename with assert
-        if os.path.exists(self.field_map_file_name):
-            path = self.field_map_file_name
-            if flag_verbose:
-                print("Loading field map with relative filepath...")
-
-        elif os.path.exists(absolute_path):
-            path = absolute_path
-            if flag_verbose:
-                print("Loading field map with absolute filepath...")
-
-        else:
-            msg = "Field Map file not found.\n"
-            msg = msg + "Please check select_and_load_field_map_file function."
-            raise IOError(msg)
-        # TODO check doc, this part may be simpler
+        self.field_map_file_name = self.field_map_file_name + extension
 
         # Load the field map
-        self.nz, zmax, self.norm, self.fz = import_function(path)
+        self.nz, zmax, self.norm, self.fz = \
+            import_function(self.field_map_file_name)
 
         assert abs(zmax - self.length_m) < 1e-6
 
@@ -279,11 +243,12 @@ class FieldMap(_Element):
                         self.nz,
                         self.length_m)
 
-        entry = self.absolute_position_m[0]
-        self.absolute_position_m = MT_and_energy_evolution[:, 0, 0] + entry
+        entry = self.pos_m[0]
+        self.pos_m = MT_and_energy_evolution[:, 0, 0] + entry
         self.energy_array_mev = MT_and_energy_evolution[:, 0, 1]
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
-        self.transfer_matrix = MT_and_energy_evolution[:, 1:, :]
+        print('First element of cav MT removed (identity matrix). Function should return MT without this element for consistency.')
+        self.transfer_matrix = MT_and_energy_evolution[1:, 1:, :]
 
 
 class CavSin(_Element):
@@ -305,7 +270,7 @@ class NotAnElement():
 # =============================================================================
 # Old
 # =============================================================================
-def add_sinus_cavity(accelerator, line, i, TraceWin_dat_filename, f_MHz):
+def add_sinus_cavity(accelerator, line, i, dat_filename, f_MHz):
     """
     Add a sinus cavity to the Accelerator object.
 

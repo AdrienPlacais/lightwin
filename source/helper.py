@@ -202,7 +202,7 @@ def individual_to_global_transfer_matrix(M):
         the line.
     """
     M_tot = np.full_like(M, np.NaN)
-    M_tot[0, :, :] = M[:, :, 0]
+    M_tot[0, :, :] = M[0, :, :]
 
     n = M.shape[0]
     for i in range(1, n):
@@ -227,7 +227,7 @@ def right_recursive_matrix_product(M, idx_min, idx_max):
     M_out = np.eye(2)
 
     for i in range(idx_min, idx_max + 1):
-        M_out = M[:, :, i] @ M_out
+        M_out = M[i, :, :] @ M_out
 
     return M_out
 

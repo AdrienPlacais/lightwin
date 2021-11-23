@@ -43,6 +43,7 @@ filepath = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
 LINAC = acc.Accelerator(E_MeV, filepath)
 LINAC.compute_transfer_matrices()
 
+debug.plot_transfer_matrices(filepath, LINAC)
 # debug.plot_error_on_transfer_matrices_components_full(filepath, LINAC)
 # debug.compare_energies(filepath, LINAC)
 
