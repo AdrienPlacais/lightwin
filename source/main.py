@@ -8,7 +8,6 @@ Created on Tue Sep 21 11:32:12 2021
 
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import numpy as np
 import accelerator as acc
 import debug
 import helper

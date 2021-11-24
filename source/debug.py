@@ -61,41 +61,6 @@ def plot_transfer_matrices(filepath_dat, accelerator):
 
     n_z_ref = R_zz_tot_ref.shape[0]
     n_z = z.shape[0]
-
-    axlist = []
-    fignum = 26
-    if(plt.fignum_exists(fignum)):
-        fig = plt.figure(fignum)
-        for i in range(4):
-            axlist.append(fig.axes[i])
-
-    else:
-        fig = plt.figure(fignum)
-        for i in range(221, 225):
-            axlist.append(fig.add_subplot(i))
-
-    if(helper.empty_fig(fignum)):
-        ls = '-'
-        labels_TW = ['TraceWin', '', '', '']
-        for i in range(4):
-            axlist[i].plot(R_zz_tot_ref[:, 0], R_zz_tot_ref[:, i+1],
-                           label=labels_TW[i], ls=ls)
-    else:
-        ls = '--'
-
-    xlabels = ['', '', 'z [m]', 'z [m]']
-    ylabels = [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$']
-    labels_LW = ['LightWin', '', '', '']
-
-    for i in range(4):
-        axlist[i].plot(z, R_zz_tot[:, i // 2, i % 2],
-                       label=labels_LW[i], ls=ls)
-        axlist[i].set_xlabel(xlabels[i])
-        axlist[i].set_ylabel(ylabels[i])
-        axlist[i].grid(True)
-
-    axlist[0].legend()
-
     # We calculate error by interpolating the tab with most points on the one
     # with least points.
     kind = 'linear'
@@ -134,6 +99,41 @@ def plot_transfer_matrices(filepath_dat, accelerator):
         print('')
         print('Tot error:\n', np.linalg.norm(err))
         print('=============================================================')
+    axlist = []
+    fignum = 26
+    if(plt.fignum_exists(fignum)):
+        fig = plt.figure(fignum)
+        for i in range(4):
+            axlist.append(fig.axes[i])
+
+    else:
+        fig = plt.figure(fignum)
+        for i in range(221, 225):
+            axlist.append(fig.add_subplot(i))
+
+    if(helper.empty_fig(fignum)):
+        ls = '-'
+        labels_TW = ['TraceWin', '', '', '']
+        for i in range(4):
+            axlist[i].plot(R_zz_tot_ref[:, 0], R_zz_tot_ref[:, i+1],
+                           label=labels_TW[i], ls=ls)
+    else:
+        ls = '--'
+
+    xlabels = ['', '', 'z [m]', 'z [m]']
+    ylabels = [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$']
+    labels_LW = ['LightWin', '', '', '']
+
+    for i in range(4):
+        axlist[i].plot(z, R_zz_tot[:, i // 2, i % 2],
+                       label=labels_LW[i], ls=ls)
+        axlist[i].set_xlabel(xlabels[i])
+        axlist[i].set_ylabel(ylabels[i])
+        axlist[i].grid(True)
+
+    axlist[0].legend()
+
+
 
     axlist = []
     fignum *= 10
