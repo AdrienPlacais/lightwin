@@ -50,8 +50,7 @@ def z_drift(Delta_s, gamma):
 
 
 def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
-                               N_cells, nz, zmax,
-                               Nb_step_of_cal_per_beta_lambda=-1):
+                               N_cells, nz, zmax):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 
@@ -76,8 +75,6 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
         Number of points (minus one) in the Fz_array.
     zmax: float
         Relative position of the cavity's exit in m.
-    Nb_step_of_cal_per_beta_lambda: int, opt
-        Number of calculation steps, as entered in TraceWin.
 
     Returns
     -------
@@ -89,7 +86,6 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     """
     # method = 'leapfrog'
     method = 'RK'
-    flag_correction_determinant = True
 
     if E_0_MeV == 16.6:
         print('Method: ', method)
@@ -110,25 +106,12 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     Ez_func = interp1d(z_cavity_array, Fz_scaled, bounds_error=False,
                        kind=kind, fill_value=fill_value, assume_sorted=True)
 
-    dz_cavity = z_cavity_array[1] - z_cavity_array[0]
-    dE_dz_array = np.gradient(Fz_scaled, dz_cavity)
-    dE_dz_func = interp1d(z_cavity_array, dE_dz_array, bounds_error=False,
-                           kind=kind, fill_value=fill_value, assume_sorted=True)
-
     # =========================================================================
     # Simulation parameters
     # =========================================================================
     # The N_cells cells cavity is divided in n*N_cells steps of length dz:
-    if Nb_step_of_cal_per_beta_lambda != -1:
-        lambda_RF = 1e-6 * c / f_MHz
-        dz = beta_0 * lambda_RF / Nb_step_of_cal_per_beta_lambda
-        n = int(zmax / (N_cells * dz))
-        dz = zmax / (n * N_cells)
-        dz_array = np.linspace(0., zmax, n * N_cells)
-
-    else:
-        n = 100
-        dz = zmax / (n * N_cells)
+    n = 100
+    dz = zmax / (n * N_cells)
 
     # =========================================================================
     # Compute energy gain and synchronous phase
@@ -190,20 +173,14 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     gamma_array = [gamma_out]
 
     # Then, we loop until reaching the end of the cavity
-    if Nb_step_of_cal_per_beta_lambda != -1:
-        n_iter = n * N_cells + 1
-    else:
-        n_iter = n * N_cells
+    n_iter = n * N_cells + 1
 
     M_z_list = np.zeros((n_iter, 2, 2))
     M_z_list[0, :, :] = np.eye(2)
-    energy_array = np.array(([0, E_0_MeV]))
-
+    z_array = np.array(([0.]))
+    energy_array = np.array(([E_0_MeV]))
 
     for i in range(1, n_iter):
-        if Nb_step_of_cal_per_beta_lambda != -1:
-            dz = dz_array[i]
-
         gamma_in = gamma_out
         # beta_in = np.sqrt(1. - gamma_in**-2)
 
@@ -252,7 +229,8 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
             z_s += dz
             phi_RF += delta_phi
 
-        energy_array = np.vstack((energy_array, np.array(([z_s, E_MeV]))))
+        energy_array = np.hstack((energy_array, E_MeV))
+        z_array = np.hstack((z_array, z_s))
         gamma_array.append(gamma_out)
 
     # =========================================================================
@@ -260,31 +238,17 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     # =========================================================================
     gamma_array = np.array(gamma_array)
 
-    MT_and_energy_evolution = np.full((n * N_cells, 3, 2), np.NaN)
-    for i in range(n*N_cells):
-        # First line: position and energy
-        MT_and_energy_evolution[i, 0, :] = energy_array[i, :]
-        # Second and third line: transfer matrix components of slices
-        # (a recursive matrix product shall be performed in order to obtain
-        # real transfer matrix components)
-        MT_and_energy_evolution[i, 1:, :] = M_z_list[i, :, :]
-
-    # Global MT of element
-    R_zz = helper.right_recursive_matrix_product(M_z_list,
-                                                 idx_min=0,
-                                                 idx_max=n * N_cells - 1)
-
     # Synchronous phase
-    phi_s = np.arctan(F_E_imag / F_E_real)
-    phi_s_deg = np.rad2deg(phi_s)
-    V_cav_MV = np.abs((E_0_MeV - MT_and_energy_evolution[-1, 0, 1])
-                      / np.cos(phi_s))
+    # phi_s = np.arctan(F_E_imag / F_E_real)
+    # phi_s_deg = np.rad2deg(phi_s)
+    # V_cav_MV = np.abs((E_0_MeV - MT_and_energy_evolution[-1, 0, 1])
+    #                   / np.cos(phi_s))
 
-    return R_zz, MT_and_energy_evolution, V_cav_MV, phi_s_deg
+    return M_z_list[1:, :, :], energy_array, z_array
 
 
 def z_thin_lens(Ez, dEz_dt, dz, gamma_array, beta_s, phi, omega_0,
-        flag_correction_determinant=True):
+                flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
 

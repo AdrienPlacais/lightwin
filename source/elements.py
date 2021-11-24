@@ -232,7 +232,8 @@ class FieldMap(_Element):
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
         # TODO Check this Ncell truc.
-        R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
+        # R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
+        M_z_list, energy_array, z_array = \
             transfer_matrices.z_field_map_electric_field(
                         self.energy_array_mev[0],
                         self.frequency_mhz,
@@ -244,11 +245,10 @@ class FieldMap(_Element):
                         self.length_m)
 
         entry = self.pos_m[0]
-        self.pos_m = MT_and_energy_evolution[:, 0, 0] + entry
-        self.energy_array_mev = MT_and_energy_evolution[:, 0, 1]
+        self.pos_m = z_array + entry
+        self.energy_array_mev = energy_array
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
-        print('First element of cav MT removed (identity matrix). Function should return MT without this element for consistency.')
-        self.transfer_matrix = MT_and_energy_evolution[1:, 1:, :]
+        self.transfer_matrix = M_z_list
 
 
 class CavSin(_Element):
