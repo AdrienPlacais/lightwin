@@ -5,17 +5,17 @@ Created on Tue Sep 21 11:54:19 2021
 
 @author: placais
 """
-import numpy as np
-import elements as elements
-import helper
 import os.path
+import numpy as np
+import elements
+import helper
 from constants import m_MeV
 
 
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, E_0_MeV, dat_filepath):
+    def __init__(self, e_0_mev, dat_filepath):
         """
         Create Accelerator object.
 
@@ -24,7 +24,7 @@ class Accelerator():
 
         Parameters
         ----------
-        E_0_MeV: float
+        e_0_mev: float
             Initial beam energy in MeV.
         dat_filepath: string
             Path to file containing the structure.
@@ -41,7 +41,7 @@ class Accelerator():
         # Create empty list of elements and fill it
         self.list_of_elements = []
         self._create_structure()
-        self._complementary_assignation(E_0_MeV)
+        self._complementary_assignation(e_0_mev)
         self._load_filemaps()
 
         # Longitudinal transfer matrix of the first to the i-th element:
@@ -110,7 +110,7 @@ class Accelerator():
 
         self.list_of_elements = list_of_elements
 
-    def _complementary_assignation(self, E_0_MeV):
+    def _complementary_assignation(self, e_0_mev):
         """Define Elements attributes that are dependent to each others."""
         entry = 0.
         out = 0.
@@ -122,8 +122,8 @@ class Accelerator():
             entry = out
 
         # Initial energy:
-        self.list_of_elements[0].energy_array_mev[0] = E_0_MeV
-        self.list_of_elements[0].gamma_array[0] = helper.mev_to_gamma(E_0_MeV,
+        self.list_of_elements[0].energy_array_mev[0] = e_0_mev
+        self.list_of_elements[0].gamma_array[0] = helper.mev_to_gamma(e_0_mev,
                                                                       m_MeV)
 
     def compute_transfer_matrices(self):
@@ -175,7 +175,7 @@ class Accelerator():
         # Get list of attributes of first element
         init = vars(self.list_of_elements[0])
 
-        if type(init[attribute]) == np.ndarray:
+        if isinstance(init[attribute], np.ndarray):
             out = np.copy(init[attribute])
 
             for elt in self.list_of_elements[1:]:
@@ -191,7 +191,6 @@ class Accelerator():
 
                 else:
                     print('Import of this attribute not implemented yet.')
-                    exit
 
         else:
             out = []
