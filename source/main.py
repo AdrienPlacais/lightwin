@@ -19,38 +19,38 @@ import transport
 # TODO: direct import of this parameters from the .ini file
 # TODO: handle different particles
 # Kinetic beam energy in MeV
-E_MeV = 16.6
+E_MEV = 16.6
 
 # Current in mA
-I_mA = 4.
+I_MILLI_A = 4.
 
 # Bunch frequency in MHz
-f_MHz = 352.2
+F_MHZ = 352.2
 
 # Select .dat file
 Tk().withdraw()
-# filepath = '/home/placais/LightWin/data/dummy.dat'
-# filepath = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
-filepath = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
-# filepath = '/home/placais/TraceWin/work_cavsin/work_cavsin.dat'
-# filepath = askopenfilename(filetypes=[("TraceWin file", ".dat")])
+# FILEPATH = '/home/placais/LightWin/data/dummy.dat'
+# FILEPATH = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
+FILEPATH = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
+# FILEPATH = '/home/placais/TraceWin/work_cavsin/work_cavsin.dat'
+# FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
 
 # =============================================================================
 # End of user inputs
 # =============================================================================
-LINAC = acc.Accelerator(E_MeV, filepath)
-LINAC.compute_transfer_matrices()
+linac = acc.Accelerator(E_MEV, FILEPATH)
+linac.compute_transfer_matrices()
 
-debug.plot_transfer_matrices(filepath, LINAC)
-# debug.plot_error_on_transfer_matrices_components_full(filepath, LINAC)
-# debug.compare_energies(filepath, LINAC)
+debug.plot_transfer_matrices(FILEPATH, linac)
+# debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)
+# debug.compare_energies(FILEPATH, LINAC)
 
 # transport.transport_beam(LINAC)
 
-save_MT_and_energy = False
-if save_MT_and_energy:
-    helper.save_full_MT_and_energy_evolution(LINAC)
-save_Vcav_and_phi_s = False
-if save_Vcav_and_phi_s:
-    helper.save_Vcav_and_phis(LINAC)
+SAVE_MT_AND_ENERGY = False
+if SAVE_MT_AND_ENERGY:
+    helper.save_full_MT_and_energy_evolution(linac)
+SAVE_VCAV_AND_PHIS = False
+if SAVE_VCAV_AND_PHIS:
+    helper.save_Vcav_and_phis(linac)
