@@ -42,9 +42,9 @@ FILEPATH = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
 linac = acc.Accelerator(E_MEV, FILEPATH)
 linac.compute_transfer_matrices()
 
-debug.plot_transfer_matrices(linac)
+# debug.plot_transfer_matrices(linac)
 # debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)
-# debug.compare_energies(FILEPATH, LINAC)
+debug.compare_energies(linac)
 
 # transport.transport_beam(LINAC)
 

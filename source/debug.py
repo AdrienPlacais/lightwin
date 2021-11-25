@@ -165,36 +165,20 @@ def plot_transfer_matrices(accelerator):
         axlist[i].grid(True)
 
 
-def compare_energies(filepath_dat, accelerator):
-    """
-    Comparison of beam energy with TW data.
-
-    Parameters
-    ----------
-    filepath_dat: str
-        Path to the .dat file. The file containing the energies
-        exported by TraceWin ('Save table to file' button in 'Data' tab) is
-        expected to be /project_folder/results/energy_ref.txt, the .dat beeing
-        in /project_folder/.
-    accelerator: Accelerator object
-        Accelerator under study.
-    """
-    flag_output_field_map_acceleration = False
-    filepath_ref = '/'.join(filepath_dat.split('/')[:-1])
-    filepath_ref = filepath_ref + '/results/energy_ref.txt'
-    if not os.path.isfile(filepath_ref):
+def load_energies(filepath, n_elt):
+    """Load energy ref file."""
+    if not os.path.isfile(filepath):
         print('debug/compare_energies error:')
         print('The filepath to the energy file is invalid. Please check the')
         print('source code for more info. Enter a valid filepath:')
         Tk().withdraw()
-        filepath_ref = askopenfilename(
+        filepath = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
 
-    elt_array = np.linspace(1, 39, 39, dtype=int)
-    E_MeV_ref = np.full((39), np.NaN)
+    e_mev_ref = np.full((n_elt), np.NaN)
 
     i = 0
-    with open(filepath_ref) as file:
+    with open(filepath) as file:
         for line in file:
             try:
                 current_element = line.split('\t')[0]
@@ -203,49 +187,43 @@ def compare_energies(filepath_dat, accelerator):
                 continue
             splitted_line = line.split('\t')
 
-            # Concerns field maps only:
-            if(flag_output_field_map_acceleration and
-               accelerator.elements_nature[i] == 'FIELD_MAP'):
-                EoTLc_ref = splitted_line[6]
-                EoTLc = accelerator.V_cav_MV[i]
-                Sych_Phase_ref = splitted_line[8]
-                Sync_Phase = accelerator.phi_s_deg[i]
-                print('=====================================================')
-                print('FIELD_MAP #', i)
-                print('V_cav: ', EoTLc, 'MV')
-                print('V_cav_ref: ', EoTLc_ref, 'MV')
-                err = 1e3 * np.abs(EoTLc - float(EoTLc_ref))
-                print('Error: ', err, 'kV')
-                print('')
-                print('phi_s: ', Sync_Phase, 'deg')
-                print('phi_s_deg: ', Sych_Phase_ref, 'deg')
-                err = 1e3 * np.abs(Sync_Phase - float(Sych_Phase_ref))
-                print('Error: ', err, 'mdeg')
-                print('')
-
-            E_MeV_ref[i] = splitted_line[9]
+            e_mev_ref[i] = splitted_line[9]
             i += 1
 
-    # error = np.abs(E_MeV_ref - accelerator.E_MeV[1:])
-    calculated_energy = np.full((accelerator.n_elements), np.NaN)
-    for i in range(accelerator.n_elements):
-        calculated_energy[i] = \
+    return e_mev_ref
+
+
+def compare_energies(accelerator):
+    """
+    Comparison of beam energy with TW data.
+
+    Parameters
+    ----------
+    accelerator: Accelerator object
+        Accelerator under study.
+    """
+    n_elt = accelerator.n_elements
+    elt_array = np.linspace(1, n_elt, n_elt, dtype=int)
+
+    filepath_ref = accelerator.project_folder + '/results/energy_ref.txt'
+    e_mev_ref = load_energies(filepath_ref, n_elt)
+
+    # error = np.abs(e_mev_ref - accelerator.E_MeV[1:])
+    e_mev = np.full((n_elt), np.NaN)
+    for i in range(n_elt):
+        e_mev[i] = \
             accelerator.list_of_elements[i].energy_array_mev[-1]
 
-    error = np.abs(E_MeV_ref - calculated_energy)
+    error = np.abs(e_mev_ref - e_mev)
 
-    if plt.fignum_exists(21):
-        fig = plt.figure(21)
-        axlist = [fig.axes[0], fig.axes[1]]
+    fignum = 21
+    axnumlist = range(211, 213)
+    fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
 
-    else:
-        fig = plt.figure(21)
-        axlist = [fig.add_subplot(211), fig.add_subplot(212)]
+    if helper.empty_fig(fignum):
+        axlist[0].plot(elt_array, e_mev_ref, label='TraceWin')
 
-    if helper.empty_fig(21):
-        axlist[0].plot(elt_array, E_MeV_ref, label='TraceWin')
-
-    axlist[0].plot(elt_array, calculated_energy, label='LightWin')
+    axlist[0].plot(elt_array, e_mev, label='LightWin')
     axlist[1].plot(elt_array, error*1e6)
 
     for ax in axlist:
@@ -254,5 +232,28 @@ def compare_energies(filepath_dat, accelerator):
     axlist[0].set_ylabel('Beam energy [MeV]')
     axlist[1].set_xlabel('Element #')
     axlist[1].set_ylabel('Absolute error [eV]')
-
     axlist[0].legend()
+
+
+def compare_cavity_properties():
+    """To implement."""
+    # Concerns field maps only:
+    # if(flag_output_field_map_acceleration and
+    #    accelerator.elements_name[i] == 'FIELD_MAP'):
+    #     eotlc_ref = splitted_line[6]
+    #     eotlc = accelerator.V_cav_MV[i]
+    #     synch_phase_ref = splitted_line[8]
+    #     sync_phase = accelerator.phi_s_deg[i]
+    #     print('=====================================================')
+    #     print('FIELD_MAP #', i)
+    #     print('V_cav: ', eotlc, 'MV')
+    #     print('V_cav_ref: ', eotlc_ref, 'MV')
+    #     err = 1e3 * np.abs(eotlc - float(eotlc_ref))
+    #     print('Error: ', err, 'kV')
+    #     print('')
+    #     print('phi_s: ', sync_phase, 'deg')
+    #     print('phi_s_deg: ', synch_phase_ref, 'deg')
+    #     err = 1e3 * np.abs(sync_phase - float(synch_phase_ref))
+    #     print('Error: ', err, 'mdeg')
+    #     print('')
+    print('Not implemented')
