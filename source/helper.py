@@ -58,7 +58,7 @@ def empty_fig(fignum):
 # =============================================================================
 # Files functions
 # =============================================================================
-def load_electric_field_1D(path):
+def load_electric_field_1d(path):
     """
     Load a 1D electric field (.edz extension).
 
@@ -69,16 +69,16 @@ def load_electric_field_1D(path):
 
     Returns
     -------
-    Fz: np.array
+    f_z: np.array
         Array of electric field in MV/m.
     zmax: float
         z position of the filemap end.
-    Norm: float
-        Norm of the electric field.
+    norm: float
+        norm of the electric field.
 
     Currently not returned
     ----------------------
-    nz: int
+    n_z: int
         Number of points in the array minus one.
     """
     i = 0
@@ -93,24 +93,24 @@ def load_electric_field_1D(path):
                 if len(line_splitted) < 2:
                     line_splitted = line.split('\t')
 
-                nz = int(line_splitted[0])
+                n_z = int(line_splitted[0])
                 # Sometimes there are several spaces or tabs between numbers
                 zmax = float(line_splitted[-1])
-                Fz = np.full((nz + 1), np.NaN)
+                f_z = np.full((n_z + 1), np.NaN)
 
             elif i == 1:
-                Norm = float(line)
+                norm = float(line)
 
             else:
-                Fz[k] = float(line)
+                f_z[k] = float(line)
                 k += 1
 
             i += 1
 
-    return nz, zmax, Norm, Fz
+    return n_z, zmax, norm, f_z
 
 
-def save_full_MT_and_energy_evolution(accelerator):
+def save_full_mt_and_energy_evolution(accelerator):
     """
     Output the energy and transfer matrice components as a function of z.
 
@@ -132,7 +132,7 @@ def save_full_MT_and_energy_evolution(accelerator):
     np.savetxt(filepath, out)
 
 
-def save_Vcav_and_phis(accelerator):
+def save_vcav_and_phis(accelerator):
     """
     Output the Vcav and phi_s as a function of z.
 
@@ -143,14 +143,14 @@ def save_Vcav_and_phis(accelerator):
     accelerator: Accelerator object
         Object of corresponding to desired output.
     """
-    data_V = np.copy(accelerator.V_cav_MV)
-    valid_idx = np.where(~np.isnan(data_V))
-    data_V = data_V[valid_idx]
+    data_v = np.copy(accelerator.V_cav_MV)
+    valid_idx = np.where(~np.isnan(data_v))
+    data_v = data_v[valid_idx]
     data_phi_s = np.copy(accelerator.phi_s_deg)[valid_idx]
     data_z = np.copy(accelerator.absolute_entrance_position)[valid_idx] \
         + np.copy(accelerator.L_m)[valid_idx]
 
-    out = np.transpose(np.vstack((data_z, data_V, data_phi_s)))
+    out = np.transpose(np.vstack((data_z, data_v, data_phi_s)))
     filepath = '../data/Vcav_and_phis.txt'
 
     np.savetxt(filepath, out)
@@ -159,15 +159,15 @@ def save_Vcav_and_phis(accelerator):
 # =============================================================================
 # Conversion functions
 # =============================================================================
-def v_to_MeV(v, m_over_q):
+def v_to_mev(v, m_over_q):
     """Convert m/s to MeV."""
-    E_eV = 0.5 * m_over_q * v**2
-    return E_eV * 1e-6
+    e_ev = 0.5 * m_over_q * v**2
+    return e_ev * 1e-6
 
 
-def MeV_to_v(E_MeV, q_over_m):
+def mev_to_v(e_mev, q_over_m):
     """Convert MeV to m/s."""
-    v = np.sqrt(2. * q_over_m * 1e6 * E_MeV)
+    v = np.sqrt(2. * q_over_m * 1e6 * e_mev)
     return v
 
 
@@ -186,32 +186,32 @@ def gamma_to_mev(gamma, mass_mev):
 # =============================================================================
 # Matrix manipulation
 # =============================================================================
-def individual_to_global_transfer_matrix(M):
+def individual_to_global_transfer_matrix(m_in):
     """
     Compute the transfer matrix of several elements.
 
     Parameters
     ----------
-    M: dim 3 np.array
+    m_in: dim 3 np.array
         Array of the form (n, 2, 2). Transfer matrices of INDIVIDUAL elements.
 
     Return
     ------
-    M_tot: dim 3 np.array
+    m_out: dim 3 np.array
         Same shape as M. Contains transfer matrices of line from the start of
         the line.
     """
-    M_tot = np.full_like(M, np.NaN)
-    M_tot[0, :, :] = M[0, :, :]
+    m_out = np.full_like(m_in, np.NaN)
+    m_out[0, :, :] = m_in[0, :, :]
 
-    n = M.shape[0]
+    n = m_in.shape[0]
     for i in range(1, n):
-        M_tot[i, :, :] = M[i, :, :] @ M_tot[i-1, :, :]
+        m_out[i, :, :] = m_in[i, :, :] @ m_out[i-1, :, :]
 
-    return M_tot
+    return m_out
 
 
-def right_recursive_matrix_product(M, idx_min, idx_max):
+def right_recursive_matrix_product(m_in, idx_min, idx_max):
     """
     Compute the matrix product along the last array. For transfer matrices.
 
@@ -224,18 +224,18 @@ def right_recursive_matrix_product(M, idx_min, idx_max):
     idx_max: int
         Last index to consider.
     """
-    M_out = np.eye(2)
+    m_out = np.eye(2)
 
     for i in range(idx_min, idx_max + 1):
-        M_out = M[i, :, :] @ M_out
+        m_out = m_in[i, :, :] @ m_out
 
-    return M_out
+    return m_out
 
 
 # =============================================================================
 # Integration
 # =============================================================================
-def RK4(u, du_dx, x, dx):
+def rk4(u, du_dx, x, dx):
     """
     4-th order Runge-Kutta integration.
 
