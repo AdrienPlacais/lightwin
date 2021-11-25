@@ -42,7 +42,7 @@ FILEPATH = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
 linac = acc.Accelerator(E_MEV, FILEPATH)
 linac.compute_transfer_matrices()
 
-debug.plot_transfer_matrices(FILEPATH, linac)
+debug.plot_transfer_matrices(linac)
 # debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)
 # debug.compare_energies(FILEPATH, LINAC)
 
@@ -50,7 +50,7 @@ debug.plot_transfer_matrices(FILEPATH, linac)
 
 SAVE_MT_AND_ENERGY = False
 if SAVE_MT_AND_ENERGY:
-    helper.save_full_MT_and_energy_evolution(linac)
+    helper.save_full_mt_and_energy_evolution(linac)
 SAVE_VCAV_AND_PHIS = False
 if SAVE_VCAV_AND_PHIS:
-    helper.save_Vcav_and_phis(linac)
+    helper.save_vcav_and_phis(linac)

@@ -35,6 +35,33 @@ def printc(message, color='red', opt_message=''):
     print(escape_code + message + normal_code + opt_message)
 
 
+def create_fig_if_not_exist(fignum, axnum):
+    """
+    Check if figures were already created, create it if not.
+
+    Parameters
+    ----------
+    fignum: int
+        Number of the fignum.
+    axnum: list of int
+        Axes indexes as understood by fig.add_subplot
+    """
+    n_axes = len(axnum)
+    axlist = []
+
+    if(plt.fignum_exists(fignum)):
+        fig = plt.figure(fignum)
+        for i in range(n_axes):
+            axlist.append(fig.axes[i])
+
+    else:
+        fig = plt.figure(fignum)
+        for i in axnum:
+            axlist.append(fig.add_subplot(i))
+
+    return fig, axlist
+
+
 def clean_fig(fignumlist):
     """Clean axis of Figs in fignumlist."""
     for fignum in fignumlist:

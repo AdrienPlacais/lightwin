@@ -194,7 +194,7 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
         elif method == 'RK':
             u = np.array(([E_MeV, phi_RF]))
-            delta_u = helper.RK4(u, du_dz, z_s, dz)
+            delta_u = helper.rk4(u, du_dz, z_s, dz)
             delta_E_MeV = delta_u[0]
             delta_phi = delta_u[1]
 

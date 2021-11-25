@@ -204,7 +204,7 @@ class FieldMap(_Element):
             "Warning! Space charge compensation maps not implemented."
 
         extension = ".edz"
-        import_function = helper.load_electric_field_1D
+        import_function = helper.load_electric_field_1d
         return extension, import_function
 
     def compute_transfer_matrix(self):

@@ -30,6 +30,7 @@ class Accelerator():
             Path to file containing the structure.
         """
         self.dat_filepath = dat_filepath
+        self.project_folder = os.path.dirname(dat_filepath)
         self.n_elements = 39
         # TODO: handle cases were there the number of elements in the line
         # is different from 39
