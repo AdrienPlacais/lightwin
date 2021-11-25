@@ -121,7 +121,8 @@ def plot_transfer_matrices(accelerator):
     err, z_err = compute_error_transfer_matrix(r_zz_tot, r_zz_tot_ref, True)
 
     fignum = 26
-    fig, axlist = helper.create_fig_if_not_exist(fignum, range(221, 225))
+    axnumlist = range(221, 225)
+    fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
 
     if helper.empty_fig(fignum):
         ls = '-'
@@ -147,7 +148,7 @@ def plot_transfer_matrices(accelerator):
 
     axlist = []
     fignum *= 10
-    fig, axlist = helper.create_fig_if_not_exist(fignum, range(221, 225))
+    fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
     if helper.empty_fig(fignum):
         ls = '-'
     else:
@@ -162,49 +163,6 @@ def plot_transfer_matrices(accelerator):
         axlist[i].set_xlabel(xlabels[i])
         axlist[i].set_ylabel(ylabels[i])
         axlist[i].grid(True)
-
-
-def import_transfer_matrix_single(filepath_ref, idx_element):
-    """
-    Import the i-th element transfer matrix.
-
-    Parameters
-    ----------
-    filepath_ref: str
-        Filepath to the matrix_ref.txt file.
-    idx_element: integer
-        Index of the desired transfer matrix.
-    """
-    flag_output = False
-    i = 0
-    r_zz_single_ref = np.full((2, 2), np.NaN)
-
-    with open(filepath_ref) as file:
-        for line in file:
-            elt_number = i // 8
-
-            if elt_number < idx_element:
-                i += 1
-                continue
-            elif elt_number > idx_element:
-                break
-            else:
-                if i % 8 == 6:
-                    line1 = np.fromstring(line, dtype=float,
-                                          count=6, sep=' ')[-2:]
-
-                elif i % 8 == 7:
-                    line2 = np.fromstring(line, dtype=float,
-                                          count=6, sep=' ')[-2:]
-                    r_zz_single_ref = np.vstack((line1, line2))
-            i += 1
-
-    if flag_output:
-        print('TraceWin r_zz:\n', r_zz_single_ref)
-        print(' ', i)
-        print('==============================================================')
-        print(' ')
-    return r_zz_single_ref
 
 
 def compare_energies(filepath_dat, accelerator):
