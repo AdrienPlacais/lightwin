@@ -5,7 +5,6 @@ Created on Wed Sep 22 10:26:19 2021
 
 @author: placais
 """
-import os
 import numpy as np
 import helper
 import transfer_matrices
@@ -32,9 +31,7 @@ class _Element():
         elem: list of string
             A valid line of the .dat file.
         """
-        # FIXME too many instance attributes
         self.name = elem[0]
-        self.length_mm = float(elem[1])
         self.length_m = 1e-3 * float(elem[1])
 
         # Absolute pos, gamma and energy of in and out.
@@ -44,7 +41,6 @@ class _Element():
         self.energy_array_mev = np.full((2), np.NaN)
 
         self.frequency_mhz = 352.2  # FIXME import of frequency
-
         self.transfer_matrix = np.full((1, 2, 2), np.NaN)
 
 
@@ -60,14 +56,10 @@ class Drift(_Element):
 
         super().__init__(elem)
         self.aperture_mm = float(elem[2])   # R
-        self._try_to_load_optional_parameters(elem)
+        self._load_optional_parameters(elem)
 
-    def _try_to_load_optional_parameters(self, elem):
+    def _load_optional_parameters(self, elem):
         """Try to load optional parameters."""
-        self.aperture_y_mm = np.NaN
-        self.horizontal_aperture_shift_mm = np.NaN
-        self.vertical_aperture_shift_mm = np.NaN
-
         try:
             self.aperture_y_mm = float(elem[3])                 # R_y
             self.horizontal_aperture_shift_mm = float(elem[4])  # R_x_shift
@@ -88,25 +80,16 @@ class Quad(_Element):
     """Sub-class of Element, with parameters specific to QUADs."""
 
     def __init__(self, elem):
-        # FIXME too many instance attributes
         n_attributes = len(elem) - 1
         assert n_attributes in range(3, 10)
 
         super().__init__(elem)
         self.magnetic_field_gradient = float(elem[2])  # G
         self.aperture_mm = float(elem[3])              # R
-        self._try_to_load_optional_parameters(elem)
+        self._load_optional_parameters(elem)
 
-    def _try_to_load_optional_parameters(self, elem):
+    def _load_optional_parameters(self, elem):
         """Load the optional parameters if they are given."""
-        # Following assignations may have to go in the __init__.
-        self.skew_angle_deg = np.NaN        # Theta
-        self.sextupole_gradient = np.NaN    # G3_over_u3
-        self.octupole_gradient = np.NaN     # G4_over_u4
-        self.decapole_gradient = np.NaN     # G5_over_u5
-        self.dodecapole_gradient = np.NaN   # G6_over_u6j
-        self.good_field_radius_mm = np.NaN  # GFR
-
         try:
             self.skew_angle_deg = float(elem[4])
             self.sextupole_gradient = float(elem[5])
@@ -155,7 +138,6 @@ class FieldMap(_Element):
 
         super().__init__(elem)
         self.geometry = int(elem[1])
-        self.length_mm = float(elem[2])
         self.length_m = 1e-3 * float(elem[2])
         self.theta_i_deg = float(elem[3])
         self.aperture_mm = float(elem[4])               # R
@@ -190,7 +172,7 @@ class FieldMap(_Element):
         self.field_map_file_name = self.field_map_file_name + extension
 
         # Load the field map
-        self.nz, zmax, self.norm, self.fz = \
+        self.n_z, zmax, self.norm, self.f_z = \
             import_function(self.field_map_file_name)
 
         assert abs(zmax - self.length_m) < 1e-6
@@ -210,20 +192,16 @@ class FieldMap(_Element):
         # TODO: implement import of magnetic fields
         # TODO: implement 2D and 3D maps
         # First, we check the nature of the given file
-        if(self.geometry < 0):
-            raise IOError("Second order off-axis development not implemented.")
+        assert self.geometry >= 0, \
+            "Second order off-axis development not implemented."
 
         field_nature = int(np.log10(self.geometry))
         field_geometry = int(str(self.geometry)[0])
 
-        if(field_nature != 2):
-            raise IOError("Only RF electric fields implemented.")
-
-        if(field_geometry != 1):
-            raise IOError("Only 1D field implemented.")
-
-        if(self.aperture_flag > 0):
-            print("Warning! Space charge compensation maps not implemented.")
+        assert field_nature == 2, "Only RF electric fields implemented."
+        assert field_geometry == 1, "Only 1D field implemented."
+        assert self.aperture_flag <= 0, \
+            "Warning! Space charge compensation maps not implemented."
 
         extension = ".edz"
         import_function = helper.load_electric_field_1D
@@ -233,31 +211,51 @@ class FieldMap(_Element):
         """Compute longitudinal matrix."""
         # TODO Check this Ncell truc.
         # R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
-        M_z_list, energy_array, z_array = \
+        m_z_list, energy_array, z_array = \
             transfer_matrices.z_field_map_electric_field(
                         self.energy_array_mev[0],
                         self.frequency_mhz,
-                        self.fz,
+                        self.f_z,
                         self.electric_field_factor,
                         self.theta_i_deg,
                         2,
-                        self.nz,
+                        self.n_z,
                         self.length_m)
 
         entry = self.pos_m[0]
         self.pos_m = z_array + entry
         self.energy_array_mev = energy_array
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
-        self.transfer_matrix = M_z_list
+        self.transfer_matrix = m_z_list
 
 
 class CavSin(_Element):
     """Sub-class of Element, with parameters specific to CAVSINs."""
 
     def __init__(self, elem):
-        super().__init__(elem)
-        print('Warning, SinCav not yet implemented.')
+        n_attributes = len(elem) - 1
+        assert n_attributes == 6
 
+        super().__init__(elem)
+        self.cell_number = int(elem[1])                 # N
+        self.eff_gap_voltage = float(elem[2])           # EoT
+        self.sync_phase = float(elem[3])                # theta_s
+        self.aperture_mm = float(elem[4])               # R
+        self.transfer_matrix = np.full((2, 2), np.NaN)
+
+        try:
+            self.relative_phase_flag = int(elem[5])     # P
+        except IndexError:
+            pass
+
+    def compute_transfer_matrix(self):
+        """Compute longitudinal matrix."""
+        print('Warning, MT of sin cav not implemented.')
+        transfer_matrix = transfer_matrices.z_drift(self.length_m,
+                                                    self.gamma_array[0])
+        self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
+        self.gamma_array[-1] = self.gamma_array[0]
+        self.energy_array_mev[-1] = self.energy_array_mev[0]
 
 class NotAnElement():
     """Dummy."""
@@ -270,7 +268,7 @@ class NotAnElement():
 # =============================================================================
 # Old
 # =============================================================================
-def add_sinus_cavity(accelerator, line, i, dat_filename, f_MHz):
+def add_sinus_cavity(accelerator, line, i, dat_filename, f_mhz):
     """
     Add a sinus cavity to the Accelerator object.
 
@@ -294,10 +292,8 @@ def add_sinus_cavity(accelerator, line, i, dat_filename, f_MHz):
     n_attributes = len(line) - 1
 
     # First, check validity of input
-    if(n_attributes != 6):
-        raise IOError(
-            'Wrong number of arguments for CAVSIN element at position '
-            + str(i))
+    assert n_attributes == 6, \
+        'Wrong number of arguments for CAVSIN element at position ' + str(i)
 
     accelerator.elements_resume[i] = str(i) + ' \t' + '\t'.join(line)
     accelerator.elements_nature[i] = 'CAVSIN'
