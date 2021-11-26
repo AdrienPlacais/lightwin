@@ -14,6 +14,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from constants import c, q_adim, m_MeV
 import helper
+import solver
 
 
 # =============================================================================
@@ -21,11 +22,11 @@ import helper
 # =============================================================================
 def dummy():
     """Return a dummy transfer matrix."""
-    R_zz = np.full((2, 2), np.NaN)
-    return R_zz
+    r_zz = np.full((2, 2), np.NaN)
+    return r_zz
 
 
-def z_drift(Delta_s, gamma):
+def z_drift(delta_s, gamma):
     """
     Compute the longitudinal sub-matrix of a drift.
 
@@ -34,23 +35,23 @@ def z_drift(Delta_s, gamma):
 
     Parameters
     ----------
-    Delta_s: float
+    delta_s: float
         Drift length (m).
     gamma: float
         Lorentz factor.
 
     Returns
     -------
-    R_zz: np.array
+    r_zz: np.array
         Transfer longitudinal sub-matrix.
     """
-    R_zz = np.array(([1., Delta_s*gamma**-2],
+    r_zz = np.array(([1., delta_s*gamma**-2],
                      [0., 1.]))
-    return R_zz
+    return r_zz
 
 
-def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
-                               N_cells, nz, zmax):
+def z_field_map_electric_field(e_0_mev, f_mhz, fz_array, k_e, theta_i,
+                               n_cells, n_z, z_max):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 
@@ -59,177 +60,132 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
 
     Parameters
     ----------
-    E_0_MeV: float
+    e_0_mev: float
         Energy at the cavity's entrance in MeV.
-    f_MHz: float
+    f_mhz: float
         Frequency of the cavity in MHz.
-    Fz_array: numpy.array
+    fz_array: numpy.array
         Array of electric field values in MV/m.
     k_e: float
         Electric field multiplication factor.
     theta_i: float
         Phase of particles at the cavity's entrance in deg.
-    N_cells: int
+    n_cells: int
         Number of cells in the cavity.
-    nz: int
-        Number of points (minus one) in the Fz_array.
-    zmax: float
+    n_z: int
+        Number of points (minus one) in the fz_array.
+    z_max: float
         Relative position of the cavity's exit in m.
 
     Returns
     -------
-    R_zz: np.array
+    r_zz: np.array
         Transfer matrix of the cavity.
-    E_MeV: float
+    e_mev: float
         Energy of the particle beam when it goes out of the cavity.
     ----------
     """
     # method = 'leapfrog'
     method = 'RK'
 
-    if E_0_MeV == 16.6:
+    if e_0_mev == 16.6:
         print('Method: ', method)
 
     # Set useful parameters
-    omega_0 = 2e6 * np.pi * f_MHz
-    gamma_0 = 1. + E_0_MeV / m_MeV
-    beta_0 = np.sqrt(1. - gamma_0**-2)
+    omega_0 = 2e6 * np.pi * f_mhz
+    gamma_0 = helper.mev_to_gamma(e_0_mev, m_MeV)
+    beta_0 = helper.gamma_to_beta(gamma_0)
     phi_0 = np.deg2rad(theta_i)
 
     # Local coordinates of the cavity:
-    z_cavity_array = np.linspace(0., zmax, nz + 1)
+    z_cavity_array = np.linspace(0., z_max, n_z + 1)
 
-    # Ez and its derivative functions:
+    # ez and its derivative functions:
     kind = 'linear'
     fill_value = 0.
-    Fz_scaled = k_e * Fz_array
-    Ez_func = interp1d(z_cavity_array, Fz_scaled, bounds_error=False,
+    fz_scaled = k_e * fz_array
+    ez_func = interp1d(z_cavity_array, fz_scaled, bounds_error=False,
                        kind=kind, fill_value=fill_value, assume_sorted=True)
 
-    # =========================================================================
-    # Simulation parameters
-    # =========================================================================
-    # The N_cells cells cavity is divided in n*N_cells steps of length dz:
+    # The n_cells cells cavity is divided in n*n_cells steps of length dz:
     n = 100
-    dz = zmax / (n * N_cells)
+    dz = z_max / (n * n_cells)
 
     # =========================================================================
     # Compute energy gain and synchronous phase
     # =========================================================================
     if method == 'leapfrog':
-        # Leapfrog method:
-        #   pos(i+1) = pos(i) + speed(i+0.5) * dt
-        #   speed(i+0.5) = speed(i-0.5) * accel(i) * dt
-        # Here, dt is not fixed but dz.
-        #   z(i+1) += dz
-        #   t(i+1) = t(i) + dz / (c beta(i+1/2))
-        #       (time and space variables are on whole steps)
-        #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
-        #       (speed/energy are on half steps)
-        z_s = 0.
-        t_s = z_s / (beta_0 * c)
-        # Rewind energy
-        E_MeV = E_0_MeV - q_adim * Ez_func(z_s)[()] * np.cos(phi_0) * .5 * dz
-        gamma_out = 1. + E_MeV / m_MeV
+        z_s, t_s, e_mev, gamma_out = \
+            solver.init_leapfrog_cavity(phi_0, beta_0, e_0_mev,
+                                        gamma_0, ez_func, dz)
 
     elif method == 'RK':
-        z_s = 0.
-        t_s = z_s / (beta_0 * c)
-        E_MeV = E_0_MeV
-        gamma_out = gamma_0
+        z_s, t_s, e_mev, gamma_out, du_dz = \
+            solver.init_rk4_cavity(omega_0, beta_0, e_0_mev,
+                                   gamma_0, ez_func)
 
-        def du_dz(z, u):
-            """
-            Compute derivative of system energy/time.
+    phi_rf = omega_0 * t_s + phi_0
 
-            Parameters
-            ----------
-            u: np.array(2)
-                First component is E_MeV(i).
-                Second component is phi(i).
+    # Used to compute Vcav and phis. First component is real part, second is
+    # imaginary part.
+    # TODO possible to make this better...
+    f_e = [0., 0.]
 
-            Return
-            ------
-            v: np.array(2)
-                First component is (E_MeV(i+1) - E_MeV(i)) / dz.
-                Second component is (phi(i+1) - phi(i)) / dz.
-            """
-            v0 = q_adim * Ez_func(z)[()] * np.cos(u[1])
-
-            gamma = 1. + u[0] / m_MeV
-            beta = np.sqrt(1. - gamma**-2)
-            v1 = omega_0 / (beta * c)
-
-            v = np.array(([v0, v1]))
-            return v
-
-    phi_RF = omega_0 * t_s + phi_0
-
-    # Used to compute Vcav and phis
-    F_E_real = 0.
-    F_E_imag = 0.
-
-    # energy_array = np.array(([z_s, E_MeV]))
-    gamma_array = [gamma_out]
-
-    # Then, we loop until reaching the end of the cavity
-    n_iter = n * N_cells + 1
-
-    M_z_list = np.zeros((n_iter, 2, 2))
-    M_z_list[0, :, :] = np.eye(2)
+    # We loop until reaching the end of the cavity
+    n_iter = n * n_cells + 1
+    m_z_list = np.zeros((n_iter, 2, 2))
+    m_z_list[0, :, :] = np.eye(2)
     z_array = np.array(([0.]))
-    energy_array = np.array(([E_0_MeV]))
+    energy_array = np.array(([e_0_mev]))
+    gamma_array = [gamma_out]
 
     for i in range(1, n_iter):
         gamma_in = gamma_out
-        # beta_in = np.sqrt(1. - gamma_in**-2)
 
-        F_E_real += q_adim * Ez_func(z_s)[()] * np.cos(phi_RF)
-        F_E_imag += q_adim * Ez_func(z_s)[()] * np.sin(phi_RF)
+        f_e[0] += q_adim * ez_func(z_s)[()] * np.cos(phi_rf)
+        f_e[1] += q_adim * ez_func(z_s)[()] * np.sin(phi_rf)
 
         if method == 'leapfrog':
-            E_interp = Ez_func(z_s)[()]
-            E_r = E_interp * np.cos(phi_RF)
-            delta_E_MeV = q_adim * E_r * dz
+            delta_e_mev = q_adim * ez_func(z_s)[()] * np.cos(phi_rf) * dz
 
         elif method == 'RK':
-            u = np.array(([E_MeV, phi_RF]))
-            delta_u = helper.rk4(u, du_dz, z_s, dz)
-            delta_E_MeV = delta_u[0]
+            u = np.array(([e_mev, phi_rf]))
+            delta_u = solver.rk4(u, du_dz, z_s, dz)
+            delta_e_mev = delta_u[0]
             delta_phi = delta_u[1]
 
-        E_MeV += delta_E_MeV
-        gamma_out = gamma_in + delta_E_MeV / m_MeV
-        beta_out = np.sqrt(1. - gamma_out**-2)
+        e_mev += delta_e_mev
+        gamma_out = gamma_in + delta_e_mev / m_MeV
+        beta_out = helper.gamma_to_beta(gamma_out)
 
         gamma_s = (gamma_out + gamma_in) * .5
-        beta_s = np.sqrt(1. - gamma_s**-2)
+        beta_s = helper.gamma_to_beta(gamma_s)
 
         # Compute transfer matrix using thin lens approximation
         if method == 'leapfrog':
-            phi_K = phi_RF
-            z_K = z_s
+            phi_k = phi_rf
+            z_k = z_s
 
         elif method == 'RK':
-            z_K = z_s + .5 * dz
+            z_k = z_s + .5 * dz
             delta_phi_half_step = (dz * omega_0) / (2. * beta_s * c)
-            phi_K = phi_RF + delta_phi_half_step
+            phi_k = phi_rf + delta_phi_half_step
 
-        dE_dz = Ez_func(z_K)[()] * np.sin(phi_K) * omega_0 / (beta_s * c)
+        de_dz = ez_func(z_k)[()] * np.sin(phi_k) * omega_0 / (beta_s * c)
         gamma_array = [gamma_in, gamma_s, gamma_out]
-        M_z_list[i, :, :] = z_thin_lens(Ez_func(z_K)[()], dE_dz, dz,
-                                        gamma_array, beta_s, phi_K, omega_0)
+        m_z_list[i, :, :] = z_thin_lens(ez_func(z_k)[()], de_dz, dz,
+                                        gamma_array, beta_s, phi_k, omega_0)
 
         if method == 'leapfrog':
             z_s += dz
             t_s += dz / (beta_out * c)
-            phi_RF = omega_0 * t_s + phi_0
+            phi_rf = omega_0 * t_s + phi_0
 
         elif method == 'RK':
             z_s += dz
-            phi_RF += delta_phi
+            phi_rf += delta_phi
 
-        energy_array = np.hstack((energy_array, E_MeV))
+        energy_array = np.hstack((energy_array, e_mev))
         z_array = np.hstack((z_array, z_s))
         gamma_array.append(gamma_out)
 
@@ -239,15 +195,15 @@ def z_field_map_electric_field(E_0_MeV, f_MHz, Fz_array, k_e, theta_i,
     gamma_array = np.array(gamma_array)
 
     # Synchronous phase
-    # phi_s = np.arctan(F_E_imag / F_E_real)
+    # phi_s = np.arctan(f_e[1] / f_e[0])
     # phi_s_deg = np.rad2deg(phi_s)
-    # V_cav_MV = np.abs((E_0_MeV - MT_and_energy_evolution[-1, 0, 1])
+    # V_cav_MV = np.abs((e_0_mev - MT_and_energy_evolution[-1, 0, 1])
     #                   / np.cos(phi_s))
 
-    return M_z_list[1:, :, :], energy_array, z_array
+    return m_z_list[1:, :, :], energy_array, z_array
 
 
-def z_thin_lens(Ez, dEz_dt, dz, gamma_array, beta_s, phi, omega_0,
+def z_thin_lens(ez, dez_dt, dz, gamma_array, beta_s, phi, omega_0,
                 flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
@@ -256,9 +212,9 @@ def z_thin_lens(Ez, dEz_dt, dz, gamma_array, beta_s, phi, omega_0,
 
     Parameters
     ----------
-    Ez: real
+    ez: real
         z-electric field at the center of the gap.
-    dEz_dt: real
+    dez_dt: real
         Time derivative of the z electric field at the center of the gap.
     gamma_array: list(3)
         Lorentz factor of synchronous particle at entrance, middle and exit of
@@ -275,37 +231,37 @@ def z_thin_lens(Ez, dEz_dt, dz, gamma_array, beta_s, phi, omega_0,
 
     Return
     ------
-    M_z: np.array((2, 2))
+    m_z: np.array((2, 2))
         Longitudinal transfer matrix of the drift-gap-drift.
     """
-    K_0 = q_adim * dz / (gamma_array[1] * beta_s**2 * m_MeV)
-    K_1 = K_0 * dEz_dt
-    K_2 = 1. - (2. - beta_s**2) * K_0 * Ez * np.cos(phi)
+    k_0 = q_adim * dz / (gamma_array[1] * beta_s**2 * m_MeV)
+    k_1 = k_0 * dez_dt
+    k_2 = 1. - (2. - beta_s**2) * k_0 * ez * np.cos(phi)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
-        K_3 = (1. - K_0 * Ez * np.cos(phi))  \
-                / (1. - K_0 * (2. - beta_s**2) * Ez * np.cos(phi))
-        M_mid = np.array(([K_3, 0.], [K_1, K_2]))
+        k_3 = (1. - k_0 * ez * np.cos(phi))  \
+                / (1. - k_0 * (2. - beta_s**2) * ez * np.cos(phi))
+        m_mid = np.array(([k_3, 0.], [k_1, k_2]))
 
     else:
-        M_mid = np.array(([1., 0.], [K_1, K_2]))
+        m_mid = np.array(([1., 0.], [k_1, k_2]))
 
-    M_in = z_drift(.5 * dz, gamma_array[0])
-    M_out = z_drift(.5 * dz, gamma_array[1])
+    m_in = z_drift(.5 * dz, gamma_array[0])
+    m_out = z_drift(.5 * dz, gamma_array[1])
 
-    # Compute M_out * M_mid * M_in * M_t
-    M_z = M_out @ M_mid @ M_in
-    return M_z
+    # Compute m_out * m_mid * m_in * m_t
+    m_z = m_out @ m_mid @ m_in
+    return m_z
 
 
 def not_an_element():
     """Return identity matrix."""
-    R_zz = np.eye(2, 2)
-    return R_zz
+    r_zz = np.eye(2, 2)
+    return r_zz
 
 
-def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
+def z_sinus_cavity(l_m, e_0_mev, f_mhz, eot, theta_s, N):
     """
     Compute the z transfer submatrix of a sinus cavity.
 
@@ -314,13 +270,13 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
 
     Parameters
     ----------
-    L_m: float
+    l_m: float
         Cavity length in m.
-    E_0_MeV: float
+    e_0_mev: float
         Energy at the cavity's entrance in MeV.
-    f_MHz: float
+    f_mhz: float
         Frequency of the cavity in MHz.
-    EoT: float
+    eot: float
         Mean electric field of the cavity in V/m.
     theta_s: float
         Phase of the synchronous particle at the entrance of the cavity,
@@ -330,30 +286,30 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
 
     Returns
     -------
-    R_zz: np.array
+    r_zz: np.array
         Transfer matrix of the cavity.
-    E_MeV: float
+    e_mev: float
         Energy of the particle beam when it goes out of the cavity.
     """
     flag_plot = False
 
     # Set useful parameters
-    omega_0 = 2e6 * np.pi * f_MHz
-    gamma_0 = 1. + E_0_MeV / m_MeV
+    omega_0 = 2e6 * np.pi * f_mhz
+    gamma_0 = 1. + e_0_mev / m_MeV
     beta_0 = np.sqrt(1. - gamma_0**-2)
-    lambda_RF = 1e-6 * c / f_MHz
-    beta_c = 2. * L_m / (N * lambda_RF)
+    lambda_rf = 1e-6 * c / f_mhz
+    beta_c = 2. * l_m / (N * lambda_rf)
     K = omega_0 / c
     phi_0 = np.deg2rad(theta_s)
-    E0_MV_m = 2e-6 * EoT
+    e0_mv_m = 2e-6 * eot
 
     # =========================================================================
     # Simulation parameters
     # =========================================================================
     # Initial step size calculated with betalambda
     n = 1000
-    # The N_cells cells cavity is divided in n*N_cells steps of length dz:
-    dz = L_m / (n * N)
+    # The n_cells cells cavity is divided in n*n_cells steps of length dz:
+    dz = l_m / (n * N)
 
     # =========================================================================
     # Compute energy gain and synchronous phase
@@ -364,31 +320,31 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
     # during this short half-step)
     t_s = z_s / (beta_0 * c)
     phi_s = omega_0 * t_s
-    phi_RF = phi_0 + phi_s
+    phi_rf = phi_0 + phi_s
 
-    E_MeV = E_0_MeV
+    e_mev = e_0_mev
     gamma_out = gamma_0
 
     z_pos_array = [0.]
-    energy_array = [E_0_MeV]
+    energy_array = [e_0_mev]
     gamma_array = [gamma_0]
 
-    M_z_list = np.zeros((2, 2, n*N))
+    m_z_list = np.zeros((2, 2, n*N))
 
     # Then, we loop until reaching the end of the cavity
     for i in range(n * N):
         gamma_in = gamma_out
 
         # Compute energy gain
-        E_z = E0_MV_m * np.sin(phi_RF) * np.sin(K * z_s / beta_c)
+        e_z = e0_mv_m * np.sin(phi_rf) * np.sin(K * z_s / beta_c)
         if(i == 0 or i == n * N - 1):
-            delta_E_MeV = q_adim * E_z * dz * .5
+            delta_e_mev = q_adim * e_z * dz * .5
             # During first iteration, we go from z = 0 to z = dz / 2
-            # During last, z = zmax - delta_z/2 to zmax
+            # During last, z = z_max - delta_z/2 to z_max
         else:
-            delta_E_MeV = q_adim * E_z * dz
-        E_MeV += delta_E_MeV
-        gamma_out = 1. + E_MeV / m_MeV
+            delta_e_mev = q_adim * e_z * dz
+        e_mev += delta_e_mev
+        gamma_out = 1. + e_mev / m_MeV
         # beta_out = np.sqrt(1. - gamma_out**-2)
 
         # We take gamma and beta at the middle of current cell
@@ -396,19 +352,19 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
         beta_s = np.sqrt(1. - gamma_s**-2)
 
         # Compute transfer matrix using thin lens approximation
-        K_0 = q_adim * E0_MV_m * np.sin(K * z_s / beta_c)  \
+        k_0 = q_adim * e0_mv_m * np.sin(K * z_s / beta_c)  \
             / (gamma_s * beta_s**2 * m_MeV) * dz
-        K_1 = -K_0 * K * np.cos(phi_RF) / beta_s
-        K_2 = 1. - K_0 * np.sin(phi_RF)
+        k_1 = -k_0 * K * np.cos(phi_rf) / beta_s
+        k_2 = 1. - k_0 * np.sin(phi_rf)
 
-        M_in = z_drift(.5 * dz, gamma_in)
-        M_mid = np.array(([1., 0.],
-                          [K_1, K_2]))
-        M_out = z_drift(.5 * dz, gamma_out)
+        m_in = z_drift(.5 * dz, gamma_in)
+        m_mid = np.array(([1., 0.],
+                          [k_1, k_2]))
+        m_out = z_drift(.5 * dz, gamma_out)
 
-        # Compute M_in * M_mid * M_out * M_t
-        M_z = M_in @ M_mid @ M_out
-        M_z_list[:, :, i] = np.copy(M_z)
+        # Compute m_in * m_mid * m_out * m_t
+        m_z = m_in @ m_mid @ m_out
+        m_z_list[:, :, i] = np.copy(m_z)
 
         # Next step
         if i < n * N - 1:
@@ -420,11 +376,11 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
             # the results
             z_s += .5 * dz
             t_s += .5 * dz / (beta_s * c)
-        phi_RF = omega_0 * t_s + phi_0
+        phi_rf = omega_0 * t_s + phi_0
 
         # Save data
         z_pos_array.append(z_s)
-        energy_array.append(E_MeV)
+        energy_array.append(e_mev)
         gamma_array.append(gamma_out)
 
     # =========================================================================
@@ -433,11 +389,11 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
     z_pos_array = np.array(z_pos_array)
     energy_array = np.array(energy_array)
     gamma_array = np.array(gamma_array)
-    R_zz = helper.right_recursive_matrix_product(M_z_list,
+    r_zz = helper.right_recursive_matrix_product(m_z_list,
                                                  idx_min=0,
                                                  idx_max=n * N - 1)
 
-    E_out_MeV = energy_array[-1]
+    e_out_mev = energy_array[-1]
 
     if flag_plot:
         if plt.fignum_exists(22):
@@ -447,11 +403,11 @@ def z_sinus_cavity(L_m, E_0_MeV, f_MHz, EoT, theta_s, N):
             fig = plt.figure(22)
             ax = fig.add_subplot(111)
         iter_array = np.linspace(0, n*N-1, n*N)
-        ax.plot(iter_array, M_z_list[0, 0, :], label='M_11')
-        ax.plot(iter_array, M_z_list[0, 1, :], label='M_12')
-        ax.plot(iter_array, M_z_list[1, 0, :], label='M_21')
-        ax.plot(iter_array, M_z_list[1, 1, :], label='M_22')
+        ax.plot(iter_array, m_z_list[0, 0, :], label='M_11')
+        ax.plot(iter_array, m_z_list[0, 1, :], label='M_12')
+        ax.plot(iter_array, m_z_list[1, 0, :], label='M_21')
+        ax.plot(iter_array, m_z_list[1, 1, :], label='M_22')
         ax.grid(True)
         ax.legend()
 
-    return R_zz, E_out_MeV
+    return r_zz, e_out_mev

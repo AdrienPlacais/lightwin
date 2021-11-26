@@ -210,6 +210,12 @@ def gamma_to_mev(gamma, mass_mev):
     return energy_mev
 
 
+def gamma_to_beta(gamma):
+    """Convert MeV energy into Lorentz beta."""
+    beta = np.sqrt(1. - gamma**-2)
+    return beta
+
+
 # =============================================================================
 # Matrix manipulation
 # =============================================================================
@@ -257,37 +263,3 @@ def right_recursive_matrix_product(m_in, idx_min, idx_max):
         m_out = m_in[i, :, :] @ m_out
 
     return m_out
-
-
-# =============================================================================
-# Integration
-# =============================================================================
-def rk4(u, du_dx, x, dx):
-    """
-    4-th order Runge-Kutta integration.
-
-    This function calculates the variation of u between x and x+dx.
-
-    Parameters
-    ----------
-    u: np.array
-        Holds the value of the function to integrate in x.
-    df_dx: function
-        Gives the variation of u components with x.
-    x: real
-        Where u is known.
-    dx: real
-        Integration step.
-
-    Return
-    ------
-    delta_u: real
-        Variation of u between x and x+dx.
-    """
-    half_dx = .5 * dx
-    k_1 = du_dx(x, u)
-    k_2 = du_dx(x + half_dx, u + half_dx * k_1)
-    k_3 = du_dx(x + half_dx, u + half_dx * k_2)
-    k_4 = du_dx(x + dx, u + dx * k_3)
-    delta_u = (k_1 + 2.*k_2 + 2.*k_3 + k_4) * dx / 6.
-    return delta_u
