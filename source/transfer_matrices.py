@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from constants import c, q_adim, m_MeV
 import helper
 import solver
+import elements
 
 
 # =============================================================================
@@ -50,8 +51,7 @@ def z_drift(delta_s, gamma):
     return r_zz
 
 
-def z_field_map_electric_field(e_0_mev, f_mhz, fz_array, k_e, theta_i,
-                               n_cells, n_z, z_max):
+def z_field_map_electric_field(cavity, method='RK'):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 
@@ -60,22 +60,10 @@ def z_field_map_electric_field(e_0_mev, f_mhz, fz_array, k_e, theta_i,
 
     Parameters
     ----------
-    e_0_mev: float
-        Energy at the cavity's entrance in MeV.
-    f_mhz: float
-        Frequency of the cavity in MHz.
-    fz_array: numpy.array
-        Array of electric field values in MV/m.
-    k_e: float
-        Electric field multiplication factor.
-    theta_i: float
-        Phase of particles at the cavity's entrance in deg.
-    n_cells: int
-        Number of cells in the cavity.
-    n_z: int
-        Number of points (minus one) in the fz_array.
-    z_max: float
-        Relative position of the cavity's exit in m.
+    cavity: FieldMap (Element) object
+        Cavity of which you need the transfer matrix.
+    methode: opt, str
+        Solving method. 'RK' or 'leapfrog'.
 
     Returns
     -------
@@ -85,31 +73,29 @@ def z_field_map_electric_field(e_0_mev, f_mhz, fz_array, k_e, theta_i,
         Energy of the particle beam when it goes out of the cavity.
     ----------
     """
-    # method = 'leapfrog'
-    method = 'RK'
-
-    if e_0_mev == 16.6:
-        print('Method: ', method)
+    assert isinstance(cavity, elements.FieldMap)
 
     # Set useful parameters
-    omega_0 = 2e6 * np.pi * f_mhz
+    e_0_mev = cavity.energy_array_mev[0]
+    omega_0 = 2e6 * np.pi * cavity.frequency_mhz
     gamma_0 = helper.mev_to_gamma(e_0_mev, m_MeV)
     beta_0 = helper.gamma_to_beta(gamma_0)
-    phi_0 = np.deg2rad(theta_i)
+    phi_0 = np.deg2rad(cavity.theta_i_deg)
 
     # Local coordinates of the cavity:
-    z_cavity_array = np.linspace(0., z_max, n_z + 1)
+    z_cavity_array = np.linspace(0., cavity.length_m, cavity.n_z + 1)
 
     # ez and its derivative functions:
     kind = 'linear'
     fill_value = 0.
-    fz_scaled = k_e * fz_array
+    fz_scaled = cavity.electric_field_factor * cavity.f_z
     ez_func = interp1d(z_cavity_array, fz_scaled, bounds_error=False,
                        kind=kind, fill_value=fill_value, assume_sorted=True)
 
     # The n_cells cells cavity is divided in n*n_cells steps of length dz:
     n = 100
-    dz = z_max / (n * n_cells)
+    n_cells = 2
+    dz = cavity.length_m / (n * n_cells)
 
     # =========================================================================
     # Compute energy gain and synchronous phase
@@ -174,7 +160,7 @@ def z_field_map_electric_field(e_0_mev, f_mhz, fz_array, k_e, theta_i,
         de_dz = ez_func(z_k)[()] * np.sin(phi_k) * omega_0 / (beta_s * c)
         gamma_array = [gamma_in, gamma_s, gamma_out]
         m_z_list[i, :, :] = z_thin_lens(ez_func(z_k)[()], de_dz, dz,
-                                        gamma_array, beta_s, phi_k, omega_0)
+                                        gamma_array, beta_s, phi_k)
 
         if method == 'leapfrog':
             z_s += dz
@@ -195,15 +181,14 @@ def z_field_map_electric_field(e_0_mev, f_mhz, fz_array, k_e, theta_i,
     gamma_array = np.array(gamma_array)
 
     # Synchronous phase
-    # phi_s = np.arctan(f_e[1] / f_e[0])
-    # phi_s_deg = np.rad2deg(phi_s)
-    # V_cav_MV = np.abs((e_0_mev - MT_and_energy_evolution[-1, 0, 1])
-    #                   / np.cos(phi_s))
+    phi_s = np.arctan(f_e[1] / f_e[0])
+    cavity.phi_s_deg = np.rad2deg(phi_s)
+    cavity.V_cav_MV = np.abs((e_0_mev - energy_array[-1]) / np.cos(phi_s))
 
     return m_z_list[1:, :, :], energy_array, z_array
 
 
-def z_thin_lens(ez, dez_dt, dz, gamma_array, beta_s, phi, omega_0,
+def z_thin_lens(ez, dez_dt, dz, gamma_array, beta_s, phi,
                 flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
@@ -223,8 +208,6 @@ def z_thin_lens(ez, dez_dt, dz, gamma_array, beta_s, phi, omega_0,
         Lorentz factor of synchronous particle.
     phi: real
         Synchronous phase.
-    omega_0: real
-        RF pulsation of cavity.
     flag_correction_determinant: boolean, optional
         To activate/deactivate the correction of the determinant (absent from
         TraceWin documentation).
@@ -249,8 +232,6 @@ def z_thin_lens(ez, dez_dt, dz, gamma_array, beta_s, phi, omega_0,
 
     m_in = z_drift(.5 * dz, gamma_array[0])
     m_out = z_drift(.5 * dz, gamma_array[1])
-
-    # Compute m_out * m_mid * m_in * m_t
     m_z = m_out @ m_mid @ m_in
     return m_z
 

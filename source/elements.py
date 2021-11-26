@@ -212,15 +212,7 @@ class FieldMap(_Element):
         # TODO Check this Ncell truc.
         # R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
         m_z_list, energy_array, z_array = \
-            transfer_matrices.z_field_map_electric_field(
-                        self.energy_array_mev[0],
-                        self.frequency_mhz,
-                        self.f_z,
-                        self.electric_field_factor,
-                        self.theta_i_deg,
-                        2,
-                        self.n_z,
-                        self.length_m)
+            transfer_matrices.z_field_map_electric_field(self)
 
         entry = self.pos_m[0]
         self.pos_m = z_array + entry
