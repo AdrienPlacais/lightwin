@@ -228,13 +228,12 @@ class FieldMap(_Element):
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
-        # R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
-        m_z_list, energy_array, z_array, f_e = \
+        entry = self.pos_m[0]
+
+        m_z_list, f_e = \
             transfer_matrices.z_field_map_electric_field(self, self.rf_field)
 
-        entry = self.pos_m[0]
-        self.pos_m = z_array + entry
-        self.energy_array_mev = energy_array
+        self.pos_m += entry
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
         self.transfer_matrix = m_z_list
 

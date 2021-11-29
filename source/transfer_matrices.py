@@ -81,14 +81,14 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     assert isinstance(rf_field, elements.rf_field)
 
     # Set useful parameters
-    energy_array = np.array(([cavity.energy_array_mev[0]]))
+    cavity.energy_array_mev = np.array(([cavity.energy_array_mev[0]]))
 
     # The n_cells cells cavity is divided in n*n_cells steps of length d_z:
     n_steps = 100 * rf_field.n_cell
     d_z = cavity.length_m / n_steps
-    z_array = np.linspace(0., cavity.length_m, n_steps + 1)
+    cavity.pos_m = np.linspace(0., cavity.length_m, n_steps + 1)
 
-    gamma = {'in': helper.mev_to_gamma(energy_array[0], m_MeV),
+    gamma = {'in': helper.mev_to_gamma(cavity.energy_array_mev[0], m_MeV),
              'synch': 0.,
              'out': 0.}
 
@@ -97,12 +97,12 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     # =========================================================================
     if method == 'leapfrog':
         z_s, t_s, e_mev, gamma = \
-            solver.init_leapfrog_cavity(rf_field, energy_array[0], gamma,
+            solver.init_leapfrog_cavity(rf_field, cavity.energy_array_mev[0], gamma,
                                         d_z)
 
     elif method == 'RK':
         z_s, t_s, e_mev, du_dz, gamma = \
-            solver.init_rk4_cavity(rf_field, energy_array[0], gamma)
+            solver.init_rk4_cavity(rf_field, cavity.energy_array_mev[0], gamma)
 
     phi_rf = rf_field.omega_0 * t_s + rf_field.phi_0
 
@@ -145,9 +145,9 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
         phi_rf += delta['phi']
         z_s += d_z
 
-        energy_array = np.hstack((energy_array, e_mev))
+        cavity.energy_array_mev = np.hstack((cavity.energy_array_mev, e_mev))
 
-    return m_z_list[1:, :, :], energy_array, z_array, f_e
+    return m_z_list[1:, :, :], f_e
 
 
 def z_thin_lens(rf_field, d_z, gamma, beta_s, phi_rf, z_s,
