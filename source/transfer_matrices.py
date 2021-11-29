@@ -97,8 +97,8 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     # =========================================================================
     if method == 'leapfrog':
         z_s, t_s, e_mev, gamma = \
-            solver.init_leapfrog_cavity(rf_field, cavity.energy_array_mev[0], gamma,
-                                        d_z)
+            solver.init_leapfrog_cavity(rf_field, cavity.energy_array_mev[0],
+                                        gamma, d_z)
 
     elif method == 'RK':
         z_s, t_s, e_mev, du_dz, gamma = \
@@ -107,8 +107,8 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     phi_rf = rf_field.omega_0 * t_s + rf_field.phi_0
 
     # We loop until reaching the end of the cavity
-    m_z_list = np.zeros((n_steps + 1, 2, 2))
-    m_z_list[0, :, :] = np.eye(2)
+    cavity.transfer_matrix = np.zeros((n_steps + 1, 2, 2))
+    cavity.transfer_matrix[0, :, :] = np.eye(2)
 
     # Dict to hold variations of energy and phase
     delta = {'e_mev': 0.,
@@ -136,8 +136,8 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
         beta_s = helper.gamma_to_beta(gamma['synch'])
 
         # Compute transfer matrix using thin lens approximation
-        m_z_list[i, :, :] = z_thin_lens(rf_field, d_z, gamma, beta_s,
-                                        phi_rf, z_s)
+        cavity.transfer_matrix[i, :, :] = z_thin_lens(rf_field, d_z, gamma,
+                                                      beta_s, phi_rf, z_s)
 
         if method == 'leapfrog':
             delta['phi'] = rf_field.omega_0 * d_z \
@@ -147,7 +147,7 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
 
         cavity.energy_array_mev = np.hstack((cavity.energy_array_mev, e_mev))
 
-    return m_z_list[1:, :, :], f_e
+    return f_e
 
 
 def z_thin_lens(rf_field, d_z, gamma, beta_s, phi_rf, z_s,

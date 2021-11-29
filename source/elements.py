@@ -230,12 +230,12 @@ class FieldMap(_Element):
         """Compute longitudinal matrix."""
         entry = self.pos_m[0]
 
-        m_z_list, f_e = \
+        f_e = \
             transfer_matrices.z_field_map_electric_field(self, self.rf_field)
 
         self.pos_m += entry
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
-        self.transfer_matrix = m_z_list
+        self.transfer_matrix = self.transfer_matrix[1:, :, :]
 
         self._compute_synch_phase_and_acc_field(f_e)
 
