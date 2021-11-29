@@ -15,6 +15,7 @@ from constants import m_MeV
 
 
 rf_field = namedtuple('rf_field', 'ez_func frequency_mhz omega_0 n_cell phi_0')
+solver_param = namedtuple('solver_param', 'method n_steps d_z')
 
 
 # =============================================================================
@@ -230,8 +231,13 @@ class FieldMap(_Element):
         """Compute longitudinal matrix."""
         entry = self.pos_m[0]
 
+        n_steps = 100 * self.rf_field.n_cell
+        d_z = self.length_m / n_steps
+        self.solver_param = solver_param('RK', n_steps, d_z)
+
         f_e = \
-            transfer_matrices.z_field_map_electric_field(self, self.rf_field)
+            transfer_matrices.z_field_map_electric_field(self, self.rf_field,
+                                                         self.solver_param)
 
         self.pos_m += entry
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
