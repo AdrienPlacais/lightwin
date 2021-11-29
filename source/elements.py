@@ -276,6 +276,7 @@ class CavSin(_Element):
         self.gamma_array[-1] = self.gamma_array[0]
         self.energy_array_mev[-1] = self.energy_array_mev[0]
 
+
 class NotAnElement():
     """Dummy."""
 

@@ -96,15 +96,15 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     # Compute energy gain and synchronous phase
     # =========================================================================
     if method == 'leapfrog':
-        z_s, t_s, e_mev, gamma = \
+        z_s, phi_s, e_mev, gamma = \
             solver.init_leapfrog_cavity(rf_field, cavity.energy_array_mev[0],
                                         gamma, d_z)
 
     elif method == 'RK':
-        z_s, t_s, e_mev, du_dz, gamma = \
+        z_s, phi_s, e_mev, du_dz, gamma = \
             solver.init_rk4_cavity(rf_field, cavity.energy_array_mev[0], gamma)
 
-    phi_rf = rf_field.omega_0 * t_s + rf_field.phi_0
+    # phi_rf = rf_field.omega_0 * t_s + rf_field.phi_0
 
     # We loop until reaching the end of the cavity
     cavity.transfer_matrix = np.zeros((n_steps + 1, 2, 2))
@@ -117,15 +117,15 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     for i in range(1, n_steps + 1):
         gamma['in'] = gamma['out']
 
-        f_e = q_adim * rf_field.ez_func(z_s)[()] * (np.cos(phi_rf) +
-                                                    np.sin(phi_rf) * 1j)
+        f_e = q_adim * rf_field.ez_func(z_s)[()] * (np.cos(phi_s) +
+                                                    np.sin(phi_s) * 1j)
 
         if method == 'leapfrog':
             delta['e_mev'] = q_adim * rf_field.ez_func(z_s)[()] \
-                * np.cos(phi_rf) * d_z
+                * np.cos(phi_s) * d_z
 
         elif method == 'RK':
-            u_rk = np.array(([e_mev, phi_rf]))
+            u_rk = np.array(([e_mev, phi_s]))
             temp = solver.rk4(u_rk, du_dz, z_s, d_z)
             delta['e_mev'] = temp[0]
             delta['phi'] = temp[1]
@@ -137,12 +137,12 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
 
         # Compute transfer matrix using thin lens approximation
         cavity.transfer_matrix[i, :, :] = z_thin_lens(rf_field, d_z, gamma,
-                                                      beta_s, phi_rf, z_s)
+                                                      beta_s, phi_s, z_s)
 
         if method == 'leapfrog':
             delta['phi'] = rf_field.omega_0 * d_z \
                 / (helper.gamma_to_beta(gamma['out']) * c)
-        phi_rf += delta['phi']
+        phi_s += delta['phi']
         z_s += d_z
 
         cavity.energy_array_mev = np.hstack((cavity.energy_array_mev, e_mev))

@@ -18,7 +18,7 @@ def init_rk4_cavity(rf_field, e_0_mev, gamma):
     """Init RK4 methods to compute transfer matrix of a cavity."""
     z_s = 0.
     beta_0 = helper.gamma_to_beta(gamma['in'])
-    t_s = z_s / (beta_0 * c)
+    phi_s = rf_field.omega_0 * z_s / (beta_0 * c) + rf_field.phi_0
     e_mev = e_0_mev
     gamma['out'] = gamma['in']
 
@@ -44,7 +44,7 @@ def init_rk4_cavity(rf_field, e_0_mev, gamma):
         beta = np.sqrt(1. - gamma_float**-2)
         v1 = rf_field.omega_0 / (beta * c)
         return np.array(([v0, v1]))
-    return z_s, t_s, e_mev, du_dz, gamma
+    return z_s, phi_s, e_mev, du_dz, gamma
 
 
 def rk4(u, du_dx, x, dx):
@@ -94,9 +94,9 @@ def init_leapfrog_cavity(rf_field, e_0_mev, gamma, dz):
     #       (speed/energy are on half steps)
     z_s = 0.
     beta_0 = helper.gamma_to_beta(gamma['in'])
-    t_s = z_s / (beta_0 * c)
+    phi_s = rf_field.omega_0 * z_s / (beta_0 * c) + rf_field.phi_0
     # Rewind energy
     e_mev = e_0_mev - q_adim * rf_field.ez_func(z_s)[()] \
         * np.cos(rf_field.phi_0) * .5 * dz
     gamma['out'] = helper.mev_to_gamma(e_0_mev, m_MeV)
-    return z_s, t_s, e_mev, gamma
+    return z_s, phi_s, e_mev, gamma
