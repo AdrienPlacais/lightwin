@@ -6,10 +6,15 @@ Created on Wed Sep 22 10:26:19 2021
 @author: placais
 """
 import numpy as np
+import cmath
 from scipy.interpolate import interp1d
+from collections import namedtuple
 import helper
 import transfer_matrices
 from constants import m_MeV
+
+
+rf_field = namedtuple('rf_field', 'ez_func frequency_mhz omega_0 n_cell phi_0')
 
 
 # =============================================================================
@@ -40,8 +45,6 @@ class _Element():
         self.pos_m = np.full((2), np.NaN)
         self.gamma_array = np.full((2), np.NaN)
         self.energy_array_mev = np.full((2), np.NaN)
-
-        self.frequency_mhz = 352.2  # FIXME import of frequency
         self.transfer_matrix = np.full((1, 2, 2), np.NaN)
 
 
@@ -181,11 +184,17 @@ class FieldMap(_Element):
         # Interpolation
         z_cavity_array = np.linspace(0., zmax, n_z + 1)
         f_z_scaled = self.electric_field_factor * f_z * norm
-        self.ez_func = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
-                                kind='linear', fill_value=0.,
-                                assume_sorted=True)
-        # TODO check this
-        self.n_cell = 2
+        ez_func = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
+                           kind='linear', fill_value=0.,
+                           assume_sorted=True)
+
+        n_cell = 2  # TODO check this
+        frequency_mhz = 352.2  # FIXME import of frequency
+        omega_0 = 2e6 * np.pi * frequency_mhz
+        phi_0 = np.deg2rad(self.theta_i_deg)
+
+        self.rf_field = rf_field(ez_func, frequency_mhz,
+                                 omega_0, n_cell, phi_0)
 
     def check_geom(self):
         """
@@ -220,14 +229,24 @@ class FieldMap(_Element):
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
         # R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
-        m_z_list, energy_array, z_array = \
-            transfer_matrices.z_field_map_electric_field(self)
+        m_z_list, energy_array, z_array, f_e = \
+            transfer_matrices.z_field_map_electric_field(self, self.rf_field)
 
         entry = self.pos_m[0]
         self.pos_m = z_array + entry
         self.energy_array_mev = energy_array
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
         self.transfer_matrix = m_z_list
+
+        self._compute_synch_phase_and_acc_field(f_e)
+
+    def _compute_synch_phase_and_acc_field(self, f_e):
+        """Compute the sychronous phase and accelerating field."""
+        phi_s = cmath.phase(f_e)
+        self.phi_s_deg = np.rad2deg(phi_s)
+        self.v_cav_mv = np.abs(
+            (self.energy_array_mev[0] - self.energy_array_mev[-1])
+            / np.cos(phi_s))
 
 
 class CavSin(_Element):
