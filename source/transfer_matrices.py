@@ -98,15 +98,14 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     delta = {'e_mev': 0.,
              'phi': 0.}
 
+    # Initialize gamma and synch_part:
     if method == 'leapfrog':
-        synch_part, gamma = \
-            solver.init_leapfrog_cavity(rf_field, cavity.energy_array_mev[0],
-                                        gamma, d_z, synch_part)
+        solver.init_leapfrog_cavity(rf_field, cavity.energy_array_mev[0],
+                                    gamma, d_z, synch_part)
 
     elif method == 'RK':
-        synch_part, du_dz, gamma = \
-            solver.init_rk4_cavity(rf_field, cavity.energy_array_mev[0], gamma,
-                                   synch_part)
+        du_dz = solver.init_rk4_cavity(rf_field, cavity.energy_array_mev[0],
+                                       gamma, synch_part)
 
     # We loop until reaching the end of the cavity
     cavity.transfer_matrix = np.zeros((n_steps + 1, 2, 2))
@@ -139,8 +138,7 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
         # Compute transfer matrix using thin lens approximation
         cavity.transfer_matrix[i, :, :] = z_thin_lens(rf_field, d_z, gamma,
                                                       beta_s,
-                                                      synch_part['phi'],
-                                                      synch_part['z'])
+                                                      synch_part)
 
         if method == 'leapfrog':
             delta['phi'] = rf_field.omega_0 * d_z \
@@ -154,7 +152,7 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     return f_e
 
 
-def z_thin_lens(rf_field, d_z, gamma, beta_s, phi_rf, z_s,
+def z_thin_lens(rf_field, d_z, gamma, beta_s, synch_part,
                 flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
@@ -173,10 +171,8 @@ def z_thin_lens(rf_field, d_z, gamma, beta_s, phi_rf, z_s,
         the drift-gap-drift.
     beta_s:
         Lorentz factor of synchronous particle.
-    phi_RF: real
-        Phase.
-    z_s: real
-        Synchronous position.
+    synch_part: dict
+        Sych_part dict.
     flag_correction_determinant: boolean, optional
         To activate/deactivate the correction of the determinant (absent from
         TraceWin documentation).
@@ -186,11 +182,13 @@ def z_thin_lens(rf_field, d_z, gamma, beta_s, phi_rf, z_s,
     m_z: np.array((2, 2))
         Longitudinal transfer matrix of the drift-gap-drift.
     """
+    assert isinstance(synch_part, dict)
+    assert isinstance(gamma, dict)
     # We place ourselves at the middle of the gap:
-    z_k = z_s + .5 * d_z
+    z_k = synch_part['z'] + .5 * d_z
     delta_phi_half_step = (d_z * rf_field.omega_0) \
         / (2. * beta_s * c)
-    phi_k = phi_rf + delta_phi_half_step
+    phi_k = synch_part['phi'] + delta_phi_half_step
 
     # Electric field and it's derivatives
     e_z = rf_field.ez_func(z_k)[()]

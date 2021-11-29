@@ -44,7 +44,7 @@ def init_rk4_cavity(rf_field, e_0_mev, gamma, synch_part):
         beta = np.sqrt(1. - gamma_float**-2)
         v1 = rf_field.omega_0 / (beta * c)
         return np.array(([v0, v1]))
-    return synch_part, du_dz, gamma
+    return du_dz
 
 
 def rk4(u, du_dx, x, dx):
@@ -101,4 +101,3 @@ def init_leapfrog_cavity(rf_field, e_0_mev, gamma, dz, synch_part):
                         * rf_field.ez_func(synch_part['z'])[()] \
                                * np.cos(rf_field.phi_0) * .5 * dz
     gamma['out'] = helper.mev_to_gamma(e_0_mev, m_MeV)
-    return synch_part, gamma
