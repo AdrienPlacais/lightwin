@@ -184,6 +184,8 @@ class FieldMap(_Element):
         self.ez_func = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
                                 kind='linear', fill_value=0.,
                                 assume_sorted=True)
+        # TODO check this
+        self.n_cell = 2
 
     def check_geom(self):
         """
@@ -217,7 +219,6 @@ class FieldMap(_Element):
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
-        # TODO Check this Ncell truc.
         # R_zz_single, MT_and_energy_evolution, V_cav_MV, phi_s_deg = \
         m_z_list, energy_array, z_array = \
             transfer_matrices.z_field_map_electric_field(self)
