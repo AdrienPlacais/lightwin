@@ -78,10 +78,8 @@ def z_field_map_electric_field(cavity, rf_field, solver_param):
 # =============================================================================
 # Initialisation
 # =============================================================================
-    # Set useful parameters
+    # Replace original two elements array
     cavity.energy_array_mev = np.array(([cavity.energy_array_mev[0]]))
-
-    # The n_cells cells cavity is divided in n*n_cells steps of length d_z:
     cavity.pos_m = np.linspace(0., cavity.length_m, solver_param.n_steps + 1)
 
     # gamma at entrance, middle and exit of cavity
@@ -183,10 +181,10 @@ def z_thin_lens(rf_field, d_z, gamma, beta_s, synch_part,
     """
     assert isinstance(synch_part, dict)
     assert isinstance(gamma, dict)
+
     # We place ourselves at the middle of the gap:
     z_k = synch_part['z'] + .5 * d_z
-    delta_phi_half_step = (d_z * rf_field.omega_0) \
-        / (2. * beta_s * c)
+    delta_phi_half_step = .5 * d_z * rf_field.omega_0 / (beta_s * c)
     phi_k = synch_part['phi'] + delta_phi_half_step
 
     # Electric field and it's derivatives
@@ -209,8 +207,7 @@ def z_thin_lens(rf_field, d_z, gamma, beta_s, synch_part,
 
     m_in = z_drift(.5 * d_z, gamma['in'])
     m_out = z_drift(.5 * d_z, gamma['out'])
-    m_z = m_out @ m_mid @ m_in
-    return m_z
+    return m_out @ m_mid @ m_in
 
 
 def not_an_element():
