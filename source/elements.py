@@ -6,6 +6,7 @@ Created on Wed Sep 22 10:26:19 2021
 @author: placais
 """
 import numpy as np
+from scipy.interpolate import interp1d
 import helper
 import transfer_matrices
 from constants import m_MeV
@@ -172,10 +173,17 @@ class FieldMap(_Element):
         self.field_map_file_name = self.field_map_file_name + extension
 
         # Load the field map
-        self.n_z, zmax, self.norm, self.f_z = \
-            import_function(self.field_map_file_name)
-
+        n_z, zmax, norm, f_z = import_function(self.field_map_file_name)
         assert abs(zmax - self.length_m) < 1e-6
+        assert abs(norm - 1.) < 1e-6, 'Warning, imported electric field ' \
+            + 'different from 1. Conflict with electric_field_factor?'
+
+        # Interpolation
+        z_cavity_array = np.linspace(0., zmax, n_z + 1)
+        f_z_scaled = self.electric_field_factor * f_z * norm
+        self.ez_func = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
+                                kind='linear', fill_value=0.,
+                                assume_sorted=True)
 
     def check_geom(self):
         """

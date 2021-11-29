@@ -10,7 +10,6 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from constants import c, q_adim, m_MeV
 import helper
@@ -82,16 +81,6 @@ def z_field_map_electric_field(cavity, method='RK'):
     beta_0 = helper.gamma_to_beta(gamma_0)
     phi_0 = np.deg2rad(cavity.theta_i_deg)
 
-    # Local coordinates of the cavity:
-    z_cavity_array = np.linspace(0., cavity.length_m, cavity.n_z + 1)
-
-    # ez and its derivative functions:
-    kind = 'linear'
-    fill_value = 0.
-    fz_scaled = cavity.electric_field_factor * cavity.f_z
-    ez_func = interp1d(z_cavity_array, fz_scaled, bounds_error=False,
-                       kind=kind, fill_value=fill_value, assume_sorted=True)
-
     # The n_cells cells cavity is divided in n*n_cells steps of length dz:
     n = 100
     n_cells = 2
@@ -103,12 +92,12 @@ def z_field_map_electric_field(cavity, method='RK'):
     if method == 'leapfrog':
         z_s, t_s, e_mev, gamma_out = \
             solver.init_leapfrog_cavity(phi_0, beta_0, e_0_mev,
-                                        gamma_0, ez_func, dz)
+                                        gamma_0, cavity.ez_func, dz)
 
     elif method == 'RK':
         z_s, t_s, e_mev, gamma_out, du_dz = \
             solver.init_rk4_cavity(omega_0, beta_0, e_0_mev,
-                                   gamma_0, ez_func)
+                                   gamma_0, cavity.ez_func)
 
     phi_rf = omega_0 * t_s + phi_0
 
@@ -128,11 +117,12 @@ def z_field_map_electric_field(cavity, method='RK'):
     for i in range(1, n_iter):
         gamma_in = gamma_out
 
-        f_e[0] += q_adim * ez_func(z_s)[()] * np.cos(phi_rf)
-        f_e[1] += q_adim * ez_func(z_s)[()] * np.sin(phi_rf)
+        f_e[0] += q_adim * cavity.ez_func(z_s)[()] * np.cos(phi_rf)
+        f_e[1] += q_adim * cavity.ez_func(z_s)[()] * np.sin(phi_rf)
 
         if method == 'leapfrog':
-            delta_e_mev = q_adim * ez_func(z_s)[()] * np.cos(phi_rf) * dz
+            delta_e_mev = q_adim * cavity.ez_func(z_s)[()] \
+                * np.cos(phi_rf) * dz
 
         elif method == 'RK':
             u = np.array(([e_mev, phi_rf]))
@@ -157,9 +147,10 @@ def z_field_map_electric_field(cavity, method='RK'):
             delta_phi_half_step = (dz * omega_0) / (2. * beta_s * c)
             phi_k = phi_rf + delta_phi_half_step
 
-        de_dz = ez_func(z_k)[()] * np.sin(phi_k) * omega_0 / (beta_s * c)
+        de_dz = cavity.ez_func(z_k)[()] * np.sin(phi_k) * omega_0 \
+            / (beta_s * c)
         gamma_array = [gamma_in, gamma_s, gamma_out]
-        m_z_list[i, :, :] = z_thin_lens(ez_func(z_k)[()], de_dz, dz,
+        m_z_list[i, :, :] = z_thin_lens(cavity.ez_func(z_k)[()], de_dz, dz,
                                         gamma_array, beta_s, phi_k)
 
         if method == 'leapfrog':
