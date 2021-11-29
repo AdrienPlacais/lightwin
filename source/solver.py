@@ -14,12 +14,12 @@ from constants import c, q_adim, m_MeV
 # =============================================================================
 # RK4
 # =============================================================================
-def init_rk4_cavity(rf_field, e_0_mev, gamma):
+def init_rk4_cavity(rf_field, e_0_mev, gamma, synch_part):
     """Init RK4 methods to compute transfer matrix of a cavity."""
-    z_s = 0.
+    synch_part['z'] = 0.
     beta_0 = helper.gamma_to_beta(gamma['in'])
-    phi_s = rf_field.omega_0 * z_s / (beta_0 * c) + rf_field.phi_0
-    e_mev = e_0_mev
+    synch_part['phi'] = rf_field.omega_0 * synch_part['z'] / (beta_0 * c) + rf_field.phi_0
+    synch_part['e_mev'] = e_0_mev
     gamma['out'] = gamma['in']
 
     def du_dz(z, u):
@@ -44,7 +44,7 @@ def init_rk4_cavity(rf_field, e_0_mev, gamma):
         beta = np.sqrt(1. - gamma_float**-2)
         v1 = rf_field.omega_0 / (beta * c)
         return np.array(([v0, v1]))
-    return z_s, phi_s, e_mev, du_dz, gamma
+    return synch_part, du_dz, gamma
 
 
 def rk4(u, du_dx, x, dx):
@@ -81,7 +81,7 @@ def rk4(u, du_dx, x, dx):
 # =============================================================================
 # Leapfrog
 # =============================================================================
-def init_leapfrog_cavity(rf_field, e_0_mev, gamma, dz):
+def init_leapfrog_cavity(rf_field, e_0_mev, gamma, dz, synch_part):
     """Init leapfrog method to compute transfer matrix of cavity."""
     # Leapfrog method:
     #   pos(i+1) = pos(i) + speed(i+0.5) * dt
@@ -92,11 +92,13 @@ def init_leapfrog_cavity(rf_field, e_0_mev, gamma, dz):
     #       (time and space variables are on whole steps)
     #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
     #       (speed/energy are on half steps)
-    z_s = 0.
+    synch_part['z'] = 0.
     beta_0 = helper.gamma_to_beta(gamma['in'])
-    phi_s = rf_field.omega_0 * z_s / (beta_0 * c) + rf_field.phi_0
+    synch_part['phi'] = rf_field.omega_0 * synch_part['z'] / (beta_0 * c) \
+        + rf_field.phi_0
     # Rewind energy
-    e_mev = e_0_mev - q_adim * rf_field.ez_func(z_s)[()] \
-        * np.cos(rf_field.phi_0) * .5 * dz
+    synch_part['e_mev'] = e_0_mev - q_adim \
+                        * rf_field.ez_func(synch_part['z'])[()] \
+                               * np.cos(rf_field.phi_0) * .5 * dz
     gamma['out'] = helper.mev_to_gamma(e_0_mev, m_MeV)
-    return z_s, phi_s, e_mev, gamma
+    return synch_part, gamma

@@ -63,23 +63,20 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     rf_field: namedtuple
         Holds electric field function and important parameters of the electric
         field.
-    methode: opt, str
+    method: opt, str
         Solving method. 'RK' or 'leapfrog'.
 
     Returns
     -------
-    m_z_list: np.array(n_iter+1, 2, 2)
-        Array holding the transfer matrices of the drift-gap-drift slices.
-    energy_array: np.array
-        Energy as a function of z_array.
-    z_array: np.array
-        Evolution of z.
     f_e: complex
         To compute synchronous phase and acceleration in cavity.
     """
     assert isinstance(cavity, elements.FieldMap)
     assert isinstance(rf_field, elements.rf_field)
 
+# =============================================================================
+# Initialisation
+# =============================================================================
     # Set useful parameters
     cavity.energy_array_mev = np.array(([cavity.energy_array_mev[0]]))
 
@@ -88,64 +85,71 @@ def z_field_map_electric_field(cavity, rf_field, method='RK'):
     d_z = cavity.length_m / n_steps
     cavity.pos_m = np.linspace(0., cavity.length_m, n_steps + 1)
 
+    # gamma at entrance, middle and exit of cavity
     gamma = {'in': helper.mev_to_gamma(cavity.energy_array_mev[0], m_MeV),
              'synch': 0.,
              'out': 0.}
+    # Synch part parameters
+    synch_part = {'e_mev': 0.,
+                  'phi': 0.,
+                  'z': 0.}
+    # Variation of synch part parameters (not necessqry for z, as it is always
+    # dz)
+    delta = {'e_mev': 0.,
+             'phi': 0.}
 
-    # =========================================================================
-    # Compute energy gain and synchronous phase
-    # =========================================================================
     if method == 'leapfrog':
-        z_s, phi_s, e_mev, gamma = \
+        synch_part, gamma = \
             solver.init_leapfrog_cavity(rf_field, cavity.energy_array_mev[0],
-                                        gamma, d_z)
+                                        gamma, d_z, synch_part)
 
     elif method == 'RK':
-        z_s, phi_s, e_mev, du_dz, gamma = \
-            solver.init_rk4_cavity(rf_field, cavity.energy_array_mev[0], gamma)
-
-    # phi_rf = rf_field.omega_0 * t_s + rf_field.phi_0
+        synch_part, du_dz, gamma = \
+            solver.init_rk4_cavity(rf_field, cavity.energy_array_mev[0], gamma,
+                                   synch_part)
 
     # We loop until reaching the end of the cavity
     cavity.transfer_matrix = np.zeros((n_steps + 1, 2, 2))
     cavity.transfer_matrix[0, :, :] = np.eye(2)
 
-    # Dict to hold variations of energy and phase
-    delta = {'e_mev': 0.,
-             'phi': 0.}
-
+# =============================================================================
+# Loop over cavity
+# =============================================================================
     for i in range(1, n_steps + 1):
         gamma['in'] = gamma['out']
 
-        f_e = q_adim * rf_field.ez_func(z_s)[()] * (np.cos(phi_s) +
-                                                    np.sin(phi_s) * 1j)
+        f_e = q_adim * rf_field.ez_func(synch_part['z'])[()] \
+            * (np.cos(synch_part['phi']) + np.sin(synch_part['phi']) * 1j)
 
         if method == 'leapfrog':
-            delta['e_mev'] = q_adim * rf_field.ez_func(z_s)[()] \
-                * np.cos(phi_s) * d_z
+            delta['e_mev'] = q_adim * rf_field.ez_func(synch_part['z'])[()] \
+                * np.cos(synch_part['phi']) * d_z
 
         elif method == 'RK':
-            u_rk = np.array(([e_mev, phi_s]))
-            temp = solver.rk4(u_rk, du_dz, z_s, d_z)
+            u_rk = np.array(([synch_part['e_mev'], synch_part['phi']]))
+            temp = solver.rk4(u_rk, du_dz, synch_part['z'], d_z)
             delta['e_mev'] = temp[0]
             delta['phi'] = temp[1]
 
-        e_mev += delta['e_mev']
+        synch_part['e_mev'] += delta['e_mev']
         gamma['out'] = gamma['in'] + delta['e_mev'] / m_MeV
         gamma['synch'] = (gamma['out'] + gamma['in']) * .5
         beta_s = helper.gamma_to_beta(gamma['synch'])
 
         # Compute transfer matrix using thin lens approximation
         cavity.transfer_matrix[i, :, :] = z_thin_lens(rf_field, d_z, gamma,
-                                                      beta_s, phi_s, z_s)
+                                                      beta_s,
+                                                      synch_part['phi'],
+                                                      synch_part['z'])
 
         if method == 'leapfrog':
             delta['phi'] = rf_field.omega_0 * d_z \
                 / (helper.gamma_to_beta(gamma['out']) * c)
-        phi_s += delta['phi']
-        z_s += d_z
+        synch_part['phi'] += delta['phi']
+        synch_part['z'] += d_z
 
-        cavity.energy_array_mev = np.hstack((cavity.energy_array_mev, e_mev))
+        cavity.energy_array_mev = np.hstack((cavity.energy_array_mev,
+                                             synch_part['e_mev']))
 
     return f_e
 
