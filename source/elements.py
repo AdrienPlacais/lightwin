@@ -11,10 +11,10 @@ from scipy.interpolate import interp1d
 from collections import namedtuple
 import helper
 import transfer_matrices
-from constants import m_MeV
+from constants import m_MeV, c
 
 
-rf_field = namedtuple('rf_field', 'ez_func frequency_mhz omega_0 n_cell phi_0')
+rf_field = namedtuple('rf_field', 'ez_func frequency_mhz omega_0 lambda_rf n_cell phi_0')
 solver_param = namedtuple('solver_param', 'method n_steps d_z')
 
 
@@ -189,13 +189,13 @@ class FieldMap(_Element):
                            kind='linear', fill_value=0.,
                            assume_sorted=True)
 
-        n_cell = 2  # TODO check this
         frequency_mhz = 352.2  # FIXME import of frequency
-        omega_0 = 2e6 * np.pi * frequency_mhz
-        phi_0 = np.deg2rad(self.theta_i_deg)
-
-        self.rf_field = rf_field(ez_func, frequency_mhz,
-                                 omega_0, n_cell, phi_0)
+        self.rf_field = rf_field(ez_func,
+                                 frequency_mhz,
+                                 2e6 * np.pi * frequency_mhz,   # omega_0
+                                 1e-6 * c / frequency_mhz,      # lambda_RF
+                                 2,                             # n_cell
+                                 np.deg2rad(self.theta_i_deg))  # phi_0
 
     def check_geom(self):
         """
