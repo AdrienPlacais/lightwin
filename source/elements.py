@@ -14,7 +14,8 @@ import transfer_matrices
 from constants import m_MeV, c
 
 
-rf_field = namedtuple('rf_field', 'ez_func frequency_mhz omega_0 lambda_rf n_cell phi_0')
+rf_field = namedtuple('rf_field', 'ez_func frequency_mhz omega_0 lambda_rf '
+                      'n_cell phi_0')
 solver_param = namedtuple('solver_param', 'method n_steps d_z')
 
 
@@ -47,6 +48,16 @@ class _Element():
         self.gamma_array = np.full((2), np.NaN)
         self.energy_array_mev = np.full((2), np.NaN)
         self.transfer_matrix = np.full((1, 2, 2), np.NaN)
+        self._init_dummy_rf_field(352.2)    # FIXME import of frequency
+
+    def _init_dummy_rf_field(self, frequency_mhz):
+        """Create a rf_field namedtuple with no RF field."""
+        self.rf_field = rf_field(lambda x: 0.,                  # ez_func
+                                 frequency_mhz,
+                                 2e6 * np.pi * frequency_mhz,   # omega_0
+                                 1e-6 * c / frequency_mhz,      # lambda_RF
+                                 0,                             # n_cell
+                                 0.)                            # phi_0
 
 
 # =============================================================================
@@ -189,7 +200,8 @@ class FieldMap(_Element):
                            kind='linear', fill_value=0.,
                            assume_sorted=True)
 
-        frequency_mhz = 352.2  # FIXME import of frequency
+        # Replace default rf_field namedtuple
+        frequency_mhz = self.rf_field.frequency_mhz
         self.rf_field = rf_field(ez_func,
                                  frequency_mhz,
                                  2e6 * np.pi * frequency_mhz,   # omega_0
@@ -231,16 +243,15 @@ class FieldMap(_Element):
 
         n_steps = 100 * self.rf_field.n_cell
         d_z = self.length_m / n_steps
-        self.solver_param = solver_param('RK', n_steps, d_z)
+        self.transfer_matrix_solver = solver_param('RK', n_steps, d_z)
 
-        f_e = \
-            transfer_matrices.z_field_map_electric_field(self, self.rf_field,
-                                                         self.solver_param)
+        f_e = transfer_matrices.z_field_map_electric_field(
+            self, self.rf_field, self.transfer_matrix_solver)
 
         self.pos_m += entry
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
+        # Remove first slice of transfer matrix (indentity matrix)
         self.transfer_matrix = self.transfer_matrix[1:, :, :]
-
         self._compute_synch_phase_and_acc_field(f_e)
 
     def _compute_synch_phase_and_acc_field(self, f_e):

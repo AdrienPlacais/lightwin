@@ -42,7 +42,7 @@ if FILEPATH == '':
 linac = acc.Accelerator(E_MEV, FILEPATH)
 linac.compute_transfer_matrices()
 
-# debug.plot_transfer_matrices(linac)
+debug.plot_transfer_matrices(linac)
 # debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)
 # debug.compare_energies(linac)
 
