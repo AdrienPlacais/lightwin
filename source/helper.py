@@ -49,7 +49,7 @@ def create_fig_if_not_exist(fignum, axnum):
     n_axes = len(axnum)
     axlist = []
 
-    if(plt.fignum_exists(fignum)):
+    if plt.fignum_exists(fignum):
         fig = plt.figure(fignum)
         for i in range(n_axes):
             axlist.append(fig.axes[i])

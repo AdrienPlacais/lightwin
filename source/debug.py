@@ -5,16 +5,15 @@ Created on Tue Oct 12 13:50:44 2021
 
 @author: placais
 """
-
-import numpy as np
-import matplotlib.pyplot as plt
-from palettable.colorbrewer.qualitative import Set1_9
-from cycler import cycler
 import os.path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import helper
+import numpy as np
 from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
+from palettable.colorbrewer.qualitative import Set1_9
+from cycler import cycler
+import helper
 
 font = {'family': 'serif',
         'size':   20}

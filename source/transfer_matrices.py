@@ -182,6 +182,14 @@ def z_thin_lens(rf_field, d_z, gamma, beta_s, synch_part,
     assert isinstance(synch_part, dict)
     assert isinstance(gamma, dict)
 
+# =============================================================================
+#   In
+# =============================================================================
+    transf_mat = z_drift(.5 * d_z, gamma['in'])
+
+# =============================================================================
+#   Mid
+# =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch_part['z'] + .5 * d_z
     delta_phi_half_step = .5 * d_z * rf_field.omega_0 / (beta_s * c)
@@ -200,14 +208,16 @@ def z_thin_lens(rf_field, d_z, gamma, beta_s, synch_part,
     if flag_correction_determinant:
         k_3 = (1. - k_0 * e_z * np.cos(phi_k))  \
                 / (1. - k_0 * (2. - beta_s**2) * e_z * np.cos(phi_k))
-        m_mid = np.array(([k_3, 0.], [k_1, k_2]))
+        transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:
-        m_mid = np.array(([1., 0.], [k_1, k_2]))
+        transf_mat = np.array(([1., 0.], [k_1, k_2])) @ transf_mat
 
-    m_in = z_drift(.5 * d_z, gamma['in'])
-    m_out = z_drift(.5 * d_z, gamma['out'])
-    return m_out @ m_mid @ m_in
+# =============================================================================
+#   Out
+# =============================================================================
+    transf_mat = z_drift(.5 * d_z, gamma['out']) @ transf_mat
+    return transf_mat
 
 
 def not_an_element():
