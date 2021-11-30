@@ -209,8 +209,6 @@ class FieldMap(_Element):
             Function adapted to the nature and geometry of the field.
         """
         # TODO: autodetect extensions
-        # TODO: implement import of magnetic fields
-        # TODO: implement 2D and 3D maps
         # First, we check the nature of the given file
         assert self.geometry >= 0, \
             "Second order off-axis development not implemented."

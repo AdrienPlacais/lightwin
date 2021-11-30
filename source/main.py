@@ -29,11 +29,11 @@ F_MHZ = 352.2
 
 # Select .dat file
 Tk().withdraw()
-# FILEPATH = '/home/placais/LightWin/data/dummy.dat'
 # FILEPATH = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
 FILEPATH = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
 # FILEPATH = '/home/placais/TraceWin/work_cavsin/work_cavsin.dat'
-# FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
+if FILEPATH == '':
+    FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
 
 # =============================================================================
@@ -51,6 +51,7 @@ debug.plot_transfer_matrices(linac)
 SAVE_MT_AND_ENERGY = False
 if SAVE_MT_AND_ENERGY:
     helper.save_full_mt_and_energy_evolution(linac)
+
 SAVE_VCAV_AND_PHIS = False
 if SAVE_VCAV_AND_PHIS:
     helper.save_vcav_and_phis(linac)
