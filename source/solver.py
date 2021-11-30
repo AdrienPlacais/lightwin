@@ -18,8 +18,7 @@ def init_rk4_cavity(rf_field, e_0_mev, gamma, synch_part):
     """Init RK4 methods to compute transfer matrix of a cavity."""
     synch_part['z'] = 0.
     beta_0 = helper.gamma_to_beta(gamma['in'])
-    synch_part['phi'] = rf_field.omega_0 * synch_part['z'] / (beta_0 * c) \
-        + rf_field.phi_0
+    synch_part['phi'] = rf_field.omega_0 * synch_part['z'] / (beta_0 * c)
     synch_part['e_mev'] = e_0_mev
     gamma['out'] = gamma['in']
 
@@ -39,7 +38,7 @@ def init_rk4_cavity(rf_field, e_0_mev, gamma, synch_part):
             First component is (e_mev(i+1) - e_mev(i)) / dz.
             Second component is (phi(i+1) - phi(i)) / dz.
         """
-        v0 = q_adim * rf_field.ez_func(z)[()] * np.cos(u[1])
+        v0 = q_adim * rf_field.e_func(z, u[1])
 
         gamma_float = 1. + u[0] / m_MeV
         beta = np.sqrt(1. - gamma_float**-2)
@@ -82,7 +81,7 @@ def rk4(u, du_dx, x, dx):
 # =============================================================================
 # Leapfrog
 # =============================================================================
-def init_leapfrog_cavity(rf_field, e_0_mev, gamma, dz, synch_part):
+def init_leapfrog_cavity(acc_field, e_0_mev, gamma, dz, synch_part):
     """Init leapfrog method to compute transfer matrix of cavity."""
     # Leapfrog method:
     #   pos(i+1) = pos(i) + speed(i+0.5) * dt
@@ -95,10 +94,9 @@ def init_leapfrog_cavity(rf_field, e_0_mev, gamma, dz, synch_part):
     #       (speed/energy are on half steps)
     synch_part['z'] = 0.
     beta_0 = helper.gamma_to_beta(gamma['in'])
-    synch_part['phi'] = rf_field.omega_0 * synch_part['z'] / (beta_0 * c) \
-        + rf_field.phi_0
+    synch_part['phi'] = acc_field.omega_0 * synch_part['z'] / (beta_0 * c)
+
     # Rewind energy
     synch_part['e_mev'] = e_0_mev - q_adim \
-        * rf_field.ez_func(synch_part['z'])[()] \
-        * np.cos(rf_field.phi_0) * .5 * dz
+        * acc_field.e_func(synch_part['z'], 0.) * .5 * dz
     gamma['out'] = helper.mev_to_gamma(e_0_mev, m_MeV)

@@ -114,12 +114,14 @@ def z_field_map_electric_field(cavity, rf_field, solver_param):
     for i in range(1, solver_param.n_steps + 1):
         gamma['in'] = gamma['out']
 
-        f_e = q_adim * rf_field.ez_func(synch_part['z'])[()] \
-            * (np.cos(synch_part['phi']) + np.sin(synch_part['phi']) * 1j)
+        # form cos + j * sin
+        f_e = q_adim * rf_field.e_func(synch_part['z'], synch_part['phi']) \
+            * (1. + np.tan(synch_part['phi']) * 1j)
 
         if solver_param.method == 'leapfrog':
-            delta['e_mev'] = q_adim * rf_field.ez_func(synch_part['z'])[()] \
-                * np.cos(synch_part['phi']) * solver_param.d_z
+            delta['e_mev'] = q_adim * rf_field.e_func(synch_part['z'],
+                                                      synch_part['phi']) \
+                                                       * solver_param.d_z
 
         elif solver_param.method == 'RK':
             u_rk = np.array(([synch_part['e_mev'], synch_part['phi']]))
@@ -149,7 +151,7 @@ def z_field_map_electric_field(cavity, rf_field, solver_param):
     return f_e
 
 
-def z_thin_lens(rf_field, d_z, gamma, beta_s, synch_part,
+def z_thin_lens(acc_field, d_z, gamma, beta_s, synch_part,
                 flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
@@ -192,22 +194,22 @@ def z_thin_lens(rf_field, d_z, gamma, beta_s, synch_part,
 # =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch_part['z'] + .5 * d_z
-    delta_phi_half_step = .5 * d_z * rf_field.omega_0 / (beta_s * c)
+    delta_phi_half_step = .5 * d_z * acc_field.omega_0 / (beta_s * c)
     phi_k = synch_part['phi'] + delta_phi_half_step
 
     # Electric field and it's derivatives
-    e_z = rf_field.ez_func(z_k)[()]
-    dez_dt = e_z * np.sin(phi_k) * rf_field.omega_0 / (beta_s * c)
+    # e_z = rf_field.e_func(z_k, 0.)
+    # dez_dt = e_z * np.sin(phi_k) * rf_field.omega_0 / (beta_s * c)
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['synch'] * beta_s**2 * m_MeV)
-    k_1 = k_0 * dez_dt
-    k_2 = 1. - (2. - beta_s**2) * k_0 * e_z * np.cos(phi_k)
+    k_1 = k_0 * acc_field.de_dt_func(z_k, phi_k, beta_s)
+    k_2 = 1. - (2. - beta_s**2) * k_0 * acc_field.e_func(z_k, phi_k)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
-        k_3 = (1. - k_0 * e_z * np.cos(phi_k))  \
-                / (1. - k_0 * (2. - beta_s**2) * e_z * np.cos(phi_k))
+        k_3 = (1. - k_0 * acc_field.e_func(z_k, phi_k))  \
+                / (1. - k_0 * (2. - beta_s**2) * acc_field.e_func(z_k, phi_k))
         transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:

@@ -14,8 +14,8 @@ import transfer_matrices
 from constants import m_MeV, c
 
 
-rf_field = namedtuple('rf_field', 'ez_func frequency_mhz omega_0 lambda_rf '
-                      'n_cell phi_0')
+rf_field = namedtuple('rf_field', 'e_func de_dt_func frequency_mhz omega_0 '
+                      'lambda_rf n_cell phi_0')
 solver_param = namedtuple('solver_param', 'method n_steps d_z')
 
 
@@ -52,12 +52,13 @@ class _Element():
 
     def _init_dummy_rf_field(self, frequency_mhz):
         """Create a rf_field namedtuple with no RF field."""
-        self.rf_field = rf_field(lambda x: 0.,                  # ez_func
-                                 frequency_mhz,
-                                 2e6 * np.pi * frequency_mhz,   # omega_0
-                                 1e-6 * c / frequency_mhz,      # lambda_RF
-                                 0,                             # n_cell
-                                 0.)                            # phi_0
+        self.acc_field = rf_field(lambda x: 0.,                  # ez_func
+                                  lambda x: 0.,                  # dez_dt_func
+                                  frequency_mhz,
+                                  2e6 * np.pi * frequency_mhz,   # omega_0
+                                  1e-6 * c / frequency_mhz,      # lambda_RF
+                                  0,                             # n_cell
+                                  0.)                            # phi_0
 
 
 # =============================================================================
@@ -196,18 +197,29 @@ class FieldMap(_Element):
         # Interpolation
         z_cavity_array = np.linspace(0., zmax, n_z + 1)
         f_z_scaled = self.electric_field_factor * f_z * norm
-        ez_func = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
+        ez_spat = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
                            kind='linear', fill_value=0.,
                            assume_sorted=True)
 
         # Replace default rf_field namedtuple
-        frequency_mhz = self.rf_field.frequency_mhz
-        self.rf_field = rf_field(ez_func,
-                                 frequency_mhz,
-                                 2e6 * np.pi * frequency_mhz,   # omega_0
-                                 1e-6 * c / frequency_mhz,      # lambda_RF
-                                 2,                             # n_cell
-                                 np.deg2rad(self.theta_i_deg))  # phi_0
+        frequency_mhz = self.acc_field.frequency_mhz
+        omega_0 = 2e6 * np.pi * frequency_mhz
+        phi_0 = np.deg2rad(self.theta_i_deg)
+
+        def ez_func(z, phi):
+            return ez_spat(z)[()] * np.cos(phi + phi_0)
+
+        def dez_dt_func(z, phi, beta_s):
+            return ez_spat(z)[()] * np.sin(phi + phi_0) \
+                * self.acc_field.omega_0 / (beta_s * c)
+
+        self.acc_field = rf_field(ez_func,
+                                  dez_dt_func,
+                                  frequency_mhz,
+                                  omega_0,                       # omega_0
+                                  1e-6 * c / frequency_mhz,      # lambda_RF
+                                  2,                             # n_cell
+                                  phi_0)  # phi_0
 
     def check_geom(self):
         """
@@ -241,21 +253,21 @@ class FieldMap(_Element):
         """Compute longitudinal matrix."""
         entry = self.pos_m[0]
 
-        n_steps = 100 * self.rf_field.n_cell
+        n_steps = 100 * self.acc_field.n_cell
         d_z = self.length_m / n_steps
-        self.transfer_matrix_solver = solver_param('RK', n_steps, d_z)
+        self.transfer_matrix_solver = solver_param('leapfrog', n_steps, d_z)
 
         f_e = transfer_matrices.z_field_map_electric_field(
-            self, self.rf_field, self.transfer_matrix_solver)
+            self, self.acc_field, self.transfer_matrix_solver)
 
         self.pos_m += entry
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
         # Remove first slice of transfer matrix (indentity matrix)
         self.transfer_matrix = self.transfer_matrix[1:, :, :]
-        self._compute_synch_phase_and_acc_field(f_e)
+        self._compute_synch_phase_and_acc_pot(f_e)
 
-    def _compute_synch_phase_and_acc_field(self, f_e):
-        """Compute the sychronous phase and accelerating field."""
+    def _compute_synch_phase_and_acc_pot(self, f_e):
+        """Compute the sychronous phase and accelerating potential."""
         phi_s = cmath.phase(f_e)
         self.phi_s_deg = np.rad2deg(phi_s)
         self.v_cav_mv = np.abs(
