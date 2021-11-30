@@ -10,6 +10,7 @@ import numpy as np
 import elements
 import helper
 from constants import m_MeV
+from electric_field import load_field_map_file
 
 
 class Accelerator():
@@ -35,7 +36,7 @@ class Accelerator():
         # TODO: handle cases were there the number of elements in the line
         # is different from 39
 
-        # Load dat file and cleam it up (remove comments, etc)
+        # Load dat file and clean it up (remove comments, etc)
         self.dat_file_content = []
         self._load_dat_file()
 
@@ -82,7 +83,7 @@ class Accelerator():
             if 'field_map_file_name' in vars(elt):
                 elt.field_map_file_name = field_map_folder \
                     + '/' + elt.field_map_file_name
-                elt.select_and_load_field_map_file()
+                load_field_map_file(elt, elt.acc_field)
 
     def _create_structure(self):
         """Create structure using the loaded dat file."""
@@ -96,7 +97,7 @@ class Accelerator():
         }
         to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
                              'LATTICE', 'END']
-        # @TODO Maybe some non-elements such as FREQ or LATTICE would be better
+        # TODO Maybe some non-elements such as FREQ or LATTICE would be better
         # off another file/module
 
         # We look at each element in dat_file_content, and according to the

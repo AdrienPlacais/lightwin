@@ -11,6 +11,7 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 
 import numpy as np
 from constants import c, q_adim, m_MeV
+import electric_field
 import helper
 import solver
 import elements
@@ -49,7 +50,7 @@ def z_drift(delta_s, gamma):
     return r_zz
 
 
-def z_field_map_electric_field(cavity, rf_field, solver_param):
+def z_field_map_electric_field(cavity, acc_field, solver_param):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 
@@ -60,7 +61,7 @@ def z_field_map_electric_field(cavity, rf_field, solver_param):
     ----------
     cavity: FieldMap (Element) object
         Cavity of which you need the transfer matrix.
-    rf_field: namedtuple
+    acc_field: RfField
         Holds electric field function and important parameters of the electric
         field.
     solver_param: namedtuple
@@ -72,8 +73,8 @@ def z_field_map_electric_field(cavity, rf_field, solver_param):
         To compute synchronous phase and acceleration in cavity.
     """
     assert isinstance(cavity, elements.FieldMap)
-    assert isinstance(rf_field, elements.rf_field)
-    assert isinstance(solver_param, elements.solver_param)
+    assert isinstance(acc_field, electric_field.RfField)
+    assert isinstance(solver_param, elements.SolverParam)
 
 # =============================================================================
 # Initialisation
@@ -97,11 +98,11 @@ def z_field_map_electric_field(cavity, rf_field, solver_param):
 
     # Initialize gamma and synch_part:
     if solver_param.method == 'leapfrog':
-        solver.init_leapfrog_cavity(rf_field, cavity.energy_array_mev[0],
+        solver.init_leapfrog_cavity(acc_field, cavity.energy_array_mev[0],
                                     gamma, solver_param.d_z, synch_part)
 
     elif solver_param.method == 'RK':
-        du_dz = solver.init_rk4_cavity(rf_field, cavity.energy_array_mev[0],
+        du_dz = solver.init_rk4_cavity(acc_field, cavity.energy_array_mev[0],
                                        gamma, synch_part)
 
     # We loop until reaching the end of the cavity
@@ -115,11 +116,11 @@ def z_field_map_electric_field(cavity, rf_field, solver_param):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        f_e = q_adim * rf_field.e_func(synch_part['z'], synch_part['phi']) \
+        f_e = q_adim * acc_field.e_func(synch_part['z'], synch_part['phi']) \
             * (1. + np.tan(synch_part['phi']) * 1j)
 
         if solver_param.method == 'leapfrog':
-            delta['e_mev'] = q_adim * rf_field.e_func(synch_part['z'],
+            delta['e_mev'] = q_adim * acc_field.e_func(synch_part['z'],
                                                       synch_part['phi']) \
                                                        * solver_param.d_z
 
@@ -135,12 +136,12 @@ def z_field_map_electric_field(cavity, rf_field, solver_param):
         beta_s = helper.gamma_to_beta(gamma['synch'])
 
         # Compute transfer matrix using thin lens approximation
-        cavity.transfer_matrix[i, :, :] = z_thin_lens(rf_field,
+        cavity.transfer_matrix[i, :, :] = z_thin_lens(acc_field,
                                                       solver_param.d_z, gamma,
                                                       beta_s, synch_part)
 
         if solver_param.method == 'leapfrog':
-            delta['phi'] = rf_field.omega_0 * solver_param.d_z \
+            delta['phi'] = acc_field.omega_0 * solver_param.d_z \
                 / (helper.gamma_to_beta(gamma['out']) * c)
         synch_part['phi'] += delta['phi']
         synch_part['z'] += solver_param.d_z
@@ -160,7 +161,7 @@ def z_thin_lens(acc_field, d_z, gamma, beta_s, synch_part,
 
     Parameters
     ----------
-    rf_field: namedtuple
+    acc_field: namedtuple
         Holds electric field function and important parameters of the electric
         field.
     d_z: real
@@ -198,8 +199,8 @@ def z_thin_lens(acc_field, d_z, gamma, beta_s, synch_part,
     phi_k = synch_part['phi'] + delta_phi_half_step
 
     # Electric field and it's derivatives
-    # e_z = rf_field.e_func(z_k, 0.)
-    # dez_dt = e_z * np.sin(phi_k) * rf_field.omega_0 / (beta_s * c)
+    # e_z = acc_field.e_func(z_k, 0.)
+    # dez_dt = e_z * np.sin(phi_k) * acc_field.omega_0 / (beta_s * c)
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['synch'] * beta_s**2 * m_MeV)

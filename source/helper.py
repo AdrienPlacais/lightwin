@@ -85,58 +85,6 @@ def empty_fig(fignum):
 # =============================================================================
 # Files functions
 # =============================================================================
-def load_electric_field_1d(path):
-    """
-    Load a 1D electric field (.edz extension).
-
-    Parameters
-    ----------
-    path: string
-        The path to the .edz file to load.
-
-    Returns
-    -------
-    f_z: np.array
-        Array of electric field in MV/m.
-    zmax: float
-        z position of the filemap end.
-    norm: float
-        norm of the electric field.
-
-    Currently not returned
-    ----------------------
-    n_z: int
-        Number of points in the array minus one.
-    """
-    i = 0
-    k = 0
-
-    with open(path) as file:
-        for line in file:
-            if i == 0:
-                line_splitted = line.split(' ')
-
-                # Sometimes the separator is a tab and not a space:
-                if len(line_splitted) < 2:
-                    line_splitted = line.split('\t')
-
-                n_z = int(line_splitted[0])
-                # Sometimes there are several spaces or tabs between numbers
-                zmax = float(line_splitted[-1])
-                f_z = np.full((n_z + 1), np.NaN)
-
-            elif i == 1:
-                norm = float(line)
-
-            else:
-                f_z[k] = float(line)
-                k += 1
-
-            i += 1
-
-    return n_z, zmax, norm, f_z
-
-
 def save_full_mt_and_energy_evolution(accelerator):
     """
     Output the energy and transfer matrice components as a function of z.

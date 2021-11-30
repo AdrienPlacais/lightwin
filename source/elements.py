@@ -5,17 +5,16 @@ Created on Wed Sep 22 10:26:19 2021
 
 @author: placais
 """
-import numpy as np
 import cmath
-from scipy.interpolate import interp1d
 from collections import namedtuple
+import numpy as np
 import helper
 import transfer_matrices
-from electric_field import rf_field
-from constants import m_MeV, c
+from electric_field import RfField
+from constants import m_MeV
 
 
-solver_param = namedtuple('solver_param', 'method n_steps d_z')
+SolverParam = namedtuple('SolverParam', 'method n_steps d_z')
 
 
 # =============================================================================
@@ -47,7 +46,7 @@ class _Element():
         self.energy_array_mev = np.full((2), np.NaN)
         self.transfer_matrix = np.full((1, 2, 2), np.NaN)
         # Dummy rf field
-        self.acc_field = rf_field(352.2)    # FIXME frequency import
+        self.acc_field = RfField(352.2)    # FIXME frequency import
 
 
 # =============================================================================
@@ -159,73 +158,17 @@ class FieldMap(_Element):
         except IndexError:
             pass
 
-    def select_and_load_field_map_file(self):
-        """
-        Select the field map file and call the proper loading function.
-
-        Warning, FileName is directly extracted from the .dat file used by
-        TraceWin. Thus, the relative filepath may be misunderstood by this
-        script.
-        Also check that the extension of the file is .edz, or manually change
-        this function.
-        Finally, only 1D electric field map are implemented.
-        """
-        # Check nature and geometry of the field map, and select proper file
-        # extension and import function
-        extension, import_function = self.check_geom()
-        self.field_map_file_name = self.field_map_file_name + extension
-
-        # Load the field map
-        n_z, zmax, norm, f_z = import_function(self.field_map_file_name)
-        assert abs(zmax - self.length_m) < 1e-6
-        assert abs(norm - 1.) < 1e-6, 'Warning, imported electric field ' \
-            + 'different from 1. Conflict with electric_field_factor?'
-
-        # Interpolation
-        z_cavity_array = np.linspace(0., zmax, n_z + 1)
-        f_z_scaled = self.electric_field_factor * f_z * norm
-        ez_spat = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
-                           kind='linear', fill_value=0.,
-                           assume_sorted=True)
-
-        self.acc_field = rf_field(352.2, np.deg2rad(self.theta_i_deg), 2)
-        self.acc_field.e_spat = ez_spat
-
-    def check_geom(self):
-        """
-        Verify that the file can be correctly imported.
-
-        Returns
-        -------
-        extension: str
-            Extension of the file to load. See TraceWin documentation.
-        import_function: fun
-            Function adapted to the nature and geometry of the field.
-        """
-        # TODO: autodetect extensions
-        # First, we check the nature of the given file
-        assert self.geometry >= 0, \
-            "Second order off-axis development not implemented."
-
-        field_nature = int(np.log10(self.geometry))
-        field_geometry = int(str(self.geometry)[0])
-
-        assert field_nature == 2, "Only RF electric fields implemented."
-        assert field_geometry == 1, "Only 1D field implemented."
-        assert self.aperture_flag <= 0, \
-            "Warning! Space charge compensation maps not implemented."
-
-        extension = ".edz"
-        import_function = helper.load_electric_field_1d
-        return extension, import_function
+        # Replace dummy accelerating field by a true one
+        self.acc_field = RfField(352.2, np.deg2rad(self.theta_i_deg), 2)
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
+        # Save this as pos_m will be replaced in z_field_map_electric_field.
         entry = self.pos_m[0]
 
         n_steps = 100 * self.acc_field.n_cell
         d_z = self.length_m / n_steps
-        self.transfer_matrix_solver = solver_param('RK', n_steps, d_z)
+        self.transfer_matrix_solver = SolverParam('RK', n_steps, d_z)
 
         f_e = transfer_matrices.z_field_map_electric_field(
             self, self.acc_field, self.transfer_matrix_solver)
