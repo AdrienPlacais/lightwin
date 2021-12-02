@@ -40,23 +40,23 @@ class _Element():
         self.name = elem[0]
         self.length_m = 1e-3 * float(elem[1])
 
+        # By default, an element is non accelerating and has a dummy
+        # accelerating field.
+        self.accelerating = False
+        self.acc_field = RfField(352.2)    # FIXME frequency import
+
         # Absolute pos, gamma and energy of in and out.
         # In accelerating elements, the size of these arrays will be > 2.
-        self.accelerating = False
-
         self.pos_m = np.full((2), np.NaN)
         self.gamma_array = np.full((2), np.NaN)
         self.energy_array_mev = np.full((2), np.NaN)
         self.transfer_matrix = np.full((1, 2, 2), np.NaN)
-
-        self.acc_field = RfField(352.2)    # FIXME frequency import
 
     def init_solver_settings(self, METHOD):
         """Initialize solver properties."""
         if self.accelerating:
             if self.name == 'FIELD_MAP':
                 n_steps = 100 * self.acc_field.n_cell
-
                 self.dict_transf_mat = {
                     'RK': transfer_matrices.z_field_map_electric_field,
                     'leapfrog': transfer_matrices.z_field_map_electric_field,
@@ -68,7 +68,6 @@ class _Element():
         else:
             # By default, 1 step for non-accelerating elements
             n_steps = 1
-
             self.dict_transf_mat = {
                 'RK': transfer_matrices.z_drift,
                 'leapfrog': transfer_matrices.z_drift,
@@ -77,6 +76,7 @@ class _Element():
 
         d_z = self.length_m / n_steps
         self.solver_transf_mat = SolverParam(METHOD, n_steps, d_z)
+
 
 # =============================================================================
 # More specific classes
@@ -89,8 +89,8 @@ class Drift(_Element):
         assert n_attributes in [2, 3, 5]
 
         super().__init__(elem)
-        self.aperture_mm = float(elem[2])   # R
-        self._load_optional_parameters(elem)
+        # self.aperture_mm = float(elem[2])   # R
+        # self._load_optional_parameters(elem)
 
     def _load_optional_parameters(self, elem):
         """Try to load optional parameters."""
@@ -118,9 +118,9 @@ class Quad(_Element):
         assert n_attributes in range(3, 10)
 
         super().__init__(elem)
-        self.magnetic_field_gradient = float(elem[2])  # G
-        self.aperture_mm = float(elem[3])              # R
-        self._load_optional_parameters(elem)
+        # self.magnetic_field_gradient = float(elem[2])  # G
+        # self.aperture_mm = float(elem[3])              # R
+        # self._load_optional_parameters(elem)
 
     def _load_optional_parameters(self, elem):
         """Load the optional parameters if they are given."""
@@ -151,8 +151,8 @@ class Solenoid(_Element):
         assert n_attributes == 3
 
         super().__init__(elem)
-        self.magnetic_field = float(elem[2])  # B
-        self.aperture_mm = float(elem[3])     # R
+        # self.magnetic_field = float(elem[2])  # B
+        # self.aperture_mm = float(elem[3])     # R
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
@@ -174,11 +174,11 @@ class FieldMap(_Element):
         self.accelerating = True
         self.geometry = int(elem[1])
         self.length_m = 1e-3 * float(elem[2])
-        self.theta_i_deg = float(elem[3])
-        self.aperture_mm = float(elem[4])               # R
-        self.magnetic_field_factor = float(elem[5])     # k_b
+        self.theta_i_rad = np.deg2rad(float(elem[3]))
+        # self.aperture_mm = float(elem[4])               # R
+        # self.magnetic_field_factor = float(elem[5])     # k_b
         self.electric_field_factor = float(elem[6])     # k_e
-        self.space_charge_comp_factor = float(elem[7])  # K_i
+        # self.space_charge_comp_factor = float(elem[7])  # K_i
         self.aperture_flag = int(elem[8])               # K_a
         # FIXME according to doc, may also be float
         self.field_map_file_name = str(elem[9])         # FileName
@@ -190,7 +190,7 @@ class FieldMap(_Element):
 
         # Replace dummy accelerating field by a true one
         self.acc_field = RfField(self.acc_field.frequency_mhz,
-                                 np.deg2rad(self.theta_i_deg), 2)
+                                 self.theta_i_rad, 2)
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
@@ -200,6 +200,7 @@ class FieldMap(_Element):
         # Init f_e
         self.f_e = 0.
 
+        # Compute transfer matrix
         self.dict_transf_mat[self.solver_transf_mat.method](self)
 
         self.pos_m += entry
