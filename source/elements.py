@@ -52,7 +52,10 @@ class _Element():
         self.energy_array_mev = np.full((2), np.NaN)
         self.transfer_matrix = np.full((1, 2, 2), np.NaN)
 
-    def init_solver_settings(self, METHOD):
+        self.dict_transf_mat = None
+        self.solver_transf_mat = None
+
+    def init_solver_settings(self, method):
         """Initialize solver properties."""
         if self.accelerating:
             if self.name == 'FIELD_MAP':
@@ -75,7 +78,7 @@ class _Element():
              }
 
         d_z = self.length_m / n_steps
-        self.solver_transf_mat = SolverParam(METHOD, n_steps, d_z)
+        self.solver_transf_mat = SolverParam(method, n_steps, d_z)
 
 
 # =============================================================================
@@ -92,14 +95,14 @@ class Drift(_Element):
         # self.aperture_mm = float(elem[2])   # R
         # self._load_optional_parameters(elem)
 
-    def _load_optional_parameters(self, elem):
-        """Try to load optional parameters."""
-        try:
-            self.aperture_y_mm = float(elem[3])                 # R_y
-            self.horizontal_aperture_shift_mm = float(elem[4])  # R_x_shift
-            self.vertical_aperture_shift_mm = float(elem[5])    # R_y_shift
-        except IndexError:
-            pass
+    # def _load_optional_parameters(self, elem):
+    #     """Try to load optional parameters."""
+    #     try:
+    #         self.aperture_y_mm = float(elem[3])                 # R_y
+    #         self.horizontal_aperture_shift_mm = float(elem[4])  # R_x_shift
+    #         self.vertical_aperture_shift_mm = float(elem[5])    # R_y_shift
+    #     except IndexError:
+    #         pass
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
@@ -122,17 +125,17 @@ class Quad(_Element):
         # self.aperture_mm = float(elem[3])              # R
         # self._load_optional_parameters(elem)
 
-    def _load_optional_parameters(self, elem):
-        """Load the optional parameters if they are given."""
-        try:
-            self.skew_angle_deg = float(elem[4])
-            self.sextupole_gradient = float(elem[5])
-            self.octupole_gradient = float(elem[6])
-            self.decapole_gradient = float(elem[7])
-            self.dodecapole_gradient = float(elem[8])
-            self.good_field_radius_mm = float(elem[9])
-        except IndexError:
-            pass
+    # def _load_optional_parameters(self, elem):
+    #     """Load the optional parameters if they are given."""
+    #     try:
+    #         self.skew_angle_deg = float(elem[4])
+    #         self.sextupole_gradient = float(elem[5])
+    #         self.octupole_gradient = float(elem[6])
+    #         self.decapole_gradient = float(elem[7])
+    #         self.dodecapole_gradient = float(elem[8])
+    #         self.good_field_radius_mm = float(elem[9])
+    #     except IndexError:
+    #         pass
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
@@ -191,6 +194,10 @@ class FieldMap(_Element):
         # Replace dummy accelerating field by a true one
         self.acc_field = RfField(self.acc_field.frequency_mhz,
                                  self.theta_i_rad, 2)
+
+        self.f_e = None
+        self.phi_s_deg = None
+        self.v_cav_mv = None
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
