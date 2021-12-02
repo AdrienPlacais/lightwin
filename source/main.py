@@ -40,7 +40,9 @@ if FILEPATH == '':
 # End of user inputs
 # =============================================================================
 linac = acc.Accelerator(E_MEV, FILEPATH)
-linac.compute_transfer_matrices()
+
+METHOD = 'RK'
+linac.compute_transfer_matrices(METHOD)
 
 debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
 # debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)
