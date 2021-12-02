@@ -26,20 +26,31 @@ def dummy():
     return r_zz
 
 
-def z_drift(cavity_or_length, gamma = np.NaN):
+def z_drift(element_or_length, gamma=np.NaN):
     """
     Compute the longitudinal sub-matrix of a drift.
 
     On a more general point of view, this is the longitudinal transfer sub-
     matrix of every non-accelerating element.
 
+    Parameters
+    ----------
+    element_or_length:
+        If instance of element, length and gamma are extracted from this
+        object.
+        If float, a gamma should also be given.
+    gamma: float, opt
+        Should be given if element_or_length is a length and not an element.
+
     FIXME: I think there are better options...
     """
-    if isinstance(cavity_or_length, float):
-        delta_s = cavity_or_length
+    if isinstance(element_or_length, float):
+        assert ~np.isnan(gamma), 'A gamma should be given if ' \
+            + 'element_or_length is a length.'
+        delta_s = element_or_length
     else:
-        delta_s = cavity_or_length.length_m
-        gamma = cavity_or_length.gamma_array[0]
+        delta_s = element_or_length.length_m
+        gamma = element_or_length.gamma_array[0]
 
     r_zz = np.array(([1., delta_s*gamma**-2],
                      [0., 1.]))
@@ -68,11 +79,9 @@ def z_field_map_electric_field(cavity):
     f_e: complex
         To compute synchronous phase and acceleration in cavity.
     """
-    acc_field = cavity.acc_field
-    solver_param = cavity.transfer_matrix_solver
     assert isinstance(cavity, elements.FieldMap)
-    assert isinstance(acc_field, electric_field.RfField)
-    assert isinstance(solver_param, elements.SolverParam)
+    acc_field = cavity.acc_field
+    solver_param = cavity.solver_transf_mat
 
 # =============================================================================
 # Initialisation
