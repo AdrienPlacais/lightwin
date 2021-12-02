@@ -42,6 +42,8 @@ class _Element():
 
         # Absolute pos, gamma and energy of in and out.
         # In accelerating elements, the size of these arrays will be > 2.
+        self.accelerating = False
+
         self.pos_m = np.full((2), np.NaN)
         self.gamma_array = np.full((2), np.NaN)
         self.energy_array_mev = np.full((2), np.NaN)
@@ -50,23 +52,31 @@ class _Element():
         self.acc_field = RfField(352.2)    # FIXME frequency import
 
     def init_solver_settings(self, METHOD):
-        """
-        Initialize default solver properties.
+        """Initialize solver properties."""
+        if self.accelerating:
+            if self.name == 'FIELD_MAP':
+                n_steps = 100 * self.acc_field.n_cell
 
-        Default parameters are modified only for accelerating elements.
-        """
-        # By default, 1 step for non-accelerating elements
-        n_steps = 1
+                self.dict_transf_mat = {
+                    'RK': transfer_matrices.z_field_map_electric_field,
+                    'leapfrog': transfer_matrices.z_field_map_electric_field,
+                    'transport': transport.transport_beam,
+                    }
+            else:
+                raise IOError('Accelerating element not implemented.')
+
+        else:
+            # By default, 1 step for non-accelerating elements
+            n_steps = 1
+
+            self.dict_transf_mat = {
+                'RK': transfer_matrices.z_drift,
+                'leapfrog': transfer_matrices.z_drift,
+                'transport': transport.transport_beam,
+             }
+
         d_z = self.length_m / n_steps
         self.solver_transf_mat = SolverParam(METHOD, n_steps, d_z)
-
-        # By default, most elements are z drifts
-        self.dict_transf_mat = {
-            'RK': transfer_matrices.z_drift,
-            'leapfrog': transfer_matrices.z_drift,
-            'transport': transport.transport_beam,
-         }
-
 
 # =============================================================================
 # More specific classes
@@ -161,6 +171,7 @@ class FieldMap(_Element):
         assert n_attributes in [9, 10]
 
         super().__init__(elem)
+        self.accelerating = True
         self.geometry = int(elem[1])
         self.length_m = 1e-3 * float(elem[2])
         self.theta_i_deg = float(elem[3])
@@ -178,20 +189,8 @@ class FieldMap(_Element):
             pass
 
         # Replace dummy accelerating field by a true one
-        freq = self.acc_field.frequency_mhz
-        self.acc_field = RfField(freq, np.deg2rad(self.theta_i_deg), 2)
-
-    def init_solver_settings(self, METHOD):
-        """Replace dummy solving parameters by real ones."""
-        n_steps = 100 * self.acc_field.n_cell
-        d_z = self.length_m / n_steps
-        self.solver_transf_mat = SolverParam(METHOD, n_steps, d_z)
-
-        self.dict_transf_mat = {
-            'RK': transfer_matrices.z_field_map_electric_field,
-            'leapfrog': transfer_matrices.z_field_map_electric_field,
-            'transport': transport.transport_beam,
-            }
+        self.acc_field = RfField(self.acc_field.frequency_mhz,
+                                 np.deg2rad(self.theta_i_deg), 2)
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
