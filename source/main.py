@@ -11,7 +11,6 @@ from tkinter.filedialog import askopenfilename
 import accelerator as acc
 import debug
 import helper
-import transport
 
 # =============================================================================
 # User inputs

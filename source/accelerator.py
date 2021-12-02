@@ -128,13 +128,13 @@ class Accelerator():
         self.list_of_elements[0].gamma_array[0] = helper.mev_to_gamma(e_0_mev,
                                                                       m_MeV)
 
-    def compute_transfer_matrices(self, METHOD):
+    def compute_transfer_matrices(self, method):
         """Compute the transfer matrices of Accelerator's elements."""
         gamma_out = self.list_of_elements[0].gamma_array[0]
 
         # Compute transfer matrix and acceleration (gamma) in each element
         for element in self.list_of_elements:
-            element.init_solver_settings(METHOD)
+            element.init_solver_settings(method)
 
             element.gamma_array[0] = gamma_out
             element.energy_array_mev[0] = helper.gamma_to_mev(gamma_out,

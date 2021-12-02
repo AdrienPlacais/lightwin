@@ -222,6 +222,9 @@ class FieldMap(_Element):
         # Save this as pos_m will be replaced in z_field_map_electric_field.
         entry = self.pos_m[0]
 
+        # Init f_e
+        self.f_e = 0.
+
         self.dict_transf_mat[self.solver_transf_mat.method](self)
 
         self.pos_m += entry
