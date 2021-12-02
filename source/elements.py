@@ -49,6 +49,24 @@ class _Element():
 
         self.acc_field = RfField(352.2)    # FIXME frequency import
 
+    def init_solver_settings(self, METHOD):
+        """
+        Initialize default solver properties.
+
+        Default parameters are modified only for accelerating elements.
+        """
+        # By default, 1 step for non-accelerating elements
+        n_steps = 1
+        d_z = self.length_m / n_steps
+        self.solver_transf_mat = SolverParam(METHOD, n_steps, d_z)
+
+        # By default, most elements are z drifts
+        self.dict_transf_mat = {
+            'RK': transfer_matrices.z_drift,
+            'leapfrog': transfer_matrices.z_drift,
+            'transport': transport.transport_beam,
+         }
+
 
 # =============================================================================
 # More specific classes
@@ -72,20 +90,6 @@ class Drift(_Element):
             self.vertical_aperture_shift_mm = float(elem[5])    # R_y_shift
         except IndexError:
             pass
-
-    def init_solver_settings(self, METHOD):
-        """Solver properties."""
-        # By default, 1 step for non-accelerating elements
-        n_steps = 1
-        d_z = self.length_m / n_steps
-        self.solver_transf_mat = SolverParam(METHOD, n_steps, d_z)
-
-        # By default, most elements are z drifts
-        self.dict_transf_mat = {
-            'RK': transfer_matrices.z_drift,
-            'leapfrog': transfer_matrices.z_drift,
-            'transport': transport.transport_beam,
-         }
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
@@ -120,20 +124,6 @@ class Quad(_Element):
         except IndexError:
             pass
 
-    def init_solver_settings(self, METHOD):
-        """Solver properties."""
-        # By default, 1 step for non-accelerating elements
-        n_steps = 1
-        d_z = self.length_m / n_steps
-        self.solver_transf_mat = SolverParam(METHOD, n_steps, d_z)
-
-        # By default, most elements are z drifts
-        self.dict_transf_mat = {
-            'RK': transfer_matrices.z_drift,
-            'leapfrog': transfer_matrices.z_drift,
-            'transport': transport.transport_beam,
-         }
-
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
         transfer_matrix = self.dict_transf_mat[
@@ -153,20 +143,6 @@ class Solenoid(_Element):
         super().__init__(elem)
         self.magnetic_field = float(elem[2])  # B
         self.aperture_mm = float(elem[3])     # R
-
-    def init_solver_settings(self, METHOD):
-        """Solver properties."""
-        # By default, 1 step for non-accelerating elements
-        n_steps = 1
-        d_z = self.length_m / n_steps
-        self.solver_transf_mat = SolverParam(METHOD, n_steps, d_z)
-
-        # By default, most elements are z drifts
-        self.dict_transf_mat = {
-            'RK': transfer_matrices.z_drift,
-            'leapfrog': transfer_matrices.z_drift,
-            'transport': transport.transport_beam,
-         }
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
