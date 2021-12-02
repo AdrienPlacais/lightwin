@@ -142,7 +142,7 @@ def v_to_mev(v, m_over_q):
 
 def mev_to_v(e_mev, q_over_m):
     """Convert MeV to m/s."""
-    v = np.sqrt(2. * q_over_m * 1e6 * e_mev)
+    v = np.sqrt(2e6 * q_over_m * e_mev)
     return v
 
 
@@ -162,6 +162,13 @@ def gamma_to_beta(gamma):
     """Convert MeV energy into Lorentz beta."""
     beta = np.sqrt(1. - gamma**-2)
     return beta
+
+
+def mev_to_p(energy_mev, mass_mev, q_over_m, mass_kg):
+    """Convert MeV energy to p."""
+    v = mev_to_v(energy_mev, q_over_m)
+    gamma = mev_to_gamma(energy_mev, mass_mev)
+    return gamma * mass_kg * v
 
 
 # =============================================================================

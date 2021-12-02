@@ -26,31 +26,27 @@ def dummy():
     return r_zz
 
 
-def z_drift(delta_s, gamma):
+def z_drift(cavity_or_length, gamma = np.NaN):
     """
     Compute the longitudinal sub-matrix of a drift.
 
     On a more general point of view, this is the longitudinal transfer sub-
     matrix of every non-accelerating element.
 
-    Parameters
-    ----------
-    delta_s: float
-        Drift length (m).
-    gamma: float
-        Lorentz factor.
-
-    Returns
-    -------
-    r_zz: np.array
-        Transfer longitudinal sub-matrix.
+    FIXME: I think there are better options...
     """
+    if isinstance(cavity_or_length, float):
+        delta_s = cavity_or_length
+    else:
+        delta_s = cavity_or_length.length_m
+        gamma = cavity_or_length.gamma_array[0]
+
     r_zz = np.array(([1., delta_s*gamma**-2],
                      [0., 1.]))
     return r_zz
 
 
-def z_field_map_electric_field(cavity, acc_field, solver_param):
+def z_field_map_electric_field(cavity):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 
@@ -72,6 +68,8 @@ def z_field_map_electric_field(cavity, acc_field, solver_param):
     f_e: complex
         To compute synchronous phase and acceleration in cavity.
     """
+    acc_field = cavity.acc_field
+    solver_param = cavity.transfer_matrix_solver
     assert isinstance(cavity, elements.FieldMap)
     assert isinstance(acc_field, electric_field.RfField)
     assert isinstance(solver_param, elements.SolverParam)

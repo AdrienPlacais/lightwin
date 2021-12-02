@@ -10,10 +10,11 @@ from collections import namedtuple
 import numpy as np
 import helper
 import transfer_matrices
+import transport
 from electric_field import RfField
 from constants import m_MeV
 
-
+# TODO separate functions for RK / leapfrog?
 SolverParam = namedtuple('SolverParam', 'method n_steps d_z')
 
 
@@ -45,8 +46,24 @@ class _Element():
         self.gamma_array = np.full((2), np.NaN)
         self.energy_array_mev = np.full((2), np.NaN)
         self.transfer_matrix = np.full((1, 2, 2), np.NaN)
-        # Dummy rf field
+        self._init_solver()
+
+    def _init_solver(self):
+        """Solver properties."""
         self.acc_field = RfField(352.2)    # FIXME frequency import
+
+        # By default, 1 step for non-accelerating elements
+        method = 'RK'
+        n_steps = 1
+        d_z = self.length_m / n_steps
+        self.solver_transf_mat = SolverParam(method, n_steps, d_z)
+
+        # By default, most elements are z drifts
+        self.dict_transf_mat = {
+            'RK': transfer_matrices.z_drift,
+            'leapfrog': transfer_matrices.z_drift,
+            'transport': transport.transport_beam,
+            }
 
 
 # =============================================================================
@@ -74,8 +91,8 @@ class Drift(_Element):
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
-        transfer_matrix = transfer_matrices.z_drift(self.length_m,
-                                                    self.gamma_array[0])
+        transfer_matrix = self.dict_transf_mat[
+            self.solver_transf_mat.method](self)
         self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
         self.gamma_array[-1] = self.gamma_array[0]
         self.energy_array_mev[-1] = self.energy_array_mev[0]
@@ -107,8 +124,8 @@ class Quad(_Element):
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
-        transfer_matrix = transfer_matrices.z_drift(self.length_m,
-                                                    self.gamma_array[0])
+        transfer_matrix = self.dict_transf_mat[
+            self.solver_transf_mat.method](self)
         self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
         self.gamma_array[-1] = self.gamma_array[0]
         self.energy_array_mev[-1] = self.energy_array_mev[0]
@@ -127,8 +144,8 @@ class Solenoid(_Element):
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
-        transfer_matrix = transfer_matrices.z_drift(self.length_m,
-                                                    self.gamma_array[0])
+        transfer_matrix = self.dict_transf_mat[
+            self.solver_transf_mat.method](self)
         self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
         self.gamma_array[-1] = self.gamma_array[0]
         self.energy_array_mev[-1] = self.energy_array_mev[0]
@@ -158,20 +175,34 @@ class FieldMap(_Element):
         except IndexError:
             pass
 
+        # As FieldMap is an accelerating element, some solver parameters should
+        # be changed.
+        self._update_solver()
+
+    def _update_solver(self):
+        """Replace dummy solving parameters by real ones."""
         # Replace dummy accelerating field by a true one
-        self.acc_field = RfField(352.2, np.deg2rad(self.theta_i_deg), 2)
+        freq = self.acc_field.frequency_mhz
+        self.acc_field = RfField(freq, np.deg2rad(self.theta_i_deg), 2)
+
+        # By default, 1 step for most elements
+        n_steps = 100 * self.acc_field.n_cell
+        d_z = self.length_m / n_steps
+        meth = self.solver_transf_mat.method
+        self.solver_transf_mat = SolverParam(meth, n_steps, d_z)
+
+        self.dict_transf_mat = {
+            'RK': transfer_matrices.z_field_map_electric_field,
+            'leapfrog': transfer_matrices.z_field_map_electric_field,
+            'transport': transport.transport_beam,
+            }
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
         # Save this as pos_m will be replaced in z_field_map_electric_field.
         entry = self.pos_m[0]
 
-        n_steps = 100 * self.acc_field.n_cell
-        d_z = self.length_m / n_steps
-        self.transfer_matrix_solver = SolverParam('RK', n_steps, d_z)
-
-        f_e = transfer_matrices.z_field_map_electric_field(
-            self, self.acc_field, self.transfer_matrix_solver)
+        f_e = self.dict_transf_mat[self.solver_transf_mat.method](self)
 
         self.pos_m += entry
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)

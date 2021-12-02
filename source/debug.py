@@ -88,7 +88,7 @@ def load_transfer_matrices(filepath_list):
     return r_zz_tot_ref
 
 
-def plot_transfer_matrices(accelerator):
+def plot_transfer_matrices(accelerator, transfer_matrix):
     """
     Plot the transfer matrix components of TraceWin and LightWin.
 
@@ -112,7 +112,8 @@ def plot_transfer_matrices(accelerator):
 
     # Change shape of calculated transfer matrix to match the ref one
     # i.e.: 1st column is z, 2nd 3rd 4th and 5th are matrix components
-    r_zz_tot = accelerator.transfer_matrix_cumul.reshape((n_z, 4))
+    # r_zz_tot = accelerator.transfer_matrix_cumul.reshape((n_z, 4))
+    r_zz_tot = transfer_matrix.reshape((n_z, 4))
     r_zz_tot = np.hstack((np.expand_dims(z, 1), r_zz_tot))
 
     r_zz_tot_ref = load_transfer_matrices(filepath_ref)
