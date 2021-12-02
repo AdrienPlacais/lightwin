@@ -11,7 +11,6 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 
 import numpy as np
 from constants import c, q_adim, m_MeV
-import electric_field
 import helper
 import solver
 import elements
@@ -63,21 +62,6 @@ def z_field_map_electric_field(cavity):
 
     In the process, it also computes the variation of energy, the synchronous
     phase, the accelerating field.
-
-    Parameters
-    ----------
-    cavity: FieldMap (Element) object
-        Cavity of which you need the transfer matrix.
-    acc_field: RfField
-        Holds electric field function and important parameters of the electric
-        field.
-    solver_param: namedtuple
-        Holds solver parameters.
-
-    Returns
-    -------
-    f_e: complex
-        To compute synchronous phase and acceleration in cavity.
     """
     assert isinstance(cavity, elements.FieldMap)
     acc_field = cavity.acc_field
@@ -123,13 +107,14 @@ def z_field_map_electric_field(cavity):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        f_e = q_adim * acc_field.e_func(synch_part['z'], synch_part['phi']) \
+        cavity.f_e = q_adim * acc_field.e_func(synch_part['z'],
+                                               synch_part['phi']) \
             * (1. + np.tan(synch_part['phi']) * 1j)
 
         if solver_param.method == 'leapfrog':
             delta['e_mev'] = q_adim * acc_field.e_func(synch_part['z'],
-                                                      synch_part['phi']) \
-                                                       * solver_param.d_z
+                                                       synch_part['phi']) \
+                                                      * solver_param.d_z
 
         elif solver_param.method == 'RK':
             u_rk = np.array(([synch_part['e_mev'], synch_part['phi']]))
@@ -156,7 +141,6 @@ def z_field_map_electric_field(cavity):
         cavity.energy_array_mev = np.hstack((cavity.energy_array_mev,
                                              synch_part['e_mev']))
 
-    return f_e
 
 
 def z_thin_lens(acc_field, d_z, gamma, beta_s, synch_part,

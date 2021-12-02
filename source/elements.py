@@ -202,17 +202,17 @@ class FieldMap(_Element):
         # Save this as pos_m will be replaced in z_field_map_electric_field.
         entry = self.pos_m[0]
 
-        f_e = self.dict_transf_mat[self.solver_transf_mat.method](self)
+        self.dict_transf_mat[self.solver_transf_mat.method](self)
 
         self.pos_m += entry
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
         # Remove first slice of transfer matrix (indentity matrix)
         self.transfer_matrix = self.transfer_matrix[1:, :, :]
-        self._compute_synch_phase_and_acc_pot(f_e)
+        self._compute_synch_phase_and_acc_pot()
 
-    def _compute_synch_phase_and_acc_pot(self, f_e):
+    def _compute_synch_phase_and_acc_pot(self):
         """Compute the sychronous phase and accelerating potential."""
-        phi_s = cmath.phase(f_e)
+        phi_s = cmath.phase(self.f_e)
         self.phi_s_deg = np.rad2deg(phi_s)
         self.v_cav_mv = np.abs(
             (self.energy_array_mev[0] - self.energy_array_mev[-1])
