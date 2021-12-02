@@ -90,19 +90,7 @@ class Drift(_Element):
     def __init__(self, elem):
         n_attributes = len(elem) - 1
         assert n_attributes in [2, 3, 5]
-
         super().__init__(elem)
-        # self.aperture_mm = float(elem[2])   # R
-        # self._load_optional_parameters(elem)
-
-    # def _load_optional_parameters(self, elem):
-    #     """Try to load optional parameters."""
-    #     try:
-    #         self.aperture_y_mm = float(elem[3])                 # R_y
-    #         self.horizontal_aperture_shift_mm = float(elem[4])  # R_x_shift
-    #         self.vertical_aperture_shift_mm = float(elem[5])    # R_y_shift
-    #     except IndexError:
-    #         pass
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
@@ -119,23 +107,7 @@ class Quad(_Element):
     def __init__(self, elem):
         n_attributes = len(elem) - 1
         assert n_attributes in range(3, 10)
-
         super().__init__(elem)
-        # self.magnetic_field_gradient = float(elem[2])  # G
-        # self.aperture_mm = float(elem[3])              # R
-        # self._load_optional_parameters(elem)
-
-    # def _load_optional_parameters(self, elem):
-    #     """Load the optional parameters if they are given."""
-    #     try:
-    #         self.skew_angle_deg = float(elem[4])
-    #         self.sextupole_gradient = float(elem[5])
-    #         self.octupole_gradient = float(elem[6])
-    #         self.decapole_gradient = float(elem[7])
-    #         self.dodecapole_gradient = float(elem[8])
-    #         self.good_field_radius_mm = float(elem[9])
-    #     except IndexError:
-    #         pass
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
@@ -152,10 +124,7 @@ class Solenoid(_Element):
     def __init__(self, elem):
         n_attributes = len(elem) - 1
         assert n_attributes == 3
-
         super().__init__(elem)
-        # self.magnetic_field = float(elem[2])  # B
-        # self.aperture_mm = float(elem[3])     # R
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
@@ -178,10 +147,7 @@ class FieldMap(_Element):
         self.geometry = int(elem[1])
         self.length_m = 1e-3 * float(elem[2])
         self.theta_i_rad = np.deg2rad(float(elem[3]))
-        # self.aperture_mm = float(elem[4])               # R
-        # self.magnetic_field_factor = float(elem[5])     # k_b
         self.electric_field_factor = float(elem[6])     # k_e
-        # self.space_charge_comp_factor = float(elem[7])  # K_i
         self.aperture_flag = int(elem[8])               # K_a
         # FIXME according to doc, may also be float
         self.field_map_file_name = str(elem[9])         # FileName
