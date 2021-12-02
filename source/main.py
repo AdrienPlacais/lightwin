@@ -13,7 +13,7 @@ import debug
 import helper
 
 # =============================================================================
-# User inputs
+# User inputs5
 # =============================================================================
 # TODO: direct import of this parameters from the .ini file
 # TODO: handle different particles
