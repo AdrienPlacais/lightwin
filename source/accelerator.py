@@ -239,18 +239,20 @@ class Accelerator():
 
             return data_out
 
-        def fun_float(data_out, elt):
+        def fun_simple(data_out, elt):
             """
             Create an array of required attribute.
 
-            Used when element[attribute] is a float.
+            Used when element[attribute] is 'simple': float or a string (eg
+            'name').
             """
             subclass_attributes = vars(elt)
 
             if data_out is not None:
-                data_out.append(subclass_attributes[attribute])
+                data_tmp = subclass_attributes[attribute]
+                data_out = np.hstack((data_out, data_tmp))
             else:
-                data_out = subclass_attributes[attribute]
+                data_out = np.array((subclass_attributes[attribute]))
 
             return data_out
 
@@ -260,10 +262,11 @@ class Accelerator():
         dict_data_getter = {
             "<class 'numpy.ndarray'>": fun_array,
             "<class 'dict'>": fun_dict,
-            "<class 'float'>": fun_float,
+            "<class 'float'>": fun_simple,
+            "<class 'str'>": fun_simple,
             }
         out = None
+        data_nature = str(type(list_of_keys[attribute]))
         for elt in self.list_of_elements:
-            out = dict_data_getter[str(type(list_of_keys[attribute]))](out,
-                                                                       elt)
+            out = dict_data_getter[data_nature](out, elt)
         return out
