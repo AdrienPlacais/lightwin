@@ -54,7 +54,7 @@ def z_drift(element_or_length, gamma=np.NaN):
     else:
         n = element_or_length.solver_transf_mat.n_steps
         delta_s = element_or_length.length_m / n
-        gamma = element_or_length.gamma_array[0]
+        gamma = element_or_length.energy['gamma_array'][0]
         r_zz = np.full((n, 2, 2), np.NaN)
         for i in range(n):
             r_zz[i, :, :] = np.array(([1., delta_s*gamma**-2],
@@ -78,7 +78,7 @@ def z_field_map_electric_field(cavity):
 # Initialisation
 # =============================================================================
     # gamma at entrance, middle and exit of cavity
-    gamma = {'in': helper.mev_to_gamma(cavity.energy_array_mev[0], m_MeV),
+    gamma = {'in': helper.mev_to_gamma(cavity.energy['e_array_mev'][0], m_MeV),
              'synch': 0.,
              'out': 0.}
     # Variation of synch part parameters (not necessary for z, as it is always
@@ -89,12 +89,12 @@ def z_field_map_electric_field(cavity):
     # Initialize gamma and synch_part:
     if solver_param.method == 'leapfrog':
         synch = solver.init_leapfrog_cavity(acc_field,
-                                            cavity.energy_array_mev[0],
+                                            cavity.energy['e_array_mev'][0],
                                             gamma, solver_param.d_z)
 
     elif solver_param.method == 'RK':
         du_dz, synch = solver.init_rk4_cavity(acc_field,
-                                              cavity.energy_array_mev[0],
+                                              cavity.energy['e_array_mev'][0],
                                               gamma)
 
     # We loop until reaching the end of the cavity
@@ -143,7 +143,7 @@ def z_field_map_electric_field(cavity):
         synch.phi['rel'] += delta['phi']
         synch.advance_position(solver_param.d_z)
 
-    cavity.energy_array_mev = np.array(synch.energy['e_array_mev'])
+    cavity.energy['e_array_mev'] = np.array(synch.energy['e_array_mev'])
 
 
 def z_thin_lens(acc_field, d_z, gamma, beta_s, synch,
@@ -188,10 +188,8 @@ def z_thin_lens(acc_field, d_z, gamma, beta_s, synch,
 #   Mid
 # =============================================================================
     # We place ourselves at the middle of the gap:
-    # z_k = synch_part['z'] + .5 * d_z
     z_k = synch.z['rel'] + .5 * d_z
     delta_phi_half_step = .5 * d_z * acc_field.omega_0 / (beta_s * c)
-    # phi_k = synch_part['phi'] + delta_phi_half_step
     phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components

@@ -127,9 +127,9 @@ class Accelerator():
             entry = out
 
         # Initial energy:
-        self.list_of_elements[0].energy_array_mev[0] = e_0_mev
-        self.list_of_elements[0].gamma_array[0] = helper.mev_to_gamma(e_0_mev,
-                                                                      m_MeV)
+        self.list_of_elements[0].energy['e_array_mev'][0] = e_0_mev
+        self.list_of_elements[0].energy['gamma_array'][0] = \
+            helper.mev_to_gamma(e_0_mev, m_MeV)
 
     def compute_transfer_matrices(self, method):
         """Compute the transfer matrices of Accelerator's elements."""
@@ -138,14 +138,14 @@ class Accelerator():
 
         self._complementary_assignation(self.e_0_mev)
 
-        gamma_out = self.list_of_elements[0].gamma_array[0]
+        gamma_out = self.list_of_elements[0].energy['gamma_array'][0]
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
             for element in self.list_of_elements:
-                element.gamma_array[0] = gamma_out
-                element.energy_array_mev[0] = helper.gamma_to_mev(gamma_out,
-                                                                  m_MeV)
+                element.energy['gamma_array'][0] = gamma_out
+                element.energy['e_array_mev'][0] = \
+                    helper.gamma_to_mev(gamma_out, m_MeV)
                 element.compute_transfer_matrix()
 
                 if self.flag_first_calculation_of_transfer_matrix:
@@ -156,10 +156,10 @@ class Accelerator():
                     np.vstack((self.transfer_matrix_cumul,
                                element.transfer_matrix))
 
-                element.energy_array_mev = helper.gamma_to_mev(
-                    element.gamma_array,
+                element.energy['e_array_mev'] = helper.gamma_to_mev(
+                    element.energy['gamma_array'],
                     m_MeV)
-                gamma_out = element.gamma_array[-1]
+                gamma_out = element.energy['gamma_array'][-1]
 
         elif method == 'transport':
             transport.transport_beam(self)
@@ -172,7 +172,7 @@ class Accelerator():
         self.transfer_matrix_cumul = \
             helper.individual_to_global_transfer_matrix(transfer_matrix_indiv)
 
-    def get_from_elements(self, attribute):
+    def get_from_elements(self, attribute, key=None):
         """
         Return the attribute of all elements.
 
@@ -180,18 +180,21 @@ class Accelerator():
         ----------
         attribute: string
             Name of the desired attribute.
+        key: string, optional
+            If attribute is a dict, key must be provided.
         """
         # Some attributes such as enery hold in/out data: energy at the
         # entrance and at the exit of the element. As energy at the entrance
         # of an element is equal to the energy at the exit of the precedent,
         # we discard all entrance data.
-        discard_list = ['pos_m', 'energy_array_mev', 'gamma_array']
+        discard_list = ['pos_m', 'energy']
 
         # Get list of attributes of first element
-        init = vars(self.list_of_elements[0])
+        list_of_keys = vars(self.list_of_elements[0])
 
-        if isinstance(init[attribute], np.ndarray):
-            out = np.copy(init[attribute])
+        # Fist case: 'attribute' is the name of an attribute that is an array.
+        if isinstance(list_of_keys[attribute], np.ndarray):
+            out = np.copy(list_of_keys[attribute])
 
             for elt in self.list_of_elements[1:]:
                 subclass_attributes = vars(elt)
@@ -201,20 +204,19 @@ class Accelerator():
                     data = data[1:]
                     out = np.hstack((out, data))
 
-                elif attribute in ['transfer_matrix']:
+                else:
                     out = np.vstack((out, data))
 
-                else:
-                    print('Import of this attribute not implemented yet.')
-
         # FIXME dirty
-        elif isinstance(init[attribute], dict):
-            out = np.copy(init[attribute]['abs'])
+        elif isinstance(list_of_keys[attribute], dict):
+            assert key is not None, 'A key must be provided as attribute ' \
+                + 'is a dict.'
+            out = np.copy(list_of_keys[attribute][key])
 
             for elt in self.list_of_elements[1:]:
                 subclass_attributes = vars(elt)
 
-                data = np.copy(subclass_attributes[attribute]['abs'])
+                data = np.copy(subclass_attributes[attribute][key])
                 if attribute in discard_list:
                     data = data[1:]
                     out = np.hstack((out, data))
