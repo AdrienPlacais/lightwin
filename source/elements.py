@@ -46,8 +46,8 @@ class _Element():
         self.acc_field = RfField(352.2)    # FIXME frequency import
 
         self.pos_m = {
-            'global': None,
-            'local': None,
+            'abs': None,
+            'rel': None,
             }
         self.gamma_array = None
         self.energy_array_mev = None
@@ -71,14 +71,14 @@ class _Element():
 
         else:
             # By default, 1 step for non-accelerating elements
-            n_steps = 2
+            n_steps = 1
             self.dict_transf_mat = {
                 'RK': transfer_matrices.z_drift,
                 'leapfrog': transfer_matrices.z_drift,
                 'transport': transport.transport_beam,
              }
 
-        self.pos_m['local'] = np.linspace(0., self.length_m, n_steps + 1)
+        self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.gamma_array = np.full((n_steps + 1), np.NaN)
         self.energy_array_mev = np.full((n_steps + 1), np.NaN)
         self.transfer_matrix = np.full((n_steps, 2, 2), np.NaN)

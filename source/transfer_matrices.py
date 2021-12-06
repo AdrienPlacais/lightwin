@@ -77,10 +77,6 @@ def z_field_map_electric_field(cavity):
 # =============================================================================
 # Initialisation
 # =============================================================================
-    # Replace original two elements array
-    # cavity.pos_m = np.linspace(0., cavity.length_m, solver_param.n_steps + 1)
-    # local_pos_m = cavity.pos_m - cavity.pos_m[0]
-
     # gamma at entrance, middle and exit of cavity
     gamma = {'in': helper.mev_to_gamma(cavity.energy_array_mev[0], m_MeV),
              'synch': 0.,

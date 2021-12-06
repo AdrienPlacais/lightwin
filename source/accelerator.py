@@ -123,7 +123,7 @@ class Accelerator():
             elt = self.list_of_elements[i]
             out += elt.length_m
 
-            elt.pos_m['global'] = elt.pos_m['local'] + entry
+            elt.pos_m['abs'] = elt.pos_m['rel'] + entry
             entry = out
 
         # Initial energy:
@@ -209,12 +209,12 @@ class Accelerator():
 
         # FIXME dirty
         elif isinstance(init[attribute], dict):
-            out = np.copy(init[attribute]['global'])
+            out = np.copy(init[attribute]['abs'])
 
             for elt in self.list_of_elements[1:]:
                 subclass_attributes = vars(elt)
 
-                data = np.copy(subclass_attributes[attribute]['global'])
+                data = np.copy(subclass_attributes[attribute]['abs'])
                 if attribute in discard_list:
                     data = data[1:]
                     out = np.hstack((out, data))
