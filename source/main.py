@@ -45,7 +45,7 @@ for method in ['RK']:
     linac.compute_transfer_matrices(method)
     debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
 # debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)
-# debug.compare_energies(linac)
+    # debug.compare_energies(linac)
 
 # transport.compute_envelope(linac)
 # transport.transport_beam(linac)

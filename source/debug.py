@@ -208,11 +208,10 @@ def compare_energies(accelerator):
     filepath_ref = accelerator.project_folder + '/results/energy_ref.txt'
     e_mev_ref = load_energies(filepath_ref, n_elt)
 
-    # error = np.abs(e_mev_ref - accelerator.E_MeV[1:])
     e_mev = np.full((n_elt), np.NaN)
     for i in range(n_elt):
         e_mev[i] = \
-            accelerator.list_of_elements[i].energy_array_mev[-1]
+            accelerator.list_of_elements[i].energy['e_array_mev'][-1]
 
     error = np.abs(e_mev_ref - e_mev)
 
