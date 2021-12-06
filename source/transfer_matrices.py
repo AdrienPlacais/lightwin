@@ -14,7 +14,6 @@ from constants import c, q_adim, m_MeV
 import helper
 import solver
 import elements
-import particle
 
 
 # =============================================================================
@@ -106,16 +105,16 @@ def z_field_map_electric_field(cavity):
 
         # form cos + j * sin
         cavity.f_e = q_adim * acc_field.e_func(synch.z['rel'],
-                                               synch.phi) \
-            * (1. + np.tan(synch.phi) * 1j)
+                                               synch.phi['rel']) \
+            * (1. + np.tan(synch.phi['rel']) * 1j)
 
         if solver_param.method == 'leapfrog':
             delta['e_mev'] = q_adim * acc_field.e_func(synch.z['rel'],
-                                                       synch.phi) \
+                                                       synch.phi['rel']) \
                                                       * solver_param.d_z
 
         elif solver_param.method == 'RK':
-            u_rk = np.array(([synch.energy['e_mev'], synch.phi]))
+            u_rk = np.array(([synch.energy['e_mev'], synch.phi['rel']]))
             temp = solver.rk4(u_rk, du_dz, synch.z['rel'], solver_param.d_z)
             delta['e_mev'] = temp[0]
             delta['phi'] = temp[1]
@@ -137,7 +136,7 @@ def z_field_map_electric_field(cavity):
             delta['phi'] = acc_field.omega_0 * solver_param.d_z \
                 / (helper.gamma_to_beta(gamma['out']) * c)
 
-        synch.phi += delta['phi']
+        synch.phi['rel'] += delta['phi']
         synch.advance_position(solver_param.d_z)
 
     cavity.energy_array_mev = np.array(synch.energy['e_array_mev'])
@@ -189,7 +188,7 @@ def z_thin_lens(acc_field, d_z, gamma, beta_s, synch,
     z_k = synch.z['rel'] + .5 * d_z
     delta_phi_half_step = .5 * d_z * acc_field.omega_0 / (beta_s * c)
     # phi_k = synch_part['phi'] + delta_phi_half_step
-    phi_k = synch.phi + delta_phi_half_step
+    phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['synch'] * beta_s**2 * m_MeV)

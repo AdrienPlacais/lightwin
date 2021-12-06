@@ -11,6 +11,7 @@ import elements
 import helper
 from constants import m_MeV
 from electric_field import load_field_map_file
+import transport
 
 
 class Accelerator():
@@ -133,25 +134,34 @@ class Accelerator():
         gamma_out = self.list_of_elements[0].gamma_array[0]
 
         # Compute transfer matrix and acceleration (gamma) in each element
-        for element in self.list_of_elements:
-            element.init_solver_settings(method)
+        if method in ['RK', 'leapfrog']:
+            for element in self.list_of_elements:
+                element.init_solver_settings(method)
 
-            element.gamma_array[0] = gamma_out
-            element.energy_array_mev[0] = helper.gamma_to_mev(gamma_out,
-                                                              m_MeV)
-            element.compute_transfer_matrix()
+                element.gamma_array[0] = gamma_out
+                element.energy_array_mev[0] = helper.gamma_to_mev(gamma_out,
+                                                                  m_MeV)
+                element.compute_transfer_matrix()
 
-            if self.flag_first_calculation_of_transfer_matrix:
-                self.transfer_matrix_cumul = element.transfer_matrix
-                self.flag_first_calculation_of_transfer_matrix = False
+                if self.flag_first_calculation_of_transfer_matrix:
+                    self.transfer_matrix_cumul = element.transfer_matrix
+                    self.flag_first_calculation_of_transfer_matrix = False
 
-            else:
-                np.vstack((self.transfer_matrix_cumul,
-                           element.transfer_matrix))
+                else:
+                    np.vstack((self.transfer_matrix_cumul,
+                               element.transfer_matrix))
 
-            element.energy_array_mev = helper.gamma_to_mev(element.gamma_array,
-                                                           m_MeV)
-            gamma_out = element.gamma_array[-1]
+                element.energy_array_mev = helper.gamma_to_mev(
+                    element.gamma_array,
+                    m_MeV)
+                gamma_out = element.gamma_array[-1]
+
+        elif method == 'transport':
+            # Init some trucs
+            for element in self.list_of_elements:
+                element.init_solver_settings(method)
+
+            transport.transport_beam(self)
 
         transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
         transfer_matrix_indiv = np.vstack((transfer_matrix_indiv,

@@ -171,6 +171,11 @@ def mev_to_p(energy_mev, mass_mev, q_over_m, mass_kg):
     return gamma * mass_kg * v
 
 
+def mev_and_gamma_to_p(energy_mev, gamma, mass_kg, q_over_m):
+    """Compute p when energy and gamma are already calculated."""
+    return gamma * mass_kg * mev_to_v(energy_mev, q_over_m)
+
+
 # =============================================================================
 # Matrix manipulation
 # =============================================================================

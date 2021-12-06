@@ -7,7 +7,7 @@ Created on Thu Dec  2 13:44:00 2021
 """
 
 import helper
-from constants import m_MeV, c
+from constants import m_MeV, c, m_kg, q_over_m
 
 
 class Particle():
@@ -15,22 +15,26 @@ class Particle():
 
     def __init__(self, z, e_mev, omega_0):
         self.z = {
-            'abs': z,    # Position from the start of the line
-            'rel': 0.,      # Position from the start of the element
+            'abs': z,           # Position from the start of the line
+            'rel': z,           # Position from the start of the element
+            'abs_array': [],
             }
-        # TODO not sure how to handle z
 
         self.energy = {
             'e_mev': None,
             'gamma': None,
             'beta': None,
+            'p': None,
             'e_array_mev': [],
             'gamma_array': [],
             }
         self.set_energy(e_mev, delta_e=False)
 
-        self.phi = None
-        self.set_phi(omega_0)
+        self.phi = {
+            'abs': None,
+            'rel': None,
+            }
+        self.init_phi(omega_0)
 
         self.phase_space = {
             'z': None,      # z_abs - s_abs or z_rel - s_rel
@@ -51,6 +55,9 @@ class Particle():
 
         self.energy['gamma'] = helper.mev_to_gamma(self.energy['e_mev'], m_MeV)
         self.energy['beta'] = helper.gamma_to_beta(self.energy['gamma'])
+        self.energy['p'] = helper.mev_and_gamma_to_p(self.energy['e_mev'],
+                                                     self.energy['gamma'],
+                                                     m_kg, q_over_m)
 
         self.energy['e_array_mev'].append(self.energy['e_mev'])
         self.energy['gamma_array'].append(self.energy['gamma'])
@@ -59,7 +66,26 @@ class Particle():
         """Advance particle by delt_pos."""
         self.z['abs'] += delta_pos
         self.z['rel'] += delta_pos
+        self.z['abs_array'].append(self.z['abs'])
 
-    def set_phi(self, omega_0):
-        """Update phi by taking z_rel and beta."""
-        self.phi = omega_0 * self.z['rel'] / (self.energy['beta'] * c)
+    def init_phi(self, omega_0):
+        """Init phi by taking z_rel and beta."""
+        self.phi['abs'] = omega_0 * self.z['rel'] / (self.energy['beta'] * c)
+        self.phi['rel'] = self.phi['abs']
+
+    def advance_phi(self, delta_phi):
+        """Increase relative and absolute phase by delta_phi."""
+        self.phi['abs'] += delta_phi
+        self.phi['rel'] += delta_phi
+
+    def compute_phase_space(self, synch_particle):
+        """
+        Compute phase-space array.
+
+        synch_particle is an instance of Particle corresponding to the
+        synchronous particle.
+        """
+        self.phase_space['z'] = self.z['rel'] - synch_particle.z['rel']
+        self.phase_space['delta'] = (self.energy['p']
+                                     - synch_particle.energy['p']) \
+            / synch_particle.energy['p']

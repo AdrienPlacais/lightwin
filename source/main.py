@@ -11,6 +11,7 @@ from tkinter.filedialog import askopenfilename
 import accelerator as acc
 import debug
 import helper
+import transport
 
 # =============================================================================
 # User inputs5
@@ -40,10 +41,9 @@ if FILEPATH == '':
 # =============================================================================
 linac = acc.Accelerator(E_MEV, FILEPATH)
 
-METHOD = 'RK'
-linac.compute_transfer_matrices(METHOD)
-
-debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
+for method in ['RK', 'transport']:
+    linac.compute_transfer_matrices(method)
+    debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
 # debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)
 # debug.compare_energies(linac)
 
