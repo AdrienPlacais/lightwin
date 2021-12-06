@@ -47,12 +47,19 @@ def z_drift(element_or_length, gamma=np.NaN):
         assert ~np.isnan(gamma), 'A gamma should be given if ' \
             + 'element_or_length is a length.'
         delta_s = element_or_length
-    else:
-        delta_s = element_or_length.length_m
-        gamma = element_or_length.gamma_array[0]
 
-    r_zz = np.array(([1., delta_s*gamma**-2],
-                     [0., 1.]))
+        r_zz = np.array(([1., delta_s*gamma**-2],
+                         [0., 1.]))
+
+    else:
+        n = element_or_length.solver_transf_mat.n_steps
+        delta_s = element_or_length.length_m / n
+        gamma = element_or_length.gamma_array[0]
+        r_zz = np.full((n, 2, 2), np.NaN)
+        for i in range(n):
+            r_zz[i, :, :] = np.array(([1., delta_s*gamma**-2],
+                                      [0., 1.]))
+
     return r_zz
 
 
@@ -71,7 +78,8 @@ def z_field_map_electric_field(cavity):
 # Initialisation
 # =============================================================================
     # Replace original two elements array
-    cavity.pos_m = np.linspace(0., cavity.length_m, solver_param.n_steps + 1)
+    # cavity.pos_m = np.linspace(0., cavity.length_m, solver_param.n_steps + 1)
+    # local_pos_m = cavity.pos_m - cavity.pos_m[0]
 
     # gamma at entrance, middle and exit of cavity
     gamma = {'in': helper.mev_to_gamma(cavity.energy_array_mev[0], m_MeV),

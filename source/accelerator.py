@@ -44,12 +44,13 @@ class Accelerator():
         # Create empty list of elements and fill it
         self.list_of_elements = []
         self._create_structure()
-        self._complementary_assignation(e_0_mev)
         self._load_filemaps()
 
         # Longitudinal transfer matrix of the first to the i-th element:
         self.transfer_matrix_cumul = np.full((1, 2, 2), np.NaN)
         self.flag_first_calculation_of_transfer_matrix = True
+
+        self.e_0_mev = e_0_mev
 
     def _load_dat_file(self):
         """Load the dat file and convert it into a list of lines."""
@@ -119,9 +120,10 @@ class Accelerator():
         out = 0.
 
         for i in range(self.n_elements):
-            element = self.list_of_elements[i]
-            out += element.length_m
-            element.pos_m = np.array(([entry, out]))
+            elt = self.list_of_elements[i]
+            out += elt.length_m
+
+            elt.pos_m['global'] = elt.pos_m['local'] + entry
             entry = out
 
         # Initial energy:
@@ -131,13 +133,16 @@ class Accelerator():
 
     def compute_transfer_matrices(self, method):
         """Compute the transfer matrices of Accelerator's elements."""
+        for elt in self.list_of_elements:
+            elt.init_solver_settings(method)
+
+        self._complementary_assignation(self.e_0_mev)
+
         gamma_out = self.list_of_elements[0].gamma_array[0]
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
             for element in self.list_of_elements:
-                element.init_solver_settings(method)
-
                 element.gamma_array[0] = gamma_out
                 element.energy_array_mev[0] = helper.gamma_to_mev(gamma_out,
                                                                   m_MeV)
@@ -157,10 +162,6 @@ class Accelerator():
                 gamma_out = element.gamma_array[-1]
 
         elif method == 'transport':
-            # Init some trucs
-            for element in self.list_of_elements:
-                element.init_solver_settings(method)
-
             transport.transport_beam(self)
 
         transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
@@ -205,6 +206,18 @@ class Accelerator():
 
                 else:
                     print('Import of this attribute not implemented yet.')
+
+        # FIXME dirty
+        elif isinstance(init[attribute], dict):
+            out = np.copy(init[attribute]['global'])
+
+            for elt in self.list_of_elements[1:]:
+                subclass_attributes = vars(elt)
+
+                data = np.copy(subclass_attributes[attribute]['global'])
+                if attribute in discard_list:
+                    data = data[1:]
+                    out = np.hstack((out, data))
 
         else:
             out = []

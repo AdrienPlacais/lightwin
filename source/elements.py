@@ -45,12 +45,13 @@ class _Element():
         self.accelerating = False
         self.acc_field = RfField(352.2)    # FIXME frequency import
 
-        # Absolute pos, gamma and energy of in and out.
-        # In accelerating elements, the size of these arrays will be > 2.
-        self.pos_m = np.full((2), np.NaN)
-        self.gamma_array = np.full((2), np.NaN)
-        self.energy_array_mev = np.full((2), np.NaN)
-        self.transfer_matrix = np.full((1, 2, 2), np.NaN)
+        self.pos_m = {
+            'global': None,
+            'local': None,
+            }
+        self.gamma_array = None
+        self.energy_array_mev = None
+        self.transfer_matrix = None
 
         self.dict_transf_mat = None
         self.solver_transf_mat = None
@@ -70,15 +71,28 @@ class _Element():
 
         else:
             # By default, 1 step for non-accelerating elements
-            n_steps = 1
+            n_steps = 2
             self.dict_transf_mat = {
                 'RK': transfer_matrices.z_drift,
                 'leapfrog': transfer_matrices.z_drift,
                 'transport': transport.transport_beam,
              }
 
+        self.pos_m['local'] = np.linspace(0., self.length_m, n_steps + 1)
+        self.gamma_array = np.full((n_steps + 1), np.NaN)
+        self.energy_array_mev = np.full((n_steps + 1), np.NaN)
+        self.transfer_matrix = np.full((n_steps, 2, 2), np.NaN)
+
         d_z = self.length_m / n_steps
         self.solver_transf_mat = SolverParam(method, n_steps, d_z)
+
+    def compute_transfer_matrix(self):
+        """Compute longitudinal matrix. Default for non-accelerating elt."""
+        assert ~self.accelerating
+        self.transfer_matrix = self.dict_transf_mat[
+            self.solver_transf_mat.method](self)
+        self.gamma_array[1:] = self.gamma_array[0]
+        self.energy_array_mev[1:] = self.energy_array_mev[0]
 
 
 # =============================================================================
@@ -92,14 +106,6 @@ class Drift(_Element):
         assert n_attributes in [2, 3, 5]
         super().__init__(elem)
 
-    def compute_transfer_matrix(self):
-        """Compute longitudinal matrix."""
-        transfer_matrix = self.dict_transf_mat[
-            self.solver_transf_mat.method](self)
-        self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
-        self.gamma_array[-1] = self.gamma_array[0]
-        self.energy_array_mev[-1] = self.energy_array_mev[0]
-
 
 class Quad(_Element):
     """Sub-class of Element, with parameters specific to QUADs."""
@@ -109,14 +115,6 @@ class Quad(_Element):
         assert n_attributes in range(3, 10)
         super().__init__(elem)
 
-    def compute_transfer_matrix(self):
-        """Compute longitudinal matrix."""
-        transfer_matrix = self.dict_transf_mat[
-            self.solver_transf_mat.method](self)
-        self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
-        self.gamma_array[-1] = self.gamma_array[0]
-        self.energy_array_mev[-1] = self.energy_array_mev[0]
-
 
 class Solenoid(_Element):
     """Sub-class of Element, with parameters specific to SOLENOIDs."""
@@ -125,14 +123,6 @@ class Solenoid(_Element):
         n_attributes = len(elem) - 1
         assert n_attributes == 3
         super().__init__(elem)
-
-    def compute_transfer_matrix(self):
-        """Compute longitudinal matrix."""
-        transfer_matrix = self.dict_transf_mat[
-            self.solver_transf_mat.method](self)
-        self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
-        self.gamma_array[-1] = self.gamma_array[0]
-        self.energy_array_mev[-1] = self.energy_array_mev[0]
 
 
 class FieldMap(_Element):
@@ -167,16 +157,12 @@ class FieldMap(_Element):
 
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
-        # Save this as pos_m will be replaced in z_field_map_electric_field.
-        entry = self.pos_m[0]
-
         # Init f_e
         self.f_e = 0.
 
         # Compute transfer matrix
         self.dict_transf_mat[self.solver_transf_mat.method](self)
 
-        self.pos_m += entry
         self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
         # Remove first slice of transfer matrix (indentity matrix)
         self.transfer_matrix = self.transfer_matrix[1:, :, :]
@@ -213,11 +199,10 @@ class CavSin(_Element):
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
         print('Warning, MT of sin cav not implemented.')
-        transfer_matrix = transfer_matrices.z_drift(self.length_m,
-                                                    self.gamma_array[0])
-        self.transfer_matrix = np.expand_dims(transfer_matrix, 0)
-        self.gamma_array[-1] = self.gamma_array[0]
-        self.energy_array_mev[-1] = self.energy_array_mev[0]
+        self.transfer_matrix = transfer_matrices.z_drift(self.length_m,
+                                                         self.gamma_array[0])
+        self.gamma_array[1:] = self.gamma_array[0]
+        self.energy_array_mev[1:] = self.energy_array_mev[0]
 
 
 class NotAnElement():

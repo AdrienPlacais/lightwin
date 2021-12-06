@@ -41,7 +41,7 @@ if FILEPATH == '':
 # =============================================================================
 linac = acc.Accelerator(E_MEV, FILEPATH)
 
-for method in ['RK', 'transport']:
+for method in ['RK']:
     linac.compute_transfer_matrices(method)
     debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
 # debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)

@@ -107,7 +107,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
                     accelerator.project_folder + '/results/M_65_ref.txt',
                     accelerator.project_folder + '/results/M_66_ref.txt']
 
-    z = accelerator.get_from_elements('pos_m')
+    z = accelerator.get_from_elements("pos_m")
     n_z = z.shape[0]
 
     # Change shape of calculated transfer matrix to match the ref one
