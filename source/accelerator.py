@@ -189,42 +189,81 @@ class Accelerator():
         # we discard all entrance data.
         discard_list = ['pos_m', 'energy']
 
+        def add_data(data_out, data_tmp, attribute):
+            """
+            Add data_tmp to data_out.
+
+            This function also removes the first element of data_tmp if
+            attribute is in discard_list.
+            """
+            if attribute in discard_list:
+                data_tmp = data_tmp[1:]
+                data_out = np.hstack((data_out, data_tmp))
+
+            else:
+                data_out = np.vstack((data_out, data_tmp))
+            return data_out
+
+        def fun_array(data_out, elt):
+            """
+            Create an array of required attribute.
+
+            Used when element[attribute] is an array.
+            """
+            subclass_attributes = vars(elt)
+
+            if data_out is not None:
+                data_tmp = np.copy(subclass_attributes[attribute])
+                data_out = add_data(data_out, data_tmp, attribute)
+            else:
+                data_out = np.copy(subclass_attributes[attribute])
+
+            return data_out
+
+        def fun_dict(data_out, elt):
+            """
+            Create an array of required attribute.
+
+            Used when element[attribute] is dict (eg attribute = 'energy' and
+                                                  key = 'gamma_array').
+            """
+            assert key is not None, 'A key must be provided as attribute ' \
+                + 'is a dict.'
+            subclass_attributes = vars(elt)
+
+            if data_out is not None:
+                data_tmp = np.copy(subclass_attributes[attribute][key])
+                data_out = add_data(data_out, data_tmp, attribute)
+            else:
+                data_out = np.copy(subclass_attributes[attribute][key])
+
+            return data_out
+
+        def fun_float(data_out, elt):
+            """
+            Create an array of required attribute.
+
+            Used when element[attribute] is a float.
+            """
+            subclass_attributes = vars(elt)
+
+            if data_out is not None:
+                data_out.append(subclass_attributes[attribute])
+            else:
+                data_out = subclass_attributes[attribute]
+
+            return data_out
+
         # Get list of attributes of first element
         list_of_keys = vars(self.list_of_elements[0])
 
-        # Fist case: 'attribute' is the name of an attribute that is an array.
-        if isinstance(list_of_keys[attribute], np.ndarray):
-            out = np.copy(list_of_keys[attribute])
-
-            for elt in self.list_of_elements[1:]:
-                subclass_attributes = vars(elt)
-
-                data = np.copy(subclass_attributes[attribute])
-                if attribute in discard_list:
-                    data = data[1:]
-                    out = np.hstack((out, data))
-
-                else:
-                    out = np.vstack((out, data))
-
-        # FIXME dirty
-        elif isinstance(list_of_keys[attribute], dict):
-            assert key is not None, 'A key must be provided as attribute ' \
-                + 'is a dict.'
-            out = np.copy(list_of_keys[attribute][key])
-
-            for elt in self.list_of_elements[1:]:
-                subclass_attributes = vars(elt)
-
-                data = np.copy(subclass_attributes[attribute][key])
-                if attribute in discard_list:
-                    data = data[1:]
-                    out = np.hstack((out, data))
-
-        else:
-            out = []
-            for elt in self.list_of_elements:
-                subclass_attributes = vars(elt)
-                out.append(subclass_attributes[attribute])
-
+        dict_data_getter = {
+            "<class 'numpy.ndarray'>": fun_array,
+            "<class 'dict'>": fun_dict,
+            "<class 'float'>": fun_float,
+            }
+        out = None
+        for elt in self.list_of_elements:
+            out = dict_data_getter[str(type(list_of_keys[attribute]))](out,
+                                                                       elt)
         return out
