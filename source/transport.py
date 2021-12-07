@@ -9,7 +9,6 @@ Created on Tue Nov 9 14:26:45 2021
 import numpy as np
 from palettable.colorbrewer.qualitative import Set1_9
 import helper
-import debug
 from constants import q_adim, m_MeV, c
 import solver
 import particle
@@ -21,19 +20,26 @@ def transport_beam(accelerator):
     synch = particle.Particle(0., 16.6, omega0_bunch)
     rand_1 = particle.Particle(-1e-2, 16.5, omega0_bunch)
     rand_2 = particle.Particle(1e-2, 16.7, omega0_bunch)
-    all_part = [synch, rand_1, rand_2]
-    rand_part = [rand_1, rand_2]
 
-    for part in rand_part:
+    for part in [rand_1, rand_2]:
         part.compute_phase_space(synch)
 
     phase_space_1 = phase_space_dict_to_matrix(rand_1, rand_2)
     transfer_matrix = np.expand_dims(np.eye(2), 0)
 
     for elt in accelerator.list_of_elements:
-        print(elt.name)
         n_steps = elt.solver_transf_mat.n_steps
         z_step = elt.solver_transf_mat.d_z
+
+        if elt.accelerating:
+            # Warning: in accelerating cavities, omega0 corresponds to the RF!
+            omega0 = elt.acc_field.omega0_rf
+            # Also warning: phi is computed with omega0... Thus the cavity's
+            # delta_phi shall be recomputed with omega0_bunch.
+            for part in [synch, rand_1, rand_2]:
+                part.enter_cavity(omega0)
+        else:
+            omega0 = elt.omega0_bunch
 
         def du_dz(z, u):
             """
@@ -56,15 +62,16 @@ def transport_beam(accelerator):
             gamma_float = helper.mev_to_gamma(u[0], m_MeV)
             beta = helper.gamma_to_beta(gamma_float)
 
-            v1 = elt.acc_field.n_cell * elt.omega0_bunch / (beta * c)
+            v1 = omega0 / (beta * c)
 
             return np.array(([v0, v1]))
 
         entrance_phase = synch.phi['rel']
         entrance_pos = synch.z['rel']
+
         for i in range(n_steps):
             # Compute energy, position and phase evolution during a time step
-            for part in all_part:
+            for part in [synch, rand_1, rand_2]:
                 if i == 0:
                     # Set relative phase and positions to 0.
                     part.z['rel'] -= entrance_pos
@@ -74,10 +81,10 @@ def transport_beam(accelerator):
                 delta_u = solver.rk4(u_rk, du_dz, part.z['rel'], z_step)
 
                 part.set_energy(delta_u[0], delta_e=True)
-                part.advance_phi(delta_u[1])       # TODO BUG FIXME
+                part.advance_phi(delta_u[1])
                 part.advance_position(z_step)
 
-            for part in rand_part:
+            for part in [rand_1, rand_2]:
                 part.compute_phase_space(synch)
 
             phase_space_0 = phase_space_1
@@ -85,18 +92,19 @@ def transport_beam(accelerator):
 
             new_transfer_matrix = compute_transfer_matrix(phase_space_0,
                                                           phase_space_1)
-            print(i, '\n', new_transfer_matrix, '\n', synch.z['abs'])
             transfer_matrix = np.vstack((transfer_matrix, new_transfer_matrix))
 
+        # When we exit a cavity, we have to change the phase reference.
+        if elt.accelerating:
+            for part in [synch, rand_1, rand_2]:
+                part.exit_cavity()
+
         # Raise some arrays to element
-        # elt.pos_m = np.array(synch.z['abs_array'])[-n_steps:]
         elt.energy['gamma_array'] \
             = np.array(synch.energy['gamma_array'])[-n_steps:]
         elt.energy['e_array_mev'] \
             = np.array(synch.energy['e_array_mev'])[-n_steps:]
         elt.transfer_matrix = transfer_matrix[-n_steps:]
-
-    # debug.plot_transfer_matrices(accelerator, transfer_matrix)
 
 
 def phase_space_dict_to_matrix(rand_1, rand_2):

@@ -31,12 +31,19 @@ class Particle():
             }
         self.set_energy(e_mev, delta_e=False)
 
+        self.omega0 = {
+            'ref': omega0_bunch,        # The one we use
+            'bunch': omega0_bunch,      # Should match 'ref' outside cavities
+            'rf': None,                 # Should match 'ref' inside cavities
+            }
+
         self.phi = {
             'abs': None,
             'rel': None,
             'abs_deg': None,
+            'before_cavity': None
             }
-        self.init_phi(omega0_bunch)
+        self.init_phi()
 
         self.phase_space = {
             'z': None,      # z_abs - s_abs or z_rel - s_rel
@@ -70,24 +77,18 @@ class Particle():
         self.z['rel'] += delta_pos
         self.z['abs_array'].append(self.z['abs'])
 
-    def init_phi(self, omega0_bunch):
+    def init_phi(self):
         """Init phi by taking z_rel and beta."""
-        print('Init. Old phi: ', self.phi['abs_deg'])
-        self.phi['abs'] = omega0_bunch * self.z['rel'] / (self.energy['beta']
-                                                          * c)
+        self.phi['abs'] = self.omega0['ref'] * self.z['rel'] \
+            / (self.energy['beta'] * c)
         self.phi['rel'] = self.phi['abs']
         self.phi['abs_deg'] = np.rad2deg(self.phi['abs'])
-        print('New phi: ', self.phi['abs_deg'])
-        print('')
 
     def advance_phi(self, delta_phi):
         """Increase relative and absolute phase by delta_phi."""
-        print('Old phi: ', self.phi['abs_deg'])
         self.phi['abs'] += delta_phi
         self.phi['rel'] += delta_phi
         self.phi['abs_deg'] += np.rad2deg(delta_phi)
-        print('New phi: ', self.phi['abs_deg'])
-        print('')
 
     def compute_phase_space(self, synch_particle):
         """
@@ -100,3 +101,24 @@ class Particle():
         self.phase_space['delta'] = (self.energy['p']
                                      - synch_particle.energy['p']) \
             / synch_particle.energy['p']
+
+    def enter_cavity(self, omega0_rf):
+        """Change the omega0 and save the phase at the entrance."""
+        self.phi['before_cavity'] = self.phi['abs']
+        self.omega0['ref'] = omega0_rf
+        self.omega0['rf'] = omega0_rf
+
+    def exit_cavity(self):
+        """Recompute phi with the proper omega0, reset omega0."""
+        # Helpers
+        delta_phi = self.phi['abs'] - self.phi['before_cavity']
+        frac_omega = self.omega0['bunch'] / self.omega0['rf']
+        # Reset proper phi
+        correct_phi = self.phi['before_cavity'] + frac_omega * delta_phi
+        self.phi['abs'] = correct_phi
+        self.phi['abs_deg'] = np.rad2deg(correct_phi)
+        # Reset proper omega
+        self.omega0['ref'] = self.omega0['bunch']
+        # Remove unsused variables
+        self.phi['before_cavity'] = None
+        self.omega0['rf'] = None
