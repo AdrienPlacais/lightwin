@@ -17,10 +17,10 @@ import particle
 
 def transport_beam(accelerator):
     """Compute transfer matrices by the transport method."""
-    omega_0 = accelerator.list_of_elements[0].acc_field.omega_0
-    synch = particle.Particle(0., 16.6, omega_0)
-    rand_1 = particle.Particle(-1e-5, 16.5, omega_0)
-    rand_2 = particle.Particle(1e-2, 16.7, omega_0)
+    omega0_bunch = accelerator.list_of_elements[0].omega0_bunch
+    synch = particle.Particle(0., 16.6, omega0_bunch)
+    rand_1 = particle.Particle(-1e-2, 16.5, omega0_bunch)
+    rand_2 = particle.Particle(1e-2, 16.7, omega0_bunch)
     all_part = [synch, rand_1, rand_2]
     rand_part = [rand_1, rand_2]
 
@@ -30,14 +30,10 @@ def transport_beam(accelerator):
     phase_space_1 = phase_space_dict_to_matrix(rand_1, rand_2)
     transfer_matrix = np.expand_dims(np.eye(2), 0)
 
-    n_previous_steps = 0
     for elt in accelerator.list_of_elements:
-        n_steps = 1
-
-        if elt.name == 'FIELD_MAP':
-            n_steps = 200
-
-        z_step = elt.length_m / n_steps
+        print(elt.name)
+        n_steps = elt.solver_transf_mat.n_steps
+        z_step = elt.solver_transf_mat.d_z
 
         def du_dz(z, u):
             """
@@ -59,43 +55,48 @@ def transport_beam(accelerator):
 
             gamma_float = helper.mev_to_gamma(u[0], m_MeV)
             beta = helper.gamma_to_beta(gamma_float)
-            v1 = elt.acc_field.omega_0 / (beta * c)
+
+            v1 = elt.acc_field.n_cell * elt.omega0_bunch / (beta * c)
+
             return np.array(([v0, v1]))
 
         entrance_phase = synch.phi['rel']
-        entrance_pos = synch.z['abs']
-
-        for part in all_part:
-            part.z['rel'] -= entrance_pos
-            part.phi['rel'] -= entrance_phase
-
+        entrance_pos = synch.z['rel']
         for i in range(n_steps):
+            # Compute energy, position and phase evolution during a time step
             for part in all_part:
+                if i == 0:
+                    # Set relative phase and positions to 0.
+                    part.z['rel'] -= entrance_pos
+                    part.phi['rel'] -= entrance_phase
+
                 u_rk = np.array(([part.energy['e_mev'], part.phi['rel']]))
                 delta_u = solver.rk4(u_rk, du_dz, part.z['rel'], z_step)
 
                 part.set_energy(delta_u[0], delta_e=True)
-                part.advance_phi(delta_u[1])
+                part.advance_phi(delta_u[1])       # TODO BUG FIXME
                 part.advance_position(z_step)
 
-            phase_space_0 = phase_space_1
             for part in rand_part:
                 part.compute_phase_space(synch)
+
+            phase_space_0 = phase_space_1
             phase_space_1 = phase_space_dict_to_matrix(rand_1, rand_2)
 
             new_transfer_matrix = compute_transfer_matrix(phase_space_0,
                                                           phase_space_1)
+            print(i, '\n', new_transfer_matrix, '\n', synch.z['abs'])
             transfer_matrix = np.vstack((transfer_matrix, new_transfer_matrix))
 
-            n_previous_steps += 1
-
         # Raise some arrays to element
-        elt.pos_m = np.array(synch.z['abs_array'])[n_previous_steps:]
-        elt.gamma_array = np.array(synch.energy['gamma_array'])[n_previous_steps:]
-        elt.energy_array_mev = np.array(synch.energy['e_array_mev'])[n_previous_steps:]
-        elt.transfer_matrix = transfer_matrix[n_previous_steps:]
+        # elt.pos_m = np.array(synch.z['abs_array'])[-n_steps:]
+        elt.energy['gamma_array'] \
+            = np.array(synch.energy['gamma_array'])[-n_steps:]
+        elt.energy['e_array_mev'] \
+            = np.array(synch.energy['e_array_mev'])[-n_steps:]
+        elt.transfer_matrix = transfer_matrix[-n_steps:]
 
-    debug.plot_transfer_matrices(accelerator, transfer_matrix)
+    # debug.plot_transfer_matrices(accelerator, transfer_matrix)
 
 
 def phase_space_dict_to_matrix(rand_1, rand_2):
@@ -114,6 +115,7 @@ def compute_transfer_matrix(phase_space_0, phase_space_1):
 
     except np.linalg.LinAlgError as err:
         if 'Singular matrix' in str(err):
+            print('Singular matrix error:')
             print(phase_space_0, '\n', phase_space_1)
         else:
             raise

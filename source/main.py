@@ -25,7 +25,7 @@ E_MEV = 16.6
 I_MILLI_A = 4.
 
 # Bunch frequency in MHz
-F_MHZ = 352.2
+F_MHZ = 176.1
 
 # Select .dat file
 Tk().withdraw()
@@ -39,12 +39,11 @@ if FILEPATH == '':
 # =============================================================================
 # End of user inputs
 # =============================================================================
-linac = acc.Accelerator(E_MEV, FILEPATH)
+linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
-for method in ['RK']:
+for method in ['transport']:
     linac.compute_transfer_matrices(method)
     debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
-# debug.plot_error_on_transfer_matrices_components_full(FILEPATH, LINAC)
     # debug.compare_energies(linac)
 
 # transport.compute_envelope(linac)

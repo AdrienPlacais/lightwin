@@ -17,7 +17,7 @@ import transport
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, e_0_mev, dat_filepath):
+    def __init__(self, e_0_mev, f_mhz, dat_filepath):
         """
         Create Accelerator object.
 
@@ -37,6 +37,9 @@ class Accelerator():
         # TODO: handle cases were there the number of elements in the line
         # is different from 39
 
+        self.e_0_mev = e_0_mev
+        self.f_mhz_bunch = f_mhz
+
         # Load dat file and clean it up (remove comments, etc)
         self.dat_file_content = []
         self._load_dat_file()
@@ -49,8 +52,6 @@ class Accelerator():
         # Longitudinal transfer matrix of the first to the i-th element:
         self.transfer_matrix_cumul = np.full((1, 2, 2), np.NaN)
         self.flag_first_calculation_of_transfer_matrix = True
-
-        self.e_0_mev = e_0_mev
 
     def _load_dat_file(self):
         """Load the dat file and convert it into a list of lines."""
@@ -106,7 +107,7 @@ class Accelerator():
         # value of the 1st column string we create the appropriate Element
         # subclass and store this instance in list_of_elements
         try:
-            list_of_elements = [subclasses_dispatcher[elem[0]](elem)
+            list_of_elements = [subclasses_dispatcher[elem[0]](elem, self.f_mhz_bunch)
                                 for elem in self.dat_file_content if elem[0]
                                 not in to_be_implemented]
         except KeyError:
@@ -157,8 +158,7 @@ class Accelerator():
                                element.transfer_matrix))
 
                 element.energy['e_array_mev'] = helper.gamma_to_mev(
-                    element.energy['gamma_array'],
-                    m_MeV)
+                    element.energy['gamma_array'], m_MeV)
                 gamma_out = element.energy['gamma_array'][-1]
 
         elif method == 'transport':

@@ -14,9 +14,12 @@ class RfField():
     """Cos-like RF field."""
 
     def __init__(self, frequency_mhz, phi_0=0., n_cell=1):
-        self.frequency_mhz = frequency_mhz
-        self.omega_0 = 2e6 * np.pi * frequency_mhz
-        self.lambda_rf = 1e-6 * c / frequency_mhz
+        self.f_mhz_rf = frequency_mhz
+        self.omega0_rf = 2e6 * np.pi * frequency_mhz
+        try:
+            self.lambda_rf = 1e-6 * c / frequency_mhz
+        except ZeroDivisionError:
+            self.lambda_rf = None
 
         self.phi_0 = phi_0
 
@@ -31,7 +34,7 @@ class RfField():
 
     def de_dt_func(self, x, phi, beta):
         """Compute temp derivative of electric field."""
-        factor = self.omega_0 / (beta * c)
+        factor = self.omega0_rf / (beta * c)
         return factor * self.e_spat(x) * np.sin(phi + self.phi_0)
 
 
@@ -65,7 +68,7 @@ def load_field_map_file(element, rf_field):
     f_z_scaled = element.electric_field_factor * f_z * norm
 
     rf_field.e_spat = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
-                               kind='linear', fill_value=0.,
+                               kind='linear', fill_value='extrapolate',
                                assume_sorted=True)
 
 

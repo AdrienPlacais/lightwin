@@ -15,9 +15,10 @@ import particle
 # =============================================================================
 # RK4
 # =============================================================================
-def init_rk4_cavity(acc_field, e_0_mev, gamma):
+def init_rk4_cavity(acc_field, cavity, gamma):
     """Init RK4 methods to compute transfer matrix of a cavity."""
-    synch = particle.Particle(0., e_0_mev, acc_field.omega_0)
+    synch = particle.Particle(0., cavity.energy['e_array_mev'][0],
+                              cavity.omega0_bunch)      # Bonjoure no MT effect
 
     gamma['out'] = gamma['in']
 
@@ -41,7 +42,8 @@ def init_rk4_cavity(acc_field, e_0_mev, gamma):
 
         gamma_float = helper.mev_to_gamma(u[0], m_MeV)
         beta = helper.gamma_to_beta(gamma_float)
-        v1 = acc_field.omega_0 / (beta * c)
+        # v1 = acc_field.omega0_rf / (beta * c)   # Bonjoure strong MT effect
+        v1 = acc_field.n_cell * cavity.omega0_bunch / (beta * c)   # Bonjoure strong MT effect
         return np.array(([v0, v1]))
     return du_dz, synch
 
@@ -68,19 +70,21 @@ def rk4(u, du_dx, x, dx):
     delta_u: real
         Variation of u between x and x+dx.
     """
+    # print('u = ', u, '\n', 'x = ', x, '\n', 'dx = ', dx)
     half_dx = .5 * dx
     k_1 = du_dx(x, u)
     k_2 = du_dx(x + half_dx, u + half_dx * k_1)
     k_3 = du_dx(x + half_dx, u + half_dx * k_2)
     k_4 = du_dx(x + dx, u + dx * k_3)
     delta_u = (k_1 + 2.*k_2 + 2.*k_3 + k_4) * dx / 6.
+    # print('delta_u: ', delta_u[0], delta_u[1], np.rad2deg(delta_u[1]))
     return delta_u
 
 
 # =============================================================================
 # Leapfrog
 # =============================================================================
-def init_leapfrog_cavity(acc_field, e_0_mev, gamma, dz):
+def init_leapfrog_cavity(acc_field, cavity, gamma, dz):
     """Init leapfrog method to compute transfer matrix of cavity."""
     # Leapfrog method:
     #   pos(i+1) = pos(i) + speed(i+0.5) * dt
@@ -91,7 +95,8 @@ def init_leapfrog_cavity(acc_field, e_0_mev, gamma, dz):
     #       (time and space variables are on whole steps)
     #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
     #       (speed/energy are on half steps)
-    synch = particle.Particle(0., e_0_mev, acc_field.omega_0)
+    e_0_mev = cavity.energy['e_array_mev'][0]
+    synch = particle.Particle(0., e_0_mev, cavity.omega0_bunch)
 
     # Rewind energy
     synch.set_energy(-q_adim * acc_field.e_func(synch.z['rel'], 0.) * .5 * dz,

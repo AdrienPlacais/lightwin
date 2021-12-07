@@ -88,14 +88,11 @@ def z_field_map_electric_field(cavity):
 
     # Initialize gamma and synch_part:
     if solver_param.method == 'leapfrog':
-        synch = solver.init_leapfrog_cavity(acc_field,
-                                            cavity.energy['e_array_mev'][0],
-                                            gamma, solver_param.d_z)
+        synch = solver.init_leapfrog_cavity(acc_field, cavity, gamma,
+                                            solver_param.d_z)
 
     elif solver_param.method == 'RK':
-        du_dz, synch = solver.init_rk4_cavity(acc_field,
-                                              cavity.energy['e_array_mev'][0],
-                                              gamma)
+        du_dz, synch = solver.init_rk4_cavity(acc_field, cavity, gamma)
 
     # We loop until reaching the end of the cavity
     cavity.transfer_matrix = np.zeros((solver_param.n_steps + 1, 2, 2))
@@ -124,7 +121,8 @@ def z_field_map_electric_field(cavity):
             delta['phi'] = temp[1]
 
         synch.set_energy(delta['e_mev'], delta_e=True)
-        gamma['out'] = gamma['in'] + delta['e_mev'] / m_MeV
+        # gamma['out'] = gamma['in'] + delta['e_mev'] / m_MeV
+        gamma['out'] = synch.energy['gamma']
 
         # Warning, the gamma and beta in synch object are at the exit of the
         # cavity. We recompute the gamma and beta in the middle of the cavity.
@@ -137,8 +135,8 @@ def z_field_map_electric_field(cavity):
                                                       beta_s, synch)
 
         if solver_param.method == 'leapfrog':
-            delta['phi'] = acc_field.omega_0 * solver_param.d_z \
-                / (helper.gamma_to_beta(gamma['out']) * c)
+            delta['phi'] = acc_field.n_cell * cavity.omega0_bunch \
+                * solver_param.d_z / (helper.gamma_to_beta(gamma['out']) * c)
 
         synch.phi['rel'] += delta['phi']
         synch.advance_position(solver_param.d_z)
@@ -146,6 +144,7 @@ def z_field_map_electric_field(cavity):
     cavity.energy['e_array_mev'] = np.array(synch.energy['e_array_mev'])
 
 
+# omega0_rf and not omega0_bunch
 def z_thin_lens(acc_field, d_z, gamma, beta_s, synch,
                 flag_correction_determinant=True):
     """
@@ -189,7 +188,7 @@ def z_thin_lens(acc_field, d_z, gamma, beta_s, synch,
 # =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
-    delta_phi_half_step = .5 * d_z * acc_field.omega_0 / (beta_s * c)
+    delta_phi_half_step = .5 * d_z * acc_field.omega0_rf / (beta_s * c)
     phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components

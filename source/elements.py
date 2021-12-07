@@ -25,7 +25,7 @@ SolverParam = namedtuple('SolverParam', 'method n_steps d_z')
 class _Element():
     """Generic element. _ ensures that it is not called from another file."""
 
-    def __init__(self, elem):
+    def __init__(self, elem, f_mhz_bunch):
         """
         Init parameters common to all elements.
 
@@ -40,10 +40,13 @@ class _Element():
         self.name = elem[0]
         self.length_m = 1e-3 * float(elem[1])
 
+        self.f_mhz_bunch = f_mhz_bunch
+        self.omega0_bunch = 2e6 * np.pi * f_mhz_bunch
+
         # By default, an element is non accelerating and has a dummy
         # accelerating field.
         self.accelerating = False
-        self.acc_field = RfField(352.2)    # FIXME frequency import
+        self.acc_field = RfField(0.)    # FIXME frequency import
 
         self.pos_m = {
             'abs': None,
@@ -82,8 +85,6 @@ class _Element():
              }
 
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
-        # self.gamma_array = np.full((n_steps + 1), np.NaN)
-        # self.energy_array_mev = np.full((n_steps + 1), np.NaN)
         self.energy['e_array_mev'] = np.full((n_steps + 1), np.NaN)
         self.energy['gamma_array'] = np.full((n_steps + 1), np.NaN)
         self.transfer_matrix = np.full((n_steps, 2, 2), np.NaN)
@@ -111,38 +112,38 @@ class _Element():
 class Drift(_Element):
     """Sub-class of Element, with parameters specific to DRIFTs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem, f_mhz_bunch):
         n_attributes = len(elem) - 1
         assert n_attributes in [2, 3, 5]
-        super().__init__(elem)
+        super().__init__(elem, f_mhz_bunch)
 
 
 class Quad(_Element):
     """Sub-class of Element, with parameters specific to QUADs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem, f_mhz_bunch):
         n_attributes = len(elem) - 1
         assert n_attributes in range(3, 10)
-        super().__init__(elem)
+        super().__init__(elem, f_mhz_bunch)
 
 
 class Solenoid(_Element):
     """Sub-class of Element, with parameters specific to SOLENOIDs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem, f_mhz_bunch):
         n_attributes = len(elem) - 1
         assert n_attributes == 3
-        super().__init__(elem)
+        super().__init__(elem, f_mhz_bunch)
 
 
 class FieldMap(_Element):
     """Sub-class of Element, with parameters specific to FIELD_MAPs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem, f_mhz_bunch):
         n_attributes = len(elem) - 1
         assert n_attributes in [9, 10]
 
-        super().__init__(elem)
+        super().__init__(elem, f_mhz_bunch)
         self.accelerating = True
         self.geometry = int(elem[1])
         self.length_m = 1e-3 * float(elem[2])
@@ -158,7 +159,7 @@ class FieldMap(_Element):
             pass
 
         # Replace dummy accelerating field by a true one
-        self.acc_field = RfField(self.acc_field.frequency_mhz,
+        self.acc_field = RfField(352.2,     # FIXME frequency import
                                  self.theta_i_rad, 2)
 
         self.f_e = None
@@ -173,7 +174,6 @@ class FieldMap(_Element):
         # Compute transfer matrix
         self.dict_transf_mat[self.solver_transf_mat.method](self)
 
-        # self.gamma_array = helper.mev_to_gamma(self.energy_array_mev, m_MeV)
         self.energy['gamma_array'] = helper.mev_to_gamma(
             self.energy['e_array_mev'], m_MeV)
         # Remove first slice of transfer matrix (indentity matrix)
@@ -192,11 +192,11 @@ class FieldMap(_Element):
 class CavSin(_Element):
     """Sub-class of Element, with parameters specific to CAVSINs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem, f_mhz_bunch):
         n_attributes = len(elem) - 1
         assert n_attributes == 6
 
-        super().__init__(elem)
+        super().__init__(elem, f_mhz_bunch)
         self.cell_number = int(elem[1])                 # N
         self.eff_gap_voltage = float(elem[2])           # EoT
         self.sync_phase = float(elem[3])                # theta_s

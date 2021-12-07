@@ -6,6 +6,7 @@ Created on Thu Dec  2 13:44:00 2021
 @author: placais
 """
 
+import numpy as np
 import helper
 from constants import m_MeV, c, m_kg, q_over_m
 
@@ -13,7 +14,7 @@ from constants import m_MeV, c, m_kg, q_over_m
 class Particle():
     """Class to hold the position, energy, etc of a particle."""
 
-    def __init__(self, z, e_mev, omega_0):
+    def __init__(self, z, e_mev, omega0_bunch):
         self.z = {
             'abs': z,           # Position from the start of the line
             'rel': z,           # Position from the start of the element
@@ -33,8 +34,9 @@ class Particle():
         self.phi = {
             'abs': None,
             'rel': None,
+            'abs_deg': None,
             }
-        self.init_phi(omega_0)
+        self.init_phi(omega0_bunch)
 
         self.phase_space = {
             'z': None,      # z_abs - s_abs or z_rel - s_rel
@@ -68,15 +70,24 @@ class Particle():
         self.z['rel'] += delta_pos
         self.z['abs_array'].append(self.z['abs'])
 
-    def init_phi(self, omega_0):
+    def init_phi(self, omega0_bunch):
         """Init phi by taking z_rel and beta."""
-        self.phi['abs'] = omega_0 * self.z['rel'] / (self.energy['beta'] * c)
+        print('Init. Old phi: ', self.phi['abs_deg'])
+        self.phi['abs'] = omega0_bunch * self.z['rel'] / (self.energy['beta']
+                                                          * c)
         self.phi['rel'] = self.phi['abs']
+        self.phi['abs_deg'] = np.rad2deg(self.phi['abs'])
+        print('New phi: ', self.phi['abs_deg'])
+        print('')
 
     def advance_phi(self, delta_phi):
         """Increase relative and absolute phase by delta_phi."""
+        print('Old phi: ', self.phi['abs_deg'])
         self.phi['abs'] += delta_phi
         self.phi['rel'] += delta_phi
+        self.phi['abs_deg'] += np.rad2deg(delta_phi)
+        print('New phi: ', self.phi['abs_deg'])
+        print('')
 
     def compute_phase_space(self, synch_particle):
         """
