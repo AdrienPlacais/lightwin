@@ -161,16 +161,19 @@ class Accelerator():
                     element.energy['gamma_array'], m_MeV)
                 gamma_out = element.energy['gamma_array'][-1]
 
+            transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
+            self.transfer_matrix_indiv = np.vstack((transfer_matrix_indiv,
+                                                    self.get_from_elements(
+                                                        'transfer_matrix')
+                                                    ))
+
         elif method == 'transport':
             transport.transport_beam(self)
+            transfer_matrix_indiv = self.transfer_matrix_indiv
 
-        transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
-        transfer_matrix_indiv = np.vstack((transfer_matrix_indiv,
-                                           self.get_from_elements(
-                                              'transfer_matrix')
-                                           ))
         self.transfer_matrix_cumul = \
-            helper.individual_to_global_transfer_matrix(transfer_matrix_indiv)
+            helper.individual_to_global_transfer_matrix(
+                self.transfer_matrix_indiv)
 
     def get_from_elements(self, attribute, key=None):
         """

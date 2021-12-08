@@ -19,7 +19,7 @@ class Particle():
         self.z = {
             'abs': z,           # Position from the start of the line
             'rel': z,           # Position from the start of the element
-            'abs_array': [],
+            'abs_array': [z],
             }
 
         self.energy = {
@@ -29,6 +29,7 @@ class Particle():
             'p': None,
             'e_array_mev': [],
             'gamma_array': [],
+            'p_array': [],
             }
         self.set_energy(e_mev, delta_e=False)
 
@@ -48,8 +49,9 @@ class Particle():
         self.init_phi()
 
         self.phase_space = {
-            'z': None,      # z_abs - s_abs or z_rel - s_rel
-            'delta': None   # (p - p_s) / p_s
+            'z_array': None,      # z_abs - s_abs or z_rel - s_rel
+            'delta_array': None,  # (p - p_s) / p_s
+            'both_array': None,
             }
 
     def set_energy(self, e_mev, delta_e=False):
@@ -73,6 +75,7 @@ class Particle():
                                                       self.energy['beta'])
         self.energy['e_array_mev'].append(self.energy['e_mev'])
         self.energy['gamma_array'].append(self.energy['gamma'])
+        self.energy['p_array'].append(self.energy['p'])
 
     def advance_position(self, delta_pos):
         """Advance particle by delt_pos."""
@@ -93,17 +96,25 @@ class Particle():
         self.phi['rel'] += delta_phi
         self.phi['abs_deg'] += np.rad2deg(delta_phi)
 
-    def compute_phase_space(self, synch_particle):
+    def compute_phase_space(self, synch):
         """
         Compute phase-space array.
 
         synch_particle is an instance of Particle corresponding to the
         synchronous particle.
         """
-        self.phase_space['z'] = self.z['rel'] - synch_particle.z['rel']
-        self.phase_space['delta'] = (self.energy['p']
-                                     - synch_particle.energy['p']) \
-            / synch_particle.energy['p']
+        self.phase_space['z_array'] = self.z['abs_array'] \
+            - synch.z['abs_array']
+        self.phase_space['delta_array'] = (self.energy['p_array']
+                                           - synch.energy['p_array']) \
+            / synch.energy['p_array']
+
+        self.phase_space['both_array'] = np.vstack(
+            (self.phase_space['z_array'],
+             self.phase_space['delta_array'])
+            )
+        self.phase_space['both_array'] = np.swapaxes(
+            self.phase_space['both_array'], 0, 1)
 
     def enter_cavity(self, omega0_rf):
         """Change the omega0 and save the phase at the entrance."""
@@ -127,3 +138,11 @@ class Particle():
         print('delta_phi: ', delta_phi, '\t delta_E: ', self.energy['e_mev'] - self.save_E)
         self.phi['before_cavity'] = None
         self.omega0['rf'] = None
+
+    def list_to_array(self):
+        """Convert lists into arrays."""
+        self.z['abs_array'] = np.array(self.z['abs_array'])
+        self.energy['e_array_mev'] = np.array(self.energy['e_array_mev'])
+        self.energy['gamma_array'] = np.array(self.energy['gamma_array'])
+        self.energy['p_array'] = np.array(self.energy['p_array'])
+        self.energy['gamma_array'] = np.array(self.energy['gamma_array'])

@@ -57,12 +57,6 @@ def transport_beam(accelerator):
                        part_data['E_0'] + part_data['delta_E'] * .5),
         omega0_bunch)
 
-    for part in [rand_1, rand_2]:
-        part.compute_phase_space(synch)
-
-    phase_space_1 = phase_space_dict_to_matrix(rand_1, rand_2)
-    transfer_matrix = np.expand_dims(np.eye(2), 0)
-
     for elt in accelerator.list_of_elements:
         # print(elt.name)
         n_steps = elt.solver_transf_mat.n_steps
@@ -121,16 +115,6 @@ def transport_beam(accelerator):
                 part.advance_phi(delta_u[1])
                 part.advance_position(z_step)
 
-            for part in [rand_1, rand_2]:
-                part.compute_phase_space(synch)
-
-            phase_space_0 = phase_space_1
-            phase_space_1 = phase_space_dict_to_matrix(rand_1, rand_2)
-
-            new_transfer_matrix = compute_transfer_matrix(phase_space_0,
-                                                          phase_space_1)
-            transfer_matrix = np.vstack((transfer_matrix, new_transfer_matrix))
-
         # If this element was a cavity, we have to change the phase reference.
         if elt.accelerating:
             for part in [synch, rand_1, rand_2]:
@@ -141,42 +125,31 @@ def transport_beam(accelerator):
             = np.array(synch.energy['gamma_array'])[-n_steps:]
         elt.energy['e_array_mev'] \
             = np.array(synch.energy['e_array_mev'])[-n_steps:]
-        elt.transfer_matrix = transfer_matrix[-n_steps:]
 
-        # print(new_transfer_matrix)
-        print('')
     for part in [synch, rand_1, rand_2]:
+        # Convert lists into arrays:
+        part.list_to_array()
         debug.simple_plot(synch.z['abs_array'],
-                          part.energy['gamma_array'][1:],
-                          'z_s', 'gamma', 33)
-        debug.simple_plot(synch.z['abs_array'],
-                          part.energy['e_array_mev'][1:],
+                          part.energy['e_array_mev'],
                           'z_s', 'E mev', 34)
+    for part in [rand_1, rand_2]:
+        part.compute_phase_space(synch)
+
+    accelerator.transfer_matrix_indiv = compute_transfer_matrix(rand_1, rand_2)
 
 
-def phase_space_dict_to_matrix(rand_1, rand_2):
-    """Convert phase space dicts to a 2x2 matrix."""
-    # TODO more Pythonic way to do this?
-    matrix = np.array(([rand_1.phase_space['z'],
-                        rand_2.phase_space['z']],
-                       [rand_1.phase_space['delta'],
-                        rand_2.phase_space['delta']]))
-    return matrix
+def compute_transfer_matrix(rand_1, rand_2):
+    """Compute transfer matrix from the phase-space arrays."""
+    n_steps = rand_1.phase_space['z_array'].size
 
+    phase_space_matrix = np.dstack((rand_1.phase_space['both_array'],
+                                    rand_2.phase_space['both_array']))
 
-def compute_transfer_matrix(phase_space_0, phase_space_1):
-    """Compute transfer matrix by matrix inversion."""
-    try:
-        inv_phase_space_0 = np.linalg.inv(phase_space_0)
-
-    except np.linalg.LinAlgError as err:
-        if 'Singular matrix' in str(err):
-            print('Singular matrix error:')
-            print(phase_space_0, '\n', phase_space_1)
-        else:
-            raise
-    transfer_matrix = phase_space_1 @ inv_phase_space_0
-    transfer_matrix = np.expand_dims(transfer_matrix, 0)
+    transfer_matrix = np.full((n_steps, 2, 2), np.NaN)
+    transfer_matrix[0, :, :] = np.eye(2)
+    for i in range(1, n_steps):
+        transfer_matrix[i, :, :] = phase_space_matrix[i, :, :] \
+            @ np.linalg.inv(phase_space_matrix[i-1, :, :])
     return transfer_matrix
 
 
