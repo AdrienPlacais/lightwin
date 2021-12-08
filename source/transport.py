@@ -13,6 +13,7 @@ import helper
 from constants import q_adim, m_MeV, c
 import solver
 import particle
+import debug
 
 
 def transport_beam(accelerator):
@@ -144,6 +145,13 @@ def transport_beam(accelerator):
 
         # print(new_transfer_matrix)
         print('')
+    for part in [synch, rand_1, rand_2]:
+        debug.simple_plot(synch.z['abs_array'],
+                          part.energy['gamma_array'][1:],
+                          'z_s', 'gamma', 33)
+        debug.simple_plot(synch.z['abs_array'],
+                          part.energy['e_array_mev'][1:],
+                          'z_s', 'E mev', 34)
 
 
 def phase_space_dict_to_matrix(rand_1, rand_2):
