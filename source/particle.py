@@ -8,13 +8,14 @@ Created on Thu Dec  2 13:44:00 2021
 
 import numpy as np
 import helper
-from constants import m_MeV, c, m_kg, q_over_m
+from constants import m_MeV, c
 
 
 class Particle():
     """Class to hold the position, energy, etc of a particle."""
 
     def __init__(self, z, e_mev, omega0_bunch):
+        print('part init to: ', z, e_mev)
         self.z = {
             'abs': z,           # Position from the start of the line
             'rel': z,           # Position from the start of the element
@@ -41,6 +42,7 @@ class Particle():
             'abs': None,
             'rel': None,
             'abs_deg': None,
+            # Used to keep the delta phi on the whole cavity:
             'before_cavity': None
             }
         self.init_phi()
@@ -58,16 +60,17 @@ class Particle():
         If False, energy is set to e_mev.
         """
         if delta_e:
+            if(delta_e < 0.):
+                print('+ ', e_mev, 'MeV')
             self.energy['e_mev'] += e_mev
         else:
+            # print('set to ', e_mev, 'MeV')
             self.energy['e_mev'] = e_mev
 
         self.energy['gamma'] = helper.mev_to_gamma(self.energy['e_mev'], m_MeV)
         self.energy['beta'] = helper.gamma_to_beta(self.energy['gamma'])
-        self.energy['p'] = helper.mev_and_gamma_to_p(self.energy['e_mev'],
-                                                     self.energy['gamma'],
-                                                     m_kg, q_over_m)
-
+        self.energy['p'] = helper.gamma_and_beta_to_p(self.energy['gamma'],
+                                                      self.energy['beta'])
         self.energy['e_array_mev'].append(self.energy['e_mev'])
         self.energy['gamma_array'].append(self.energy['gamma'])
 
@@ -107,6 +110,7 @@ class Particle():
         self.phi['before_cavity'] = self.phi['abs']
         self.omega0['ref'] = omega0_rf
         self.omega0['rf'] = omega0_rf
+        self.save_E = self.energy['e_mev']
 
     def exit_cavity(self):
         """Recompute phi with the proper omega0, reset omega0."""
@@ -120,5 +124,6 @@ class Particle():
         # Reset proper omega
         self.omega0['ref'] = self.omega0['bunch']
         # Remove unsused variables
+        print('delta_phi: ', delta_phi, '\t delta_E: ', self.energy['e_mev'] - self.save_E)
         self.phi['before_cavity'] = None
         self.omega0['rf'] = None

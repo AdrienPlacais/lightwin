@@ -11,7 +11,6 @@ from tkinter.filedialog import askopenfilename
 import accelerator as acc
 import debug
 import helper
-import transport
 
 # =============================================================================
 # User inputs5
@@ -47,7 +46,6 @@ for method in ['transport']:
     # debug.compare_energies(linac)
 
 # transport.compute_envelope(linac)
-# transport.transport_beam(linac)
 
 SAVE_MT_AND_ENERGY = False
 if SAVE_MT_AND_ENERGY:

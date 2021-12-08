@@ -8,6 +8,7 @@ Created on Wed Sep 22 14:15:48 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
+import constants
 
 
 # =============================================================================
@@ -174,6 +175,11 @@ def mev_to_p(energy_mev, mass_mev, q_over_m, mass_kg):
 def mev_and_gamma_to_p(energy_mev, gamma, mass_kg, q_over_m):
     """Compute p when energy and gamma are already calculated."""
     return gamma * mass_kg * mev_to_v(energy_mev, q_over_m)
+
+
+def gamma_and_beta_to_p(gamma, beta):
+    """Compute p when gamma and beta are already known."""
+    return gamma * beta * constants.c
 
 
 # =============================================================================

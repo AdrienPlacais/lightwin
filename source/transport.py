@@ -7,6 +7,7 @@ Created on Tue Nov 9 14:26:45 2021
 """
 
 import numpy as np
+import random
 from palettable.colorbrewer.qualitative import Set1_9
 import helper
 from constants import q_adim, m_MeV, c
@@ -15,11 +16,45 @@ import particle
 
 
 def transport_beam(accelerator):
-    """Compute transfer matrices by the transport method."""
+    """
+    Compute transfer matrices by the transport method.
+
+    The idea is to transport the synchronous particle and two random particles.
+    With the difference between synch and rand particles (phase_space) we can
+    find the transfer matrix.
+
+    Warning
+    -------
+        In this routine we track the phase of the particles:
+            phi = omega0 * delta_z / (beta * c)
+        Outside cavities, omega0 corresponds to the bunch pulsation. In
+        cavities, it is the RF pulsation. When exiting the cavity, we recompute
+        the phase with the bunch pulsation.
+    """
     omega0_bunch = accelerator.list_of_elements[0].omega0_bunch
-    synch = particle.Particle(0., 16.6, omega0_bunch)
-    rand_1 = particle.Particle(-1e-2, 16.5, omega0_bunch)
-    rand_2 = particle.Particle(1e-2, 16.7, omega0_bunch)
+    part_data = {
+        'delta_z': 1e-1,
+        'E_0': 16.6,
+        'delta_E': 1e-3,
+        }
+
+    synch = particle.Particle(0.,
+                              part_data['E_0'],
+                              omega0_bunch)
+
+    rand_1 = particle.Particle(
+        random.uniform(-part_data['delta_z'] * .5,
+                       part_data['delta_z'] * .5),
+        random.uniform(part_data['E_0'] - part_data['delta_E'] * .5,
+                       part_data['E_0'] + part_data['delta_E'] * .5),
+        omega0_bunch)
+
+    rand_2 = particle.Particle(
+        random.uniform(-part_data['delta_z'] * .5,
+                       part_data['delta_z'] * .5),
+        random.uniform(part_data['E_0'] - part_data['delta_E'] * .5,
+                       part_data['E_0'] + part_data['delta_E'] * .5),
+        omega0_bunch)
 
     for part in [rand_1, rand_2]:
         part.compute_phase_space(synch)
@@ -28,6 +63,7 @@ def transport_beam(accelerator):
     transfer_matrix = np.expand_dims(np.eye(2), 0)
 
     for elt in accelerator.list_of_elements:
+        # print(elt.name)
         n_steps = elt.solver_transf_mat.n_steps
         z_step = elt.solver_transf_mat.d_z
 
@@ -39,7 +75,7 @@ def transport_beam(accelerator):
             for part in [synch, rand_1, rand_2]:
                 part.enter_cavity(omega0)
         else:
-            omega0 = elt.omega0_bunch
+            omega0 = omega0_bunch
 
         def du_dz(z, u):
             """
@@ -94,7 +130,7 @@ def transport_beam(accelerator):
                                                           phase_space_1)
             transfer_matrix = np.vstack((transfer_matrix, new_transfer_matrix))
 
-        # When we exit a cavity, we have to change the phase reference.
+        # If this element was a cavity, we have to change the phase reference.
         if elt.accelerating:
             for part in [synch, rand_1, rand_2]:
                 part.exit_cavity()
@@ -106,9 +142,13 @@ def transport_beam(accelerator):
             = np.array(synch.energy['e_array_mev'])[-n_steps:]
         elt.transfer_matrix = transfer_matrix[-n_steps:]
 
+        # print(new_transfer_matrix)
+        print('')
+
 
 def phase_space_dict_to_matrix(rand_1, rand_2):
     """Convert phase space dicts to a 2x2 matrix."""
+    # TODO more Pythonic way to do this?
     matrix = np.array(([rand_1.phase_space['z'],
                         rand_2.phase_space['z']],
                        [rand_1.phase_space['delta'],
@@ -119,7 +159,7 @@ def phase_space_dict_to_matrix(rand_1, rand_2):
 def compute_transfer_matrix(phase_space_0, phase_space_1):
     """Compute transfer matrix by matrix inversion."""
     try:
-        inv_phase_space_1 = np.linalg.inv(phase_space_1)
+        inv_phase_space_0 = np.linalg.inv(phase_space_0)
 
     except np.linalg.LinAlgError as err:
         if 'Singular matrix' in str(err):
@@ -127,7 +167,7 @@ def compute_transfer_matrix(phase_space_0, phase_space_1):
             print(phase_space_0, '\n', phase_space_1)
         else:
             raise
-    transfer_matrix = phase_space_0 @ inv_phase_space_1
+    transfer_matrix = phase_space_1 @ inv_phase_space_0
     transfer_matrix = np.expand_dims(transfer_matrix, 0)
     return transfer_matrix
 

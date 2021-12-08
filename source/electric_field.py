@@ -68,7 +68,7 @@ def load_field_map_file(element, rf_field):
     f_z_scaled = element.electric_field_factor * f_z * norm
 
     rf_field.e_spat = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
-                               kind='linear', fill_value='extrapolate',
+                               kind='linear', fill_value=0.,
                                assume_sorted=True)
 
 

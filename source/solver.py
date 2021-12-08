@@ -70,14 +70,12 @@ def rk4(u, du_dx, x, dx):
     delta_u: real
         Variation of u between x and x+dx.
     """
-    # print('u = ', u, '\n', 'x = ', x, '\n', 'dx = ', dx)
     half_dx = .5 * dx
     k_1 = du_dx(x, u)
     k_2 = du_dx(x + half_dx, u + half_dx * k_1)
     k_3 = du_dx(x + half_dx, u + half_dx * k_2)
     k_4 = du_dx(x + dx, u + dx * k_3)
     delta_u = (k_1 + 2.*k_2 + 2.*k_3 + k_4) * dx / 6.
-    # print('delta_u: ', delta_u[0], delta_u[1], np.rad2deg(delta_u[1]))
     return delta_u
 
 
