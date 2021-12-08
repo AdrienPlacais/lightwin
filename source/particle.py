@@ -7,6 +7,7 @@ Created on Thu Dec  2 13:44:00 2021
 """
 
 import numpy as np
+import random
 import helper
 from constants import m_MeV, c
 
@@ -62,11 +63,8 @@ class Particle():
         If False, energy is set to e_mev.
         """
         if delta_e:
-            if(delta_e < 0.):
-                print('+ ', e_mev, 'MeV')
             self.energy['e_mev'] += e_mev
         else:
-            # print('set to ', e_mev, 'MeV')
             self.energy['e_mev'] = e_mev
 
         self.energy['gamma'] = helper.mev_to_gamma(self.energy['e_mev'], m_MeV)
@@ -146,3 +144,27 @@ class Particle():
         self.energy['gamma_array'] = np.array(self.energy['gamma_array'])
         self.energy['p_array'] = np.array(self.energy['p_array'])
         self.energy['gamma_array'] = np.array(self.energy['gamma_array'])
+
+
+def create_synch_and_rand_particles(e_0_mev, omega0_bunch):
+    """
+    Create three particles.
+
+    First is synchronous, two others have slightly initial energy and position.
+    """
+    delta_z = 1e-1
+    delta_E = 1e-3
+
+    synch = Particle(0., e_0_mev, omega0_bunch)
+
+    rand_1 = Particle(
+        random.uniform(-delta_z * .5, delta_z * .5),
+        random.uniform(e_0_mev - delta_E * .5,  e_0_mev + delta_E * .5),
+        omega0_bunch)
+
+    rand_2 = Particle(
+        random.uniform(-delta_z * .5, delta_z * .5),
+        random.uniform(e_0_mev - delta_E * .5, e_0_mev + delta_E * .5),
+        omega0_bunch)
+
+    return synch, rand_1, rand_2

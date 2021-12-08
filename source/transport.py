@@ -7,7 +7,6 @@ Created on Tue Nov 9 14:26:45 2021
 """
 
 import numpy as np
-import random
 from palettable.colorbrewer.qualitative import Set1_9
 import helper
 from constants import q_adim, m_MeV, c
@@ -33,40 +32,19 @@ def transport_beam(accelerator):
         the phase with the bunch pulsation.
     """
     omega0_bunch = accelerator.list_of_elements[0].omega0_bunch
-    part_data = {
-        'delta_z': 1e-1,
-        'E_0': 16.6,
-        'delta_E': 1e-3,
-        }
 
-    synch = particle.Particle(0.,
-                              part_data['E_0'],
-                              omega0_bunch)
-
-    rand_1 = particle.Particle(
-        random.uniform(-part_data['delta_z'] * .5,
-                       part_data['delta_z'] * .5),
-        random.uniform(part_data['E_0'] - part_data['delta_E'] * .5,
-                       part_data['E_0'] + part_data['delta_E'] * .5),
-        omega0_bunch)
-
-    rand_2 = particle.Particle(
-        random.uniform(-part_data['delta_z'] * .5,
-                       part_data['delta_z'] * .5),
-        random.uniform(part_data['E_0'] - part_data['delta_E'] * .5,
-                       part_data['E_0'] + part_data['delta_E'] * .5),
-        omega0_bunch)
+    synch, rand_1, rand_2 = particle.create_synch_and_rand_particles(
+        16.6, omega0_bunch)
 
     for elt in accelerator.list_of_elements:
-        # print(elt.name)
         n_steps = elt.solver_transf_mat.n_steps
         z_step = elt.solver_transf_mat.d_z
 
         if elt.accelerating:
             # Warning: in accelerating cavities, omega0 corresponds to the RF!
             omega0 = elt.acc_field.omega0_rf
-            # Also warning: phi is computed with omega0... Thus the cavity's
-            # delta_phi shall be recomputed with omega0_bunch.
+            # Also warning: phi is computed with omega0... Thus the cavities
+            # delta_phis shall be recomputed with omega0_bunch.
             for part in [synch, rand_1, rand_2]:
                 part.enter_cavity(omega0)
         else:
