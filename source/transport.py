@@ -66,24 +66,24 @@ def transport_beam(accelerator):
                 First component is (e_mev(i+1) - e_mev(i)) / dz.
                 Second component is (phi(i+1) - phi(i)) / dz.
             """
-            v0 = q_adim * elt.acc_field.e_func(z, u[1])
-
             gamma_float = helper.mev_to_gamma(u[0], m_MeV)
             beta = helper.gamma_to_beta(gamma_float)
 
+            v0 = q_adim * elt.acc_field.e_func(z, u[1])
             v1 = omega0 / (beta * c)
 
             return np.array(([v0, v1]))
 
         entrance_phase = synch.phi['rel']
-        entrance_pos = synch.z['rel']
+        # entrance_pos = synch.z['rel']
 
         for i in range(n_steps):
             # Compute energy, position and phase evolution during a time step
             for part in [synch, rand_1, rand_2]:
                 if i == 0:
                     # Set relative phase and positions to 0.
-                    part.z['rel'] -= entrance_pos
+                    # part.z['rel'] -= entrance_pos
+                    part.z['rel'] = 0.
                     part.phi['rel'] -= entrance_phase
 
                 u_rk = np.array(([part.energy['e_mev'], part.phi['rel']]))
@@ -93,6 +93,7 @@ def transport_beam(accelerator):
                 part.advance_phi(delta_u[1])
                 part.advance_position(z_step)
 
+        print(elt.name, synch.phi['abs_deg'])
         # If this element was a cavity, we have to change the phase reference.
         if elt.accelerating:
             for part in [synch, rand_1, rand_2]:
@@ -105,24 +106,24 @@ def transport_beam(accelerator):
             = np.array(synch.energy['e_array_mev'])[-n_steps:]
 
     for part in [synch, rand_1, rand_2]:
-        # Convert lists into arrays:
         part.list_to_array()
-        debug.simple_plot(synch.z['abs_array'],
-                          part.energy['e_array_mev'],
-                          'z_s', 'E mev', 34)
+        # debug.simple_plot(synch.z['abs_array'], part.energy['e_array_mev'],
+        #                   'z_s', 'E mev', 34)
+        # debug.simple_plot(synch.z['abs_array'], part.phi['abs_array'],
+        #                   'z_s', 'phi', 35)
+
+    accelerator.transfer_matrix_indiv = compute_transfer_matrix(synch,
+                                                                rand_1, rand_2)
+
+
+def compute_transfer_matrix(synch, rand_1, rand_2):
+    """Compute transfer matrix from the phase-space arrays."""
     for part in [rand_1, rand_2]:
         part.compute_phase_space(synch)
-
-    accelerator.transfer_matrix_indiv = compute_transfer_matrix(rand_1, rand_2)
-
-
-def compute_transfer_matrix(rand_1, rand_2):
-    """Compute transfer matrix from the phase-space arrays."""
-    n_steps = rand_1.phase_space['z_array'].size
-
     phase_space_matrix = np.dstack((rand_1.phase_space['both_array'],
                                     rand_2.phase_space['both_array']))
 
+    n_steps = rand_1.phase_space['z_array'].size
     transfer_matrix = np.full((n_steps, 2, 2), np.NaN)
     transfer_matrix[0, :, :] = np.eye(2)
     for i in range(1, n_steps):

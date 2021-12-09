@@ -21,7 +21,7 @@ import helper
 E_MEV = 16.6
 
 # Current in mA
-I_MILLI_A = 4.
+I_MILLI_A = 0.
 
 # Bunch frequency in MHz
 F_MHZ = 176.1

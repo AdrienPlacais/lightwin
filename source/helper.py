@@ -179,7 +179,7 @@ def mev_and_gamma_to_p(energy_mev, gamma, mass_kg, q_over_m):
 
 def gamma_and_beta_to_p(gamma, beta):
     """Compute p when gamma and beta are already known."""
-    return gamma * beta * constants.c
+    return gamma * beta * constants.c * constants.m_kg
 
 
 # =============================================================================

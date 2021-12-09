@@ -7,6 +7,7 @@ Created on Thu Dec  2 13:44:00 2021
 """
 
 import numpy as np
+from scipy.interpolate import interp1d
 import random
 import helper
 from constants import m_MeV, c
@@ -30,6 +31,7 @@ class Particle():
             'p': None,
             'e_array_mev': [],
             'gamma_array': [],
+            'beta_array': [],
             'p_array': [],
             }
         self.set_energy(e_mev, delta_e=False)
@@ -45,7 +47,8 @@ class Particle():
             'rel': None,
             'abs_deg': None,
             # Used to keep the delta phi on the whole cavity:
-            'before_cavity': None
+            'idx_cav_entry': None,
+            'abs_array': [],
             }
         self.init_phi()
 
@@ -73,6 +76,7 @@ class Particle():
                                                       self.energy['beta'])
         self.energy['e_array_mev'].append(self.energy['e_mev'])
         self.energy['gamma_array'].append(self.energy['gamma'])
+        self.energy['beta_array'].append(self.energy['beta'])
         self.energy['p_array'].append(self.energy['p'])
 
     def advance_position(self, delta_pos):
@@ -87,12 +91,14 @@ class Particle():
             / (self.energy['beta'] * c)
         self.phi['rel'] = self.phi['abs']
         self.phi['abs_deg'] = np.rad2deg(self.phi['abs'])
+        self.phi['abs_array'].append(self.phi['abs'])
 
     def advance_phi(self, delta_phi):
         """Increase relative and absolute phase by delta_phi."""
         self.phi['abs'] += delta_phi
         self.phi['rel'] += delta_phi
         self.phi['abs_deg'] += np.rad2deg(delta_phi)
+        self.phi['abs_array'].append(self.phi['abs'])
 
     def compute_phase_space(self, synch):
         """
@@ -101,8 +107,15 @@ class Particle():
         synch_particle is an instance of Particle corresponding to the
         synchronous particle.
         """
-        self.phase_space['z_array'] = self.z['abs_array'] \
-            - synch.z['abs_array']
+        # self.phase_space['z_array'] = self.z['abs_array'] \
+        #     - synch.z['abs_array']
+
+        # Warning, according to doc lambda is RF wavelength... which does not
+        # make any sense outside of cavities.
+        lambda_rf = 2. * np.pi * c / self.omega0['ref']
+        self.phase_space['z_array'] = -self.energy['beta_array'] * lambda_rf \
+            * (self.phi['abs_array'] - synch.phi['abs_array']) / (2. * np.pi)
+
         self.phase_space['delta_array'] = (self.energy['p_array']
                                            - synch.energy['p_array']) \
             / synch.energy['p_array']
@@ -116,34 +129,41 @@ class Particle():
 
     def enter_cavity(self, omega0_rf):
         """Change the omega0 and save the phase at the entrance."""
-        self.phi['before_cavity'] = self.phi['abs']
+        self.phi['idx_cav_entry'] = len(self.phi['abs_array'])
         self.omega0['ref'] = omega0_rf
         self.omega0['rf'] = omega0_rf
-        self.save_E = self.energy['e_mev']
 
     def exit_cavity(self):
         """Recompute phi with the proper omega0, reset omega0."""
         # Helpers
-        delta_phi = self.phi['abs'] - self.phi['before_cavity']
+        idx_entry = self.phi['idx_cav_entry']
+        idx_exit = len(self.phi['abs_array'])
         frac_omega = self.omega0['bunch'] / self.omega0['rf']
-        # Reset proper phi
-        correct_phi = self.phi['before_cavity'] + frac_omega * delta_phi
-        self.phi['abs'] = correct_phi
-        self.phi['abs_deg'] = np.rad2deg(correct_phi)
+
+        # Set proper phi
+        for i in range(idx_entry, idx_exit):
+            delta_phi = self.phi['abs_array'][i] \
+                - self.phi['abs_array'][idx_entry - 1]
+            self.phi['abs_array'][i] = self.phi['abs_array'][idx_entry - 1] \
+                + delta_phi * frac_omega
+        self.phi['abs'] = self.phi['abs_array'][-1]
+        self.phi['abs_deg'] = np.rad2deg(self.phi['abs'])
+
         # Reset proper omega
         self.omega0['ref'] = self.omega0['bunch']
+
         # Remove unsused variables
-        print('delta_phi: ', delta_phi, '\t delta_E: ', self.energy['e_mev'] - self.save_E)
-        self.phi['before_cavity'] = None
+        self.phi['idx_cav_entry'] = None
         self.omega0['rf'] = None
 
     def list_to_array(self):
         """Convert lists into arrays."""
         self.z['abs_array'] = np.array(self.z['abs_array'])
+        self.phi['abs_array'] = np.array(self.phi['abs_array'])
         self.energy['e_array_mev'] = np.array(self.energy['e_array_mev'])
         self.energy['gamma_array'] = np.array(self.energy['gamma_array'])
+        self.energy['beta_array'] = np.array(self.energy['beta_array'])
         self.energy['p_array'] = np.array(self.energy['p_array'])
-        self.energy['gamma_array'] = np.array(self.energy['gamma_array'])
 
 
 def create_synch_and_rand_particles(e_0_mev, omega0_bunch):
