@@ -156,14 +156,13 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
 
     xlabels = ['', '', 'z [m]', 'z [m]']
     ylabels = [r'$\epsilon R_{11}$', r'$\epsilon R_{12}$',
-               r'$\epsilon R_{21}$', r'$\epsilon R_{22}$']
+                r'$\epsilon R_{21}$', r'$\epsilon R_{22}$']
 
     for i in range(4):
         axlist[i].plot(z_err, err[:, i], ls=ls)
         axlist[i].set_xlabel(xlabels[i])
         axlist[i].set_ylabel(ylabels[i])
         axlist[i].grid(True)
-
 
 def load_energies(filepath, n_elt):
     """Load energy ref file."""

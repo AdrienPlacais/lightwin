@@ -93,7 +93,7 @@ def transport_beam(accelerator):
                 part.advance_phi(delta_u[1])
                 part.advance_position(z_step)
 
-        print(elt.name, synch.phi['abs_deg'])
+        print(elt.name, '\t\t', synch.energy['beta'], '\t\t', synch.phi['abs_deg'])
         # If this element was a cavity, we have to change the phase reference.
         if elt.accelerating:
             for part in [synch, rand_1, rand_2]:

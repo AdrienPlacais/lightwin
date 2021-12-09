@@ -10,7 +10,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import random
 import helper
-from constants import m_MeV, c
+from constants import m_MeV, c, q_over_m
 
 
 class Particle():
@@ -22,6 +22,13 @@ class Particle():
             'abs': z,           # Position from the start of the line
             'rel': z,           # Position from the start of the element
             'abs_array': [z],
+            }
+
+        self.omega0 = {
+            'ref': omega0_bunch,        # The one we use
+            'bunch': omega0_bunch,      # Should match 'ref' outside cavities
+            'rf': None,                 # Should match 'ref' inside cavities
+            'lambda_array': [],
             }
 
         self.energy = {
@@ -36,19 +43,13 @@ class Particle():
             }
         self.set_energy(e_mev, delta_e=False)
 
-        self.omega0 = {
-            'ref': omega0_bunch,        # The one we use
-            'bunch': omega0_bunch,      # Should match 'ref' outside cavities
-            'rf': None,                 # Should match 'ref' inside cavities
-            }
-
         self.phi = {
             'abs': None,
             'rel': None,
             'abs_deg': None,
+            'abs_array': [],
             # Used to keep the delta phi on the whole cavity:
             'idx_cav_entry': None,
-            'abs_array': [],
             }
         self.init_phi()
 
@@ -79,6 +80,8 @@ class Particle():
         self.energy['beta_array'].append(self.energy['beta'])
         self.energy['p_array'].append(self.energy['p'])
 
+        self.omega0['lambda_array'].append(2. * np.pi * c / self.omega0['ref'])
+
     def advance_position(self, delta_pos):
         """Advance particle by delt_pos."""
         self.z['abs'] += delta_pos
@@ -107,18 +110,23 @@ class Particle():
         synch_particle is an instance of Particle corresponding to the
         synchronous particle.
         """
-        # self.phase_space['z_array'] = self.z['abs_array'] \
-        #     - synch.z['abs_array']
-
         # Warning, according to doc lambda is RF wavelength... which does not
         # make any sense outside of cavities.
-        lambda_rf = 2. * np.pi * c / self.omega0['ref']
-        self.phase_space['z_array'] = -self.energy['beta_array'] * lambda_rf \
+        lambda_rf = 2. * np.pi * c / self.omega0['bunch']
+        # lambda_rf = self.omega0['lambda_array']
+        self.phase_space['z_array'] = -self.energy['beta_array'] \
+            * lambda_rf \
             * (self.phi['abs_array'] - synch.phi['abs_array']) / (2. * np.pi)
 
+        # v_G = helper.mev_to_v(self.energy['e_array_mev'], q_over_m)
+        # v_s = helper.mev_to_v(synch.energy['e_array_mev'], q_over_m)
+        # z_prime = (v_G - v_s) / v_s
         self.phase_space['delta_array'] = (self.energy['p_array']
                                            - synch.energy['p_array']) \
             / synch.energy['p_array']
+        # self.phase_space['delta_array'] = z_prime * self.energy['gamma_array']**2 \
+        #     + (synch.energy['gamma_array'] - self.energy['gamma_array']) \
+        #         / self.energy['gamma_array']
 
         self.phase_space['both_array'] = np.vstack(
             (self.phase_space['z_array'],
@@ -154,7 +162,7 @@ class Particle():
 
         # Remove unsused variables
         self.phi['idx_cav_entry'] = None
-        self.omega0['rf'] = None
+        # self.omega0['rf'] = None
 
     def list_to_array(self):
         """Convert lists into arrays."""
@@ -164,6 +172,7 @@ class Particle():
         self.energy['gamma_array'] = np.array(self.energy['gamma_array'])
         self.energy['beta_array'] = np.array(self.energy['beta_array'])
         self.energy['p_array'] = np.array(self.energy['p_array'])
+        self.omega0['lambda_array'] = np.array(self.omega0['lambda_array'])
 
 
 def create_synch_and_rand_particles(e_0_mev, omega0_bunch):
@@ -172,19 +181,22 @@ def create_synch_and_rand_particles(e_0_mev, omega0_bunch):
 
     First is synchronous, two others have slightly initial energy and position.
     """
-    delta_z = 1e-1
-    delta_E = 1e-3
+    delta_z = 1e-4
+    delta_E = 1e-4
 
     synch = Particle(0., e_0_mev, omega0_bunch)
 
-    rand_1 = Particle(
-        random.uniform(-delta_z * .5, delta_z * .5),
-        random.uniform(e_0_mev - delta_E * .5,  e_0_mev + delta_E * .5),
-        omega0_bunch)
+    rand_1 = Particle(-1.5051702021426609e-05, 16.60002058488364, omega0_bunch)
 
-    rand_2 = Particle(
-        random.uniform(-delta_z * .5, delta_z * .5),
-        random.uniform(e_0_mev - delta_E * .5, e_0_mev + delta_E * .5),
-        omega0_bunch)
+    rand_2 = Particle(2.053862812359645e-05, 16.599982811332467, omega0_bunch)
+    # rand_1 = Particle(
+    #     random.uniform(-delta_z * .5, 0.),
+    #     random.uniform(e_0_mev,  e_0_mev + delta_E * .5),
+    #     omega0_bunch)
+
+    # rand_2 = Particle(
+    #     random.uniform(0., delta_z * .5),
+    #     random.uniform(e_0_mev - delta_E * .5, e_0_mev),
+    #     omega0_bunch)
 
     return synch, rand_1, rand_2
