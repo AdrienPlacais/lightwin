@@ -70,10 +70,12 @@ def plot_twiss(linac, twiss):
     ax.legend()
 
 
-def plot_phase_spaces(twiss):
+def plot_phase_spaces(linac, twiss):
     """Plot ellipsoid."""
     fig, ax = helper.create_fig_if_not_exist(34, [111])
     ax = ax[0]
+    z_pos = linac.get_from_elements('pos_m', 'abs')
+
 
     ax.set_xlabel('z [m]')
     ax.set_ylabel("z' [m]")

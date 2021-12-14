@@ -7,10 +7,8 @@ Created on Thu Dec  2 13:44:00 2021
 """
 
 import numpy as np
-from scipy.interpolate import interp1d
-import random
 import helper
-from constants import m_MeV, c, q_over_m
+from constants import m_MeV, c
 
 
 class Particle():
@@ -162,7 +160,6 @@ class Particle():
 
         # Remove unsused variables
         self.phi['idx_cav_entry'] = None
-        # self.omega0['rf'] = None
 
     def list_to_array(self):
         """Convert lists into arrays."""
