@@ -17,12 +17,10 @@ import particle
 # =============================================================================
 def init_rk4_cavity(acc_field, cavity, gamma, synch):
     """Init RK4 methods to compute transfer matrix of a cavity."""
-    # synch = particle.Particle(0., cavity.energy['e_array_mev'][0],
-                              # cavity.omega0_bunch)
-
     gamma['out'] = gamma['in']
     synch.z['rel'] = 0.
     synch.phi['rel'] = 0.
+    # TODO two last lines in enter_cavity?
 
     def du_dz(z, u):
         """
@@ -44,10 +42,9 @@ def init_rk4_cavity(acc_field, cavity, gamma, synch):
 
         gamma_float = helper.mev_to_gamma(u[0], m_MeV)
         beta = helper.gamma_to_beta(gamma_float)
-        # v1 = acc_field.omega0_rf / (beta * c)   # Bonjoure strong MT effect
-        v1 = acc_field.n_cell * cavity.omega0_bunch / (beta * c)   # Bonjoure strong MT effect
+        v1 = acc_field.n_cell * cavity.omega0_bunch / (beta * c)
         return np.array(([v0, v1]))
-    return du_dz#, synch
+    return du_dz
 
 
 def rk4(u, du_dx, x, dx):
@@ -96,20 +93,15 @@ def init_leapfrog_cavity(acc_field, cavity, gamma, dz, synch):
     #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
     #       (speed/energy are on half steps)
     e_0_mev = cavity.energy['e_array_mev'][0]
-    # synch = particle.Particle(0., e_0_mev, cavity.omega0_bunch)
 
-    # Rewind energy
-# =============================================================================
+    # Remove last array element as it is on i and should be on i-1/2
     synch.energy['e_array_mev'].pop(-1)
     synch.energy['gamma_array'].pop(-1)
-# =============================================================================
+    # Rewind energy
     synch.set_energy(-q_adim * acc_field.e_func(synch.z['rel'], 0.) * .5 * dz,
                      delta_e=True)
-    # Remove first elements at t=0
-    # synch.energy['e_array_mev'].pop(0)
-    # synch.energy['gamma_array'].pop(0)
+    # TODO in enter_cavity?
     synch.z['rel'] = 0.
     synch.phi['rel'] = 0.
 
     gamma['out'] = helper.mev_to_gamma(e_0_mev, m_MeV)
-    # return synch
