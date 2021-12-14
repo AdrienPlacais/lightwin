@@ -36,6 +36,16 @@ def printc(message, color='red', opt_message=''):
     print(escape_code + message + normal_code + opt_message)
 
 
+def simple_plot(x, y, label_x, label_y, fignum=33):
+    """Simplest plot."""
+    axnumlist = [111]
+    fig, axlist = create_fig_if_not_exist(fignum, axnumlist)
+    axlist[0].plot(x, y)
+    axlist[0].set_xlabel(label_x)
+    axlist[0].set_ylabel(label_y)
+    axlist[0].grid(True)
+
+
 def create_fig_if_not_exist(fignum, axnum):
     """
     Check if figures were already created, create it if not.

@@ -255,13 +255,3 @@ def compare_cavity_properties():
     #     print('Error: ', err, 'mdeg')
     #     print('')
     print('Not implemented')
-
-
-def simple_plot(x, y, label_x, label_y, fignum=33):
-    """Simplest plot."""
-    axnumlist = [111]
-    fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
-    axlist[0].plot(x, y)
-    axlist[0].set_xlabel(label_x)
-    axlist[0].set_ylabel(label_y)
-    axlist[0].grid(True)
