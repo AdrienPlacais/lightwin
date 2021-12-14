@@ -15,12 +15,14 @@ import particle
 # =============================================================================
 # RK4
 # =============================================================================
-def init_rk4_cavity(acc_field, cavity, gamma):
+def init_rk4_cavity(acc_field, cavity, gamma, synch):
     """Init RK4 methods to compute transfer matrix of a cavity."""
-    synch = particle.Particle(0., cavity.energy['e_array_mev'][0],
-                              cavity.omega0_bunch)      # Bonjoure no MT effect
+    # synch = particle.Particle(0., cavity.energy['e_array_mev'][0],
+                              # cavity.omega0_bunch)
 
     gamma['out'] = gamma['in']
+    synch.z['rel'] = 0.
+    synch.phi['rel'] = 0.
 
     def du_dz(z, u):
         """
@@ -45,7 +47,7 @@ def init_rk4_cavity(acc_field, cavity, gamma):
         # v1 = acc_field.omega0_rf / (beta * c)   # Bonjoure strong MT effect
         v1 = acc_field.n_cell * cavity.omega0_bunch / (beta * c)   # Bonjoure strong MT effect
         return np.array(([v0, v1]))
-    return du_dz, synch
+    return du_dz#, synch
 
 
 def rk4(u, du_dx, x, dx):
@@ -82,7 +84,7 @@ def rk4(u, du_dx, x, dx):
 # =============================================================================
 # Leapfrog
 # =============================================================================
-def init_leapfrog_cavity(acc_field, cavity, gamma, dz):
+def init_leapfrog_cavity(acc_field, cavity, gamma, dz, synch):
     """Init leapfrog method to compute transfer matrix of cavity."""
     # Leapfrog method:
     #   pos(i+1) = pos(i) + speed(i+0.5) * dt
@@ -94,14 +96,20 @@ def init_leapfrog_cavity(acc_field, cavity, gamma, dz):
     #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
     #       (speed/energy are on half steps)
     e_0_mev = cavity.energy['e_array_mev'][0]
-    synch = particle.Particle(0., e_0_mev, cavity.omega0_bunch)
+    # synch = particle.Particle(0., e_0_mev, cavity.omega0_bunch)
 
     # Rewind energy
+# =============================================================================
+    synch.energy['e_array_mev'].pop(-1)
+    synch.energy['gamma_array'].pop(-1)
+# =============================================================================
     synch.set_energy(-q_adim * acc_field.e_func(synch.z['rel'], 0.) * .5 * dz,
                      delta_e=True)
     # Remove first elements at t=0
-    synch.energy['e_array_mev'].pop(0)
-    synch.energy['gamma_array'].pop(0)
+    # synch.energy['e_array_mev'].pop(0)
+    # synch.energy['gamma_array'].pop(0)
+    synch.z['rel'] = 0.
+    synch.phi['rel'] = 0.
 
     gamma['out'] = helper.mev_to_gamma(e_0_mev, m_MeV)
-    return synch
+    # return synch

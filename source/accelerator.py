@@ -9,7 +9,7 @@ import os.path
 import numpy as np
 import elements
 import helper
-from constants import m_MeV
+from constants import m_MeV, c
 from electric_field import load_field_map_file
 import transport
 import particle
@@ -155,12 +155,8 @@ class Accelerator():
                 elt.energy['gamma_array'][0] = gamma_out
                 elt.energy['e_array_mev'][0] = \
                     helper.gamma_to_mev(gamma_out, m_MeV)
-                elt.compute_transfer_matrix()
-
-                self.synch.advance_position(elt.length_m)
-                self.synch.set_energy(0., delta_e=True)
-                self.synch.advance_phi(0.)
-
+                elt.compute_transfer_matrix(self.synch)
+                print(elt.name, self.synch.energy['e_mev'], self.synch.phi['abs_deg'])
                 if self.flag_first_calculation_of_transfer_matrix:
                     self.transfer_matrix_cumul = elt.transfer_matrix
                     self.flag_first_calculation_of_transfer_matrix = False

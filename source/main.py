@@ -55,8 +55,8 @@ for method in ['RK']:
     linac.compute_transfer_matrices(method)
     debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
 
-twiss = emittance.transport_twiss_parameters(linac, ALPHA_Z, BETA_Z)
-emittance.plot_twiss(linac, twiss)
+# twiss = emittance.transport_twiss_parameters(linac, ALPHA_Z, BETA_Z)
+# emittance.plot_twiss(linac, twiss)
 
 SAVE_MT_AND_ENERGY = False
 if SAVE_MT_AND_ENERGY:

@@ -92,7 +92,7 @@ class _Element():
         d_z = self.length_m / n_steps
         self.solver_transf_mat = SolverParam(method, n_steps, d_z)
 
-    def compute_transfer_matrix(self):
+    def compute_transfer_matrix(self, synch):
         """
         Compute longitudinal matrix.
 
@@ -100,7 +100,7 @@ class _Element():
         """
         assert ~self.accelerating
         self.transfer_matrix = self.dict_transf_mat[
-            self.solver_transf_mat.method](self)
+            self.solver_transf_mat.method](self, gamma=np.NaN, synch=synch)
 
         self.energy['gamma_array'][1:] = self.energy['gamma_array'][0]
         self.energy['e_array_mev'][1:] = self.energy['e_array_mev'][0]
@@ -166,13 +166,13 @@ class FieldMap(_Element):
         self.phi_s_deg = None
         self.v_cav_mv = None
 
-    def compute_transfer_matrix(self):
+    def compute_transfer_matrix(self, synch):
         """Compute longitudinal matrix."""
         # Init f_e
         self.f_e = 0.
 
         # Compute transfer matrix
-        self.dict_transf_mat[self.solver_transf_mat.method](self)
+        self.dict_transf_mat[self.solver_transf_mat.method](self, synch)
 
         self.energy['gamma_array'] = helper.mev_to_gamma(
             self.energy['e_array_mev'], m_MeV)

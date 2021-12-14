@@ -14,6 +14,7 @@ from constants import c, q_adim, m_MeV
 import helper
 import solver
 import elements
+import particle
 
 
 # =============================================================================
@@ -25,7 +26,7 @@ def dummy():
     return r_zz
 
 
-def z_drift(element_or_length, gamma=np.NaN):
+def z_drift(element_or_length, gamma=np.NaN, synch=None):
     """
     Compute the longitudinal sub-matrix of a drift.
 
@@ -60,10 +61,17 @@ def z_drift(element_or_length, gamma=np.NaN):
             r_zz[i, :, :] = np.array(([1., delta_s*gamma**-2],
                                       [0., 1.]))
 
+    if isinstance(synch, particle.Particle):
+        synch.advance_position(element_or_length.length_m)
+        synch.set_energy(0., delta_e=True)
+        delta_phi = synch.omega0['ref'] * element_or_length.length_m \
+            / (synch.energy['beta'] * c)
+        synch.advance_phi(delta_phi)
+
     return r_zz
 
 
-def z_field_map_electric_field(cavity):
+def z_field_map_electric_field(cavity, synch):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 
@@ -71,14 +79,17 @@ def z_field_map_electric_field(cavity):
     phase, the accelerating field.
     """
     assert isinstance(cavity, elements.FieldMap)
+    assert isinstance(synch, particle.Particle)
     acc_field = cavity.acc_field
     solver_param = cavity.solver_transf_mat
+    synch.enter_cavity(acc_field.omega0_rf)
 
 # =============================================================================
 # Initialisation
 # =============================================================================
     # gamma at entrance, middle and exit of cavity
-    gamma = {'in': helper.mev_to_gamma(cavity.energy['e_array_mev'][0], m_MeV),
+    gamma = {'in': synch.energy['gamma'],
+             # helper.mev_to_gamma(cavity.energy['e_array_mev'][0], m_MeV),
              'synch': 0.,
              'out': 0.}
     # Variation of synch part parameters (not necessary for z, as it is always
@@ -88,11 +99,14 @@ def z_field_map_electric_field(cavity):
 
     # Initialize gamma and synch_part:
     if solver_param.method == 'leapfrog':
-        synch = solver.init_leapfrog_cavity(acc_field, cavity, gamma,
-                                            solver_param.d_z)
+        solver.init_leapfrog_cavity(acc_field, cavity, gamma,
+                                    solver_param.d_z, synch)
+        # synch = solver.init_leapfrog_cavity(acc_field, cavity, gamma,
+                                            # solver_param.d_z)
 
     elif solver_param.method == 'RK':
-        du_dz, synch = solver.init_rk4_cavity(acc_field, cavity, gamma)
+        du_dz = solver.init_rk4_cavity(acc_field, cavity, gamma, synch)
+        # du_dz, synch = solver.init_rk4_cavity(acc_field, cavity, gamma)
 
     # We loop until reaching the end of the cavity
     cavity.transfer_matrix = np.zeros((solver_param.n_steps + 1, 2, 2))
@@ -121,7 +135,6 @@ def z_field_map_electric_field(cavity):
             delta['phi'] = temp[1]
 
         synch.set_energy(delta['e_mev'], delta_e=True)
-        # gamma['out'] = gamma['in'] + delta['e_mev'] / m_MeV
         gamma['out'] = synch.energy['gamma']
 
         # Warning, the gamma and beta in synch object are at the exit of the
@@ -138,10 +151,12 @@ def z_field_map_electric_field(cavity):
             delta['phi'] = acc_field.n_cell * cavity.omega0_bunch \
                 * solver_param.d_z / (helper.gamma_to_beta(gamma['out']) * c)
 
-        synch.phi['rel'] += delta['phi']
+        # synch.phi['rel'] += delta['phi']
+        synch.advance_phi(delta['phi'])
         synch.advance_position(solver_param.d_z)
 
     cavity.energy['e_array_mev'] = np.array(synch.energy['e_array_mev'])
+    synch.exit_cavity()
 
 
 # omega0_rf and not omega0_bunch

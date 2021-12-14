@@ -49,7 +49,7 @@ class Particle():
             # Used to keep the delta phi on the whole cavity:
             'idx_cav_entry': None,
             }
-        self.init_phi()
+        self._init_phi()
 
         self.phase_space = {
             'z_array': None,      # z_abs - s_abs or z_rel - s_rel
@@ -86,7 +86,7 @@ class Particle():
         self.z['rel'] += delta_pos
         self.z['abs_array'].append(self.z['abs'])
 
-    def init_phi(self):
+    def _init_phi(self):
         """Init phi by taking z_rel and beta."""
         self.phi['abs'] = self.omega0['ref'] * self.z['rel'] \
             / (self.energy['beta'] * c)
