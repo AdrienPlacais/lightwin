@@ -12,6 +12,7 @@ import helper
 from constants import m_MeV
 from electric_field import load_field_map_file
 import transport
+import particle
 
 
 class Accelerator():
@@ -39,6 +40,7 @@ class Accelerator():
 
         self.e_0_mev = e_0_mev
         self.f_mhz_bunch = f_mhz
+        self.synch = particle.Particle(0., e_0_mev, 2e6 * np.pi * f_mhz)
 
         # Load dat file and clean it up (remove comments, etc)
         self.dat_file_content = []
@@ -116,7 +118,12 @@ class Accelerator():
         self.list_of_elements = list_of_elements
 
     def _complementary_assignation(self, e_0_mev):
-        """Define Elements attributes that are dependent to each others."""
+        """
+        Define Elements attributes that are dependent to each others.
+
+        In particular, absolute position of elements' I/O, energy at first
+        element entrance.
+        """
         entry = 0.
         out = 0.
 
@@ -127,7 +134,8 @@ class Accelerator():
             elt.pos_m['abs'] = elt.pos_m['rel'] + entry
             entry = out
 
-        # Initial energy:
+        # TODO I think this part could be handled by self.synch.
+        # Initial energy
         self.list_of_elements[0].energy['e_array_mev'][0] = e_0_mev
         self.list_of_elements[0].energy['gamma_array'][0] = \
             helper.mev_to_gamma(e_0_mev, m_MeV)
@@ -143,23 +151,27 @@ class Accelerator():
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
-            for element in self.list_of_elements:
-                element.energy['gamma_array'][0] = gamma_out
-                element.energy['e_array_mev'][0] = \
+            for elt in self.list_of_elements:
+                elt.energy['gamma_array'][0] = gamma_out
+                elt.energy['e_array_mev'][0] = \
                     helper.gamma_to_mev(gamma_out, m_MeV)
-                element.compute_transfer_matrix()
+                elt.compute_transfer_matrix()
+
+                self.synch.advance_position(elt.length_m)
+                self.synch.set_energy(0., delta_e=True)
+                self.synch.advance_phi(0.)
 
                 if self.flag_first_calculation_of_transfer_matrix:
-                    self.transfer_matrix_cumul = element.transfer_matrix
+                    self.transfer_matrix_cumul = elt.transfer_matrix
                     self.flag_first_calculation_of_transfer_matrix = False
 
                 else:
                     np.vstack((self.transfer_matrix_cumul,
-                               element.transfer_matrix))
+                               elt.transfer_matrix))
 
-                element.energy['e_array_mev'] = helper.gamma_to_mev(
-                    element.energy['gamma_array'], m_MeV)
-                gamma_out = element.energy['gamma_array'][-1]
+                elt.energy['e_array_mev'] = helper.gamma_to_mev(
+                    elt.energy['gamma_array'], m_MeV)
+                gamma_out = elt.energy['gamma_array'][-1]
 
             transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
             self.transfer_matrix_indiv = np.vstack((transfer_matrix_indiv,

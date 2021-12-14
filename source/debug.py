@@ -164,6 +164,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         axlist[i].set_ylabel(ylabels[i])
         axlist[i].grid(True)
 
+
 def load_energies(filepath, n_elt):
     """Load energy ref file."""
     if not os.path.isfile(filepath):
