@@ -165,20 +165,15 @@ class Particle():
         """
         list_of_attrib = dir(self)
         for attrib_name in list_of_attrib:
-            print(attrib_name)
             attrib = getattr(self, attrib_name)
 
             if isinstance(attrib, list):
                 attrib = np.array(attrib)
-                print('\t was list! Now is ', type(attrib))
 
             elif isinstance(attrib, dict):
-                print('\t was dict!')
                 for key in attrib.keys():
-                    print('\t\t', key)
                     if isinstance(attrib[key], list):
                         attrib[key] = np.array(attrib[key])
-                        print('\t\t\t was list! Now is ', type(attrib[key]))
 
 
 def create_synch_and_rand_particles(e_0_mev, omega0_bunch):
