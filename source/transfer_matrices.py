@@ -55,18 +55,16 @@ def z_drift(element_or_length, gamma=np.NaN, synch=None):
     else:
         n = element_or_length.solver_transf_mat.n_steps
         delta_s = element_or_length.length_m / n
-        gamma = element_or_length.energy['gamma_array'][0]
         r_zz = np.full((n, 2, 2), np.NaN)
         for i in range(n):
-            r_zz[i, :, :] = np.array(([1., delta_s*gamma**-2],
+            r_zz[i, :, :] = np.array(([1., delta_s*synch.energy['gamma']**-2],
                                       [0., 1.]))
 
-    if isinstance(synch, particle.Particle):
-        synch.advance_position(element_or_length.length_m)
-        synch.set_energy(0., delta_e=True)
-        delta_phi = synch.omega0['ref'] * element_or_length.length_m \
-            / (synch.energy['beta'] * c)
-        synch.advance_phi(delta_phi)
+            synch.advance_position(delta_s)
+            synch.set_energy(0., delta_e=True)
+            delta_phi = synch.omega0['ref'] * delta_s / (synch.energy['beta']
+                                                         * c)
+            synch.advance_phi(delta_phi)
 
     return r_zz
 
@@ -152,7 +150,6 @@ def z_field_map_electric_field(cavity, synch):
         synch.advance_phi(delta['phi'])
         synch.advance_position(solver_param.d_z)
 
-    cavity.energy['e_array_mev'] = np.array(synch.energy['e_array_mev'])
     synch.exit_cavity()
 
 

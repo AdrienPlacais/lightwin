@@ -136,9 +136,9 @@ class Accelerator():
 
         # TODO I think this part could be handled by self.synch.
         # Initial energy
-        self.list_of_elements[0].energy['e_array_mev'][0] = e_0_mev
-        self.list_of_elements[0].energy['gamma_array'][0] = \
-            helper.mev_to_gamma(e_0_mev, m_MeV)
+        # self.list_of_elements[0].energy['e_array_mev'][0] = e_0_mev
+        # self.list_of_elements[0].energy['gamma_array'][0] = \
+        #     helper.mev_to_gamma(e_0_mev, m_MeV)
 
     def compute_transfer_matrices(self, method):
         """Compute the transfer matrices of Accelerator's elements."""
@@ -147,16 +147,15 @@ class Accelerator():
 
         self._complementary_assignation(self.e_0_mev)
 
-        gamma_out = self.list_of_elements[0].energy['gamma_array'][0]
+        # gamma_out = self.list_of_elements[0].energy['gamma_array'][0]
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
             for elt in self.list_of_elements:
-                elt.energy['gamma_array'][0] = gamma_out
-                elt.energy['e_array_mev'][0] = \
-                    helper.gamma_to_mev(gamma_out, m_MeV)
+                # elt.energy['gamma_array'][0] = gamma_out
+                # elt.energy['e_array_mev'][0] = \
+                #     helper.gamma_to_mev(gamma_out, m_MeV)
                 elt.compute_transfer_matrix(self.synch)
-                print(elt.name, self.synch.energy['e_mev'], self.synch.phi['abs_deg'])
                 if self.flag_first_calculation_of_transfer_matrix:
                     self.transfer_matrix_cumul = elt.transfer_matrix
                     self.flag_first_calculation_of_transfer_matrix = False
@@ -165,10 +164,11 @@ class Accelerator():
                     np.vstack((self.transfer_matrix_cumul,
                                elt.transfer_matrix))
 
-                elt.energy['e_array_mev'] = helper.gamma_to_mev(
-                    elt.energy['gamma_array'], m_MeV)
-                gamma_out = elt.energy['gamma_array'][-1]
+                # elt.energy['e_array_mev'] = helper.gamma_to_mev(
+                    # elt.energy['gamma_array'], m_MeV)
+                # gamma_out = elt.energy['gamma_array'][-1]
 
+            self.synch.list_to_array()
             transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
             self.transfer_matrix_indiv = np.vstack((transfer_matrix_indiv,
                                                     self.get_from_elements(
@@ -199,6 +199,8 @@ class Accelerator():
         # of an element is equal to the energy at the exit of the precedent,
         # we discard all entrance data.
         discard_list = ['pos_m', 'energy']
+        if attribute == 'energy':
+            return self.synch.energy['e_array_mev']
 
         def add_data(data_out, data_tmp, attribute):
             """
