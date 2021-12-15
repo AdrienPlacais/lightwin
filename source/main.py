@@ -53,7 +53,7 @@ linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
 for method in ['RK']:
     linac.compute_transfer_matrices(method)
-    debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
+    debug.plot_transfer_matrices(linac, linac.transf_mat['cumul'])
     debug.compare_energies(linac)
 
 # twiss = emittance.transport_twiss_parameters(linac, ALPHA_Z, BETA_Z)

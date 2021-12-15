@@ -23,13 +23,8 @@ class Accelerator():
 
         The different elements constituting the accelerator will be stored
         in the list self.list_of_elements.
-
-        Parameters
-        ----------
-        e_0_mev: float
-            Initial beam energy in MeV.
-        dat_filepath: string
-            Path to file containing the structure.
+        The data such as the synch phase or the beam energy will be stored in
+        the self.synch Particle object.
         """
         self.dat_filepath = dat_filepath
         self.project_folder = os.path.dirname(dat_filepath)
@@ -37,8 +32,6 @@ class Accelerator():
         # TODO: handle cases were there the number of elements in the line
         # is different from 39
 
-        self.e_0_mev = e_0_mev
-        self.f_mhz_bunch = f_mhz
         self.synch = particle.Particle(0., e_0_mev, 2e6 * np.pi * f_mhz)
 
         # Load dat file and clean it up (remove comments, etc)
@@ -50,9 +43,11 @@ class Accelerator():
         self._create_structure()
         self._load_filemaps()
 
-        # Longitudinal transfer matrix of the first to the i-th element:
-        self.transfer_matrix_cumul = np.full((1, 2, 2), np.NaN)
-        self.flag_first_calculation_of_transfer_matrix = True
+        self.transf_mat = {
+            'cumul': np.full((1, 2, 2), np.NaN),    # Product of indiv matrices
+            'indiv': None,
+            'first_calc?': True,
+            }
 
     def _load_dat_file(self):
         """Load the dat file and convert it into a list of lines."""
@@ -116,7 +111,7 @@ class Accelerator():
 
         self.list_of_elements = list_of_elements
 
-    def _complementary_assignation(self, e_0_mev):
+    def _complementary_assignation(self):
         """
         Define Elements attributes that are dependent to each others.
 
@@ -146,35 +141,33 @@ class Accelerator():
         for elt in self.list_of_elements:
             elt.init_solver_settings(method)
 
-        self._complementary_assignation(self.e_0_mev)
+        self._complementary_assignation()
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
             for elt in self.list_of_elements:
                 elt.compute_transfer_matrix(self.synch)
 
-                if self.flag_first_calculation_of_transfer_matrix:
-                    self.transfer_matrix_cumul = elt.transfer_matrix
-                    self.flag_first_calculation_of_transfer_matrix = False
+                if self.transf_mat['first_calc?']:
+                    self.transf_mat['cumul'] = elt.transfer_matrix
+                    self.transf_mat['first_calc?'] = False
 
                 else:
-                    np.vstack((self.transfer_matrix_cumul,
-                               elt.transfer_matrix))
+                    np.vstack((self.transf_mat['cumul'], elt.transfer_matrix))
 
             self.synch.list_to_array()
             transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
-            self.transfer_matrix_indiv = np.vstack((transfer_matrix_indiv,
-                                                    self.get_from_elements(
-                                                        'transfer_matrix')
-                                                    ))
+            self.transf_mat['indiv'] = \
+                np.vstack((transfer_matrix_indiv, self.get_from_elements(
+                    'transfer_matrix')
+                ))
 
         elif method == 'transport':
             transport.transport_beam(self)
-            transfer_matrix_indiv = self.transfer_matrix_indiv
+            transfer_matrix_indiv = self.transf_mat['indiv']
 
-        self.transfer_matrix_cumul = \
-            helper.individual_to_global_transfer_matrix(
-                self.transfer_matrix_indiv)
+        self.transf_mat['cumul'] = helper.individual_to_global_transfer_matrix(
+            self.transf_mat['indiv'])
 
     def get_from_elements(self, attribute, key=None):
         """
