@@ -15,8 +15,7 @@ import particle
 # =============================================================================
 # RK4
 # =============================================================================
-# TODO unused cavity
-def init_rk4_cavity(acc_field, cavity, gamma, synch):
+def init_rk4_cavity(acc_field, gamma, synch):
     """Init RK4 methods to compute transfer matrix of a cavity."""
     gamma['out'] = gamma['in']
     synch.z['rel'] = 0.
@@ -43,7 +42,7 @@ def init_rk4_cavity(acc_field, cavity, gamma, synch):
 
         gamma_float = helper.mev_to_gamma(u[0], m_MeV)
         beta = helper.gamma_to_beta(gamma_float)
-        v1 = acc_field.n_cell * cavity.omega0_bunch / (beta * c)
+        v1 = acc_field.n_cell * synch.omega0['bunch'] / (beta * c)
         return np.array(([v0, v1]))
     return du_dz
 
@@ -82,8 +81,7 @@ def rk4(u, du_dx, x, dx):
 # =============================================================================
 # Leapfrog
 # =============================================================================
-# TODO unused cavity
-def init_leapfrog_cavity(acc_field, cavity, gamma, dz, synch):
+def init_leapfrog_cavity(acc_field, gamma, dz, synch):
     """Init leapfrog method to compute transfer matrix of cavity."""
     # Leapfrog method:
     #   pos(i+1) = pos(i) + speed(i+0.5) * dt
@@ -95,7 +93,6 @@ def init_leapfrog_cavity(acc_field, cavity, gamma, dz, synch):
     #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
     #       (speed/energy are on half steps)
     # e_0_mev = cavity.energy['e_array_mev'][0]
-    e_0_mev = synch.energy['e_mev']
 
     # Remove last array element as it is on i and should be on i-1/2
     synch.energy['e_array_mev'].pop(-1)
@@ -107,4 +104,4 @@ def init_leapfrog_cavity(acc_field, cavity, gamma, dz, synch):
     synch.z['rel'] = 0.
     synch.phi['rel'] = 0.
 
-    gamma['out'] = helper.mev_to_gamma(e_0_mev, m_MeV)
+    gamma['out'] = synch.energy['gamma']

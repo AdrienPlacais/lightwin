@@ -98,11 +98,10 @@ def z_field_map_electric_field(cavity, synch):
 
     # Initialize gamma and synch:
     if solver_param.method == 'leapfrog':
-        solver.init_leapfrog_cavity(acc_field, cavity, gamma,
-                                    solver_param.d_z, synch)
+        solver.init_leapfrog_cavity(acc_field, gamma, solver_param.d_z, synch)
 
     elif solver_param.method == 'RK':
-        du_dz = solver.init_rk4_cavity(acc_field, cavity, gamma, synch)
+        du_dz = solver.init_rk4_cavity(acc_field, gamma, synch)
 
     # We loop until reaching the end of the cavity
     cavity.transfer_matrix = np.zeros((solver_param.n_steps + 1, 2, 2))
@@ -146,7 +145,7 @@ def z_field_map_electric_field(cavity, synch):
                                                       beta_middle, synch)
 
         if solver_param.method == 'leapfrog':
-            delta['phi'] = acc_field.n_cell * cavity.omega0_bunch \
+            delta['phi'] = acc_field.n_cell * synch.omega0['bunch'] \
                 * solver_param.d_z / (helper.gamma_to_beta(gamma['out']) * c)
 
         synch.advance_phi(delta['phi'])

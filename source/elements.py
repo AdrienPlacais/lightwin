@@ -38,13 +38,10 @@ class _Element():
         self.name = elem[0]
         self.length_m = 1e-3 * float(elem[1])
 
-        self.f_mhz_bunch = f_mhz_bunch
-        self.omega0_bunch = 2e6 * np.pi * f_mhz_bunch
-
         # By default, an element is non accelerating and has a dummy
         # accelerating field.
         self.accelerating = False
-        self.acc_field = RfField(0.)    # FIXME frequency import
+        self.acc_field = RfField(0.)
 
         self.pos_m = {
             'abs': None,
