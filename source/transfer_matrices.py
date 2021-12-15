@@ -53,6 +53,8 @@ def z_drift(element_or_length, gamma=np.NaN, synch=None):
                          [0., 1.]))
 
     else:
+        assert isinstance(synch, particle.Particle), 'A Particle should be ' \
+            + 'given if element_or_length is an Element.'
         n = element_or_length.solver_transf_mat.n_steps
         delta_s = element_or_length.length_m / n
         r_zz = np.full((n, 2, 2), np.NaN)
@@ -136,12 +138,12 @@ def z_field_map_electric_field(cavity, synch):
         # Warning, the gamma and beta in synch object are at the exit of the
         # cavity. We recompute the gamma and beta in the middle of the cavity.
         gamma['middle'] = (gamma['out'] + gamma['in']) * .5
-        beta_s = helper.gamma_to_beta(gamma['middle'])
+        beta_middle = helper.gamma_to_beta(gamma['middle'])
 
         # Compute transfer matrix using thin lens approximation
         cavity.transfer_matrix[i, :, :] = z_thin_lens(acc_field,
                                                       solver_param.d_z, gamma,
-                                                      beta_s, synch)
+                                                      beta_middle, synch)
 
         if solver_param.method == 'leapfrog':
             delta['phi'] = acc_field.n_cell * cavity.omega0_bunch \
@@ -153,7 +155,7 @@ def z_field_map_electric_field(cavity, synch):
     synch.exit_cavity()
 
 
-def z_thin_lens(acc_field, d_z, gamma, beta_s, synch,
+def z_thin_lens(acc_field, d_z, gamma, beta_middle, synch,
                 flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
@@ -170,8 +172,8 @@ def z_thin_lens(acc_field, d_z, gamma, beta_s, synch,
     gamma: dict
         Lorentz factor of synchronous particle at entrance, middle and exit of
         the drift-gap-drift.
-    beta_s:
-        Lorentz factor of synchronous particle.
+    beta_middle:
+        Lorentz factor at middle of cavity (beta_s in TW doc).
     synch: dict
         Sych_part dict.
     flag_correction_determinant: boolean, optional
@@ -195,18 +197,19 @@ def z_thin_lens(acc_field, d_z, gamma, beta_s, synch,
 # =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
-    delta_phi_half_step = .5 * d_z * acc_field.omega0_rf / (beta_s * c)
+    delta_phi_half_step = .5 * d_z * acc_field.omega0_rf / (beta_middle * c)
     phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components
-    k_0 = q_adim * d_z / (gamma['middle'] * beta_s**2 * m_MeV)
-    k_1 = k_0 * acc_field.de_dt_func(z_k, phi_k, beta_s)
-    k_2 = 1. - (2. - beta_s**2) * k_0 * acc_field.e_func(z_k, phi_k)
+    k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * m_MeV)
+    k_1 = k_0 * acc_field.de_dt_func(z_k, phi_k, beta_middle)
+    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_field.e_func(z_k, phi_k)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
         k_3 = (1. - k_0 * acc_field.e_func(z_k, phi_k))  \
-                / (1. - k_0 * (2. - beta_s**2) * acc_field.e_func(z_k, phi_k))
+                / (1. - k_0 * (2. - beta_middle**2)
+                   * acc_field.e_func(z_k, phi_k))
         transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:
