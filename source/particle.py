@@ -162,7 +162,15 @@ class Particle():
         self.phi['idx_cav_entry'] = None
 
     def list_to_array(self):
-        """Convert lists into arrays."""
+        """
+        Convert lists into np.arrays.
+
+        When the size of the array is not known, we use lists rather than
+        np.arrays as 'append' is more efficient than 'np.hstack' (no data
+        copy).
+        However, np.arrays are better for math operations, so when all data
+        has been computed, we convert all lists into np.arrays.
+        """
         self.z['abs_array'] = np.array(self.z['abs_array'])
         self.phi['abs_array'] = np.array(self.phi['abs_array'])
         self.energy['e_array_mev'] = np.array(self.energy['e_array_mev'])

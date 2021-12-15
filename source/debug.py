@@ -107,14 +107,14 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
                     accelerator.project_folder + '/results/M_65_ref.txt',
                     accelerator.project_folder + '/results/M_66_ref.txt']
 
-    z = accelerator.get_from_elements('pos_m', 'abs')
-    n_z = z.shape[0]
+    z_pos = accelerator.synch.z['abs_array']
+    n_z = z_pos.shape[0]
 
     # Change shape of calculated transfer matrix to match the ref one
     # i.e.: 1st column is z, 2nd 3rd 4th and 5th are matrix components
     # r_zz_tot = accelerator.transfer_matrix_cumul.reshape((n_z, 4))
     r_zz_tot = transfer_matrix.reshape((n_z, 4))
-    r_zz_tot = np.hstack((np.expand_dims(z, 1), r_zz_tot))
+    r_zz_tot = np.hstack((np.expand_dims(z_pos, 1), r_zz_tot))
 
     r_zz_tot_ref = load_transfer_matrices(filepath_ref)
 
@@ -156,7 +156,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
 
     xlabels = ['', '', 'z [m]', 'z [m]']
     ylabels = [r'$\epsilon R_{11}$', r'$\epsilon R_{12}$',
-                r'$\epsilon R_{21}$', r'$\epsilon R_{22}$']
+               r'$\epsilon R_{21}$', r'$\epsilon R_{22}$']
 
     for i in range(4):
         axlist[i].plot(z_err, err[:, i], ls=ls)
@@ -209,9 +209,10 @@ def compare_energies(accelerator):
     e_mev_ref = load_energies(filepath_ref, n_elt)
 
     e_mev = np.full((n_elt), np.NaN)
+    # We take energy at the exit of every element
     for i in range(n_elt):
-        e_mev[i] = \
-            accelerator.list_of_elements[i].energy['e_array_mev'][-1]
+        idx_out = accelerator.list_of_elements[i].idx['out']
+        e_mev[i] = accelerator.synch.energy['e_array_mev'][idx_out]
 
     error = np.abs(e_mev_ref - e_mev)
 
@@ -232,27 +233,3 @@ def compare_energies(accelerator):
     axlist[1].set_xlabel('Element #')
     axlist[1].set_ylabel('Absolute error [eV]')
     axlist[0].legend()
-
-
-def compare_cavity_properties():
-    """To implement."""
-    # Concerns field maps only:
-    # if(flag_output_field_map_acceleration and
-    #    accelerator.elements_name[i] == 'FIELD_MAP'):
-    #     eotlc_ref = splitted_line[6]
-    #     eotlc = accelerator.V_cav_MV[i]
-    #     synch_phase_ref = splitted_line[8]
-    #     sync_phase = accelerator.phi_s_deg[i]
-    #     print('=====================================================')
-    #     print('FIELD_MAP #', i)
-    #     print('V_cav: ', eotlc, 'MV')
-    #     print('V_cav_ref: ', eotlc_ref, 'MV')
-    #     err = 1e3 * np.abs(eotlc - float(eotlc_ref))
-    #     print('Error: ', err, 'kV')
-    #     print('')
-    #     print('phi_s: ', sync_phase, 'deg')
-    #     print('phi_s_deg: ', synch_phase_ref, 'deg')
-    #     err = 1e3 * np.abs(sync_phase - float(synch_phase_ref))
-    #     print('Error: ', err, 'mdeg')
-    #     print('')
-    print('Not implemented')

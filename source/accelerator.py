@@ -149,15 +149,11 @@ class Accelerator():
 
         self._complementary_assignation(self.e_0_mev)
 
-        # gamma_out = self.list_of_elements[0].energy['gamma_array'][0]
-
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
             for elt in self.list_of_elements:
-                # elt.energy['gamma_array'][0] = gamma_out
-                # elt.energy['e_array_mev'][0] = \
-                #     helper.gamma_to_mev(gamma_out, m_MeV)
                 elt.compute_transfer_matrix(self.synch)
+
                 if self.flag_first_calculation_of_transfer_matrix:
                     self.transfer_matrix_cumul = elt.transfer_matrix
                     self.flag_first_calculation_of_transfer_matrix = False
@@ -165,10 +161,6 @@ class Accelerator():
                 else:
                     np.vstack((self.transfer_matrix_cumul,
                                elt.transfer_matrix))
-
-                # elt.energy['e_array_mev'] = helper.gamma_to_mev(
-                    # elt.energy['gamma_array'], m_MeV)
-                # gamma_out = elt.energy['gamma_array'][-1]
 
             self.synch.list_to_array()
             transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
