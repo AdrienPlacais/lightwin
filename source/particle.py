@@ -155,7 +155,7 @@ class Particle():
 
     def list_to_array(self):
         """
-        Convert lists into np.arrays.
+        Get all object attributes that are lists and convert it into np.arrays.
 
         When the size of the array is not known, we use lists rather than
         np.arrays as 'append' is more efficient than 'np.hstack' (no data
@@ -163,13 +163,22 @@ class Particle():
         However, np.arrays are better for math operations, so when all data
         has been computed, we convert all lists into np.arrays.
         """
-        self.z['abs_array'] = np.array(self.z['abs_array'])
-        self.phi['abs_array'] = np.array(self.phi['abs_array'])
-        self.energy['e_array_mev'] = np.array(self.energy['e_array_mev'])
-        self.energy['gamma_array'] = np.array(self.energy['gamma_array'])
-        self.energy['beta_array'] = np.array(self.energy['beta_array'])
-        self.energy['p_array'] = np.array(self.energy['p_array'])
-        self.omega0['lambda_array'] = np.array(self.omega0['lambda_array'])
+        list_of_attrib = dir(self)
+        for attrib_name in list_of_attrib:
+            print(attrib_name)
+            attrib = getattr(self, attrib_name)
+
+            if isinstance(attrib, list):
+                attrib = np.array(attrib)
+                print('\t was list! Now is ', type(attrib))
+
+            elif isinstance(attrib, dict):
+                print('\t was dict!')
+                for key in attrib.keys():
+                    print('\t\t', key)
+                    if isinstance(attrib[key], list):
+                        attrib[key] = np.array(attrib[key])
+                        print('\t\t\t was list! Now is ', type(attrib[key]))
 
 
 def create_synch_and_rand_particles(e_0_mev, omega0_bunch):

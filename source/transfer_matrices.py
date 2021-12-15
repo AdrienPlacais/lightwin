@@ -55,10 +55,10 @@ def z_drift(element_or_length, gamma=np.NaN, synch=None):
     else:
         assert isinstance(synch, particle.Particle), 'A Particle should be ' \
             + 'given if element_or_length is an Element.'
-        n = element_or_length.solver_transf_mat.n_steps
-        delta_s = element_or_length.length_m / n
-        r_zz = np.full((n, 2, 2), np.NaN)
-        for i in range(n):
+        n_steps = element_or_length.solver_transf_mat.n_steps
+        delta_s = element_or_length.length_m / n_steps
+        r_zz = np.full((n_steps, 2, 2), np.NaN)
+        for i in range(n_steps):
             r_zz[i, :, :] = np.array(([1., delta_s*synch.energy['gamma']**-2],
                                       [0., 1.]))
 
