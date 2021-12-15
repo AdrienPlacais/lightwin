@@ -8,11 +8,9 @@ Created on Wed Sep 22 10:26:19 2021
 import cmath
 from collections import namedtuple
 import numpy as np
-import helper
 import transfer_matrices
 import transport
 from electric_field import RfField
-from constants import m_MeV
 
 # TODO separate functions for RK / leapfrog?
 SolverParam = namedtuple('SolverParam', 'method n_steps d_z')
@@ -52,11 +50,11 @@ class _Element():
             'abs': None,
             'rel': None,
             }
+        self.idx = {
+            'in': None,
+            'out': None,
+            }
 
-        # self.energy = {
-        #     'e_array_mev': None,
-        #     'gamma_array': None,
-        #     }
         self.transfer_matrix = None
 
         self.dict_transf_mat = None
@@ -85,8 +83,6 @@ class _Element():
              }
 
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
-        # self.energy['e_array_mev'] = np.full((n_steps + 1), np.NaN)
-        # self.energy['gamma_array'] = np.full((n_steps + 1), np.NaN)
         self.transfer_matrix = np.full((n_steps, 2, 2), np.NaN)
 
         d_z = self.length_m / n_steps
@@ -101,9 +97,6 @@ class _Element():
         assert ~self.accelerating
         self.transfer_matrix = self.dict_transf_mat[
             self.solver_transf_mat.method](self, gamma=np.NaN, synch=synch)
-
-        # self.energy['gamma_array'][1:] = self.energy['gamma_array'][0]
-        # self.energy['e_array_mev'][1:] = self.energy['e_array_mev'][0]
 
 
 # =============================================================================
@@ -174,8 +167,6 @@ class FieldMap(_Element):
         # Compute transfer matrix
         self.dict_transf_mat[self.solver_transf_mat.method](self, synch)
 
-        # self.energy['gamma_array'] = helper.mev_to_gamma(
-            # self.energy['e_array_mev'], m_MeV)
         # Remove first slice of transfer matrix (indentity matrix)
         self.transfer_matrix = self.transfer_matrix[1:, :, :]
         self._compute_synch_phase_and_acc_pot(synch)
@@ -184,9 +175,6 @@ class FieldMap(_Element):
         """Compute the sychronous phase and accelerating potential."""
         phi_s = cmath.phase(self.f_e)
         self.phi_s_deg = np.rad2deg(phi_s)
-        # self.v_cav_mv = np.abs(
-        #     (self.energy['e_array_mev'][0] - self.energy['e_array_mev'][-1])
-        #     / np.cos(phi_s))
         energy_now = synch.energy['e_mev']
         energy_before = synch.energy['e_array_mev'][
             -self.solver_transf_mat.n_steps]
@@ -215,10 +203,6 @@ class CavSin(_Element):
     def compute_transfer_matrix(self):
         """Compute longitudinal matrix."""
         print('Warning, MT of sin cav not implemented.')
-        # self.transfer_matrix = transfer_matrices.z_drift(self.length_m,
-                                                         # self.gamma_array[0])
-        # self.energy['gamma_array'][1:] = self.energy['gamma_array'][0]
-        # self.energy['e_array_mev'][1:] = self.energy['e_array_mev'][0]
 
 
 class NotAnElement():

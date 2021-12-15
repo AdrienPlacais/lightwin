@@ -124,21 +124,23 @@ class Accelerator():
         In particular, absolute position of elements' I/O, energy at first
         element entrance.
         """
-        entry = 0.
-        out = 0.
+        pos_in = 0.
+        pos_out = 0.
+        idx_in = 0
+        idx_out = 0
 
         for i in range(self.n_elements):
             elt = self.list_of_elements[i]
-            out += elt.length_m
 
-            elt.pos_m['abs'] = elt.pos_m['rel'] + entry
-            entry = out
+            pos_out += elt.length_m
+            idx_out = idx_in + elt.solver_transf_mat.n_steps
 
-        # TODO I think this part could be handled by self.synch.
-        # Initial energy
-        # self.list_of_elements[0].energy['e_array_mev'][0] = e_0_mev
-        # self.list_of_elements[0].energy['gamma_array'][0] = \
-        #     helper.mev_to_gamma(e_0_mev, m_MeV)
+            elt.pos_m['abs'] = elt.pos_m['rel'] + pos_in
+            elt.idx['in'] = idx_in
+            elt.idx['out'] = idx_out
+
+            pos_in = pos_out
+            idx_in = idx_out
 
     def compute_transfer_matrices(self, method):
         """Compute the transfer matrices of Accelerator's elements."""
