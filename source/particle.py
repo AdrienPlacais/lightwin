@@ -111,20 +111,12 @@ class Particle():
         # Warning, according to doc lambda is RF wavelength... which does not
         # make any sense outside of cavities.
         lambda_rf = 2. * np.pi * c / self.omega0['bunch']
-        # lambda_rf = self.omega0['lambda_array']
-        self.phase_space['z_array'] = -self.energy['beta_array'] \
-            * lambda_rf \
+        self.phase_space['z_array'] = -self.energy['beta_array'] * lambda_rf \
             * (self.phi['abs_array'] - synch.phi['abs_array']) / (2. * np.pi)
 
-        # v_G = helper.mev_to_v(self.energy['e_array_mev'], q_over_m)
-        # v_s = helper.mev_to_v(synch.energy['e_array_mev'], q_over_m)
-        # z_prime = (v_G - v_s) / v_s
         self.phase_space['delta_array'] = (self.energy['p_array']
                                            - synch.energy['p_array']) \
             / synch.energy['p_array']
-        # self.phase_space['delta_array'] = z_prime * self.energy['gamma_array']**2 \
-        #     + (synch.energy['gamma_array'] - self.energy['gamma_array']) \
-        #         / self.energy['gamma_array']
 
         self.phase_space['both_array'] = np.vstack(
             (self.phase_space['z_array'],

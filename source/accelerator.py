@@ -9,7 +9,6 @@ import os.path
 import numpy as np
 import elements
 import helper
-from constants import m_MeV, c
 from electric_field import load_field_map_file
 import transport
 import particle
@@ -109,7 +108,7 @@ class Accelerator():
         # value of the 1st column string we create the appropriate Element
         # subclass and store this instance in list_of_elements
         try:
-            list_of_elements = [subclasses_dispatcher[elem[0]](elem, self.f_mhz_bunch)
+            list_of_elements = [subclasses_dispatcher[elem[0]](elem)
                                 for elem in self.dat_file_content if elem[0]
                                 not in to_be_implemented]
         except KeyError:

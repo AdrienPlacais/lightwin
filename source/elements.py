@@ -23,7 +23,7 @@ SolverParam = namedtuple('SolverParam', 'method n_steps d_z')
 class _Element():
     """Generic element. _ ensures that it is not called from another file."""
 
-    def __init__(self, elem, f_mhz_bunch):
+    def __init__(self, elem):
         """
         Init parameters common to all elements.
 
@@ -102,38 +102,38 @@ class _Element():
 class Drift(_Element):
     """Sub-class of Element, with parameters specific to DRIFTs."""
 
-    def __init__(self, elem, f_mhz_bunch):
+    def __init__(self, elem):
         n_attributes = len(elem) - 1
         assert n_attributes in [2, 3, 5]
-        super().__init__(elem, f_mhz_bunch)
+        super().__init__(elem)
 
 
 class Quad(_Element):
     """Sub-class of Element, with parameters specific to QUADs."""
 
-    def __init__(self, elem, f_mhz_bunch):
+    def __init__(self, elem):
         n_attributes = len(elem) - 1
         assert n_attributes in range(3, 10)
-        super().__init__(elem, f_mhz_bunch)
+        super().__init__(elem)
 
 
 class Solenoid(_Element):
     """Sub-class of Element, with parameters specific to SOLENOIDs."""
 
-    def __init__(self, elem, f_mhz_bunch):
+    def __init__(self, elem):
         n_attributes = len(elem) - 1
         assert n_attributes == 3
-        super().__init__(elem, f_mhz_bunch)
+        super().__init__(elem)
 
 
 class FieldMap(_Element):
     """Sub-class of Element, with parameters specific to FIELD_MAPs."""
 
-    def __init__(self, elem, f_mhz_bunch):
+    def __init__(self, elem):
         n_attributes = len(elem) - 1
         assert n_attributes in [9, 10]
 
-        super().__init__(elem, f_mhz_bunch)
+        super().__init__(elem)
         self.accelerating = True
         self.geometry = int(elem[1])
         self.length_m = 1e-3 * float(elem[2])
@@ -181,11 +181,11 @@ class FieldMap(_Element):
 class CavSin(_Element):
     """Sub-class of Element, with parameters specific to CAVSINs."""
 
-    def __init__(self, elem, f_mhz_bunch):
+    def __init__(self, elem):
         n_attributes = len(elem) - 1
         assert n_attributes == 6
 
-        super().__init__(elem, f_mhz_bunch)
+        super().__init__(elem)
         self.cell_number = int(elem[1])                 # N
         self.eff_gap_voltage = float(elem[2])           # EoT
         self.sync_phase = float(elem[3])                # theta_s
@@ -197,56 +197,6 @@ class CavSin(_Element):
         except IndexError:
             pass
 
-    def compute_transfer_matrix(self):
+    def compute_transfer_matrix(self, synch):
         """Compute longitudinal matrix."""
         print('Warning, MT of sin cav not implemented.')
-
-
-class NotAnElement():
-    """Dummy."""
-
-    def __init__(self, elem):
-        self.length_m = 0.
-        print('Warning, NotAnElement not yet implemented:', elem)
-
-
-# =============================================================================
-# Old
-# =============================================================================
-def add_sinus_cavity(accelerator, line, i, dat_filename, f_mhz):
-    """
-    Add a sinus cavity to the Accelerator object.
-
-    Attributes
-    ----------
-    L_mm: float
-        Field map length (mm).
-    N: int
-        Cell number.
-    EoT: float
-        Average accelerating field (V/m).
-    theta_s: float
-        Phase of the synchronous particle at the entrance (deg). Can be
-        absolute or relative.
-    R: float
-        Aperture (mm).
-    P: int
-        0: theta_s is relative phase.
-        1: theta_s is absolute phase.
-    """
-    n_attributes = len(line) - 1
-
-    # First, check validity of input
-    assert n_attributes == 6, \
-        'Wrong number of arguments for CAVSIN element at position ' + str(i)
-
-    accelerator.elements_resume[i] = str(i) + ' \t' + '\t'.join(line)
-    accelerator.elements_nature[i] = 'CAVSIN'
-
-    accelerator.L_mm[i] = float(line[1])
-    accelerator.L_m[i] = accelerator.L_mm[i] * 1e-3
-    accelerator.N[i] = int(line[2])
-    accelerator.EoT[i] = float(line[3])
-    accelerator.theta_s[i] = float(line[4])
-    accelerator.R[i] = float(line[5])
-    accelerator.P[i] = int(line[6])

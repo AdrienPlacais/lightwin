@@ -51,7 +51,7 @@ if FILEPATH == '':
 # =============================================================================
 linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
-for method in ['leapfrog']:
+for method in ['RK']:
     linac.compute_transfer_matrices(method)
     debug.plot_transfer_matrices(linac, linac.transfer_matrix_cumul)
     debug.compare_energies(linac)
