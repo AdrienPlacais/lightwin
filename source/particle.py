@@ -5,7 +5,7 @@ Created on Thu Dec  2 13:44:00 2021
 
 @author: placais
 """
-
+import random
 import numpy as np
 import helper
 from constants import m_MeV, c
@@ -52,9 +52,9 @@ class Particle():
         self._init_phi()
 
         self.phase_space = {
-            'z_array': None,      # z_abs - s_abs or z_rel - s_rel
-            'delta_array': None,  # (p - p_s) / p_s
-            'both_array': None,
+            'z_array': [],      # z_abs - s_abs or z_rel - s_rel
+            'delta_array': [],  # (p - p_s) / p_s
+            'both_array': [],
             }
 
     def set_energy(self, e_mev, delta_e=False):
@@ -88,8 +88,9 @@ class Particle():
 
     def _init_phi(self):
         """Init phi by taking z_rel and beta."""
-        self.phi['abs'] = self.omega0['ref'] * self.z['rel'] \
-            / (self.energy['beta'] * c)
+        self.phi['abs'] = helper.z_to_phi(self.z['rel'],
+                                          self.energy['beta'],
+                                          self.omega0['bunch'])
         self.phi['rel'] = self.phi['abs']
         self.phi['abs_deg'] = np.rad2deg(self.phi['abs'])
         self.phi['abs_array'].append(self.phi['abs'])
@@ -101,7 +102,7 @@ class Particle():
         self.phi['abs_deg'] += np.rad2deg(delta_phi)
         self.phi['abs_array'].append(self.phi['abs'])
 
-    def compute_phase_space(self, synch):
+    def compute_phase_space_tot(self, synch):
         """
         Compute phase-space array.
 
@@ -110,9 +111,10 @@ class Particle():
         """
         # Warning, according to doc lambda is RF wavelength... which does not
         # make any sense outside of cavities.
-        lambda_rf = 2. * np.pi * c / self.omega0['bunch']
-        self.phase_space['z_array'] = -self.energy['beta_array'] * lambda_rf \
-            * (self.phi['abs_array'] - synch.phi['abs_array']) / (2. * np.pi)
+        self.phase_space['z_array'] = helper.phi_to_z(
+            self.phi['abs_array'] - synch.phi['abs_array'],
+            self.energy['beta_array'],
+            self.omega0['bunch'])
 
         self.phase_space['delta_array'] = (self.energy['p_array']
                                            - synch.energy['p_array']) \
@@ -124,6 +126,18 @@ class Particle():
             )
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
+
+    def compute_phase_space_step(self, synch):
+        """Compute phase-space at every step."""
+        z = helper.phi_to_z(self.phi['abs'] - synch.phi['abs'],
+                            self.energy['beta'],
+                            self.omega0['bunch'])
+
+        delta_p = (self.energy['p'] - synch.energy['p']) / synch.energy['p']
+
+        self.phase_space['z_array'].append(z)
+        self.phase_space['delta_array'].append(delta_p)
+        self.phase_space['both_array'].append([z, delta_p])
 
     def enter_cavity(self, omega0_rf):
         """Change the omega0 and save the phase at the entrance."""
@@ -176,28 +190,22 @@ class Particle():
                         attrib[key] = np.array(attrib[key])
 
 
-def create_synch_and_rand_particles(e_0_mev, omega0_bunch):
-    """
-    Create three particles.
-
-    First is synchronous, two others have slightly initial energy and position.
-    """
+def create_rand_particles(e_0_mev, omega0_bunch):
+    """Create two random particles."""
     delta_z = 1e-4
     delta_E = 1e-4
 
-    synch = Particle(0., e_0_mev, omega0_bunch)
+    rand_1 = Particle(-0.1429e-3, 16.6 + 0.0094, omega0_bunch)
+    rand_2 = Particle(2.2122e-3, 16.6 - 0.0076, omega0_bunch)
 
-    rand_1 = Particle(-1.5051702021426609e-05, 16.60002058488364, omega0_bunch)
-
-    rand_2 = Particle(2.053862812359645e-05, 16.599982811332467, omega0_bunch)
     # rand_1 = Particle(
-    #     random.uniform(-delta_z * .5, 0.),
+    #     random.uniform(0., delta_z * .5),
     #     random.uniform(e_0_mev,  e_0_mev + delta_E * .5),
     #     omega0_bunch)
 
     # rand_2 = Particle(
-    #     random.uniform(0., delta_z * .5),
+    #     random.uniform(-delta_z * .5, 0.),
     #     random.uniform(e_0_mev - delta_E * .5, e_0_mev),
     #     omega0_bunch)
 
-    return synch, rand_1, rand_2
+    return rand_1, rand_2

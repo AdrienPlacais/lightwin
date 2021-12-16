@@ -12,7 +12,6 @@ import helper
 from constants import q_adim, m_MeV, c
 import solver
 import particle
-import debug
 
 
 def transport_beam(accelerator):
@@ -31,22 +30,22 @@ def transport_beam(accelerator):
         cavities, it is the RF pulsation. When exiting the cavity, we recompute
         the phase with the bunch pulsation.
     """
-    omega0_bunch = accelerator.list_of_elements[0].omega0_bunch
+    omega0_bunch = accelerator.synch.omega0['bunch']
 
-    synch, rand_1, rand_2 = particle.create_synch_and_rand_particles(
-        16.6, omega0_bunch)
+    rand_1, rand_2 = particle.create_rand_particles(16.6, omega0_bunch)
+    synch = accelerator.synch
+    for part in [rand_1, rand_2]:
+        part.compute_phase_space_step(synch)
 
     for elt in accelerator.list_of_elements:
         n_steps = elt.solver_transf_mat.n_steps
         z_step = elt.solver_transf_mat.d_z
 
         if elt.accelerating:
-            # Warning: in accelerating cavities, omega0 corresponds to the RF!
             omega0 = elt.acc_field.omega0_rf
-            # Also warning: phi is computed with omega0... Thus the cavities
-            # delta_phis shall be recomputed with omega0_bunch.
             for part in [synch, rand_1, rand_2]:
                 part.enter_cavity(omega0)
+
         else:
             omega0 = omega0_bunch
 
@@ -75,15 +74,14 @@ def transport_beam(accelerator):
             return np.array(([v0, v1]))
 
         entrance_phase = synch.phi['rel']
-        # entrance_pos = synch.z['rel']
-
         for i in range(n_steps):
             # Compute energy, position and phase evolution during a time step
             for part in [synch, rand_1, rand_2]:
                 if i == 0:
-                    # Set relative phase and positions to 0.
-                    # part.z['rel'] -= entrance_pos
+                    # Set relative positions to 0.
                     part.z['rel'] = 0.
+                    # Shift phases so that relative phase of synch particle is
+                    # 0.
                     part.phi['rel'] -= entrance_phase
 
                 u_rk = np.array(([part.energy['e_mev'], part.phi['rel']]))
@@ -93,33 +91,81 @@ def transport_beam(accelerator):
                 part.advance_phi(delta_u[1])
                 part.advance_position(z_step)
 
-        print(elt.name, '\t\t', synch.energy['beta'], '\t\t', synch.phi['abs_deg'])
+            for part in [rand_1, rand_2]:
+                part.compute_phase_space_step(synch)
+
+        # print(elt.name, '\t\t', synch.energy['beta'], '\t\t',
+              # synch.phi['abs_deg'])
         # If this element was a cavity, we have to change the phase reference.
         if elt.accelerating:
             for part in [synch, rand_1, rand_2]:
                 part.exit_cavity()
 
-        # Raise some arrays to element
-        elt.energy['gamma_array'] \
-            = np.array(synch.energy['gamma_array'])[-n_steps:]
-        elt.energy['e_array_mev'] \
-            = np.array(synch.energy['e_array_mev'])[-n_steps:]
-
     for part in [synch, rand_1, rand_2]:
         part.list_to_array()
-        # debug.simple_plot(synch.z['abs_array'], part.energy['e_array_mev'],
-        #                   'z_s', 'E mev', 34)
-        # debug.simple_plot(synch.z['abs_array'], part.phi['abs_array'],
-        #                   'z_s', 'phi', 35)
+        # helper.simple_plot(synch.z['abs_array'], part.energy['e_array_mev'],
+        #                    'z_s', 'E mev', 34)
+        # helper.simple_plot(synch.z['abs_array'], part.phi['abs_array'],
+        #                    'z_s', 'phi', 35)
+    plot_phase_space(accelerator, synch, rand_1, rand_2)
+    accelerator.transf_mat['indiv'] = compute_transfer_matrix(synch,
+                                                              rand_1, rand_2)
+    print()
 
-    accelerator.transfer_matrix_indiv = compute_transfer_matrix(synch,
-                                                                rand_1, rand_2)
+
+def plot_phase_space(accelerator, synch, rand_1, rand_2):
+    """Bla."""
+    # axnumlist = range(221, 225)
+    # fig, ax = helper.create_fig_if_not_exist(40, axnumlist)
+
+    # for i in range(4):
+    #     ax[i].set_xlabel(r'$s$ [m]')
+    #     ax[i].grid(True)
+
+    # z = synch.z['abs_array']
+    idx = accelerator.get_from_elements('idx', 'in')
+    # for part in [rand_1, rand_2]:
+    #     plot_pty(ax[0], z, part.phi['abs_array'], idx)
+    #     plot_pty(ax[1], z, part.phase_space['z_array']*1e3, idx)
+    #     plot_pty(ax[2], z, part.energy['e_array_mev'], idx)
+    #     plot_pty(ax[3], z, 100.*part.phase_space['delta_array'], idx)
+
+    # ax[0].set_ylabel(r'$\phi$ [m]')
+    # ax[1].set_ylabel(r'$\delta z$ [mm]')
+    # ax[2].set_ylabel(r'$E$ [MeV]')
+    # ax[3].set_ylabel(r'$\delta p$ [%]')
+
+    fig2, ax = helper.create_fig_if_not_exist(41, [111])
+    ax = ax[0]
+    ax.set_xlabel(r'$\delta z$ [mm]')
+    ax.set_ylabel(r'$dp/p$ [%]')
+    ax.grid(True)
+    txt_list = accelerator.get_from_elements('name')
+    for part in [rand_1, rand_2]:
+        plot_pty(ax, part.phase_space['z_array'] * 1e3,
+                 part.phase_space['delta_array'] * 100.,
+                 idx, txt_list)
+    ax.set_xlim([-2.5, 2.5])
+    ax.set_ylim([-0.1, 0.1])
+
+
+def plot_pty(ax, x, y, idx_list, txt_list=None):
+    """Plot y vs x, with big points at elements transitions."""
+    line, = ax.plot(x, y)
+    ax.scatter(x[idx_list], y[idx_list], color=line.get_color())
+
+    if txt_list is not None:
+        for i in range(10):
+            txt = str(np.round(x[idx_list][i], 4)) + ',' + str(np.round(y[idx_list][i], 4))
+            ax.annotate(txt,
+                        (x[idx_list][i], y[idx_list[i]]),
+                        size=8)
 
 
 def compute_transfer_matrix(synch, rand_1, rand_2):
     """Compute transfer matrix from the phase-space arrays."""
-    for part in [rand_1, rand_2]:
-        part.compute_phase_space(synch)
+    # for part in [rand_1, rand_2]:
+        # part.compute_phase_space(synch)
     phase_space_matrix = np.dstack((rand_1.phase_space['both_array'],
                                     rand_2.phase_space['both_array']))
 
@@ -129,6 +175,14 @@ def compute_transfer_matrix(synch, rand_1, rand_2):
     for i in range(1, n_steps):
         transfer_matrix[i, :, :] = phase_space_matrix[i, :, :] \
             @ np.linalg.inv(phase_space_matrix[i-1, :, :])
+
+        if i in range(5, 205):
+            if(np.linalg.det(transfer_matrix[i, :, :] > 1.)):
+                print(np.linalg.det(transfer_matrix[i, :, :]))
+                print(synch.z['abs_array'][i])
+                print('---------------------------------------')
+    # TODO check determinant
+    # TODO check with inv(0)
     return transfer_matrix
 
 

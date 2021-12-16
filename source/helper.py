@@ -192,6 +192,16 @@ def gamma_and_beta_to_p(gamma, beta):
     return gamma * beta * constants.c * constants.m_kg
 
 
+def phi_to_z(phi, beta, omega):
+    """Return the distance crossed during phi at speed beta."""
+    return -beta * constants.c * phi / omega
+
+
+def z_to_phi(z, beta, omega):
+    """Convert (delta) position into (delta) phase."""
+    return -omega * z / (beta * constants.c)
+
+
 # =============================================================================
 # Matrix manipulation
 # =============================================================================
