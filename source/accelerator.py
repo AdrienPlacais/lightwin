@@ -32,7 +32,8 @@ class Accelerator():
         # TODO: handle cases were there the number of elements in the line
         # is different from 39
 
-        self.synch = particle.Particle(0., e_0_mev, 2e6 * np.pi * f_mhz)
+        self.synch = particle.Particle(0., e_0_mev, 2e6 * np.pi * f_mhz,
+                                       synchronous=True)
 
         # Load dat file and clean it up (remove comments, etc)
         self.dat_file_content = []
@@ -163,11 +164,12 @@ class Accelerator():
                 ))
 
         elif method == 'transport':
-            transport.transport_beam(self)
-            transfer_matrix_indiv = self.transf_mat['indiv']
+            # transport.transport_beam(self)
+            # transfer_matrix_indiv = self.transf_mat['indiv']
 
-        self.transf_mat['cumul'] = helper.individual_to_global_transfer_matrix(
-            self.transf_mat['indiv'])
+        # self.transf_mat['cumul'] = helper.individual_to_global_transfer_matrix(
+            # self.transf_mat['indiv'])
+            transport.transport_particle(self, self.synch)
 
     def get_from_elements(self, attribute, key=None):
         """

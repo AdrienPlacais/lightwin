@@ -14,8 +14,9 @@ from constants import m_MeV, c
 class Particle():
     """Class to hold the position, energy, etc of a particle."""
 
-    def __init__(self, z, e_mev, omega0_bunch):
+    def __init__(self, z, e_mev, omega0_bunch, synchronous=False):
         print('part init to: ', z, e_mev)
+        self.synchronous = synchronous
         self.z = {
             'abs': z,           # Position from the start of the line
             'rel': z,           # Position from the start of the element

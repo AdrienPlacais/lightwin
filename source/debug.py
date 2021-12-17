@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
 import helper
-import particle
+import particle as particle_mod
+import transport
 
 font = {'family': 'serif',
         'size':   20}
@@ -257,55 +258,57 @@ def load_phase_space(accelerator):
 
     partran_data = []
     dtype = {'names': ('x(mm)', "x'(mrad)", 'y(mm)', "y'(mrad)", 'z(mm)',
-                       "z'(mrad)", 'Phase(deg)', 'Energy(MeV)', 'Loss',),
+                       "z'(mrad)", 'Phase(deg)', 'Time(s)', 'Energy(MeV)',
+                       'Loss',),
              'formats': ('f8', 'f8', 'f8', 'f8', 'f8', 'f8', 'f8', 'f8',
-                         'i4',)}
+                         'f8', 'i4')}
     for file in file_list:
         partran_data.append(np.loadtxt(file, skiprows=3, dtype=dtype))
 
     return partran_data
 
-    def compare_phase_space(accelerator):
-        """
-        Compare phase-spaces computed by LightWin and TraceWin (Partran).
+def compare_phase_space(accelerator):
+    """
+    Compare phase-spaces computed by LightWin and TraceWin (Partran).
 
-        Bonjoure.
-        """
-        print('Warning! Chelou that there is no dp/p but z prime in mrad in data file.')
-        # Create plot
-        fig, ax = helper.create_fig_if_not_exist(41, [111])
-        ax = ax[0]
-        ax.set_xlabel(r'$\delta z$ [mm]')
-        ax.set_ylabel(r'$dp/p$ [%]')
-        ax.grid(True)
-        ax.set_xlim([-2.5, 2.5])
-        ax.set_ylim([-0.1, 0.1])
+    Bonjoure.
+    """
+    print('Warning! Chelou that there is no dp/p but z prime in mrad in data file.')
+    # Create plot
+    fig, ax = helper.create_fig_if_not_exist(41, [111])
+    ax = ax[0]
+    ax.set_xlabel(r'$\delta z$ [mm]')
+    ax.set_ylabel(r'$dp/p$ [%]')
+    ax.grid(True)
+    # ax.set_xlim([-2.5, 2.5])
+    # ax.set_ylim([-0.1, 0.1])
 
-        # Load TW data
-        partran_data = load_phase_space(accelerator)
-        n_part = partran_data[0]['x(mm)'].size
+    # Load TW data
+    partran_data = load_phase_space(accelerator)
+    n_part = partran_data[0]['x(mm)'].size
 
-        # Plot TW data
-        for element in partran_data:
-            for particle in element:
-                ax.scatter(particle['z(mm)'], particle["z'(mrad)"],
-                           color='k', marker='x')
-
-        print('Propagate part, compute phase-space.')
-
-        # Compute LW data
-        particle_list = []
+    # Plot TW data
+    for element in partran_data:
         for i in range(n_part):
-            particle_list.append(particle.Particle(
-                z=partran_data[0]['z(mm)'][i],
-                e_mev=partran_data[0]['Energy(MeV)'][i],
-                omega0_bunch=accelerator.synch.omega0['bunch']))
+            ax.scatter(element['z(mm)'][i], element["z'(mrad)"][i],
+                       color='k', marker='x')
+    print('Propagate part, compute phase-space.')
 
-        # Plot LW data
-        idx = accelerator.get_from_elements('idx', 'in')
+    # Compute LW data
+    particle_list = []
+    for i in range(n_part):
+        particle_list.append(particle_mod.Particle(
+            z=partran_data[0]['z(mm)'][i],
+            e_mev=partran_data[0]['Energy(MeV)'][i],
+            omega0_bunch=accelerator.synch.omega0['bunch']))
 
-        for part in particle_list:
-            helper.plot_pty_with_data_tags(
-                ax, part.phase_space['z_array'] * 1e3,
-                part.phase_space['delta_array'] * 100.,
-                idx, tags=True)
+        transport.transport_particle(accelerator, particle_list[i])
+        particle_list[i].compute_phase_space_tot(accelerator.synch)
+    # Plot LW data
+    idx = accelerator.get_from_elements('idx', 'in')
+
+    for part in particle_list:
+        helper.plot_pty_with_data_tags(
+            ax, part.phase_space['z_array'] * 1e3,
+            part.phase_space['delta_array'] * 100.,
+            idx, tags=True)

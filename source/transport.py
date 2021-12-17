@@ -12,15 +12,14 @@ import helper
 from constants import q_adim, m_MeV, c
 import solver
 import particle
-
+import accelerator as acc
 
 def transport_beam(accelerator):
-    """
-    Compute transfer matrices by the transport method.
+    print('legacy')
 
-    The idea is to transport the synchronous particle and two random particles.
-    With the difference between synch and rand particles (phase_space) we can
-    find the transfer matrix.
+def transport_particle(accelerator, part):
+    """
+    Transport particle.
 
     Warning
     -------
@@ -30,12 +29,14 @@ def transport_beam(accelerator):
         cavities, it is the RF pulsation. When exiting the cavity, we recompute
         the phase with the bunch pulsation.
     """
-    omega0_bunch = accelerator.synch.omega0['bunch']
+    assert isinstance(accelerator, acc.Accelerator)
+    assert isinstance(part, particle.Particle)
+    if not part.synchronous:
+        assert isinstance(accelerator.synch.energy['e_array_mev'], np.ndarray)
+        # "If the particle under study is not the synch one, assert that we
+        # already transported the synch particle."
 
-    rand_1, rand_2 = particle.create_rand_particles(16.6, omega0_bunch)
-    synch = accelerator.synch
-    for part in [rand_1, rand_2]:
-        part.compute_phase_space_step(synch)
+    omega0_bunch = accelerator.synch.omega0['bunch']
 
     for elt in accelerator.list_of_elements:
         n_steps = elt.solver_transf_mat.n_steps
@@ -43,8 +44,7 @@ def transport_beam(accelerator):
 
         if elt.accelerating:
             omega0 = elt.acc_field.omega0_rf
-            for part in [synch, rand_1, rand_2]:
-                part.enter_cavity(omega0)
+            part.enter_cavity(omega0)
 
         else:
             omega0 = omega0_bunch
@@ -73,45 +73,25 @@ def transport_beam(accelerator):
 
             return np.array(([v0, v1]))
 
-        entrance_phase = synch.phi['rel']
+        # Shift relative phase (synch phase should have a null relative phase
+        # after this operation)
+        part.phi['rel'] = part.phi['abs'] \
+            - accelerator.synch.phi['abs_array'][elt.idx['in']]
+        part.z['rel'] = 0.
         for i in range(n_steps):
             # Compute energy, position and phase evolution during a time step
-            for part in [synch, rand_1, rand_2]:
-                if i == 0:
-                    # Set relative positions to 0.
-                    part.z['rel'] = 0.
-                    # Shift phases so that relative phase of synch particle is
-                    # 0.
-                    part.phi['rel'] -= entrance_phase
+            u_rk = np.array(([part.energy['e_mev'], part.phi['rel']]))
+            delta_u = solver.rk4(u_rk, du_dz, part.z['rel'], z_step)
 
-                u_rk = np.array(([part.energy['e_mev'], part.phi['rel']]))
-                delta_u = solver.rk4(u_rk, du_dz, part.z['rel'], z_step)
+            part.set_energy(delta_u[0], delta_e=True)
+            part.advance_phi(delta_u[1])
+            part.advance_position(z_step)
 
-                part.set_energy(delta_u[0], delta_e=True)
-                part.advance_phi(delta_u[1])
-                part.advance_position(z_step)
-
-            for part in [rand_1, rand_2]:
-                part.compute_phase_space_step(synch)
-
-        # print(elt.name, '\t\t', synch.energy['beta'], '\t\t',
-              # synch.phi['abs_deg'])
         # If this element was a cavity, we have to change the phase reference.
         if elt.accelerating:
-            for part in [synch, rand_1, rand_2]:
-                part.exit_cavity()
+            part.exit_cavity()
 
-    for part in [synch, rand_1, rand_2]:
-        part.list_to_array()
-        # helper.simple_plot(synch.z['abs_array'], part.energy['e_array_mev'],
-        #                    'z_s', 'E mev', 34)
-        # helper.simple_plot(synch.z['abs_array'], part.phi['abs_array'],
-        #                    'z_s', 'phi', 35)
-    plot_phase_space(accelerator, synch, rand_1, rand_2)
-    accelerator.transf_mat['indiv'] = compute_transfer_matrix(synch,
-                                                              rand_1, rand_2)
-    print()
-
+    part.list_to_array()
 
 def compute_transfer_matrix(synch, rand_1, rand_2):
     """Compute transfer matrix from the phase-space arrays."""
