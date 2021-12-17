@@ -6,6 +6,7 @@ Created on Tue Oct 12 13:50:44 2021
 @author: placais
 """
 import os.path
+from os import listdir
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import numpy as np
@@ -14,6 +15,7 @@ import matplotlib.pyplot as plt
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
 import helper
+import particle
 
 font = {'family': 'serif',
         'size':   20}
@@ -233,3 +235,77 @@ def compare_energies(accelerator):
     axlist[1].set_xlabel('Element #')
     axlist[1].set_ylabel('Absolute error [eV]')
     axlist[0].legend()
+
+
+def load_phase_space(accelerator):
+    """
+    Load Partran phase-space data.
+
+    Phase-space files are obtained with:
+        Input data & Beam: Partran
+        Phase spaces or beam distributions: Output at element n
+        Then save all particle as ASCII.
+    """
+    folder = accelerator.project_folder + '/results/phase_space/'
+    file_type = ['txt']
+    file_list = []
+
+    for file in listdir(folder):
+        if file.split('.')[-1] in file_type:
+            file_list.append(folder + file)
+    file_list.sort()
+
+    partran_data = []
+    dtype = {'names': ('x(mm)', "x'(mrad)", 'y(mm)', "y'(mrad)", 'z(mm)',
+                       "z'(mrad)", 'Phase(deg)', 'Energy(MeV)', 'Loss',),
+             'formats': ('f8', 'f8', 'f8', 'f8', 'f8', 'f8', 'f8', 'f8',
+                         'i4',)}
+    for file in file_list:
+        partran_data.append(np.loadtxt(file, skiprows=3, dtype=dtype))
+
+    return partran_data
+
+    def compare_phase_space(accelerator):
+        """
+        Compare phase-spaces computed by LightWin and TraceWin (Partran).
+
+        Bonjoure.
+        """
+        print('Warning! Chelou that there is no dp/p but z prime in mrad in data file.')
+        # Create plot
+        fig, ax = helper.create_fig_if_not_exist(41, [111])
+        ax = ax[0]
+        ax.set_xlabel(r'$\delta z$ [mm]')
+        ax.set_ylabel(r'$dp/p$ [%]')
+        ax.grid(True)
+        ax.set_xlim([-2.5, 2.5])
+        ax.set_ylim([-0.1, 0.1])
+
+        # Load TW data
+        partran_data = load_phase_space(accelerator)
+        n_part = partran_data[0]['x(mm)'].size
+
+        # Plot TW data
+        for element in partran_data:
+            for particle in element:
+                ax.scatter(particle['z(mm)'], particle["z'(mrad)"],
+                           color='k', marker='x')
+
+        print('Propagate part, compute phase-space.')
+
+        # Compute LW data
+        particle_list = []
+        for i in range(n_part):
+            particle_list.append(particle.Particle(
+                z=partran_data[0]['z(mm)'][i],
+                e_mev=partran_data[0]['Energy(MeV)'][i],
+                omega0_bunch=accelerator.synch.omega0['bunch']))
+
+        # Plot LW data
+        idx = accelerator.get_from_elements('idx', 'in')
+
+        for part in particle_list:
+            helper.plot_pty_with_data_tags(
+                ax, part.phase_space['z_array'] * 1e3,
+                part.phase_space['delta_array'] * 100.,
+                idx, tags=True)

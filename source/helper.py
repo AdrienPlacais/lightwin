@@ -93,6 +93,25 @@ def empty_fig(fignum):
     return out
 
 
+def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
+    """
+    Plot y vs x.
+
+    Data at idx_list are magnified with bigger points and data tags.
+    """
+    line, = ax.plot(x, y)
+    ax.scatter(x[idx_list], y[idx_list], color=line.get_color())
+
+    if tags:
+        n = len(idx_list)
+        for i in range(n):
+            txt = str(np.round(x[idx_list][i], 4)) + ',' \
+                + str(np.round(y[idx_list][i], 4))
+            ax.annotate(txt,
+                        (x[idx_list][i], y[idx_list[i]]),
+                        size=8)
+
+
 # =============================================================================
 # Files functions
 # =============================================================================

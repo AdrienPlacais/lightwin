@@ -113,59 +113,8 @@ def transport_beam(accelerator):
     print()
 
 
-def plot_phase_space(accelerator, synch, rand_1, rand_2):
-    """Bla."""
-    # axnumlist = range(221, 225)
-    # fig, ax = helper.create_fig_if_not_exist(40, axnumlist)
-
-    # for i in range(4):
-    #     ax[i].set_xlabel(r'$s$ [m]')
-    #     ax[i].grid(True)
-
-    # z = synch.z['abs_array']
-    idx = accelerator.get_from_elements('idx', 'in')
-    # for part in [rand_1, rand_2]:
-    #     plot_pty(ax[0], z, part.phi['abs_array'], idx)
-    #     plot_pty(ax[1], z, part.phase_space['z_array']*1e3, idx)
-    #     plot_pty(ax[2], z, part.energy['e_array_mev'], idx)
-    #     plot_pty(ax[3], z, 100.*part.phase_space['delta_array'], idx)
-
-    # ax[0].set_ylabel(r'$\phi$ [m]')
-    # ax[1].set_ylabel(r'$\delta z$ [mm]')
-    # ax[2].set_ylabel(r'$E$ [MeV]')
-    # ax[3].set_ylabel(r'$\delta p$ [%]')
-
-    fig2, ax = helper.create_fig_if_not_exist(41, [111])
-    ax = ax[0]
-    ax.set_xlabel(r'$\delta z$ [mm]')
-    ax.set_ylabel(r'$dp/p$ [%]')
-    ax.grid(True)
-    txt_list = accelerator.get_from_elements('name')
-    for part in [rand_1, rand_2]:
-        plot_pty(ax, part.phase_space['z_array'] * 1e3,
-                 part.phase_space['delta_array'] * 100.,
-                 idx, txt_list)
-    ax.set_xlim([-2.5, 2.5])
-    ax.set_ylim([-0.1, 0.1])
-
-
-def plot_pty(ax, x, y, idx_list, txt_list=None):
-    """Plot y vs x, with big points at elements transitions."""
-    line, = ax.plot(x, y)
-    ax.scatter(x[idx_list], y[idx_list], color=line.get_color())
-
-    if txt_list is not None:
-        for i in range(10):
-            txt = str(np.round(x[idx_list][i], 4)) + ',' + str(np.round(y[idx_list][i], 4))
-            ax.annotate(txt,
-                        (x[idx_list][i], y[idx_list[i]]),
-                        size=8)
-
-
 def compute_transfer_matrix(synch, rand_1, rand_2):
     """Compute transfer matrix from the phase-space arrays."""
-    # for part in [rand_1, rand_2]:
-        # part.compute_phase_space(synch)
     phase_space_matrix = np.dstack((rand_1.phase_space['both_array'],
                                     rand_2.phase_space['both_array']))
 

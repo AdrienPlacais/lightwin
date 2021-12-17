@@ -130,10 +130,10 @@ class Particle():
     def compute_phase_space_step(self, synch):
         """Compute phase-space at every step."""
         z = helper.phi_to_z(self.phi['abs'] - synch.phi['abs'],
-                            self.energy['beta'],
+                            synch.energy['beta'],                   # bonjoure
                             self.omega0['bunch'])
 
-        delta_p = (self.energy['p'] - synch.energy['p']) / synch.energy['p']
+        delta_p = (self.energy['p'] - synch.energy['p']) / synch.energy['p']  # bonjoure
 
         self.phase_space['z_array'].append(z)
         self.phase_space['delta_array'].append(delta_p)
@@ -195,8 +195,12 @@ def create_rand_particles(e_0_mev, omega0_bunch):
     delta_z = 1e-4
     delta_E = 1e-4
 
-    rand_1 = Particle(-0.1429e-3, 16.6 + 0.0094, omega0_bunch)
-    rand_2 = Particle(2.2122e-3, 16.6 - 0.0076, omega0_bunch)
+    rand_1 = Particle(-1.42801442802603928417e-04,
+                      1.66094219207764304258e+01,
+                      omega0_bunch)
+    rand_2 = Particle(2.21221539793564048182e-03,
+                      1.65923664093018210508e+01,
+                      omega0_bunch)
 
     # rand_1 = Particle(
     #     random.uniform(0., delta_z * .5),
