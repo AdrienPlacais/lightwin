@@ -17,6 +17,7 @@ from cycler import cycler
 import helper
 import particle as particle_mod
 import transport
+from constants import m_MeV
 
 font = {'family': 'serif',
         'size':   20}
@@ -267,13 +268,14 @@ def load_phase_space(accelerator):
 
     return partran_data
 
+
 def compare_phase_space(accelerator):
     """
     Compare phase-spaces computed by LightWin and TraceWin (Partran).
 
     Bonjoure.
     """
-    print('Warning! Chelou that there is no dp/p but z prime in mrad in data file.')
+    idx_of_part_to_plot = [5, 8]
     # Create plot
     fig, ax = helper.create_fig_if_not_exist(41, [111])
     ax = ax[0]
@@ -290,25 +292,36 @@ def compare_phase_space(accelerator):
     # Plot TW data
     for element in partran_data:
         for i in range(n_part):
-            ax.scatter(element['z(mm)'][i], element["z'(mrad)"][i],
-                       color='k', marker='x')
-    print('Propagate part, compute phase-space.')
+            if i in idx_of_part_to_plot:
+                dp_p = element["z'(mrad)"][i] \
+                    * helper.mev_to_gamma(element['Energy(MeV)'][i],
+                                          m_MeV)**2 * 1e-1  # Not 1e-2??
+                ax.scatter(element['z(mm)'][i],
+                           # element['Energy(MeV)'][i],
+                           dp_p,
+                           color='k', marker='x')
 
     # Compute LW data
     particle_list = []
     for i in range(n_part):
         particle_list.append(particle_mod.Particle(
-            z=partran_data[0]['z(mm)'][i],
+            z=partran_data[0]['z(mm)'][i] * 1e-3,
             e_mev=partran_data[0]['Energy(MeV)'][i],
             omega0_bunch=accelerator.synch.omega0['bunch']))
 
         transport.transport_particle(accelerator, particle_list[i])
         particle_list[i].compute_phase_space_tot(accelerator.synch)
+
     # Plot LW data
     idx = accelerator.get_from_elements('idx', 'in')
 
+    i = 0
     for part in particle_list:
-        helper.plot_pty_with_data_tags(
-            ax, part.phase_space['z_array'] * 1e3,
-            part.phase_space['delta_array'] * 100.,
-            idx, tags=True)
+        if i in idx_of_part_to_plot:
+            helper.plot_pty_with_data_tags(
+                ax,
+                part.phase_space['z_array'] * 1e3,
+                part.phase_space['delta_array'] * 100.,
+                # part.energy['e_array_mev'],
+                idx, tags=True)
+        i += 1
