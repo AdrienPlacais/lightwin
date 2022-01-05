@@ -135,7 +135,7 @@ def compute_envelope(accelerator):
 
     if flag_compare:
         # @TODO auto import of correct file
-        filepath = '/home/placais/TraceWin/work_field_map/results/envelope.txt'
+        filepath = '../data/work_field_map/results/envelope.txt'
         # File must be generated from Envelope Plot -> Save chart -> DATA ASCII
         # file
         data = np.loadtxt(filepath, skiprows=2, usecols=(0, 19, 17, 16))

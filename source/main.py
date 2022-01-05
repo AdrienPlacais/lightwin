@@ -5,7 +5,7 @@ Created on Tue Sep 21 11:32:12 2021
 
 @author: placais
 """
-
+import os
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import accelerator as acc
@@ -43,13 +43,11 @@ BETA_W = 71.215849      # deg/pi.MeV
 
 # Select .dat file
 Tk().withdraw()
-# FILEPATH = '/home/placais/TraceWin/work_compensation/work_compensation.dat'
-FILEPATH = '/home/placais/TraceWin/work_field_map/work_field_map.dat'
-# FILEPATH = '/home/placais/TraceWin/work_cavsin/work_cavsin.dat'
+FILEPATH = '../data/work_field_map/work_field_map.dat'
 if FILEPATH == '':
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
-
+FILEPATH = os.path.abspath(FILEPATH)
 # =============================================================================
 # End of user inputs
 # =============================================================================
