@@ -14,9 +14,6 @@ import helper
 import emittance
 import transport
 
-print('essai git')
-print('ok it is working!')
-
 # =============================================================================
 # User inputs5
 # =============================================================================
