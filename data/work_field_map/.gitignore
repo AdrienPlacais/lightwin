@@ -1,3 +1,10 @@
+field_maps_1D/*.edz_b
+results/*.beta
+results/*.dat
+results/*.dst
+results/*.par
+results/*.plt
+results/*.out
 results/*.txt
 !results/envelope.txt
 !results/energy_ref.txt
@@ -6,3 +13,4 @@ results/*.txt
 !results/M_56_ref.txt
 !results/M_65_ref.txt
 !results/M_66_ref.txt
+*.old.ini
