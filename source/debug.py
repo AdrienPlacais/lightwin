@@ -276,14 +276,34 @@ def compare_phase_space(accelerator):
     Bonjoure.
     """
     idx_of_part_to_plot = [5, 8]
-    # y_axis = 'E'
-    y_axis = 'dp/p'
+    # x_axis = 'z'
+    x_axis = 'phase'
+    y_axis = 'E'
+    # y_axis = 'dp/p'
     # y_axis = "z'"
 
     # Create plot
     fig, ax = helper.create_fig_if_not_exist(41, [111])
     ax = ax[0]
     ax.set_xlabel(r'$\delta z$ [mm]')
+
+    # Set proper y axis and access to proper y data
+    if x_axis == 'z':
+        ax.set_xlabel(r'$\delta z$ [mm]')
+        x_data = {
+            'tw': lambda element, i: element['z(mm)'][i],
+            'lw': lambda part: part.phase_space['z_array'] * 1e3,
+                }
+
+    elif x_axis == 'phase':
+        ax.set_xlabel(r'$\phi$ [deg]')
+        x_data = {
+            'tw': lambda element, i: element['Phase(deg)'][i],
+            'lw': lambda part: np.rad2deg(part.phase_space['phi_array_rad']),
+                }
+
+    else:
+        raise IOError('Wrong x_axis argument in compare_phase_space.')
 
     # Set proper y axis and access to proper y data
     if y_axis == 'E':
@@ -322,8 +342,7 @@ def compare_phase_space(accelerator):
     for element in partran_data:
         for i in range(n_part):
             if i in idx_of_part_to_plot:
-                ax.scatter(element['z(mm)'][i],
-                           y_data['tw'](element, i),
+                ax.scatter(x_data['tw'](element, i), y_data['tw'](element, i),
                            color='k', marker='x')
 
     # Compute LW data
@@ -343,9 +362,9 @@ def compare_phase_space(accelerator):
     i = 0
     for part in particle_list:
         if i in idx_of_part_to_plot:
-            helper.plot_pty_with_data_tags(
-                ax,
-                part.phase_space['z_array'] * 1e3,
-                y_data['lw'](part),
-                idx, tags=True)
+            helper.plot_pty_with_data_tags(ax, x_data['lw'](part),
+                                           y_data['lw'](part), idx, tags=True)
         i += 1
+
+    accelerator.particle_list = particle_list
+    accelerator.partran_data = partran_data

@@ -17,6 +17,7 @@ import accelerator as acc
 def transport_beam(accelerator):
     print('legacy')
 
+
 def transport_particle(accelerator, part):
     """
     Transport particle.

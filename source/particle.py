@@ -55,6 +55,7 @@ class Particle():
             'z_array': [],      # z_abs - s_abs or z_rel - s_rel
             'delta_array': [],  # (p - p_s) / p_s
             'both_array': [],
+            'phi_array_rad': [],
             }
 
     def set_energy(self, e_mev, delta_e=False):
@@ -110,10 +111,12 @@ class Particle():
         synch_particle is an instance of Particle corresponding to the
         synchronous particle.
         """
+        self.phase_space['phi_array_rad'] = self.phi['abs_array'] \
+            - synch.phi['abs_array']
         # Warning, according to doc lambda is RF wavelength... which does not
         # make any sense outside of cavities.
         self.phase_space['z_array'] = helper.phi_to_z(
-            self.phi['abs_array'] - synch.phi['abs_array'],
+            self.phase_space['phi_array_rad'],
             self.energy['beta_array'],
             self.omega0['bunch'])
 
