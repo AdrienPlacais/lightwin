@@ -366,5 +366,6 @@ def compare_phase_space(accelerator):
                                            y_data['lw'](part), idx, tags=True)
         i += 1
 
+    # TODO: remove when useless
     accelerator.particle_list = particle_list
     accelerator.partran_data = partran_data

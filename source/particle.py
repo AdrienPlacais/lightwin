@@ -131,18 +131,6 @@ class Particle():
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
 
-    def compute_phase_space_step(self, synch):
-        """Compute phase-space at every step."""
-        z = helper.phi_to_z(self.phi['abs'] - synch.phi['abs'],
-                            synch.energy['beta'],                   # bonjoure
-                            self.omega0['bunch'])
-
-        delta_p = (self.energy['p'] - synch.energy['p']) / synch.energy['p']  # bonjoure
-
-        self.phase_space['z_array'].append(z)
-        self.phase_space['delta_array'].append(delta_p)
-        self.phase_space['both_array'].append([z, delta_p])
-
     def enter_cavity(self, omega0_rf):
         """Change the omega0 and save the phase at the entrance."""
         self.phi['idx_cav_entry'] = len(self.phi['abs_array'])
