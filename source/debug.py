@@ -276,14 +276,34 @@ def compare_phase_space(accelerator):
     Bonjoure.
     """
     idx_of_part_to_plot = [5, 8]
+    y_axis = 'E'
+    # y_axis = 'dp/p'
+
     # Create plot
     fig, ax = helper.create_fig_if_not_exist(41, [111])
     ax = ax[0]
     ax.set_xlabel(r'$\delta z$ [mm]')
-    ax.set_ylabel(r'$dp/p$ [%]')
+
+    if y_axis == 'E':
+        ax.set_ylabel(r'$E$ [MeV]')
+        y_data = {
+            'tw': lambda element, i: element['Energy(MeV)'][i],
+            'lw': lambda part: part.energy['e_array_mev'],
+                }
+
+    elif y_axis == 'dp/p':
+        ax.set_ylabel(r'$dp/p$ [%]')
+        y_data = {
+            'tw': lambda element, i: element["z'(mrad)"][i]
+            * helper.mev_to_gamma(element['Energy(MeV)'][i],
+                                  m_MeV)**2 * 1e-1,  # Not 1e-2??
+            'lw': lambda part: part.phase_space['delta_array'] * 100.,
+                }
+
+    else:
+        raise IOError('Wrong y_axis argument in compare_phase_space.')
+
     ax.grid(True)
-    # ax.set_xlim([-2.5, 2.5])
-    # ax.set_ylim([-0.1, 0.1])
 
     # Load TW data
     partran_data = load_phase_space(accelerator)
@@ -293,12 +313,8 @@ def compare_phase_space(accelerator):
     for element in partran_data:
         for i in range(n_part):
             if i in idx_of_part_to_plot:
-                dp_p = element["z'(mrad)"][i] \
-                    * helper.mev_to_gamma(element['Energy(MeV)'][i],
-                                          m_MeV)**2 * 1e-1  # Not 1e-2??
                 ax.scatter(element['z(mm)'][i],
-                           # element['Energy(MeV)'][i],
-                           dp_p,
+                           y_data['tw'](element, i),
                            color='k', marker='x')
 
     # Compute LW data
@@ -321,7 +337,6 @@ def compare_phase_space(accelerator):
             helper.plot_pty_with_data_tags(
                 ax,
                 part.phase_space['z_array'] * 1e3,
-                part.phase_space['delta_array'] * 100.,
-                # part.energy['e_array_mev'],
+                y_data['lw'](part),
                 idx, tags=True)
         i += 1
