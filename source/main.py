@@ -66,3 +66,19 @@ if SAVE_MT_AND_ENERGY:
 SAVE_VCAV_AND_PHIS = False
 if SAVE_VCAV_AND_PHIS:
     helper.save_vcav_and_phis(linac)
+
+# =============================================================================
+# Checking
+# =============================================================================
+print('\n\n')
+# Why is initial delta_phi different from zero?
+delta_z_par = linac.partran_data[0]['z(mm)'][5]
+delta_z_lw = linac.particle_list[5].phase_space['z_array'][0] * 1e3
+delta_delta_z = delta_z_par - delta_z_lw
+print('diff of delta_z between tools:', delta_delta_z, 'ok')
+
+import numpy as np
+delta_phi_par = linac.partran_data[0]['Phase(deg)'][5]
+delta_phi_lw = np.rad2deg(linac.particle_list[5].phase_space['phi_array_rad'][0])
+delta_delta_phi = delta_phi_par - delta_phi_lw
+print('diff of delta_phi:', delta_delta_phi)
