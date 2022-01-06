@@ -206,7 +206,7 @@ def mev_and_gamma_to_p(energy_mev, gamma, mass_kg, q_over_m):
     return gamma * mass_kg * mev_to_v(energy_mev, q_over_m)
 
 
-def gamma_and_beta_to_p(gamma, beta):
+def gamma_and_beta_to_p(gamma, beta, mass_kg):
     """Compute p when gamma and beta are already known."""
     return gamma * beta * constants.c * constants.m_kg
 
@@ -219,6 +219,17 @@ def phi_to_z(phi, beta, omega):
 def z_to_phi(z, beta, omega):
     """Convert (delta) position into (delta) phase."""
     return -omega * z / (beta * constants.c)
+
+
+def mrad_and_gamma_to_delta(z_prime, gamma):
+    """Convert z' in mrad with gamma to delta = dp/p in %."""
+    return z_prime * gamma**2 * 1e-1
+
+
+def mrad_and_mev_to_delta(z_prime, e_mev, mass_mev):
+    """Convert z' in mrad with energy to delta = dp/p in %."""
+    gamma = mev_to_gamma(e_mev, mass_mev)
+    return mrad_and_gamma_to_delta(z_prime, gamma)
 
 
 # =============================================================================

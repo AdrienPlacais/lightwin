@@ -5,10 +5,9 @@ Created on Thu Dec  2 13:44:00 2021
 
 @author: placais
 """
-import random
 import numpy as np
 import helper
-from constants import m_MeV, c
+from constants import m_MeV, m_kg, c
 
 
 class Particle():
@@ -73,7 +72,8 @@ class Particle():
         self.energy['gamma'] = helper.mev_to_gamma(self.energy['e_mev'], m_MeV)
         self.energy['beta'] = helper.gamma_to_beta(self.energy['gamma'])
         self.energy['p'] = helper.gamma_and_beta_to_p(self.energy['gamma'],
-                                                      self.energy['beta'])
+                                                      self.energy['beta'],
+                                                      m_kg)
         self.energy['e_array_mev'].append(self.energy['e_mev'])
         self.energy['gamma_array'].append(self.energy['gamma'])
         self.energy['beta_array'].append(self.energy['beta'])

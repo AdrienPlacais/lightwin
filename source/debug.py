@@ -276,14 +276,16 @@ def compare_phase_space(accelerator):
     Bonjoure.
     """
     idx_of_part_to_plot = [5, 8]
-    y_axis = 'E'
-    # y_axis = 'dp/p'
+    # y_axis = 'E'
+    y_axis = 'dp/p'
+    # y_axis = "z'"
 
     # Create plot
     fig, ax = helper.create_fig_if_not_exist(41, [111])
     ax = ax[0]
     ax.set_xlabel(r'$\delta z$ [mm]')
 
+    # Set proper y axis and access to proper y data
     if y_axis == 'E':
         ax.set_ylabel(r'$E$ [MeV]')
         y_data = {
@@ -294,10 +296,17 @@ def compare_phase_space(accelerator):
     elif y_axis == 'dp/p':
         ax.set_ylabel(r'$dp/p$ [%]')
         y_data = {
-            'tw': lambda element, i: element["z'(mrad)"][i]
-            * helper.mev_to_gamma(element['Energy(MeV)'][i],
-                                  m_MeV)**2 * 1e-1,  # Not 1e-2??
+            'tw': lambda element, i: helper.mrad_and_mev_to_delta(
+                element["z'(mrad)"][i], element['Energy(MeV)'][i], m_MeV),
             'lw': lambda part: part.phase_space['delta_array'] * 100.,
+                }
+
+    elif y_axis == "z'":
+        ax.set_ylabel(r"$z'$ [mrad]")
+        y_data = {
+            'tw': lambda element, i: element["z'(mrad)"][i],
+            'lw': lambda part: part.phase_space['delta_array']
+            * part.energy['gamma_array']**-2 * 1e3,
                 }
 
     else:
