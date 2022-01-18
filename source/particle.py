@@ -7,14 +7,13 @@ Created on Thu Dec  2 13:44:00 2021
 """
 import numpy as np
 import helper
-from constants import m_MeV, m_kg, c
+from constants import E_rest_MeV, E_rest_MeV, c
 
 
 class Particle():
     """Class to hold the position, energy, etc of a particle."""
 
     def __init__(self, z, e_mev, omega0_bunch, synchronous=False):
-        print('part init to: ', z, e_mev)
         self.synchronous = synchronous
         self.z = {
             'abs': z,           # Position from the start of the line
@@ -71,11 +70,11 @@ class Particle():
             self.energy['kin_mev'] = e_mev
 
         self.energy['gamma'] = helper.kin_to_gamma(self.energy['kin_mev'],
-                                                   m_MeV)
+                                                   E_rest_MeV)
         self.energy['beta'] = helper.gamma_to_beta(self.energy['gamma'])
         self.energy['p_mev'] = helper.gamma_and_beta_to_p(self.energy['gamma'],
                                                           self.energy['beta'],
-                                                          m_kg)
+                                                          E_rest_MeV)
         self.energy['kin_array_mev'].append(self.energy['kin_mev'])
         self.energy['gamma_array'].append(self.energy['gamma'])
         self.energy['beta_array'].append(self.energy['beta'])

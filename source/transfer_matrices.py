@@ -10,7 +10,7 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, m_MeV
+from constants import c, q_adim, E_rest_MeV
 import helper
 import solver
 import elements
@@ -200,7 +200,7 @@ def z_thin_lens(acc_field, d_z, gamma, beta_middle, synch,
     phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components
-    k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * m_MeV)
+    k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * E_rest_MeV)
     k_1 = k_0 * acc_field.de_dt_func(z_k, phi_k, beta_middle)
     k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_field.e_func(z_k, phi_k)
 

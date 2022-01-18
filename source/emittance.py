@@ -9,7 +9,7 @@ Created on Mon Dec 13 14:42:41 2021
 import numpy as np
 import helper
 import accelerator
-from constants import m_MeV, c
+from constants import E_rest_MeV, c
 
 
 def mm_mrad_to_deg_mev(emit_z_z_prime, f_mhz):
@@ -20,7 +20,7 @@ def mm_mrad_to_deg_mev(emit_z_z_prime, f_mhz):
     (pi.deg.MeV).
     """
     lambda_um = c / f_mhz
-    emit_pw = 360. * m_MeV / lambda_um * emit_z_z_prime
+    emit_pw = 360. * E_rest_MeV / lambda_um * emit_z_z_prime
     return emit_pw
 
 

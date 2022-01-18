@@ -17,7 +17,7 @@ from cycler import cycler
 import helper
 import particle as particle_mod
 import transport
-from constants import m_MeV
+from constants import E_rest_MeV
 
 font = {'family': 'serif',
         'size':   20}
@@ -317,7 +317,7 @@ def compare_phase_space(accelerator):
         ax.set_ylabel(r'$dp/p$ [%]')
         y_data = {
             'tw': lambda element, i: helper.mrad_and_mev_to_delta(
-                element["z'(mrad)"][i], element['Energy(MeV)'][i], m_MeV),
+                element["z'(mrad)"][i], element['Energy(MeV)'][i], E_rest_MeV),
             'lw': lambda part: part.phase_space['delta_array'] * 100.,
                 }
 

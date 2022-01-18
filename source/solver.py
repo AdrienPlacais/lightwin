@@ -7,7 +7,7 @@ Created on Fri Nov 26 15:41:00 2021
 """
 
 import numpy as np
-from constants import c, q_adim, m_MeV
+from constants import c, q_adim, E_rest_MeV
 import helper
 import particle
 
@@ -40,7 +40,7 @@ def init_rk4_cavity(acc_field, gamma, synch):
         """
         v0 = q_adim * acc_field.e_func(z, u[1])
 
-        gamma_float = helper.kin_to_gamma(u[0], m_MeV)
+        gamma_float = helper.kin_to_gamma(u[0], E_rest_MeV)
         beta = helper.gamma_to_beta(gamma_float)
         v1 = acc_field.n_cell * synch.omega0['bunch'] / (beta * c)
         return np.array(([v0, v1]))
