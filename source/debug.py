@@ -278,8 +278,8 @@ def compare_phase_space(accelerator):
     idx_of_part_to_plot = [5, 8]
     # x_axis = 'z'
     x_axis = 'phase'
-    y_axis = 'E'
-    # y_axis = 'dp/p'
+    # y_axis = 'E'
+    y_axis = 'dp/p'
     # y_axis = "z'"
 
     # Create plot

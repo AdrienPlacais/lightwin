@@ -53,7 +53,7 @@ linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 for method in ['transport']:
     linac.compute_transfer_matrices(method)
     # debug.plot_transfer_matrices(linac, linac.transf_mat['cumul'])
-    # debug.compare_energies(linac)
+    debug.compare_energies(linac)
 debug.compare_phase_space(linac)
 
 # twiss = emittance.transport_twiss_parameters(linac, ALPHA_Z, BETA_Z)
@@ -70,15 +70,31 @@ if SAVE_VCAV_AND_PHIS:
 # =============================================================================
 # Checking
 # =============================================================================
+import numpy as np
 print('\n\n')
 # Why is initial delta_phi different from zero?
-delta_z_par = linac.partran_data[0]['z(mm)'][5]
-delta_z_lw = linac.particle_list[5].phase_space['z_array'][0] * 1e3
-delta_delta_z = delta_z_par - delta_z_lw
-print('diff of delta_z between tools:', delta_delta_z, 'ok')
+info = ['init', 'bef cav', 'after cav']
+idx = [0, 5, 205]
+idxtw = [0, 5, 6]
+j = 0
+part_number = 3
+for i in range(3):
+    print(info[i])
+    delta_z_par = linac.partran_data[idxtw[i]]['z(mm)'][part_number]
+    delta_z_lw = linac.particle_list[part_number].phase_space['z_array'][idx[i]] * 1e3
+    delta_delta_z = delta_z_par - delta_z_lw
+    print('diff of delta_z between tools:', delta_delta_z)
 
-import numpy as np
-delta_phi_par = linac.partran_data[0]['Phase(deg)'][5]
-delta_phi_lw = np.rad2deg(linac.particle_list[5].phase_space['phi_array_rad'][0])
-delta_delta_phi = delta_phi_par - delta_phi_lw
-print('diff of delta_phi:', delta_delta_phi)
+    delta_phi_par = linac.partran_data[idxtw[i]]['Phase(deg)'][part_number]
+    x_p_mrad = linac.partran_data[idxtw[i]]["x'(mrad)"][part_number] * 1e-3
+    y_p_mrad = linac.partran_data[idxtw[i]]["y'(mrad)"][part_number] * 1e-3
+    correction = np.sqrt(1. + .25 * x_p_mrad**2 + .25 * y_p_mrad**2)
+
+    delta_phi_par /= correction
+    print('corr', correction)
+
+    delta_phi_lw = np.rad2deg(linac.particle_list[part_number].phase_space['phi_array_rad'][idx[i]])
+    delta_delta_phi = delta_phi_par - delta_phi_lw
+    print('diff of delta_phi:', delta_delta_phi)
+    j += 1
+    print('\n')

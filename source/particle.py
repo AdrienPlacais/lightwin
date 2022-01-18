@@ -70,7 +70,7 @@ class Particle():
         else:
             self.energy['e_mev'] = e_mev
 
-        self.energy['gamma'] = helper.mev_to_gamma(self.energy['e_mev'], m_MeV)
+        self.energy['gamma'] = helper.kin_to_gamma(self.energy['e_mev'], m_MeV)
         self.energy['beta'] = helper.gamma_to_beta(self.energy['gamma'])
         self.energy['p'] = helper.gamma_and_beta_to_p(self.energy['gamma'],
                                                       self.energy['beta'],

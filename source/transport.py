@@ -66,12 +66,10 @@ def transport_particle(accelerator, part):
                 First component is (e_mev(i+1) - e_mev(i)) / dz.
                 Second component is (phi(i+1) - phi(i)) / dz.
             """
-            gamma_float = helper.mev_to_gamma(u[0], m_MeV)
-            beta = helper.gamma_to_beta(gamma_float)
+            beta = helper.kin_to_beta(u[0], m_MeV)
 
             v0 = q_adim * elt.acc_field.e_func(z, u[1])
             v1 = omega0 / (beta * c)
-
             return np.array(([v0, v1]))
 
         # Shift relative phase (synch phase should have a null relative phase
@@ -79,6 +77,7 @@ def transport_particle(accelerator, part):
         part.phi['rel'] = part.phi['abs'] \
             - accelerator.synch.phi['abs_array'][elt.idx['in']]
         part.z['rel'] = 0.
+
         for i in range(n_steps):
             # Compute energy, position and phase evolution during a time step
             u_rk = np.array(([part.energy['e_mev'], part.phi['rel']]))
@@ -93,6 +92,7 @@ def transport_particle(accelerator, part):
             part.exit_cavity()
 
     part.list_to_array()
+
 
 def compute_transfer_matrix(synch, rand_1, rand_2):
     """Compute transfer matrix from the phase-space arrays."""
