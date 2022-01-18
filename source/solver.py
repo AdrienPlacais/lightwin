@@ -92,10 +92,10 @@ def init_leapfrog_cavity(acc_field, gamma, dz, synch):
     #       (time and space variables are on whole steps)
     #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
     #       (speed/energy are on half steps)
-    # e_0_mev = cavity.energy['e_array_mev'][0]
+    # e_0_mev = cavity.energy['kin_array_mev'][0]
 
     # Remove last array element as it is on i and should be on i-1/2
-    synch.energy['e_array_mev'].pop(-1)
+    synch.energy['kin_array_mev'].pop(-1)
     synch.energy['gamma_array'].pop(-1)
     # Rewind energy
     synch.set_energy(-q_adim * acc_field.e_func(synch.z['rel'], 0.) * .5 * dz,

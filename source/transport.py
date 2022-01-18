@@ -33,7 +33,7 @@ def transport_particle(accelerator, part):
     assert isinstance(accelerator, acc.Accelerator)
     assert isinstance(part, particle.Particle)
     if not part.synchronous:
-        assert isinstance(accelerator.synch.energy['e_array_mev'], np.ndarray)
+        assert isinstance(accelerator.synch.energy['kin_array_mev'], np.ndarray)
         # "If the particle under study is not the synch one, assert that we
         # already transported the synch particle."
 
@@ -80,7 +80,7 @@ def transport_particle(accelerator, part):
 
         for i in range(n_steps):
             # Compute energy, position and phase evolution during a time step
-            u_rk = np.array(([part.energy['e_mev'], part.phi['rel']]))
+            u_rk = np.array(([part.energy['kin_mev'], part.phi['rel']]))
             delta_u = solver.rk4(u_rk, du_dz, part.z['rel'], z_step)
 
             part.set_energy(delta_u[0], delta_e=True)

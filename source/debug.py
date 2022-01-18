@@ -216,7 +216,7 @@ def compare_energies(accelerator):
     # We take energy at the exit of every element
     for i in range(n_elt):
         idx_out = accelerator.list_of_elements[i].idx['out']
-        e_mev[i] = accelerator.synch.energy['e_array_mev'][idx_out]
+        e_mev[i] = accelerator.synch.energy['kin_array_mev'][idx_out]
 
     error = np.abs(e_mev_ref - e_mev)
 
@@ -310,7 +310,7 @@ def compare_phase_space(accelerator):
         ax.set_ylabel(r'$E$ [MeV]')
         y_data = {
             'tw': lambda element, i: element['Energy(MeV)'][i],
-            'lw': lambda part: part.energy['e_array_mev'],
+            'lw': lambda part: part.energy['kin_array_mev'],
                 }
 
     elif y_axis == 'dp/p':

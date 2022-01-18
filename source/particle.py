@@ -30,14 +30,14 @@ class Particle():
             }
 
         self.energy = {
-            'e_mev': None,
+            'kin_mev': None,
             'gamma': None,
             'beta': None,
             'p': None,
-            'e_array_mev': [],
+            'kin_array_mev': [],
             'gamma_array': [],
             'beta_array': [],
-            'p_array': [],
+            'p_array_mev': [],
             }
         self.set_energy(e_mev, delta_e=False)
 
@@ -66,19 +66,20 @@ class Particle():
         If False, energy is set to e_mev.
         """
         if delta_e:
-            self.energy['e_mev'] += e_mev
+            self.energy['kin_mev'] += e_mev
         else:
-            self.energy['e_mev'] = e_mev
+            self.energy['kin_mev'] = e_mev
 
-        self.energy['gamma'] = helper.kin_to_gamma(self.energy['e_mev'], m_MeV)
+        self.energy['gamma'] = helper.kin_to_gamma(self.energy['kin_mev'],
+                                                   m_MeV)
         self.energy['beta'] = helper.gamma_to_beta(self.energy['gamma'])
-        self.energy['p'] = helper.gamma_and_beta_to_p(self.energy['gamma'],
-                                                      self.energy['beta'],
-                                                      m_kg)
-        self.energy['e_array_mev'].append(self.energy['e_mev'])
+        self.energy['p_mev'] = helper.gamma_and_beta_to_p(self.energy['gamma'],
+                                                          self.energy['beta'],
+                                                          m_kg)
+        self.energy['kin_array_mev'].append(self.energy['kin_mev'])
         self.energy['gamma_array'].append(self.energy['gamma'])
         self.energy['beta_array'].append(self.energy['beta'])
-        self.energy['p_array'].append(self.energy['p'])
+        self.energy['p_array_mev'].append(self.energy['p_mev'])
 
         self.omega0['lambda_array'].append(2. * np.pi * c / self.omega0['ref'])
 
@@ -120,9 +121,9 @@ class Particle():
             self.energy['beta_array'],
             self.omega0['bunch'])
 
-        self.phase_space['delta_array'] = (self.energy['p_array']
-                                           - synch.energy['p_array']) \
-            / synch.energy['p_array']
+        self.phase_space['delta_array'] = (self.energy['p_array_mev']
+                                           - synch.energy['p_array_mev']) \
+            / synch.energy['p_array_mev']
 
         self.phase_space['both_array'] = np.vstack(
             (self.phase_space['z_array'],

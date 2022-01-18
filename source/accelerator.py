@@ -188,7 +188,7 @@ class Accelerator():
         # we discard all entrance data.
         discard_list = ['pos_m', 'energy']
         if attribute == 'energy':
-            return self.synch.energy['e_array_mev']
+            return self.synch.energy['kin_array_mev']
 
         def add_data(data_out, data_tmp, attribute):
             """

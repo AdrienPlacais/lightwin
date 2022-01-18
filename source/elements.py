@@ -172,8 +172,8 @@ class FieldMap(_Element):
         """Compute the sychronous phase and accelerating potential."""
         phi_s = cmath.phase(self.f_e)
         self.phi_s_deg = np.rad2deg(phi_s)
-        energy_now = synch.energy['e_mev']
-        energy_before = synch.energy['e_array_mev'][
+        energy_now = synch.energy['kin_mev']
+        energy_before = synch.energy['kin_array_mev'][
             -self.solver_transf_mat.n_steps]
         self.v_cav_mv = np.abs(energy_now - energy_before) / np.cos(phi_s)
 
