@@ -45,8 +45,9 @@ class Accelerator():
         self._load_filemaps()
 
         self.transf_mat = {
-            'cumul': np.full((1, 2, 2), np.NaN),    # Product of indiv matrices
-            'indiv': None,
+            # 'cumul': np.full((1, 2, 2), np.NaN),    # Product of indiv matrices
+            'cumul': np.expand_dims(np.eye(2), axis=0),    # Product of indiv matrices
+            'indiv': np.expand_dims(np.eye(2), axis=0),
             'first_calc?': True,
             }
 
@@ -149,21 +150,17 @@ class Accelerator():
             for elt in self.list_of_elements:
                 elt.compute_transfer_matrix(self.synch)
 
-                if self.transf_mat['first_calc?']:
-                    self.transf_mat['cumul'] = elt.transfer_matrix
-                    self.transf_mat['first_calc?'] = False
-
-                else:
-                    np.vstack((self.transf_mat['cumul'], elt.transfer_matrix))
-
             self.synch.list_to_array()
-            transfer_matrix_indiv = np.expand_dims(np.eye(2), axis=0)
-            self.transf_mat['indiv'] = \
-                np.vstack((transfer_matrix_indiv, self.get_from_elements(
-                    'transfer_matrix')
-                ))
+            self.transf_mat['indiv'] = np.vstack((
+                self.transf_mat['indiv'],
+                self.get_from_elements('transfer_matrix')))
+            self.transf_mat['cumul'] = \
+                helper.individual_to_global_transfer_matrix(
+                    self.transf_mat['indiv'])
 
         elif method == 'transport':
+            print('computer_transfer_matrices: no MT computation with ',
+                  'transport method.')
             # transport.transport_beam(self)
             # transfer_matrix_indiv = self.transf_mat['indiv']
 

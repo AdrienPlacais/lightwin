@@ -14,6 +14,7 @@ import solver
 import particle
 import accelerator as acc
 
+
 def transport_beam(accelerator):
     print('legacy')
 

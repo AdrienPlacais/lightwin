@@ -50,11 +50,11 @@ FILEPATH = os.path.abspath(FILEPATH)
 # =============================================================================
 linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
-for method in ['transport']:
+for method in ['RK']:
     linac.compute_transfer_matrices(method)
-    # debug.plot_transfer_matrices(linac, linac.transf_mat['cumul'])
+    debug.plot_transfer_matrices(linac, linac.transf_mat['cumul'])
     debug.compare_energies(linac)
-debug.compare_phase_space(linac)
+# debug.compare_phase_space(linac)
 
 # twiss = emittance.transport_twiss_parameters(linac, ALPHA_Z, BETA_Z)
 # emittance.plot_twiss(linac, twiss)
