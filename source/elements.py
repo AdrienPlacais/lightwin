@@ -161,7 +161,6 @@ class FieldMap(_Element):
         self.acc_field = RfField(352.2,     # FIXME frequency import
                                  self.theta_i_rad, 2)
 
-        self.f_e = None
         self.phi_s_deg = None
         self.v_cav_mv = None
 
@@ -169,9 +168,6 @@ class FieldMap(_Element):
 
     def compute_transfer_matrix(self, synch):
         """Compute longitudinal matrix."""
-        # Init f_e
-        self.f_e = 0.
-
         # Compute transfer matrix
         self.transfer_matrix = \
             self.dict_transf_mat[self.solver_transf_mat.method](self, synch)

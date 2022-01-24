@@ -22,7 +22,6 @@ class RfField():
             self.lambda_rf = None
 
         self.phi_0 = phi_0
-
         self.n_cell = n_cell
 
         # By default, electric field spatial function is null.
