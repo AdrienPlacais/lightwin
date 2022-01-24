@@ -173,10 +173,10 @@ class FieldMap(_Element):
         self.f_e = 0.
 
         # Compute transfer matrix
-        self.dict_transf_mat[self.solver_transf_mat.method](self, synch)
+        self.transfer_matrix = \
+            self.dict_transf_mat[self.solver_transf_mat.method](self, synch)
 
         # Remove first slice of transfer matrix (indentity matrix)
-        self.transfer_matrix = self.transfer_matrix[1:, :, :]
         self._compute_synch_phase_and_acc_pot(synch)
 
     def _compute_synch_phase_and_acc_pot(self, synch):

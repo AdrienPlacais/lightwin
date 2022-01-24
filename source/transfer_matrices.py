@@ -107,8 +107,8 @@ def z_field_map_electric_field(cavity, synch):
         du_dz = solver.init_rk4_cavity(acc_field, gamma, synch)
 
     # We loop until reaching the end of the cavity
-    cavity.transfer_matrix = np.zeros((solver_param.n_steps + 1, 2, 2))
-    cavity.transfer_matrix[0, :, :] = np.eye(2)
+    transfer_matrix = np.zeros((solver_param.n_steps + 1, 2, 2))
+    transfer_matrix[0, :, :] = np.eye(2)
 
 # =============================================================================
 # Loop over cavity
@@ -143,9 +143,9 @@ def z_field_map_electric_field(cavity, synch):
         beta_middle = helper.gamma_to_beta(gamma['middle'])
 
         # Compute transfer matrix using thin lens approximation
-        cavity.transfer_matrix[i, :, :] = z_thin_lens(acc_field,
-                                                      solver_param.d_z, gamma,
-                                                      beta_middle, synch)
+        transfer_matrix[i, :, :] = z_thin_lens(acc_field,
+                                               solver_param.d_z, gamma,
+                                               beta_middle, synch)
 
         if solver_param.method == 'leapfrog':
             delta['phi'] = acc_field.n_cell * synch.omega0['bunch'] \
@@ -155,6 +155,7 @@ def z_field_map_electric_field(cavity, synch):
         synch.advance_position(solver_param.d_z)
 
     synch.exit_cavity()
+    return transfer_matrix[1:, :, :]
 
 
 def z_thin_lens(acc_field, d_z, gamma, beta_middle, synch,

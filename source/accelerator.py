@@ -153,6 +153,7 @@ class Accelerator():
             self.transf_mat['indiv'] = np.vstack((
                 self.transf_mat['indiv'],
                 self.get_from_elements('transfer_matrix')))
+
             self.transf_mat['cumul'] = \
                 helper.individual_to_global_transfer_matrix(
                     self.transf_mat['indiv'])
