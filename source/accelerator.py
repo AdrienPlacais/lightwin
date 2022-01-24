@@ -50,6 +50,16 @@ class Accelerator():
             'first_calc?': True,
             }
 
+        self.fault_scenario = {
+            'idx_faults': [],
+            'idx_compensating': [],
+            'strategy': None,
+            'x0': None,
+            'bounds': None,
+            'objective_str': None,
+            'objective': None,
+            }
+
     def _load_dat_file(self):
         """Load the dat file and convert it into a list of lines."""
         # Load and read data file
@@ -271,7 +281,46 @@ class Accelerator():
 
     def apply_faults(self, list_of_fail_cav):
         """Break cavity at index idx."""
+        self.fault_scenario['idx_faults'] = list_of_fail_cav
+
         for idx in list_of_fail_cav:
             cavity = self.list_of_elements[idx]
             assert cavity.name == 'FIELD_MAP'
             cavity.fail()
+
+    def compensate_faults(self, ref_acc, objective_str, strategy,
+                          manual_list=None):
+        """Compensate faults, according to strategy and objective."""
+        # Select which cavities will be used to compensate the fault
+        self.fault_scenario['strategy'] = strategy
+        self.fault_scenario['idx_compensating'] = \
+            self._select_compensating_cavities(strategy, manual_list)
+
+        self.fault_scenario['objective_str'] = objective_str
+        self.fault_scenario['objective'] = \
+            self._select_objective(ref_acc, objective_str)
+
+    def _select_compensating_cavities(self, strategy, manual_list):
+        """Return a list of the indexes of compensating cavities."""
+        # all_cav = self._which_are('FIELD_MAP')
+        all_cav = list(filter(lambda elt: elt.name == 'FIELD_MAP',
+                              self.list_of_elements))
+        working_cav = list(filter(lambda elt: ~elt.failed,
+                                  all_cav))
+        neighbors = None
+        # TODO implement neighbors
+        dict_strategy = {
+            'neighbors': neighbors,
+            'all': working_cav,
+            'manual': manual_list,
+            }
+        return dict_strategy[strategy]
+
+    def _select_objective(self, ref_acc, objective):
+        """Assign what will be fitted."""
+        dict_objective = {
+            'energy': ref_acc.synch.energy['kin_array_mev'][-1],
+            'phase': ref_acc.synch.phi['abs_array'][-1],
+            'transfer_matrix': ref_acc.transf_mat['cumul'][-1, :, :],
+            }
+        return dict_objective[objective]
