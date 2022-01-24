@@ -83,9 +83,8 @@ def z_field_map_electric_field(cavity, synch):
     """
     assert isinstance(cavity, elements.FieldMap)
     assert isinstance(synch, particle.Particle)
-    acc_field = cavity.acc_field
     solver_param = cavity.solver_transf_mat
-    synch.enter_cavity(acc_field.omega0_rf)
+    synch.enter_cavity(cavity.acc_field.omega0_rf)
 
 # =============================================================================
 # Initialisation
@@ -101,10 +100,10 @@ def z_field_map_electric_field(cavity, synch):
 
     # Initialize gamma and synch:
     if solver_param.method == 'leapfrog':
-        solver.init_leapfrog_cavity(acc_field, gamma, solver_param.d_z, synch)
+        solver.init_leapfrog_cavity(cavity, gamma, solver_param.d_z, synch)
 
     elif solver_param.method == 'RK':
-        du_dz = solver.init_rk4_cavity(acc_field, gamma, synch)
+        du_dz = solver.init_rk4_cavity(cavity, gamma, synch)
 
     # We loop until reaching the end of the cavity
     transfer_matrix = np.zeros((solver_param.n_steps + 1, 2, 2))
@@ -117,13 +116,14 @@ def z_field_map_electric_field(cavity, synch):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        cavity.f_e = q_adim * acc_field.e_func(synch.z['rel'],
-                                               synch.phi['rel']) \
+        cavity.f_e = q_adim * cavity.e_func(synch.z['rel'],
+                                            synch.phi['rel']) \
             * (1. + np.tan(synch.phi['rel']) * 1j)
 
         if solver_param.method == 'leapfrog':
+            # TODO utilisation for synch???
             delta['e_mev'] = q_adim \
-                * acc_field.e_func(synch.z['rel'], synch.phi['rel']) \
+                * cavity.e_func(synch.z['rel'], synch.phi['rel']) \
                 * solver_param.d_z
 
         elif solver_param.method == 'RK':
@@ -143,12 +143,12 @@ def z_field_map_electric_field(cavity, synch):
         beta_middle = helper.gamma_to_beta(gamma['middle'])
 
         # Compute transfer matrix using thin lens approximation
-        transfer_matrix[i, :, :] = z_thin_lens(acc_field,
+        transfer_matrix[i, :, :] = z_thin_lens(cavity,
                                                solver_param.d_z, gamma,
                                                beta_middle, synch)
 
         if solver_param.method == 'leapfrog':
-            delta['phi'] = acc_field.n_cell * synch.omega0['bunch'] \
+            delta['phi'] = cavity.n_cell * synch.omega0['bunch'] \
                 * solver_param.d_z / (helper.gamma_to_beta(gamma['out']) * c)
 
         synch.advance_phi(delta['phi'])
@@ -158,7 +158,7 @@ def z_field_map_electric_field(cavity, synch):
     return transfer_matrix[1:, :, :]
 
 
-def z_thin_lens(acc_field, d_z, gamma, beta_middle, synch,
+def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
                 flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
@@ -200,19 +200,19 @@ def z_thin_lens(acc_field, d_z, gamma, beta_middle, synch,
 # =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
-    delta_phi_half_step = .5 * d_z * acc_field.omega0_rf / (beta_middle * c)
+    delta_phi_half_step = .5 * d_z * cavity.acc_field.omega0_rf / (beta_middle * c)
     phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * E_rest_MeV)
-    k_1 = k_0 * acc_field.de_dt_func(z_k, phi_k, beta_middle)
-    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_field.e_func(z_k, phi_k)
+    k_1 = k_0 * cavity.de_dt_func(z_k, phi_k, beta_middle)
+    k_2 = 1. - (2. - beta_middle**2) * k_0 * cavity.e_func(z_k, phi_k)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
-        k_3 = (1. - k_0 * acc_field.e_func(z_k, phi_k))  \
+        k_3 = (1. - k_0 * cavity.e_func(z_k, phi_k))  \
                 / (1. - k_0 * (2. - beta_middle**2)
-                   * acc_field.e_func(z_k, phi_k))
+                   * cavity.e_func(z_k, phi_k))
         transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:

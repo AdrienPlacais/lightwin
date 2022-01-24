@@ -13,7 +13,7 @@ from constants import c
 class RfField():
     """Cos-like RF field."""
 
-    def __init__(self, frequency_mhz, phi_0=0., n_cell=1):
+    def __init__(self, frequency_mhz, n_cell=1):
         self.f_mhz_rf = frequency_mhz
         self.omega0_rf = 2e6 * np.pi * frequency_mhz
         try:
@@ -21,20 +21,19 @@ class RfField():
         except ZeroDivisionError:
             self.lambda_rf = None
 
-        self.phi_0 = phi_0
-        self.n_cell = n_cell
+        self.n_cell = n_cell    # TODO Legacy to remove?
 
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
 
-    def e_func(self, x, phi):
+    def e_func_template(self, norm, phi_0, x, phi):
         """Compute electric field at given position x and phase phi."""
-        return self.e_spat(x) * np.cos(phi + self.phi_0)
+        return norm * self.e_spat(x) * np.cos(phi + phi_0)
 
-    def de_dt_func(self, x, phi, beta):
+    def de_dt_func_template(self, norm, phi_0, x, phi, beta):
         """Compute temp derivative of electric field."""
-        factor = self.omega0_rf / (beta * c)
-        return factor * self.e_spat(x) * np.sin(phi + self.phi_0)
+        factor = norm * self.omega0_rf / (beta * c)
+        return factor * self.e_spat(x) * np.sin(phi + phi_0)
 
 
 # =============================================================================
@@ -64,9 +63,7 @@ def load_field_map_file(element, rf_field):
 
     # Interpolation
     z_cavity_array = np.linspace(0., zmax, n_z + 1)
-    f_z_scaled = element.electric_field_factor * f_z * norm
-
-    rf_field.e_spat = interp1d(z_cavity_array, f_z_scaled, bounds_error=False,
+    rf_field.e_spat = interp1d(z_cavity_array, f_z, bounds_error=False,
                                kind='linear', fill_value=0.,
                                assume_sorted=True)
 

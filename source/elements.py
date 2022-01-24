@@ -156,11 +156,23 @@ class FieldMap(_Element):
 
         # Replace dummy accelerating field by a true one
         self.acc_field = RfField(352.2,     # FIXME frequency import
-                                 self.theta_i_rad, 2)
+                                 n_cell=2)
 
+        self.f_e = None
         self.phi_s_deg = None
         self.v_cav_mv = None
         self.failed = False
+        self.n_cell = 2     # FIXME number of cells
+
+    def e_func(self, x, phi):
+        """Return the electric field at (relative) position x and phase phi."""
+        return self.acc_field.e_func_template(
+            self.electric_field_factor, self.theta_i_rad, x, phi)
+
+    def de_dt_func(self, x, phi, beta):
+        """Return the electric field at (relative) position x and phase phi."""
+        return self.acc_field.de_dt_func_template(
+            self.electric_field_factor, self.theta_i_rad, x, phi, beta)
 
     def _compute_synch_phase_and_acc_pot(self, synch):
         """Compute the sychronous phase and accelerating potential."""
