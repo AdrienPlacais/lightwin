@@ -13,7 +13,7 @@ from constants import c
 class RfField():
     """Cos-like RF field."""
 
-    def __init__(self, frequency_mhz, n_cell=1):
+    def __init__(self, frequency_mhz):
         self.f_mhz_rf = frequency_mhz
         self.omega0_rf = 2e6 * np.pi * frequency_mhz
         try:
@@ -24,12 +24,12 @@ class RfField():
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
 
-    def e_func_template(self, norm, phi_0, x, phi):
-        """Template of cos-like rf field."""
+    def e_func_norm(self, norm, phi_0, x, phi):
+        """Template of the cos-like rf field (normalized)."""
         return norm * self.e_spat(x) * np.cos(phi + phi_0)
 
-    def de_dt_func_template(self, norm, phi_0, x, phi, beta):
-        """Template of time derivative of cos-like rf field."""
+    def de_dt_func_norm(self, norm, phi_0, x, phi, beta):
+        """Template of time derivative of the cos-like rf field (normal.)."""
         factor = norm * self.omega0_rf / (beta * c)
         return factor * self.e_spat(x) * np.sin(phi + phi_0)
 

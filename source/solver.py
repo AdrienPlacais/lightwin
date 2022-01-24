@@ -37,11 +37,11 @@ def init_rk4_cavity(cavity, gamma, synch):
             First component is (e_mev(i+1) - e_mev(i)) / dz.
             Second component is (phi(i+1) - phi(i)) / dz.
         """
-        v0 = q_adim * cavity.e_func(z, u[1])
+        v0 = q_adim * cavity.acc_field['e_func'](z, u[1])
 
         gamma_float = helper.kin_to_gamma(u[0], E_rest_MeV)
         beta = helper.gamma_to_beta(gamma_float)
-        v1 = cavity.n_cell * synch.omega0['bunch'] / (beta * c)
+        v1 = cavity.acc_field['n_cell'] * synch.omega0['bunch'] / (beta * c)
         return np.array(([v0, v1]))
     return du_dz
 
@@ -97,8 +97,8 @@ def init_leapfrog_cavity(cavity, gamma, dz, synch):
     synch.energy['kin_array_mev'].pop(-1)
     synch.energy['gamma_array'].pop(-1)
     # Rewind energy
-    synch.set_energy(-q_adim * cavity.e_func(synch.z['rel'], 0.) * .5 * dz,
-                     delta_e=True)
+    synch.set_energy(-q_adim * cavity.acc_field['e_func'](
+        synch.z['rel'], 0.) * .5 * dz, delta_e=True)
     # TODO in enter_cavity?
     synch.z['rel'] = 0.
     synch.phi['rel'] = 0.
