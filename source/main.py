@@ -50,7 +50,7 @@ FILEPATH = os.path.abspath(FILEPATH)
 # =============================================================================
 # linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
-# broken_linac.add_failure(35)
+broken_linac.add_failure(35)
 
 for lin in [broken_linac]:
     for method in ['RK']:

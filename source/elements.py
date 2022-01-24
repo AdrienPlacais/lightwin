@@ -98,7 +98,7 @@ class _Element():
         self.transfer_matrix = self.dict_transf_mat[
             self.solver_transf_mat.method](self, synch=synch)
 
-        if self.name == 'FIELD_MAP':
+        if self.name == 'FIELD_MAP' and not self.failed:
             self._compute_synch_phase_and_acc_pot(synch)
 
 
@@ -187,11 +187,7 @@ class FieldMap(_Element):
         """Break this nice cavity."""
         self.failed = True
         self.acc_field = RfField(0.)
-        self.dict_transf_mat = {
-            'RK': transfer_matrices.z_drift_element,
-            'leapfrog': transfer_matrices.z_drift_element,
-            'transport': transport.transport_beam,
-         }
+        self.electric_field_factor = 0.
 
 
 class CavSin(_Element):
