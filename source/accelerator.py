@@ -45,8 +45,7 @@ class Accelerator():
         self._load_filemaps()
 
         self.transf_mat = {
-            # 'cumul': np.full((1, 2, 2), np.NaN),    # Product of indiv matrices
-            'cumul': np.expand_dims(np.eye(2), axis=0),    # Product of indiv matrices
+            'cumul': np.expand_dims(np.eye(2), axis=0),
             'indiv': np.expand_dims(np.eye(2), axis=0),
             'first_calc?': True,
             }
@@ -268,3 +267,9 @@ class Accelerator():
         for elt in self.list_of_elements:
             out = dict_data_getter[data_nature](out, elt)
         return out
+
+    def add_failure(self, idx):
+        """Break cavity at index idx."""
+        cavity = self.list_of_elements[idx]
+        assert cavity.name == 'FIELD_MAP'
+        cavity.fail()

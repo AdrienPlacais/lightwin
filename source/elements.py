@@ -62,11 +62,19 @@ class _Element():
         if self.accelerating:
             if self.name == 'FIELD_MAP':
                 n_steps = 100 * self.acc_field.n_cell
-                self.dict_transf_mat = {
-                    'RK': transfer_matrices.z_field_map_electric_field,
-                    'leapfrog': transfer_matrices.z_field_map_electric_field,
-                    'transport': transport.transport_beam,
-                    }
+
+                if self.failed:
+                    self.dict_transf_mat = {
+                        'RK': transfer_matrices.z_drift_element,
+                        'leapfrog': transfer_matrices.z_drift_element,
+                        'transport': transport.transport_beam,
+                        }
+                else:
+                    self.dict_transf_mat = {
+                        'RK': transfer_matrices.z_field_map_electric_field,
+                        'leapfrog': transfer_matrices.z_field_map_electric_field,
+                        'transport': transport.transport_beam,
+                        }
             else:
                 raise IOError('Accelerating element not implemented.')
 
@@ -74,8 +82,8 @@ class _Element():
             # By default, 1 step for non-accelerating elements
             n_steps = 1
             self.dict_transf_mat = {
-                'RK': transfer_matrices.z_drift,
-                'leapfrog': transfer_matrices.z_drift,
+                'RK': transfer_matrices.z_drift_element,
+                'leapfrog': transfer_matrices.z_drift_element,
                 'transport': transport.transport_beam,
              }
 
@@ -91,9 +99,10 @@ class _Element():
 
         This default function is used for non accelerating elements.
         """
-        assert ~self.accelerating
+        assert ~self.accelerating, 'The default z-drift transfer matrix '\
+            + 'function is used for an accelerating element.'
         self.transfer_matrix = self.dict_transf_mat[
-            self.solver_transf_mat.method](self, gamma=np.NaN, synch=synch)
+            self.solver_transf_mat.method](self, synch=synch)
 
 
 # =============================================================================
@@ -156,6 +165,8 @@ class FieldMap(_Element):
         self.phi_s_deg = None
         self.v_cav_mv = None
 
+        self.failed = False
+
     def compute_transfer_matrix(self, synch):
         """Compute longitudinal matrix."""
         # Init f_e
@@ -176,6 +187,16 @@ class FieldMap(_Element):
         energy_before = synch.energy['kin_array_mev'][
             -self.solver_transf_mat.n_steps]
         self.v_cav_mv = np.abs(energy_now - energy_before) / np.cos(phi_s)
+
+    def fail(self):
+        """Break this nice cavity."""
+        self.failed = True
+        self.acc_field = RfField(0.)
+        self.dict_transf_mat = {
+            'RK': transfer_matrices.z_drift_element,
+            'leapfrog': transfer_matrices.z_drift_element,
+            'transport': transport.transport_beam,
+         }
 
 
 class CavSin(_Element):

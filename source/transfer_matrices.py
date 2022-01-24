@@ -26,7 +26,7 @@ def dummy():
     return r_zz
 
 
-def z_drift(element_or_length, gamma=np.NaN, synch=None):
+def z_drift_element(element, synch):
     """
     Compute the longitudinal sub-matrix of a drift.
 
@@ -35,39 +35,42 @@ def z_drift(element_or_length, gamma=np.NaN, synch=None):
 
     Parameters
     ----------
-    element_or_length:
-        If instance of element, length and gamma are extracted from this
-        object.
-        If float, a gamma should also be given.
-    gamma: float, opt
-        Should be given if element_or_length is a length and not an element.
+    element:
+        Length and gamma are extracted from this object.
 
     FIXME: I think there are better options...
     """
-    if isinstance(element_or_length, float):
-        assert ~np.isnan(gamma), 'A gamma should be given if ' \
-            + 'element_or_length is a length.'
-        delta_s = element_or_length
+    assert isinstance(synch, particle.Particle), 'A Particle should be ' \
+        + 'given if element_or_length is an Element.'
+    n_steps = element.solver_transf_mat.n_steps
+    delta_s = element.length_m / n_steps
+    r_zz = np.full((n_steps, 2, 2), np.NaN)
 
-        r_zz = np.array(([1., delta_s*gamma**-2],
-                         [0., 1.]))
+    for i in range(n_steps):
+        r_zz[i, :, :] = z_drift_length(delta_s, synch.energy['gamma'])
 
-    else:
-        assert isinstance(synch, particle.Particle), 'A Particle should be ' \
-            + 'given if element_or_length is an Element.'
-        n_steps = element_or_length.solver_transf_mat.n_steps
-        delta_s = element_or_length.length_m / n_steps
-        r_zz = np.full((n_steps, 2, 2), np.NaN)
-        for i in range(n_steps):
-            r_zz[i, :, :] = np.array(([1., delta_s*synch.energy['gamma']**-2],
-                                      [0., 1.]))
+        synch.advance_position(delta_s)
+        synch.set_energy(0., delta_e=True)
+        delta_phi = synch.omega0['ref'] * delta_s / (synch.energy['beta']
+                                                     * c)
+        synch.advance_phi(delta_phi)
 
-            synch.advance_position(delta_s)
-            synch.set_energy(0., delta_e=True)
-            delta_phi = synch.omega0['ref'] * delta_s / (synch.energy['beta']
-                                                         * c)
-            synch.advance_phi(delta_phi)
+    return r_zz
 
+
+def z_drift_length(delta_s, gamma):
+    """
+    Compute the longitudinal sub-matrix of a drift.
+
+    Parameters
+    ----------
+    delta_s:
+        Length of the drift.
+    gamma: float
+        Lorentz velocity factor.
+    """
+    r_zz = np.array(([1., delta_s*gamma**-2],
+                     [0., 1.]))
     return r_zz
 
 
@@ -189,7 +192,7 @@ def z_thin_lens(acc_field, d_z, gamma, beta_middle, synch,
 # =============================================================================
 #   In
 # =============================================================================
-    transf_mat = z_drift(.5 * d_z, gamma['in'])
+    transf_mat = z_drift_length(.5 * d_z, gamma['in'])
 
 # =============================================================================
 #   Mid
@@ -217,7 +220,7 @@ def z_thin_lens(acc_field, d_z, gamma, beta_middle, synch,
 # =============================================================================
 #   Out
 # =============================================================================
-    transf_mat = z_drift(.5 * d_z, gamma['out']) @ transf_mat
+    transf_mat = z_drift_length(.5 * d_z, gamma['out']) @ transf_mat
     return transf_mat
 
 

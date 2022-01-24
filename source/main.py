@@ -48,21 +48,24 @@ FILEPATH = os.path.abspath(FILEPATH)
 # =============================================================================
 # End of user inputs
 # =============================================================================
-linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
+# linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
+broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
+# broken_linac.add_failure(35)
 
-for method in ['RK']:
-    linac.compute_transfer_matrices(method)
-    debug.plot_transfer_matrices(linac, linac.transf_mat['cumul'])
-    debug.compare_energies(linac)
+for lin in [broken_linac]:
+    for method in ['RK']:
+        lin.compute_transfer_matrices(method)
+        debug.plot_transfer_matrices(lin, lin.transf_mat['cumul'])
+        debug.compare_energies(lin)
 # debug.compare_phase_space(linac)
 
 # twiss = emittance.transport_twiss_parameters(linac, ALPHA_Z, BETA_Z)
 # emittance.plot_twiss(linac, twiss)
 
-SAVE_MT_AND_ENERGY = False
-if SAVE_MT_AND_ENERGY:
-    helper.save_full_mt_and_energy_evolution(linac)
+# SAVE_MT_AND_ENERGY = False
+# if SAVE_MT_AND_ENERGY:
+#     helper.save_full_mt_and_energy_evolution(linac)
 
-SAVE_VCAV_AND_PHIS = False
-if SAVE_VCAV_AND_PHIS:
-    helper.save_vcav_and_phis(linac)
+# SAVE_VCAV_AND_PHIS = False
+# if SAVE_VCAV_AND_PHIS:
+#     helper.save_vcav_and_phis(linac)
