@@ -45,27 +45,45 @@ if FILEPATH == '':
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
 FILEPATH = os.path.abspath(FILEPATH)
+
 # =============================================================================
 # End of user inputs
 # =============================================================================
-# linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
-broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
-broken_linac.add_failure(35)
+linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
-for lin in [broken_linac]:
+# Cavity breaking
+indices_of_cavities_to_break = [35]
+for i in indices_of_cavities_to_break:
+    linac.add_failure(i)
+
+for lin in [linac]:
     for method in ['RK']:
         lin.compute_transfer_matrices(method)
-        debug.plot_transfer_matrices(lin, lin.transf_mat['cumul'])
-        debug.compare_energies(lin)
-# debug.compare_phase_space(linac)
 
-# twiss = emittance.transport_twiss_parameters(linac, ALPHA_Z, BETA_Z)
-# emittance.plot_twiss(linac, twiss)
+# =============================================================================
+# Output options
+# =============================================================================
+        PLOT_TM = True
+        if PLOT_TM:
+            debug.plot_transfer_matrices(lin, lin.transf_mat['cumul'])
 
-# SAVE_MT_AND_ENERGY = False
-# if SAVE_MT_AND_ENERGY:
-#     helper.save_full_mt_and_energy_evolution(linac)
+        PLOT_ENERGY = True
+        if PLOT_ENERGY:
+            debug.compare_energies(lin)
 
-# SAVE_VCAV_AND_PHIS = False
-# if SAVE_VCAV_AND_PHIS:
-#     helper.save_vcav_and_phis(linac)
+        PHASE_SPACE = False
+        if PHASE_SPACE:
+            debug.compare_phase_space(lin)
+
+        TWISS = False
+        if TWISS:
+            twiss = emittance.transport_twiss_parameters(lin, ALPHA_Z, BETA_Z)
+            emittance.plot_twiss(lin, twiss)
+
+        SAVE_MT_AND_ENERGY = False
+        if SAVE_MT_AND_ENERGY:
+            helper.save_full_mt_and_energy_evolution(lin)
+
+        SAVE_VCAV_AND_PHIS = False
+        if SAVE_VCAV_AND_PHIS:
+            helper.save_vcav_and_phis(lin)
