@@ -269,8 +269,9 @@ class Accelerator():
             out = dict_data_getter[data_nature](out, elt)
         return out
 
-    def add_failure(self, idx):
+    def apply_faults(self, list_of_fail_cav):
         """Break cavity at index idx."""
-        cavity = self.list_of_elements[idx]
-        assert cavity.name == 'FIELD_MAP'
-        cavity.fail()
+        for idx in list_of_fail_cav:
+            cavity = self.list_of_elements[idx]
+            assert cavity.name == 'FIELD_MAP'
+            cavity.fail()

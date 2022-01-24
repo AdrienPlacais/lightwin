@@ -13,6 +13,7 @@ import debug
 import helper
 import emittance
 import transport
+import fix_cavity
 
 # =============================================================================
 # User inputs5
@@ -49,14 +50,14 @@ FILEPATH = os.path.abspath(FILEPATH)
 # =============================================================================
 # End of user inputs
 # =============================================================================
-linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
+ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
+broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
 # Cavity breaking
-indices_of_cavities_to_break = [35]
-for i in indices_of_cavities_to_break:
-    linac.add_failure(i)
+failed_cav = [25]
+broken_linac.apply_faults(failed_cav)
 
-for lin in [linac]:
+for lin in [ref_linac, broken_linac]:
     for method in ['RK']:
         lin.compute_transfer_matrices(method)
 
