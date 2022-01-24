@@ -9,7 +9,6 @@ Created on Fri Nov 26 15:41:00 2021
 import numpy as np
 from constants import c, q_adim, E_rest_MeV
 import helper
-import particle
 
 
 # =============================================================================

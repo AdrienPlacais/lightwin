@@ -83,8 +83,9 @@ def z_field_map_electric_field(cavity, synch):
     """
     assert isinstance(cavity, elements.FieldMap)
     assert isinstance(synch, particle.Particle)
+    omega0_rf = cavity.acc_field.omega0_rf
     solver_param = cavity.solver_transf_mat
-    synch.enter_cavity(cavity.acc_field.omega0_rf)
+    synch.enter_cavity(omega0_rf)
 
 # =============================================================================
 # Initialisation
@@ -116,12 +117,10 @@ def z_field_map_electric_field(cavity, synch):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        cavity.f_e = q_adim * cavity.e_func(synch.z['rel'],
-                                            synch.phi['rel']) \
+        cavity.f_e = q_adim * cavity.e_func(synch.z['rel'], synch.phi['rel']) \
             * (1. + np.tan(synch.phi['rel']) * 1j)
 
         if solver_param.method == 'leapfrog':
-            # TODO utilisation for synch???
             delta['e_mev'] = q_adim \
                 * cavity.e_func(synch.z['rel'], synch.phi['rel']) \
                 * solver_param.d_z
@@ -200,7 +199,8 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
 # =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
-    delta_phi_half_step = .5 * d_z * cavity.acc_field.omega0_rf / (beta_middle * c)
+    delta_phi_half_step = .5 * d_z * cavity.acc_field.omega0_rf / (beta_middle
+                                                                   * c)
     phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components

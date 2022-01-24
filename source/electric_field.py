@@ -27,11 +27,11 @@ class RfField():
         self.e_spat = lambda x: 0.
 
     def e_func_template(self, norm, phi_0, x, phi):
-        """Compute electric field at given position x and phase phi."""
+        """Template of cos-like rf field."""
         return norm * self.e_spat(x) * np.cos(phi + phi_0)
 
     def de_dt_func_template(self, norm, phi_0, x, phi, beta):
-        """Compute temp derivative of electric field."""
+        """Template of time derivative of cos-like rf field."""
         factor = norm * self.omega0_rf / (beta * c)
         return factor * self.e_spat(x) * np.sin(phi + phi_0)
 
