@@ -94,15 +94,12 @@ class _Element():
         self.solver_transf_mat = SolverParam(method, n_steps, d_z)
 
     def compute_transfer_matrix(self, synch):
-        """
-        Compute longitudinal matrix.
-
-        This default function is used for non accelerating elements.
-        """
-        assert ~self.accelerating, 'The default z-drift transfer matrix '\
-            + 'function is used for an accelerating element.'
+        """Compute longitudinal matrix."""
         self.transfer_matrix = self.dict_transf_mat[
             self.solver_transf_mat.method](self, synch=synch)
+
+        if self.name == 'FIELD_MAP':
+            self._compute_synch_phase_and_acc_pot(synch)
 
 
 # =============================================================================
@@ -163,17 +160,7 @@ class FieldMap(_Element):
 
         self.phi_s_deg = None
         self.v_cav_mv = None
-
         self.failed = False
-
-    def compute_transfer_matrix(self, synch):
-        """Compute longitudinal matrix."""
-        # Compute transfer matrix
-        self.transfer_matrix = \
-            self.dict_transf_mat[self.solver_transf_mat.method](self, synch)
-
-        # Remove first slice of transfer matrix (indentity matrix)
-        self._compute_synch_phase_and_acc_pot(synch)
 
     def _compute_synch_phase_and_acc_pot(self, synch):
         """Compute the sychronous phase and accelerating potential."""
