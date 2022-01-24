@@ -21,8 +21,6 @@ class RfField():
         except ZeroDivisionError:
             self.lambda_rf = None
 
-        self.n_cell = n_cell    # TODO Legacy to remove?
-
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
 
