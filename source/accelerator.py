@@ -302,12 +302,12 @@ class Accelerator():
 
     def _select_compensating_cavities(self, strategy, manual_list):
         """Return a list of the indexes of compensating cavities."""
-        # all_cav = self._which_are('FIELD_MAP')
         all_cav = list(filter(lambda elt: elt.name == 'FIELD_MAP',
                               self.list_of_elements))
         working_cav = list(filter(lambda elt: ~elt.failed,
                                   all_cav))
         neighbors = None
+        assert strategy != 'neighbors', 'Not yet implemented.'
         # TODO implement neighbors
         dict_strategy = {
             'neighbors': neighbors,

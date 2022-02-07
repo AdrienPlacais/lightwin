@@ -16,7 +16,7 @@ import transport
 import fix_cavity
 
 # =============================================================================
-# User inputs5
+# User inputs
 # =============================================================================
 # TODO: direct import of this parameters from the .ini file
 # TODO: handle different particles
