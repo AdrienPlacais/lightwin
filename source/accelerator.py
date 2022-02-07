@@ -307,10 +307,8 @@ class Accelerator():
                               self.list_of_elements))
         working_cav = list(filter(lambda elt: elt.failed is False,
                                   all_cav))
-        neighbors = _neighbors_of_failed_cav(all_cav)
-        neighbors_cav = list(filter(lambda elt: elt.failed is False,
-                                    neighbors))
-        # TODO implement neighbors
+        neighbors_cav = _neighbors_of_failed_cav(all_cav)
+
         dict_strategy = {
             'neighbors': neighbors_cav,
             'all': working_cav,
@@ -330,19 +328,26 @@ def _select_objective(ref_acc, objective):
 
 
 def _neighbors_of_failed_cav(list_of_cav):
-    """
-    Return a list of the cavities neighboring failed ones.
-
-    Duplicates are removed.
-    Failed cavities neighboring another failed cavity will be returned, and
-    shall be removed afterwise as they can't participate to the fault
-    compensation.
-    """
+    """Return a list of the cavities neighboring failed ones."""
     neighbors = []
     for i in range(len(list_of_cav)):
         if list_of_cav[i].failed:
-            neighbors.append(i-1)
-            neighbors.append(i+1)
+            # We select the first working cavities neighboring the i-th cav
+            # which are not already in neighbors
+            j = i - 1
+            while(j >= 0):
+                if not list_of_cav[j].failed and j not in neighbors:
+                    neighbors.append(j)
+                    j = -1
+                else:
+                    j -= 1
+            j = i + 1
+            while(j <= len(list_of_cav)):
+                if not list_of_cav[j].failed and j not in neighbors:
+                    neighbors.append(j)
+                    j = 100
+
+                else:
+                    j += 1
     neighbors.sort()
-    neighbors = list(set(neighbors))  # remove duplicates
     return [list_of_cav[idx] for idx in neighbors]
