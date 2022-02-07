@@ -334,20 +334,15 @@ def _neighbors_of_failed_cav(list_of_cav):
         if list_of_cav[i].failed:
             # We select the first working cavities neighboring the i-th cav
             # which are not already in neighbors
-            j = i - 1
-            while(j >= 0):
-                if not list_of_cav[j].failed and j not in neighbors:
-                    neighbors.append(j)
-                    j = -1
-                else:
-                    j -= 1
-            j = i + 1
-            while(j <= len(list_of_cav)):
-                if not list_of_cav[j].failed and j not in neighbors:
-                    neighbors.append(j)
-                    j = 100
+            for delta_j in [-1, +1]:
+                j = i
+                while j in range(0, len(list_of_cav) + 1):
+                    j += delta_j
 
-                else:
-                    j += 1
+                    if list_of_cav[j].failed or j in neighbors:
+                        j += delta_j
+                    else:
+                        neighbors.append(j)
+                        break
     neighbors.sort()
     return [list_of_cav[idx] for idx in neighbors]
