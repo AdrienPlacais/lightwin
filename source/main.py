@@ -53,7 +53,7 @@ FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
 broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
-failed_cav = [25]
+failed_cav = [25, 27]
 broken_linac.apply_faults(failed_cav)
 
 for lin in [ref_linac, broken_linac]:

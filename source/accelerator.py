@@ -279,13 +279,14 @@ class Accelerator():
             out = dict_data_getter[data_nature](out, elt)
         return out
 
-    def apply_faults(self, list_of_fail_cav):
+    def apply_faults(self, idx_fail_cav):
         """Break cavity at index idx."""
-        self.fault_scenario['idx_faults'] = list_of_fail_cav
+        self.fault_scenario['idx_faults'] = idx_fail_cav
 
-        for idx in list_of_fail_cav:
+        for idx in idx_fail_cav:
             cavity = self.list_of_elements[idx]
-            assert cavity.name == 'FIELD_MAP'
+            assert cavity.name == 'FIELD_MAP', 'Error, the element at ' + \
+                'position ' + str(idx) + ' is not a FIELD_MAP.'
             cavity.fail()
 
     def compensate_faults(self, ref_acc, objective_str, strategy,
@@ -298,29 +299,50 @@ class Accelerator():
 
         self.fault_scenario['objective_str'] = objective_str
         self.fault_scenario['objective'] = \
-            self._select_objective(ref_acc, objective_str)
+            _select_objective(ref_acc, objective_str)
 
     def _select_compensating_cavities(self, strategy, manual_list):
         """Return a list of the indexes of compensating cavities."""
         all_cav = list(filter(lambda elt: elt.name == 'FIELD_MAP',
                               self.list_of_elements))
-        working_cav = list(filter(lambda elt: ~elt.failed,
+        working_cav = list(filter(lambda elt: elt.failed is False,
                                   all_cav))
-        neighbors = None
-        assert strategy != 'neighbors', 'Not yet implemented.'
+        neighbors = _neighbors_of_failed_cav(all_cav)
+        neighbors_cav = list(filter(lambda elt: elt.failed is False,
+                                    neighbors))
         # TODO implement neighbors
         dict_strategy = {
-            'neighbors': neighbors,
+            'neighbors': neighbors_cav,
             'all': working_cav,
             'manual': manual_list,
             }
         return dict_strategy[strategy]
 
-    def _select_objective(self, ref_acc, objective):
-        """Assign what will be fitted."""
-        dict_objective = {
-            'energy': ref_acc.synch.energy['kin_array_mev'][-1],
-            'phase': ref_acc.synch.phi['abs_array'][-1],
-            'transfer_matrix': ref_acc.transf_mat['cumul'][-1, :, :],
-            }
-        return dict_objective[objective]
+
+def _select_objective(ref_acc, objective):
+    """Assign what will be fitted."""
+    dict_objective = {
+        'energy': ref_acc.synch.energy['kin_array_mev'][-1],
+        'phase': ref_acc.synch.phi['abs_array'][-1],
+        'transfer_matrix': ref_acc.transf_mat['cumul'][-1, :, :],
+        }
+    return dict_objective[objective]
+
+
+def _neighbors_of_failed_cav(list_of_cav):
+    """
+    Return a list of the cavities neighboring failed ones.
+
+    Duplicates are removed.
+    Failed cavities neighboring another failed cavity will be returned, and
+    shall be removed afterwise as they can't participate to the fault
+    compensation.
+    """
+    neighbors = []
+    for i in range(len(list_of_cav)):
+        if list_of_cav[i].failed:
+            neighbors.append(i-1)
+            neighbors.append(i+1)
+    neighbors.sort()
+    neighbors = list(set(neighbors))  # remove duplicates
+    return [list_of_cav[idx] for idx in neighbors]
