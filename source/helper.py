@@ -8,6 +8,7 @@ Created on Wed Sep 22 14:15:48 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as pat
 import constants
 
 
@@ -110,6 +111,64 @@ def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
             ax.annotate(txt,
                         (x[idx_list][i], y[idx_list[i]]),
                         size=8)
+
+
+def plot_structure(linac, ax, x_axis='pos_m'):
+    """Plot a structure of the linac under study."""
+    dict_elem_plot = {
+        'DRIFT': _plot_drift,
+        'QUAD': _plot_quad,
+        'FIELD_MAP': _plot_field_map,
+        }
+    i = 0
+    for elt in linac.list_of_elements:
+        if x_axis == 'pos_m':
+            x0 = elt.pos_m['abs'][0]
+            width = elt.length_m
+        elif x_axis == 'index':
+            x0 = i
+            width = 1
+        ax.add_patch(dict_elem_plot[elt.name](elt, x0, width))
+        i += 1
+
+    if x_axis == 'pos_m':
+        ax.set_xlim([linac.list_of_elements[0].pos_m['abs'][0],
+                     linac.list_of_elements[-1].pos_m['abs'][-1]])
+    elif x_axis == 'index':
+        ax.set_xlim([0, i])
+    ax.set_yticklabels([])
+    ax.set_yticks([])
+    ax.set_ylim([-.05, 1.05])
+
+
+def _plot_drift(drift, x0, width):
+    """Add a little rectangle to show a drift."""
+    height = .4
+    y0 = .3
+    patch = pat.Rectangle((x0, y0), width, height, fill=False)
+    return patch
+
+
+def _plot_quad(quad, x0, width):
+    """Add a large rectangle to show a quad."""
+    height = 1.
+    y0 = 0.
+    patch = pat.Rectangle((x0, y0), width, height, fill=False)
+    return patch
+
+
+def _plot_field_map(field_map, x0, width):
+    """Add an ellipse to show a field_map."""
+    height = 1.
+    y0 = height * .5
+    color_dict = {
+        True: 'red',
+        False: 'green'
+        }
+    color = color_dict[field_map.failed]
+    patch = pat.Ellipse((x0 + .5*width, y0), width, height, fill=True,
+                        fc=color, ec='k')
+    return patch
 
 
 # =============================================================================

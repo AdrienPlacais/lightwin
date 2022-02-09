@@ -223,7 +223,7 @@ def compare_energies(accelerator):
     error = np.abs(e_mev_ref - e_mev)
 
     fignum = 21
-    axnumlist = range(211, 213)
+    axnumlist = range(311, 314)
     fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
 
     if helper.empty_fig(fignum):
@@ -232,12 +232,15 @@ def compare_energies(accelerator):
     axlist[0].plot(elt_array, e_mev, label='LightWin')
     axlist[1].plot(elt_array, error*1e6)
 
-    for ax in axlist:
+    for ax in axlist[0:-1]:
         ax.grid(True)
 
+    helper.plot_structure(accelerator, axlist[2], x_axis='index')
+    axlist[2].set_xlim(axlist[0].get_xlim())
+
     axlist[0].set_ylabel('Beam energy [MeV]')
-    axlist[1].set_xlabel('Element #')
     axlist[1].set_ylabel('Absolute error [eV]')
+    axlist[2].set_xlabel('Element #')
     axlist[0].legend()
 
 

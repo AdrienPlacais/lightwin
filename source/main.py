@@ -63,28 +63,29 @@ for lin in [ref_linac, broken_linac]:
 # =============================================================================
 # Output options
 # =============================================================================
-        PLOT_TM = True
+        PLOT_TM = False
+        PLOT_ENERGY = True
+        PHASE_SPACE = False
+        TWISS = False
+        SAVE_MT_AND_ENERGY = False
+        SAVE_VCAV_AND_PHIS = False
+
         if PLOT_TM:
             debug.plot_transfer_matrices(lin, lin.transf_mat['cumul'])
 
-        PLOT_ENERGY = True
         if PLOT_ENERGY:
             debug.compare_energies(lin)
 
-        PHASE_SPACE = False
         if PHASE_SPACE:
             debug.compare_phase_space(lin)
 
-        TWISS = False
         if TWISS:
             twiss = emittance.transport_twiss_parameters(lin, ALPHA_Z, BETA_Z)
             emittance.plot_twiss(lin, twiss)
 
-        SAVE_MT_AND_ENERGY = False
         if SAVE_MT_AND_ENERGY:
             helper.save_full_mt_and_energy_evolution(lin)
 
-        SAVE_VCAV_AND_PHIS = False
         if SAVE_VCAV_AND_PHIS:
             helper.save_vcav_and_phis(lin)
 
