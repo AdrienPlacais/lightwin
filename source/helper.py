@@ -150,10 +150,13 @@ def _plot_drift(drift, x0, width):
 
 
 def _plot_quad(quad, x0, width):
-    """Add a large rectangle to show a quad."""
+    """Add a crossed large rectangle to show a quad."""
     height = 1.
     y0 = 0.
-    patch = pat.Rectangle((x0, y0), width, height, fill=False)
+    path = np.array(([x0, y0], [x0 + width, y0], [x0 + width, y0 + height],
+                     [x0, y0 + height], [x0, y0], [x0 + width, y0 + height],
+                     [np.NaN, np.NaN], [x0, y0 + height], [x0 + width, y0]))
+    patch = pat.Polygon(path, closed=False, fill=False)
     return patch
 
 
