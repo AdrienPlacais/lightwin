@@ -63,7 +63,7 @@ class _Element():
             if self.name == 'FIELD_MAP':
                 n_steps = 100 * self.acc_field['n_cell']
 
-                if self.failed:
+                if self.status['failed']:
                     self.dict_transf_mat = {
                         'RK': transfer_matrices.z_drift_element,
                         'leapfrog': transfer_matrices.z_drift_element,
@@ -98,7 +98,7 @@ class _Element():
         self.transfer_matrix = self.dict_transf_mat[
             self.solver_transf_mat.method](self, synch=synch)
 
-        if self.name == 'FIELD_MAP' and not self.failed:
+        if self.name == 'FIELD_MAP' and not self.status['failed']:
             self._compute_synch_phase_and_acc_pot(synch)
 
 
@@ -173,7 +173,10 @@ class FieldMap(_Element):
             'phi_s_deg': None,
             'v_cav_mv': None,
             }
-        self.failed = False
+        self.status = {
+            'failed': False,
+            'compensate': False
+            }
 
     def _compute_synch_phase_and_acc_pot(self, synch):
         """Compute the sychronous phase and accelerating potential."""
@@ -187,7 +190,7 @@ class FieldMap(_Element):
 
     def fail(self):
         """Break this nice cavity."""
-        self.failed = True
+        self.status['failed'] = True
         self.acc_field_object = RfField(0.)
         self.acc_field['norm'] = 0.
 

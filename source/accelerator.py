@@ -296,16 +296,20 @@ class Accelerator():
         self.fault_scenario['strategy'] = strategy
         self.fault_scenario['idx_compensating'] = \
             self._select_compensating_cavities(strategy, manual_list)
+        for elt in self.fault_scenario['idx_compensating']:
+            elt.status['compensate'] = True
 
         self.fault_scenario['objective_str'] = objective_str
         self.fault_scenario['objective'] = \
             _select_objective(ref_acc, objective_str)
+        print('Warning in accelerator.compensate_faults, discrepancy between ',
+              'idx_faults and idx_compensating.')
 
     def _select_compensating_cavities(self, strategy, manual_list):
         """Return a list of the indexes of compensating cavities."""
         all_cav = list(filter(lambda elt: elt.name == 'FIELD_MAP',
                               self.list_of_elements))
-        working_cav = list(filter(lambda elt: elt.failed is False,
+        working_cav = list(filter(lambda elt: elt.status['failed'] is False,
                                   all_cav))
         neighbors_cav = _neighbors_of_failed_cav(all_cav)
 
@@ -331,7 +335,7 @@ def _neighbors_of_failed_cav(list_of_cav):
     """Return a list of the cavities neighboring failed ones."""
     neighbors = []
     for i in range(len(list_of_cav)):
-        if list_of_cav[i].failed:
+        if list_of_cav[i].status['failed']:
             # We select the first working cavities neighboring the i-th cav
             # which are not already in neighbors
             for delta_j in [-1, +1]:
@@ -339,7 +343,7 @@ def _neighbors_of_failed_cav(list_of_cav):
                 while j in range(0, len(list_of_cav) + 1):
                     j += delta_j
 
-                    if list_of_cav[j].failed or j in neighbors:
+                    if list_of_cav[j].status['failed'] or j in neighbors:
                         j += delta_j
                     else:
                         neighbors.append(j)

@@ -56,6 +56,10 @@ broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 failed_cav = [25, 27]
 broken_linac.apply_faults(failed_cav)
 
+broken_linac.compensate_faults(ref_acc=ref_linac,
+                               objective_str='energy',
+                               strategy='neighbors')
+
 for lin in [ref_linac, broken_linac]:
     for method in ['RK']:
         lin.compute_transfer_matrices(method)
@@ -88,7 +92,3 @@ for lin in [ref_linac, broken_linac]:
 
         if SAVE_VCAV_AND_PHIS:
             helper.save_vcav_and_phis(lin)
-
-broken_linac.compensate_faults(ref_acc=ref_linac,
-                               objective_str='energy',
-                               strategy='all')

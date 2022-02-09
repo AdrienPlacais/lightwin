@@ -164,11 +164,13 @@ def _plot_field_map(field_map, x0, width):
     """Add an ellipse to show a field_map."""
     height = 1.
     y0 = height * .5
-    color_dict = {
-        True: 'red',
-        False: 'green'
-        }
-    color = color_dict[field_map.failed]
+    if field_map.status['failed']:
+        color = 'red'
+    else:
+        if field_map.status['compensate']:
+            color = 'orange'
+        else:
+            color = 'green'
     patch = pat.Ellipse((x0 + .5*width, y0), width, height, fill=True,
                         fc=color, ec='k')
     return patch
