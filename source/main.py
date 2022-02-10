@@ -53,7 +53,8 @@ FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
 broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
-failed_cav = [25, 27]
+failed_cav = [25]
+manual_list = [15, 17, 27, 35, 37]
 fault.apply_faults(broken_linac, failed_cav)
 
 for lin in [ref_linac, broken_linac]:
@@ -91,8 +92,8 @@ for lin in [ref_linac, broken_linac]:
 
 fault.compensate_faults(broken_linac, ref_linac,
                         objective_str='energy',
-                        strategy='neighbors',
-                        manual_list=[5])
+                        strategy='manual',
+                        manual_list=manual_list)
 
 if PLOT_ENERGY:
     debug.compare_energies(broken_linac)

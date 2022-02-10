@@ -137,8 +137,12 @@ def _neighbors_of_failed_cav(brok_lin, all_idx):
 
     Parameters
     ----------
-    list_of_cav: list
-        List of the FIELD_MAP objects.
+    brok_lin: Accelerator object
+        Broken linac.
+    all_idx: list
+        List of the indices of all the cavities. If a cavity is missing from
+        this list, it will not be compensated if it is faulty, and will not be
+        selected for compensation if it is working.
 
     Return
     ------
