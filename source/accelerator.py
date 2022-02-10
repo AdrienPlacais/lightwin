@@ -51,13 +51,14 @@ class Accelerator():
             }
 
         self.fault_scenario = {
-            'idx_faults': [],
-            'idx_compensating': [],
-            'strategy': None,
-            'x0': None,
-            'bounds': None,
-            'objective_str': None,
-            'objective': None,
+            'idx_faults': [],        # List of indexes of faulty cavities
+            'cav_faults': [],
+            'cav_compensating': [],  # List of compensating cavity objects
+            'strategy': None,        # To determine cav_compensating
+            'x0': None,              # Initial parameters for the fit
+            'bounds': None,          # Parameters bounds
+            'objective_str': None,   # Name of variable that should match
+            'objective': None,       # Variable that should match
             }
 
     def _load_dat_file(self):
@@ -280,7 +281,7 @@ class Accelerator():
         return out
 
     def apply_faults(self, idx_fail_cav):
-        """Break cavity at index idx."""
+        """Break cavities at indices idx_fail_cav."""
         self.fault_scenario['idx_faults'] = idx_fail_cav
 
         for idx in idx_fail_cav:
@@ -288,22 +289,22 @@ class Accelerator():
             assert cavity.name == 'FIELD_MAP', 'Error, the element at ' + \
                 'position ' + str(idx) + ' is not a FIELD_MAP.'
             cavity.fail()
+            self.fault_scenario['cav_faults'].append(cavity)
 
     def compensate_faults(self, ref_acc, objective_str, strategy,
                           manual_list=None):
         """Compensate faults, according to strategy and objective."""
         # Select which cavities will be used to compensate the fault
         self.fault_scenario['strategy'] = strategy
-        self.fault_scenario['idx_compensating'] = \
+        self.fault_scenario['cav_compensating'] = \
             self._select_compensating_cavities(strategy, manual_list)
-        for elt in self.fault_scenario['idx_compensating']:
+
+        for elt in self.fault_scenario['cav_compensating']:
             elt.status['compensate'] = True
 
         self.fault_scenario['objective_str'] = objective_str
         self.fault_scenario['objective'] = \
             _select_objective(ref_acc, objective_str)
-        print('Warning in accelerator.compensate_faults, discrepancy between ',
-              'idx_faults and idx_compensating.')
 
     def _select_compensating_cavities(self, strategy, manual_list):
         """Return a list of the indexes of compensating cavities."""
