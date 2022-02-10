@@ -66,23 +66,29 @@ def compensate_faults(brok_lin, ref_lin, objective_str, strategy,
     # Select which cavities will be used to compensate the fault
     fault['strategy'] = strategy
     fault['objective_str'] = objective_str
-    fault['objective'] = _select_objective(brok_lin, ref_lin, objective_str)
 
     fault['comp_idx'], fault['comp_cav'] = \
         _select_compensating_cavities(brok_lin, strategy, manual_list)
-
     for elt in fault['comp_cav']:
         elt.status['compensate'] = True
+
+    fault['objective'] = _select_objective(brok_lin, ref_lin, objective_str)
 
 
 def _select_objective(brok_lin, ref_lin, objective):
     """Assign the fit objective."""
-    # first_comp_idx = brok_lin.fault_scenario['comp_idx'][0]
-    # last_comp_idx = brok_lin.fault_scenario['comp_idx'][-1]
+    # Indices of first and last compensating cavities
+    first_comp_idx = brok_lin.fault_scenario['comp_idx'][0]
+    last_comp_idx = brok_lin.fault_scenario['comp_idx'][-1]
+
+    # Index of synchronous particle at these positions
+    first_synch_idx = brok_lin.list_of_elements[first_comp_idx].idx['in']
+    last_synch_idx = brok_lin.list_of_elements[last_comp_idx].idx['out']
+
     dict_objective = {
-        'energy': ref_lin.synch.energy['kin_array_mev'][-1],
-        'phase': ref_lin.synch.phi['abs_array'][-1],
-        'transfer_matrix': ref_lin.transf_mat['cumul'][-1, :, :],
+        'energy': ref_lin.synch.energy['kin_array_mev'][last_synch_idx],
+        'phase': ref_lin.synch.phi['abs_array'][last_synch_idx],
+        'transfer_matrix': ref_lin.transf_mat['cumul'][last_synch_idx, :, :],
         }
     return dict_objective[objective]
 
