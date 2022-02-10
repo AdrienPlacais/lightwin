@@ -13,7 +13,7 @@ import debug
 import helper
 import emittance
 import transport
-import fix_cavity
+import fault
 
 # =============================================================================
 # User inputs
@@ -54,11 +54,7 @@ ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 
 broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
 failed_cav = [25, 27]
-broken_linac.apply_faults(failed_cav)
-
-broken_linac.compensate_faults(ref_acc=ref_linac,
-                               objective_str='energy',
-                               strategy='neighbors')
+fault.apply_faults(broken_linac, failed_cav)
 
 for lin in [ref_linac, broken_linac]:
     for method in ['RK']:
@@ -92,3 +88,10 @@ for lin in [ref_linac, broken_linac]:
 
         if SAVE_VCAV_AND_PHIS:
             helper.save_vcav_and_phis(lin)
+
+fault.compensate_faults(broken_linac, ref_linac,
+                        objective_str='energy',
+                        strategy='neighbors')
+
+if PLOT_ENERGY:
+    debug.compare_energies(broken_linac)
