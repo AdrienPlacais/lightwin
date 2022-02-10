@@ -51,9 +51,10 @@ class Accelerator():
             }
 
         self.fault_scenario = {
-            'idx_faults': [],        # List of indexes of faulty cavities
-            'cav_faults': [],
-            'cav_compensating': [],  # List of compensating cavity objects
+            'faults_idx': [],        # List of indexes of faulty cavities
+            'faults_cav': [],
+            'comp_idx': [],
+            'comp_cav': [],          # List of compensating cavity objects
             'strategy': None,        # To determine cav_compensating
             'x0': None,              # Initial parameters for the fit
             'bounds': None,          # Parameters bounds

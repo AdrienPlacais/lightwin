@@ -91,7 +91,8 @@ for lin in [ref_linac, broken_linac]:
 
 fault.compensate_faults(broken_linac, ref_linac,
                         objective_str='energy',
-                        strategy='neighbors')
+                        strategy='neighbors',
+                        manual_list=[5])
 
 if PLOT_ENERGY:
     debug.compare_energies(broken_linac)
