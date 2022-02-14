@@ -58,6 +58,7 @@ class Accelerator():
             'objective_str': None,   # Name of variable that should match
             'objective': None,       # Variable that should match
             }
+        self.prepared = False
 
     def _load_dat_file(self):
         """Load the dat file and convert it into a list of lines."""
@@ -160,6 +161,7 @@ class Accelerator():
         self.synch = particle.Particle(0., e_0_mev, omega_0,
                                        n_steps=idx_out,
                                        synchronous=True)
+        self.prepared = True
 
     def compute_transfer_matrices(self, method, elements=None):
         """
@@ -177,7 +179,8 @@ class Accelerator():
         if elements is None:
             elements = self.list_of_elements
 
-        self._prepare_compute_transfer_matrices(method)
+        if not self.prepared:
+            self._prepare_compute_transfer_matrices(method)
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:

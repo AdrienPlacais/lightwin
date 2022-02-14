@@ -44,7 +44,7 @@ class _Element():
         self.acc_field = RfField(0.)
 
         self.pos_m = {
-            # 'abs': None,
+            'abs': None,
             'rel': None,
             }
         self.idx = {

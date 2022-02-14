@@ -57,6 +57,7 @@ failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 fault.apply_faults(broken_linac, failed_cav)
 
+
 for lin in [ref_linac, broken_linac]:
     for method in ['RK']:
         lin.compute_transfer_matrices(method)
