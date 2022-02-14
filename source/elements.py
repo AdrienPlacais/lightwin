@@ -167,14 +167,13 @@ class FieldMap(_Element):
             self.acc_field.v_cav_mv = 0.
 
         else:
-            phi_s = cmath.phase(self.f_e)
+            phi_s = cmath.phase(self.acc_field.f_e)
             self.acc_field.phi_s_deg = np.rad2deg(phi_s)
 
             energy_now = synch.energy['kin_array_mev'][self.idx['out']]
             energy_before = synch.energy['kin_array_mev'][self.idx['in']]
             self.acc_field.v_cav_mv = np.abs(energy_now - energy_before) \
                 / np.cos(phi_s)
-        print('Vcav and phis\t', self.acc_field.v_cav_mv, self.acc_field.phi_s_deg)
 
     def fail(self):
         """Break this nice cavity."""

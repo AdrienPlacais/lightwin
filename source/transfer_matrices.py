@@ -49,12 +49,13 @@ def z_drift_element(elt, synch):
 
     for i in range(n_steps):
         idx_abs = idx_in + i
-        r_zz[i, :, :] = z_drift_length(delta_s, synch.energy['gamma_array'][idx_abs])
+        r_zz[i, :, :] = z_drift_length(delta_s,
+                                       synch.energy['gamma_array'][idx_abs])
 
         synch.advance_position(delta_s, idx=idx_abs+1)
         synch.set_energy(0., idx=idx_abs+1, delta_e=True)
-        delta_phi = synch.omega0['ref'] * delta_s / (synch.energy['beta_array'][idx_abs]
-                                                     * c)
+        delta_phi = synch.omega0['ref'] * delta_s \
+            / (synch.energy['beta_array'][idx_abs] * c)
         synch.advance_phi(delta_phi, idx=idx_abs+1)
 
     return r_zz
@@ -120,9 +121,9 @@ def z_field_map_electric_field(cavity, synch):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        cavity.f_e = q_adim * cavity.acc_field.e_func(
+        cavity.acc_field.f_e += q_adim * cavity.acc_field.e_func(
             synch.z['rel'], synch.phi['rel']) \
-            * (1. + np.tan(synch.phi['rel']) * 1j)
+            * (1. + 1j * np.tan(synch.phi['rel'] + cavity.acc_field.phi_0))
 
         if solver_param.method == 'leapfrog':
             delta['e_mev'] = q_adim \

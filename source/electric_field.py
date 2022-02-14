@@ -28,7 +28,7 @@ class RfField():
         self.norm = norm
         self.phi_0 = phi_0
         self.n_cell = 2
-        self.f_e = None
+        self.f_e = 0.
         self.phi_s_deg = None
         self.v_cav_mv = None
 
