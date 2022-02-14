@@ -32,8 +32,8 @@ class Accelerator():
         # TODO: handle cases were there the number of elements in the line
         # is different from 39
 
-        self.synch = particle.Particle(0., e_0_mev, 2e6 * np.pi * f_mhz,
-                                       synchronous=True)
+        # self.synch = particle.Particle(0., e_0_mev, 2e6 * np.pi * f_mhz,
+        #                                synchronous=True)
 
         # Load dat file and clean it up (remove comments, etc)
         self.dat_file_content = []
@@ -157,8 +157,12 @@ class Accelerator():
             pos_in = pos_out
             idx_in = idx_out
 
-        # Define some arrays to the proper size:
-
+        # Define some arrays to the proper size
+        e_0_mev = 16.6
+        omega_0 = 2e6 * np.pi * 176.1
+        self.synch = particle.Particle(0., e_0_mev, omega_0,
+                                       n_steps=idx_out,
+                                       synchronous=True)
 
     def compute_transfer_matrices(self, method, elements=None):
         """

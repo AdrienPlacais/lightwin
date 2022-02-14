@@ -94,6 +94,7 @@ def init_leapfrog_cavity(cavity, gamma, dz, synch):
     # e_0_mev = cavity.energy['kin_array_mev'][0]
 
     # Remove last array element as it is on i and should be on i-1/2
+    print("Warning init_leapfrog_cavity, pop method won't work with np arr")
     synch.energy['kin_array_mev'].pop(-1)
     synch.energy['gamma_array'].pop(-1)
     # Rewind energy

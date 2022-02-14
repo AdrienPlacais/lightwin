@@ -13,19 +13,22 @@ from constants import E_rest_MeV, c
 class Particle():
     """Class to hold the position, energy, etc of a particle."""
 
-    def __init__(self, z, e_mev, omega0_bunch, synchronous=False):
+    def __init__(self, z, e_mev, omega0_bunch, n_steps=1, synchronous=False):
         self.synchronous = synchronous
         self.z = {
             'abs': z,           # Position from the start of the line
             'rel': z,           # Position from the start of the element
-            'abs_array': [z],
+            # 'abs_array': [z],
+            'abs_array': np.full((n_steps + 1), None),
             }
+        self.z['abs_array'][0] = z
 
         self.omega0 = {
             'ref': omega0_bunch,        # The one we use
             'bunch': omega0_bunch,      # Should match 'ref' outside cavities
             'rf': None,                 # Should match 'ref' inside cavities
-            'lambda_array': [],
+            # 'lambda_array': [],
+            'lambda_array': np.full((n_steps + 1), None),
             }
 
         self.energy = {
@@ -33,37 +36,49 @@ class Particle():
             'gamma': None,
             'beta': None,
             'p': None,
-            'kin_array_mev': [],
-            'gamma_array': [],
-            'beta_array': [],
-            'p_array_mev': [],
+            # 'kin_array_mev': [],
+            # 'gamma_array': [],
+            # 'beta_array': [],
+            # 'p_array_mev': [],
+            'kin_array_mev': np.full((n_steps + 1), None),
+            'gamma_array': np.full((n_steps + 1), None),
+            'beta_array': np.full((n_steps + 1), None),
+            'p_array_mev': np.full((n_steps + 1), None),
             }
-        self.set_energy(e_mev, delta_e=False)
+        self.set_energy(e_mev, idx=0, delta_e=False)
 
         self.phi = {
             'abs': None,
             'rel': None,
             'abs_deg': None,
-            'abs_array': [],
+            # 'abs_array': [],
+            'abs_array': np.full((n_steps + 1), None),
             # Used to keep the delta phi on the whole cavity:
             'idx_cav_entry': None,
             }
-        self._init_phi()
+        self._init_phi(idx=0)
 
         self.phase_space = {
-            'z_array': [],      # z_abs - s_abs or z_rel - s_rel
-            'delta_array': [],  # (p - p_s) / p_s
-            'both_array': [],
-            'phi_array_rad': [],
+            # 'z_array': [],      # z_abs - s_abs or z_rel - s_rel
+            # 'delta_array': [],  # (p - p_s) / p_s
+            # 'both_array': [],
+            # 'phi_array_rad': [],
+            'z_array': np.full((n_steps + 1), None),      # z_abs - s_abs or z_rel - s_rel
+            'delta_array': np.full((n_steps + 1), None),  # (p - p_s) / p_s
+            'both_array': np.full((n_steps + 1), None),
+            'phi_array_rad': np.full((n_steps + 1), None),
             }
 
-    def set_energy(self, e_mev, delta_e=False):
+    def set_energy(self, e_mev, idx=None, delta_e=False):
         """
         Update the energy dict.
 
         If delta_e is True energy is increased by e_mev.
         If False, energy is set to e_mev.
         """
+        if idx is None:
+            idx = np.where(self.energy['kin_array_mev'] is None)[0][0]
+
         if delta_e:
             self.energy['kin_mev'] += e_mev
         else:
@@ -75,34 +90,47 @@ class Particle():
         self.energy['p_mev'] = helper.gamma_and_beta_to_p(self.energy['gamma'],
                                                           self.energy['beta'],
                                                           E_rest_MeV)
-        self.energy['kin_array_mev'].append(self.energy['kin_mev'])
-        self.energy['gamma_array'].append(self.energy['gamma'])
-        self.energy['beta_array'].append(self.energy['beta'])
-        self.energy['p_array_mev'].append(self.energy['p_mev'])
+        # self.energy['kin_array_mev'].append(self.energy['kin_mev'])
+        # self.energy['gamma_array'].append(self.energy['gamma'])
+        # self.energy['beta_array'].append(self.energy['beta'])
+        # self.energy['p_array_mev'].append(self.energy['p_mev'])
 
-        self.omega0['lambda_array'].append(2. * np.pi * c / self.omega0['ref'])
+        # self.omega0['lambda_array'].append(2. * np.pi * c / self.omega0['ref'])
+        self.energy['kin_array_mev'][idx] = self.energy['kin_mev']
+        self.energy['gamma_array'][idx] = self.energy['gamma']
+        self.energy['beta_array'][idx] = self.energy['beta']
+        self.energy['p_array_mev'][idx] = self.energy['p_mev']
 
-    def advance_position(self, delta_pos):
+        self.omega0['lambda_array'][idx] = 2. * np.pi * c / self.omega0['ref']
+
+    def advance_position(self, delta_pos, idx=None):
         """Advance particle by delt_pos."""
+        if idx is None:
+            idx = np.where(self.z['abs_array'] is None)[0][0]
         self.z['abs'] += delta_pos
         self.z['rel'] += delta_pos
-        self.z['abs_array'].append(self.z['abs'])
+        #  self.z['abs_array'].append(self.z['abs'])
+        self.z['abs_array'][idx] = self.z['abs']
 
-    def _init_phi(self):
+    def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
         self.phi['abs'] = helper.z_to_phi(self.z['rel'],
                                           self.energy['beta'],
                                           self.omega0['bunch'])
         self.phi['rel'] = self.phi['abs']
         self.phi['abs_deg'] = np.rad2deg(self.phi['abs'])
-        self.phi['abs_array'].append(self.phi['abs'])
+        #  self.phi['abs_array'].append(self.phi['abs'])
+        self.phi['abs_array'][idx] = self.phi['abs']
 
-    def advance_phi(self, delta_phi):
+    def advance_phi(self, delta_phi, idx=None):
         """Increase relative and absolute phase by delta_phi."""
+        if idx is None:
+            idx = np.where(self.phi['abs_array'] is None)[0][0]
         self.phi['abs'] += delta_phi
         self.phi['rel'] += delta_phi
         self.phi['abs_deg'] += np.rad2deg(delta_phi)
-        self.phi['abs_array'].append(self.phi['abs'])
+        #  self.phi['abs_array'].append(self.phi['abs'])
+        self.phi['abs_array'][idx] = self.phi['abs']
 
     def compute_phase_space_tot(self, synch):
         """
@@ -131,17 +159,23 @@ class Particle():
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
 
-    def enter_cavity(self, omega0_rf):
+    def enter_cavity(self, omega0_rf, idx_in=None):
         """Change the omega0 and save the phase at the entrance."""
-        self.phi['idx_cav_entry'] = len(self.phi['abs_array'])
+        #  self.phi['idx_cav_entry'] = len(self.phi['abs_array'])
+        if idx_in is None:
+            idx_in = np.where(self.z['abs_array'] is None)[0][0]
+        self.phi['idx_cav_entry'] = idx_in
         self.omega0['ref'] = omega0_rf
         self.omega0['rf'] = omega0_rf
 
-    def exit_cavity(self):
+    def exit_cavity(self, idx_out):
         """Recompute phi with the proper omega0, reset omega0."""
+        if idx_out is None:
+            idx_out = np.where(self.z['abs_array'] is None)[0][0]
         # Helpers
         idx_entry = self.phi['idx_cav_entry']
-        idx_exit = len(self.phi['abs_array'])
+        #  idx_exit = len(self.phi['abs_array'])
+        idx_exit = idx_out
         frac_omega = self.omega0['bunch'] / self.omega0['rf']
 
         # Set proper phi
@@ -150,7 +184,7 @@ class Particle():
                 - self.phi['abs_array'][idx_entry - 1]
             self.phi['abs_array'][i] = self.phi['abs_array'][idx_entry - 1] \
                 + delta_phi * frac_omega
-        self.phi['abs'] = self.phi['abs_array'][-1]
+        self.phi['abs'] = self.phi['abs_array'][idx_exit]
         self.phi['abs_deg'] = np.rad2deg(self.phi['abs'])
 
         # Reset proper omega
@@ -169,17 +203,18 @@ class Particle():
         However, np.arrays are better for math operations, so when all data
         has been computed, we convert all lists into np.arrays.
         """
-        list_of_attrib = dir(self)
-        for attrib_name in list_of_attrib:
-            attrib = getattr(self, attrib_name)
+        print('Useless')
+        #  list_of_attrib = dir(self)
+        #  for attrib_name in list_of_attrib:
+            #  attrib = getattr(self, attrib_name)
 
-            if isinstance(attrib, list):
-                attrib = np.array(attrib)
+            #  if isinstance(attrib, list):
+                #  attrib = np.array(attrib)
 
-            elif isinstance(attrib, dict):
-                for key in attrib.keys():
-                    if isinstance(attrib[key], list):
-                        attrib[key] = np.array(attrib[key])
+            #  elif isinstance(attrib, dict):
+                #  for key in attrib.keys():
+                    #  if isinstance(attrib[key], list):
+                        #  attrib[key] = np.array(attrib[key])
 
 
 def create_rand_particles(e_0_mev, omega0_bunch):

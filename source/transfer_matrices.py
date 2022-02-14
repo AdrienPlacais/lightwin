@@ -26,7 +26,7 @@ def dummy():
     return r_zz
 
 
-def z_drift_element(element, synch):
+def z_drift_element(elt, synch):
     """
     Compute the longitudinal sub-matrix of a drift.
 
@@ -42,18 +42,20 @@ def z_drift_element(element, synch):
     """
     assert isinstance(synch, particle.Particle), 'A Particle should be ' \
         + 'given if element_or_length is an Element.'
-    n_steps = element.solver_transf_mat.n_steps
-    delta_s = element.length_m / n_steps
+    n_steps = elt.solver_transf_mat.n_steps
+    delta_s = elt.length_m / n_steps
     r_zz = np.full((n_steps, 2, 2), np.NaN)
+    idx_in = elt.idx['in']
 
     for i in range(n_steps):
-        r_zz[i, :, :] = z_drift_length(delta_s, synch.energy['gamma'])
+        idx_abs = idx_in + i
+        r_zz[i, :, :] = z_drift_length(delta_s, synch.energy['gamma_array'][idx_abs])
 
-        synch.advance_position(delta_s)
-        synch.set_energy(0., delta_e=True)
-        delta_phi = synch.omega0['ref'] * delta_s / (synch.energy['beta']
+        synch.advance_position(delta_s, idx=idx_abs+1)
+        synch.set_energy(0., idx=idx_abs+1, delta_e=True)
+        delta_phi = synch.omega0['ref'] * delta_s / (synch.energy['beta_array'][idx_abs]
                                                      * c)
-        synch.advance_phi(delta_phi)
+        synch.advance_phi(delta_phi, idx=idx_abs+1)
 
     return r_zz
 
@@ -83,14 +85,15 @@ def z_field_map_electric_field(cavity, synch):
     """
     assert isinstance(cavity, elements.FieldMap)
     assert isinstance(synch, particle.Particle)
+    idx_in = cavity.idx['in']
     solver_param = cavity.solver_transf_mat
-    synch.enter_cavity(cavity.acc_field.omega_0)
+    synch.enter_cavity(cavity.acc_field.omega_0, idx_in=idx_in)
 
 # =============================================================================
 # Initialisation
 # =============================================================================
     # gamma at entrance, middle and exit of cavity
-    gamma = {'in': synch.energy['gamma'],
+    gamma = {'in': synch.energy['gamma_array'][idx_in],
              'middle': None,
              'out': None}
     # Variation of synch part parameters (not necessary for z, as it is always
@@ -113,6 +116,7 @@ def z_field_map_electric_field(cavity, synch):
 # Loop over cavity
 # =============================================================================
     for i in range(1, solver_param.n_steps + 1):
+        idx_abs = i + idx_in
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
@@ -134,7 +138,7 @@ def z_field_map_electric_field(cavity, synch):
             delta['e_mev'] = temp[0]
             delta['phi'] = temp[1]
 
-        synch.set_energy(delta['e_mev'], delta_e=True)
+        synch.set_energy(delta['e_mev'], idx=idx_abs, delta_e=True)
         gamma['out'] = synch.energy['gamma']
 
         # Warning, the gamma and beta in synch object are at the exit of the
@@ -151,10 +155,10 @@ def z_field_map_electric_field(cavity, synch):
             delta['phi'] = cavity.n_cell * synch.omega0['bunch'] \
                 * solver_param.d_z / (helper.gamma_to_beta(gamma['out']) * c)
 
-        synch.advance_phi(delta['phi'])
-        synch.advance_position(solver_param.d_z)
+        synch.advance_phi(delta['phi'], idx=idx_abs)
+        synch.advance_position(solver_param.d_z, idx=idx_abs)
 
-    synch.exit_cavity()
+    synch.exit_cavity(idx_abs)
     return transfer_matrix[1:, :, :]
 
 
