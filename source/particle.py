@@ -17,7 +17,7 @@ class Particle():
         self.synchronous = synchronous
         self.z = {
             'rel': z,           # Position from the start of the element
-            'abs_array': np.full((n_steps + 1), None),
+            'abs_array': np.full((n_steps + 1), np.NaN),
             }
         self.z['abs_array'][0] = z
 
@@ -25,41 +25,41 @@ class Particle():
             'ref': omega0_bunch,        # The one we use
             'bunch': omega0_bunch,      # Should match 'ref' outside cavities
             'rf': None,                 # Should match 'ref' inside cavities
-            'lambda_array': np.full((n_steps + 1), None),
+            'lambda_array': np.full((n_steps + 1), np.NaN),
             }
 
         self.energy = {
-            'kin_array_mev': np.full((n_steps + 1), None),
-            'gamma_array': np.full((n_steps + 1), None),
-            'beta_array': np.full((n_steps + 1), None),
-            'p_array_mev': np.full((n_steps + 1), None),
+            'kin_array_mev': np.full((n_steps + 1), np.NaN),
+            'gamma_array': np.full((n_steps + 1), np.NaN),
+            'beta_array': np.full((n_steps + 1), np.NaN),
+            'p_array_mev': np.full((n_steps + 1), np.NaN),
             }
         self.set_energy(e_mev, idx=0, delta_e=False)
 
         self.phi = {
             'rel': None,
-            'abs_array': np.full((n_steps + 1), None),
+            'abs_array': np.full((n_steps + 1), np.NaN),
             # Used to keep the delta phi on the whole cavity:
             'idx_cav_entry': None,
             }
         self._init_phi(idx=0)
 
         self.phase_space = {
-            'z_array': np.full((n_steps + 1), None),      # z_abs - s_abs or z_rel - s_rel
-            'delta_array': np.full((n_steps + 1), None),  # (p - p_s) / p_s
-            'both_array': np.full((n_steps + 1), None),
-            'phi_array_rad': np.full((n_steps + 1), None),
+            'z_array': np.full((n_steps + 1), np.NaN),      # z_abs - s_abs or z_rel - s_rel
+            'delta_array': np.full((n_steps + 1), np.NaN),  # (p - p_s) / p_s
+            'both_array': np.full((n_steps + 1), np.NaN),
+            'phi_array_rad': np.full((n_steps + 1), np.NaN),
             }
 
-    def set_energy(self, e_mev, idx=None, delta_e=False):
+    def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
         Update the energy dict.
 
         If delta_e is True energy is increased by e_mev.
         If False, energy is set to e_mev.
         """
-        if idx is None:
-            idx = np.where(self.energy['kin_array_mev'] is None)[0][0]
+        if np.isnan(idx):
+            idx = np.where(np.isnan(self.energy['kin_array_mev']))[0][0]
 
         if delta_e:
             self.energy['kin_array_mev'][idx] = \
@@ -77,10 +77,10 @@ class Particle():
         self.energy['p_array_mev'][idx] = p_mev
         self.omega0['lambda_array'][idx] = 2. * np.pi * c / self.omega0['ref']
 
-    def advance_position(self, delta_pos, idx=None):
+    def advance_position(self, delta_pos, idx=np.NaN):
         """Advance particle by delt_pos."""
-        if idx is None:
-            idx = np.where(self.z['abs_array'] is None)[0][0]
+        if np.isnan(idx):
+            idx = np.where(np.isnan(self.z['abs_array']))[0][0]
         self.z['rel'] += delta_pos
         self.z['abs_array'][idx] = self.z['abs_array'][idx-1] + delta_pos
 
@@ -92,10 +92,10 @@ class Particle():
         self.phi['rel'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs
 
-    def advance_phi(self, delta_phi, idx=None):
+    def advance_phi(self, delta_phi, idx=np.NaN):
         """Increase relative and absolute phase by delta_phi."""
-        if idx is None:
-            idx = np.where(self.phi['abs_array'] is None)[0][0]
+        if np.isnan(idx):
+            idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
         phi_abs = self.phi['abs_array'][idx-1] + delta_phi
         self.phi['rel'] += delta_phi
         self.phi['abs_array'][idx] = phi_abs
@@ -127,18 +127,18 @@ class Particle():
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
 
-    def enter_cavity(self, omega0_rf, idx_in=None):
+    def enter_cavity(self, omega0_rf, idx_in=np.NaN):
         """Change the omega0 and save the phase at the entrance."""
-        if idx_in is None:
-            idx_in = np.where(self.z['abs_array'] is None)[0][0]
+        if np.isnan(idx_in):
+            idx_in = np.where(np.isnan(self.z['abs_array']))[0][0]
         self.phi['idx_cav_entry'] = idx_in
         self.omega0['ref'] = omega0_rf
         self.omega0['rf'] = omega0_rf
 
     def exit_cavity(self, idx_out):
         """Recompute phi with the proper omega0, reset omega0."""
-        if idx_out is None:
-            idx_out = np.where(self.z['abs_array'] is None)[0][0]
+        if np.isnan(idx_out):
+            idx_out = np.where(np.isnan(self.z['abs_array']))[0][0]
         # Helpers
         idx_entry = self.phi['idx_cav_entry']
         idx_exit = idx_out
