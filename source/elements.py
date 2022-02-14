@@ -61,7 +61,8 @@ class _Element():
         """Initialize solver properties."""
         if self.accelerating:
             if self.name == 'FIELD_MAP':
-                n_steps = 100 * self.acc_field['n_cell']
+                # n_steps = 100 * self.acc_field['n_cell']
+                n_steps = 100 * self.acc_field.n_cell
 
                 if self.status['failed']:
                     self.dict_transf_mat = {
@@ -153,46 +154,51 @@ class FieldMap(_Element):
             pass
 
         # Create RfField object in order to have normalized electric fields
-        self.acc_field_object = RfField(352.2)  # FIXME freq import
-        self.acc_field = {
-            'norm': float(elem[6]),
-            'phi_0': np.deg2rad(float(elem[3])),
-            'omega_0': 2. * np.pi * 352.2e6,    # FIXME freq import
-            'e_func': lambda x, phi:
-                self.acc_field_object.e_func_norm(
-                    self.acc_field['norm'],
-                    self.acc_field['phi_0'],
-                    x, phi),
-            'de_dt_func': lambda x, phi, beta:
-                self.acc_field_object.de_dt_func_norm(
-                    self.acc_field['norm'],
-                    self.acc_field['phi_0'],
-                    x, phi, beta),
-            'n_cell': 2,        # FIXME
-            'f_e': None,
-            'phi_s_deg': None,
-            'v_cav_mv': None,
-            }
+        # self.acc_field_object = RfField(352.2)  # FIXME freq import
+        # self.acc_field = {
+        #     'norm': float(elem[6]),
+        #     'phi_0': np.deg2rad(float(elem[3])),
+        #     'omega_0': 2. * np.pi * 352.2e6,    # FIXME freq import
+        #     'e_func': lambda x, phi:
+        #         self.acc_field_object.e_func_norm(
+        #             self.acc_field['norm'],
+        #             self.acc_field['phi_0'],
+        #             x, phi),
+        #     'de_dt_func': lambda x, phi, beta:
+        #         self.acc_field_object.de_dt_func_norm(
+        #             self.acc_field['norm'],
+        #             self.acc_field['phi_0'],
+        #             x, phi, beta),
+        #     'n_cell': 2,        # FIXME
+        #     'f_e': None,
+        #     'phi_s_deg': None,
+        #     'v_cav_mv': None,
+        #     }
         self.status = {
             'failed': False,
             'compensate': False
             }
+        self.acc_field = RfField(352.2, norm=float(elem[6]),
+                                 phi_0=np.deg2rad(float(elem[3])))
 
     def _compute_synch_phase_and_acc_pot(self, synch):
         """Compute the sychronous phase and accelerating potential."""
         phi_s = cmath.phase(self.f_e)
-        self.acc_field['phi_s_deg'] = np.rad2deg(phi_s)
+        # self.acc_field['phi_s_deg'] = np.rad2deg(phi_s)
+        self.acc_field.phi_s_deg = np.rad2deg(phi_s)
         energy_now = synch.energy['kin_mev']
         energy_before = synch.energy['kin_array_mev'][
             -self.solver_transf_mat.n_steps]
-        self.acc_field['v_cav_mv'] = np.abs(energy_now - energy_before) \
+        # self.acc_field['v_cav_mv'] = np.abs(energy_now - energy_before) \
+        self.acc_field.v_cav_mv = np.abs(energy_now - energy_before) \
             / np.cos(phi_s)
 
     def fail(self):
         """Break this nice cavity."""
         self.status['failed'] = True
-        self.acc_field_object = RfField(0.)
-        self.acc_field['norm'] = 0.
+        # self.acc_field_object = RfField(0.)
+        # self.acc_field['norm'] = 0.
+        self.acc_field.norm = 0.
 
 
 class CavSin(_Element):

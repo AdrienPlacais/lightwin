@@ -244,6 +244,20 @@ def compare_energies(accelerator):
     axlist[0].legend()
 
 
+def plot_vcav_and_phis(accelerator):
+    """
+    Plot the evolution of the cavities parameters with s.
+
+    Parameters
+    ----------
+    accelerator: Accelerator object
+        Accelerator under study.
+    """
+    v_cav_mv = []
+    phi_s_deg = []
+
+    fig, ax = helper.create_fig_if_not_exist(25, [311, 312, 313])
+
 def load_phase_space(accelerator):
     """
     Load Partran phase-space data.

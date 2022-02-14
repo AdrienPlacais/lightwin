@@ -13,9 +13,10 @@ from constants import c
 class RfField():
     """Cos-like RF field."""
 
-    def __init__(self, frequency_mhz):
+    def __init__(self, frequency_mhz, norm=None, phi_0=None):
         self.f_mhz_rf = frequency_mhz
         self.omega0_rf = 2e6 * np.pi * frequency_mhz
+        self.omega_0 = self.omega0_rf  # FIXME
         try:
             self.lambda_rf = 1e-6 * c / frequency_mhz
         except ZeroDivisionError:
@@ -23,6 +24,16 @@ class RfField():
 
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
+
+        # acc_field
+        self.norm = norm
+        self.phi_0 = phi_0
+        self.e_func = lambda x, phi: self.e_func_norm(self.norm, self.phi_0, x, phi)
+        self.de_dt_func = lambda x, phi, beta: self.de_dt_func_norm(self.norm, self.phi_0, x, phi, beta)
+        self.n_cell = 2
+        self.f_e = None
+        self.phi_s_deg = None
+        self.v_cav_mv = None
 
     def e_func_norm(self, norm, phi_0, x, phi):
         """Template of the cos-like rf field (normalized)."""

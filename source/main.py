@@ -97,3 +97,5 @@ fault.compensate_faults(broken_linac, ref_linac,
 
 if PLOT_ENERGY:
     debug.compare_energies(broken_linac)
+
+# print(broken_linac.get_from_elements(attribute='acc_field', key='v_cav_mv'))

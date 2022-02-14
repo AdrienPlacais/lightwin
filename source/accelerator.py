@@ -95,7 +95,8 @@ class Accelerator():
             if 'field_map_file_name' in vars(elt):
                 elt.field_map_file_name = field_map_folder \
                     + '/' + elt.field_map_file_name
-                load_field_map_file(elt, elt.acc_field_object)
+                # load_field_map_file(elt, elt.acc_field_object)
+                load_field_map_file(elt, elt.acc_field)
 
     def _create_structure(self):
         """Create structure using the loaded dat file."""
@@ -249,6 +250,30 @@ class Accelerator():
 
             return data_out
 
+        def fun_rf(data_out, elt):
+            """
+            Create an array of required attribute.
+
+            Used when element[attribute] is RfField.
+            """
+            print(data_out, elt)
+            if elt.name == 'FIELD_MAP':
+                assert key is not None, 'A key must be provided as attribute ' \
+                    + 'is a dict.'
+                subclass_attributes = vars(elt)
+
+                if data_out is not None:
+                    print('a')
+                    data_tmp = np.copy(subclass_attributes[attribute][key])
+                    data_out = add_data(data_out, data_tmp, attribute)
+                else:
+                    print('b', subclass_attributes, attribute, key)
+                    data_out = np.copy(subclass_attributes[attribute][key])
+            else:
+                data_out = add_data(data_out, np.NaN, attribute)
+
+            return data_out
+
         def fun_simple(data_out, elt):
             """
             Create an array of required attribute.
@@ -274,6 +299,7 @@ class Accelerator():
             "<class 'dict'>": fun_dict,
             "<class 'float'>": fun_simple,
             "<class 'str'>": fun_simple,
+            "<class 'electric_field.RfField'>": fun_rf,
             }
         out = None
         data_nature = str(type(list_of_keys[attribute]))

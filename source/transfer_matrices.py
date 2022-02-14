@@ -84,7 +84,8 @@ def z_field_map_electric_field(cavity, synch):
     assert isinstance(cavity, elements.FieldMap)
     assert isinstance(synch, particle.Particle)
     solver_param = cavity.solver_transf_mat
-    synch.enter_cavity(cavity.acc_field['omega_0'])
+    # synch.enter_cavity(cavity.acc_field['omega_0'])
+    synch.enter_cavity(cavity.acc_field.omega_0)
 
 # =============================================================================
 # Initialisation
@@ -116,14 +117,16 @@ def z_field_map_electric_field(cavity, synch):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        cavity.f_e = q_adim * cavity.acc_field['e_func'](
+        # cavity.f_e = q_adim * cavity.acc_field['e_func'](
+        cavity.f_e = q_adim * cavity.acc_field.e_func(
             synch.z['rel'], synch.phi['rel']) \
             * (1. + np.tan(synch.phi['rel']) * 1j)
 
         if solver_param.method == 'leapfrog':
             delta['e_mev'] = q_adim \
-                * cavity.acc_field['e_func'](synch.z['rel'],
-                                             synch.phi['rel']) \
+                * cavity.acc_field.e_func(synch.z['rel'],
+                # * cavity.acc_field['e_func'](synch.z['rel'],
+                                          synch.phi['rel']) \
                 * solver_param.d_z
 
         elif solver_param.method == 'RK':
@@ -200,21 +203,26 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
 # =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
-    delta_phi_half_step = .5 * d_z * cavity.acc_field['omega_0'] / (beta_middle
+    # delta_phi_half_step = .5 * d_z * cavity.acc_field['omega_0'] / (beta_middle
+    delta_phi_half_step = .5 * d_z * cavity.acc_field.omega_0 / (beta_middle
                                                                    * c)
     phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * E_rest_MeV)
-    k_1 = k_0 * cavity.acc_field['de_dt_func'](z_k, phi_k, beta_middle)
-    k_2 = 1. - (2. - beta_middle**2) * k_0 * cavity.acc_field['e_func'](z_k,
+    # k_1 = k_0 * cavity.acc_field['de_dt_func'](z_k, phi_k, beta_middle)
+    k_1 = k_0 * cavity.acc_field.de_dt_func(z_k, phi_k, beta_middle)
+    # k_2 = 1. - (2. - beta_middle**2) * k_0 * cavity.acc_field['e_func'](z_k,
+    k_2 = 1. - (2. - beta_middle**2) * k_0 * cavity.acc_field.e_func(z_k,
                                                                         phi_k)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
-        k_3 = (1. - k_0 * cavity.acc_field['e_func'](z_k, phi_k))  \
+        # k_3 = (1. - k_0 * cavity.acc_field['e_func'](z_k, phi_k))  \
+        k_3 = (1. - k_0 * cavity.acc_field.e_func(z_k, phi_k))  \
                 / (1. - k_0 * (2. - beta_middle**2)
-                   * cavity.acc_field['e_func'](z_k, phi_k))
+                   * cavity.acc_field.e_func(z_k, phi_k))
+                   # * cavity.acc_field['e_func'](z_k, phi_k))
         transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:
