@@ -14,6 +14,8 @@ the 5th, 7th and 15th elements of the linac, not to the 5th, 7th and 15th
 cavities.
 blabla_cav is a list of FIELD_MAP objects, matching blabla_idx.
 """
+import numpy as np
+from scipy.optimize import root
 
 
 def apply_faults(brok_lin, fail_idx):
@@ -72,21 +74,45 @@ def compensate_faults(brok_lin, ref_lin, objective_str, strategy,
         _select_compensating_cavities(brok_lin, strategy, manual_list)
     for elt in fault['comp_cav']:
         elt.status['compensate'] = True
-        elt.acc_field.norm *= 1.9
 
-    fault['objective'], idx_in, idx_out = \
+    fault['objective'], idx_elt_in, idx_elt_out, idx_synch_in, idx_synch_out = \
         _select_objective(brok_lin, ref_lin, objective_str)
 
-    # Loop over compensating cavities until objective is matched
-    print('Warning, dirty.')
-    comp_section = brok_lin.list_of_elements[manual_list[0]:manual_list[-1]+1]
-    after_comp_section = brok_lin.list_of_elements[manual_list[-1]+1:]
+    comp_section = brok_lin.list_of_elements[idx_elt_in:idx_elt_out+1]
+    after_comp_section = brok_lin.list_of_elements[idx_elt_out+1:]
     method = 'RK'
 
-    brok_lin.compute_transfer_matrices(method, comp_section)
+    n_cav = len(fault['comp_cav'])
+    x0 =     np.full((2 * n_cav), np.NaN)
+    bounds = np.full((2 * n_cav, 2), np.NaN)
+    for i in range(n_cav):
+        x0[2*i] = fault['comp_cav'][i].acc_field.norm
+        x0[2*i+1] = fault['comp_cav'][i].acc_field.phi_0
+        bounds[2*i, 0] = 1.1
+        bounds[2*i, 1] = 3.5
+        bounds[2*i+1, 0] = 1.
+        bounds[2*i+1, 1] = 3.
+
+
+    # Loop over compensating cavities until objective is matched
+    def wrapper(x):
+        for i in range(n_cav):
+            fault['comp_cav'][i].acc_field.norm = x[2*i]
+            fault['comp_cav'][i].acc_field.phi_0 = x[2*i+1]
+        brok_lin.compute_transfer_matrices(method, comp_section)
+        last_energy = brok_lin.synch.energy['kin_array_mev'][idx_synch_out]
+        return np.full((2*n_cav), last_energy - fault['objective'])
+    sol = root(wrapper, x0=x0)
+
+    for i in range(n_cav):
+        fault['comp_cav'][i].acc_field.norm = sol.x[2*i]
+        fault['comp_cav'][i].acc_field.phi_0 = sol.x[2*i+1]
+    print(sol)
 
     # When fit is complete, also recompute last elements
+    brok_lin.compute_transfer_matrices(method, comp_section)
     brok_lin.compute_transfer_matrices(method, after_comp_section)
+    brok_lin.name = 'Fixed'
 
 def _select_objective(brok_lin, ref_lin, objective):
     """Assign the fit objective."""
@@ -103,7 +129,7 @@ def _select_objective(brok_lin, ref_lin, objective):
         'phase': ref_lin.synch.phi['abs_array'][last_synch_idx],
         'transfer_matrix': ref_lin.transf_mat['cumul'][last_synch_idx, :, :],
         }
-    return dict_objective[objective], first_comp_idx, last_comp_idx
+    return dict_objective[objective], first_comp_idx, last_comp_idx, first_synch_idx, first_comp_idx
 
 
 def _select_compensating_cavities(brok_lin, strategy, manual_list=None):

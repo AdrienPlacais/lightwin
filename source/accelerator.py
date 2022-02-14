@@ -17,7 +17,7 @@ import particle
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, e_0_mev, f_mhz, dat_filepath):
+    def __init__(self, e_0_mev, f_mhz, dat_filepath, name):
         """
         Create Accelerator object.
 
@@ -26,6 +26,7 @@ class Accelerator():
         The data such as the synch phase or the beam energy will be stored in
         the self.synch Particle object.
         """
+        self.name = name
         self.dat_filepath = dat_filepath
         self.project_folder = os.path.dirname(dat_filepath)
         self.n_elements = 39

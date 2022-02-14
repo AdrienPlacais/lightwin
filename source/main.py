@@ -50,9 +50,9 @@ FILEPATH = os.path.abspath(FILEPATH)
 # =============================================================================
 # End of user inputs
 # =============================================================================
-ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
+ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Working')
 
-broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH)
+broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Broken')
 failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 fault.apply_faults(broken_linac, failed_cav)

@@ -226,10 +226,10 @@ def compare_energies(accelerator):
     axnumlist = range(311, 314)
     fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
 
-    if helper.empty_fig(fignum):
-        axlist[0].plot(elt_array, e_mev_ref, label='TraceWin')
+    # if helper.empty_fig(fignum):
+        # axlist[0].plot(elt_array, e_mev_ref, label='TraceWin')
 
-    axlist[0].plot(elt_array, e_mev, label='LightWin')
+    axlist[0].plot(elt_array, e_mev, label='LW ' + accelerator.name)
     axlist[1].plot(elt_array, error*1e6)
 
     for ax in axlist[0:-1]:
@@ -264,7 +264,7 @@ def plot_vcav_and_phis(accelerator):
             idx.append(i)
         i += 1
     fig, ax = helper.create_fig_if_not_exist(25, [311, 312, 313])
-    ax[0].plot(idx, v_cav_mv)
+    ax[0].plot(idx, v_cav_mv, label='LW ' + accelerator.name)
     ax[0].set_ylabel('Acc. voltage [MV]')
     ax[1].plot(idx, phi_s_deg)
     ax[1].set_ylabel('Synch. phase [deg]')
@@ -274,6 +274,7 @@ def plot_vcav_and_phis(accelerator):
     helper.plot_structure(accelerator, ax[2], x_axis='index')
     ax[2].set_xlim(ax[0].get_xlim())
     ax[2].set_xlabel('Element #')
+    ax[0].legend()
 
 
 def load_phase_space(accelerator):
