@@ -124,12 +124,19 @@ class Accelerator():
 
         self.list_of_elements = list_of_elements
 
-    def _complementary_assignation(self):
+    def _prepare_compute_transfer_matrices(self, method):
         """
         Define Elements attributes that are dependent to each others.
 
         In particular, absolute position of elements' I/O, energy at first
-        element entrance.
+        element entrance, arrays, solvers.
+
+        Parameters
+        ----------
+        method: string
+            Resolution method. 'RK' (Runge-Kutta) or 'leapfrog' for analytical
+            transfer matrices. 'transport' for calculation by transporting
+            particles through the line.
         """
         pos_in = 0.
         pos_out = 0.
@@ -138,6 +145,7 @@ class Accelerator():
 
         for i in range(self.n_elements):
             elt = self.list_of_elements[i]
+            elt.init_solver_settings(method)
 
             pos_out += elt.length_m
             idx_out = idx_in + elt.solver_transf_mat.n_steps
@@ -148,6 +156,9 @@ class Accelerator():
 
             pos_in = pos_out
             idx_in = idx_out
+
+        # Define some arrays to the proper size:
+
 
     def compute_transfer_matrices(self, method, elements=None):
         """
@@ -164,10 +175,10 @@ class Accelerator():
         """
         if elements is None:
             elements = self.list_of_elements
-        for elt in elements:
-            elt.init_solver_settings(method)
+        # for elt in elements:
+            # elt.init_solver_settings(method)
 
-        self._complementary_assignation()
+        self._prepare_compute_transfer_matrices(method)
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
@@ -186,11 +197,6 @@ class Accelerator():
         elif method == 'transport':
             print('computer_transfer_matrices: no MT computation with ',
                   'transport method.')
-            # transport.transport_beam(self)
-            # transfer_matrix_indiv = self.transf_mat['indiv']
-
-        # self.transf_mat['cumul'] = helper.individual_to_global_transfer_matrix(
-            # self.transf_mat['indiv'])
             transport.transport_particle(self, self.synch)
 
     def get_from_elements(self, attribute, key=None):

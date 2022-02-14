@@ -7,7 +7,7 @@ Created on Thu Dec  2 13:44:00 2021
 """
 import numpy as np
 import helper
-from constants import E_rest_MeV, E_rest_MeV, c
+from constants import E_rest_MeV, c
 
 
 class Particle():
