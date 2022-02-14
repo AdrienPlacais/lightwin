@@ -57,7 +57,7 @@ failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 fault.apply_faults(broken_linac, failed_cav)
 
-for lin in [ref_linac]:#, broken_linac]:
+for lin in [ref_linac, broken_linac]:
     for method in ['RK']:
         lin.compute_transfer_matrices(method)
 
@@ -90,10 +90,10 @@ for lin in [ref_linac]:#, broken_linac]:
         if SAVE_VCAV_AND_PHIS:
             helper.save_vcav_and_phis(lin)
 
-# fault.compensate_faults(broken_linac, ref_linac,
-#                         objective_str='energy',
-#                         strategy='manual',
-#                         manual_list=manual_list)
+fault.compensate_faults(broken_linac, ref_linac,
+                        objective_str='energy',
+                        strategy='manual',
+                        manual_list=manual_list)
 
 if PLOT_ENERGY:
     debug.compare_energies(broken_linac)

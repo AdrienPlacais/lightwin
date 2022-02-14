@@ -32,9 +32,6 @@ class Accelerator():
         # TODO: handle cases were there the number of elements in the line
         # is different from 39
 
-        # self.synch = particle.Particle(0., e_0_mev, 2e6 * np.pi * f_mhz,
-        #                                synchronous=True)
-
         # Load dat file and clean it up (remove comments, etc)
         self.dat_file_content = []
         self._load_dat_file()
@@ -179,8 +176,6 @@ class Accelerator():
         """
         if elements is None:
             elements = self.list_of_elements
-        # for elt in elements:
-            # elt.init_solver_settings(method)
 
         self._prepare_compute_transfer_matrices(method)
 
@@ -189,7 +184,6 @@ class Accelerator():
             for elt in elements:
                 elt.compute_transfer_matrix(self.synch)
 
-            self.synch.list_to_array()
             self.transf_mat['indiv'] = np.vstack((
                 self.transf_mat['indiv'],
                 self.get_from_elements('transfer_matrix')))
