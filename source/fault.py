@@ -72,10 +72,21 @@ def compensate_faults(brok_lin, ref_lin, objective_str, strategy,
         _select_compensating_cavities(brok_lin, strategy, manual_list)
     for elt in fault['comp_cav']:
         elt.status['compensate'] = True
+        elt.acc_field.norm *= 1.9
 
-    fault['objective'] = _select_objective(brok_lin, ref_lin, objective_str)
+    fault['objective'], idx_in, idx_out = \
+        _select_objective(brok_lin, ref_lin, objective_str)
 
     # Loop over compensating cavities until objective is matched
+    print('Warning, dirty.')
+    comp_section = brok_lin.list_of_elements[manual_list[0]:manual_list[-1]+1]
+    after_comp_section = brok_lin.list_of_elements[manual_list[-1]+1:]
+    method = 'RK'
+
+    brok_lin.compute_transfer_matrices(method, comp_section)
+
+    # When fit is complete, also recompute last elements
+    brok_lin.compute_transfer_matrices(method, after_comp_section)
 
 def _select_objective(brok_lin, ref_lin, objective):
     """Assign the fit objective."""
@@ -92,7 +103,7 @@ def _select_objective(brok_lin, ref_lin, objective):
         'phase': ref_lin.synch.phi['abs_array'][last_synch_idx],
         'transfer_matrix': ref_lin.transf_mat['cumul'][last_synch_idx, :, :],
         }
-    return dict_objective[objective]
+    return dict_objective[objective], first_comp_idx, last_comp_idx
 
 
 def _select_compensating_cavities(brok_lin, strategy, manual_list=None):
