@@ -25,11 +25,14 @@ class RfField():
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
 
-        # acc_field
         self.norm = norm
         self.phi_0 = phi_0
-        self.e_func = lambda x, phi: self.e_func_norm(self.norm, self.phi_0, x, phi)
-        self.de_dt_func = lambda x, phi, beta: self.de_dt_func_norm(self.norm, self.phi_0, x, phi, beta)
+        self.e_func = lambda x, phi: self.e_func_norm(self.norm,
+                                                      self.phi_0, x, phi)
+        self.de_dt_func = lambda x, phi, beta: self.de_dt_func_norm(self.norm,
+                                                                    self.phi_0,
+                                                                    x, phi,
+                                                                    beta)
         self.n_cell = 2
         self.f_e = None
         self.phi_s_deg = None

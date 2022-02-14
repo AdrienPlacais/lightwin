@@ -95,7 +95,6 @@ class Accelerator():
             if 'field_map_file_name' in vars(elt):
                 elt.field_map_file_name = field_map_folder \
                     + '/' + elt.field_map_file_name
-                # load_field_map_file(elt, elt.acc_field_object)
                 load_field_map_file(elt, elt.acc_field)
 
     def _create_structure(self):
