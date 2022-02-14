@@ -149,16 +149,29 @@ class Accelerator():
             pos_in = pos_out
             idx_in = idx_out
 
-    def compute_transfer_matrices(self, method):
-        """Compute the transfer matrices of Accelerator's elements."""
-        for elt in self.list_of_elements:
+    def compute_transfer_matrices(self, method, elements=None):
+        """
+        Compute the transfer matrices of Accelerator's elements.
+
+        Parameters
+        ----------
+        method: string
+            Resolution method. 'RK' (Runge-Kutta) or 'leapfrog' for analytical
+            transfer matrices. 'transport' for calculation by transporting
+            particles through the line.
+        elements: list of Elements, opt
+            List of elements from which you want the transfer matrices.
+        """
+        if elements is None:
+            elements = self.list_of_elements
+        for elt in elements:
             elt.init_solver_settings(method)
 
         self._complementary_assignation()
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
-            for elt in self.list_of_elements:
+            for elt in elements:
                 elt.compute_transfer_matrix(self.synch)
 
             self.synch.list_to_array()

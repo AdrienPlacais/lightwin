@@ -63,6 +63,7 @@ def compensate_faults(brok_lin, ref_lin, objective_str, strategy,
         List of compensating cavities, used with strategy == 'manual'.
     """
     fault = brok_lin.fault_scenario
+
     # Select which cavities will be used to compensate the fault
     fault['strategy'] = strategy
     fault['objective_str'] = objective_str
@@ -74,6 +75,7 @@ def compensate_faults(brok_lin, ref_lin, objective_str, strategy,
 
     fault['objective'] = _select_objective(brok_lin, ref_lin, objective_str)
 
+    # Loop over compensating cavities until objective is matched
 
 def _select_objective(brok_lin, ref_lin, objective):
     """Assign the fit objective."""
