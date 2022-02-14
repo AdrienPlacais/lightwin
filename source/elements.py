@@ -98,7 +98,7 @@ class _Element():
         self.transfer_matrix = self.dict_transf_mat[
             self.solver_transf_mat.method](self, synch=synch)
 
-        if self.name == 'FIELD_MAP' and not self.status['failed']:
+        if self.name == 'FIELD_MAP':
             self._compute_synch_phase_and_acc_pot(synch)
 
 
@@ -162,12 +162,17 @@ class FieldMap(_Element):
 
     def _compute_synch_phase_and_acc_pot(self, synch):
         """Compute the sychronous phase and accelerating potential."""
-        phi_s = cmath.phase(self.f_e)
-        self.acc_field.phi_s_deg = np.rad2deg(phi_s)
-        energy_now = synch.energy['kin_array_mev'][self.idx['out']]
-        energy_before = synch.energy['kin_array_mev'][self.idx['in']]
-        self.acc_field.v_cav_mv = np.abs(energy_now - energy_before) \
-            / np.cos(phi_s)
+        if self.status['failed']:
+            self.acc_field.phi_s_deg = 0.
+            self.acc_field.v_cav_mv = 0.
+        else:
+            phi_s = cmath.phase(self.f_e)
+            self.acc_field.phi_s_deg = np.rad2deg(phi_s)
+            energy_now = synch.energy['kin_array_mev'][self.idx['out']]
+            energy_before = synch.energy['kin_array_mev'][self.idx['in']]
+            self.acc_field.v_cav_mv = np.abs(energy_now - energy_before) \
+                / np.cos(phi_s)
+        print('Vcav and phis\t', self.acc_field.v_cav_mv, self.acc_field.phi_s_deg)
 
     def fail(self):
         """Break this nice cavity."""

@@ -255,8 +255,26 @@ def plot_vcav_and_phis(accelerator):
     """
     v_cav_mv = []
     phi_s_deg = []
-
+    idx = []
+    i = 0
+    for elt in accelerator.list_of_elements:
+        if elt.name == 'FIELD_MAP':
+            v_cav_mv.append(elt.acc_field.v_cav_mv)
+            phi_s_deg.append(elt.acc_field.phi_s_deg)
+            idx.append(i)
+        i += 1
     fig, ax = helper.create_fig_if_not_exist(25, [311, 312, 313])
+    ax[0].plot(idx, v_cav_mv)
+    ax[0].set_ylabel('Acc. voltage [MV]')
+    ax[1].plot(idx, phi_s_deg)
+    ax[1].set_ylabel('Synch. phase [deg]')
+    for axx in ax[0:-1]:
+        axx.grid(True)
+
+    helper.plot_structure(accelerator, ax[2], x_axis='index')
+    ax[2].set_xlim(ax[0].get_xlim())
+    ax[2].set_xlabel('Element #')
+
 
 def load_phase_space(accelerator):
     """
