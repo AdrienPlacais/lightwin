@@ -27,12 +27,6 @@ class RfField():
 
         self.norm = norm
         self.phi_0 = phi_0
-        self.e_func = lambda x, phi: self.e_func_norm(self.norm,
-                                                      self.phi_0, x, phi)
-        self.de_dt_func = lambda x, phi, beta: self.de_dt_func_norm(self.norm,
-                                                                    self.phi_0,
-                                                                    x, phi,
-                                                                    beta)
         self.n_cell = 2
         self.f_e = None
         self.phi_s_deg = None
@@ -42,10 +36,18 @@ class RfField():
         """Template of the cos-like rf field (normalized)."""
         return norm * self.e_spat(x) * np.cos(phi + phi_0)
 
+    def e_func(self, x, phi):
+        """Rf field function."""
+        return self.e_func_norm(self.norm, self.phi_0, x, phi)
+
     def de_dt_func_norm(self, norm, phi_0, x, phi, beta):
         """Template of time derivative of the cos-like rf field (normal.)."""
         factor = norm * self.omega0_rf / (beta * c)
         return factor * self.e_spat(x) * np.sin(phi + phi_0)
+
+    def de_dt_func(self, x, phi, beta):
+        """Return derivative of rf field."""
+        return self.de_dt_func_norm(self.norm, self.phi_0, x, phi, beta)
 
 
 # =============================================================================
