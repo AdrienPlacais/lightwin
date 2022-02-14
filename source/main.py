@@ -65,7 +65,7 @@ for lin in [ref_linac]:#, broken_linac]:
 # =============================================================================
 # Output options
 # =============================================================================
-        PLOT_TM = False
+        PLOT_TM = True
         PLOT_ENERGY = True
         PLOT_CAV = True
         PHASE_SPACE = False
