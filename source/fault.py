@@ -12,6 +12,7 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 import numpy as np
 from scipy.optimize import minimize
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 class fault_scenario():
@@ -20,8 +21,7 @@ class fault_scenario():
     def __init__(self, ref_linac, broken_linac):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
-        for linac in [ref_linac, broken_linac]:
-            _output_cavities(linac)
+
 
         self.fail = []
         self.comp = []
@@ -41,24 +41,39 @@ class fault_scenario():
         self._select_compensating(strategy, manual_list)
         for cav in self.comp:
             cav.status['compensate'] = True
+        for linac in [self.ref_lin, self.brok_lin]:
+            _output_cavities(linac)
 
         self.objective = objective
 
         method = 'RK'
+        debug_plot = False
+
+        if debug_plot:
+            fig = plt.figure(42)
+            ax = fig.add_subplot(111)
+            ax.grid(True)
+            xxx = np.linspace(0, 1631, 1632)
 
         # Set the fit variables
         n_cav = len(self.comp)
         x0 = np.full((2 * n_cav), np.NaN)
         bounds = np.full((2 * n_cav, 2), np.NaN)
+
         for i in range(n_cav):
             x0[2*i] = self.comp[i].acc_field.norm
             x0[2*i+1] = self.comp[i].acc_field.phi_0
-            bounds[2*i, :] = np.array([1.78, 1.81])
-            bounds[2*i+1, :] = np.array([2.2, 2.7])
+            bounds[2*i, :] = np.array([1.6, 2.5])
+            bounds[2*i+1, :] = np.deg2rad(np.array([110., 170.]))
         print('\n\n', x0, '\n', bounds, '\n\n')
         # @TODO: not elegant
 
-        # Loop over compensating cavities until objective is matched
+        # Portion of linac with compensating cavities, as well as drifts and
+        # quads
+        complete_modules = []
+        for i in range(self.comp[0].idx['elt'], self.comp[-1].idx['elt']+1):
+            complete_modules.append(self.brok_lin.list_of_elements[i])
+
         def wrapper(x):
             # Unpack
             for i in range(n_cav):
@@ -66,7 +81,11 @@ class fault_scenario():
                 self.comp[i].acc_field.phi_0 = x[2*i+1]
 
             # Update transfer matrices
-            self.brok_lin.compute_transfer_matrices(method, self.comp)
+            self.brok_lin.compute_transfer_matrices(method, complete_modules)
+            if debug_plot:
+                yyy = self.brok_lin.synch.energy['kin_array_mev']
+                ax.plot(xxx, yyy)
+                plt.show()
             return self._qty_to_fit()
         sol = minimize(wrapper, x0=x0, bounds=bounds)
 
