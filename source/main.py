@@ -6,6 +6,8 @@ Created on Tue Sep 21 11:32:12 2021
 @author: placais
 """
 import os
+import time
+from datetime import timedelta
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import accelerator as acc
@@ -50,6 +52,7 @@ FILEPATH = os.path.abspath(FILEPATH)
 # =============================================================================
 # End of user inputs
 # =============================================================================
+start_time = time.monotonic()
 ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Working')
 
 broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Broken')
@@ -104,10 +107,6 @@ for lin in [ref_linac, broken_linac]:
 
 basic_fault.fix(strategy, objective, manual_list)
 
-# fault.compensate_faults(broken_linac, ref_linac,
-#                         objective_str='energy',
-#                         strategy='manual',
-#                         manual_list=manual_list)
 
 if PLOT_ENERGY:
     debug.compare_energies(broken_linac)
@@ -117,4 +116,5 @@ if PLOT_TM:
     debug.plot_transfer_matrices(broken_linac,
                                  broken_linac.transf_mat['cumul'])
 
-# print(broken_linac.get_from_elements(attribute='acc_field', key='v_cav_mv'))
+end_time = time.monotonic()
+print('\n\nElapsed time:', timedelta(seconds=end_time - start_time))

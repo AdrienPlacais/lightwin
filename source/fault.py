@@ -22,9 +22,15 @@ class fault_scenario():
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
 
-
         self.fail = []
         self.comp = []
+
+        self.solver = {
+            'min_ke': 1.6,
+            'max_ke': 2.5,
+            'min_phi0': np.deg2rad(110.),
+            'max_phi0': np.deg2rad(170.),
+            }
 
     def break_at(self, fail_idx):
         """Break cavities at indices fail_idx."""
@@ -41,11 +47,12 @@ class fault_scenario():
         self._select_compensating(strategy, manual_list)
         for cav in self.comp:
             cav.status['compensate'] = True
+
+        # Output cavities info
         for linac in [self.ref_lin, self.brok_lin]:
             _output_cavities(linac)
 
         self.objective = objective
-
         method = 'RK'
         debug_plot = False
 
@@ -63,9 +70,12 @@ class fault_scenario():
         for i in range(n_cav):
             x0[2*i] = self.comp[i].acc_field.norm
             x0[2*i+1] = self.comp[i].acc_field.phi_0
-            bounds[2*i, :] = np.array([1.6, 2.5])
-            bounds[2*i+1, :] = np.deg2rad(np.array([110., 170.]))
-        print('\n\n', x0, '\n', bounds, '\n\n')
+            bounds[2*i, :] = np.array([self.solver['min_ke'],
+                                       self.solver['max_ke']])
+            bounds[2*i+1, :] = np.array([self.solver['min_phi0'],
+                                         self.solver['max_phi0']])
+        print('Initial guesses:', x0)
+        print('Bounds', bounds)
         # @TODO: not elegant
 
         # Portion of linac with compensating cavities, as well as drifts and
@@ -146,7 +156,7 @@ def _output_cavities(linac):
                      cav.status['compensate'], cav.acc_field.norm,
                      np.rad2deg(cav.acc_field.phi_0),
                      cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
-    print('==================================================================')
+    print('\n================================================================')
     print(linac.name)
     print('\n', df, '\n')
-    print('==================================================================')
+    print('================================================================\n')
