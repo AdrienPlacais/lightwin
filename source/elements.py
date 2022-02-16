@@ -164,8 +164,8 @@ class FieldMap(_Element):
     def _compute_synch_phase_and_acc_pot(self, synch):
         """Compute the sychronous phase and accelerating potential."""
         if self.status['failed']:
-            self.acc_field.phi_s_deg = 0.
-            self.acc_field.v_cav_mv = 0.
+            self.acc_field.phi_s_deg = np.NaN
+            self.acc_field.v_cav_mv = np.NaN
 
         else:
             phi_s = cmath.phase(self.acc_field.f_e)

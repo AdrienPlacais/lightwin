@@ -98,6 +98,7 @@ class Accelerator():
 
     def _create_structure(self):
         """Create structure using the loaded dat file."""
+        # @TODO Implement lattice
         # Dictionnary linking element name with correct sub-class
         subclasses_dispatcher = {
             'QUAD': elements.Quad,

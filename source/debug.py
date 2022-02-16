@@ -264,9 +264,9 @@ def plot_vcav_and_phis(accelerator):
             idx.append(i)
         i += 1
     fig, ax = helper.create_fig_if_not_exist(25, [311, 312, 313])
-    ax[0].plot(idx, v_cav_mv, label='LW ' + accelerator.name)
+    ax[0].plot(idx, v_cav_mv, label='LW ' + accelerator.name, marker='o')
     ax[0].set_ylabel('Acc. voltage [MV]')
-    ax[1].plot(idx, phi_s_deg)
+    ax[1].plot(idx, phi_s_deg, marker='o')
     ax[1].set_ylabel('Synch. phase [deg]')
     for axx in ax[0:-1]:
         axx.grid(True)

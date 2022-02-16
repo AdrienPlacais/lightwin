@@ -17,7 +17,6 @@ blabla_cav is a list of FIELD_MAP objects, matching blabla_idx.
 import numpy as np
 from scipy.optimize import minimize
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
 class fault_scenario():
@@ -26,19 +25,117 @@ class fault_scenario():
     def __init__(self, ref_linac, broken_linac):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
-        self.fail_idx = None
+        for linac in [ref_linac, broken_linac]:
+            _output_cavities(linac)
 
-    # def _new_break_at(self, fail_idx):
-    #     """Break cavities at indices fail_idx."""
-    #     self.fail_idx = fail_idx
+        self.fail = []
+        self.comp = []
 
-    #     for idx in self.fail_idx:
-    #         cavity = self.brok_lin.list_of_elements[idx]
-    #         assert cavity.name == 'FIELD_MAP', 'Error, the element at ' + \
-    #             'position ' + str(idx) + ' is not a FIELD_MAP.'
-    #         cavity.fail()
-    #         brok_lin.fault_scenario['faults_cav'].append(cavity)
+    def new_break_at(self, fail_idx):
+        """Break cavities at indices fail_idx."""
+        for idx in fail_idx:
+            cav = self.brok_lin.list_of_elements[idx]
+            assert cav.name == 'FIELD_MAP', 'Error, the element at ' + \
+                'position ' + str(idx) + ' is not a FIELD_MAP.'
+            cav.fail()
+            self.fail.append(cav)
 
+    def new_fix(self, strategy, objective, manual_list=None):
+        """Fix cavities."""
+        # Select which cavities will be used to compensate the fault
+        self._new_select_compensating(strategy, manual_list)
+        for cav in self.comp:
+            cav.status['compensate'] = True
+
+        self.objective = objective
+
+        method = 'RK'
+
+        # Set portion of compensating elements, and portion between end of
+        # compensating zone and end of line
+        after_comp = self.brok_lin.list_of_elements[self.comp[-1].idx['elt']:]
+
+        # Set the fit variables
+        n_cav = len(self.comp)
+        x0 = np.full((2 * n_cav), np.NaN)
+        bounds = np.full((2 * n_cav, 2), np.NaN)
+        for i in range(n_cav):
+            x0[2*i] = self.comp[i].acc_field.norm
+            x0[2*i+1] = self.comp[i].acc_field.phi_0
+            bounds[2*i, :] = np.array([1.78, 1.81])
+            bounds[2*i+1, :] = np.array([2.2, 2.7])
+        # x0 = []
+        # bounds_low = []
+        # bounds_up = []
+        # min_ke = 1.7
+        # max_ke = 2.5
+        # min_phi0 = np.deg2rad(100.)
+        # max_phi0 = np.deg2rad(200.)
+        # for cav in self.comp:
+        #     x0.extend((cav.acc_field.norm, cav.acc_field.phi_0))
+        #     bounds_low.extend([min_ke, max_ke])
+        #     bounds_up.extend([min_phi0, max_phi0])
+        # x0 = np.array(x0)
+        # bounds = np.vstack((bounds_low, bounds_up)).transpose()
+        print('\n\n', x0, '\n', bounds, '\n\n')
+        # @TODO: not elegant
+
+        # Loop over compensating cavities until objective is matched
+        def wrapper(x):
+            # Unpack
+            for i in range(n_cav):
+                self.comp[i].acc_field.norm = x[2*i]
+                self.comp[i].acc_field.phi_0 = x[2*i+1]
+
+            # Update transfer matrices
+            self.brok_lin.compute_transfer_matrices(method, self.comp)
+            return self._new_qty_to_fit()
+        sol = minimize(wrapper, x0=x0, bounds=bounds)
+
+        for i in range(n_cav):
+            self.comp[i].acc_field.norm = sol.x[2*i]
+            self.comp[i].acc_field.phi_0 = sol.x[2*i+1]
+        print(sol)
+
+        # When fit is complete, also recompute last elements
+        # self.brok_lin.compute_transfer_matrices(method, self.comp)
+        # self.brok_lin.compute_transfer_matrices(method, after_comp)
+        self.brok_lin.compute_transfer_matrices(method)
+
+        if sol.success:
+            self.brok_lin.name = 'Fixed'
+        else:
+            self.brok_lin.name = 'Poorly fixed'
+        _output_cavities(self.brok_lin)
+
+    def _new_select_compensating(self, strategy, manual_list):
+        """Select the cavities that will be used for compensation."""
+        # self.cavities = list(filter(lambda elt: elt.name == 'FIELD_MAP',
+        #                             self.brok_lin.list_of_elements))
+
+        # self.working = list(filter(lambda cav: not cav.status['failed'],
+        #                            self.cavities))
+        self.comp = [self.brok_lin.list_of_elements[idx] for idx in
+                     manual_list]
+
+    def _new_qty_to_fit(self):
+        """
+        Return the difference of quantity to fit between the reference linac
+        and the broken one.
+        """
+        idx = self.comp[-1].idx['out'] - 1
+
+        def res(linac):
+            dict_objective = {
+                'energy': linac.synch.energy['kin_array_mev'][idx],
+                'phase': linac.synch.phi['abs_array'][idx],
+                'energy_phase': np.array(
+                    [linac.synch.energy['kin_array_mev'][idx],
+                     linac.synch.phi['abs_array'][idx]]),
+                'transfer__matrix': linac.transf_mat['cumul'][idx, :, :],
+                }
+            return dict_objective[self.objective]
+        return np.abs(res(self.ref_lin) - res(self.brok_lin))
 
 def apply_faults(brok_lin, fail_idx):
     """
@@ -146,18 +243,22 @@ def compensate_faults(brok_lin, ref_lin, objective_str, strategy,
     brok_lin.name = 'Fixed'
 
 
-def _output_cavities(list_of_cav):
+def _output_cavities(linac):
     """Output relatable parameters of cavities in list_of_cav."""
     df = pd.DataFrame(columns=(
         'Idx', 'Fail?', 'Comp?', 'Norm', 'phi0', 'Vs', 'phis'))
+    list_of_cav = list(filter(lambda elt: elt.name == 'FIELD_MAP',
+                              linac.list_of_elements))
     for i in range(len(list_of_cav)):
         cav = list_of_cav[i]
         df.loc[i] = [cav.idx['in'], cav.status['failed'],
                      cav.status['compensate'], cav.acc_field.norm,
-                     cav.acc_field.phi_0, cav.acc_field.v_cav_mv,
-                     cav.acc_field.phi_s_deg]
+                     np.rad2deg(cav.acc_field.phi_0),
+                     cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
+    print('==================================================================')
+    print(linac.name)
     print('\n', df, '\n')
-
+    print('==================================================================')
 
 def _select_objective(brok_lin, ref_lin, objective):
     """Assign the fit objective."""
