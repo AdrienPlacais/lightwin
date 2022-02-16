@@ -19,6 +19,27 @@ from scipy.optimize import minimize
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
+class fault_scenario():
+    """A class to hold all fault related data."""
+
+    def __init__(self, ref_linac, broken_linac):
+        self.ref_lin = ref_linac
+        self.brok_lin = broken_linac
+        self.fail_idx = None
+
+    # def _new_break_at(self, fail_idx):
+    #     """Break cavities at indices fail_idx."""
+    #     self.fail_idx = fail_idx
+
+    #     for idx in self.fail_idx:
+    #         cavity = self.brok_lin.list_of_elements[idx]
+    #         assert cavity.name == 'FIELD_MAP', 'Error, the element at ' + \
+    #             'position ' + str(idx) + ' is not a FIELD_MAP.'
+    #         cavity.fail()
+    #         brok_lin.fault_scenario['faults_cav'].append(cavity)
+
+
 def apply_faults(brok_lin, fail_idx):
     """
     Break cavities at indices fail_idx.
@@ -38,13 +59,6 @@ def apply_faults(brok_lin, fail_idx):
             'position ' + str(idx) + ' is not a FIELD_MAP.'
         cavity.fail()
         brok_lin.fault_scenario['faults_cav'].append(cavity)
-
-
-class fault_scenario():
-    """A class to hold all fault related data."""
-
-    def __init__(self, bonjoure):
-        self.bonjoure = bonjoure
 
 
 def compensate_faults(brok_lin, ref_lin, objective_str, strategy,
@@ -103,8 +117,8 @@ def compensate_faults(brok_lin, ref_lin, objective_str, strategy,
     for i in range(n_cav):
         x0[2*i] = fault['comp_cav'][i].acc_field.norm
         x0[2*i+1] = fault['comp_cav'][i].acc_field.phi_0
-        bounds[2*i, :] = np.array([1.5, 2.0])
-        bounds[2*i+1, :] = np.array([2., 3.])
+        bounds[2*i, :] = np.array([1.78, 1.81])
+        bounds[2*i+1, :] = np.array([2.2, 2.7])
     _output_cavities(fault['comp_cav'])
 
     # Loop over compensating cavities until objective is matched

@@ -55,6 +55,9 @@ ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Working')
 broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Broken')
 failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
+
+bla = fault.fault_scenario(ref_linac, broken_linac)
+
 fault.apply_faults(broken_linac, failed_cav)
 
 
@@ -95,14 +98,15 @@ for lin in [ref_linac, broken_linac]:
         if SAVE_VCAV_AND_PHIS:
             helper.save_vcav_and_phis(lin)
 
-fault.compensate_faults(broken_linac, ref_linac,
-                        objective_str='energy',
-                        strategy='manual',
-                        manual_list=manual_list)
 
-if PLOT_ENERGY:
-    debug.compare_energies(broken_linac)
-if PLOT_CAV:
-    debug.plot_vcav_and_phis(broken_linac)
+# fault.compensate_faults(broken_linac, ref_linac,
+#                         objective_str='energy',
+#                         strategy='manual',
+#                         manual_list=manual_list)
+
+# if PLOT_ENERGY:
+#     debug.compare_energies(broken_linac)
+# if PLOT_CAV:
+#     debug.plot_vcav_and_phis(broken_linac)
 
 # print(broken_linac.get_from_elements(attribute='acc_field', key='v_cav_mv'))

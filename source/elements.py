@@ -48,8 +48,9 @@ class _Element():
             'rel': None,
             }
         self.idx = {
-            'in': None,
+            'in': None,         # @TODO: replace by synch_in
             'out': None,
+            'elt': None,
             }
 
         self.transfer_matrix = None

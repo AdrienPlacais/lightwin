@@ -152,6 +152,7 @@ class Accelerator():
             elt.pos_m['abs'] = elt.pos_m['rel'] + pos_in
             elt.idx['in'] = idx_in
             elt.idx['out'] = idx_out
+            elt.idx['idx'] = i
 
             pos_in = pos_out
             idx_in = idx_out
