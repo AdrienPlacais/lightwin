@@ -60,8 +60,8 @@ objective = 'energy'
 
 
 # fault.apply_faults(broken_linac, failed_cav)
-bla = fault.fault_scenario(ref_linac, broken_linac)
-bla.new_break_at(failed_cav)
+basic_fault = fault.fault_scenario(ref_linac, broken_linac)
+basic_fault.break_at(failed_cav)
 
 
 for lin in [ref_linac, broken_linac]:
@@ -102,7 +102,7 @@ for lin in [ref_linac, broken_linac]:
             helper.save_vcav_and_phis(lin)
 
 
-bla.new_fix(strategy, objective, manual_list)
+basic_fault.fix(strategy, objective, manual_list)
 
 # fault.compensate_faults(broken_linac, ref_linac,
 #                         objective_str='energy',
@@ -114,6 +114,7 @@ if PLOT_ENERGY:
 if PLOT_CAV:
     debug.plot_vcav_and_phis(broken_linac)
 if PLOT_TM:
-    debug.plot_transfer_matrices(broken_linac, broken_linac.transf_mat['cumul'])
+    debug.plot_transfer_matrices(broken_linac,
+                                 broken_linac.transf_mat['cumul'])
 
 # print(broken_linac.get_from_elements(attribute='acc_field', key='v_cav_mv'))
