@@ -42,10 +42,13 @@ def load_dat_file(dat_filepath):
             line = line.split()
 
             dat_file_content.append(line)
-    return dat_file_content
+
+    list_of_elements = _create_structure(dat_filepath, dat_file_content)
+
+    return list_of_elements
 
 
-def create_structure(dat_filepath, dat_file_content):
+def _create_structure(dat_filepath, dat_file_content):
     """
     Create structure using the loaded dat file.
 
@@ -83,12 +86,12 @@ def create_structure(dat_filepath, dat_file_content):
     except KeyError:
         print('Warning, an element from filepath was not recognized.')
 
-    load_filemaps(dat_filepath, dat_file_content, list_of_elements)
+    _load_filemaps(dat_filepath, dat_file_content, list_of_elements)
 
     return list_of_elements
 
 
-def load_filemaps(dat_filepath, dat_file_content, list_of_elements):
+def _load_filemaps(dat_filepath, dat_file_content, list_of_elements):
     """
     Load all the filemaps.
 

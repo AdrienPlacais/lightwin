@@ -26,18 +26,18 @@ class Accelerator():
         the self.synch Particle object.
         """
         self.name = name
-        self.dat_filepath = dat_filepath
         self.project_folder = os.path.dirname(dat_filepath)
         self.n_elements = 39
         # TODO: handle cases were there the number of elements in the line
         # is different from 39
 
         # Load dat file and clean it up (remove comments, etc)
-        self.dat_file_content = tw.load_dat_file(dat_filepath)
+        self.list_of_elements = tw.load_dat_file(dat_filepath)
+        # dat_file_content = tw.load_dat_file(dat_filepath)
 
-        # Create empty list of elements and fill it
-        self.list_of_elements = tw.create_structure(self.dat_filepath,
-                                                    self.dat_file_content)
+        # # Create empty list of elements and fill it
+        # self.list_of_elements = tw.create_structure(dat_filepath,
+        #                                             dat_file_content)
 
         self.transf_mat = {
             'cumul': np.expand_dims(np.eye(2), axis=0),

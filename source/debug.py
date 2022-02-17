@@ -98,13 +98,10 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
 
     Parameters
     ----------
-    filepath_dat: str
-        Path to the .dat file. The file containing the transfer matrices
-        exported by TraceWin is expected to be
-        /project_folder/results/matrix_ref.txt, the .dat beeing in
-        /project_folder/.
     accelerator: Accelerator object.
         Accelerator under study.
+    transfer_matrix: numpy array
+        Transfer matrices to plot.
     """
     filepath_ref = [accelerator.project_folder + '/results/M_55_ref.txt',
                     accelerator.project_folder + '/results/M_56_ref.txt',
