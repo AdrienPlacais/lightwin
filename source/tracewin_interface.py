@@ -45,24 +45,20 @@ def load_dat_file(dat_filepath):
     return dat_file_content
 
 
-def load_filemaps(dat_filepath, dat_file_content, list_of_elements):
-    """Assign filemaps paths and load them."""
-    # Get folder of all field maps
-    for line in dat_file_content:
-        if line[0] == 'FIELD_MAP_PATH':
-            field_map_folder = line[1]
+def create_structure(dat_filepath, dat_file_content):
+    """
+    Create structure using the loaded dat file.
 
-    field_map_folder = os.path.dirname(dat_filepath) + field_map_folder[1:]
+    Parameters
+    ----------
+    dat_file_content: list, opt
+        List containing all the lines of dat_filepath.
 
-    for elt in list_of_elements:
-        if 'field_map_file_name' in vars(elt):
-            elt.field_map_file_name = field_map_folder + '/' \
-                + elt.field_map_file_name
-            load_field_map_file(elt, elt.acc_field)
-
-
-def create_structure(dat_file_content):
-    """Create structure using the loaded dat file."""
+    Return
+    ------
+    list_of_elements: list of Element
+        List containing all the Element objects.
+    """
     # @TODO Implement lattice
     # Dictionnary linking element name with correct sub-class
     subclasses_dispatcher = {
@@ -87,4 +83,33 @@ def create_structure(dat_file_content):
     except KeyError:
         print('Warning, an element from filepath was not recognized.')
 
+    load_filemaps(dat_filepath, dat_file_content, list_of_elements)
+
     return list_of_elements
+
+
+def load_filemaps(dat_filepath, dat_file_content, list_of_elements):
+    """
+    Load all the filemaps.
+
+    Parameters
+    ----------
+    dat_filepath: string
+        Filepath to the .dat file, as understood by TraceWin.
+    dat_file_content: list, opt
+        List containing all the lines of dat_filepath.
+    list_of_elements: list of Element
+        List containing all the Element objects.
+    """
+    # Get folder of all field maps
+    for line in dat_file_content:
+        if line[0] == 'FIELD_MAP_PATH':
+            field_map_folder = line[1]
+
+    field_map_folder = os.path.dirname(dat_filepath) + field_map_folder[1:]
+
+    for elt in list_of_elements:
+        if 'field_map_file_name' in vars(elt):
+            elt.field_map_file_name = field_map_folder + '/' \
+                + elt.field_map_file_name
+            load_field_map_file(elt, elt.acc_field)
