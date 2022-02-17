@@ -7,6 +7,7 @@ Created on Thu Feb 17 15:52:37 2022
 """
 import os.path
 from electric_field import load_field_map_file
+import elements
 
 
 def load_dat_file(dat_filepath):
@@ -58,3 +59,32 @@ def load_filemaps(dat_filepath, dat_file_content, list_of_elements):
             elt.field_map_file_name = field_map_folder + '/' \
                 + elt.field_map_file_name
             load_field_map_file(elt, elt.acc_field)
+
+
+def create_structure(dat_file_content):
+    """Create structure using the loaded dat file."""
+    # @TODO Implement lattice
+    # Dictionnary linking element name with correct sub-class
+    subclasses_dispatcher = {
+        'QUAD': elements.Quad,
+        'DRIFT': elements.Drift,
+        'FIELD_MAP': elements.FieldMap,
+        'CAVSIN': elements.CavSin,
+        'SOLENOID': elements.Solenoid,
+    }
+    to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
+                         'LATTICE', 'END']
+    # TODO Maybe some non-elements such as FREQ or LATTICE would be better
+    # off another file/module
+
+    # We look at each element in dat_file_content, and according to the
+    # value of the 1st column string we create the appropriate Element
+    # subclass and store this instance in list_of_elements
+    try:
+        list_of_elements = [subclasses_dispatcher[elem[0]](elem)
+                            for elem in dat_file_content if elem[0]
+                            not in to_be_implemented]
+    except KeyError:
+        print('Warning, an element from filepath was not recognized.')
+
+    return list_of_elements

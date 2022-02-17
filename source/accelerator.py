@@ -8,7 +8,6 @@ Created on Tue Sep 21 11:54:19 2021
 import os.path
 import numpy as np
 import tracewin_interface as tw
-import elements
 import helper
 import transport
 import particle
@@ -37,8 +36,7 @@ class Accelerator():
         self.dat_file_content = tw.load_dat_file(dat_filepath)
 
         # Create empty list of elements and fill it
-        self.list_of_elements = []
-        self._create_structure()
+        self.list_of_elements = tw.create_structure(self.dat_file_content)
         tw.load_filemaps(self.dat_filepath, self.dat_file_content,
                          self.list_of_elements)
 
@@ -61,34 +59,6 @@ class Accelerator():
             }
         self.prepared = False
 
-
-    def _create_structure(self):
-        """Create structure using the loaded dat file."""
-        # @TODO Implement lattice
-        # Dictionnary linking element name with correct sub-class
-        subclasses_dispatcher = {
-            'QUAD': elements.Quad,
-            'DRIFT': elements.Drift,
-            'FIELD_MAP': elements.FieldMap,
-            'CAVSIN': elements.CavSin,
-            'SOLENOID': elements.Solenoid,
-        }
-        to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
-                             'LATTICE', 'END']
-        # TODO Maybe some non-elements such as FREQ or LATTICE would be better
-        # off another file/module
-
-        # We look at each element in dat_file_content, and according to the
-        # value of the 1st column string we create the appropriate Element
-        # subclass and store this instance in list_of_elements
-        try:
-            list_of_elements = [subclasses_dispatcher[elem[0]](elem)
-                                for elem in self.dat_file_content if elem[0]
-                                not in to_be_implemented]
-        except KeyError:
-            print('Warning, an element from filepath was not recognized.')
-
-        self.list_of_elements = list_of_elements
 
     def _prepare_compute_transfer_matrices(self, method):
         """
