@@ -10,7 +10,6 @@ import numpy as np
 import tracewin_interface as tw
 import elements
 import helper
-from electric_field import load_field_map_file
 import transport
 import particle
 
@@ -40,7 +39,8 @@ class Accelerator():
         # Create empty list of elements and fill it
         self.list_of_elements = []
         self._create_structure()
-        self._load_filemaps()
+        tw.load_filemaps(self.dat_filepath, self.dat_file_content,
+                         self.list_of_elements)
 
         self.transf_mat = {
             'cumul': np.expand_dims(np.eye(2), axis=0),
@@ -61,21 +61,6 @@ class Accelerator():
             }
         self.prepared = False
 
-    def _load_filemaps(self):
-        """Assign filemaps paths and load them."""
-        # Get folder of all field maps
-        for line in self.dat_file_content:
-            if line[0] == 'FIELD_MAP_PATH':
-                field_map_folder = line[1]
-
-        field_map_folder = os.path.dirname(self.dat_filepath) \
-            + field_map_folder[1:]
-
-        for elt in self.list_of_elements:
-            if 'field_map_file_name' in vars(elt):
-                elt.field_map_file_name = field_map_folder \
-                    + '/' + elt.field_map_file_name
-                load_field_map_file(elt, elt.acc_field)
 
     def _create_structure(self):
         """Create structure using the loaded dat file."""
