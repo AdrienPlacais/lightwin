@@ -7,6 +7,7 @@ Created on Tue Sep 21 11:54:19 2021
 """
 import os.path
 import numpy as np
+import tracewin_interface as tw
 import elements
 import helper
 from electric_field import load_field_map_file
@@ -34,8 +35,7 @@ class Accelerator():
         # is different from 39
 
         # Load dat file and clean it up (remove comments, etc)
-        self.dat_file_content = []
-        self._load_dat_file()
+        self.dat_file_content = tw.load_dat_file(dat_filepath)
 
         # Create empty list of elements and fill it
         self.list_of_elements = []
@@ -60,25 +60,6 @@ class Accelerator():
             'objective': None,       # Variable that should match
             }
         self.prepared = False
-
-    def _load_dat_file(self):
-        """Load the dat file and convert it into a list of lines."""
-        # Load and read data file
-        with open(self.dat_filepath) as file:
-            for line in file:
-                # Remove trailing whitespaces
-                line = line.strip()
-
-                # We check that the current line is not empty or that it is not
-                # reduced to a comment only
-                if(len(line) == 0 or line[0] == ';'):
-                    continue
-
-                # Remove any trailing comment
-                line = line.split(';')[0]
-                line = line.split()
-
-                self.dat_file_content.append(line)
 
     def _load_filemaps(self):
         """Assign filemaps paths and load them."""
