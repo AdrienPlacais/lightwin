@@ -183,16 +183,19 @@ def compare_with_tracewin(accelerator, prop, filepath_ref=None):
     dict_data = {
         'energy': accelerator.synch.energy['kin_array_mev'],
         'abs_phase': np.rad2deg(accelerator.synch.phi['abs_array']),
+        'beta_synch': accelerator.synch.energy['beta_array'],
         }
     # Label of property plot, of error plot, figure number
     dict_label = {
-        'energy': ['Beam energy [MeV]', 'Absolute error [eV]', 21],
-        'abs_phase': ['Beam phase [deg]', 'Absolute error [deg]', 22],
+        'energy': ['Beam energy [MeV]', 'Abs. error [eV]', 21],
+        'abs_phase': ['Beam phase [deg]', 'Abs. error [deg]', 22],
+        'beta_synch': [r'Synch. $\beta$ [1]', 'Abs. error [1]', 23],
         }
     # Abs error plot is multiplied by this
     dict_err_factor = {
         'energy': 1e6,
         'abs_phase': 1.,
+        'beta_synch': 1.,
         }
 
     # x axis data
