@@ -32,12 +32,7 @@ class Accelerator():
         # is different from 39
 
         # Load dat file and clean it up (remove comments, etc)
-        self.list_of_elements = tw.load_dat_file(dat_filepath)
-        # dat_file_content = tw.load_dat_file(dat_filepath)
-
-        # # Create empty list of elements and fill it
-        # self.list_of_elements = tw.create_structure(dat_filepath,
-        #                                             dat_file_content)
+        self.dat_filecontent, self.list_of_elements = tw.load_dat_file(dat_filepath)
 
         self.transf_mat = {
             'cumul': np.expand_dims(np.eye(2), axis=0),

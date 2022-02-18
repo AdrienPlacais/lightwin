@@ -6,8 +6,12 @@ Created on Thu Feb 17 15:52:37 2022
 @author: placais
 """
 import os.path
+import numpy as np
 from electric_field import load_field_map_file
 import elements
+
+to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
+                     'LATTICE', 'END']
 
 
 def load_dat_file(dat_filepath):
@@ -21,10 +25,10 @@ def load_dat_file(dat_filepath):
 
     Return
     ------
-    dat_file_content: list, opt
+    dat_filecontent: list, opt
         List containing all the lines of dat_filepath.
     """
-    dat_file_content = []
+    dat_filecontent = []
 
     # Load and read data file
     with open(dat_filepath) as file:
@@ -41,20 +45,20 @@ def load_dat_file(dat_filepath):
             line = line.split(';')[0]
             line = line.split()
 
-            dat_file_content.append(line)
+            dat_filecontent.append(line)
 
-    list_of_elements = _create_structure(dat_filepath, dat_file_content)
+    list_of_elements = _create_structure(dat_filepath, dat_filecontent)
 
-    return list_of_elements
+    return dat_filecontent, list_of_elements
 
 
-def _create_structure(dat_filepath, dat_file_content):
+def _create_structure(dat_filepath, dat_filecontent):
     """
     Create structure using the loaded dat file.
 
     Parameters
     ----------
-    dat_file_content: list, opt
+    dat_filecontent: list, opt
         List containing all the lines of dat_filepath.
 
     Return
@@ -71,27 +75,23 @@ def _create_structure(dat_filepath, dat_file_content):
         'CAVSIN': elements.CavSin,
         'SOLENOID': elements.Solenoid,
     }
-    to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
-                         'LATTICE', 'END']
-    # TODO Maybe some non-elements such as FREQ or LATTICE would be better
-    # off another file/module
 
-    # We look at each element in dat_file_content, and according to the
+    # We look at each element in dat_filecontent, and according to the
     # value of the 1st column string we create the appropriate Element
     # subclass and store this instance in list_of_elements
     try:
         list_of_elements = [subclasses_dispatcher[elem[0]](elem)
-                            for elem in dat_file_content if elem[0]
+                            for elem in dat_filecontent if elem[0]
                             not in to_be_implemented]
     except KeyError:
         print('Warning, an element from filepath was not recognized.')
 
-    _load_filemaps(dat_filepath, dat_file_content, list_of_elements)
+    _load_filemaps(dat_filepath, dat_filecontent, list_of_elements)
 
     return list_of_elements
 
 
-def _load_filemaps(dat_filepath, dat_file_content, list_of_elements):
+def _load_filemaps(dat_filepath, dat_filecontent, list_of_elements):
     """
     Load all the filemaps.
 
@@ -99,13 +99,13 @@ def _load_filemaps(dat_filepath, dat_file_content, list_of_elements):
     ----------
     dat_filepath: string
         Filepath to the .dat file, as understood by TraceWin.
-    dat_file_content: list, opt
+    dat_filecontent: list, opt
         List containing all the lines of dat_filepath.
     list_of_elements: list of Element
         List containing all the Element objects.
     """
     # Get folder of all field maps
-    for line in dat_file_content:
+    for line in dat_filecontent:
         if line[0] == 'FIELD_MAP_PATH':
             field_map_folder = line[1]
 
@@ -116,3 +116,31 @@ def _load_filemaps(dat_filepath, dat_file_content, list_of_elements):
             elt.field_map_file_name = field_map_folder + '/' \
                 + elt.field_map_file_name
             load_field_map_file(elt, elt.acc_field)
+
+
+def save_new_dat(fixed_linac, filepath_old):
+    """Save a new dat with the new linac settings."""
+    _update_dat_with_fixed_cavities(fixed_linac.dat_filecontent,
+                                    fixed_linac.list_of_elements)
+
+    filepath_new = filepath_old[:-4] + '_fixed.dat'
+    with open(filepath_new, 'w') as file:
+        for line in fixed_linac.dat_filecontent:
+            file.write(' '.join(line) + '\n')
+
+
+def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements):
+    """Create a new dat containing the new linac settings."""
+    idx_elt = 0
+    for line in dat_filecontent:
+        if line[0] in to_be_implemented:
+            continue
+
+        else:
+            if line[0] == 'FIELD_MAP':
+                elt = list_of_elements[idx_elt]
+
+                if elt.status['failed'] or elt.status['compensate']:
+                    line[3] = str(np.rad2deg(elt.acc_field.phi_0))
+                    line[6] = str(elt.acc_field.norm)
+            idx_elt += 1
