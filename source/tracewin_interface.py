@@ -6,6 +6,8 @@ Created on Thu Feb 17 15:52:37 2022
 @author: placais
 """
 import os.path
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 import numpy as np
 from electric_field import load_field_map_file
 import elements
@@ -144,3 +146,52 @@ def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements):
                     line[3] = str(np.rad2deg(elt.acc_field.phi_0))
                     line[6] = str(elt.acc_field.norm)
             idx_elt += 1
+
+
+def load_tw_results(filepath, prop):
+    """
+    Load a property from TraceWin.
+
+    Parameters
+    ----------
+    filepath: string
+        Path to results file. It must be saved from TraceWin:
+            Data > Save table to file.
+    prop: string
+        Name of the desired property. Must be in dict_property.
+
+    Return
+    ------
+    data_ref: numpy array
+        Array containing the desired property.
+    """
+    if not os.path.isfile(filepath):
+        print('debug/compare_energies error:')
+        print('The filepath to the energy file is invalid. Please check the')
+        print('source code for more info. Enter a valid filepath:')
+        Tk().withdraw()
+        filepath = askopenfilename(
+            filetypes=[("TraceWin energies file", ".txt")])
+
+    dict_property = {
+        'input_phase': 7,
+        'synch_phase': 8,
+        'energy': 9,
+        'beta_synch': 10,
+        'full_length': 11,
+        'abs_phase': 12,
+        }
+    idx = dict_property[prop]
+
+    data_ref = []
+    with open(filepath) as file:
+        for line in file:
+            try:
+                int(line.split('\t')[0])
+            except ValueError:
+                continue
+            splitted_line = line.split('\t')
+
+            data_ref.append(splitted_line[idx])
+    data_ref = np.array(data_ref).astype(float)
+    return data_ref
