@@ -105,7 +105,7 @@ for lin in [ref_linac, broken_linac]:
             helper.save_vcav_and_phis(lin)
 
 
-basic_fault.fix(strategy, objective, manual_list)
+# basic_fault.fix(strategy, objective, manual_list)
 tw.save_new_dat(broken_linac, FILEPATH)
 
 if PLOT_ENERGY:

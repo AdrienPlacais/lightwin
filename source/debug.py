@@ -168,8 +168,12 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         axlist[i].grid(True)
 
 
-def load_energies(filepath, n_elt):
-    """Load energy ref file."""
+def load_tw_results(filepath, prop):
+    """
+    Load a property from TraceWin.
+
+    File must be saved from TraceWin: Data > Save table to file.
+    """
     if not os.path.isfile(filepath):
         print('debug/compare_energies error:')
         print('The filepath to the energy file is invalid. Please check the')
@@ -178,22 +182,28 @@ def load_energies(filepath, n_elt):
         filepath = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
 
-    e_mev_ref = np.full((n_elt), np.NaN)
+    dict_property = {
+        'input_phase': 7,
+        'synch_phase': 8,
+        'energy': 9,
+        'beta_synch': 10,
+        'full_length': 11,
+        'abs_phase': 12,
+        }
+    idx = dict_property[prop]
 
-    i = 0
+    data_ref = []
     with open(filepath) as file:
         for line in file:
             try:
-                current_element = line.split('\t')[0]
-                current_element = int(current_element)
+                int(line.split('\t')[0])
             except ValueError:
                 continue
             splitted_line = line.split('\t')
 
-            e_mev_ref[i] = splitted_line[9]
-            i += 1
+            data_ref.append(splitted_line[idx])
 
-    return e_mev_ref
+    return np.array(data_ref).astype(float)
 
 
 def compare_energies(accelerator):
@@ -209,7 +219,7 @@ def compare_energies(accelerator):
     elt_array = np.linspace(1, n_elt, n_elt, dtype=int)
 
     filepath_ref = accelerator.project_folder + '/results/energy_ref.txt'
-    e_mev_ref = load_energies(filepath_ref, n_elt)
+    e_mev_ref = load_tw_results(filepath_ref, 'energy')
 
     e_mev = np.full((n_elt), np.NaN)
     # We take energy at the exit of every element
@@ -239,6 +249,48 @@ def compare_energies(accelerator):
     axlist[1].set_ylabel('Absolute error [eV]')
     axlist[2].set_xlabel('Element #')
     axlist[0].legend()
+
+# def compare_phases(accelerator):
+#     """
+#     Comparison of beam absolute phase with TW data.
+
+#     Parameters
+#     ----------
+#     accelerator: Accelerator object
+#         Accelerator under study.
+#     """
+#     n_elt = accelerator.n_elements
+#     elt_array = np.linspace(1, n_elt, n_elt, dtype=int)
+
+#     filepath_ref = accelerator.project_folder + '/results/energy_ref.txt'
+#     phase_ref = load_energies(filepath_ref, n_elt)
+
+#     phase = np.full((n_elt), np.NaN)
+#     # We take energy at the exit of every element
+#     for i in range(n_elt):
+#         idx_out = accelerator.list_of_elements[i].idx['out']
+#         phase[i] = accelerator.synch.phase['abs_array'][idx_out]
+#     phase = np.rad2deg(phase)
+#     error = np.abs(phase_ref - phase)
+
+#     fignum = 22
+#     axnumlist = range(311, 314)
+#     fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
+
+#     axlist[0].plot(elt_array, phase, label='LW ' + accelerator.name)
+#     axlist[1].plot(elt_array, error*1e6)
+
+#     for ax in axlist[0:-1]:
+#         ax.grid(True)
+
+#     helper.plot_structure(accelerator, axlist[2], x_axis='index')
+#     axlist[2].set_xlim(axlist[0].get_xlim())
+
+#     axlist[0].set_ylabel('Beam phase [deg]')
+#     axlist[1].set_ylabel('Absolute error [deg]')
+#     axlist[2].set_xlabel('Element #')
+#     axlist[0].legend()
+
 
 
 def plot_vcav_and_phis(accelerator):
