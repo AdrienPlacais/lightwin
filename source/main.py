@@ -75,7 +75,8 @@ for lin in [ref_linac, broken_linac]:
 # Output options
 # =============================================================================
         PLOT_TM = False
-        PLOT_ENERGY = True
+        PLOT_ENERGY = False
+        PLOT_ABS_PHASE = True
         PLOT_CAV = True
         PHASE_SPACE = False
         TWISS = False
@@ -86,7 +87,10 @@ for lin in [ref_linac, broken_linac]:
             debug.plot_transfer_matrices(lin, lin.transf_mat['cumul'])
 
         if PLOT_ENERGY:
-            debug.compare_energies(lin)
+            debug.compare_with_tracewin(lin, 'energy')
+
+        if PLOT_ABS_PHASE:
+            debug.compare_with_tracewin(lin, 'abs_phase')
 
         if PLOT_CAV:
             debug.plot_vcav_and_phis(lin)
@@ -109,7 +113,9 @@ for lin in [ref_linac, broken_linac]:
 tw.save_new_dat(broken_linac, FILEPATH)
 
 if PLOT_ENERGY:
-    debug.compare_energies(broken_linac)
+    debug.compare_with_tracewin(broken_linac, 'energy')
+if PLOT_ABS_PHASE:
+    debug.compare_with_tracewin(broken_linac, 'abs_phase')
 if PLOT_CAV:
     debug.plot_vcav_and_phis(broken_linac)
 if PLOT_TM:

@@ -167,7 +167,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         axlist[i].grid(True)
 
 
-def compare_energies(accelerator):
+def compare_with_tracewin(accelerator, prop, filepath_ref=None):
     """
     Comparison of beam energy with TW data.
 
@@ -176,35 +176,51 @@ def compare_energies(accelerator):
     accelerator: Accelerator object
         Accelerator under study.
     """
-    n_elt = accelerator.n_elements
-    elt_array = np.linspace(1, n_elt, n_elt, dtype=int)
+    # Prep
+    if filepath_ref is None:
+        filepath_ref = accelerator.project_folder + '/results/energy_ref.txt'
 
-    filepath_ref = accelerator.project_folder + '/results/energy_ref.txt'
-    e_mev_ref = tw.load_tw_results(filepath_ref, 'energy')
+    dict_data = {
+        'energy': accelerator.synch.energy['kin_array_mev'],
+        'abs_phase': np.rad2deg(accelerator.synch.phi['abs_array']),
+        }
+    # Label of property plot, of error plot, figure number
+    dict_label = {
+        'energy': ['Beam energy [MeV]', 'Absolute error [eV]', 21],
+        'abs_phase': ['Beam phase [deg]', 'Absolute error [deg]', 22],
+        }
+    # Abs error plot is multiplied by this
+    dict_err_factor = {
+        'energy': 1e6,
+        'abs_phase': 1.,
+        }
 
-    e_mev = []
+    # x axis data
+    elt_array = range(accelerator.n_elements)
+
+    # y axis data
+    data_ref = tw.load_tw_results(filepath_ref, prop)
+    data = []
     for elt in accelerator.list_of_elements:
         idx = elt.idx['out']
-        e_mev.append(accelerator.synch.energy['kin_array_mev'][idx])
-    e_mev = np.array(e_mev)
+        data.append(dict_data[prop][idx])
+    data = np.array(data)
+    error = np.abs(data_ref - data)
 
-    error = np.abs(e_mev_ref - e_mev)
+    # Plot
+    fig, axlist = helper.create_fig_if_not_exist(dict_label[prop][2],
+                                                 range(311, 314))
+    if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
+        axlist[0].plot(elt_array, data_ref, label='TW', c='k', ls='--')
 
-    fignum = 21
-    axnumlist = range(311, 314)
-    fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
-
-    axlist[0].plot(elt_array, e_mev, label='LW ' + accelerator.name)
-    axlist[1].plot(elt_array, error*1e6)
-
-    for ax in axlist[0:-1]:
-        ax.grid(True)
-
+    axlist[0].plot(elt_array, data, label='LW ' + accelerator.name)
+    axlist[1].plot(elt_array, error * dict_err_factor[prop])
     helper.plot_structure(accelerator, axlist[2], x_axis='index')
     axlist[2].set_xlim(axlist[0].get_xlim())
 
-    axlist[0].set_ylabel('Beam energy [MeV]')
-    axlist[1].set_ylabel('Absolute error [eV]')
+    for i in range(2):
+        axlist[i].grid(True)
+        axlist[i].set_ylabel(dict_label[prop][i])
     axlist[2].set_xlabel('Element #')
     axlist[0].legend()
 
