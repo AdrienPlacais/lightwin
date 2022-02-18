@@ -62,7 +62,7 @@ class _Element():
         """Initialize solver properties."""
         if self.accelerating:
             if self.name == 'FIELD_MAP':
-                n_steps = 25 * self.acc_field.n_cell
+                n_steps = 100 * self.acc_field.n_cell
 
                 if self.status['failed']:
                     self.dict_transf_mat = {

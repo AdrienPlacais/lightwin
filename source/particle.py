@@ -55,8 +55,16 @@ class Particle():
         """
         Update the energy dict.
 
-        If delta_e is True energy is increased by e_mev.
-        If False, energy is set to e_mev.
+        Parameters
+        ----------
+        e_mev: float
+            New energy in MeV.
+        idx: int, opt
+            Index of the the energy concerned. If NaN, e_mev replaces the first
+            NaN element of kin_array_mev.
+        delta_e: bool, opt
+            If True, energy is increased by e_mev. If False, energy is set to
+            e_mev.
         """
         if np.isnan(idx):
             idx = np.where(np.isnan(self.energy['kin_array_mev']))[0][0]
@@ -78,7 +86,17 @@ class Particle():
         self.omega0['lambda_array'][idx] = 2. * np.pi * c / self.omega0['ref']
 
     def advance_position(self, delta_pos, idx=np.NaN):
-        """Advance particle by delt_pos."""
+        """
+        Advance particle by delt_pos.
+
+        Parameters
+        ----------
+        delta_pos: float
+            Difference of position in m.
+        idx: int, opt
+            Index of the the energy concerned. If NaN, the new position is at
+            the first NaN element of abs_array.
+        """
         if np.isnan(idx):
             idx = np.where(np.isnan(self.z['abs_array']))[0][0]
         self.z['rel'] += delta_pos
@@ -158,6 +176,7 @@ class Particle():
 
         # Remove unsused variables
         self.phi['idx_cav_entry'] = None
+
 
 def create_rand_particles(e_0_mev, omega0_bunch):
     """Create two random particles."""
