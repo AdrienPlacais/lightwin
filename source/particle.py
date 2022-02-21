@@ -39,8 +39,6 @@ class Particle():
         self.phi = {
             'rel': None,
             'abs_array': np.full((n_steps + 1), np.NaN),
-            # Used to keep the delta phi on the whole cavity:
-            'idx_cav_entry': None,
             }
         self._init_phi(idx=0)
 
@@ -145,35 +143,23 @@ class Particle():
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
 
-    def enter_cavity(self, omega0_rf, idx_in=np.NaN):
-        """Change the omega0 and save the phase at the entrance."""
-        if np.isnan(idx_in):
-            idx_in = np.where(np.isnan(self.z['abs_array']))[0][0]
-        self.phi['idx_cav_entry'] = idx_in
+    def enter_cavity(self, omega0_rf):
+        """Change the omega0 at the entrance."""
         self.omega0['ref'] = omega0_rf
         self.omega0['rf'] = omega0_rf
 
-    def exit_cavity(self, idx_out):
+    def exit_cavity(self, index):
         """Recompute phi with the proper omega0, reset omega0."""
-        if np.isnan(idx_out):
-            idx_out = np.where(np.isnan(self.z['abs_array']))[0][0]
-        # Helpers
-        idx_entry = self.phi['idx_cav_entry']
-        idx_exit = idx_out
         frac_omega = self.omega0['bunch'] / self.omega0['rf']
+        offset_phi = self.phi['abs_array'][index['in'] - 1]
 
         # Set proper phi
-        for i in range(idx_entry, idx_exit):
-            delta_phi = self.phi['abs_array'][i] \
-                - self.phi['abs_array'][idx_entry - 1]
-            self.phi['abs_array'][i] = self.phi['abs_array'][idx_entry - 1] \
-                + delta_phi * frac_omega
+        for i in range(index['in'], index['out'] + 1):
+            delta_phi = self.phi['abs_array'][i] - offset_phi
+            self.phi['abs_array'][i] = offset_phi + delta_phi * frac_omega
 
         # Reset proper omega
         self.omega0['ref'] = self.omega0['bunch']
-
-        # Remove unsused variables
-        self.phi['idx_cav_entry'] = None
 
 
 def create_rand_particles(e_0_mev, omega0_bunch):

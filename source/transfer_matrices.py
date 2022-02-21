@@ -88,7 +88,7 @@ def z_field_map_electric_field(cavity, synch):
     assert isinstance(synch, particle.Particle)
     idx_in = cavity.idx['in']
     solver_param = cavity.solver_transf_mat
-    synch.enter_cavity(cavity.acc_field.omega_0, idx_in=idx_in)
+    synch.enter_cavity(cavity.acc_field.omega_0)
 
 # =============================================================================
 # Initialisation
@@ -158,8 +158,7 @@ def z_field_map_electric_field(cavity, synch):
 
         synch.advance_phi(delta['phi'], idx=idx_abs)
         synch.advance_position(solver_param.d_z, idx=idx_abs)
-
-    synch.exit_cavity(idx_abs)
+    synch.exit_cavity(cavity.idx)
     return transfer_matrix[1:, :, :]
 
 
