@@ -94,7 +94,7 @@ for lin in [ref_linac, broken_linac]:
         #     debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='abs_phase')
         debug.triple_bla(lin,
                          x_dat='s',
-                         y_dat=['energy', 'abs_phase', 'struct'])
+                         y_dat=['energy_err', 'abs_phase', 'struct'])
 
         if PLOT_CAV:
             debug.plot_vcav_and_phis(lin)

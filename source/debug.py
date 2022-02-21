@@ -252,26 +252,32 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
 
         else:
             ax.grid(True)
-            data = dict_y_data[y_d][dict_indexes[x_dat]]
+            data = dict_y_data[y_d]  # [dict_indexes[x_dat]]
+            if '_err' in y_d:
+                ax.plot(dict_x_data_tw[x_dat], data, label=label)
 
-            # For plots that are non error, plot TW data if not already done
-            if '_err' not in y_d and 'TW' not in \
-                    ax.get_legend_handles_labels()[1]:
-                data_ref = tw.load_tw_results(filepath_ref, y_d)
-                ax.plot(dict_x_data_tw[x_dat], data_ref, label='TW', c='k',
-                        ls='--', linewidth=2.)
-            # Plot data
-            ax.plot(dict_x_data_lw[x_dat], data, label=label)
+            else:
+                # Plot TW data if not already done
+                if 'TW' not in ax.get_legend_handles_labels()[1]:
+                    data_ref = tw.load_tw_results(filepath_ref, y_d)
+                    ax.plot(dict_x_data_tw[x_dat], data_ref, label='TW', c='k',
+                            ls='--', linewidth=2.)
+
+                ax.plot(dict_x_data_lw[x_dat], data, label=label)
 
     # Plot
-    fig, axlist = helper.create_fig_if_not_exist(21, range(311, 314))
+    n_plot = len(y_dat)
+    first_axnum = n_plot * 100 + 11
+    last_axnum = first_axnum + n_plot
+    fig, axlist = helper.create_fig_if_not_exist(21, range(first_axnum,
+                                                           last_axnum))
     label = 'LW ' + linac.name
 
-    for i in range(3):
+    for i in range(n_plot):
         y_d = y_dat[i]
         single_plot(axlist[i], x_dat, y_d, label)
         axlist[i].set_ylabel(dict_label[y_d])
-    axlist[2].set_xlabel(dict_label[x_dat])
+    axlist[-1].set_xlabel(dict_label[x_dat])
     axlist[0].legend()
 
 
