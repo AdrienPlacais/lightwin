@@ -74,8 +74,6 @@ class fault_scenario():
                                        self.solver['max_ke']])
             bounds[2*i+1, :] = np.array([self.solver['min_phi0'],
                                          self.solver['max_phi0']])
-        print('Initial guesses:', x0)
-        print('Bounds', bounds)
         # @TODO: not elegant
 
         # Portion of linac with compensating cavities, as well as drifts and

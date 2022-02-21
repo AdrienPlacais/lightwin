@@ -235,7 +235,7 @@ def compare_with_tracewin(accelerator, x_dat, y_dat, filepath_ref=None):
                                                  range(311, 314))
     if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
         axlist[0].plot(dict_x_data[x_dat][0], data_ref, label='TW', c='k',
-                       ls='--')
+                       ls='--', linewidth=2.)
 
     axlist[0].plot(dict_x_data[x_dat][1], data, label='LW ' + accelerator.name)
     axlist[1].plot(dict_x_data[x_dat][0], error * dict_err_factor[y_dat])
@@ -276,7 +276,7 @@ def plot_vcav_and_phis(accelerator):
     for axx in ax[0:-1]:
         axx.grid(True)
 
-    helper.plot_structure(accelerator, ax[2], x_axis='index')
+    helper.plot_structure(accelerator, ax[2], x_axis='elt')
     ax[2].set_xlim(ax[0].get_xlim())
     ax[2].set_xlabel('Element #')
     ax[0].legend()

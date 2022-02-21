@@ -59,7 +59,7 @@ broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Broken')
 failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 strategy = 'manual'
-objective = 'energy'
+objective = 'phase'
 
 
 # fault.apply_faults(broken_linac, failed_cav)
@@ -76,9 +76,9 @@ for lin in [ref_linac, broken_linac]:
 # Output options
 # =============================================================================
         PLOT_TM = False
-        PLOT_ENERGY = False
+        PLOT_ENERGY = True
         PLOT_ABS_PHASE = True
-        PLOT_CAV = False
+        PLOT_CAV = True
         PHASE_SPACE = False
         TWISS = False
         SAVE_MT_AND_ENERGY = False
@@ -110,7 +110,7 @@ for lin in [ref_linac, broken_linac]:
             helper.save_vcav_and_phis(lin)
 
 
-# basic_fault.fix(strategy, objective, manual_list)
+basic_fault.fix(strategy, objective, manual_list)
 tw.save_new_dat(broken_linac, FILEPATH)
 
 if PLOT_ENERGY:
