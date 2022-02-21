@@ -78,7 +78,7 @@ for lin in [ref_linac, broken_linac]:
         PLOT_TM = False
         PLOT_ENERGY = True
         PLOT_ABS_PHASE = True
-        PLOT_CAV = True
+        PLOT_CAV = False
         PHASE_SPACE = False
         TWISS = False
         SAVE_MT_AND_ENERGY = False
@@ -87,11 +87,14 @@ for lin in [ref_linac, broken_linac]:
         if PLOT_TM:
             debug.plot_transfer_matrices(lin, lin.transf_mat['cumul'])
 
-        if PLOT_ENERGY:
-            debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='energy')
+        # if PLOT_ENERGY:
+        #     debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='energy')
 
-        if PLOT_ABS_PHASE:
-            debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='abs_phase')
+        # if PLOT_ABS_PHASE:
+        #     debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='abs_phase')
+        debug.triple_bla(lin,
+                         x_dat='s',
+                         y_dat=['energy', 'abs_phase', 'struct'])
 
         if PLOT_CAV:
             debug.plot_vcav_and_phis(lin)
@@ -110,13 +113,13 @@ for lin in [ref_linac, broken_linac]:
             helper.save_vcav_and_phis(lin)
 
 
-basic_fault.fix(strategy, objective, manual_list)
+# basic_fault.fix(strategy, objective, manual_list)
 tw.save_new_dat(broken_linac, FILEPATH)
 
-if PLOT_ENERGY:
-    debug.compare_with_tracewin(broken_linac, x_dat=x_dat, y_dat='energy')
-if PLOT_ABS_PHASE:
-    debug.compare_with_tracewin(broken_linac, x_dat=x_dat, y_dat='abs_phase')
+# if PLOT_ENERGY:
+#     debug.compare_with_tracewin(broken_linac, x_dat=x_dat, y_dat='energy')
+# if PLOT_ABS_PHASE:
+#     debug.compare_with_tracewin(broken_linac, x_dat=x_dat, y_dat='abs_phase')
 if PLOT_CAV:
     debug.plot_vcav_and_phis(broken_linac)
 if PLOT_TM:

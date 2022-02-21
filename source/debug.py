@@ -167,6 +167,114 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         axlist[i].grid(True)
 
 
+def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
+               filepath_ref=None):
+    """
+    Comparison of beam energy with TW data.
+
+    Parameters
+    ----------
+    accelerator: Accelerator object
+        Accelerator under study.
+    x_dat: string
+        Data in x axis. Common to the three plots.
+    y_dat: list of string
+        Data in y axis for each subplot.
+    """
+    syn = linac.synch
+    # Prep
+    if filepath_ref is None:
+        filepath_ref = linac.project_folder + '/results/energy_ref.txt'
+
+    # Used to have TW and LW data at the same absolute positions
+    dict_indexes = {
+        's': range(0, syn.z['abs_array'].shape[0]),
+        'elt': linac.get_from_elements('idx', 'out')[:, 0],
+        }
+    # TW and error x data
+    elt_array = range(linac.n_elements)
+    dict_x_data_tw = {
+        's': syn.z['abs_array'][dict_indexes['elt']],
+        'elt': elt_array,
+        }
+    # LW x data
+    dict_x_data_lw = {
+        's': syn.z['abs_array'],
+        'elt': elt_array,
+        }
+    # LW y data
+    dict_y_data = {
+        'energy': syn.energy['kin_array_mev'],
+        'abs_phase': np.rad2deg(syn.phi['abs_array']),
+        'beta_synch': syn.energy['beta_array'],
+        }
+
+    # Handle error plots
+    dict_err_factor = {
+        'energy': 1e6,
+        'abs_phase': 1.,
+        'beta_synch': 1.,
+        }
+
+    # Function to return error between LW and TW data
+    def err(y_d):
+        data_ref = tw.load_tw_results(filepath_ref, y_d)
+        data = dict_y_data[y_d][dict_indexes['elt']]
+        return dict_err_factor[y_d] * np.abs(data_ref - data)
+    # Add it to the dict of y data
+    dict_y_data.update(
+        {
+            'energy_err': err('energy'),
+            'abs_phase_err': err('abs_phase'),
+            'beta_synch_err': err('beta_synch'),
+            }
+    )
+
+    # Labels
+    dict_label = {
+        # x data
+        's': 'Synch. position [m]',
+        'elt': 'Element number',
+        # y data
+        'energy': 'Beam energy [MeV]',
+        'energy_err': 'Abs. error [eV]',
+        'abs_phase': 'Beam phase [deg]',
+        'abs_phase_err': 'Abs. phase error [deg]',
+        'beta_synch': r'Synch. $\beta$ [1]',
+        'beta_synch_err': r'Abs. $\beta$ error [1]',
+        'struct': 'Structure',
+        }
+
+    # Function to plot y_d as a function of x_dat in ax
+    def single_plot(ax, x_dat, y_d, label):
+        if y_d == 'struct':
+            helper.plot_structure(linac, ax, x_axis=x_dat)
+
+        else:
+            ax.grid(True)
+            data = dict_y_data[y_d][dict_indexes[x_dat]]
+
+            # For plots that are non error, plot TW data if not already done
+            if '_err' not in y_d and 'TW' not in \
+                    ax.get_legend_handles_labels()[1]:
+                data_ref = tw.load_tw_results(filepath_ref, y_d)
+                ax.plot(dict_x_data_tw[x_dat], data_ref, label='TW', c='k',
+                        ls='--', linewidth=2.)
+            # Plot data
+            ax.plot(dict_x_data_lw[x_dat], data, label=label)
+
+    # Plot
+    fig, axlist = helper.create_fig_if_not_exist(21, range(311, 314))
+    label = 'LW ' + linac.name
+
+    for i in range(3):
+        y_d = y_dat[i]
+        single_plot(axlist[i], x_dat, y_d, label)
+        axlist[i].set_ylabel(dict_label[y_d])
+    axlist[2].set_xlabel(dict_label[x_dat])
+    axlist[0].legend()
+
+
 def compare_with_tracewin(accelerator, x_dat, y_dat, filepath_ref=None):
     """
     Comparison of beam energy with TW data.
