@@ -45,10 +45,9 @@ def z_drift_element(elt, synch):
     n_steps = elt.solver_transf_mat.n_steps
     delta_s = elt.length_m / n_steps
     r_zz = np.full((n_steps, 2, 2), np.NaN)
-    idx_in = elt.idx['in']
 
     for i in range(n_steps):
-        idx_abs = idx_in + i
+        idx_abs = elt.idx['in'] + i
         r_zz[i, :, :] = z_drift_length(delta_s,
                                        synch.energy['gamma_array'][idx_abs])
 

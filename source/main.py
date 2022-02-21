@@ -67,7 +67,7 @@ basic_fault = fault.fault_scenario(ref_linac, broken_linac)
 basic_fault.break_at(failed_cav)
 
 x_dat = 'elt'
-x_dat = 's'
+# x_dat = 's'
 for lin in [ref_linac, broken_linac]:
     for method in ['RK']:
         lin.compute_transfer_matrices(method)

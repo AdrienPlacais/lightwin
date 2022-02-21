@@ -151,7 +151,7 @@ class Particle():
     def exit_cavity(self, index):
         """Recompute phi with the proper omega0, reset omega0."""
         frac_omega = self.omega0['bunch'] / self.omega0['rf']
-        offset_phi = self.phi['abs_array'][index['in'] - 1]
+        offset_phi = self.phi['abs_array'][index['in']]
 
         # Set proper phi
         for i in range(index['in'], index['out'] + 1):
