@@ -77,7 +77,7 @@ for lin in [ref_linac, broken_linac]:
         PLOT_TM = False
         PLOT_ENERGY = False
         PLOT_ABS_PHASE = True
-        PLOT_CAV = True
+        PLOT_CAV = False
         PHASE_SPACE = False
         TWISS = False
         SAVE_MT_AND_ENERGY = False

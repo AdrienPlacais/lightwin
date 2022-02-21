@@ -153,7 +153,7 @@ def z_field_map_electric_field(cavity, synch):
                                                beta_middle, synch)
 
         if solver_param.method == 'leapfrog':
-            delta['phi'] = cavity.n_cell * synch.omega0['bunch'] \
+            delta['phi'] = cavity.acc_field.n_cell * synch.omega0['bunch'] \
                 * solver_param.d_z / (helper.gamma_to_beta(gamma['out']) * c)
 
         synch.advance_phi(delta['phi'], idx=idx_abs)

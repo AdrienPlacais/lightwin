@@ -80,23 +80,26 @@ def rk4(u, du_dx, x, dx):
 # =============================================================================
 # Leapfrog
 # =============================================================================
-def init_leapfrog_cavity(cavity, gamma, dz, synch):
-    """Init leapfrog method to compute transfer matrix of cavity."""
-    # Leapfrog method:
-    #   pos(i+1) = pos(i) + speed(i+0.5) * dt
-    #   speed(i+0.5) = speed(i-0.5) * accel(i) * dt
-    # Here, dt is not fixed but dz.
-    #   z(i+1) += dz
-    #   t(i+1) = t(i) + dz / (c beta(i+1/2))
-    #       (time and space variables are on whole steps)
-    #   beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
-    #       (speed/energy are on half steps)
-    # e_0_mev = cavity.energy['kin_array_mev'][0]
+def init_leapfrog_cavity(cavity, gamma, dz, synch, idx=None):
+    """
+    Init leapfrog method to compute transfer matrix of cavity.
 
+    Leapfrog method:
+      pos(i+1) = pos(i) + speed(i+0.5) * dt
+      speed(i+0.5) = speed(i-0.5) * accel(i) * dt
+    Here, dt is not fixed but dz.
+      z(i+1) += dz
+      t(i+1) = t(i) + dz / (c beta(i+1/2))
+          (time and space variables are on whole steps)
+      beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
+          (speed/energy are on half steps)
+    e_0_mev = cavity.energy['kin_array_mev'][0]
+    """
     # Remove last array element as it is on i and should be on i-1/2
-    print("Warning init_leapfrog_cavity, pop method won't work with np arr")
-    synch.energy['kin_array_mev'].pop(-1)
-    synch.energy['gamma_array'].pop(-1)
+    if idx is None:
+        idx = np.where(np.isnan(synch.energy['kin_array_mev']))[0][0] - 1
+    synch.energy['kin_array_mev'][idx] = np.NaN
+    synch.energy['gamma_array'][idx] = np.NaN
     # Rewind energy
     synch.set_energy(-q_adim * cavity.acc_field.e_func(
         synch.z['rel'], 0.) * .5 * dz, delta_e=True)
@@ -104,4 +107,4 @@ def init_leapfrog_cavity(cavity, gamma, dz, synch):
     synch.z['rel'] = 0.
     synch.phi['rel'] = 0.
 
-    gamma['out'] = synch.energy['gamma']
+    gamma['out'] = gamma['in']

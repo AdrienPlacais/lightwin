@@ -87,7 +87,7 @@ class Particle():
 
     def advance_position(self, delta_pos, idx=np.NaN):
         """
-        Advance particle by delt_pos.
+        Advance particle by delta_pos.
 
         Parameters
         ----------
@@ -168,8 +168,6 @@ class Particle():
                 - self.phi['abs_array'][idx_entry - 1]
             self.phi['abs_array'][i] = self.phi['abs_array'][idx_entry - 1] \
                 + delta_phi * frac_omega
-        # self.phi['abs'] = self.phi['abs_array'][idx_exit]
-        # self.phi['abs_deg'] = np.rad2deg(self.phi['abs'])
 
         # Reset proper omega
         self.omega0['ref'] = self.omega0['bunch']
