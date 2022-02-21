@@ -113,7 +113,7 @@ def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
                         size=8)
 
 
-def plot_structure(linac, ax, x_axis='pos_m'):
+def plot_structure(linac, ax, x_axis='s'):
     """Plot a structure of the linac under study."""
     dict_elem_plot = {
         'DRIFT': _plot_drift,
@@ -122,19 +122,19 @@ def plot_structure(linac, ax, x_axis='pos_m'):
         }
     i = 0
     for elt in linac.list_of_elements:
-        if x_axis == 'pos_m':
+        if x_axis == 's':
             x0 = elt.pos_m['abs'][0]
             width = elt.length_m
-        elif x_axis == 'index':
+        elif x_axis == 'elt':
             x0 = i
             width = 1
         ax.add_patch(dict_elem_plot[elt.name](elt, x0, width))
         i += 1
 
-    if x_axis == 'pos_m':
+    if x_axis == 's':
         ax.set_xlim([linac.list_of_elements[0].pos_m['abs'][0],
                      linac.list_of_elements[-1].pos_m['abs'][-1]])
-    elif x_axis == 'index':
+    elif x_axis == 'elt':
         ax.set_xlim([0, i])
     ax.set_yticklabels([])
     ax.set_yticks([])

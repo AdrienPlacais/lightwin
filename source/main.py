@@ -66,7 +66,8 @@ objective = 'energy'
 basic_fault = fault.fault_scenario(ref_linac, broken_linac)
 basic_fault.break_at(failed_cav)
 
-
+x_dat = 'elt'
+x_dat = 's'
 for lin in [ref_linac, broken_linac]:
     for method in ['RK']:
         lin.compute_transfer_matrices(method)
@@ -87,10 +88,10 @@ for lin in [ref_linac, broken_linac]:
             debug.plot_transfer_matrices(lin, lin.transf_mat['cumul'])
 
         if PLOT_ENERGY:
-            debug.compare_with_tracewin(lin, 'energy')
+            debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='energy')
 
         if PLOT_ABS_PHASE:
-            debug.compare_with_tracewin(lin, 'abs_phase')
+            debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='abs_phase')
 
         if PLOT_CAV:
             debug.plot_vcav_and_phis(lin)
@@ -113,9 +114,9 @@ for lin in [ref_linac, broken_linac]:
 tw.save_new_dat(broken_linac, FILEPATH)
 
 if PLOT_ENERGY:
-    debug.compare_with_tracewin(broken_linac, 'energy')
+    debug.compare_with_tracewin(broken_linac, x_dat=x_dat, y_dat='energy')
 if PLOT_ABS_PHASE:
-    debug.compare_with_tracewin(broken_linac, 'abs_phase')
+    debug.compare_with_tracewin(broken_linac, x_dat=x_dat, y_dat='abs_phase')
 if PLOT_CAV:
     debug.plot_vcav_and_phis(broken_linac)
 if PLOT_TM:

@@ -167,7 +167,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         axlist[i].grid(True)
 
 
-def compare_with_tracewin(accelerator, prop, filepath_ref=None):
+def compare_with_tracewin(accelerator, x_dat, y_dat, filepath_ref=None):
     """
     Comparison of beam energy with TW data.
 
@@ -175,18 +175,40 @@ def compare_with_tracewin(accelerator, prop, filepath_ref=None):
     ----------
     accelerator: Accelerator object
         Accelerator under study.
+    x_dat: string
+        Data in x axis.
+    y_dat: string
+        Data in y axis.
     """
+    syn = accelerator.synch
     # Prep
     if filepath_ref is None:
         filepath_ref = accelerator.project_folder + '/results/energy_ref.txt'
 
-    dict_data = {
-        'energy': accelerator.synch.energy['kin_array_mev'],
-        'abs_phase': np.rad2deg(accelerator.synch.phi['abs_array']),
-        'beta_synch': accelerator.synch.energy['beta_array'],
+    # Used to have TW and LW data at the same absolute positions
+    dict_indexes = {
+        's': range(0, syn.z['abs_array'].shape[0]),
+        'elt': accelerator.get_from_elements('idx', 'out')[:, 0],
         }
-    # Label of property plot, of error plot, figure number
+    # TW and error x data (first list element) and LW data (second element)
+    elt_array = range(accelerator.n_elements)
+    dict_x_data = {
+        's': [syn.z['abs_array'][dict_indexes['elt']],
+              syn.z['abs_array'], ],
+        'elt': [elt_array, elt_array, ],
+        }
+    # LW y-data
+    dict_y_data = {
+        'energy': syn.energy['kin_array_mev'],
+        'abs_phase': np.rad2deg(syn.phi['abs_array']),
+        'beta_synch': syn.energy['beta_array'],
+        }
+    # Labels of property plot, of error plot, figure number
     dict_label = {
+        # x data
+        's': 'Synch. position [m]',
+        'elt': 'Element number',
+        # y data
         'energy': ['Beam energy [MeV]', 'Abs. error [eV]', 21],
         'abs_phase': ['Beam phase [deg]', 'Abs. error [deg]', 22],
         'beta_synch': [r'Synch. $\beta$ [1]', 'Abs. error [1]', 23],
@@ -198,33 +220,32 @@ def compare_with_tracewin(accelerator, prop, filepath_ref=None):
         'beta_synch': 1.,
         }
 
-    # x axis data
-    elt_array = range(accelerator.n_elements)
-
     # y axis data
-    data_ref = tw.load_tw_results(filepath_ref, prop)
-    data = []
-    for elt in accelerator.list_of_elements:
-        idx = elt.idx['out']
-        data.append(dict_data[prop][idx])
-    data = np.array(data)
-    error = np.abs(data_ref - data)
+    data_ref = tw.load_tw_results(filepath_ref, y_dat)
+
+    # Get full array of LW data
+    data = dict_y_data[y_dat]
+    # Compute error with TW at the end of each element
+    error = np.abs(data_ref - data[dict_indexes['elt']])
+    # Lower number of points (effective only if x_dat == 'elt')
+    data = data[dict_indexes[x_dat]]
 
     # Plot
-    fig, axlist = helper.create_fig_if_not_exist(dict_label[prop][2],
+    fig, axlist = helper.create_fig_if_not_exist(dict_label[y_dat][2],
                                                  range(311, 314))
     if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
-        axlist[0].plot(elt_array, data_ref, label='TW', c='k', ls='--')
+        axlist[0].plot(dict_x_data[x_dat][0], data_ref, label='TW', c='k',
+                       ls='--')
 
-    axlist[0].plot(elt_array, data, label='LW ' + accelerator.name)
-    axlist[1].plot(elt_array, error * dict_err_factor[prop])
-    helper.plot_structure(accelerator, axlist[2], x_axis='index')
+    axlist[0].plot(dict_x_data[x_dat][1], data, label='LW ' + accelerator.name)
+    axlist[1].plot(dict_x_data[x_dat][0], error * dict_err_factor[y_dat])
+    helper.plot_structure(accelerator, axlist[2], x_axis=x_dat)
     axlist[2].set_xlim(axlist[0].get_xlim())
 
     for i in range(2):
         axlist[i].grid(True)
-        axlist[i].set_ylabel(dict_label[prop][i])
-    axlist[2].set_xlabel('Element #')
+        axlist[i].set_ylabel(dict_label[y_dat][i])
+    axlist[2].set_xlabel(dict_label[x_dat])
     axlist[0].legend()
 
 
