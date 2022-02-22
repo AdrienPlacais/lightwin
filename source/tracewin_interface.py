@@ -177,6 +177,7 @@ def load_tw_results(filepath, prop):
         'v_cav_mv': 6,
         'input_phase': 7,
         'synch_phase': 8,
+        'phi_s_deg': 8,
         'energy': 9,
         'beta_synch': 10,
         'full_length': 11,

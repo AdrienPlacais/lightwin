@@ -232,6 +232,7 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
         'abs_phase': np.rad2deg(syn.phi['abs_array']),
         'beta_synch': syn.energy['beta_array'],
         'v_cav_mv': linac.get_from_elements('acc_field', 'v_cav_mv'),
+        'phi_s_deg': linac.get_from_elements('acc_field', 'phi_s_deg'),
         }
 
     # Coefficient for every error
@@ -269,6 +270,7 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
         'beta_synch_err': [r'Abs. $\beta$ error [1]', None],
         'struct': ['Structure', None],
         'v_cav_mv': ['Acc. field [MV]', 'o'],
+        'phi_s_deg': ['Synch. phase [deg]', 'o'],
         }
 
     # Function to plot y_d as a function of x_dat in ax

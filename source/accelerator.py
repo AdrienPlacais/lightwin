@@ -257,6 +257,6 @@ class Accelerator():
         data_nature = str(type(list_of_keys[attribute]))
         for elt in self.list_of_elements:
             out = dict_data_getter[data_nature](out, elt)
-        if key == 'v_cav_mv':   # FIXME
+        if key in ['v_cav_mv', 'phi_s_deg']:   # FIXME
             out = out[:, 0]
         return out
