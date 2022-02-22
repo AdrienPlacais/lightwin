@@ -167,6 +167,36 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         axlist[i].grid(True)
 
 
+def _reformat(x_data, y_data, elts_indexes):
+    """
+    Downsample x_data or y_data if it has more points than the other.
+
+    Parameters
+    ----------
+    x_data : np.array
+        Data to plot in x-axis.
+    y_data : TYPE
+        Data to plot on y-axis.
+
+    Returns
+    -------
+    x_data : np.array
+        Same array, downsampled to elements position if necessary.
+    y_data : np.array
+        Same array, downsampled to elements position if necessary.
+    """
+    # Check the shapes
+    if x_data.shape[0] < y_data.shape[0]:
+        y_data = y_data[elts_indexes]
+    elif x_data.shape[0] > y_data.shape[0]:
+        x_data = x_data[elts_indexes]
+    # Check the NaN values
+    valid_idx = np.where(~np.isnan(y_data))
+    x_data = x_data[valid_idx]
+    y_data = y_data[valid_idx]
+    return x_data, y_data
+
+
 def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
                filepath_ref=None):
     """
@@ -174,42 +204,37 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
 
     Parameters
     ----------
-    accelerator: Accelerator object
+    accelerator : Accelerator object
         Accelerator under study.
-    x_dat: string
+    x_dat : string
         Data in x axis. Common to the three plots.
-    y_dat: list of string
+    y_dat : list of string
         Data in y axis for each subplot.
+    filepath_ref : string
+        Path to the TW results.
     """
     syn = linac.synch
     # Prep
     if filepath_ref is None:
         filepath_ref = linac.project_folder + '/results/energy_ref.txt'
 
-    # Used to have TW and LW data at the same absolute positions
-    dict_indexes = {
-        's': range(0, syn.z['abs_array'].shape[0]),
-        'elt': linac.get_from_elements('idx', 'out')[:, 0],
-        }
-    # TW and error x data
-    elt_array = range(linac.n_elements)
-    dict_x_data_tw = {
-        's': syn.z['abs_array'][dict_indexes['elt']],
-        'elt': elt_array,
-        }
-    # LW x data
-    dict_x_data_lw = {
+    dict_x_data = {
         's': syn.z['abs_array'],
-        'elt': elt_array,
+        'elt': range(linac.n_elements),
         }
+
+    # Used when there are too many points (x or y data)
+    elts_indexes = linac.get_from_elements('idx', 'out')[:, 0]
+
     # LW y data
-    dict_y_data = {
+    dict_y_data_lw = {
         'energy': syn.energy['kin_array_mev'],
         'abs_phase': np.rad2deg(syn.phi['abs_array']),
         'beta_synch': syn.energy['beta_array'],
+        'v_cav_mv': linac.get_from_elements('acc_field', 'v_cav_mv'),
         }
 
-    # Handle error plots
+    # Coefficient for every error
     dict_err_factor = {
         'energy': 1e6,
         'abs_phase': 1.,
@@ -217,32 +242,33 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
         }
 
     # Function to return error between LW and TW data
-    def err(y_d):
-        data_ref = tw.load_tw_results(filepath_ref, y_d)
-        data = dict_y_data[y_d][dict_indexes['elt']]
-        return dict_err_factor[y_d] * np.abs(data_ref - data)
+    def _err(y_d):
+        y_data_ref = tw.load_tw_results(filepath_ref, y_d)
+        y_data = dict_y_data_lw[y_d][elts_indexes]
+        err_data = dict_err_factor[y_d] * np.abs(y_data_ref - y_data)
+        return err_data
+
     # Add it to the dict of y data
-    dict_y_data.update(
+    dict_y_data_lw.update(
         {
-            'energy_err': err('energy'),
-            'abs_phase_err': err('abs_phase'),
-            'beta_synch_err': err('beta_synch'),
+            'energy_err': _err('energy'),
+            'abs_phase_err': _err('abs_phase'),
+            'beta_synch_err': _err('beta_synch'),
             }
     )
 
-    # Labels
-    dict_label = {
-        # x data
-        's': 'Synch. position [m]',
-        'elt': 'Element number',
-        # y data
-        'energy': 'Beam energy [MeV]',
-        'energy_err': 'Abs. error [eV]',
-        'abs_phase': 'Beam phase [deg]',
-        'abs_phase_err': 'Abs. phase error [deg]',
-        'beta_synch': r'Synch. $\beta$ [1]',
-        'beta_synch_err': r'Abs. $\beta$ error [1]',
-        'struct': 'Structure',
+    # [label, marker]
+    dict_plot = {
+        's': ['Synch. position [m]', None],
+        'elt': ['Element number', None],
+        'energy': ['Beam energy [MeV]', None],
+        'energy_err': ['Abs. error [eV]', None],
+        'abs_phase': ['Beam phase [deg]', None],
+        'abs_phase_err': ['Abs. phase error [deg]', None],
+        'beta_synch': [r'Synch. $\beta$ [1]', None],
+        'beta_synch_err': [r'Abs. $\beta$ error [1]', None],
+        'struct': ['Structure', None],
+        'v_cav_mv': ['Acc. field [MV]', 'o'],
         }
 
     # Function to plot y_d as a function of x_dat in ax
@@ -251,24 +277,27 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
             helper.plot_structure(linac, ax, x_axis=x_dat)
 
         else:
+            # Plot TW data if it was not already done and if it is not an error
+            # plot
+            if ('_err' not in y_d) and (
+                    'TW' not in ax.get_legend_handles_labels()[1]):
+                x_data_ref = dict_x_data[x_dat]
+                y_data_ref = tw.load_tw_results(filepath_ref, y_d)
+                x_data_ref, y_data_ref = _reformat(x_data_ref, y_data_ref,
+                                                   elts_indexes)
+                ax.plot(x_data_ref, y_data_ref, label='TW', c='k',
+                        ls='--', marker=dict_plot[y_d][1], linewidth=2.)
             ax.grid(True)
-            data = dict_y_data[y_d]  # [dict_indexes[x_dat]]
-            if '_err' in y_d:
-                ax.plot(dict_x_data_tw[x_dat], data, label=label)
-
-            else:
-                # Plot TW data if not already done
-                if 'TW' not in ax.get_legend_handles_labels()[1]:
-                    data_ref = tw.load_tw_results(filepath_ref, y_d)
-                    ax.plot(dict_x_data_tw[x_dat], data_ref, label='TW', c='k',
-                            ls='--', linewidth=2.)
-
-                ax.plot(dict_x_data_lw[x_dat], data, label=label)
+            x_data = dict_x_data[x_dat]
+            y_data = dict_y_data_lw[y_d]
+            x_data, y_data = _reformat(x_data, y_data, elts_indexes)
+            ax.plot(x_data, y_data, label=label, marker=dict_plot[y_d][1])
 
     # Plot
     n_plot = len(y_dat)
     first_axnum = n_plot * 100 + 11
     last_axnum = first_axnum + n_plot
+    plt.ion()
     fig, axlist = helper.create_fig_if_not_exist(21, range(first_axnum,
                                                            last_axnum))
     label = 'LW ' + linac.name
@@ -276,8 +305,8 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
     for i in range(n_plot):
         y_d = y_dat[i]
         single_plot(axlist[i], x_dat, y_d, label)
-        axlist[i].set_ylabel(dict_label[y_d])
-    axlist[-1].set_xlabel(dict_label[x_dat])
+        axlist[i].set_ylabel(dict_plot[y_d][0])
+    axlist[-1].set_xlabel(dict_plot[x_dat][0])
     axlist[0].legend()
 
 

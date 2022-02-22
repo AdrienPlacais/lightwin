@@ -174,6 +174,7 @@ def load_tw_results(filepath, prop):
             filetypes=[("TraceWin energies file", ".txt")])
 
     dict_property = {
+        'v_cav_mv': 6,
         'input_phase': 7,
         'synch_phase': 8,
         'energy': 9,
@@ -191,7 +192,9 @@ def load_tw_results(filepath, prop):
             except ValueError:
                 continue
             splitted_line = line.split('\t')
-
-            data_ref.append(splitted_line[idx])
+            new_data = splitted_line[idx]
+            if new_data == '-':
+                new_data = np.NaN
+            data_ref.append(new_data)
     data_ref = np.array(data_ref).astype(float)
     return data_ref

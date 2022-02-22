@@ -32,7 +32,8 @@ class Accelerator():
         # is different from 39
 
         # Load dat file and clean it up (remove comments, etc)
-        self.dat_filecontent, self.list_of_elements = tw.load_dat_file(dat_filepath)
+        self.dat_filecontent, self.list_of_elements = \
+            tw.load_dat_file(dat_filepath)
 
         self.transf_mat = {
             'cumul': np.expand_dims(np.eye(2), axis=0),
@@ -52,7 +53,6 @@ class Accelerator():
             'objective': None,       # Variable that should match
             }
         self.prepared = False
-
 
     def _prepare_compute_transfer_matrices(self, method):
         """
@@ -208,22 +208,22 @@ class Accelerator():
 
             Used when element[attribute] is RfField.
             """
-            print(data_out, elt)
             if elt.name == 'FIELD_MAP':
-                assert key is not None, 'A key must be provided as attribute ' \
-                    + 'is a dict.'
+                assert key is not None, 'A key must be provided as attribute '\
+                    + 'is a class.'
                 subclass_attributes = vars(elt)
 
                 if data_out is not None:
-                    print('a')
-                    data_tmp = np.copy(subclass_attributes[attribute][key])
+                    data_tmp = np.copy(getattr(subclass_attributes[attribute],
+                                               key))
                     data_out = add_data(data_out, data_tmp, attribute)
                 else:
-                    print('b', subclass_attributes, attribute, key)
                     data_out = np.copy(subclass_attributes[attribute][key])
             else:
-                data_out = add_data(data_out, np.NaN, attribute)
-
+                if data_out is not None:
+                    data_out = add_data(data_out, np.NaN, attribute)
+                else:
+                    data_out = np.array([np.NaN])
             return data_out
 
         def fun_simple(data_out, elt):
@@ -257,4 +257,6 @@ class Accelerator():
         data_nature = str(type(list_of_keys[attribute]))
         for elt in self.list_of_elements:
             out = dict_data_getter[data_nature](out, elt)
+        if key == 'v_cav_mv':   # FIXME
+            out = out[:, 0]
         return out
