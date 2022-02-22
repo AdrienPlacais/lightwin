@@ -17,6 +17,7 @@ import emittance
 import transport
 import fault
 import tracewin_interface as tw
+
 # =============================================================================
 # User inputs
 # =============================================================================
@@ -26,7 +27,7 @@ import tracewin_interface as tw
 E_MEV = 16.6
 
 # Current in mA
-I_MILLI_A = 0.
+I_MILLI_A = 0.0
 
 # Bunch frequency in MHz
 F_MHZ = 176.1
@@ -38,13 +39,13 @@ emit_pw = emittance.mm_mrad_to_deg_mev(EMIT_Z_Z_PRIME, F_MHZ)
 
 # Input Twiss parameters. Not modified by EMIT_Z_Z_PRIME
 ALPHA_Z = 0.1389194
-BETA_Z = 2.1311577      # mm/pi.mrad
-BETA_W = 71.215849      # deg/pi.MeV
+BETA_Z = 2.1311577  # mm/pi.mrad
+BETA_W = 71.215849  # deg/pi.MeV
 
 # Select .dat file
 Tk().withdraw()
-FILEPATH = '../data/work_field_map/work_field_map.dat'
-if FILEPATH == '':
+FILEPATH = "../data/work_field_map/work_field_map.dat"
+if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
 FILEPATH = os.path.abspath(FILEPATH)
@@ -53,23 +54,21 @@ FILEPATH = os.path.abspath(FILEPATH)
 # End of user inputs
 # =============================================================================
 start_time = time.monotonic()
-ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Working')
+ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Working")
 
-broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, 'Broken')
+broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
 failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
-strategy = 'manual'
-objective = 'phase'
+STRATEGY = "manual"
+OBJECTIVE = "phase"
 
 
 # fault.apply_faults(broken_linac, failed_cav)
 basic_fault = fault.fault_scenario(ref_linac, broken_linac)
 basic_fault.break_at(failed_cav)
 
-x_dat = 'elt'
-# x_dat = 's'
 for lin in [ref_linac, broken_linac]:
-    for method in ['RK']:
+    for method in ["RK"]:
         lin.compute_transfer_matrices(method)
 
 # =============================================================================
@@ -78,26 +77,28 @@ for lin in [ref_linac, broken_linac]:
         PLOT_TM = False
         PLOT_ENERGY = True
         PLOT_ABS_PHASE = True
-        PLOT_CAV = False
+        PLOT_CAV = True
         PHASE_SPACE = False
         TWISS = False
         SAVE_MT_AND_ENERGY = False
         SAVE_VCAV_AND_PHIS = False
 
         if PLOT_TM:
-            debug.plot_transfer_matrices(lin, lin.transf_mat['cumul'])
+            debug.plot_transfer_matrices(lin, lin.transf_mat["cumul"])
 
-        # if PLOT_ENERGY:
-        #     debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='energy')
-
-        # if PLOT_ABS_PHASE:
-        #     debug.compare_with_tracewin(lin, x_dat=x_dat, y_dat='abs_phase')
-        debug.triple_bla(lin,
-                         x_dat='s',
-                         y_dat=['v_cav_mv', 'phi_s_deg', 'struct'])
+        if PLOT_ENERGY:
+            preset_energy = ["energy", "energy_err", "struct"]
+            debug.compare_with_tracewin(lin, x_dat="s", y_dat=preset_energy,
+                                        fignum=22)
+        if PLOT_ABS_PHASE:
+            preset_phase = ["abs_phase", "abs_phase_err", "struct"]
+            debug.compare_with_tracewin(lin, x_dat="s", y_dat=preset_phase,
+                                        fignum=23)
 
         if PLOT_CAV:
-            debug.plot_vcav_and_phis(lin)
+            preset_cav = ["v_cav_mv", "phi_s_deg", "struct"]
+            debug.compare_with_tracewin(lin, x_dat="s", y_dat=preset_cav,
+                                        fignum=24)
 
         if PHASE_SPACE:
             debug.compare_phase_space(lin)
@@ -113,20 +114,21 @@ for lin in [ref_linac, broken_linac]:
             helper.save_vcav_and_phis(lin)
 
 
-# basic_fault.fix(strategy, objective, manual_list)
+basic_fault.fix(STRATEGY, OBJECTIVE, manual_list)
 tw.save_new_dat(broken_linac, FILEPATH)
 
-broken_linac.get_from_elements('acc_field', 'v_cav_mv')
-
-# if PLOT_ENERGY:
-#     debug.compare_with_tracewin(broken_linac, x_dat=x_dat, y_dat='energy')
-# if PLOT_ABS_PHASE:
-#     debug.compare_with_tracewin(broken_linac, x_dat=x_dat, y_dat='abs_phase')
+if PLOT_ENERGY:
+    debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_energy,
+                                fignum=22)
+if PLOT_ABS_PHASE:
+    debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_phase,
+                                fignum=23)
 if PLOT_CAV:
-    debug.plot_vcav_and_phis(broken_linac)
+    debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_cav,
+                                fignum=24)
 if PLOT_TM:
     debug.plot_transfer_matrices(broken_linac,
-                                 broken_linac.transf_mat['cumul'])
+                                 broken_linac.transf_mat["cumul"])
 
 end_time = time.monotonic()
-print('\n\nElapsed time:', timedelta(seconds=end_time - start_time))
+print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))

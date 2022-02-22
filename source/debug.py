@@ -197,22 +197,46 @@ def _reformat(x_data, y_data, elts_indexes):
     return x_data, y_data
 
 
-def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
-               filepath_ref=None):
+def compare_with_tracewin(linac, x_dat='s',
+                          y_dat=['energy', 'energy_err', 'struct'],
+                          filepath_ref=None, fignum=21):
     """
-    Comparison of beam energy with TW data.
+    Compare data calculated by TraceWin and LightWin.
+
+    There are several plots on top of each other. Number of plots is determined
+    by the len of y_dat.
 
     Parameters
     ----------
-    accelerator : Accelerator object
+    linac : Accelerator object
         Accelerator under study.
     x_dat : string
-        Data in x axis. Common to the three plots.
+        Data in x axis, common to the n plots. It should be 's' for a plot as
+        a function of the position and 'elt' for a plot a function of the
+        number of elements.
     y_dat : list of string
-        Data in y axis for each subplot.
+        Data in y axis for each subplot. It should be in dict_y_data_lw.
     filepath_ref : string
-        Path to the TW results.
+        Path to the TW results. They should be saved in TraceWin: Data > Save
+        table to file (loaded by tracewin_interface.load_tw_results).
+    fignum: int
+        Number of the Figure.
     """
+    # [label, marker]
+    dict_plot = {
+        's': ['Synch. position [m]', None],
+        'elt': ['Element number', None],
+        'energy': ['Beam energy [MeV]', None],
+        'energy_err': ['Abs. error [eV]', None],
+        'abs_phase': ['Beam phase [deg]', None],
+        'abs_phase_err': ['Abs. phase error [deg]', None],
+        'beta_synch': [r'Synch. $\beta$ [1]', None],
+        'beta_synch_err': [r'Abs. $\beta$ error [1]', None],
+        'struct': ['Structure', None],
+        'v_cav_mv': ['Acc. field [MV]', 'o'],
+        'phi_s_deg': ['Synch. phase [deg]', 'o'],
+        }
+
     syn = linac.synch
     # Prep
     if filepath_ref is None:
@@ -258,23 +282,8 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
             }
     )
 
-    # [label, marker]
-    dict_plot = {
-        's': ['Synch. position [m]', None],
-        'elt': ['Element number', None],
-        'energy': ['Beam energy [MeV]', None],
-        'energy_err': ['Abs. error [eV]', None],
-        'abs_phase': ['Beam phase [deg]', None],
-        'abs_phase_err': ['Abs. phase error [deg]', None],
-        'beta_synch': [r'Synch. $\beta$ [1]', None],
-        'beta_synch_err': [r'Abs. $\beta$ error [1]', None],
-        'struct': ['Structure', None],
-        'v_cav_mv': ['Acc. field [MV]', 'o'],
-        'phi_s_deg': ['Synch. phase [deg]', 'o'],
-        }
-
     # Function to plot y_d as a function of x_dat in ax
-    def single_plot(ax, x_dat, y_d, label):
+    def _single_plot(ax, x_dat, y_d, label):
         if y_d == 'struct':
             helper.plot_structure(linac, ax, x_axis=x_dat)
 
@@ -300,131 +309,15 @@ def triple_bla(linac, x_dat='s', y_dat=['energy', 'energy_err', 'struct'],
     first_axnum = n_plot * 100 + 11
     last_axnum = first_axnum + n_plot
     plt.ion()
-    fig, axlist = helper.create_fig_if_not_exist(21, range(first_axnum,
-                                                           last_axnum))
-    label = 'LW ' + linac.name
+    fig, axlist = helper.create_fig_if_not_exist(fignum, range(first_axnum,
+                                                               last_axnum))
 
     for i in range(n_plot):
         y_d = y_dat[i]
-        single_plot(axlist[i], x_dat, y_d, label)
+        _single_plot(axlist[i], x_dat, y_d, 'LW ' + linac.name)
         axlist[i].set_ylabel(dict_plot[y_d][0])
     axlist[-1].set_xlabel(dict_plot[x_dat][0])
     axlist[0].legend()
-
-
-def compare_with_tracewin(accelerator, x_dat, y_dat, filepath_ref=None):
-    """
-    Comparison of beam energy with TW data.
-
-    Parameters
-    ----------
-    accelerator: Accelerator object
-        Accelerator under study.
-    x_dat: string
-        Data in x axis.
-    y_dat: string
-        Data in y axis.
-    """
-    syn = accelerator.synch
-    # Prep
-    if filepath_ref is None:
-        filepath_ref = accelerator.project_folder + '/results/energy_ref.txt'
-
-    # Used to have TW and LW data at the same absolute positions
-    dict_indexes = {
-        's': range(0, syn.z['abs_array'].shape[0]),
-        'elt': accelerator.get_from_elements('idx', 'out')[:, 0],
-        }
-    # TW and error x data (first list element) and LW data (second element)
-    elt_array = range(accelerator.n_elements)
-    dict_x_data = {
-        's': [syn.z['abs_array'][dict_indexes['elt']],
-              syn.z['abs_array'], ],
-        'elt': [elt_array, elt_array, ],
-        }
-    # LW y-data
-    dict_y_data = {
-        'energy': syn.energy['kin_array_mev'],
-        'abs_phase': np.rad2deg(syn.phi['abs_array']),
-        'beta_synch': syn.energy['beta_array'],
-        }
-    # Labels of property plot, of error plot, figure number
-    dict_label = {
-        # x data
-        's': 'Synch. position [m]',
-        'elt': 'Element number',
-        # y data
-        'energy': ['Beam energy [MeV]', 'Abs. error [eV]', 21],
-        'abs_phase': ['Beam phase [deg]', 'Abs. error [deg]', 22],
-        'beta_synch': [r'Synch. $\beta$ [1]', 'Abs. error [1]', 23],
-        }
-    # Abs error plot is multiplied by this
-    dict_err_factor = {
-        'energy': 1e6,
-        'abs_phase': 1.,
-        'beta_synch': 1.,
-        }
-
-    # y axis data
-    data_ref = tw.load_tw_results(filepath_ref, y_dat)
-
-    # Get full array of LW data
-    data = dict_y_data[y_dat]
-    # Compute error with TW at the end of each element
-    error = np.abs(data_ref - data[dict_indexes['elt']])
-    # Lower number of points (effective only if x_dat == 'elt')
-    data = data[dict_indexes[x_dat]]
-
-    # Plot
-    fig, axlist = helper.create_fig_if_not_exist(dict_label[y_dat][2],
-                                                 range(311, 314))
-    if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
-        axlist[0].plot(dict_x_data[x_dat][0], data_ref, label='TW', c='k',
-                       ls='--', linewidth=2.)
-
-    axlist[0].plot(dict_x_data[x_dat][1], data, label='LW ' + accelerator.name)
-    axlist[1].plot(dict_x_data[x_dat][0], error * dict_err_factor[y_dat])
-    helper.plot_structure(accelerator, axlist[2], x_axis=x_dat)
-    axlist[2].set_xlim(axlist[0].get_xlim())
-
-    for i in range(2):
-        axlist[i].grid(True)
-        axlist[i].set_ylabel(dict_label[y_dat][i])
-    axlist[2].set_xlabel(dict_label[x_dat])
-    axlist[0].legend()
-
-
-def plot_vcav_and_phis(accelerator):
-    """
-    Plot the evolution of the cavities parameters with s.
-
-    Parameters
-    ----------
-    accelerator: Accelerator object
-        Accelerator under study.
-    """
-    v_cav_mv = []
-    phi_s_deg = []
-    idx = []
-    i = 0
-    for elt in accelerator.list_of_elements:
-        if elt.name == 'FIELD_MAP':
-            v_cav_mv.append(elt.acc_field.v_cav_mv)
-            phi_s_deg.append(elt.acc_field.phi_s_deg)
-            idx.append(i)
-        i += 1
-    fig, ax = helper.create_fig_if_not_exist(25, [311, 312, 313])
-    ax[0].plot(idx, v_cav_mv, label='LW ' + accelerator.name, marker='o')
-    ax[0].set_ylabel('Acc. voltage [MV]')
-    ax[1].plot(idx, phi_s_deg, marker='o')
-    ax[1].set_ylabel('Synch. phase [deg]')
-    for axx in ax[0:-1]:
-        axx.grid(True)
-
-    helper.plot_structure(accelerator, ax[2], x_axis='elt')
-    ax[2].set_xlim(ax[0].get_xlim())
-    ax[2].set_xlabel('Element #')
-    ax[0].legend()
 
 
 def load_phase_space(accelerator):
