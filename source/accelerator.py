@@ -275,38 +275,30 @@ class Accelerator():
         key: string, optional
             If attribute is a dict, key must be provided.
         """
-        print(attribute, key)
         list_of_keys = vars(self.list_of_elements[0])
         data_nature = str(type(list_of_keys[attribute]))
 
-        def fun_dict(data_out, elt_dict, key):
-            return data_out.append(elt_dict[key])
-
-        def fun_rf(data_out, elt_class, key):
-            sub_list_of_keys = vars(elt_class)
-            return data_out.append(sub_list_of_keys[key])
-
-        def fun_default(data_out, data_new, key):
-            return data_out.append(data_new)
         dict_data_getter = {
-            "<class 'dict'>": fun_dict,
-            "<class 'electric_field.RfField'>": fun_rf,
-            "<class 'numpy.ndarray'>": fun_default,
-            "<class 'float'>": fun_default,
-            "<class 'str'>": fun_default,
+            "<class 'dict'>": lambda elt_dict, key: elt_dict[key],
+            "<class 'electric_field.RfField'>": lambda elt_class, key:
+                vars(elt_class)[key],
+            "<class 'numpy.ndarray'>": lambda data_new: data_new,
+            "<class 'float'>": lambda data_new, key: data_new,
+            "<class 'str'>": lambda data_new, key: data_new,
             }
         fun = dict_data_getter[data_nature]
 
         data_out = []
         for elt in self.list_of_elements:
             list_of_keys = vars(elt)
-            fun(data_out, list_of_keys[attribute], key)
+            data_out.append(fun(list_of_keys[attribute], key))
 
         # Concatenate into a single matrix
         if attribute == 'transfer_matrix':
             data_array = data_out[0]
             for i in range(1, len(data_out)):
                 data_array = np.vstack((data_array, data_out[i]))
+        # Transform into array
         else:
             data_array = np.array(data_out)
         return data_array
