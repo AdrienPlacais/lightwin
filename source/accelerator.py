@@ -6,6 +6,7 @@ Created on Tue Sep 21 11:54:19 2021
 @author: placais
 """
 import os.path
+from collections import defaultdict
 import numpy as np
 import tracewin_interface as tw
 import helper
@@ -144,6 +145,7 @@ class Accelerator():
         key: string, optional
             If attribute is a dict, key must be provided.
         """
+        print(attribute, key)
         # Some attributes such as enery hold in/out data: energy at the
         # entrance and at the exit of the element. As energy at the entrance
         # of an element is equal to the energy at the exit of the precedent,
@@ -260,3 +262,51 @@ class Accelerator():
         if key in ['v_cav_mv', 'phi_s_deg']:   # FIXME
             out = out[:, 0]
         return out
+
+
+    def blabla(self, attribute, key=None):
+        """
+        Return attribute from all elements in list_of_elements.
+
+        Parameters
+        ----------
+        attribute: string
+            Name of the desired attribute.
+        key: string, optional
+            If attribute is a dict, key must be provided.
+        """
+        print(attribute, key)
+        list_of_keys = vars(self.list_of_elements[0])
+        data_nature = str(type(list_of_keys[attribute]))
+
+        def fun_dict(data_out, elt_dict, key):
+            return data_out.append(elt_dict[key])
+
+        def fun_rf(data_out, elt_class, key):
+            sub_list_of_keys = vars(elt_class)
+            return data_out.append(sub_list_of_keys[key])
+
+        def fun_default(data_out, data_new, key):
+            return data_out.append(data_new)
+        dict_data_getter = {
+            "<class 'dict'>": fun_dict,
+            "<class 'electric_field.RfField'>": fun_rf,
+            "<class 'numpy.ndarray'>": fun_default,
+            "<class 'float'>": fun_default,
+            "<class 'str'>": fun_default,
+            }
+        fun = dict_data_getter[data_nature]
+
+        data_out = []
+        for elt in self.list_of_elements:
+            list_of_keys = vars(elt)
+            fun(data_out, list_of_keys[attribute], key)
+
+        # Concatenate into a single matrix
+        if attribute == 'transfer_matrix':
+            data_array = data_out[0]
+            for i in range(1, len(data_out)):
+                data_array = np.vstack((data_array, data_out[i]))
+        else:
+            data_array = np.array(data_out)
+        return data_array

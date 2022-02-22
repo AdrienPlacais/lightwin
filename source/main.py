@@ -114,21 +114,23 @@ for lin in [ref_linac, broken_linac]:
             helper.save_vcav_and_phis(lin)
 
 
-basic_fault.fix(STRATEGY, OBJECTIVE, manual_list)
-tw.save_new_dat(broken_linac, FILEPATH)
+# basic_fault.fix(STRATEGY, OBJECTIVE, manual_list)
+# tw.save_new_dat(broken_linac, FILEPATH)
 
-if PLOT_ENERGY:
-    debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_energy,
-                                fignum=22)
-if PLOT_ABS_PHASE:
-    debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_phase,
-                                fignum=23)
-if PLOT_CAV:
-    debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_cav,
-                                fignum=24)
-if PLOT_TM:
-    debug.plot_transfer_matrices(broken_linac,
-                                 broken_linac.transf_mat["cumul"])
+# if PLOT_ENERGY:
+#     debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_energy,
+#                                 fignum=22)
+# if PLOT_ABS_PHASE:
+#     debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_phase,
+#                                 fignum=23)
+# if PLOT_CAV:
+#     debug.compare_with_tracewin(broken_linac, x_dat="s", y_dat=preset_cav,
+#                                 fignum=24)
+# if PLOT_TM:
+#     debug.plot_transfer_matrices(broken_linac,
+#                                  broken_linac.transf_mat["cumul"])
 
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
+
+ref_linac.blabla('transfer_matrix')
