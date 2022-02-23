@@ -134,12 +134,12 @@ def _load_filemaps(dat_filepath, dat_filecontent, list_of_elements):
 
 def save_new_dat(fixed_linac, filepath_old):
     """Save a new dat with the new linac settings."""
-    _update_dat_with_fixed_cavities(fixed_linac.dat_filecontent,
+    _update_dat_with_fixed_cavities(fixed_linac.files['dat_filecontent'],
                                     fixed_linac.list_of_elements)
 
     filepath_new = filepath_old[:-4] + '_fixed.dat'
     with open(filepath_new, 'w') as file:
-        for line in fixed_linac.dat_filecontent:
+        for line in fixed_linac.files['dat_filecontent']:
             file.write(' '.join(line) + '\n')
 
 

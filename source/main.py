@@ -54,16 +54,16 @@ failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 STRATEGY = "manual"
 OBJECTIVE = "phase"
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 # =============================================================================
 # Outputs
 # =============================================================================
 PLOTS = [
-    # "energy",
+    "energy",
     # "phase",
-    "cav",
+    # "cav",
     ]
 PLOT_TM = False
 PHASE_SPACE = False

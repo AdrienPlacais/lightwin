@@ -102,10 +102,11 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     transfer_matrix: numpy array
         Transfer matrices to plot.
     """
-    filepath_ref = [accelerator.project_folder + '/results/M_55_ref.txt',
-                    accelerator.project_folder + '/results/M_56_ref.txt',
-                    accelerator.project_folder + '/results/M_65_ref.txt',
-                    accelerator.project_folder + '/results/M_66_ref.txt']
+    fold = accelerator.files['project_folder']
+    filepath_ref = [fold + '/results/M_55_ref.txt',
+                    fold + '/results/M_56_ref.txt',
+                    fold + '/results/M_65_ref.txt',
+                    fold + '/results/M_66_ref.txt']
 
     z_pos = accelerator.synch.z['abs_array']
     n_z = z_pos.shape[0]
@@ -224,15 +225,15 @@ def compare_with_tracewin(linac, x_dat='s',
     """
     # [label, marker]
     dict_plot = {
-        's': ['Synch. position [m]', None],
-        'elt': ['Element number', None],
-        'energy': ['Beam energy [MeV]', None],
-        'energy_err': ['Abs. error [eV]', None],
-        'abs_phase': ['Beam phase [deg]', None],
-        'abs_phase_err': ['Abs. phase error [deg]', None],
-        'beta_synch': [r'Synch. $\beta$ [1]', None],
-        'beta_synch_err': [r'Abs. $\beta$ error [1]', None],
-        'struct': ['Structure', None],
+        's': ['Synch. position [m]', '.'],
+        'elt': ['Element number',  '.'],
+        'energy': ['Beam energy [MeV]',  '.'],
+        'energy_err': ['Abs. error [eV]',  '.'],
+        'abs_phase': ['Beam phase [deg]',  '.'],
+        'abs_phase_err': ['Abs. phase error [deg]',  '.'],
+        'beta_synch': [r'Synch. $\beta$ [1]',  '.'],
+        'beta_synch_err': [r'Abs. $\beta$ error [1]',  '.'],
+        'struct': ['Structure',  '.'],
         'v_cav_mv': ['Acc. field [MV]', 'o'],
         'phi_s_deg': ['Synch. phase [deg]', 'o'],
         'field_map_factor': [r'$k_e$ [1]', 'o'],
@@ -241,7 +242,8 @@ def compare_with_tracewin(linac, x_dat='s',
     syn = linac.synch
     # Prep
     if filepath_ref is None:
-        filepath_ref = linac.project_folder + '/results/energy_ref.txt'
+        filepath_ref = linac.files['project_folder'] \
+            + '/results/energy_ref.txt'
 
     dict_x_data = {
         's': syn.z['abs_array'],

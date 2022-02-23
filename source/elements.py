@@ -50,7 +50,6 @@ class _Element():
         self.idx = {
             'in': None,         # @TODO: replace by synch_in
             'out': None,
-            'elt': None,
             }
 
         self.transfer_matrix = None
@@ -58,8 +57,9 @@ class _Element():
         self.dict_transf_mat = None
         self.solver_transf_mat = None
 
-    def init_solver_settings(self, method):
-        """Initialize solver properties."""
+    def init_solver_settings(self):
+        """Initialize general properties."""
+        method = 'RK'
         if self.accelerating:
             if self.name == 'FIELD_MAP':
                 n_steps = 10 * self.acc_field.n_cell
@@ -73,7 +73,8 @@ class _Element():
                 else:
                     self.dict_transf_mat = {
                         'RK': transfer_matrices.z_field_map_electric_field,
-                        'leapfrog': transfer_matrices.z_field_map_electric_field,
+                        'leapfrog': transfer_matrices.
+                        z_field_map_electric_field,
                         'transport': transport.transport_beam,
                         }
             else:
@@ -86,7 +87,7 @@ class _Element():
                 'RK': transfer_matrices.z_drift_element,
                 'leapfrog': transfer_matrices.z_drift_element,
                 'transport': transport.transport_beam,
-             }
+              }
 
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.transfer_matrix = np.full((n_steps, 2, 2), np.NaN)

@@ -79,8 +79,9 @@ class fault_scenario():
         # Portion of linac with compensating cavities, as well as drifts and
         # quads
         complete_modules = []
-        for i in range(self.comp[0].idx['elt'], self.comp[-1].idx['elt']+1):
-            complete_modules.append(self.brok_lin.list_of_elements[i])
+        elts = self.brok_lin.list_of_elements
+        for i in range(elts.index(self.comp[0]), elts.index(self.comp[-1])+1):
+            complete_modules.append(elts[i])
 
         def wrapper(x):
             # Unpack

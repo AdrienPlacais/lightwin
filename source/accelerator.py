@@ -26,12 +26,16 @@ class Accelerator():
         the self.synch Particle object.
         """
         self.name = name
-        self.project_folder = os.path.dirname(dat_filepath)
 
         # Load dat file and clean it up (remove comments, etc)
-        self.dat_filecontent, self.list_of_elements = \
-            tw.load_dat_file(dat_filepath)
-        self.n_elements = len(self.list_of_elements)
+        dat_filecontent, list_of_elements = tw.load_dat_file(dat_filepath)
+        self.n_elements = len(list_of_elements)
+        self.list_of_elements = list_of_elements
+
+        self.files = {
+            'project_folder': os.path.dirname(dat_filepath),
+            'dat_filecontent': dat_filecontent,
+            }
 
         self.transf_mat = {
             'cumul': np.expand_dims(np.eye(2), axis=0),
@@ -39,49 +43,26 @@ class Accelerator():
             'first_calc?': True,
             }
 
-        self.prepared = False
-
-    def _prepare_compute_transfer_matrices(self, method):
-        """
-        Define Elements attributes that are dependent to each others.
-
-        In particular, absolute position of elements' I/O, energy at first
-        element entrance, arrays, solvers.
-
-        Parameters
-        ----------
-        method: string
-            Resolution method. 'RK' (Runge-Kutta) or 'leapfrog' for analytical
-            transfer matrices. 'transport' for calculation by transporting
-            particles through the line.
-        """
-        pos_in = 0.
-        pos_out = 0.
-        idx_in = 0
-        idx_out = 0
-
+        pos = {'in': 0., 'out': 0.}
+        idx = {'in': 0, 'out': 0}
         for i in range(self.n_elements):
             elt = self.list_of_elements[i]
-            elt.init_solver_settings(method)
+            elt.init_solver_settings()
 
-            pos_out += elt.length_m
-            idx_out = idx_in + elt.solver_transf_mat.n_steps
+            pos['in'] = pos['out']
+            pos['out'] += elt.length_m
+            elt.pos_m['abs'] = elt.pos_m['rel'] + pos['in']
 
-            elt.pos_m['abs'] = elt.pos_m['rel'] + pos_in
-            elt.idx['in'] = idx_in
-            elt.idx['out'] = idx_out
-            elt.idx['elt'] = i
+            idx['in'] = idx['out']
+            idx['out'] += elt.solver_transf_mat.n_steps
+            # TODO: check why elt.idx = idx does not work
+            elt.idx['in'] = idx['in']
+            elt.idx['out'] = idx['out']
 
-            pos_in = pos_out
-            idx_in = idx_out
-
-        # Define some arrays to the proper size
-        e_0_mev = 16.6
-        omega_0 = 2e6 * np.pi * 176.1
+        omega_0 = 2e6 * np.pi * f_mhz
         self.synch = particle.Particle(0., e_0_mev, omega_0,
-                                       n_steps=idx_out,
+                                       n_steps=idx['out'],
                                        synchronous=True)
-        self.prepared = True
 
     def compute_transfer_matrices(self, method, elements=None):
         """
@@ -98,9 +79,6 @@ class Accelerator():
         """
         if elements is None:
             elements = self.list_of_elements
-
-        if not self.prepared:
-            self._prepare_compute_transfer_matrices(method)
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
