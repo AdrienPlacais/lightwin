@@ -89,19 +89,19 @@ def z_field_map_electric_field(cavity, synch):
     solver_param = cavity.solver_param_transf_mat
     method = solver_param['method']
     d_z = solver_param['d_z']
-    synch.enter_cavity(cavity.acc_field.omega_0)
+
+    acc_f = cavity.acc_field
+    synch.enter_cavity(acc_f.omega_0)
 
 # =============================================================================
 # Initialisation
 # =============================================================================
     # gamma at entrance, middle and exit of cavity
     gamma = {'in': synch.energy['gamma_array'][idx_in],
-             'middle': None,
-             'out': None}
+             'middle': None, 'out': None}
     # Variation of synch part parameters (not necessary for z, as it is always
     # dz)
-    delta = {'e_mev': None,
-             'phi': None}
+    delta = {'e_mev': None, 'phi': None}
 
     # Initialize gamma and synch:
     if method == 'leapfrog':
@@ -122,14 +122,12 @@ def z_field_map_electric_field(cavity, synch):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        cavity.acc_field.f_e += q_adim * cavity.acc_field.e_func(
-            synch.z['rel'], synch.phi['rel']) \
-            * (1. + 1j * np.tan(synch.phi['rel'] + cavity.acc_field.phi_0))
+        acc_f.f_e += q_adim * acc_f.e_func(synch.z['rel'], synch.phi['rel']) \
+            * (1. + 1j * np.tan(synch.phi['rel'] + acc_f.phi_0))
 
         if method == 'leapfrog':
-            delta['e_mev'] = q_adim \
-                * cavity.acc_field.e_func(synch.z['rel'],
-                                          synch.phi['rel']) * d_z
+            delta['e_mev'] = q_adim * acc_f.e_func(synch.z['rel'],
+                                                   synch.phi['rel']) * d_z
 
         elif method == 'RK':
             u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs-1],
@@ -151,8 +149,8 @@ def z_field_map_electric_field(cavity, synch):
                                                synch)
 
         if method == 'leapfrog':
-            delta['phi'] = cavity.acc_field.n_cell * synch.omega0['bunch'] \
-                * d_z / (helper.gamma_to_beta(gamma['out']) * c)
+            delta['phi'] = acc_f.n_cell * synch.omega0['bunch'] * d_z / (
+                helper.gamma_to_beta(gamma['out']) * c)
 
         synch.advance_phi(delta['phi'], idx=idx_abs)
         synch.advance_position(d_z, idx=idx_abs)
@@ -191,6 +189,7 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
         Longitudinal transfer matrix of the drift-gap-drift.
     """
     assert isinstance(gamma, dict)
+    acc_f = cavity.acc_field
 
 # =============================================================================
 #   In
@@ -202,21 +201,18 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
 # =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
-    delta_phi_half_step = .5 * d_z \
-        * cavity.acc_field.omega_0 / (beta_middle * c)
+    delta_phi_half_step = .5 * d_z * acc_f.omega_0 / (beta_middle * c)
     phi_k = synch.phi['rel'] + delta_phi_half_step
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * E_rest_MeV)
-    k_1 = k_0 * cavity.acc_field.de_dt_func(z_k, phi_k, beta_middle)
-    k_2 = 1. - (2. - beta_middle**2) * k_0 \
-        * cavity.acc_field.e_func(z_k, phi_k)
+    k_1 = k_0 * acc_f.de_dt_func(z_k, phi_k, beta_middle)
+    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_f.e_func(z_k, phi_k)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
-        k_3 = (1. - k_0 * cavity.acc_field.e_func(z_k, phi_k))  \
-                / (1. - k_0 * (2. - beta_middle**2)
-                   * cavity.acc_field.e_func(z_k, phi_k))
+        k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_k))  \
+            / (1. - k_0 * (2. - beta_middle**2) * acc_f.e_func(z_k, phi_k))
         transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:
