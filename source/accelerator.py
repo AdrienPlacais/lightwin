@@ -27,7 +27,7 @@ class Accelerator():
         """
         self.name = name
 
-        # Load dat file and clean it up (remove comments, etc)
+        # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, list_of_elements = tw.load_dat_file(dat_filepath)
         self.n_elements = len(list_of_elements)
         self.list_of_elements = list_of_elements
@@ -45,8 +45,7 @@ class Accelerator():
 
         pos = {'in': 0., 'out': 0.}
         idx = {'in': 0, 'out': 0}
-        for i in range(self.n_elements):
-            elt = self.list_of_elements[i]
+        for elt in self.list_of_elements:
             elt.init_solver_settings()
 
             pos['in'] = pos['out']
@@ -55,14 +54,11 @@ class Accelerator():
 
             idx['in'] = idx['out']
             idx['out'] += elt.solver_transf_mat.n_steps
-            # TODO: check why elt.idx = idx does not work
-            elt.idx['in'] = idx['in']
-            elt.idx['out'] = idx['out']
+            elt.idx = idx.copy()
 
         omega_0 = 2e6 * np.pi * f_mhz
         self.synch = particle.Particle(0., e_0_mev, omega_0,
-                                       n_steps=idx['out'],
-                                       synchronous=True)
+                                       n_steps=idx['out'], synchronous=True)
 
     def compute_transfer_matrices(self, method, elements=None):
         """
