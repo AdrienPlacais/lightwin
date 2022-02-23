@@ -13,7 +13,7 @@ from constants import c
 class RfField():
     """Cos-like RF field."""
 
-    def __init__(self, frequency_mhz, norm=None, phi_0=None):
+    def __init__(self, frequency_mhz, norm=np.NaN, phi_0=None):
         self.f_mhz_rf = frequency_mhz
         self.omega0_rf = 2e6 * np.pi * frequency_mhz
         self.omega_0 = self.omega0_rf  # FIXME

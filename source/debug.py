@@ -235,6 +235,7 @@ def compare_with_tracewin(linac, x_dat='s',
         'struct': ['Structure', None],
         'v_cav_mv': ['Acc. field [MV]', 'o'],
         'phi_s_deg': ['Synch. phase [deg]', 'o'],
+        'field_map_factor': [r'$k_e$ [1]', 'o'],
         }
 
     syn = linac.synch
@@ -257,6 +258,7 @@ def compare_with_tracewin(linac, x_dat='s',
         'beta_synch': syn.energy['beta_array'],
         'v_cav_mv': linac.get_from_elements('acc_field', 'v_cav_mv'),
         'phi_s_deg': linac.get_from_elements('acc_field', 'phi_s_deg'),
+        'field_map_factor': linac.get_from_elements('acc_field', 'norm')
         }
 
     # Coefficient for every error
@@ -268,6 +270,7 @@ def compare_with_tracewin(linac, x_dat='s',
 
     # Function to return error between LW and TW data
     def _err(y_d):
+        assert y_d in tw.dict_tw_data_table
         y_data_ref = tw.load_tw_results(filepath_ref, y_d)
         y_data = dict_y_data_lw[y_d][elts_indexes]
         err_data = dict_err_factor[y_d] * np.abs(y_data_ref - y_data)
@@ -290,7 +293,7 @@ def compare_with_tracewin(linac, x_dat='s',
         else:
             # Plot TW data if it was not already done and if it is not an error
             # plot
-            if ('_err' not in y_d) and (
+            if ('_err' not in y_d) and (y_d in tw.dict_tw_data_table) and (
                     'TW' not in ax.get_legend_handles_labels()[1]):
                 x_data_ref = dict_x_data[x_dat]
                 y_data_ref = tw.load_tw_results(filepath_ref, y_d)

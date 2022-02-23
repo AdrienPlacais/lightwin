@@ -14,6 +14,18 @@ import elements
 
 to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
                      'LATTICE', 'END']
+# Dict of data that can be imported from TW's "Data" table.
+# More info in load_tw_results
+dict_tw_data_table = {
+    'v_cav_mv': 6,
+    'input_phase': 7,
+    'synch_phase': 8,
+    'phi_s_deg': 8,
+    'energy': 9,
+    'beta_synch': 10,
+    'full_length': 11,
+    'abs_phase': 12,
+    }
 
 
 def load_dat_file(dat_filepath):
@@ -150,7 +162,7 @@ def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements):
 
 def load_tw_results(filepath, prop):
     """
-    Load a property from TraceWin.
+    Load a property from TraceWin's "Data" table.
 
     Parameters
     ----------
@@ -173,17 +185,7 @@ def load_tw_results(filepath, prop):
         filepath = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
 
-    dict_property = {
-        'v_cav_mv': 6,
-        'input_phase': 7,
-        'synch_phase': 8,
-        'phi_s_deg': 8,
-        'energy': 9,
-        'beta_synch': 10,
-        'full_length': 11,
-        'abs_phase': 12,
-        }
-    idx = dict_property[prop]
+    idx = dict_tw_data_table[prop]
 
     data_ref = []
     with open(filepath) as file:
