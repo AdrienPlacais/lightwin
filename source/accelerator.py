@@ -39,17 +39,6 @@ class Accelerator():
             'first_calc?': True,
             }
 
-        self.fault_scenario = {
-            'faults_idx': [],        # List of indexes of faulty cavities
-            'faults_cav': [],
-            'comp_idx': [],
-            'comp_cav': [],          # List of compensating cavity objects
-            'strategy': None,        # To determine cav_compensating
-            'x0': None,              # Initial parameters for the fit
-            'bounds': None,          # Parameters bounds
-            'objective_str': None,   # Name of variable that should match
-            'objective': None,       # Variable that should match
-            }
         self.prepared = False
 
     def _prepare_compute_transfer_matrices(self, method):

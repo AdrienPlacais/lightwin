@@ -121,11 +121,12 @@ class fault_scenario():
         self.comp = [self.brok_lin.list_of_elements[idx] for idx in
                      manual_list]
 
-
     def _qty_to_fit(self):
         """
-        Return the difference of quantity to fit between the reference linac
-        and the broken one.
+        Return the quantity to minimize for the fit.
+
+        It computes the absolute difference of the quantity given by
+        self.objective between the reference linac and the broken one.
         """
         idx = self.comp[-1].idx['out'] - 1
 
@@ -136,7 +137,7 @@ class fault_scenario():
                 'energy_phase': np.array(
                     [linac.synch.energy['kin_array_mev'][idx],
                      linac.synch.phi['abs_array'][idx]]),
-                'transfer__matrix': linac.transf_mat['cumul'][idx, :, :],
+                'transfer_matrix': linac.transf_mat['cumul'][idx, :, :],
                 }
             return dict_objective[self.objective]
         return np.abs(res(self.ref_lin) - res(self.brok_lin))
