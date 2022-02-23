@@ -11,11 +11,11 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize
-import pandas as pd
 import matplotlib.pyplot as plt
+import debug
 
 
-class fault_scenario():
+class FaultScenario():
     """A class to hold all fault related data."""
 
     def __init__(self, ref_linac, broken_linac):
@@ -50,7 +50,7 @@ class fault_scenario():
 
         # Output cavities info
         for linac in [self.ref_lin, self.brok_lin]:
-            _output_cavities(linac)
+            debug.output_cavities(linac)
 
         self.objective = objective
         method = 'RK'
@@ -110,7 +110,7 @@ class fault_scenario():
             self.brok_lin.name = 'Fixed'
         else:
             self.brok_lin.name = 'Poorly fixed'
-        _output_cavities(self.brok_lin)
+        debug.output_cavities(self.brok_lin)
 
     def _select_compensating(self, strategy, manual_list):
         """Select the cavities that will be used for compensation."""
@@ -142,21 +142,3 @@ class fault_scenario():
                 }
             return dict_objective[self.objective]
         return np.abs(res(self.ref_lin) - res(self.brok_lin))
-
-
-def _output_cavities(linac):
-    """Output relatable parameters of cavities in list_of_cav."""
-    df = pd.DataFrame(columns=(
-        'Idx', 'Fail?', 'Comp?', 'Norm', 'phi0', 'Vs', 'phis'))
-    list_of_cav = list(filter(lambda elt: elt.name == 'FIELD_MAP',
-                              linac.list_of_elements))
-    for i in range(len(list_of_cav)):
-        cav = list_of_cav[i]
-        df.loc[i] = [cav.idx['in'], cav.status['failed'],
-                     cav.status['compensate'], cav.acc_field.norm,
-                     np.rad2deg(cav.acc_field.phi_0),
-                     cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
-    print('\n================================================================')
-    print(linac.name)
-    print('\n', df, '\n')
-    print('================================================================\n')

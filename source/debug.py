@@ -10,6 +10,7 @@ from os import listdir
 import numpy as np
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+import pandas as pd
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
 import helper
@@ -455,3 +456,21 @@ def compare_phase_space(accelerator):
     # TODO: remove when useless
     accelerator.particle_list = particle_list
     accelerator.partran_data = partran_data
+
+
+def output_cavities(linac):
+    """Output relatable parameters of cavities in list_of_cav."""
+    df_cav = pd.DataFrame(columns=(
+        'Idx', 'Fail?', 'Comp?', 'Norm', 'phi0', 'Vs', 'phis'))
+    list_of_cav = list(filter(lambda elt: elt.name == 'FIELD_MAP',
+                              linac.list_of_elements))
+    for i in range(len(list_of_cav)):
+        cav = list_of_cav[i]
+        df_cav.loc[i] = [cav.idx['in'], cav.status['failed'],
+                         cav.status['compensate'], cav.acc_field.norm,
+                         np.rad2deg(cav.acc_field.phi_0),
+                         cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
+    print('\n================================================================')
+    print(linac.name)
+    print('\n', df_cav, '\n')
+    print('================================================================\n')

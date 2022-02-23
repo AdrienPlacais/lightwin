@@ -54,7 +54,7 @@ failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 STRATEGY = "manual"
 OBJECTIVE = "phase"
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # =============================================================================
@@ -84,7 +84,7 @@ FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Working")
 broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
 
-basic_fault = fault.fault_scenario(ref_linac, broken_linac)
+basic_fault = fault.FaultScenario(ref_linac, broken_linac)
 basic_fault.break_at(failed_cav)
 
 DICT_PLOTS_PRESETS = {
