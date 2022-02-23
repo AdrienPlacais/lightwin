@@ -6,7 +6,6 @@ Created on Tue Sep 21 11:54:19 2021
 @author: placais
 """
 import os.path
-from collections import defaultdict
 import numpy as np
 import tracewin_interface as tw
 import helper
@@ -28,13 +27,11 @@ class Accelerator():
         """
         self.name = name
         self.project_folder = os.path.dirname(dat_filepath)
-        self.n_elements = 39
-        # TODO: handle cases were there the number of elements in the line
-        # is different from 39
 
         # Load dat file and clean it up (remove comments, etc)
         self.dat_filecontent, self.list_of_elements = \
             tw.load_dat_file(dat_filepath)
+        self.n_elements = len(self.list_of_elements)
 
         self.transf_mat = {
             'cumul': np.expand_dims(np.eye(2), axis=0),
