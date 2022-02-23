@@ -43,17 +43,18 @@ class Accelerator():
             'first_calc?': True,
             }
 
+        # Set indexes and absolute position of the different elements
         pos = {'in': 0., 'out': 0.}
         idx = {'in': 0, 'out': 0}
         for elt in self.list_of_elements:
-            elt.init_solver_settings()
+            elt.init_solvers()
 
             pos['in'] = pos['out']
             pos['out'] += elt.length_m
             elt.pos_m['abs'] = elt.pos_m['rel'] + pos['in']
 
             idx['in'] = idx['out']
-            idx['out'] += elt.solver_transf_mat.n_steps
+            idx['out'] += elt.solver_param_transf_mat['n_steps']
             elt.idx = idx.copy()
 
         omega_0 = 2e6 * np.pi * f_mhz
@@ -75,6 +76,9 @@ class Accelerator():
         """
         if elements is None:
             elements = self.list_of_elements
+
+        for elt in elements:
+            elt.solver_param_transf_mat['method'] = method
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:

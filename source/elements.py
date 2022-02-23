@@ -13,7 +13,7 @@ import transport
 from electric_field import RfField
 
 # TODO separate functions for RK / leapfrog?
-SolverParam = namedtuple('SolverParam', 'method n_steps d_z')
+# SolverParam = namedtuple('SolverParam', 'method n_steps d_z')
 
 
 # =============================================================================
@@ -54,36 +54,35 @@ class _Element():
 
         self.transfer_matrix = None
 
-        self.dict_transf_mat = None
-        self.solver_transf_mat = None
+        self.solver_param_transf_mat = {'method': None, 'n_steps': None,
+                                        'd_z': None}
+        self.func_transf_mat = {'RK': None, 'leapfrog': None,
+                                'transport': None}
 
-    def init_solver_settings(self):
-        """Initialize general properties."""
-        method = 'RK'
+    def init_solvers(self):
+        """Initialize solvers as well as general properties."""
         if self.accelerating:
-            if self.name == 'FIELD_MAP':
-                n_steps = 10 * self.acc_field.n_cell
+            assert self.name == 'FIELD_MAP'
+            n_steps = 10 * self.acc_field.n_cell
 
-                if self.status['failed']:
-                    self.dict_transf_mat = {
-                        'RK': transfer_matrices.z_drift_element,
-                        'leapfrog': transfer_matrices.z_drift_element,
-                        'transport': transport.transport_beam,
-                        }
-                else:
-                    self.dict_transf_mat = {
-                        'RK': transfer_matrices.z_field_map_electric_field,
-                        'leapfrog': transfer_matrices.
-                        z_field_map_electric_field,
-                        'transport': transport.transport_beam,
-                        }
+            if self.status['failed']:
+                func_transf_mat = {
+                    'RK': transfer_matrices.z_drift_element,
+                    'leapfrog': transfer_matrices.z_drift_element,
+                    'transport': transport.transport_beam,
+                    }
             else:
-                raise IOError('Accelerating element not implemented.')
+                func_transf_mat = {
+                    'RK': transfer_matrices.z_field_map_electric_field,
+                    'leapfrog': transfer_matrices.
+                    z_field_map_electric_field,
+                    'transport': transport.transport_beam,
+                    }
 
         else:
             # By default, 1 step for non-accelerating elements
             n_steps = 1
-            self.dict_transf_mat = {
+            func_transf_mat = {
                 'RK': transfer_matrices.z_drift_element,
                 'leapfrog': transfer_matrices.z_drift_element,
                 'transport': transport.transport_beam,
@@ -92,13 +91,17 @@ class _Element():
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.transfer_matrix = np.full((n_steps, 2, 2), np.NaN)
 
-        d_z = self.length_m / n_steps
-        self.solver_transf_mat = SolverParam(method, n_steps, d_z)
+        self.func_transf_mat = func_transf_mat
+        self.solver_param_transf_mat = {
+            'method': None,
+            'n_steps': n_steps,
+            'd_z': self.length_m / n_steps,
+            }
 
     def compute_transfer_matrix(self, synch):
         """Compute longitudinal matrix."""
-        self.transfer_matrix = self.dict_transf_mat[
-            self.solver_transf_mat.method](self, synch=synch)
+        self.transfer_matrix = self.func_transf_mat[
+            self.solver_param_transf_mat['method']](self, synch=synch)
 
         if self.name == 'FIELD_MAP':
             self._compute_synch_phase_and_acc_pot(synch)
