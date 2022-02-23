@@ -136,136 +136,6 @@ class Accelerator():
 
     def get_from_elements(self, attribute, key=None):
         """
-        Return the attribute of all elements.
-
-        Parameters
-        ----------
-        attribute: string
-            Name of the desired attribute.
-        key: string, optional
-            If attribute is a dict, key must be provided.
-        """
-        print(attribute, key)
-        # Some attributes such as enery hold in/out data: energy at the
-        # entrance and at the exit of the element. As energy at the entrance
-        # of an element is equal to the energy at the exit of the precedent,
-        # we discard all entrance data.
-        discard_list = ['pos_m', 'energy']
-        if attribute == 'energy':
-            return self.synch.energy['kin_array_mev']
-
-        def add_data(data_out, data_tmp, attribute):
-            """
-            Add data_tmp to data_out.
-
-            This function also removes the first element of data_tmp if
-            attribute is in discard_list.
-            """
-            if attribute in discard_list:
-                data_tmp = data_tmp[1:]
-                data_out = np.hstack((data_out, data_tmp))
-
-            else:
-                data_out = np.vstack((data_out, data_tmp))
-            return data_out
-
-        def fun_array(data_out, elt):
-            """
-            Create an array of required attribute.
-
-            Used when element[attribute] is an array.
-            """
-            subclass_attributes = vars(elt)
-
-            if data_out is not None:
-                data_tmp = np.copy(subclass_attributes[attribute])
-                data_out = add_data(data_out, data_tmp, attribute)
-            else:
-                data_out = np.copy(subclass_attributes[attribute])
-
-            return data_out
-
-        def fun_dict(data_out, elt):
-            """
-            Create an array of required attribute.
-
-            Used when element[attribute] is dict (eg attribute = 'energy' and
-                                                  key = 'gamma_array').
-            """
-            assert key is not None, 'A key must be provided as attribute ' \
-                + 'is a dict.'
-            subclass_attributes = vars(elt)
-
-            if data_out is not None:
-                data_tmp = np.copy(subclass_attributes[attribute][key])
-                data_out = add_data(data_out, data_tmp, attribute)
-            else:
-                data_out = np.copy(subclass_attributes[attribute][key])
-
-            return data_out
-
-        def fun_rf(data_out, elt):
-            """
-            Create an array of required attribute.
-
-            Used when element[attribute] is RfField.
-            """
-            if elt.name == 'FIELD_MAP':
-                assert key is not None, 'A key must be provided as attribute '\
-                    + 'is a class.'
-                subclass_attributes = vars(elt)
-
-                if data_out is not None:
-                    data_tmp = np.copy(getattr(subclass_attributes[attribute],
-                                               key))
-                    data_out = add_data(data_out, data_tmp, attribute)
-                else:
-                    data_out = np.copy(subclass_attributes[attribute][key])
-            else:
-                if data_out is not None:
-                    data_out = add_data(data_out, np.NaN, attribute)
-                else:
-                    data_out = np.array([np.NaN])
-            return data_out
-
-        def fun_simple(data_out, elt):
-            """
-            Create an array of required attribute.
-
-            Used when element[attribute] is 'simple': float or a string (eg
-            'name').
-            """
-            subclass_attributes = vars(elt)
-
-            if data_out is not None:
-                data_tmp = subclass_attributes[attribute]
-                data_out = np.hstack((data_out, data_tmp))
-            else:
-                data_out = np.array((subclass_attributes[attribute]))
-
-            return data_out
-
-        # Get list of attributes of first element
-        list_of_keys = vars(self.list_of_elements[0])
-
-        dict_data_getter = {
-            "<class 'numpy.ndarray'>": fun_array,
-            "<class 'dict'>": fun_dict,
-            "<class 'float'>": fun_simple,
-            "<class 'str'>": fun_simple,
-            "<class 'electric_field.RfField'>": fun_rf,
-            }
-        out = None
-        data_nature = str(type(list_of_keys[attribute]))
-        for elt in self.list_of_elements:
-            out = dict_data_getter[data_nature](out, elt)
-        if key in ['v_cav_mv', 'phi_s_deg']:   # FIXME
-            out = out[:, 0]
-        return out
-
-
-    def blabla(self, attribute, key=None):
-        """
         Return attribute from all elements in list_of_elements.
 
         Parameters
@@ -282,7 +152,7 @@ class Accelerator():
             "<class 'dict'>": lambda elt_dict, key: elt_dict[key],
             "<class 'electric_field.RfField'>": lambda elt_class, key:
                 vars(elt_class)[key],
-            "<class 'numpy.ndarray'>": lambda data_new: data_new,
+            "<class 'numpy.ndarray'>": lambda data_new, key: data_new,
             "<class 'float'>": lambda data_new, key: data_new,
             "<class 'str'>": lambda data_new, key: data_new,
             }

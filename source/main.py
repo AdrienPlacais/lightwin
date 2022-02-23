@@ -132,7 +132,3 @@ for lin in [ref_linac, broken_linac]:
 
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
-
-a = ref_linac.blabla('name')
-b = ref_linac.blabla('idx', 'out')
-c = ref_linac.blabla('acc_field', 'v_cav_mv')

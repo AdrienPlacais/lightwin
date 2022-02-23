@@ -29,8 +29,8 @@ class RfField():
         self.phi_0 = phi_0
         self.n_cell = 2
         self.f_e = 0.
-        self.phi_s_deg = None
-        self.v_cav_mv = None
+        self.phi_s_deg = np.NaN
+        self.v_cav_mv = np.NaN
 
     def e_func_norm(self, norm, phi_0, x, phi):
         """Template of the cos-like rf field (normalized)."""

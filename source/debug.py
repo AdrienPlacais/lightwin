@@ -248,7 +248,7 @@ def compare_with_tracewin(linac, x_dat='s',
         }
 
     # Used when there are too many points (x or y data)
-    elts_indexes = linac.get_from_elements('idx', 'out')[:, 0]
+    elts_indexes = linac.get_from_elements('idx', 'out')
 
     # LW y data
     dict_y_data_lw = {
