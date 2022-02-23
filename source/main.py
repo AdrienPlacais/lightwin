@@ -85,7 +85,7 @@ basic_fault.break_at(failed_cav)
 PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
     "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
-    "cav": [["v_cav_mv", "phi_s_deg", "struct"], 23],
+    "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
     }
 
 for lin in [ref_linac, broken_linac]:

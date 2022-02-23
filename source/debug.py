@@ -277,13 +277,12 @@ def compare_with_tracewin(linac, x_dat='s',
         return err_data
 
     # Add it to the dict of y data
-    dict_y_data_lw.update(
-        {
-            'energy_err': _err('energy'),
-            'abs_phase_err': _err('abs_phase'),
-            'beta_synch_err': _err('beta_synch'),
-            }
-    )
+    dict_errors = {
+        'energy_err': _err('energy'),
+        'abs_phase_err': _err('abs_phase'),
+        'beta_synch_err': _err('beta_synch'),
+        }
+    dict_y_data_lw.update(dict_errors)
 
     # Function to plot y_d as a function of x_dat in ax
     def _single_plot(ax, x_dat, y_d, label):
@@ -293,19 +292,20 @@ def compare_with_tracewin(linac, x_dat='s',
         else:
             # Plot TW data if it was not already done and if it is not an error
             # plot
-            if ('_err' not in y_d) and (y_d in tw.dict_tw_data_table) and (
+            if (y_d not in dict_errors) and (
+                    y_d in tw.dict_tw_data_table) and (
                     'TW' not in ax.get_legend_handles_labels()[1]):
                 x_data_ref = dict_x_data[x_dat]
                 y_data_ref = tw.load_tw_results(filepath_ref, y_d)
                 x_data_ref, y_data_ref = _reformat(x_data_ref, y_data_ref,
                                                    elts_indexes)
-                ax.plot(x_data_ref, y_data_ref, label='TW', c='k',
-                        ls='--', marker=dict_plot[y_d][1], linewidth=2.)
+                ax.plot(x_data_ref, y_data_ref, dict_plot[y_d][1], label='TW',
+                        c='k', ls='--', linewidth=2.)
             ax.grid(True)
             x_data = dict_x_data[x_dat]
             y_data = dict_y_data_lw[y_d]
             x_data, y_data = _reformat(x_data, y_data, elts_indexes)
-            ax.plot(x_data, y_data, label=label, marker=dict_plot[y_d][1])
+            ax.plot(x_data, y_data, dict_plot[y_d][1], label=label, ls='-')
 
     # Plot
     n_plot = len(y_dat)
