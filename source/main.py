@@ -54,7 +54,7 @@ failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 STRATEGY = "manual"
 OBJECTIVE = "phase"
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # =============================================================================
@@ -68,6 +68,11 @@ PLOTS = [
 PLOT_TM = False
 PHASE_SPACE = False
 TWISS = False
+
+SAVES = [
+    # "MT and energy",
+    # "Vcav and phis",
+    ]
 SAVE_MT_AND_ENERGY = False
 SAVE_VCAV_AND_PHIS = False
 
@@ -82,19 +87,26 @@ broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
 basic_fault = fault.fault_scenario(ref_linac, broken_linac)
 basic_fault.break_at(failed_cav)
 
-PRESETS = {
+DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
     "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
     "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
     }
 
-for lin in [ref_linac, broken_linac]:
+DICT_SAVES = {
+    "MT and energy": lambda lin: helper.save_full_mt_and_energy_evolution(lin),
+    "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
+    }
+
+linacs = [ref_linac, broken_linac]
+for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)
 
         for plot in PLOTS:
-            debug.compare_with_tracewin(lin, x_dat="s", y_dat=PRESETS[plot][0],
-                                        fignum=PRESETS[plot][1])
+            debug.compare_with_tracewin(lin, x_dat="s",
+                                        y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                        fignum=DICT_PLOTS_PRESETS[plot][1])
         if PLOT_TM:
             debug.plot_transfer_matrices(lin, lin.transf_mat["cumul"])
 
@@ -105,26 +117,16 @@ for lin in [ref_linac, broken_linac]:
             twiss = emittance.transport_twiss_parameters(lin, ALPHA_Z, BETA_Z)
             emittance.plot_twiss(lin, twiss)
 
-        if SAVE_MT_AND_ENERGY:
-            helper.save_full_mt_and_energy_evolution(lin)
+        for save in SAVES:
+            DICT_SAVES[save](lin)
 
-        if SAVE_VCAV_AND_PHIS:
-            helper.save_vcav_and_phis(lin)
-
-if FLAG_FIX:
-    basic_fault.fix(STRATEGY, OBJECTIVE, manual_list)
-
-    if SAVE_FIX:
-        tw.save_new_dat(broken_linac, FILEPATH)
-
-    for plot in PLOTS:
-        debug.compare_with_tracewin(broken_linac, x_dat="s",
-                                    y_dat=PRESETS[plot][0],
-                                    fignum=PRESETS[plot][1])
-
-    if PLOT_TM:
-        debug.plot_transfer_matrices(broken_linac,
-                                     broken_linac.transf_mat["cumul"])
+        # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
+        if FLAG_FIX and lin.name == "Broken":
+            basic_fault.fix(STRATEGY, OBJECTIVE, manual_list)
+            if SAVE_FIX:
+                tw.save_new_dat(broken_linac, FILEPATH)
+            # Redo this whole loop with a fixed linac
+            linacs.append(broken_linac)
 
 # =============================================================================
 # End
