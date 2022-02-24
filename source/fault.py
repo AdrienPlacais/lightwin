@@ -11,7 +11,6 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize
-import matplotlib.pyplot as plt
 import debug
 
 
@@ -183,6 +182,28 @@ class FaultScenario():
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)
         return initial_guess, bounds
+
+    def _set_constraints(self):
+        """Add constraints on the synchronous phase."""
+        # TODO Finish this function
+        limit_phi_s_down = -90.
+
+        def phi_s_min(cav):
+            return cav.acc_field.phi_s_deg - limit_phi_s_down
+
+        percent_phi_s_max = 1.1
+
+        def phi_s_max(cav):
+            idx = self.brok_lin.list_of_elements.index(cav)
+            equiv = self.ref_lin.list_of_elements[idx]
+            maxi = percent_phi_s_max * equiv.acc_field.phi_s_deg
+            return maxi - cav.acc_field.phi_s_deg
+
+        constraints = []
+        for cav in self.comp_list['only_cav']:
+            constraints.append({'type': 'ineq', 'fun': phi_s_min(cav)})
+            constraints.append({'type': 'ineq', 'fun': phi_s_max(cav)})
+        return constraints
 
     def _select_objective(self, position_str, objective_str):
         """Select the objective to fit."""
