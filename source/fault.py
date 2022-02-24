@@ -10,7 +10,7 @@ brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import minimize, least_squares
 import debug
 
 
@@ -112,7 +112,16 @@ class FaultScenario():
                          - fun_objective(self.brok_lin, idx_pos))
             return obj
 
-        sol = minimize(wrapper, x0=initial_guesses, bounds=bounds)
+        dict_fitter = {
+            'energy': minimize,
+            'phase': minimize,
+            'energy_phase': least_squares,
+            }
+
+        # We have to change the shape of bounds for least_squares:
+        bounds = (bounds[:, 0], bounds[:, 1])
+        sol = dict_fitter[what_to_fit['objective']](
+            wrapper, x0=initial_guesses, bounds=bounds)
 
         # TODO check if some boundaries are reached
         # TODO also plot the fit constraints
@@ -194,7 +203,7 @@ class FaultScenario():
         percent_phi_s_max = 1.1
 
         def phi_s_max(cav):
-            idx = self.brok_lin.list_of_elements.index(cav)
+            idx = self.brok_lin.where_is(cav)
             equiv = self.ref_lin.list_of_elements[idx]
             maxi = percent_phi_s_max * equiv.acc_field.phi_s_deg
             return maxi - cav.acc_field.phi_s_deg

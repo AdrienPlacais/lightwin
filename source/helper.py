@@ -15,7 +15,7 @@ import constants
 # =============================================================================
 # Plot and messages functions
 # =============================================================================
-def printc(message, color='red', opt_message=''):
+def printc(message, color='cyan', opt_message=''):
     """Print colored messages."""
     if color in ('red', 'r', 'warning'):
         escape_code = '\x1B[31m'

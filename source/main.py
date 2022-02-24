@@ -56,11 +56,11 @@ WHAT_TO_FIT = {
     # How compensatong cavities are chosen?
     'strategy': 'manual',
     # What should we fit?
-    'objective': 'phase',
+    'objective': 'energy_phase',
     # Where should we evaluate objective?
     'position': 'end_of_last_comp_cav',
     }
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # =============================================================================

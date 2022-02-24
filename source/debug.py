@@ -229,7 +229,7 @@ def compare_with_tracewin(linac, x_dat='s',
         's': ['Synch. position [m]', '.'],
         'elt': ['Element number',  '.'],
         'energy': ['Beam energy [MeV]',  '.'],
-        'energy_err': ['Abs. error [eV]',  '.'],
+        'energy_err': ['Abs. error [keV]',  '.'],
         'abs_phase': ['Beam phase [deg]',  '.'],
         'abs_phase_err': ['Abs. phase error [deg]',  '.'],
         'beta_synch': [r'Synch. $\beta$ [1]',  '.'],
@@ -266,7 +266,7 @@ def compare_with_tracewin(linac, x_dat='s',
 
     # Coefficient for every error
     dict_err_factor = {
-        'energy': 1e6,
+        'energy': 1e3,
         'abs_phase': 1.,
         'beta_synch': 1.,
         }
@@ -471,6 +471,6 @@ def output_cavities(linac):
                          np.rad2deg(cav.acc_field.phi_0),
                          cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
     print('\n================================================================')
-    print(linac.name)
+    helper.printc(linac.name, color='cyan')
     print('\n', df_cav, '\n')
     print('================================================================\n')
