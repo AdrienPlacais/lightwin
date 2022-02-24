@@ -52,8 +52,14 @@ if FILEPATH == "":
 # =============================================================================
 failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
-STRATEGY = "manual"
-OBJECTIVE = "phase"
+WHAT_TO_FIT = {
+    # How compensatong cavities are chosen?
+    'strategy': 'manual',
+    # What should we fit?
+    'objective': 'phase',
+    # Where should we evaluate objective?
+    'position': 'end_of_last_comp_cav',
+    }
 FLAG_FIX = True
 SAVE_FIX = False
 
@@ -62,8 +68,8 @@ SAVE_FIX = False
 # =============================================================================
 PLOTS = [
     "energy",
-    # "phase",
-    # "cav",
+    "phase",
+    "cav",
     ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -122,8 +128,7 @@ for lin in linacs:
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         if FLAG_FIX and lin.name == "Broken":
-            print('start fix')
-            basic_fault.fix(STRATEGY, OBJECTIVE, manual_list)
+            basic_fault.fix(WHAT_TO_FIT, manual_list)
             if SAVE_FIX:
                 tw.save_new_dat(broken_linac, FILEPATH)
             # Redo this whole loop with a fixed linac

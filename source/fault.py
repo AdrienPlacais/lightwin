@@ -24,8 +24,14 @@ class FaultScenario():
 
         self.fail_list = []
         self.comp_list = {
-            'cav': [],
+            'only_cav': [],
             'all_elts': []}
+
+        self.what_to_fit = {
+            'strategy': None,
+            'position': None,
+            'objective': None,
+            }
 
     def break_at(self, fail_idx):
         """
@@ -40,11 +46,11 @@ class FaultScenario():
             cav.fail()
             self.fail_list.append(cav)
 
-    def _select_compensating_cavities(self, strategy, manual_list):
+    def _select_compensating_cavities(self, what_to_fit, manual_list):
         """
         Select the cavities that will be used for compensation.
 
-        All compensating cavities are added to comp_list['cav'], and their
+        All compensating cavities are added to comp_list['only_cav'], and their
         status['compensate'] flag is switched to True.
         comp_list['all_elts'] also contains drifts, quads, etc of the
         compensating modules.
@@ -55,78 +61,77 @@ class FaultScenario():
 
         # self.working = list(filter(lambda cav: not cav.status['failed'],
         #                            self.cavities))
-        self.comp_list['cav'] = [self.brok_lin.list_of_elements[idx] for idx in
-                                 manual_list]
+        self.comp_list['only_cav'] = [self.brok_lin.list_of_elements[idx] for
+                                      idx in manual_list]
 
-        for cav in self.comp_list['cav']:
+        for cav in self.comp_list['only_cav']:
             cav.status['compensate'] = True
 
         # Portion of linac with compensating cavities, as well as drifts and
         # quads
         complete_modules = []
         elts = self.brok_lin.list_of_elements
-        for i in range(elts.index(self.comp_list['cav'][0]),
-                       elts.index(self.comp_list['cav'][-1])+1):
+        for i in range(elts.index(self.comp_list['only_cav'][0]),
+                       elts.index(self.comp_list['only_cav'][-1])+1):
             complete_modules.append(elts[i])
         self.comp_list['all_elts'] = complete_modules
 
-    def fix(self, strategy, objective, manual_list=None):
+    def fix(self, what_to_fit, manual_list=None):
         """Fix cavities."""
-        self.objective = objective
+        debug_fit = True
+        self.what_to_fit = what_to_fit
+        if debug_fit:
+            print("Starting fit with parameters:", what_to_fit)
         method = 'RK'   # FIXME
-        debug_plot = False
-        debug_cav_info = False
 
-        self._select_compensating_cavities(strategy, manual_list)
+        self._select_compensating_cavities(what_to_fit, manual_list)
         n_cav = len(self.comp_list)
-        if debug_cav_info:
+        if debug_fit:
             for linac in [self.ref_lin, self.brok_lin]:
                 debug.output_cavities(linac)
 
-        if debug_plot:
-            fig = plt.figure(42)
-            ax = fig.add_subplot(111)
-            ax.grid(True)
-            idx_max = self.brok_lin.list_of_elements[-1].idx['out']
-            xxx = np.linspace(0, idx_max, idx_max + 1)
-
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
+        fun_objective, idx_pos = self._select_objective(
+            self.what_to_fit['position'],
+            self.what_to_fit['objective'])
 
         # TODO: set constraints on the synch phase
 
-        if(False):
-            def wrapper(x):
-                # Unpack
-                for i in range(n_cav):
-                    self.comp_list[i].acc_field.norm = x[2*i]
-                    self.comp_list[i].acc_field.phi_0 = x[2*i+1]
-
-                # Update transfer matrices
-                self.brok_lin.compute_transfer_matrices(method, self.comp_list['all_elts'])
-                if debug_plot:
-                    yyy = self.brok_lin.synch.energy['kin_array_mev']
-                    ax.plot(xxx, yyy)
-                    plt.show()
-                return self._qty_to_fit()
-            sol = minimize(wrapper, x0=initial_guesses, bounds=bounds)
-
+        def wrapper(prop_array):
+            # Unpack
             for i in range(n_cav):
-                self.comp_list[i].acc_field.norm = sol.x[2*i]
-                self.comp_list[i].acc_field.phi_0 = sol.x[2*i+1]
+                acc_f = self.comp_list['only_cav'][i].acc_field
+                acc_f.norm = prop_array[2*i]
+                acc_f.phi_0 = prop_array[2*i+1]
+
+            # Update transfer matrices
+            self.brok_lin.compute_transfer_matrices(method,
+                                                    self.comp_list['all_elts'])
+
+            obj = np.abs(fun_objective(self.ref_lin, idx_pos)
+                         - fun_objective(self.brok_lin, idx_pos))
+            return obj
+
+        sol = minimize(wrapper, x0=initial_guesses, bounds=bounds)
+
+        # TODO check if some boundaries are reached
+        # TODO also plot the fit constraints
+
+        for i in range(n_cav):
+            self.comp_list['only_cav'][i].acc_field.norm = sol.x[2*i]
+            self.comp_list['only_cav'][i].acc_field.phi_0 = sol.x[2*i+1]
+
+        # When fit is complete, also recompute last elements
+        self.brok_lin.compute_transfer_matrices(method)
+        if sol.success:
+            self.brok_lin.name = 'Fixed'
+        else:
+            self.brok_lin.name = 'Poorly fixed'
+
+        if debug_fit:
             print(sol)
-
-            # When fit is complete, also recompute last elements
-            self.brok_lin.compute_transfer_matrices(method)
-
-            if sol.success:
-                self.brok_lin.name = 'Fixed'
-            else:
-                self.brok_lin.name = 'Poorly fixed'
-
-            if debug_cav_info:
-                debug.output_cavities(self.brok_lin)
-        self.brok_lin.name = 'tmp'
+            debug.output_cavities(self.brok_lin)
 
     def _set_fit_parameters(self):
         """
@@ -169,7 +174,7 @@ class FaultScenario():
             return (down_lim, up_lim)
 
         for prop_str in ['phi_0', 'norm']:
-            for elt in self.comp_list['cav']:
+            for elt in self.comp_list['only_cav']:
                 prop = dict_prop[prop_str](elt.acc_field)
                 initial_guess.append(prop)
                 bnds = _set_boundaries(prop_str, prop)
@@ -179,23 +184,29 @@ class FaultScenario():
         bounds = np.array(bounds)
         return initial_guess, bounds
 
-    def _qty_to_fit(self):
-        """
-        Return the quantity to minimize for the fit.
+    def _select_objective(self, position_str, objective_str):
+        """Select the objective to fit."""
+        # Where do you want to verify that the objective is matched?
+        dict_position = {
+            'end_of_last_comp_cav':
+                self.comp_list['only_cav'][-1].idx['out'] - 1,
+            'one_module_after_last_comp_cav': np.NaN,   # TODO
+            }
 
-        It computes the absolute difference of the quantity given by
-        self.objective between the reference linac and the broken one.
-        """
-        idx = self.comp_list[-1].idx['out'] - 1
+        # What do you want to match?
+        dict_objective = {
+            'energy': lambda linac, idx:
+                linac.synch.energy['kin_array_mev'][idx],
+            'phase': lambda linac, idx:
+                linac.synch.phi['abs_array'][idx],
+            'energy_phase': lambda linac, idx: np.array(
+                [linac.synch.energy['kin_array_mev'][idx],
+                 linac.synch.phi['abs_array'][idx]]),
+            'transfer_matrix': lambda linac, idx:
+                linac.transf_mat['cumul'][idx, :, :],
+            }
 
-        def res(linac):
-            dict_objective = {
-                'energy': linac.synch.energy['kin_array_mev'][idx],
-                'phase': linac.synch.phi['abs_array'][idx],
-                'energy_phase': np.array(
-                    [linac.synch.energy['kin_array_mev'][idx],
-                     linac.synch.phi['abs_array'][idx]]),
-                'transfer_matrix': linac.transf_mat['cumul'][idx, :, :],
-                }
-            return dict_objective[self.objective]
-        return np.abs(res(self.ref_lin) - res(self.brok_lin))
+        idx_pos = dict_position[position_str]
+        fun_objective = dict_objective[objective_str]
+        # fun_optimize = np.abs(fun_objective(self.ref_lin, idx_pos) - fun_objective(self.brok_lin, idx_pos))
+        return fun_objective, idx_pos
