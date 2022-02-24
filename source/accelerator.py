@@ -136,3 +136,49 @@ class Accelerator():
         else:
             data_array = np.array(data_out)
         return data_array
+
+    def sub_list(self, nature):
+        """
+        Return a list of elements of nature 'nature'.
+
+        Parameters
+        ----------
+        nature : string
+            Nature of the elements you want, eg FIELD_MAP or DRIFT.
+
+        Returns
+        -------
+        list_of : list of Element
+            List of all the Elements which have a nature 'nature'.
+        """
+        list_of = list(filter(lambda elt: elt.name == nature,
+                              self.list_of_elements))
+        return list_of
+
+    def where_is(self, elt, nature=False):
+        """
+        Determine where is elt in list_of_elements.
+
+        If nature = True, elt is the idx-th element of his nature.
+
+        Parameters
+        ----------
+        elt : Element
+            Element you want the position of.
+        nature : bool, optional
+            Allow to count only the elt's nature (eg QUAD). The default is
+            False.
+
+        Returns
+        -------
+        idx : int
+            Position of elt in list_of_elements, or in the list of elements of
+            it's nature if nature is True.
+
+        """
+        if nature:
+            idx = self.sub_list(elt.name).index(elt)
+        else:
+            idx = self.list_of_elements.index(elt)
+
+        return idx
