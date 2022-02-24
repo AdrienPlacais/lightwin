@@ -23,14 +23,9 @@ class FaultScenario():
         self.brok_lin = broken_linac
 
         self.fail_list = []
-        self.comp_list = []
-
-        self.solver = {
-            'min_ke': 1.6,
-            'max_ke': 2.5,
-            'min_phi0': np.deg2rad(110.),
-            'max_phi0': np.deg2rad(170.),
-            }
+        self.comp_list = {
+            'cav': [],
+            'all_elts': []}
 
     def break_at(self, fail_idx):
         """
@@ -45,70 +40,62 @@ class FaultScenario():
             cav.fail()
             self.fail_list.append(cav)
 
-    def _select_compensating(self, strategy, manual_list):
+    def _select_compensating_cavities(self, strategy, manual_list):
         """
         Select the cavities that will be used for compensation.
 
-        All compensating cavities are added to comp_list, and their
+        All compensating cavities are added to comp_list['cav'], and their
         status['compensate'] flag is switched to True.
+        comp_list['all_elts'] also contains drifts, quads, etc of the
+        compensating modules.
         """
+        # FIXME
         # self.cavities = list(filter(lambda elt: elt.name == 'FIELD_MAP',
         #                             self.brok_lin.list_of_elements))
 
         # self.working = list(filter(lambda cav: not cav.status['failed'],
         #                            self.cavities))
-        self.comp_list = [self.brok_lin.list_of_elements[idx] for idx in
-                          manual_list]
+        self.comp_list['cav'] = [self.brok_lin.list_of_elements[idx] for idx in
+                                 manual_list]
 
-        for cav in self.comp_list:
+        for cav in self.comp_list['cav']:
             cav.status['compensate'] = True
+
+        # Portion of linac with compensating cavities, as well as drifts and
+        # quads
+        complete_modules = []
+        elts = self.brok_lin.list_of_elements
+        for i in range(elts.index(self.comp_list['cav'][0]),
+                       elts.index(self.comp_list['cav'][-1])+1):
+            complete_modules.append(elts[i])
+        self.comp_list['all_elts'] = complete_modules
 
     def fix(self, strategy, objective, manual_list=None):
         """Fix cavities."""
         self.objective = objective
-        method = 'RK'
+        method = 'RK'   # FIXME
         debug_plot = False
         debug_cav_info = False
 
-        # Select which cavities will be used to compensate the fault
-        self._select_compensating(strategy, manual_list)
-        self._set_fit_parameters()
+        self._select_compensating_cavities(strategy, manual_list)
+        n_cav = len(self.comp_list)
+        if debug_cav_info:
+            for linac in [self.ref_lin, self.brok_lin]:
+                debug.output_cavities(linac)
+
+        if debug_plot:
+            fig = plt.figure(42)
+            ax = fig.add_subplot(111)
+            ax.grid(True)
+            idx_max = self.brok_lin.list_of_elements[-1].idx['out']
+            xxx = np.linspace(0, idx_max, idx_max + 1)
+
+        # Set the fit variables
+        initial_guesses, bounds = self._set_fit_parameters()
+
+        # TODO: set constraints on the synch phase
 
         if(False):
-            # Output cavities info
-            if debug_cav_info:
-                for linac in [self.ref_lin, self.brok_lin]:
-                    debug.output_cavities(linac)
-
-            if debug_plot:
-                fig = plt.figure(42)
-                ax = fig.add_subplot(111)
-                ax.grid(True)
-                idx_max = self.brok_lin.list_of_elements[-1].idx['out']
-                xxx = np.linspace(0, idx_max, idx_max + 1)
-
-            # Set the fit variables
-            n_cav = len(self.comp_list)
-            x0 = np.full((2 * n_cav), np.NaN)
-            bounds = np.full((2 * n_cav, 2), np.NaN)
-
-            for i in range(n_cav):
-                x0[2*i] = self.comp_list[i].acc_field.norm
-                x0[2*i+1] = self.comp_list[i].acc_field.phi_0
-                bounds[2*i, :] = np.array([self.solver['min_ke'],
-                                           self.solver['max_ke']])
-                bounds[2*i+1, :] = np.array([self.solver['min_phi0'],
-                                             self.solver['max_phi0']])
-            # @TODO: not elegant
-
-            # Portion of linac with compensating cavities, as well as drifts and
-            # quads
-            complete_modules = []
-            elts = self.brok_lin.list_of_elements
-            for i in range(elts.index(self.comp_list[0]),
-                           elts.index(self.comp_list[-1])+1):
-                complete_modules.append(elts[i])
-
             def wrapper(x):
                 # Unpack
                 for i in range(n_cav):
@@ -116,13 +103,13 @@ class FaultScenario():
                     self.comp_list[i].acc_field.phi_0 = x[2*i+1]
 
                 # Update transfer matrices
-                self.brok_lin.compute_transfer_matrices(method, complete_modules)
+                self.brok_lin.compute_transfer_matrices(method, self.comp_list['all_elts'])
                 if debug_plot:
                     yyy = self.brok_lin.synch.energy['kin_array_mev']
                     ax.plot(xxx, yyy)
                     plt.show()
                 return self._qty_to_fit()
-            sol = minimize(wrapper, x0=x0, bounds=bounds)
+            sol = minimize(wrapper, x0=initial_guesses, bounds=bounds)
 
             for i in range(n_cav):
                 self.comp_list[i].acc_field.norm = sol.x[2*i]
@@ -157,15 +144,12 @@ class FaultScenario():
             Array of (min, max) bounds for the electric fields of the
             compensating cavities.
         """
-
         initial_guess = []
         bounds = []
 
         relative_limits = {
-            # Authorized norm in [60%, 150%] of preceedent
-            'norm_down': 0.6, 'norm_up': 1.5,
-            # Authorized phase in [60%, 150%] of preceedent
-            'phi_0_down': 0.6, 'phi_0_up': 1.5,
+            'norm_down': 0.6, 'norm_up': 1.5,   # [60%, 150%] of norm
+            'phi_0_down': 0.6, 'phi_0_up': 1.5,  # [60%, 150%] of phi_0
             }
         absolute_limits = {
             'norm_down': 1., 'norm_up': 2.1,
@@ -185,10 +169,10 @@ class FaultScenario():
             return (down_lim, up_lim)
 
         for prop_str in ['phi_0', 'norm']:
-            for elt in self.comp_list:
-                acc_f = elt.acc_field
-                initial_guess.append(dict_prop[prop_str](acc_f))
-                bnds = _set_boundaries(prop_str, dict_prop[prop_str](acc_f))
+            for elt in self.comp_list['cav']:
+                prop = dict_prop[prop_str](elt.acc_field)
+                initial_guess.append(prop)
+                bnds = _set_boundaries(prop_str, prop)
                 bounds.append(bnds)
 
         initial_guess = np.array(initial_guess)
