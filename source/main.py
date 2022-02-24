@@ -122,6 +122,7 @@ for lin in linacs:
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         if FLAG_FIX and lin.name == "Broken":
+            print('start fix')
             basic_fault.fix(STRATEGY, OBJECTIVE, manual_list)
             if SAVE_FIX:
                 tw.save_new_dat(broken_linac, FILEPATH)
