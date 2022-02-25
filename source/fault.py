@@ -32,6 +32,8 @@ class FaultScenario():
             'objective': None,
             }
 
+        self.info = {}
+
     def break_at(self, fail_idx):
         """
         Break cavities at indices fail_idx.
@@ -87,7 +89,7 @@ class FaultScenario():
         n_cav = len(self.comp_list)
         if debug_fit:
             for linac in [self.ref_lin, self.brok_lin]:
-                debug.output_cavities(linac)
+                self.info[linac.name + ' cav'] = debug.output_cavities(linac)
 
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
@@ -138,8 +140,11 @@ class FaultScenario():
             self.brok_lin.name = 'Poorly fixed'
 
         if debug_fit:
+            self.info[self.brok_lin.name + ' cav'] = \
+                debug.output_cavities(self.brok_lin)
             print(sol)
-            debug.output_cavities(self.brok_lin)
+            self.info['sol'] = sol
+            self.info['fit'] = debug.output_fit(self, initial_guesses, bounds)
 
     def _set_fit_parameters(self):
         """

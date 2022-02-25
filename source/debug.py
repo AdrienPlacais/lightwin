@@ -458,19 +458,67 @@ def compare_phase_space(accelerator):
     accelerator.partran_data = partran_data
 
 
-def output_cavities(linac):
+def output_cavities(linac, out=True):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
         'Idx', 'Fail?', 'Comp?', 'Norm', 'phi0', 'Vs', 'phis'))
-    list_of_cav = list(filter(lambda elt: elt.name == 'FIELD_MAP',
-                              linac.list_of_elements))
+    list_of_cav = linac.sub_list('FIELD_MAP')
     for i in range(len(list_of_cav)):
         cav = list_of_cav[i]
         df_cav.loc[i] = [cav.idx['in'], cav.status['failed'],
                          cav.status['compensate'], cav.acc_field.norm,
                          np.rad2deg(cav.acc_field.phi_0),
                          cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
-    print('\n================================================================')
-    helper.printc(linac.name, color='cyan')
-    print('\n', df_cav, '\n')
-    print('================================================================\n')
+    if(out):
+        print('\n============================================================')
+        helper.printc(linac.name, color='cyan')
+        print('\n', df_cav, '\n')
+        print('============================================================\n')
+    return df_cav
+
+
+def output_fit(fault_scenario, initial_guess, bounds, out=True):
+    """Output relatable parameters of fit."""
+    print('Warning, output_fit not adapted for bounds if format different ',
+          'from least_squares.')
+    list_of_comp = fault_scenario.comp_list['only_cav']
+    n_comp = len(list_of_comp)
+
+    list_of_param = ['phi_0', 'Norm']
+
+    dict_param = {
+        'phi_0': pd.DataFrame(columns=('Idx', 'Min.', 'Fixed', 'Max.', 'Orig.',
+                                       '(var %)')),
+        'Norm': pd.DataFrame(columns=('Idx', 'Min.', 'Fixed', 'Max.', 'Orig.',
+                                      '(var %)')),
+        }
+    dict_attribute = {
+        'phi_0': lambda acc_f: np.rad2deg(acc_f.phi_0),
+        'Norm': lambda acc_f: acc_f.norm,
+        }
+    dict_guess_bnds = {
+        'phi_0': lambda i: [np.rad2deg(initial_guess[i]),
+                            np.rad2deg(bounds[0][i]),
+                            np.rad2deg(bounds[1][i])],
+        'Norm': lambda i: [initial_guess[i+n_comp], bounds[0][i+n_comp],
+                           bounds[1][i+n_comp]]
+        }
+
+    for param in list_of_param:
+        for i in range(n_comp):
+            cav = list_of_comp[i]
+
+            x0_and_bnds = dict_guess_bnds[param](i)
+            old = x0_and_bnds[0]
+            new = dict_attribute[param](cav.acc_field)
+            var = 100. * (old - new) / old
+
+            dict_param[param].loc[i] = [cav.idx['in'], x0_and_bnds[1],
+                                        new, x0_and_bnds[2], old, var]
+
+        if(out):
+            print('\n========================================================')
+            helper.printc(param, color='cyan')
+            print('\n', dict_param[param], '\n')
+            print('\n========================================================')
+    return dict_param
