@@ -124,18 +124,14 @@ class FaultScenario():
             return obj
 
         dict_fitter = {
-            'energy': minimize,
-            'phase': minimize,
-            'energy_phase': least_squares,
-            }
+            'energy': [minimize, initial_guesses, bounds],
+            'phase': [minimize, initial_guesses, bounds],
+            'energy_phase': [least_squares, initial_guesses,
+                             (bounds[:, 0], bounds[:, 1])],
+            }  # minimize and least_squares do not take the same bounds format
+        fitter = dict_fitter[what_to_fit['objective']]
 
-        # We have to change the shape of bounds for least_squares:
-        if what_to_fit['objective'] == 'energy_phase':
-            bounds = (bounds[:, 0], bounds[:, 1])
-
-        sol = dict_fitter[what_to_fit['objective']](
-            wrapper, x0=initial_guesses, bounds=bounds)
-
+        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2])
         # TODO check if some boundaries are reached
         # TODO also plot the fit constraints
 
