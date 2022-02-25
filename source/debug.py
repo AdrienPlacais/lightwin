@@ -103,18 +103,18 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
 
     r_zz_tot_ref = tw.load_transfer_matrices(filepath_ref)
 
-    err, z_err = compute_error_transfer_matrix(r_zz_tot, r_zz_tot_ref, True)
+    err, z_err = compute_error_transfer_matrix(r_zz_tot, r_zz_tot_ref,
+                                               flag_output=False)
 
     fignum = 26
     axnumlist = range(221, 225)
     fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
 
-    if helper.empty_fig(fignum):
-        if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
-            labels_tw = ['TW', '', '', '']
-            for i in range(4):
-                axlist[i].plot(r_zz_tot_ref[:, 0], r_zz_tot_ref[:, i+1],
-                               label=labels_tw[i], ls='--', c='k')
+    if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
+        labels_tw = ['TW', '', '', '']
+        for i in range(4):
+            axlist[i].plot(r_zz_tot_ref[:, 0], r_zz_tot_ref[:, i+1],
+                           label=labels_tw[i], ls='--', c='k')
 
     xlabels = ['', '', 's [m]', 's [m]']
     ylabels = [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$']
@@ -132,19 +132,11 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     axlist = []
     fignum *= 10
     fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
-    if helper.empty_fig(fignum):
-        ls = '-'
-    else:
-        ls = '--'
-
-    xlabels = ['', '', 's [m]', 's [m]']
-    ylabels = [r'$\epsilon R_{11}$', r'$\epsilon R_{12}$',
-               r'$\epsilon R_{21}$', r'$\epsilon R_{22}$']
 
     for i in range(4):
-        axlist[i].plot(z_err, err[:, i], ls=ls)
+        axlist[i].plot(z_err, err[:, i], label=labels_lw[i])
         axlist[i].set_xlabel(xlabels[i])
-        axlist[i].set_ylabel(ylabels[i])
+        axlist[i].set_ylabel(r'$\varepsilon$' + ylabels[i])
         axlist[i].grid(True)
 
 
