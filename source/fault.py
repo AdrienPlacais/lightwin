@@ -27,9 +27,9 @@ class FaultScenario():
             'all_elts': []}
 
         self.what_to_fit = {
-            'strategy': None,
-            'position': None,
-            'objective': None,
+            'strategy': None,   # How are selected the compensating cavities?
+            'objective': None,  # What do we want to fit?
+            'position': None,   # Where are we measuring 'objective'?
             }
 
         self.info = {}
@@ -77,12 +77,23 @@ class FaultScenario():
             complete_modules.append(elts[i])
         self.comp_list['all_elts'] = complete_modules
 
-    def fix(self, what_to_fit, manual_list=None):
-        """Fix cavities."""
+    def fix(self, method, what_to_fit, manual_list=None):
+        """
+        Try to compensate the faulty cavities.
+
+        Parameters
+        ----------
+        method : str
+            Tells which algorithm should be used to compute transfer matrices.
+        what_to_fit : dict
+            Holds the strategies of optimisation.
+        manual_list : list, optional
+            List of the indices of the cavities that compensate the fault when
+            'strategy' == 'manual'. The default is None.
+        """
         debug_fit = True
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", what_to_fit)
-        method = 'RK'   # FIXME
 
         self._select_compensating_cavities(what_to_fit, manual_list)
         n_cav = len(self.comp_list['only_cav'])
