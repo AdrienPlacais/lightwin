@@ -73,25 +73,6 @@ def compute_error_transfer_matrix(transf_mat, transf_mat_ref,
     return err, z_err
 
 
-def load_transfer_matrices(filepath_list):
-    """Load transfer matrices saved in 4 files by components."""
-    i = 0
-    for path in filepath_list:
-        assert os.path.isfile(path), \
-            'Incorrect filepath in plot_transfer_matrices.'
-
-        if i == 0:
-            r_zz_tot_ref = np.loadtxt(filepath_list[i])
-
-        else:
-            tmp = np.loadtxt(filepath_list[i])[:, 1]
-            tmp = np.expand_dims(tmp, axis=1)
-            r_zz_tot_ref = np.hstack((r_zz_tot_ref, tmp))
-        i += 1
-
-    return r_zz_tot_ref
-
-
 def plot_transfer_matrices(accelerator, transfer_matrix):
     """
     Plot the transfer matrix components of TraceWin and LightWin.
@@ -120,7 +101,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     r_zz_tot = transfer_matrix.reshape((n_z, 4))
     r_zz_tot = np.hstack((np.expand_dims(z_pos, 1), r_zz_tot))
 
-    r_zz_tot_ref = load_transfer_matrices(filepath_ref)
+    r_zz_tot_ref = tw.load_transfer_matrices(filepath_ref)
 
     err, z_err = compute_error_transfer_matrix(r_zz_tot, r_zz_tot_ref, True)
 
@@ -129,21 +110,19 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     fig, axlist = helper.create_fig_if_not_exist(fignum, axnumlist)
 
     if helper.empty_fig(fignum):
-        ls = '-'
-        labels_tw = ['TraceWin', '', '', '']
-        for i in range(4):
-            axlist[i].plot(r_zz_tot_ref[:, 0], r_zz_tot_ref[:, i+1],
-                           label=labels_tw[i], ls=ls)
-    else:
-        ls = '--'
+        if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
+            labels_tw = ['TW', '', '', '']
+            for i in range(4):
+                axlist[i].plot(r_zz_tot_ref[:, 0], r_zz_tot_ref[:, i+1],
+                               label=labels_tw[i], ls='--', c='k')
 
-    xlabels = ['', '', 'z [m]', 'z [m]']
+    xlabels = ['', '', 's [m]', 's [m]']
     ylabels = [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$']
-    labels_lw = ['LightWin', '', '', '']
+    labels_lw = [accelerator.name, '', '', '']
 
     for i in range(4):
         axlist[i].plot(r_zz_tot[:, 0], r_zz_tot[:, i+1],
-                       label=labels_lw[i], ls=ls)
+                       label=labels_lw[i])
         axlist[i].set_xlabel(xlabels[i])
         axlist[i].set_ylabel(ylabels[i])
         axlist[i].grid(True)
@@ -158,7 +137,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     else:
         ls = '--'
 
-    xlabels = ['', '', 'z [m]', 'z [m]']
+    xlabels = ['', '', 's [m]', 's [m]']
     ylabels = [r'$\epsilon R_{11}$', r'$\epsilon R_{12}$',
                r'$\epsilon R_{21}$', r'$\epsilon R_{22}$']
 

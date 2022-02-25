@@ -55,16 +55,10 @@ class Accelerator():
         self.synch = particle.Particle(0., e_0_mev, omega_0,
                                        n_steps=idx['out'], synchronous=True)
 
-        # self.transf_mat = {
-        #     'cumul': np.expand_dims(np.eye(2), axis=0),
-        #     'indiv': np.expand_dims(np.eye(2), axis=0),
-        #     'first_calc?': True,
-        #     }
         self.transf_mat = {
             'cumul': np.expand_dims(np.eye(2), axis=0),
             # 'cumul': np.full((idx['out'], 2, 2), np.NaN),
             'indiv': np.full((idx['out']+1, 2, 2), np.NaN),
-            # 'indiv': np.expand_dims(np.eye(2), axis=0),
             'first_calc?': True,
             }
         # self.transf_mat['cumul'][0, :, :] = np.eye(2)
@@ -93,13 +87,11 @@ class Accelerator():
         if method in ['RK', 'leapfrog']:
             for elt in elements:
                 elt.compute_transfer_matrix(self.synch)
-                self.transf_mat['indiv'][elt.idx['in']+1:elt.idx['out']+1, :, :] =\
+                idx = [elt.idx['in'] + 1, elt.idx['out'] + 1]
+                self.transf_mat['indiv'][idx[0]:idx[1], :, :] = \
                     elt.transfer_matrix
 
-            # self.transf_mat['indiv'] = np.vstack((
-            #     self.transf_mat['indiv'],
-            #     self.get_from_elements('transfer_matrix')))
-
+            # TODO: only recompute what is necessary
             self.transf_mat['cumul'] = \
                 helper.individual_to_global_transfer_matrix(
                     self.transf_mat['indiv'])

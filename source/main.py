@@ -60,7 +60,7 @@ WHAT_TO_FIT = {
     # Where should we evaluate objective?
     'position': 'end_of_last_comp_cav',
     }
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # =============================================================================

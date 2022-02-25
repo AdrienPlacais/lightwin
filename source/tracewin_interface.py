@@ -201,3 +201,22 @@ def load_tw_results(filepath, prop):
             data_ref.append(new_data)
     data_ref = np.array(data_ref).astype(float)
     return data_ref
+
+
+def load_transfer_matrices(filepath_list):
+    """Load transfer matrices saved in 4 files by components."""
+    i = 0
+    for path in filepath_list:
+        assert os.path.isfile(path), \
+            'Incorrect filepath in plot_transfer_matrices.'
+
+        if i == 0:
+            r_zz_tot_ref = np.loadtxt(filepath_list[i])
+
+        else:
+            tmp = np.loadtxt(filepath_list[i])[:, 1]
+            tmp = np.expand_dims(tmp, axis=1)
+            r_zz_tot_ref = np.hstack((r_zz_tot_ref, tmp))
+        i += 1
+
+    return r_zz_tot_ref
