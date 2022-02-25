@@ -133,6 +133,7 @@ for lin in linacs:
                 tw.save_new_dat(broken_linac, FILEPATH)
             # Redo this whole loop with a fixed linac
             linacs.append(broken_linac)
+            info = basic_fault.info['fit']
 
 # =============================================================================
 # End

@@ -81,15 +81,14 @@ class FaultScenario():
         """Fix cavities."""
         debug_fit = True
         self.what_to_fit = what_to_fit
-        if debug_fit:
-            print("Starting fit with parameters:", what_to_fit)
+        print("Starting fit with parameters:", what_to_fit)
         method = 'RK'   # FIXME
 
         self._select_compensating_cavities(what_to_fit, manual_list)
-        n_cav = len(self.comp_list)
-        if debug_fit:
-            for linac in [self.ref_lin, self.brok_lin]:
-                self.info[linac.name + ' cav'] = debug.output_cavities(linac)
+        n_cav = len(self.comp_list['only_cav'])
+        for linac in [self.ref_lin, self.brok_lin]:
+            self.info[linac.name + ' cav'] = debug.output_cavities(linac,
+                                                                   debug_fit)
 
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
@@ -98,13 +97,12 @@ class FaultScenario():
             self.what_to_fit['objective'])
 
         # TODO: set constraints on the synch phase
-
         def wrapper(prop_array):
             # Unpack
             for i in range(n_cav):
                 acc_f = self.comp_list['only_cav'][i].acc_field
-                acc_f.norm = prop_array[2*i]
-                acc_f.phi_0 = prop_array[2*i+1]
+                acc_f.phi_0 = prop_array[i]
+                acc_f.norm = prop_array[i+n_cav]
 
             # Update transfer matrices
             self.brok_lin.compute_transfer_matrices(method,
@@ -121,7 +119,9 @@ class FaultScenario():
             }
 
         # We have to change the shape of bounds for least_squares:
-        bounds = (bounds[:, 0], bounds[:, 1])
+        if what_to_fit['objective'] == 'energy_phase':
+            bounds = (bounds[:, 0], bounds[:, 1])
+
         sol = dict_fitter[what_to_fit['objective']](
             wrapper, x0=initial_guesses, bounds=bounds)
 
@@ -129,8 +129,8 @@ class FaultScenario():
         # TODO also plot the fit constraints
 
         for i in range(n_cav):
-            self.comp_list['only_cav'][i].acc_field.norm = sol.x[2*i]
-            self.comp_list['only_cav'][i].acc_field.phi_0 = sol.x[2*i+1]
+            self.comp_list['only_cav'][i].acc_field.phi_0 = sol.x[i]
+            self.comp_list['only_cav'][i].acc_field.norm = sol.x[i+n_cav]
 
         # When fit is complete, also recompute last elements
         self.brok_lin.compute_transfer_matrices(method)
@@ -139,12 +139,12 @@ class FaultScenario():
         else:
             self.brok_lin.name = 'Poorly fixed'
 
-        if debug_fit:
-            self.info[self.brok_lin.name + ' cav'] = \
-                debug.output_cavities(self.brok_lin)
-            print(sol)
-            self.info['sol'] = sol
-            self.info['fit'] = debug.output_fit(self, initial_guesses, bounds)
+        self.info[self.brok_lin.name + ' cav'] = \
+            debug.output_cavities(self.brok_lin, debug_fit)
+        print(sol)
+        self.info['sol'] = sol
+        self.info['fit'] = debug.output_fit(self, initial_guesses, bounds,
+                                            debug_fit)
 
     def _set_fit_parameters(self):
         """
@@ -166,12 +166,12 @@ class FaultScenario():
         bounds = []
 
         relative_limits = {
-            'norm_down': 0.6, 'norm_up': 1.5,   # [60%, 150%] of norm
             'phi_0_down': 0.6, 'phi_0_up': 1.5,  # [60%, 150%] of phi_0
+            'norm_down': 0.6, 'norm_up': 1.5,   # [60%, 150%] of norm
             }
         absolute_limits = {
-            'norm_down': 1., 'norm_up': 2.1,
             'phi_0_down': np.deg2rad(110.), 'phi_0_up': np.deg2rad(170.),
+            'norm_down': 1., 'norm_up': 2.1,
             }
         dict_prop = {
             'phi_0': lambda acc_f: acc_f.phi_0,

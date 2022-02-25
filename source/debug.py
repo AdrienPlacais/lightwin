@@ -479,8 +479,12 @@ def output_cavities(linac, out=True):
 
 def output_fit(fault_scenario, initial_guess, bounds, out=True):
     """Output relatable parameters of fit."""
-    print('Warning, output_fit not adapted for bounds if format different ',
-          'from least_squares.')
+    # We change the shape of the bounds if necessary
+    if type(bounds) is tuple:
+        bounds_fmt = bounds
+    else:
+        bounds_fmt = (bounds[:, 0], bounds[:, 1])
+
     list_of_comp = fault_scenario.comp_list['only_cav']
     n_comp = len(list_of_comp)
 
@@ -498,10 +502,10 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
         }
     dict_guess_bnds = {
         'phi_0': lambda i: [np.rad2deg(initial_guess[i]),
-                            np.rad2deg(bounds[0][i]),
-                            np.rad2deg(bounds[1][i])],
-        'Norm': lambda i: [initial_guess[i+n_comp], bounds[0][i+n_comp],
-                           bounds[1][i+n_comp]]
+                            np.rad2deg(bounds_fmt[0][i]),
+                            np.rad2deg(bounds_fmt[1][i])],
+        'Norm': lambda i: [initial_guess[i+n_comp], bounds_fmt[0][i+n_comp],
+                           bounds_fmt[1][i+n_comp]]
         }
 
     for param in list_of_param:
@@ -511,7 +515,7 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
             x0_and_bnds = dict_guess_bnds[param](i)
             old = x0_and_bnds[0]
             new = dict_attribute[param](cav.acc_field)
-            var = 100. * (old - new) / old
+            var = 100. * (new - old) / old
 
             dict_param[param].loc[i] = [cav.idx['in'], x0_and_bnds[1],
                                         new, x0_and_bnds[2], old, var]
