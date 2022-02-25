@@ -103,7 +103,7 @@ class FaultScenario():
 
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
-        fun_objective, idx_pos = self._select_objective(
+        fun_objective, idx_objective = self._select_objective(
             self.what_to_fit['position'],
             self.what_to_fit['objective'])
 
@@ -119,8 +119,8 @@ class FaultScenario():
             self.brok_lin.compute_transfer_matrices(method,
                                                     self.comp_list['all_elts'])
 
-            obj = np.abs(fun_objective(self.ref_lin, idx_pos)
-                         - fun_objective(self.brok_lin, idx_pos))
+            obj = np.abs(fun_objective(self.ref_lin, idx_objective)
+                         - fun_objective(self.brok_lin, idx_objective))
             return obj
 
         dict_fitter = {
@@ -131,9 +131,11 @@ class FaultScenario():
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[what_to_fit['objective']]
 
-        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2])
+        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2], verbose=2)
         # TODO check if some boundaries are reached
-        # TODO also plot the fit constraints
+        # TODO check methods
+        # TODO check Jacobian
+        # TODO check x_scale
 
         for i in range(n_cav):
             self.comp_list['only_cav'][i].acc_field.phi_0 = sol.x[i]

@@ -60,18 +60,18 @@ WHAT_TO_FIT = {
     # Where should we evaluate objective?
     'position': 'end_of_last_comp_cav',
     }
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 # =============================================================================
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
+    # "energy",
+    # "phase",
+    # "cav",
     ]
-PLOT_TM = False
+PLOT_TM = True
 PHASE_SPACE = False
 TWISS = False
 
