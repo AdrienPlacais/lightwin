@@ -50,6 +50,8 @@ class Particle():
             'phi_array_rad': np.full((n_steps + 1), np.NaN),
             }
 
+        self.frac_omega = 1.
+
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
         Update the energy dict.
@@ -106,6 +108,7 @@ class Particle():
         phi_abs = helper.z_to_phi(self.z['abs_array'][idx],
                                   self.energy['beta_array'][idx],
                                   self.omega0['bunch'])
+        self.phi['abs'] = phi_abs
         self.phi['rel'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs
 
@@ -113,9 +116,9 @@ class Particle():
         """Increase relative and absolute phase by delta_phi."""
         if np.isnan(idx):
             idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
-        self.phi['abs'] = self.phi['abs_array'][idx-1] + delta_phi
         self.phi['rel'] += delta_phi
-        self.phi['abs_array'][idx] = self.phi['abs']
+        self.phi['abs'] += delta_phi * self.frac_omega
+        self.phi['abs_array'][idx] = self.phi['abs_array'][idx-1] + delta_phi
 
     def compute_phase_space_tot(self, synch):
         """
@@ -148,6 +151,7 @@ class Particle():
         """Change the omega0 at the entrance."""
         self.omega0['ref'] = omega0_rf
         self.omega0['rf'] = omega0_rf
+        self.frac_omega = self.omega0['bunch'] / self.omega0['rf']
 
     def exit_cavity(self, index):
         """Recompute phi with the proper omega0, reset omega0."""
@@ -161,6 +165,7 @@ class Particle():
 
         # Reset proper omega
         self.omega0['ref'] = self.omega0['bunch']
+        self.frac_omega = 1.
 
 
 def create_rand_particles(e_0_mev, omega0_bunch):

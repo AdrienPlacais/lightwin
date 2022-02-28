@@ -92,6 +92,16 @@ def z_field_map_electric_field(cavity, synch):
 
     acc_f = cavity.acc_field
     synch.enter_cavity(acc_f.omega_0)
+    print('============================')
+    print('in\t',
+          synch.phi['abs'],
+          synch.phi['abs_array'][idx_in],
+          synch.phi['rel'],
+          cavity.acc_field.phi_0)
+    a = np.mod(synch.phi['abs'], 2.*np.pi)
+    b = np.mod(synch.phi['rel'], 2.*np.pi)
+    print('mod\t', a, b, a-b)
+    print('----------------------------')
 
     flag_phi_abs = False
     phi = {
@@ -159,7 +169,20 @@ def z_field_map_electric_field(cavity, synch):
 
         synch.advance_phi(delta['phi'], idx=idx_abs)
         synch.advance_position(d_z, idx=idx_abs)
+
     synch.exit_cavity(cavity.idx)
+    idx_out = cavity.idx['out']
+    print('out\t',
+          # synch.phi['abs'],
+          # synch.phi['abs_array'][idx_out],
+          synch.phi['rel'] / 2.,
+          synch.phi['abs'] - synch.phi['abs_array'][idx_in],
+          # cavity.acc_field.phi_0,
+          )
+    a = np.mod(synch.phi['abs'], 2.*np.pi)
+    b = np.mod(synch.phi['rel'], 2.*np.pi)
+    print('mod\t', a, b, a-b)
+
     return transfer_matrix[1:, :, :]
 
 
