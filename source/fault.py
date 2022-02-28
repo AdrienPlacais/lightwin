@@ -56,15 +56,59 @@ class FaultScenario():
         comp_list['all_elts'] also contains drifts, quads, etc of the
         compensating modules.
         """
+        cavities = self.brok_lin.elements_of(nature='FIELD_MAP')
+        modules = self.brok_lin.elements['list_lattice']
+
+        # Get modules where there is a fail
+        modules_with_fail = []
+        for module in modules:
+            cavities_modules = self.brok_lin.elements_of(nature='FIELD_MAP',
+                                                         sub_list=module)
+
+            for cav in cavities_modules:
+                if cav.status['failed']:
+                    modules_with_fail.append(module)
+                    break
+        print('There are ', len(modules_with_fail), ' module(s) with at ',
+              'least one failed cavity.')
+
+        # Get neighbor modules
+        neighbor_modules = []
+        for module in modules_with_fail:
+            idx = modules.index(module)
+            if idx > 0:
+                neighbor_modules.append(modules[idx-1])
+            if idx < len(modules) - 1:
+                neighbor_modules.append(modules[idx+1])
+
+        comp_modules = modules_with_fail + neighbor_modules
+        comp_cav = []
+        for module in comp_modules:
+            cavities_modules = self.brok_lin.elements_of(nature='FIELD_MAP',
+                                                         sub_list=module)
+            for cav in cavities_modules:
+                if not cav.status['failed']:
+                    comp_cav.append(cav)
+        # Remove duplicate cavities
+        comp_cav = list(dict.fromkeys(comp_cav))
+
+
         # FIXME
         # self.cavities = list(filter(lambda elt: elt.name == 'FIELD_MAP',
         #                             self.brok_lin.elements['list']))
 
         # self.working = list(filter(lambda cav: not cav.status['failed'],
         #                            self.cavities))
-        self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx] for
-                                      idx in manual_list]
 
+        # List of compensating cavities according to strategy
+        if what_to_fit['strategy'] == 'manual':
+            self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx]
+                                          for idx in manual_list]
+
+        elif self.what_to_fit['strategy'] == 'neighbors':
+            self.comp_list['only_cav'] = comp_cav
+
+        # Change status of all the compensating cavities
         for cav in self.comp_list['only_cav']:
             cav.status['compensate'] = True
 

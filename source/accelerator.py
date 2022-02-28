@@ -43,6 +43,11 @@ class Accelerator():
             if len(lattice) == self.elements['n_per_lattice']:
                 self.elements['list_lattice'].append(lattice)
                 lattice = []
+        if len(lattice) > 0:
+            self.elements['list_lattice'].append(lattice)
+            print("Warning, the last module added to ",
+                  "self.elements['list_lattice'] was not full (", len(lattice),
+                  " elements instead of ", self.elements['n_per_lattice'], ")")
 
         self.files = {
             'project_folder': os.path.dirname(dat_filepath),
@@ -152,7 +157,7 @@ class Accelerator():
             data_array = np.array(data_out)
         return data_array
 
-    def sub_list(self, nature):
+    def elements_of(self, nature, sub_list=None):
         """
         Return a list of elements of nature 'nature'.
 
@@ -160,14 +165,18 @@ class Accelerator():
         ----------
         nature : string
             Nature of the elements you want, eg FIELD_MAP or DRIFT.
+        sub_list : list, optional
+            List of elements (eg module) if you want the elements only in this
+            module.
 
         Returns
         -------
         list_of : list of Element
             List of all the Elements which have a nature 'nature'.
         """
-        list_of = list(filter(lambda elt: elt.name == nature,
-                              self.elements['list']))
+        if sub_list is None:
+            sub_list = self.elements['list']
+        list_of = list(filter(lambda elt: elt.name == nature, sub_list))
         return list_of
 
     def where_is(self, elt, nature=False):

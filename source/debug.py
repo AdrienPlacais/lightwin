@@ -433,7 +433,7 @@ def output_cavities(linac, out=True):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
         'Idx', 'Fail?', 'Comp?', 'Norm', 'phi0', 'Vs', 'phis'))
-    list_of_cav = linac.sub_list('FIELD_MAP')
+    list_of_cav = linac.elements_of('FIELD_MAP')
     for i in range(len(list_of_cav)):
         cav = list_of_cav[i]
         df_cav.loc[i] = [cav.idx['in'], cav.status['failed'],
