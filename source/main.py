@@ -71,7 +71,7 @@ WHAT_TO_FIT = {
     # =========================================================================
     'position': 'end_of_last_comp_cav',
     }
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 # =============================================================================
@@ -115,7 +115,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac, broken_linac]
+linacs = [ref_linac]#, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)

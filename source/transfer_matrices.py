@@ -93,6 +93,11 @@ def z_field_map_electric_field(cavity, synch):
     acc_f = cavity.acc_field
     synch.enter_cavity(acc_f.omega_0)
 
+    flag_phi_abs = False
+    phi = {
+        True: lambda sync: sync.phi['abs'],
+        False: lambda sync: sync.phi['rel'],
+        }
 # =============================================================================
 # Initialisation
 # =============================================================================
@@ -122,16 +127,16 @@ def z_field_map_electric_field(cavity, synch):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        acc_f.f_e += q_adim * acc_f.e_func(synch.z['rel'], synch.phi['rel']) \
-            * (1. + 1j * np.tan(synch.phi['rel'] + acc_f.phi_0))
+        acc_f.f_e += q_adim * acc_f.e_func(synch.z['rel'], phi[flag_phi_abs](synch)) \
+            * (1. + 1j * np.tan(phi[flag_phi_abs](synch) + acc_f.phi_0))
 
         if method == 'leapfrog':
             delta['e_mev'] = q_adim * acc_f.e_func(synch.z['rel'],
-                                                   synch.phi['rel']) * d_z
+                                                   phi[flag_phi_abs](synch)) * d_z
 
         elif method == 'RK':
             u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs-1],
-                              synch.phi['rel']]))
+                              phi[flag_phi_abs](synch)]))
             temp = solver.rk4(u_rk, du_dz, synch.z['rel'], d_z)
             delta['e_mev'] = temp[0]
             delta['phi'] = temp[1]
@@ -146,7 +151,7 @@ def z_field_map_electric_field(cavity, synch):
 
         # Compute transfer matrix using thin lens approximation
         transfer_matrix[i, :, :] = z_thin_lens(cavity, d_z, gamma, beta_middle,
-                                               synch)
+                                               synch, phi[flag_phi_abs](synch))
 
         if method == 'leapfrog':
             delta['phi'] = acc_f.n_cell * synch.omega0['bunch'] * d_z / (
@@ -158,7 +163,7 @@ def z_field_map_electric_field(cavity, synch):
     return transfer_matrix[1:, :, :]
 
 
-def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
+def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi,
                 flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
@@ -202,7 +207,8 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
     delta_phi_half_step = .5 * d_z * acc_f.omega_0 / (beta_middle * c)
-    phi_k = synch.phi['rel'] + delta_phi_half_step
+    # phi_k = synch.phi['rel'] + delta_phi_half_step
+    phi_k = phi + delta_phi_half_step
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * E_rest_MeV)

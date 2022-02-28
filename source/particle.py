@@ -38,6 +38,7 @@ class Particle():
 
         self.phi = {
             'rel': None,
+            'abs': None,
             'abs_array': np.full((n_steps + 1), np.NaN),
             }
         self._init_phi(idx=0)
@@ -112,9 +113,9 @@ class Particle():
         """Increase relative and absolute phase by delta_phi."""
         if np.isnan(idx):
             idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
-        phi_abs = self.phi['abs_array'][idx-1] + delta_phi
+        self.phi['abs'] = self.phi['abs_array'][idx-1] + delta_phi
         self.phi['rel'] += delta_phi
-        self.phi['abs_array'][idx] = phi_abs
+        self.phi['abs_array'][idx] = self.phi['abs']
 
     def compute_phase_space_tot(self, synch):
         """
