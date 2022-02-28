@@ -28,9 +28,22 @@ class Accelerator():
         self.name = name
 
         # Load dat file, clean it up (remove comments, etc), load elements
-        dat_filecontent, list_of_elements = tw.load_dat_file(dat_filepath)
+        dat_filecontent, list_of_elements, n_lattice = \
+            tw.load_dat_file(dat_filepath)
         self.n_elements = len(list_of_elements)
         self.list_of_elements = list_of_elements
+        self.elements = {
+            'n': len(list_of_elements),
+            'list': list_of_elements,
+            'n_per_lattice': n_lattice,
+            'list_lattice': [],
+            }
+        lattice = []
+        for i in range(self.elements['n']):
+            lattice.append(self.elements['list'][i])
+            if len(lattice) == self.elements['n_per_lattice']:
+                self.elements['list_lattice'].append(lattice)
+                lattice = []
 
         self.files = {
             'project_folder': os.path.dirname(dat_filepath),
@@ -51,17 +64,17 @@ class Accelerator():
             idx['out'] += elt.solver_param_transf_mat['n_steps']
             elt.idx = idx.copy()
 
+        # Create synchronous particle
         omega_0 = 2e6 * np.pi * f_mhz
         self.synch = particle.Particle(0., e_0_mev, omega_0,
                                        n_steps=idx['out'], synchronous=True)
 
+        # Transfer matrices
         self.transf_mat = {
             'cumul': np.expand_dims(np.eye(2), axis=0),
-            # 'cumul': np.full((idx['out'], 2, 2), np.NaN),
             'indiv': np.full((idx['out']+1, 2, 2), np.NaN),
             'first_calc?': True,
             }
-        # self.transf_mat['cumul'][0, :, :] = np.eye(2)
         self.transf_mat['indiv'][0, :, :] = np.eye(2)
 
     def compute_transfer_matrices(self, method, elements=None):

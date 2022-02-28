@@ -13,7 +13,8 @@ from electric_field import load_field_map_file
 import elements
 
 to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
-                     'LATTICE', 'END']
+                     # 'LATTICE',
+                     'END']
 # Dict of data that can be imported from TW's "Data" table.
 # More info in load_tw_results
 dict_tw_data_table = {
@@ -61,9 +62,10 @@ def load_dat_file(dat_filepath):
 
             dat_filecontent.append(line)
 
-    list_of_elements = _create_structure(dat_filepath, dat_filecontent)
+    list_of_elements, n_lattice = _create_structure(dat_filepath,
+                                                    dat_filecontent)
 
-    return dat_filecontent, list_of_elements
+    return dat_filecontent, list_of_elements, n_lattice
 
 
 def _create_structure(dat_filepath, dat_filecontent):
@@ -86,8 +88,8 @@ def _create_structure(dat_filepath, dat_filecontent):
         'QUAD': elements.Quad,
         'DRIFT': elements.Drift,
         'FIELD_MAP': elements.FieldMap,
-        'CAVSIN': elements.CavSin,
         'SOLENOID': elements.Solenoid,
+        'LATTICE': elements.Lattice,
     }
 
     # We look at each element in dat_filecontent, and according to the
@@ -100,9 +102,16 @@ def _create_structure(dat_filepath, dat_filecontent):
     except KeyError:
         print('Warning, an element from filepath was not recognized.')
 
+    n_lattice = None
+    for elt in list_of_elements:
+        if type(elt) is elements.Lattice:
+            n_lattice = elt.n_lattice
+            list_of_elements.remove(elt)
+            break
+
     _load_filemaps(dat_filepath, dat_filecontent, list_of_elements)
 
-    return list_of_elements
+    return list_of_elements, n_lattice
 
 
 def _load_filemaps(dat_filepath, dat_filecontent, list_of_elements):

@@ -186,25 +186,8 @@ class FieldMap(_Element):
         self.acc_field.norm = 0.
 
 
-class CavSin(_Element):
-    """Sub-class of Element, with parameters specific to CAVSINs."""
+class Lattice():
+    """Used to get the number of elements per lattice."""
 
     def __init__(self, elem):
-        n_attributes = len(elem) - 1
-        assert n_attributes == 6
-
-        super().__init__(elem)
-        self.cell_number = int(elem[1])                 # N
-        self.eff_gap_voltage = float(elem[2])           # EoT
-        self.sync_phase = float(elem[3])                # theta_s
-        self.aperture_mm = float(elem[4])               # R
-        self.transfer_matrix = np.full((2, 2), np.NaN)
-
-        try:
-            self.relative_phase_flag = int(elem[5])     # P
-        except IndexError:
-            pass
-
-    def compute_transfer_matrix(self, synch):
-        """Compute longitudinal matrix."""
-        print('Warning, MT of sin cav not implemented.')
+        self.n_lattice = int(elem[1])
