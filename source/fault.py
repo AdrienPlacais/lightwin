@@ -168,6 +168,8 @@ class FaultScenario():
                              (bounds[:, 0], bounds[:, 1])],
             'transfer_matrix': [least_squares, initial_guesses,
                                 (bounds[:, 0], bounds[:, 1])],
+            'all': [least_squares, initial_guesses,
+                    (bounds[:, 0], bounds[:, 1])],
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[what_to_fit['objective']]
 
@@ -266,6 +268,13 @@ class FaultScenario():
                  linac.synch.phi['abs_array'][idx]]),
             'transfer_matrix': lambda linac, idx:
                 linac.transf_mat['cumul'][idx, :, :].flatten(),
+            'all': lambda linac, idx:
+                np.hstack((
+                    np.array(
+                        [linac.synch.energy['kin_array_mev'][idx],
+                         linac.synch.phi['abs_array'][idx]]),
+                    linac.transf_mat['cumul'][idx, :, :].flatten()
+                    ))
             }
 
         idx_pos = dict_position[position_str]

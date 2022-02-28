@@ -53,11 +53,22 @@ if FILEPATH == "":
 failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 WHAT_TO_FIT = {
-    # How compensatong cavities are chosen?
+    # =========================================================================
+    #     How compensatong cavities are chosen?
+    # =========================================================================
+    # 'strategy': 'manual',
     'strategy': 'neighbors',
-    # What should we fit?
-    'objective': 'transfer_matrix',
-    # Where should we evaluate objective?
+    # =========================================================================
+    #     What should we fit?
+    # =========================================================================
+    # 'objective': 'energy',
+    # 'objective': 'phase',
+    # 'objective': 'energy_phase',
+    # 'objective': 'transfer_matrix',
+    'objective': 'all',
+    # =========================================================================
+    #     Where should we evaluate objective?
+    # =========================================================================
     'position': 'end_of_last_comp_cav',
     }
 FLAG_FIX = True
@@ -68,10 +79,10 @@ SAVE_FIX = False
 # =============================================================================
 PLOTS = [
     "energy",
-    # "phase",
-    # "cav",
+    "phase",
+    "cav",
     ]
-PLOT_TM = False
+PLOT_TM = True
 PHASE_SPACE = False
 TWISS = False
 
