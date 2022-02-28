@@ -95,8 +95,11 @@ class FaultScenario():
                     if not cav.status['failed']:
                         comp_cav.append(cav)
             # Remove duplicate cavities
-            comp_cav = list(dict.fromkeys(comp_cav))
             self.comp_list['only_cav'] = comp_cav
+            # Sort cavities according to their position
+            self.comp_list['only_cav'] = sorted(comp_cav,
+                                                key=lambda elt:
+                                                    elt.idx['in'])
 
         # Change status of all the compensating cavities
         for cav in self.comp_list['only_cav']:
@@ -187,7 +190,7 @@ class FaultScenario():
 
         self.info[self.brok_lin.name + ' cav'] = \
             debug.output_cavities(self.brok_lin, debug_cav)
-        print(sol)
+        print('\n', sol)
         self.info['sol'] = sol
         self.info['fit'] = debug.output_fit(self, initial_guesses, bounds,
                                             debug_fit)
