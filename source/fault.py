@@ -222,7 +222,7 @@ class FaultScenario():
             }
         absolute_limits = {
             'phi_0_down': np.deg2rad(100.), 'phi_0_up': np.deg2rad(170.),
-            'norm_down': 1., 'norm_up': 2.1,
+            'norm_down': 1., 'norm_up': np.inf,
             }
         dict_prop = {
             'phi_0': lambda acc_f: acc_f.phi_0,
