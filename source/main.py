@@ -56,7 +56,7 @@ WHAT_TO_FIT = {
     # How compensatong cavities are chosen?
     'strategy': 'manual',
     # What should we fit?
-    'objective': 'energy_phase',
+    'objective': 'transfer_matrix',
     # Where should we evaluate objective?
     'position': 'end_of_last_comp_cav',
     }
@@ -67,9 +67,9 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    # "energy",
-    # "phase",
-    # "cav",
+    "energy",
+    "phase",
+    "cav",
     ]
 PLOT_TM = True
 PHASE_SPACE = False

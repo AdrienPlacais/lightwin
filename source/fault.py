@@ -128,6 +128,8 @@ class FaultScenario():
             'phase': [minimize, initial_guesses, bounds],
             'energy_phase': [least_squares, initial_guesses,
                              (bounds[:, 0], bounds[:, 1])],
+            'transfer_matrix': [least_squares, initial_guesses,
+                                (bounds[:, 0], bounds[:, 1])],
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[what_to_fit['objective']]
 
@@ -179,7 +181,7 @@ class FaultScenario():
             'norm_down': 0.6, 'norm_up': 1.5,   # [60%, 150%] of norm
             }
         absolute_limits = {
-            'phi_0_down': np.deg2rad(110.), 'phi_0_up': np.deg2rad(170.),
+            'phi_0_down': np.deg2rad(100.), 'phi_0_up': np.deg2rad(170.),
             'norm_down': 1., 'norm_up': 2.1,
             }
         dict_prop = {
@@ -247,10 +249,9 @@ class FaultScenario():
                 [linac.synch.energy['kin_array_mev'][idx],
                  linac.synch.phi['abs_array'][idx]]),
             'transfer_matrix': lambda linac, idx:
-                linac.transf_mat['cumul'][idx, :, :],
+                linac.transf_mat['cumul'][idx, :, :].flatten(),
             }
 
         idx_pos = dict_position[position_str]
         fun_objective = dict_objective[objective_str]
-        # fun_optimize = np.abs(fun_objective(self.ref_lin, idx_pos) - fun_objective(self.brok_lin, idx_pos))
         return fun_objective, idx_pos
