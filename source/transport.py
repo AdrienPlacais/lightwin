@@ -40,7 +40,7 @@ def transport_particle(accelerator, part):
 
     omega0_bunch = accelerator.synch.omega0['bunch']
 
-    for elt in accelerator.list_of_elements:
+    for elt in accelerator.elements['list']:
         n_steps = elt.solver_transf_mat.n_steps
         z_step = elt.solver_transf_mat.d_z
 
@@ -153,7 +153,7 @@ def compute_envelope(accelerator):
     beta = helper.gamma_to_beta(gamma)
 
     # Assumption that the frequency won't change
-    lambda_rf = accelerator.list_of_elements[5].acc_field.lambda_rf
+    lambda_rf = accelerator.elements['list'][5].acc_field.lambda_rf
 
     # Vectors of transverse dynamics
     transv = np.full((4, 2, n), np.NaN)

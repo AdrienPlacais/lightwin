@@ -21,7 +21,7 @@ class Accelerator():
         Create Accelerator object.
 
         The different elements constituting the accelerator will be stored
-        in the list self.list_of_elements.
+        in the list self.elements['list'].
         The data such as the synch phase or the beam energy will be stored in
         the self.synch Particle object.
         """
@@ -30,8 +30,7 @@ class Accelerator():
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, list_of_elements, n_lattice = \
             tw.load_dat_file(dat_filepath)
-        self.n_elements = len(list_of_elements)
-        self.list_of_elements = list_of_elements
+
         self.elements = {
             'n': len(list_of_elements),
             'list': list_of_elements,
@@ -53,7 +52,7 @@ class Accelerator():
         # Set indexes and absolute position of the different elements
         pos = {'in': 0., 'out': 0.}
         idx = {'in': 0, 'out': 0}
-        for elt in self.list_of_elements:
+        for elt in self.elements['list']:
             elt.init_solvers()
 
             pos['in'] = pos['out']
@@ -91,7 +90,7 @@ class Accelerator():
             List of elements from which you want the transfer matrices.
         """
         if elements is None:
-            elements = self.list_of_elements
+            elements = self.elements['list']
 
         for elt in elements:
             elt.solver_param_transf_mat['method'] = method
@@ -125,7 +124,7 @@ class Accelerator():
         key: string, optional
             If attribute is a dict, key must be provided.
         """
-        list_of_keys = vars(self.list_of_elements[0])
+        list_of_keys = vars(self.elements['list'][0])
         data_nature = str(type(list_of_keys[attribute]))
 
         dict_data_getter = {
@@ -139,7 +138,7 @@ class Accelerator():
         fun = dict_data_getter[data_nature]
 
         data_out = []
-        for elt in self.list_of_elements:
+        for elt in self.elements['list']:
             list_of_keys = vars(elt)
             data_out.append(fun(list_of_keys[attribute], key))
 
@@ -168,7 +167,7 @@ class Accelerator():
             List of all the Elements which have a nature 'nature'.
         """
         list_of = list(filter(lambda elt: elt.name == nature,
-                              self.list_of_elements))
+                              self.elements['list']))
         return list_of
 
     def where_is(self, elt, nature=False):
@@ -195,6 +194,6 @@ class Accelerator():
         if nature:
             idx = self.sub_list(elt.name).index(elt)
         else:
-            idx = self.list_of_elements.index(elt)
+            idx = self.elements['list'].index(elt)
 
         return idx

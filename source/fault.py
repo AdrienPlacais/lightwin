@@ -41,7 +41,7 @@ class FaultScenario():
         All faulty cavities are added to fail_list.
         """
         for idx in fail_idx:
-            cav = self.brok_lin.list_of_elements[idx]
+            cav = self.brok_lin.elements['list'][idx]
             assert cav.name == 'FIELD_MAP', 'Error, the element at ' + \
                 'position ' + str(idx) + ' is not a FIELD_MAP.'
             cav.fail()
@@ -58,11 +58,11 @@ class FaultScenario():
         """
         # FIXME
         # self.cavities = list(filter(lambda elt: elt.name == 'FIELD_MAP',
-        #                             self.brok_lin.list_of_elements))
+        #                             self.brok_lin.elements['list']))
 
         # self.working = list(filter(lambda cav: not cav.status['failed'],
         #                            self.cavities))
-        self.comp_list['only_cav'] = [self.brok_lin.list_of_elements[idx] for
+        self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx] for
                                       idx in manual_list]
 
         for cav in self.comp_list['only_cav']:
@@ -71,7 +71,7 @@ class FaultScenario():
         # Portion of linac with compensating cavities, as well as drifts and
         # quads
         complete_modules = []
-        elts = self.brok_lin.list_of_elements
+        elts = self.brok_lin.elements['list']
         for i in range(elts.index(self.comp_list['only_cav'][0]),
                        elts.index(self.comp_list['only_cav'][-1])+1):
             complete_modules.append(elts[i])
@@ -220,7 +220,7 @@ class FaultScenario():
 
         def phi_s_max(cav):
             idx = self.brok_lin.where_is(cav)
-            equiv = self.ref_lin.list_of_elements[idx]
+            equiv = self.ref_lin.elements['list'][idx]
             maxi = percent_phi_s_max * equiv.acc_field.phi_s_deg
             return maxi - cav.acc_field.phi_s_deg
 

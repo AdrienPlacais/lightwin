@@ -219,7 +219,7 @@ def compare_with_tracewin(linac, x_dat='s',
 
     dict_x_data = {
         's': syn.z['abs_array'],
-        'elt': range(linac.n_elements),
+        'elt': range(linac.elements['n']),
         }
 
     # Used when there are too many points (x or y data)

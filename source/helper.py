@@ -121,7 +121,7 @@ def plot_structure(linac, ax, x_axis='s'):
         'FIELD_MAP': _plot_field_map,
         }
     i = 0
-    for elt in linac.list_of_elements:
+    for elt in linac.elements['list']:
         if x_axis == 's':
             x0 = elt.pos_m['abs'][0]
             width = elt.length_m
@@ -132,8 +132,8 @@ def plot_structure(linac, ax, x_axis='s'):
         i += 1
 
     if x_axis == 's':
-        ax.set_xlim([linac.list_of_elements[0].pos_m['abs'][0],
-                     linac.list_of_elements[-1].pos_m['abs'][-1]])
+        ax.set_xlim([linac.elements['list'][0].pos_m['abs'][0],
+                     linac.elements['list'][-1].pos_m['abs'][-1]])
     elif x_axis == 'elt':
         ax.set_xlim([0, i])
     ax.set_yticklabels([])
