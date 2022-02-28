@@ -246,28 +246,6 @@ class FaultScenario():
         bounds = np.array(bounds)
         return initial_guess, bounds
 
-    def _set_constraints(self):
-        """Add constraints on the synchronous phase."""
-        # TODO Finish this function
-        limit_phi_s_down = -90.
-
-        def phi_s_min(cav):
-            return cav.acc_field.phi_s_deg - limit_phi_s_down
-
-        percent_phi_s_max = 1.1
-
-        def phi_s_max(cav):
-            idx = self.brok_lin.where_is(cav)
-            equiv = self.ref_lin.elements['list'][idx]
-            maxi = percent_phi_s_max * equiv.acc_field.phi_s_deg
-            return maxi - cav.acc_field.phi_s_deg
-
-        constraints = []
-        for cav in self.comp_list['only_cav']:
-            constraints.append({'type': 'ineq', 'fun': phi_s_min(cav)})
-            constraints.append({'type': 'ineq', 'fun': phi_s_max(cav)})
-        return constraints
-
     def _select_objective(self, position_str, objective_str):
         """Select the objective to fit."""
         # Where do you want to verify that the objective is matched?
