@@ -56,56 +56,46 @@ class FaultScenario():
         comp_list['all_elts'] also contains drifts, quads, etc of the
         compensating modules.
         """
-        cavities = self.brok_lin.elements_of(nature='FIELD_MAP')
-        modules = self.brok_lin.elements['list_lattice']
-
-        # Get modules where there is a fail
-        modules_with_fail = []
-        for module in modules:
-            cavities_modules = self.brok_lin.elements_of(nature='FIELD_MAP',
-                                                         sub_list=module)
-
-            for cav in cavities_modules:
-                if cav.status['failed']:
-                    modules_with_fail.append(module)
-                    break
-        print('There are ', len(modules_with_fail), ' module(s) with at ',
-              'least one failed cavity.')
-
-        # Get neighbor modules
-        neighbor_modules = []
-        for module in modules_with_fail:
-            idx = modules.index(module)
-            if idx > 0:
-                neighbor_modules.append(modules[idx-1])
-            if idx < len(modules) - 1:
-                neighbor_modules.append(modules[idx+1])
-
-        comp_modules = modules_with_fail + neighbor_modules
-        comp_cav = []
-        for module in comp_modules:
-            cavities_modules = self.brok_lin.elements_of(nature='FIELD_MAP',
-                                                         sub_list=module)
-            for cav in cavities_modules:
-                if not cav.status['failed']:
-                    comp_cav.append(cav)
-        # Remove duplicate cavities
-        comp_cav = list(dict.fromkeys(comp_cav))
-
-
-        # FIXME
-        # self.cavities = list(filter(lambda elt: elt.name == 'FIELD_MAP',
-        #                             self.brok_lin.elements['list']))
-
-        # self.working = list(filter(lambda cav: not cav.status['failed'],
-        #                            self.cavities))
-
-        # List of compensating cavities according to strategy
         if what_to_fit['strategy'] == 'manual':
             self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx]
                                           for idx in manual_list]
 
         elif self.what_to_fit['strategy'] == 'neighbors':
+            modules = self.brok_lin.elements['list_lattice']
+
+            # Get modules where there is a fail
+            modules_with_fail = []
+            for module in modules:
+                cavities_modules = self.brok_lin.elements_of(
+                    nature='FIELD_MAP', sub_list=module)
+
+                for cav in cavities_modules:
+                    if cav.status['failed']:
+                        modules_with_fail.append(module)
+                        break
+            print('There are', len(modules_with_fail), 'module(s) with at',
+                  'least one failed cavity.')
+
+            # Get neighbor modules
+            neighbor_modules = []
+            for module in modules_with_fail:
+                idx = modules.index(module)
+                if idx > 0:
+                    neighbor_modules.append(modules[idx-1])
+                if idx < len(modules) - 1:
+                    neighbor_modules.append(modules[idx+1])
+
+            comp_modules = modules_with_fail + neighbor_modules
+            comp_cav = []
+            for module in comp_modules:
+                cavities_modules = self.brok_lin.elements_of(
+                    nature='FIELD_MAP', sub_list=module)
+
+                for cav in cavities_modules:
+                    if not cav.status['failed']:
+                        comp_cav.append(cav)
+            # Remove duplicate cavities
+            comp_cav = list(dict.fromkeys(comp_cav))
             self.comp_list['only_cav'] = comp_cav
 
         # Change status of all the compensating cavities
@@ -136,6 +126,7 @@ class FaultScenario():
             'strategy' == 'manual'. The default is None.
         """
         debug_fit = True
+        debug_cav = False
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", what_to_fit)
 
@@ -143,7 +134,7 @@ class FaultScenario():
         n_cav = len(self.comp_list['only_cav'])
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = debug.output_cavities(linac,
-                                                                   debug_fit)
+                                                                   debug_cav)
 
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
@@ -177,7 +168,7 @@ class FaultScenario():
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[what_to_fit['objective']]
 
-        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2], verbose=2)
+        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2], verbose=0)
         # TODO check if some boundaries are reached
         # TODO check methods
         # TODO check Jacobian
@@ -195,7 +186,7 @@ class FaultScenario():
             self.brok_lin.name = 'Poorly fixed'
 
         self.info[self.brok_lin.name + ' cav'] = \
-            debug.output_cavities(self.brok_lin, debug_fit)
+            debug.output_cavities(self.brok_lin, debug_cav)
         print(sol)
         self.info['sol'] = sol
         self.info['fit'] = debug.output_fit(self, initial_guesses, bounds,

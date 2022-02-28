@@ -6,20 +6,15 @@ Created on Wed Sep 22 10:26:19 2021
 @author: placais
 """
 import cmath
-from collections import namedtuple
 import numpy as np
 import transfer_matrices
 import transport
 from electric_field import RfField
 
-# TODO separate functions for RK / leapfrog?
-# SolverParam = namedtuple('SolverParam', 'method n_steps d_z')
-
 
 # =============================================================================
 # Element class
 # =============================================================================
-# elements_resume.
 class _Element():
     """Generic element. _ ensures that it is not called from another file."""
 

@@ -54,7 +54,7 @@ failed_cav = [25]
 manual_list = [15, 17, 27, 35, 37]
 WHAT_TO_FIT = {
     # How compensatong cavities are chosen?
-    'strategy': 'manual',
+    'strategy': 'neighbors',
     # What should we fit?
     'objective': 'transfer_matrix',
     # Where should we evaluate objective?
