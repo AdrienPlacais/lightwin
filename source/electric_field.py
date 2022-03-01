@@ -14,6 +14,7 @@ phi0 = {
     False: lambda field: field.phi_0['rel'],
     }
 
+
 class RfField():
     """Cos-like RF field."""
 
@@ -35,8 +36,6 @@ class RfField():
         self.f_e = 0.
         self.phi_s_deg = np.NaN
         self.v_cav_mv = np.NaN
-
-        self.flag_phi_abs = None
 
     def e_func_norm(self, norm, phi_0, x, phi):
         """
@@ -61,7 +60,7 @@ class RfField():
         """
         return norm * self.e_spat(x) * np.cos(phi + phi_0)
 
-    def e_func(self, x, phi):
+    def e_func(self, x, phi, flag_phi_abs=False):
         """
         Compute the rf electric field.
 
@@ -80,8 +79,7 @@ class RfField():
         e : float
             Electric field defined by self at position x and time phi.
         """
-        return self.e_func_norm(self.norm, phi0[self.flag_phi_abs](self), x,
-                                phi)
+        return self.e_func_norm(self.norm, phi0[flag_phi_abs](self), x, phi)
 
     def de_dt_func_norm(self, norm, phi_0, x, phi, beta):
         """
@@ -110,7 +108,7 @@ class RfField():
         factor = norm * self.omega0_rf / (beta * c)
         return factor * self.e_spat(x) * np.sin(phi + phi_0)
 
-    def de_dt_func(self, x, phi, beta):
+    def de_dt_func(self, x, phi, beta, flag_phi_abs=False):
         """
         Compute the time derivative of the rf field.
 
@@ -131,8 +129,28 @@ class RfField():
         de/dt : float
             Time-derivative of the electric field at position x and time phi.
         """
-        return self.de_dt_func_norm(self.norm, phi0[self.flag_phi_abs](self),
+        return self.de_dt_func_norm(self.norm, phi0[flag_phi_abs](self),
                                     x, phi, beta)
+
+    def phi_0_rel_to_abs(self, phi_abs):
+        """
+        Convert relative phi_0 to absolute.
+
+        By default, TW uses relative phases. In other words, it considers that
+        particles always enter in the cavity at phi = 0 rad, and phi_0 is
+        defined accordingly. This function recalculates phi_0 so that
+        modulo(phi_abs + phi_0_abs, 2pi) = phi_rel + phi_0_rel = phi_0_rel
+
+        Parameters
+        ----------
+        phi_abs : float
+            Absolute phase of the particle at the entrance of the cavity.
+        """
+        phi_abs_in_0_2pi = np.modulo(phi_abs, 2. * np.pi)
+        phi_0_abs = self.phi_0['rel'] - phi_abs_in_0_2pi
+        if phi_0_abs < 0.:
+            phi_0_abs += 2. * np.pi
+        self.phi_0['abs'] = phi_0_abs
 
 
 # =============================================================================

@@ -95,7 +95,6 @@ def z_field_map_electric_field(cavity, synch):
 
     flag_phi_abs = False
     synch.flag_phi_abs = flag_phi_abs
-    acc_f.flag_phi_abs = flag_phi_abs
 
     phi = {
         True: lambda sync: sync.phi['abs_rf'],
@@ -139,9 +138,9 @@ def z_field_map_electric_field(cavity, synch):
                                 + electric_field.phi0[flag_phi_abs](acc_f)))
 
         if method == 'leapfrog':
-            delta['e_mev'] = q_adim * acc_f.e_func(synch.z['rel'],
-                                                   phi[flag_phi_abs](synch)) \
-                * d_z
+            delta['e_mev'] = q_adim \
+                * acc_f.e_func(synch.z['rel'], phi[flag_phi_abs](synch),
+                               flag_phi_abs) * d_z
 
         elif method == 'RK':
             u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs - 1],
@@ -171,13 +170,12 @@ def z_field_map_electric_field(cavity, synch):
 
     synch.exit_cavity(cavity.idx)
     synch.flag_phi_abs = None
-    acc_f.flag_phi_abs = None
 
     return transfer_matrix[1:, :, :]
 
 
 def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi,
-                flag_correction_determinant=True):
+                flag_correction_determinant=True, flag_phi_abs=False):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
 
@@ -222,16 +220,19 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi,
     delta_phi_half_step = .5 * d_z * acc_f.omega_0 / (beta_middle * c)
     # phi_k = synch.phi['rel'] + delta_phi_half_step
     phi_k = phi + delta_phi_half_step
+    # TODO : also update phi_k (abs/rel)
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * E_rest_MeV)
-    k_1 = k_0 * acc_f.de_dt_func(z_k, phi_k, beta_middle)
-    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_f.e_func(z_k, phi_k)
+    k_1 = k_0 * acc_f.de_dt_func(z_k, phi_k, beta_middle, flag_phi_abs)
+    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_f.e_func(z_k, phi_k,
+                                                          flag_phi_abs)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
-        k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_k))  \
-            / (1. - k_0 * (2. - beta_middle**2) * acc_f.e_func(z_k, phi_k))
+        k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_k, flag_phi_abs))  \
+            / (1. - k_0 * (2. - beta_middle**2)
+               * acc_f.e_func(z_k, phi_k, flag_phi_abs))
         transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:
