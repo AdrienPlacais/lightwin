@@ -162,7 +162,8 @@ def z_field_map_electric_field(cavity, synch):
 
         # Compute transfer matrix using thin lens approximation
         transfer_matrix[i, :, :] = z_thin_lens(cavity, d_z, gamma, beta_middle,
-                                               synch, phi[flag_phi_abs](synch))
+                                               synch, phi[flag_phi_abs](synch),
+                                               flag_phi_abs=flag_phi_abs)
 
         if method == 'leapfrog':
             delta['phi_rf'] = acc_f.n_cell * synch.omega0['bunch'] * d_z / (
