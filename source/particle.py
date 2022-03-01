@@ -137,7 +137,7 @@ class Particle():
             }
         self.df = pd.DataFrame(df)
 
-    def advance_phi(self, delta_phi, idx=np.NaN):
+    def advance_phi(self, delta_phi, idx=np.NaN, flag_rf=False):
         """
         Increase relative and absolute phase by delta_phi.
 
@@ -150,13 +150,22 @@ class Particle():
             Index of the new phase in abs_array. By default, the first NaN
             element of the array is replaced. Thus, idx has to be given only
             when recomputing the transfer matrices.
+        flag_rf : boolean, optional
+            If False, delta_phi = omega_0_bunch * delta_t. Otherwise,
+            delta_phi = omega_0_rf * delta_t. Default is False.
         """
         if np.isnan(idx):
             idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
 
-        self.phi['rel'] += delta_phi
+        if flag_rf:
+            self.phi['abs_rf'] += delta_phi
+            self.phi['rel'] += delta_phi
+            delta_phi *= self.frac_omega['rf_to_bunch']
+        else:
+            self.phi['abs_rf'] += delta_phi
+            self.phi['rel'] += delta_phi
+
         self.phi['abs'] += delta_phi
-        self.phi['abs_rf'] += delta_phi * self.frac_omega['bunch_to_rf']
         self.phi['abs_array'][idx] = self.phi['abs_array'][idx-1] + delta_phi
 
         new_row = {

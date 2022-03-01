@@ -109,7 +109,7 @@ def z_field_map_electric_field(cavity, synch):
              'middle': None, 'out': None}
     # Variation of synch part parameters (not necessary for z, as it is always
     # dz)
-    delta = {'e_mev': None, 'phi': None}
+    delta = {'e_mev': None, 'phi_rf': None}
 
     # Initialize gamma and synch:
     if method == 'leapfrog':
@@ -144,12 +144,12 @@ def z_field_map_electric_field(cavity, synch):
                                flag_phi_abs) * d_z
 
         elif method == 'RK':
-            phi_rf = phi[flag_phi_abs](synch) * synch.frac_omega['bunch_to_rf']
+            phi_rf = phi[flag_phi_abs](synch)
             u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs - 1],
                               phi_rf]))
             temp = solver.rk4(u_rk, du_dz, synch.z['rel'], d_z)
             delta['e_mev'] = temp[0]
-            delta['phi'] = temp[1] * synch.frac_omega['rf_to_bunch']
+            delta['phi_rf'] = temp[1]
 
         synch.set_energy(delta['e_mev'], idx=idx_abs, delta_e=True)
         gamma['out'] = synch.energy['gamma_array'][idx_abs]
@@ -161,13 +161,13 @@ def z_field_map_electric_field(cavity, synch):
 
         # Compute transfer matrix using thin lens approximation
         transfer_matrix[i, :, :] = z_thin_lens(cavity, d_z, gamma, beta_middle,
-                                               synch, phi[flag_phi_abs](synch) * synch.frac_omega['bunch_to_rf'])
+                                               synch, phi[flag_phi_abs](synch))
 
         if method == 'leapfrog':
-            delta['phi'] = acc_f.n_cell * synch.omega0['bunch'] * d_z / (
+            delta['phi_rf'] = acc_f.n_cell * synch.omega0['bunch'] * d_z / (
                 helper.gamma_to_beta(gamma['out']) * c)
 
-        synch.advance_phi(delta['phi'], idx=idx_abs)
+        synch.advance_phi(delta['phi_rf'], idx=idx_abs, flag_rf=True)
         synch.advance_position(d_z, idx=idx_abs)
 
     synch.exit_cavity(cavity.idx)
@@ -185,26 +185,24 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
 
     Parameters
     ----------
-    acc_field: RfField object
-        Holds electric field function and important parameters of the electric
-        field.
-    d_z: real
-        Spatial step in m.
-    gamma: dict
-        Lorentz factor of synchronous particle at entrance, middle and exit of
-        the drift-gap-drift.
-    beta_middle:
-        Lorentz factor at middle of cavity (beta_s in TW doc).
-    synch: dict
-        Sych_part dict.
-    flag_correction_determinant: boolean, optional
-        To activate/deactivate the correction of the determinant (absent from
-        TraceWin documentation).
-
-    Return
-    ------
-    m_z: np.array((2, 2))
-        Longitudinal transfer matrix of the drift-gap-drift.
+    cavity : Element
+        Cavity where the particle is.
+    d_z : float
+        Longitudinal spatial step in m.
+    gamma : dict
+        Holds Lorentz mass factor at entrance, middle and exit of the cavity.
+    beta_middle : float
+        Lorentz speed factor at the middle of the cavity (beta_s in TW doc).
+    synch : Particle
+        Particle under study.
+    phi_rf : float
+        Phase of the particle, expressed as phi_rf = omega_0_rf * t.
+    flag_correction_determinant : boolean, optional
+        Determines if the rouine enforces Det(transf_mat) < 1. The default is
+        True.
+    flag_phi_abs : boolean, optional
+        Determines if the phase should be calculated with absolute value or
+        with relative. The default is False.
     """
     assert isinstance(gamma, dict)
     acc_f = cavity.acc_field
@@ -220,21 +218,20 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
     delta_phi_half_step = .5 * d_z * acc_f.omega_0 / (beta_middle * c)
-    # phi_k = synch.phi['rel'] + delta_phi_half_step
-    phi_k = phi_rf + delta_phi_half_step
+    phi_rf_k = phi_rf + delta_phi_half_step
     # TODO : also update phi_k (abs/rel)
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * E_rest_MeV)
-    k_1 = k_0 * acc_f.de_dt_func(z_k, phi_k, beta_middle, flag_phi_abs)
-    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_f.e_func(z_k, phi_k,
+    k_1 = k_0 * acc_f.de_dt_func(z_k, phi_rf_k, beta_middle, flag_phi_abs)
+    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_f.e_func(z_k, phi_rf_k,
                                                           flag_phi_abs)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
-        k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_k, flag_phi_abs))  \
+        k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_rf_k, flag_phi_abs))  \
             / (1. - k_0 * (2. - beta_middle**2)
-               * acc_f.e_func(z_k, phi_k, flag_phi_abs))
+               * acc_f.e_func(z_k, phi_rf_k, flag_phi_abs))
         transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:
