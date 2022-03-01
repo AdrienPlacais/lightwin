@@ -45,7 +45,7 @@ class RfField():
         self.phi_s_deg = np.NaN
         self.v_cav_mv = np.NaN
 
-    def e_func_norm(self, norm, phi_0, x, phi):
+    def e_func_norm(self, norm, phi_0, x, phi_rf):
         """
         Template of the cos-like rf field (normed).
 
@@ -57,8 +57,8 @@ class RfField():
             Initial phase of the field in rad.
         x : float
             Position of the particle in m.
-        phi : float
-            Phase of the field. phi = omega_RF * t, while in most of the
+        phi_rf : float
+            Phase of the field. phi_rf = omega_RF * t, while in most of the
             code it is written as phi = omega_bunch * t.
 
         Return
@@ -66,9 +66,9 @@ class RfField():
         e : float
             Electric field at position x and time phi.
         """
-        return norm * self.e_spat(x) * np.cos(phi + phi_0)
+        return norm * self.e_spat(x) * np.cos(phi_rf + phi_0)
 
-    def e_func(self, x, phi, flag_phi_abs=False):
+    def e_func(self, x, phi_rf, flag_phi_abs=False):
         """
         Compute the rf electric field.
 
@@ -78,8 +78,8 @@ class RfField():
         ----------
         x : float
             Position of the particle in m.
-        phi : float
-            Phase of the field. phi = omega_RF * t, while in most of the
+        phi_rf : float
+            Phase of the field. phi_rf = omega_RF * t, while in most of the
             code it is written as phi = omega_bunch * t.
 
         Return
@@ -87,9 +87,9 @@ class RfField():
         e : float
             Electric field defined by self at position x and time phi.
         """
-        return self.e_func_norm(self.norm, phi0[flag_phi_abs](self), x, phi)
+        return self.e_func_norm(self.norm, phi0[flag_phi_abs](self), x, phi_rf)
 
-    def de_dt_func_norm(self, norm, phi_0, x, phi, beta):
+    def de_dt_func_norm(self, norm, phi_0, x, phi_rf, beta):
         """
         Template of time derivative of the cos-like rf field (normed).
 
@@ -101,8 +101,8 @@ class RfField():
             Initial phase of the field in rad.
         x : float
             Position of the particle in m.
-        phi : float
-            Phase of the field. phi = omega_RF * t, while in most of the
+        phi_rf : float
+            Phase of the field. phi_rf = omega_RF * t, while in most of the
             code it is written as phi = omega_bunch * t.
         beta : float
             Lorentz speed factor of the particle.
@@ -114,9 +114,9 @@ class RfField():
 
         """
         factor = norm * self.omega0_rf / (beta * c)
-        return factor * self.e_spat(x) * np.sin(phi + phi_0)
+        return factor * self.e_spat(x) * np.sin(phi_rf + phi_0)
 
-    def de_dt_func(self, x, phi, beta, flag_phi_abs=False):
+    def de_dt_func(self, x, phi_rf, beta, flag_phi_abs=False):
         """
         Compute the time derivative of the rf field.
 
@@ -126,7 +126,7 @@ class RfField():
         ----------
         x : float
             Position of the particle in m.
-        phi : float
+        phi_rf : float
             Phase of the field. phi = omega_RF * t, while in most of the
             code it is written as phi = omega_bunch * t.
         beta : float
@@ -138,9 +138,9 @@ class RfField():
             Time-derivative of the electric field at position x and time phi.
         """
         return self.de_dt_func_norm(self.norm, phi0[flag_phi_abs](self),
-                                    x, phi, beta)
+                                    x, phi_rf, beta)
 
-    def phi_0_rel_to_abs(self, phi_abs):
+    def phi_0_rel_to_abs(self, phi_rf_abs):
         """
         Convert relative phi_0 to absolute.
 
@@ -154,11 +154,12 @@ class RfField():
         phi_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
-        phi_abs_in_0_2pi = np.mod(phi_abs, 2. * np.pi)
-        phi_0_abs = self.phi_0['rel'] - phi_abs_in_0_2pi
+        phi_rf_abs_in_0_2pi = np.mod(phi_rf_abs, 2. * np.pi)
+        phi_0_abs = self.phi_0['rel'] - phi_rf_abs_in_0_2pi
         if phi_0_abs < 0.:
             phi_0_abs += 2. * np.pi
         self.phi_0['abs'] = phi_0_abs
+        # Every phase is rf
 
 
 # =============================================================================

@@ -35,7 +35,6 @@ class Particle():
             'rf': 2. * omega0_bunch,    # Should match 'ref' inside cavities
             'lambda_array': np.full((n_steps + 1), np.NaN),
             }
-        self.truc = self.omega0['rf'] / self.omega0['bunch']
 
         self.energy = {
             'kin_array_mev': np.full((n_steps + 1), np.NaN),
@@ -45,6 +44,13 @@ class Particle():
             }
         self.set_energy(e_mev, idx=0, delta_e=False)
 
+        # Dict used to navigate between phi_rf = omega_rf * t and
+        # phi = omega_bunch * t (which is the default in absence of any other
+        # precision)
+        self.frac_omega = {
+            'rf_to_bunch': 1.,
+            'bunch_to_rf': 1.,
+            }
         self.phi = {
             'rel': None,
             'abs': None,
@@ -61,7 +67,6 @@ class Particle():
             'phi_array_rad': np.full((n_steps + 1), np.NaN),
             }
 
-        self.frac_omega = 1.
         self.flag_phi_abs = None
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
@@ -121,7 +126,7 @@ class Particle():
                                   self.energy['beta_array'][idx],
                                   self.omega0['bunch'])
         self.phi['abs'] = phi_abs
-        self.phi['abs_rf'] = phi_abs * self.truc
+        self.phi['abs_rf'] = phi_abs * self.frac_omega['bunch_to_rf']
         self.phi['rel'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs
         df = {
@@ -148,9 +153,10 @@ class Particle():
         """
         if np.isnan(idx):
             idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
+
         self.phi['rel'] += delta_phi
-        self.phi['abs'] += delta_phi    #  * self.frac_omega
-        self.phi['abs_rf'] += delta_phi * self.truc
+        self.phi['abs'] += delta_phi
+        self.phi['abs_rf'] += delta_phi * self.frac_omega['bunch_to_rf']
         self.phi['abs_array'][idx] = self.phi['abs_array'][idx-1] + delta_phi
 
         new_row = {
@@ -193,22 +199,36 @@ class Particle():
         """Change the omega0 at the entrance."""
         self.omega0['ref'] = acc_field.omega0_rf
         self.omega0['rf'] = acc_field.omega0_rf
-        self.frac_omega = self.omega0['bunch'] / self.omega0['rf']
-        acc_field.phi_0_rel_to_abs(self.phi['abs'] / self.frac_omega)
+        self.frac_omega['bunch_to_rf'] =\
+            self.omega0['rf'] / self.omega0['bunch']
+        self.frac_omega['rf_to_bunch'] = 1. / self.frac_omega['bunch_to_rf']
+
+        # Convert the relative initial phase of the particle into an absolute
+        # initial phase
+        acc_field.phi_0_rel_to_abs(self.phi['abs_rf'])
 
     def exit_cavity(self, index):
-        """Recompute phi with the proper omega0, reset omega0."""
-        frac_omega = self.omega0['bunch'] / self.omega0['rf']
-        offset_phi = self.phi['abs_array'][index['in']]
+        """
+        Recompute phi with the proper omega0, reset omega0.
 
-        # Set proper phi
-        for i in range(index['in'], index['out'] + 1):
-            delta_phi = self.phi['abs_array'][i] - offset_phi
-            self.phi['abs_array'][i] = offset_phi + delta_phi * frac_omega
+        In the cavities, the phases are computed as:
+            phi = omega_0_rf * t
+        We recompute the phases of the cavities with the proper pulsation, ie:
+            phi = omega_0_bunch * t
+        """
+        # offset_phi = self.phi['abs_array'][index['in']]
+
+        # # Set proper phi
+        # for i in range(index['in'], index['out'] + 1):
+        #     delta_phi = self.phi['abs_array'][i] - offset_phi
+        #     self.phi['abs_array'][i] = offset_phi + delta_phi \
+        #         * self.frac_omega['rf_to_bunch']
 
         # Reset proper omega
         self.omega0['ref'] = self.omega0['bunch']
-        self.frac_omega = 1.
+
+        self.frac_omega['rf_to_bunch'] = 1.
+        self.frac_omega['bunch_to_rf'] = 1.
 
 
 def create_rand_particles(e_0_mev, omega0_bunch):
