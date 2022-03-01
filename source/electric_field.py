@@ -16,7 +16,15 @@ phi0 = {
 
 
 class RfField():
-    """Cos-like RF field."""
+    """
+    Cos-like RF field.
+
+    Warning, all phases are defined as:
+        phi = omega_0_rf * t
+    While in the rest of the code and in particular in Particle, it is defined
+    as:
+        phi = omega_0_bunch * t
+    """
 
     def __init__(self, frequency_mhz, norm=np.NaN, phi_0=None):
         self.f_mhz_rf = frequency_mhz
@@ -146,7 +154,7 @@ class RfField():
         phi_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
-        phi_abs_in_0_2pi = np.modulo(phi_abs, 2. * np.pi)
+        phi_abs_in_0_2pi = np.mod(phi_abs, 2. * np.pi)
         phi_0_abs = self.phi_0['rel'] - phi_abs_in_0_2pi
         if phi_0_abs < 0.:
             phi_0_abs += 2. * np.pi

@@ -91,7 +91,7 @@ def z_field_map_electric_field(cavity, synch):
     d_z = solver_param['d_z']
 
     acc_f = cavity.acc_field
-    synch.enter_cavity(acc_f.omega_0)
+    synch.enter_cavity(acc_f)
 
     flag_phi_abs = False
     synch.flag_phi_abs = flag_phi_abs

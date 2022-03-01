@@ -12,7 +12,14 @@ from constants import E_rest_MeV, c
 
 
 class Particle():
-    """Class to hold the position, energy, etc of a particle."""
+    """
+    Class to hold the position, energy, etc of a particle.
+
+    Phase is defined as:
+        phi = omega_0_bunch * t
+    while in electric_field it is:
+        phi = omega_0_rf * t
+    """
 
     def __init__(self, z, e_mev, omega0_bunch, n_steps=1, synchronous=False):
         self.synchronous = synchronous
@@ -182,11 +189,12 @@ class Particle():
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
 
-    def enter_cavity(self, omega0_rf):
+    def enter_cavity(self, acc_field):
         """Change the omega0 at the entrance."""
-        self.omega0['ref'] = omega0_rf
-        self.omega0['rf'] = omega0_rf
+        self.omega0['ref'] = acc_field.omega0_rf
+        self.omega0['rf'] = acc_field.omega0_rf
         self.frac_omega = self.omega0['bunch'] / self.omega0['rf']
+        acc_field.phi_0_rel_to_abs(self.phi['abs'] / self.frac_omega)
 
     def exit_cavity(self, index):
         """Recompute phi with the proper omega0, reset omega0."""
