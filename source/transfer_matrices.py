@@ -89,12 +89,10 @@ def z_field_map_electric_field(cavity, synch):
     solver_param = cavity.solver_param_transf_mat
     method = solver_param['method']
     d_z = solver_param['d_z']
+    flag_phi_abs = synch.flag_phi_abs
 
     acc_f = cavity.acc_field
     synch.enter_cavity(acc_f)
-
-    flag_phi_abs = True
-    synch.flag_phi_abs = flag_phi_abs
 
     phi = {
         True: lambda sync: sync.phi['abs_rf'],
@@ -173,7 +171,6 @@ def z_field_map_electric_field(cavity, synch):
         synch.advance_position(d_z, idx=idx_abs)
 
     synch.exit_cavity(cavity.idx)
-    synch.flag_phi_abs = None
 
     return transfer_matrix[1:, :, :]
 

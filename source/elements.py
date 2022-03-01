@@ -51,6 +51,8 @@ class _Element():
 
         self.solver_param_transf_mat = {'method': None, 'n_steps': None,
                                         'd_z': None}
+        # Function to compute transfer_matrix, given by
+        # solver_param_transf_mat['method']
         self.func_transf_mat = {'RK': None, 'leapfrog': None,
                                 'transport': None}
 

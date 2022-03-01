@@ -23,6 +23,8 @@ class Particle():
 
     def __init__(self, z, e_mev, omega0_bunch, n_steps=1, synchronous=False):
         self.synchronous = synchronous
+        self.flag_phi_abs = True
+
         self.z = {
             'rel': z,           # Position from the start of the element
             'abs_array': np.full((n_steps + 1), np.NaN),
@@ -66,8 +68,6 @@ class Particle():
             'both_array': np.full((n_steps + 1), np.NaN),
             'phi_array_rad': np.full((n_steps + 1), np.NaN),
             }
-
-        self.flag_phi_abs = None
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
@@ -217,25 +217,8 @@ class Particle():
         acc_field.phi_0_rel_to_abs(self.phi['abs_rf'])
 
     def exit_cavity(self, index):
-        """
-        Recompute phi with the proper omega0, reset omega0.
-
-        In the cavities, the phases are computed as:
-            phi = omega_0_rf * t
-        We recompute the phases of the cavities with the proper pulsation, ie:
-            phi = omega_0_bunch * t
-        """
-        # offset_phi = self.phi['abs_array'][index['in']]
-
-        # # Set proper phi
-        # for i in range(index['in'], index['out'] + 1):
-        #     delta_phi = self.phi['abs_array'][i] - offset_phi
-        #     self.phi['abs_array'][i] = offset_phi + delta_phi \
-        #         * self.frac_omega['rf_to_bunch']
-
-        # Reset proper omega
+        """Reset frac_omega."""
         self.omega0['ref'] = self.omega0['bunch']
-
         self.frac_omega['rf_to_bunch'] = 1.
         self.frac_omega['bunch_to_rf'] = 1.
 
