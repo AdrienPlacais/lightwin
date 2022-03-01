@@ -112,6 +112,7 @@ class Accelerator():
             self.transf_mat['cumul'] = \
                 helper.individual_to_global_transfer_matrix(
                     self.transf_mat['indiv'])
+            print(self.synch.df)
 
         elif method == 'transport':
             print('computer_transfer_matrices: no MT computation with ',

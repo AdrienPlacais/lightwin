@@ -58,7 +58,7 @@ class _Element():
         """Initialize solvers as well as general properties."""
         if self.accelerating:
             assert self.name == 'FIELD_MAP'
-            n_steps = 100 * self.acc_field.n_cell
+            n_steps = 10 * self.acc_field.n_cell
 
             if self.status['failed']:
                 func_transf_mat = {

@@ -15,7 +15,7 @@ import helper
 import solver
 import elements
 import particle
-
+import electric_field
 
 # =============================================================================
 # Transfer matrices
@@ -92,22 +92,16 @@ def z_field_map_electric_field(cavity, synch):
 
     acc_f = cavity.acc_field
     synch.enter_cavity(acc_f.omega_0)
-    print('============================')
-    print('in\t',
-          synch.phi['abs'],
-          synch.phi['abs_array'][idx_in],
-          synch.phi['rel'],
-          cavity.acc_field.phi_0)
-    a = np.mod(synch.phi['abs'], 2.*np.pi)
-    b = np.mod(synch.phi['rel'], 2.*np.pi)
-    print('mod\t', a, b, a-b)
-    print('----------------------------')
 
     flag_phi_abs = False
+    synch.flag_phi_abs = flag_phi_abs
+    acc_f.flag_phi_abs = flag_phi_abs
+
     phi = {
-        True: lambda sync: sync.phi['abs'],
+        True: lambda sync: sync.phi['abs_rf'],
         False: lambda sync: sync.phi['rel'],
         }
+
 # =============================================================================
 # Initialisation
 # =============================================================================
@@ -116,7 +110,7 @@ def z_field_map_electric_field(cavity, synch):
              'middle': None, 'out': None}
     # Variation of synch part parameters (not necessary for z, as it is always
     # dz)
-    delta = {'e_mev': None, 'phi': None}
+    delta = {'e_mev': None, 'phi_rf': None}
 
     # Initialize gamma and synch:
     if method == 'leapfrog':
@@ -126,6 +120,7 @@ def z_field_map_electric_field(cavity, synch):
         du_dz = solver.init_rk4_cavity(cavity, gamma, synch)
 
     # We loop until reaching the end of the cavity
+    # TODO : first element of transfer matrix is useless
     transfer_matrix = np.zeros((solver_param['n_steps'] + 1, 2, 2))
     transfer_matrix[0, :, :] = np.eye(2)
 
@@ -137,15 +132,19 @@ def z_field_map_electric_field(cavity, synch):
         gamma['in'] = gamma['out']
 
         # form cos + j * sin
-        acc_f.f_e += q_adim * acc_f.e_func(synch.z['rel'], phi[flag_phi_abs](synch)) \
-            * (1. + 1j * np.tan(phi[flag_phi_abs](synch) + acc_f.phi_0))
+        # TODO put this elsewhere
+        acc_f.f_e += q_adim * acc_f.e_func(synch.z['rel'],
+                                           phi[flag_phi_abs](synch)) \
+            * (1. + 1j * np.tan(phi[flag_phi_abs](synch)
+                                + electric_field.phi0[flag_phi_abs](acc_f)))
 
         if method == 'leapfrog':
             delta['e_mev'] = q_adim * acc_f.e_func(synch.z['rel'],
-                                                   phi[flag_phi_abs](synch)) * d_z
+                                                   phi[flag_phi_abs](synch)) \
+                * d_z
 
         elif method == 'RK':
-            u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs-1],
+            u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs - 1],
                               phi[flag_phi_abs](synch)]))
             temp = solver.rk4(u_rk, du_dz, synch.z['rel'], d_z)
             delta['e_mev'] = temp[0]
@@ -171,17 +170,8 @@ def z_field_map_electric_field(cavity, synch):
         synch.advance_position(d_z, idx=idx_abs)
 
     synch.exit_cavity(cavity.idx)
-    idx_out = cavity.idx['out']
-    print('out\t',
-          # synch.phi['abs'],
-          # synch.phi['abs_array'][idx_out],
-          synch.phi['rel'] / 2.,
-          synch.phi['abs'] - synch.phi['abs_array'][idx_in],
-          # cavity.acc_field.phi_0,
-          )
-    a = np.mod(synch.phi['abs'], 2.*np.pi)
-    b = np.mod(synch.phi['rel'], 2.*np.pi)
-    print('mod\t', a, b, a-b)
+    synch.flag_phi_abs = None
+    acc_f.flag_phi_abs = None
 
     return transfer_matrix[1:, :, :]
 

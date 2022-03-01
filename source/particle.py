@@ -6,6 +6,7 @@ Created on Thu Dec  2 13:44:00 2021
 @author: placais
 """
 import numpy as np
+import pandas as pd
 import helper
 from constants import E_rest_MeV, c
 
@@ -24,9 +25,10 @@ class Particle():
         self.omega0 = {
             'ref': omega0_bunch,        # The one we use
             'bunch': omega0_bunch,      # Should match 'ref' outside cavities
-            'rf': None,                 # Should match 'ref' inside cavities
+            'rf': 2. * omega0_bunch,    # Should match 'ref' inside cavities
             'lambda_array': np.full((n_steps + 1), np.NaN),
             }
+        self.truc = self.omega0['rf'] / self.omega0['bunch']
 
         self.energy = {
             'kin_array_mev': np.full((n_steps + 1), np.NaN),
@@ -39,18 +41,21 @@ class Particle():
         self.phi = {
             'rel': None,
             'abs': None,
+            'abs_rf': None,
             'abs_array': np.full((n_steps + 1), np.NaN),
             }
         self._init_phi(idx=0)
 
         self.phase_space = {
-            'z_array': np.full((n_steps + 1), np.NaN),      # z_abs - s_abs or z_rel - s_rel
+            # z_abs-s_abs or z_rel-s_rel
+            'z_array': np.full((n_steps + 1), np.NaN),
             'delta_array': np.full((n_steps + 1), np.NaN),  # (p - p_s) / p_s
             'both_array': np.full((n_steps + 1), np.NaN),
             'phi_array_rad': np.full((n_steps + 1), np.NaN),
             }
 
         self.frac_omega = 1.
+        self.flag_phi_abs = None
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
@@ -109,16 +114,46 @@ class Particle():
                                   self.energy['beta_array'][idx],
                                   self.omega0['bunch'])
         self.phi['abs'] = phi_abs
+        self.phi['abs_rf'] = phi_abs * self.truc
         self.phi['rel'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs
+        df = {
+            'phi_abs_array': [self.phi['abs_array'][idx]],
+            'phi_abs': [self.phi['abs']],
+            'phi_abs_rf': [self.phi['abs_rf']],
+            'phi_rel': [self.phi['rel']],
+            }
+        self.df = pd.DataFrame(df)
 
     def advance_phi(self, delta_phi, idx=np.NaN):
-        """Increase relative and absolute phase by delta_phi."""
+        """
+        Increase relative and absolute phase by delta_phi.
+
+        Parameters
+        ----------
+        delta_phi : float
+            Phase increment, expressed as phi = omega0_bunch * time. Shouldn't
+            be mistaken with phi = omega0_rf * bunch.
+        idx : integer, optional
+            Index of the new phase in abs_array. By default, the first NaN
+            element of the array is replaced. Thus, idx has to be given only
+            when recomputing the transfer matrices.
+        """
         if np.isnan(idx):
             idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
         self.phi['rel'] += delta_phi
-        self.phi['abs'] += delta_phi * self.frac_omega
+        self.phi['abs'] += delta_phi    #  * self.frac_omega
+        self.phi['abs_rf'] += delta_phi * self.truc
         self.phi['abs_array'][idx] = self.phi['abs_array'][idx-1] + delta_phi
+
+        new_row = {
+            'phi_abs_array': self.phi['abs_array'][idx],
+            'phi_abs': self.phi['abs'],
+            'phi_abs_rf': self.phi['abs_rf'],
+            'phi_rel': self.phi['rel'],
+            }
+        new_row = pd.Series(data=new_row)
+        self.df = self.df.append(new_row, ignore_index=True)
 
     def compute_phase_space_tot(self, synch):
         """

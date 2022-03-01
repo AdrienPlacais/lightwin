@@ -17,6 +17,18 @@ import helper
 def init_rk4_cavity(cavity, gamma, synch):
     """Init RK4 methods to compute transfer matrix of a cavity."""
     gamma['out'] = gamma['in']
+
+    phi_abs_modulo = np.mod(synch.phi['abs_rf'], 2. * np.pi)
+    phi_0_abs = cavity.acc_field.phi_0['rel'] - phi_abs_modulo
+
+    if phi_0_abs < 0.:
+        phi_0_abs += 2. * np.pi
+
+    print(
+        np.cos(synch.phi['abs_rf'] + phi_0_abs) -
+        np.cos(cavity.acc_field.phi_0['rel']),
+        )
+
     synch.z['rel'] = 0.
     synch.phi['rel'] = 0.
     # TODO two last lines in enter_cavity?

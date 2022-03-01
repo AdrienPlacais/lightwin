@@ -9,6 +9,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 from constants import c
 
+phi0 = {
+    True: lambda field: field.phi_0['abs'],
+    False: lambda field: field.phi_0['rel'],
+    }
 
 class RfField():
     """Cos-like RF field."""
@@ -26,28 +30,109 @@ class RfField():
         self.e_spat = lambda x: 0.
 
         self.norm = norm
-        self.phi_0 = phi_0
+        self.phi_0 = {'rel': phi_0, 'abs': None}
         self.n_cell = 2
         self.f_e = 0.
         self.phi_s_deg = np.NaN
         self.v_cav_mv = np.NaN
 
+        self.flag_phi_abs = None
+
     def e_func_norm(self, norm, phi_0, x, phi):
-        """Template of the cos-like rf field (normalized)."""
+        """
+        Template of the cos-like rf field (normed).
+
+        Parameters
+        ----------
+        norm : float
+            Norm of the electric field.
+        phi_0 : float
+            Initial phase of the field in rad.
+        x : float
+            Position of the particle in m.
+        phi : float
+            Phase of the field. phi = omega_RF * t, while in most of the
+            code it is written as phi = omega_bunch * t.
+
+        Return
+        ------
+        e : float
+            Electric field at position x and time phi.
+        """
         return norm * self.e_spat(x) * np.cos(phi + phi_0)
 
     def e_func(self, x, phi):
-        """Rf field function."""
-        return self.e_func_norm(self.norm, self.phi_0, x, phi)
+        """
+        Compute the rf electric field.
+
+        We use the norm and initial phase defined as attribute.
+
+        Parameters
+        ----------
+        x : float
+            Position of the particle in m.
+        phi : float
+            Phase of the field. phi = omega_RF * t, while in most of the
+            code it is written as phi = omega_bunch * t.
+
+        Return
+        ------
+        e : float
+            Electric field defined by self at position x and time phi.
+        """
+        return self.e_func_norm(self.norm, phi0[self.flag_phi_abs](self), x,
+                                phi)
 
     def de_dt_func_norm(self, norm, phi_0, x, phi, beta):
-        """Template of time derivative of the cos-like rf field (normal.)."""
+        """
+        Template of time derivative of the cos-like rf field (normed).
+
+        Parameters
+        ----------
+        norm : float
+            Norm of the electric field.
+        phi_0 : float
+            Initial phase of the field in rad.
+        x : float
+            Position of the particle in m.
+        phi : float
+            Phase of the field. phi = omega_RF * t, while in most of the
+            code it is written as phi = omega_bunch * t.
+        beta : float
+            Lorentz speed factor of the particle.
+
+        Return
+        ------
+        de/dt : float
+            Time-derivative of the electric field at position x and time phi.
+
+        """
         factor = norm * self.omega0_rf / (beta * c)
         return factor * self.e_spat(x) * np.sin(phi + phi_0)
 
     def de_dt_func(self, x, phi, beta):
-        """Return derivative of rf field."""
-        return self.de_dt_func_norm(self.norm, self.phi_0, x, phi, beta)
+        """
+        Compute the time derivative of the rf field.
+
+        We use the norm and initial phase defined as attribute.
+
+        Parameters
+        ----------
+        x : float
+            Position of the particle in m.
+        phi : float
+            Phase of the field. phi = omega_RF * t, while in most of the
+            code it is written as phi = omega_bunch * t.
+        beta : float
+            Lorentz speed factor of the particle.
+
+        Return
+        ------
+        de/dt : float
+            Time-derivative of the electric field at position x and time phi.
+        """
+        return self.de_dt_func_norm(self.norm, phi0[self.flag_phi_abs](self),
+                                    x, phi, beta)
 
 
 # =============================================================================

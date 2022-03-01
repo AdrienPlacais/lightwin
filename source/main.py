@@ -80,7 +80,7 @@ SAVE_FIX = False
 PLOTS = [
     "energy",
     "phase",
-    "cav",
+    # "cav",
     ]
 PLOT_TM = True
 PHASE_SPACE = False
@@ -99,10 +99,10 @@ start_time = time.monotonic()
 # =============================================================================
 FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Working")
-broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
+# broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
 
-basic_fault = fault.FaultScenario(ref_linac, broken_linac)
-basic_fault.break_at(failed_cav)
+# basic_fault = fault.FaultScenario(ref_linac, broken_linac)
+# basic_fault.break_at(failed_cav)
 
 DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
@@ -138,13 +138,13 @@ for lin in linacs:
             DICT_SAVES[save](lin)
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
-        if FLAG_FIX and lin.name == "Broken":
-            basic_fault.fix(method, WHAT_TO_FIT, manual_list)
-            if SAVE_FIX:
-                tw.save_new_dat(broken_linac, FILEPATH)
-            # Redo this whole loop with a fixed linac
-            linacs.append(broken_linac)
-            info = basic_fault.info['fit']
+        # if FLAG_FIX and lin.name == "Broken":
+        #     basic_fault.fix(method, WHAT_TO_FIT, manual_list)
+        #     if SAVE_FIX:
+        #         tw.save_new_dat(broken_linac, FILEPATH)
+        #     # Redo this whole loop with a fixed linac
+        #     linacs.append(broken_linac)
+        #     info = basic_fault.info['fit']
 
 # =============================================================================
 # End
