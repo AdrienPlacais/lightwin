@@ -93,7 +93,7 @@ def z_field_map_electric_field(cavity, synch):
     acc_f = cavity.acc_field
     synch.enter_cavity(acc_f)
 
-    flag_phi_abs = False
+    flag_phi_abs = True
     synch.flag_phi_abs = flag_phi_abs
 
     phi = {
@@ -116,7 +116,7 @@ def z_field_map_electric_field(cavity, synch):
         solver.init_leapfrog_cavity(cavity, gamma, d_z, synch)
 
     elif method == 'RK':
-        du_dz = solver.init_rk4_cavity(cavity, gamma, synch)
+        du_dz = solver.init_rk4_cavity(cavity, gamma, synch, flag_phi_abs)
 
     # We loop until reaching the end of the cavity
     # TODO : first element of transfer matrix is useless
@@ -133,7 +133,8 @@ def z_field_map_electric_field(cavity, synch):
         # form cos + j * sin
         # TODO put this elsewhere
         acc_f.f_e += q_adim * acc_f.e_func(synch.z['rel'],
-                                           phi[flag_phi_abs](synch)) \
+                                           phi[flag_phi_abs](synch),
+                                           flag_phi_abs) \
             * (1. + 1j * np.tan(phi[flag_phi_abs](synch)
                                 + electric_field.phi0[flag_phi_abs](acc_f)))
 
