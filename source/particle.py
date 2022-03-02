@@ -21,9 +21,10 @@ class Particle():
         phi = omega_0_rf * t
     """
 
-    def __init__(self, z, e_mev, omega0_bunch, n_steps=1, synchronous=False):
+    def __init__(self, z, e_mev, omega0_bunch, n_steps=1, synchronous=False,
+                 flag_phi_abs=True):
         self.synchronous = synchronous
-        self.flag_phi_abs = True
+        self.flag_phi_abs = flag_phi_abs
 
         self.z = {
             'rel': z,           # Position from the start of the element

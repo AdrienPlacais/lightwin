@@ -16,7 +16,7 @@ import particle
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, e_0_mev, f_mhz, dat_filepath, name):
+    def __init__(self, e_0_mev, f_mhz, dat_filepath, name, flag_phi_abs):
         """
         Create Accelerator object.
 
@@ -71,7 +71,8 @@ class Accelerator():
         # Create synchronous particle
         omega_0 = 2e6 * np.pi * f_mhz
         self.synch = particle.Particle(0., e_0_mev, omega_0,
-                                       n_steps=idx['out'], synchronous=True)
+                                       n_steps=idx['out'], synchronous=True,
+                                       flag_phi_abs=flag_phi_abs)
 
         # Transfer matrices
         self.transf_mat = {

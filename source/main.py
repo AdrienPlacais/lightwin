@@ -74,6 +74,11 @@ WHAT_TO_FIT = {
 FLAG_FIX = False
 SAVE_FIX = False
 
+# To determine if the phases in the cavities are absolute or relative.
+# If they are relative, the linac is implicitely rephased when some cavities
+# are faulty.
+# It is more relatable to use absolute phases when studying error compensation.
+FLAG_PHI_ABS = True
 # =============================================================================
 # Outputs
 # =============================================================================
@@ -98,8 +103,10 @@ start_time = time.monotonic()
 # Start
 # =============================================================================
 FILEPATH = os.path.abspath(FILEPATH)
-ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Working")
-broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
+ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Working",
+                            flag_phi_abs=FLAG_PHI_ABS)
+broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken",
+                               flag_phi_abs=FLAG_PHI_ABS)
 
 
 basic_fault = fault.FaultScenario(ref_linac, broken_linac)
