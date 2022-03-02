@@ -157,11 +157,12 @@ class RfField():
         phi_rf_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
-        assert self.phi_0['abs'] is None, 'Absolute phi_0 has been ' + \
-            'calculated already.'
-        phi_0_abs = self.phi_0['rel'] - phi_rf_abs
-        phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
-        self.phi_0['abs'] = phi_0_abs
+        # assert self.phi_0['abs'] is None, 'Absolute phi_0 has been ' + \
+            # 'calculated already.'
+        if self.phi_0['abs'] is None:
+            phi_0_abs = self.phi_0['rel'] - phi_rf_abs
+            phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
+            self.phi_0['abs'] = phi_0_abs
 
 
 # =============================================================================

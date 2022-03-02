@@ -101,6 +101,7 @@ FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Working")
 broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
 
+
 basic_fault = fault.FaultScenario(ref_linac, broken_linac)
 basic_fault.break_at(failed_cav)
 
@@ -115,7 +116,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac]#, broken_linac]
+linacs = [ref_linac, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)
@@ -136,6 +137,10 @@ for lin in linacs:
 
         for save in SAVES:
             DICT_SAVES[save](lin)
+        # FIXME
+        if lin.name == 'Working':
+            for i in range(ref_linac.elements['n']):
+                broken_linac.elements['list'][i].acc_field.phi_0['abs'] = ref_linac.elements['list'][i].acc_field.phi_0['abs']
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         # if FLAG_FIX and lin.name == "Broken":
@@ -151,3 +156,5 @@ for lin in linacs:
 # =============================================================================
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
+import numpy as np
+print(np.rad2deg(broken_linac.synch.phi['abs_array'][-1]))
