@@ -162,12 +162,6 @@ class RfField():
         phi_0_abs = self.phi_0['rel'] - phi_rf_abs
         phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
         self.phi_0['abs'] = phi_0_abs
-        print(
-            '\nRF in phase:', np.rad2deg(phi_rf_abs),
-            '\nRF rel phi0:', np.rad2deg(self.phi_0['rel']),
-            '\nRF abs phi0:', np.rad2deg(self.phi_0['abs']),
-            '\n==============================================================',
-            )
 
 
 # =============================================================================
