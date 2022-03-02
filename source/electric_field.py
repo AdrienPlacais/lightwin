@@ -149,17 +149,19 @@ class RfField():
         defined accordingly. This function recalculates phi_0 so that
         modulo(phi_abs + phi_0_abs, 2pi) = phi_rel + phi_0_rel = phi_0_rel
 
+        All phases in this routine are defined by:
+            phi = omega_rf * t
+
         Parameters
         ----------
-        phi_abs : float
+        phi_rf_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
-        phi_rf_abs_in_0_2pi = np.mod(phi_rf_abs, 2. * np.pi)
-        phi_0_abs = self.phi_0['rel'] - phi_rf_abs_in_0_2pi
-        if phi_0_abs < 0.:
-            phi_0_abs += 2. * np.pi
+        assert self.phi_0['abs'] is None, 'Absolute phi_0 has been ' + \
+            'calculated already.'
+        phi_0_abs = self.phi_0['rel'] - phi_rf_abs
+        phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
         self.phi_0['abs'] = phi_0_abs
-        # Every phase is rf
 
 
 # =============================================================================

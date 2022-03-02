@@ -80,7 +80,7 @@ SAVE_FIX = False
 PLOTS = [
     "energy",
     "phase",
-    # "cav",
+    "cav",
     ]
 PLOT_TM = True
 PHASE_SPACE = False
@@ -99,10 +99,10 @@ start_time = time.monotonic()
 # =============================================================================
 FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Working")
-# broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
+broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
 
-# basic_fault = fault.FaultScenario(ref_linac, broken_linac)
-# basic_fault.break_at(failed_cav)
+basic_fault = fault.FaultScenario(ref_linac, broken_linac)
+basic_fault.break_at(failed_cav)
 
 DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
@@ -115,7 +115,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac]#, broken_linac]
+linacs = [ref_linac, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)

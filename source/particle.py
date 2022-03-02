@@ -214,7 +214,12 @@ class Particle():
 
         # Convert the relative initial phase of the particle into an absolute
         # initial phase
-        acc_field.phi_0_rel_to_abs(self.phi['abs_rf'])
+        if self.synchronous:
+            acc_field.phi_0_rel_to_abs(self.phi['abs_rf'])
+        else:
+            assert acc_field.phi_0['abs'] is not None, 'The absolute ' + \
+                'entrance phase of the cavity shall be calculated with the' + \
+                ' synchronous particle prior to any non-synch calculation.'
 
     def exit_cavity(self, index):
         """Reset frac_omega."""
