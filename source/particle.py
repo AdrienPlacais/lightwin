@@ -211,6 +211,7 @@ class Particle():
         self.frac_omega['bunch_to_rf'] =\
             self.omega0['rf'] / self.omega0['bunch']
         self.frac_omega['rf_to_bunch'] = 1. / self.frac_omega['bunch_to_rf']
+        self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']
 
         # Convert the relative initial phase of the particle into an absolute
         # initial phase
