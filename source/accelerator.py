@@ -70,9 +70,16 @@ class Accelerator():
 
         # Create synchronous particle
         omega_0 = 2e6 * np.pi * f_mhz
+
+        # FIXME
+        if name == 'Working':
+            reference = True
+        else:
+            reference = False
         self.synch = particle.Particle(0., e_0_mev, omega_0,
                                        n_steps=idx['out'], synchronous=True,
-                                       flag_phi_abs=flag_phi_abs)
+                                       phi_abs=flag_phi_abs,
+                                       reference=reference)
 
         # Transfer matrices
         self.transf_mat = {

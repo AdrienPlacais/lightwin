@@ -21,6 +21,9 @@ class FaultScenario():
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
 
+        assert ref_linac.synch.info['reference'] is True
+        assert broken_linac.synch.info['reference'] is False
+
         self.fail_list = []
         self.comp_list = {
             'only_cav': [],
@@ -34,6 +37,12 @@ class FaultScenario():
 
         self.info = {}
 
+        if not broken_linac.synch.info['abs_phases']:
+            print('Warning, the phases in the broken linac are relative.',
+                  'It may be more relatable to use absolute phases, as',
+                  'it would avoid the implicit rephasing of the linac at',
+                  'each cavity.')
+
     def break_at(self, fail_idx):
         """
         Break cavities at indices fail_idx.
@@ -46,6 +55,21 @@ class FaultScenario():
                 'position ' + str(idx) + ' is not a FIELD_MAP.'
             cav.fail()
             self.fail_list.append(cav)
+
+    def transfer_phi0_from_ref_to_broken(self):
+        """
+        Transfer the absolute entry phases from ref linac to broken.
+
+        If the absolute initial phases are not kept between reference and
+        broken linac, it comes down to rephasing the linac. This is what we
+        want to avoid when FLAG_PHI_ABS = True.
+        """
+        ref_cavities = self.ref_lin.elements_of('FIELD_MAP')
+        brok_cavities = self.brok_lin.elements_of('FIELD_MAP')
+        assert len(ref_cavities) == len(brok_cavities)
+        for i in range(len(ref_cavities)):
+            ref_phi_0 = ref_cavities[i].acc_field.phi_0['abs']
+            brok_cavities[i].acc_field.phi_0['abs'] = ref_phi_0
 
     def _select_compensating_cavities(self, what_to_fit, manual_list):
         """

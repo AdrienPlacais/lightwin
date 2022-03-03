@@ -128,6 +128,10 @@ for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)
 
+        # FIXME find a way to make this part cleaner
+        if lin.name == 'Working':
+            basic_fault.transfer_phi0_from_ref_to_broken()
+
         for plot in PLOTS:
             debug.compare_with_tracewin(lin, x_dat="s",
                                         y_dat=DICT_PLOTS_PRESETS[plot][0],
@@ -144,10 +148,7 @@ for lin in linacs:
 
         for save in SAVES:
             DICT_SAVES[save](lin)
-        # FIXME
-        if lin.name == 'Working':
-            for i in range(ref_linac.elements['n']):
-                broken_linac.elements['list'][i].acc_field.phi_0['abs'] = ref_linac.elements['list'][i].acc_field.phi_0['abs']
+
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         # if FLAG_FIX and lin.name == "Broken":

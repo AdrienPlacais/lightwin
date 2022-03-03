@@ -90,11 +90,12 @@ def z_field_map_electric_field(cavity, synch):
     solver_param = cavity.solver_param_transf_mat
     method = solver_param['method']
     d_z = solver_param['d_z']
-    flag_phi_abs = synch.flag_phi_abs
+    flag_phi_abs = synch.info['abs_phases']
 
     acc_f = cavity.acc_field
-    synch.enter_cavity(acc_f)
+    synch.enter_cavity(acc_f, flag_cav_comp=cavity.status['compensate'])
 
+    # TODO: put this in Particle?
     phi = {
         True: lambda sync: sync.phi['abs_rf'],
         False: lambda sync: sync.phi['rel'],
