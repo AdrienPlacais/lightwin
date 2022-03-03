@@ -15,6 +15,7 @@ import elements
 to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
                      # 'LATTICE',
                      'END']
+not_an_element = ['LATTICE']
 # Dict of data that can be imported from TW's "Data" table.
 # More info in load_tw_results
 dict_tw_data_table = {
@@ -143,8 +144,10 @@ def _load_filemaps(dat_filepath, dat_filecontent, list_of_elements):
 
 def save_new_dat(fixed_linac, filepath_old):
     """Save a new dat with the new linac settings."""
+    print('saving new dat\n\n')
     _update_dat_with_fixed_cavities(fixed_linac.files['dat_filecontent'],
-                                    fixed_linac.list_of_elements)
+                                    fixed_linac.elements['list'],
+                                    fixed_linac.synch.info['abs_phases'])
 
     filepath_new = filepath_old[:-4] + '_fixed.dat'
     with open(filepath_new, 'w') as file:
@@ -152,20 +155,27 @@ def save_new_dat(fixed_linac, filepath_old):
             file.write(' '.join(line) + '\n')
 
 
-def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements):
+def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements,
+                                    flag_phi_abs):
     """Create a new dat containing the new linac settings."""
     idx_elt = 0
+
+    dict_phi = {
+        True: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['abs'])), '1'],
+        False: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['rel'])), '0']
+        }
+
     for line in dat_filecontent:
-        if line[0] in to_be_implemented:
+        if line[0] in to_be_implemented or line[0] in not_an_element:
             continue
 
         else:
             if line[0] == 'FIELD_MAP':
                 elt = list_of_elements[idx_elt]
+                line[3] = dict_phi[flag_phi_abs](elt)[0]
+                line[6] = str(elt.acc_field.norm)[0]
+                line[10] = dict_phi[flag_phi_abs](elt)[1]
 
-                if elt.status['failed'] or elt.status['compensate']:
-                    line[3] = str(np.rad2deg(elt.acc_field.phi_0))
-                    line[6] = str(elt.acc_field.norm)
             idx_elt += 1
 
 

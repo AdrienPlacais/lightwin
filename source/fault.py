@@ -41,7 +41,7 @@ class FaultScenario():
             print('Warning, the phases in the broken linac are relative.',
                   'It may be more relatable to use absolute phases, as',
                   'it would avoid the implicit rephasing of the linac at',
-                  'each cavity.')
+                  'each cavity.\n')
 
     def break_at(self, fail_idx):
         """

@@ -43,10 +43,10 @@ BETA_W = 71.215849  # deg/pi.MeV
 
 # Select .dat file
 Tk().withdraw()
-# FILEPATH = "../data/work_field_map/work_field_map.dat"
+FILEPATH = "../data/work_field_map/work_field_map.dat"
 # FILEPATH = "../data/work_field_map_one_faulty_cav/work_field_map.dat"
-FILEPATH = "../data/work_field_map_one_faulty_cav_abs_phase/" + \
-    "work_field_map_rephasage.dat"
+# FILEPATH = "../data/work_field_map_one_faulty_cav_abs_phase/" + \
+    # "work_field_map_rephasage.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -81,7 +81,7 @@ SAVE_FIX = False
 # If they are relative, the linac is implicitely rephased when some cavities
 # are faulty.
 # It is more relatable to use absolute phases when studying error compensation.
-FLAG_PHI_ABS = True
+FLAG_PHI_ABS = False
 # =============================================================================
 # Outputs
 # =============================================================================
@@ -158,14 +158,15 @@ for lin in linacs:
         #     basic_fault.fix(method, WHAT_TO_FIT, manual_list)
         #     if SAVE_FIX:
         #         tw.save_new_dat(broken_linac, FILEPATH)
-        #     # Redo this whole loop with a fixed linac
+        #     # Redo this whole loop with a fixed linacTrue
         #     linacs.append(broken_linac)
         #     info = basic_fault.info['fit']
-
+tw.save_new_dat(broken_linac, FILEPATH)
 # =============================================================================
 # End
 # =============================================================================
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
+
 import numpy as np
 print(np.rad2deg(broken_linac.synch.phi['abs_array'][-1]))

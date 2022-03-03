@@ -153,8 +153,8 @@ class FieldMap(_Element):
             relative_phase_flag = int(elem[10])    # P
         except IndexError:
             # Relative by default
-            relative_phase_flag = 0
-            # pass
+            elem.append('0')
+            relative_phase_flag = int(elem[10])
 
         self.acc_field = RfField(352.2, norm=float(elem[6]),
                                  relative_phase_flag=relative_phase_flag,
