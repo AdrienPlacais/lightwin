@@ -44,6 +44,7 @@ BETA_W = 71.215849  # deg/pi.MeV
 # Select .dat file
 Tk().withdraw()
 FILEPATH = "../data/work_field_map/work_field_map.dat"
+# FILEPATH = "../data/work_field_map_one_faulty_cav/work_field_map.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
