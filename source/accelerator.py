@@ -89,6 +89,27 @@ class Accelerator():
             }
         self.transf_mat['indiv'][0, :, :] = np.eye(2)
 
+        # Check that LW and TW computes the phases in the same way
+        self._check_consistency_phases(flag_phi_abs)
+
+    def _check_consistency_phases(self, flag_phi_abs):
+        """Check that both TW and LW use absolute or relative phases."""
+        cavities = self.elements_of(nature='FIELD_MAP')
+        flags_absolute = []
+        for cav in cavities:
+            flags_absolute.append(cav.acc_field.relative_phase_flag)
+
+        if flag_phi_abs and 0 in flags_absolute:
+            print('Warning: you asked LW a simulation in absolute phase,',
+                  'while there is at least one cavity in relative phase in',
+                  "the .dat file used by TW. Results won't match if there",
+                  'are faulty cavities.\n')
+        elif not flag_phi_abs and 1 in flags_absolute:
+            print('Warning: you asked LW a simulation in relative phase,',
+                  'while there is at least one cavity in absolute phase in',
+                  "the .dat file used by TW. Results won't match if there",
+                  'are faulty cavities.\n')
+
     def compute_transfer_matrices(self, method, elements=None):
         """
         Compute the transfer matrices of Accelerator's elements.

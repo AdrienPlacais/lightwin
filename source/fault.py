@@ -58,7 +58,7 @@ class FaultScenario():
 
     def transfer_phi0_from_ref_to_broken(self):
         """
-        Transfer the absolute entry phases from ref linac to broken.
+        Transfer the entry phases from ref linac to broken.
 
         If the absolute initial phases are not kept between reference and
         broken linac, it comes down to rephasing the linac. This is what we
@@ -67,9 +67,16 @@ class FaultScenario():
         ref_cavities = self.ref_lin.elements_of('FIELD_MAP')
         brok_cavities = self.brok_lin.elements_of('FIELD_MAP')
         assert len(ref_cavities) == len(brok_cavities)
+
+        # TODO : there are better options
         for i in range(len(ref_cavities)):
-            ref_phi_0 = ref_cavities[i].acc_field.phi_0['abs']
-            brok_cavities[i].acc_field.phi_0['abs'] = ref_phi_0
+            ref_acc_f = ref_cavities[i].acc_field
+            if ref_acc_f.relative_phase_flag == 0:
+                ref_phi_0 = ref_cavities[i].acc_field.phi_0['abs']
+                brok_cavities[i].acc_field.phi_0['abs'] = ref_phi_0
+            else:
+                ref_phi_0 = ref_cavities[i].acc_field.phi_0['rel']
+                brok_cavities[i].acc_field.phi_0['rel'] = ref_phi_0
 
     def _select_compensating_cavities(self, what_to_fit, manual_list):
         """
