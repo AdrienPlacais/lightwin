@@ -43,8 +43,10 @@ BETA_W = 71.215849  # deg/pi.MeV
 
 # Select .dat file
 Tk().withdraw()
-FILEPATH = "../data/work_field_map/work_field_map.dat"
+# FILEPATH = "../data/work_field_map/work_field_map.dat"
 # FILEPATH = "../data/work_field_map_one_faulty_cav/work_field_map.dat"
+FILEPATH = "../data/work_field_map_one_faulty_cav_abs_phase/" + \
+    "work_field_map_rephasage.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -79,7 +81,7 @@ SAVE_FIX = False
 # If they are relative, the linac is implicitely rephased when some cavities
 # are faulty.
 # It is more relatable to use absolute phases when studying error compensation.
-FLAG_PHI_ABS = False
+FLAG_PHI_ABS = True
 # =============================================================================
 # Outputs
 # =============================================================================

@@ -239,7 +239,8 @@ class Particle():
         # (no influence if FLAG_PHI_ABS is False)
         if self.info['synchronous'] and \
                 (self.info['reference'] or flag_cav_comp):
-            acc_field.phi_0_rel_to_abs(self.phi['abs_rf'])
+            # acc_field.phi_0_rel_to_abs(self.phi['abs_rf'])
+            acc_field.convert_phi_0(self.phi['abs_rf'])
         else:
             # In this case, absolute entry phases should have been handled by
             # FaultScenario.transfer_phi0_from_ref_to_broken

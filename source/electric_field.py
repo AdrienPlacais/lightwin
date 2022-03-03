@@ -26,7 +26,8 @@ class RfField():
         phi = omega_0_bunch * t
     """
 
-    def __init__(self, frequency_mhz, norm=np.NaN, phi_0=None):
+    def __init__(self, frequency_mhz, norm=np.NaN, relative_phase_flag=0,
+                 phi_0=None):
         self.f_mhz_rf = frequency_mhz
         self.omega0_rf = 2e6 * np.pi * frequency_mhz
         self.omega_0 = self.omega0_rf  # FIXME
@@ -39,7 +40,13 @@ class RfField():
         self.e_spat = lambda x: 0.
 
         self.norm = norm
-        self.phi_0 = {'rel': phi_0, 'abs': None}
+        self.relative_phase_flag = relative_phase_flag
+        if relative_phase_flag == 0:
+            self.phi_0 = {'rel': phi_0, 'abs': None}
+        elif relative_phase_flag == 1:
+            self.phi_0 = {'rel': None, 'abs': phi_0}
+        else:
+            raise IOError('Wrong value for relative_phase_flag.')
         self.n_cell = 2
         self.f_e = 0.
         self.phi_s_deg = np.NaN
@@ -140,7 +147,14 @@ class RfField():
         return self.de_dt_func_norm(self.norm, phi0[flag_phi_abs](self),
                                     x, phi_rf, beta)
 
-    def phi_0_rel_to_abs(self, phi_rf_abs):
+    def convert_phi_0(self, phi_rf_abs):
+        """Doc."""
+        if self.relative_phase_flag == 0:
+            self._phi_0_rel_to_abs(phi_rf_abs)
+        else:
+            self._phi_0_abs_to_rel(phi_rf_abs)
+
+    def _phi_0_rel_to_abs(self, phi_rf_abs):
         """
         Convert relative phi_0 to absolute.
 
@@ -160,6 +174,19 @@ class RfField():
         phi_0_abs = self.phi_0['rel'] - phi_rf_abs
         phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
         self.phi_0['abs'] = phi_0_abs
+
+    def _phi_0_abs_to_rel(self, phi_rf_abs):
+        """
+        Convert absolute phi_0 to relative.
+
+        Parameters
+        ----------
+        phi_rf_abs : float
+            Absolute phase of the particle at the entrance of the cavity.
+        """
+        phi_0_rel = self.phi_0['abs'] + phi_rf_abs
+        phi_0_rel = np.mod(phi_0_rel, 2. * np.pi)
+        self.phi_0['rel'] = phi_0_rel
 
 
 # =============================================================================

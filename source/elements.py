@@ -150,11 +150,14 @@ class FieldMap(_Element):
         self.field_map_file_name = str(elem[9])         # FileName
 
         try:
-            self.relative_phase_flag = int(elem[10])    # P
+            relative_phase_flag = int(elem[10])    # P
         except IndexError:
-            pass
+            # Relative by default
+            relative_phase_flag = 0
+            # pass
 
         self.acc_field = RfField(352.2, norm=float(elem[6]),
+                                 relative_phase_flag=relative_phase_flag,
                                  phi_0=np.deg2rad(float(elem[3])))
         # FIXME frequency import
         self.status = {
