@@ -17,9 +17,6 @@ import helper
 def init_rk4_cavity(cavity, gamma, synch, flag_phi_abs):
     """Init RK4 methods to compute transfer matrix of a cavity."""
     gamma['out'] = gamma['in']
-    # synch.z['rel'] = 0.
-    # synch.phi['rel'] = 0.
-    # TODO two last lines in enter_cavity?
 
     def du_dz(z, u):
         """
@@ -94,6 +91,9 @@ def init_leapfrog_cavity(cavity, gamma, dz, synch, idx=None):
           (speed/energy are on half steps)
     e_0_mev = cavity.energy['kin_array_mev'][0]
     """
+    # FIXME
+    print('Warning! rel z and phi are now set to 0 prior to this routine',
+          '(init_leapfrog_cavity). Bugs will appear.')
     # Remove last array element as it is on i and should be on i-1/2
     if idx is None:
         idx = np.where(np.isnan(synch.energy['kin_array_mev']))[0][0] - 1

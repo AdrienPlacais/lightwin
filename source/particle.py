@@ -212,6 +212,7 @@ class Particle():
     def _set_omega_rf(self, new_omega):
         """Define rf pulsation."""
         self.omega0['rf'] = new_omega
+        self.omega0['ref'] = new_omega
         self.frac_omega['rf_to_bunch'] = self.omega0['bunch'] / new_omega
         self.frac_omega['bunch_to_rf'] = new_omega / self.omega0['bunch']
 
@@ -229,15 +230,7 @@ class Particle():
         self.phi['rel'] = 0.
         self.z['rel'] = 0.
 
-        # self.omega0['ref'] = acc_field.omega0_rf
-        # self.omega0['rf'] = acc_field.omega0_rf
-        # Easy conversion between rf and bunch phases:
-        # self.frac_omega['bunch_to_rf'] =\
-            # self.omega0['rf'] / self.omega0['bunch']
-        # self.frac_omega['rf_to_bunch'] = 1. / self.frac_omega['bunch_to_rf']
-
         self._set_omega_rf(acc_field.omega0_rf)
-        self.omega0['ref'] = self.omega0['rf']
         self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']
 
         # Convert the relative initial phase of the cavity into an absolute
