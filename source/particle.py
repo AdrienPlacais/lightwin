@@ -151,8 +151,7 @@ class Particle():
         Parameters
         ----------
         delta_phi : float
-            Phase increment, expressed as phi = omega0_bunch * time. Shouldn't
-            be mistaken with phi = omega0_rf * bunch.
+            Phase increment.
         idx : integer, optional
             Index of the new phase in abs_array. By default, the first NaN
             element of the array is replaced. Thus, idx has to be given only
@@ -181,6 +180,32 @@ class Particle():
             }
         new_row = pd.Series(data=new_row)
         self.df = self.df.append(new_row, ignore_index=True)
+
+    def set_abs_phi(self, new_phi, idx=np.NaN, flag_rf=False):
+        """
+        Set new absolute phase.
+
+        Parameters
+        ----------
+        new_phi : float
+            New phase.
+        idx : integer, optional
+            Index of the new phase in abs_array. By default, the first NaN
+            element of the array is replaced. Thus, idx has to be given only
+            when recomputing the transfer matrices.
+        flag_rf : boolean, optional
+            If False, new_phi = omega_0_bunch * t. Otherwise,
+            phi = omega_0_rf * t. Default is False.
+        """
+        if np.isnan(idx):
+            idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
+
+        if flag_rf:
+            self.phi['abs_rf'] = new_phi
+            new_phi *= self.frac_omega['rf_to_bunch']
+
+        self.phi['abs'] = new_phi
+        self.phi['abs_array'][idx] = new_phi
 
     def compute_phase_space_tot(self, synch):
         """
