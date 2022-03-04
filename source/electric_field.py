@@ -41,12 +41,8 @@ class RfField():
 
         self.norm = norm
         self.relative_phase_flag = relative_phase_flag
-        if relative_phase_flag == 0:
-            self.phi_0 = {'rel': phi_0, 'abs': None}
-        elif relative_phase_flag == 1:
-            self.phi_0 = {'rel': None, 'abs': phi_0}
-        else:
-            raise IOError('Wrong value for relative_phase_flag.')
+        self.set_phi_0(phi_0)
+
         self.n_cell = 2
         self.f_e = 0.
         self.phi_s_deg = np.NaN
@@ -147,8 +143,17 @@ class RfField():
         return self.de_dt_func_norm(self.norm, phi0[flag_phi_abs](self),
                                     x, phi_rf, beta)
 
+    def set_phi_0(self, phi_0):
+        """Set an initial phase, relative or absolute."""
+        if self.relative_phase_flag == 0:
+            self.phi_0 = {'rel': phi_0, 'abs': None}
+        elif self.relative_phase_flag == 1:
+            self.phi_0 = {'rel': None, 'abs': phi_0}
+        else:
+            raise IOError('Wrong value for relative_phase_flag.')
+
     def convert_phi_0(self, phi_rf_abs):
-        """Doc."""
+        """Calculate the missing phi_0 (relative or absolute)."""
         if self.relative_phase_flag == 0:
             self._phi_0_rel_to_abs(phi_rf_abs)
         else:

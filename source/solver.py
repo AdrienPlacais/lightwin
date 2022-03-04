@@ -37,6 +37,7 @@ def init_rk4_cavity(cavity, gamma, synch, flag_phi_abs):
         v0 = q_adim * cavity.acc_field.e_func(z, u[1], flag_phi_abs)
         gamma_float = helper.kin_to_gamma(u[0], E_rest_MeV)
         beta = helper.gamma_to_beta(gamma_float)
+        # TODO omega_rf = n_cell * omega_bunch?
         v1 = cavity.acc_field.n_cell * synch.omega0['bunch'] / (beta * c)
         return np.array(([v0, v1]))
     return du_dz
