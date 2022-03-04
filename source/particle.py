@@ -164,13 +164,11 @@ class Particle():
         if np.isnan(idx):
             idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
 
+        self.phi['rel'] += delta_phi
+
         if flag_rf:
             self.phi['abs_rf'] += delta_phi
-            self.phi['rel'] += delta_phi
             delta_phi *= self.frac_omega['rf_to_bunch']
-        else:
-            self.phi['abs_rf'] += delta_phi
-            self.phi['rel'] += delta_phi
 
         self.phi['abs'] += delta_phi
         self.phi['abs_array'][idx] = self.phi['abs_array'][idx-1] + delta_phi
@@ -228,6 +226,7 @@ class Particle():
         self.frac_omega['bunch_to_rf'] =\
             self.omega0['rf'] / self.omega0['bunch']
         self.frac_omega['rf_to_bunch'] = 1. / self.frac_omega['bunch_to_rf']
+
         # Convert abs_rf
         self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']
 
@@ -253,7 +252,7 @@ class Particle():
         self.omega0['ref'] = self.omega0['bunch']
         self.frac_omega['rf_to_bunch'] = 1.
         self.frac_omega['bunch_to_rf'] = 1.
-
+        self.phi['abs_rf'] = None
 
 def create_rand_particles(e_0_mev, omega0_bunch):
     """Create two random particles."""
