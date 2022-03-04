@@ -17,8 +17,8 @@ import helper
 def init_rk4_cavity(cavity, gamma, synch, flag_phi_abs):
     """Init RK4 methods to compute transfer matrix of a cavity."""
     gamma['out'] = gamma['in']
-    synch.z['rel'] = 0.
-    synch.phi['rel'] = 0.
+    # synch.z['rel'] = 0.
+    # synch.phi['rel'] = 0.
     # TODO two last lines in enter_cavity?
 
     def du_dz(z, u):

@@ -209,6 +209,12 @@ class Particle():
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
 
+    def _set_omega_rf(self, new_omega):
+        """Define rf pulsation."""
+        self.omega0['rf'] = new_omega
+        self.frac_omega['rf_to_bunch'] = self.omega0['bunch'] / new_omega
+        self.frac_omega['bunch_to_rf'] = new_omega / self.omega0['bunch']
+
     def enter_cavity(self, acc_field, flag_cav_comp=False):
         """
         Change the omega0 at the entrance and compute abs. entry phase.
@@ -220,14 +226,18 @@ class Particle():
             entry phase can be tuned to fix the linac. Thus, the absolute entry
             phase should be calculated. Default is FALSE.
         """
-        self.omega0['ref'] = acc_field.omega0_rf
-        self.omega0['rf'] = acc_field.omega0_rf
-        # Easy conversion between rf and bunch phases:
-        self.frac_omega['bunch_to_rf'] =\
-            self.omega0['rf'] / self.omega0['bunch']
-        self.frac_omega['rf_to_bunch'] = 1. / self.frac_omega['bunch_to_rf']
+        self.phi['rel'] = 0.
+        self.z['rel'] = 0.
 
-        # Convert abs_rf
+        # self.omega0['ref'] = acc_field.omega0_rf
+        # self.omega0['rf'] = acc_field.omega0_rf
+        # Easy conversion between rf and bunch phases:
+        # self.frac_omega['bunch_to_rf'] =\
+            # self.omega0['rf'] / self.omega0['bunch']
+        # self.frac_omega['rf_to_bunch'] = 1. / self.frac_omega['bunch_to_rf']
+
+        self._set_omega_rf(acc_field.omega0_rf)
+        self.omega0['ref'] = self.omega0['rf']
         self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']
 
         # Convert the relative initial phase of the cavity into an absolute
@@ -249,9 +259,7 @@ class Particle():
 
     def exit_cavity(self, index):
         """Reset frac_omega."""
-        self.omega0['ref'] = self.omega0['bunch']
-        self.frac_omega['rf_to_bunch'] = 1.
-        self.frac_omega['bunch_to_rf'] = 1.
+        self._set_omega_rf(self.omega0['bunch'])
         self.phi['abs_rf'] = None
 
 def create_rand_particles(e_0_mev, omega0_bunch):
