@@ -119,14 +119,12 @@ def z_field_map_electric_field(cavity, synch):
         du_dz = solver.init_rk4_cavity(cavity, gamma, synch, flag_phi_abs)
 
     # We loop until reaching the end of the cavity
-    # TODO : first element of transfer matrix is useless
-    transfer_matrix = np.zeros((solver_param['n_steps'] + 1, 2, 2))
-    transfer_matrix[0, :, :] = np.eye(2)
+    transfer_matrix = np.zeros((solver_param['n_steps'], 2, 2))
 
 # =============================================================================
 # Loop over cavity
 # =============================================================================
-    for i in range(1, solver_param['n_steps'] + 1):
+    for i in range(solver_param['n_steps']):
         idx_abs = i + idx_in
         gamma['in'] = gamma['out']
 
@@ -146,14 +144,14 @@ def z_field_map_electric_field(cavity, synch):
 
         elif method == 'RK':
             phi_rf = phi[flag_phi_abs](synch)
-            u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs - 1],
+            u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs],
                               phi_rf]))
             temp = solver.rk4(u_rk, du_dz, synch.z['rel'], d_z)
             delta['e_mev'] = temp[0]
             delta['phi_rf'] = temp[1]
 
-        synch.set_energy(delta['e_mev'], idx=idx_abs, delta_e=True)
-        gamma['out'] = synch.energy['gamma_array'][idx_abs]
+        synch.set_energy(delta['e_mev'], idx=idx_abs + 1, delta_e=True)
+        gamma['out'] = synch.energy['gamma_array'][idx_abs + 1]
 
         # Warning, the gamma and beta in synch object are at the exit of the
         # cavity. We recompute the gamma and beta in the middle of the cavity.
@@ -169,12 +167,12 @@ def z_field_map_electric_field(cavity, synch):
             delta['phi_rf'] = acc_f.n_cell * synch.omega0['bunch'] * d_z / (
                 helper.gamma_to_beta(gamma['out']) * c)
 
-        synch.advance_phi(delta['phi_rf'], idx=idx_abs, flag_rf=True)
-        synch.advance_position(d_z, idx=idx_abs)
+        synch.advance_phi(delta['phi_rf'], idx=idx_abs + 1, flag_rf=True)
+        synch.advance_position(d_z, idx=idx_abs + 1)
 
     synch.exit_cavity(cavity.idx)
 
-    return transfer_matrix[1:, :, :]
+    return transfer_matrix
 
 
 def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
