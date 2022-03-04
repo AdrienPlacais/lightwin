@@ -30,6 +30,7 @@ class Particle():
             'reference': reference,
             # Are the phases absolute? Or relative?
             'abs_phases': phi_abs,
+            'fixed': False,
             }
 
         self.z = {
@@ -258,22 +259,34 @@ class Particle():
         self._set_omega_rf(acc_field.omega0_rf)
         self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']
 
-        # Convert the relative initial phase of the cavity into an absolute
-        # initial phase.
-        # The particle must be synchronous.
-        # Either the linac is in nominal working order, either the current
-        # cavity is rephased to compensate for the faults.
-        # (no influence if FLAG_PHI_ABS is False)
-        if self.info['synchronous'] and \
-                (self.info['reference'] or flag_cav_comp):
-            # acc_field.phi_0_rel_to_abs(self.phi['abs_rf'])
-            acc_field.convert_phi_0(self.phi['abs_rf'])
+        if self.info['synchronous']:
+            # Ref linac: we compute every missing phi_0
+            if self.info['reference']:
+                acc_field.convert_phi_0(self.phi['abs_rf'],
+                                        absolute=not bool(
+                                            acc_field.relative_phase_flag))
+            else:
+                # Fixed linac: we compute the missing phi_0 in the compensating
+                # cavities.
+                # Not yet fixed linac: do not compute unused phi_0 to avoid
+                # using it by mistake
+                if flag_cav_comp:
+                    if self.info['fixed']:
+                        acc_field.convert_phi_0(self.phi['abs_rf'],
+                                                absolute=self.info[
+                                                    'abs_phases'])
+                    else:
+                        if self.info['abs_phases']:
+                            acc_field.phi_0['rel'] = None
+                        else:
+                            acc_field.phi_0['abs'] = None
+                # Non-compensating cavity: should remain unchanged
+                else:
+                    print('enter_cavity: should pompe from ref_linac.')
+
         else:
-            # In this case, absolute entry phases should have been handled by
-            # FaultScenario.transfer_phi0_from_ref_to_broken
-            assert acc_field.phi_0['abs'] is not None, 'The absolute ' + \
-                'entrance phase of the cavity shall be calculated with the' + \
-                ' synchronous particle prior to any non-synch calculation.'
+            print('Warning enter_cavity! Not sure what will happen with a',
+                  'non synchronous particle.')
 
     def exit_cavity(self, index):
         """Reset frac_omega."""

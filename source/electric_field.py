@@ -41,7 +41,7 @@ class RfField():
 
         self.norm = norm
         self.relative_phase_flag = relative_phase_flag
-        self.set_phi_0(phi_0)
+        self.set_phi_0(phi_0, absolute=not bool(relative_phase_flag))
 
         self.n_cell = 2
         self.f_e = 0.
@@ -143,21 +143,19 @@ class RfField():
         return self.de_dt_func_norm(self.norm, phi0[flag_phi_abs](self),
                                     x, phi_rf, beta)
 
-    def set_phi_0(self, phi_0):
+    def set_phi_0(self, phi_0, absolute):
         """Set an initial phase, relative or absolute."""
-        if self.relative_phase_flag == 0:
-            self.phi_0 = {'rel': phi_0, 'abs': None}
-        elif self.relative_phase_flag == 1:
+        if absolute:
             self.phi_0 = {'rel': None, 'abs': phi_0}
         else:
-            raise IOError('Wrong value for relative_phase_flag.')
+            self.phi_0 = {'rel': phi_0, 'abs': None}
 
-    def convert_phi_0(self, phi_rf_abs):
+    def convert_phi_0(self, phi_rf_abs, absolute):
         """Calculate the missing phi_0 (relative or absolute)."""
-        if self.relative_phase_flag == 0:
-            self._phi_0_rel_to_abs(phi_rf_abs)
-        else:
+        if absolute:
             self._phi_0_abs_to_rel(phi_rf_abs)
+        else:
+            self._phi_0_rel_to_abs(phi_rf_abs)
 
     def _phi_0_rel_to_abs(self, phi_rf_abs):
         """
