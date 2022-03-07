@@ -26,7 +26,7 @@ class RfField():
         phi = omega_0_bunch * t
     """
 
-    def __init__(self, frequency_mhz, norm=np.NaN, relative_phase_flag=0,
+    def __init__(self, frequency_mhz, norm=np.NaN, absolute_phase_flag=0,
                  phi_0=None):
         self.f_mhz_rf = frequency_mhz
         self.omega0_rf = 2e6 * np.pi * frequency_mhz
@@ -40,8 +40,8 @@ class RfField():
         self.e_spat = lambda x: 0.
 
         self.norm = norm
-        self.relative_phase_flag = relative_phase_flag
-        self.set_phi_0(phi_0, absolute=not bool(relative_phase_flag))
+        self.absolute_phase_flag = bool(absolute_phase_flag)
+        self.set_phi_0(phi_0, absolute=self.absolute_phase_flag)
 
         self.n_cell = 2
         self.f_e = 0.
@@ -174,6 +174,7 @@ class RfField():
         phi_rf_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
+        print('rel to abs')
         phi_0_abs = self.phi_0['rel'] - phi_rf_abs
         phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
         self.phi_0['abs'] = phi_0_abs
@@ -187,6 +188,7 @@ class RfField():
         phi_rf_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
+        print('abs to rel')
         phi_0_rel = self.phi_0['abs'] + phi_rf_abs
         phi_0_rel = np.mod(phi_0_rel, 2. * np.pi)
         self.phi_0['rel'] = phi_0_rel

@@ -71,7 +71,7 @@ class FaultScenario():
         # TODO : there are better options
         for i in range(len(ref_cavities)):
             ref_acc_f = ref_cavities[i].acc_field
-            if ref_acc_f.relative_phase_flag == 0:
+            if ref_acc_f.absolute_phase_flag:
                 ref_phi_0 = ref_cavities[i].acc_field.phi_0['abs']
                 brok_cavities[i].acc_field.phi_0['abs'] = ref_phi_0
             else:

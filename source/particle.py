@@ -255,6 +255,7 @@ class Particle():
         """
         self.phi['rel'] = 0.
         self.z['rel'] = 0.
+        self.f_e = 0.
 
         self._set_omega_rf(acc_field.omega0_rf)
         self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']
@@ -263,8 +264,7 @@ class Particle():
             # Ref linac: we compute every missing phi_0
             if self.info['reference']:
                 acc_field.convert_phi_0(self.phi['abs_rf'],
-                                        absolute=not bool(
-                                            acc_field.relative_phase_flag))
+                                        absolute=acc_field.absolute_phase_flag)
             else:
                 # Fixed linac: we compute the missing phi_0 in the compensating
                 # cavities.
@@ -282,11 +282,15 @@ class Particle():
                             acc_field.phi_0['abs'] = None
                 # Non-compensating cavity: should remain unchanged
                 else:
-                    print('enter_cavity: should pompe from ref_linac.')
+                    acc_field.convert_phi_0(phi_rf_abs=self.phi['abs_rf'],
+                                            absolute=self.info['abs_phases'])
 
         else:
             print('Warning enter_cavity! Not sure what will happen with a',
                   'non synchronous particle.')
+
+        print(self.info, flag_cav_comp, np.rad2deg(acc_field.phi_0['rel']),
+              np.rad2deg(acc_field.phi_0['abs']))
 
     def exit_cavity(self, index):
         """Reset frac_omega."""

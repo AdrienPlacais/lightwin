@@ -97,14 +97,14 @@ class Accelerator():
         cavities = self.elements_of(nature='FIELD_MAP')
         flags_absolute = []
         for cav in cavities:
-            flags_absolute.append(cav.acc_field.relative_phase_flag)
+            flags_absolute.append(cav.acc_field.absolute_phase_flag)
 
-        if flag_phi_abs and 0 in flags_absolute:
+        if flag_phi_abs and False in flags_absolute:
             print('Warning: you asked LW a simulation in absolute phase,',
                   'while there is at least one cavity in relative phase in',
                   "the .dat file used by TW. Results won't match if there",
                   'are faulty cavities.\n')
-        elif not flag_phi_abs and 1 in flags_absolute:
+        elif not flag_phi_abs and True in flags_absolute:
             print('Warning: you asked LW a simulation in relative phase,',
                   'while there is at least one cavity in absolute phase in',
                   "the .dat file used by TW. Results won't match if there",

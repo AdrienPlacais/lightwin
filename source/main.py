@@ -161,7 +161,8 @@ for lin in linacs:
         #     # Redo this whole loop with a fixed linacTrue
         #     linacs.append(broken_linac)
         #     info = basic_fault.info['fit']
-tw.save_new_dat(broken_linac, FILEPATH)
+if FLAG_FIX and SAVE_FIX:
+    tw.save_new_dat(broken_linac, FILEPATH)
 # =============================================================================
 # End
 # =============================================================================
