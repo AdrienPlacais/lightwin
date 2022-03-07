@@ -74,7 +74,7 @@ WHAT_TO_FIT = {
     # =========================================================================
     'position': 'end_of_last_comp_cav',
     }
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # To determine if the phases in the cavities are absolute or relative.
@@ -152,17 +152,15 @@ for lin in linacs:
         for save in SAVES:
             DICT_SAVES[save](lin)
 
-
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
-        # if FLAG_FIX and lin.name == "Broken":
-        #     basic_fault.fix(method, WHAT_TO_FIT, manual_list)
-        #     if SAVE_FIX:
-        #         tw.save_new_dat(broken_linac, FILEPATH)
-        #     # Redo this whole loop with a fixed linacTrue
-        #     linacs.append(broken_linac)
-        #     info = basic_fault.info['fit']
-if FLAG_FIX and SAVE_FIX:
-    tw.save_new_dat(broken_linac, FILEPATH)
+        if FLAG_FIX and lin.name == "Broken":
+            basic_fault.fix(method, WHAT_TO_FIT, manual_list)
+            if SAVE_FIX:
+                tw.save_new_dat(broken_linac, FILEPATH)
+            # Redo this whole loop with a fixed linacTrue
+            linacs.append(broken_linac)
+            info = basic_fault.info['fit']
+
 # =============================================================================
 # End
 # =============================================================================

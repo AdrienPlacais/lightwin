@@ -14,6 +14,12 @@ from scipy.optimize import minimize, least_squares
 import debug
 
 
+dict_phase = {
+    True: lambda elt: elt.acc_field.phi_0['abs'],
+    False: lambda elt: elt.acc_field.phi_0['rel']
+    }
+
+
 class FaultScenario():
     """A class to hold all fault related data."""
 
@@ -244,34 +250,27 @@ class FaultScenario():
         """
         initial_guess = []
         bounds = []
+        abs_flag = self.ref_lin.synch.info['abs_phases']
 
-        relative_limits = {
-            'phi_0_down': 0.6, 'phi_0_up': 1.5,  # [60%, 150%] of phi_0
-            'norm_down': 0.6, 'norm_up': 1.5,   # [60%, 150%] of norm
-            }
-        absolute_limits = {
-            'phi_0_down': np.deg2rad(100.), 'phi_0_up': np.deg2rad(170.),
-            'norm_down': 1., 'norm_up': np.inf,
-            }
-        dict_prop = {
-            'phi_0': lambda acc_f: acc_f.phi_0,
-            'norm': lambda acc_f: acc_f.norm
-            }
+        # Handle phase
+        limits_phase = (0., 2.*np.pi)
+        for elt in self.comp_list['only_cav']:
+            initial_guess.append(dict_phase[abs_flag](elt))
+            bounds.append(limits_phase)
 
-        def _set_boundaries(prop_str, prop):
-            """Take the most constraining boundaries between abs and rel."""
-            down_lim = max((relative_limits[prop_str + '_down'] * prop,
-                            absolute_limits[prop_str + '_down']))
-            up_lim = min((relative_limits[prop_str + '_up'] * prop,
-                          absolute_limits[prop_str + '_up']))
-            return (down_lim, up_lim)
-
-        for prop_str in ['phi_0', 'norm']:
-            for elt in self.comp_list['only_cav']:
-                prop = dict_prop[prop_str](elt.acc_field)
-                initial_guess.append(prop)
-                bnds = _set_boundaries(prop_str, prop)
-                bounds.append(bnds)
+        # Handle norm
+        limits_norm = {
+            'relative': [0.6, 1.5],    # [60%, 150%] of norm
+            'absolute': [1., np.inf]   # ridiculous limits for the norm
+            }
+        for elt in self.comp_list['only_cav']:
+            norm = elt.acc_field.norm
+            initial_guess.append(norm)
+            down = max(limits_norm['relative'][0] * norm,
+                       limits_norm['absolute'][0])
+            up = min(limits_norm['relative'][1] * norm,
+                     limits_norm['absolute'][1])
+            bounds.append((down, up))
 
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)
