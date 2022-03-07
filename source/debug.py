@@ -462,23 +462,35 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
 
     list_of_comp = fault_scenario.comp_list['only_cav']
     n_comp = len(list_of_comp)
+    list_of_ref_cav = []
+    for i in range(n_comp):
+        idx = fault_scenario.brok_lin.where_is(list_of_comp[i])
+        list_of_ref_cav.append(fault_scenario.ref_lin.elements['list'][idx])
 
-    list_of_param = ['phi_0', 'Norm']
+    list_of_param = ['phi_0_rel', 'phi_0_abs', 'Norm']
 
     dict_param = {
-        'phi_0': pd.DataFrame(columns=('Idx', 'Min.', 'Fixed', 'Max.', 'Orig.',
-                                       '(var %)')),
-        'Norm': pd.DataFrame(columns=('Idx', 'Min.', 'Fixed', 'Max.', 'Orig.',
+        'phi_0_rel': pd.DataFrame(columns=('Idx', 'Min.', 'Max.', 'Fixed',
+                                           'Orig.', '(var %)')),
+        'phi_0_abs': pd.DataFrame(columns=('Idx', 'Min.', 'Max.', 'Fixed',
+                                           'Orig.', '(var %)')),
+        'Norm': pd.DataFrame(columns=('Idx', 'Min.', 'Max.', 'Fixed', 'Orig.',
                                       '(var %)')),
         }
     dict_attribute = {
-        'phi_0': lambda acc_f: np.rad2deg(acc_f.phi_0['rel']),
+        'phi_0_rel': lambda acc_f: np.rad2deg(acc_f.phi_0['rel']),
+        'phi_0_abs': lambda acc_f: np.rad2deg(acc_f.phi_0['abs']),
         'Norm': lambda acc_f: acc_f.norm,
         }
     dict_guess_bnds = {
-        'phi_0': lambda i: [np.rad2deg(initial_guess[i]),
-                            np.rad2deg(bounds_fmt[0][i]),
-                            np.rad2deg(bounds_fmt[1][i])],
+        'phi_0_rel': lambda i: [np.rad2deg(list_of_ref_cav[i].acc_field.
+                                           phi_0['rel']),
+                                np.rad2deg(bounds_fmt[0][i]),
+                                np.rad2deg(bounds_fmt[1][i])],
+        'phi_0_abs': lambda i: [np.rad2deg(list_of_ref_cav[i].acc_field.
+                                           phi_0['abs']),
+                                np.rad2deg(bounds_fmt[0][i]),
+                                np.rad2deg(bounds_fmt[1][i])],
         'Norm': lambda i: [initial_guess[i+n_comp], bounds_fmt[0][i+n_comp],
                            bounds_fmt[1][i+n_comp]]
         }
@@ -493,7 +505,7 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
             var = 100. * (new - old) / old
 
             dict_param[param].loc[i] = [cav.idx['in'], x0_and_bnds[1],
-                                        new, x0_and_bnds[2], old, var]
+                                        x0_and_bnds[2], new, old, var]
 
         if(out):
             print('\n========================================================')
