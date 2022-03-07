@@ -184,8 +184,15 @@ class FaultScenario():
         def wrapper(prop_array):
             # Unpack
             for i in range(n_cav):
-                acc_f = self.comp_list['only_cav'][i].acc_field
-                acc_f.phi_0 = prop_array[i]
+                cav = self.comp_list['only_cav'][i]
+                acc_f = cav.acc_field
+                # FIXME
+                if acc_f.absolute_phase_flag:
+                    acc_f.phi_0['abs'] = prop_array[i]
+
+                else:
+                    acc_f.phi_0['rel'] = prop_array[i]
+
                 acc_f.norm = prop_array[i+n_cav]
 
             # Update transfer matrices
@@ -215,8 +222,16 @@ class FaultScenario():
         # TODO check x_scale
 
         for i in range(n_cav):
-            self.comp_list['only_cav'][i].acc_field.phi_0 = sol.x[i]
-            self.comp_list['only_cav'][i].acc_field.norm = sol.x[i+n_cav]
+            # FIXME
+            cav = self.comp_list['only_cav'][i]
+            acc_f = cav.acc_field
+            # FIXME
+            if acc_f.absolute_phase_flag:
+                acc_f.phi_0['abs'] = sol.x[i]
+            else:
+                acc_f.phi_0['rel'] = sol.x[i]
+
+            acc_f.norm = sol.x[i+n_cav]
 
         # When fit is complete, also recompute last elements
         self.brok_lin.compute_transfer_matrices(method)

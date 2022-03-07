@@ -277,9 +277,9 @@ class Particle():
                                                     'abs_phases'])
                     else:
                         if self.info['abs_phases']:
-                            acc_field.phi_0['rel'] = None
+                            acc_field.phi_0['rel'] = np.NaN
                         else:
-                            acc_field.phi_0['abs'] = None
+                            acc_field.phi_0['abs'] = np.NaN
                 # Non-compensating cavity: should remain unchanged
                 else:
                     acc_field.convert_phi_0(phi_rf_abs=self.phi['abs_rf'],
