@@ -68,15 +68,13 @@ class FaultScenario():
         brok_cavities = self.brok_lin.elements_of('FIELD_MAP')
         assert len(ref_cavities) == len(brok_cavities)
 
-        # TODO : there are better options
+        # Transfer both relative and absolute phase flags
         for i in range(len(ref_cavities)):
             ref_acc_f = ref_cavities[i].acc_field
-            if ref_acc_f.absolute_phase_flag:
-                ref_phi_0 = ref_cavities[i].acc_field.phi_0['abs']
-                brok_cavities[i].acc_field.phi_0['abs'] = ref_phi_0
-            else:
-                ref_phi_0 = ref_cavities[i].acc_field.phi_0['rel']
-                brok_cavities[i].acc_field.phi_0['rel'] = ref_phi_0
+            brok_acc_f = brok_cavities[i].acc_field
+
+            brok_acc_f.phi_0['rel'] = ref_acc_f.phi_0['rel']
+            brok_acc_f.phi_0['abs'] = ref_acc_f.phi_0['abs']
 
     def _select_compensating_cavities(self, what_to_fit, manual_list):
         """

@@ -174,7 +174,6 @@ class RfField():
         phi_rf_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
-        print('rel to abs')
         phi_0_abs = self.phi_0['rel'] - phi_rf_abs
         phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
         self.phi_0['abs'] = phi_0_abs
@@ -188,7 +187,6 @@ class RfField():
         phi_rf_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
-        print('abs to rel')
         phi_0_rel = self.phi_0['abs'] + phi_rf_abs
         phi_0_rel = np.mod(phi_0_rel, 2. * np.pi)
         self.phi_0['rel'] = phi_0_rel
