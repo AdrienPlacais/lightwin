@@ -442,6 +442,7 @@ def output_cavities(linac, out=True):
                          np.rad2deg(cav.acc_field.phi_0['abs']),
                          np.rad2deg(cav.acc_field.phi_0['rel']),
                          cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
+    df_cav.round(decimals=3)
     if(out):
         print('\n============================================================')
         helper.printc(linac.name, color='cyan')
@@ -453,8 +454,6 @@ def output_cavities(linac, out=True):
 def output_fit(fault_scenario, initial_guess, bounds, out=True):
     """Output relatable parameters of fit."""
     # We change the shape of the bounds if necessary
-    print("\n\ndebug.output_fit: the phi_0's are relative, it may be a good",
-          "idea to allow a selection of the proper one.\n\n")
     if type(bounds) is tuple:
         bounds_fmt = bounds
     else:
@@ -507,9 +506,10 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
             dict_param[param].loc[i] = [cav.idx['in'], x0_and_bnds[1],
                                         x0_and_bnds[2], new, old, var]
 
+        dict_param[param].round(decimals=3)
         if(out):
             print('\n========================================================')
             helper.printc(param, color='cyan')
             print('\n', dict_param[param], '\n')
-            print('\n========================================================')
+            print('========================================================')
     return dict_param

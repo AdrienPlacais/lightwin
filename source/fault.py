@@ -234,12 +234,12 @@ class FaultScenario():
             acc_f.norm = sol.x[i+n_cav]
 
         # When fit is complete, also recompute last elements
-        self.brok_lin.compute_transfer_matrices(method)
+        self.brok_lin.synch.info['fixed'] = True
         if sol.success:
             self.brok_lin.name = 'Fixed'
         else:
             self.brok_lin.name = 'Poorly fixed'
-
+        self.brok_lin.compute_transfer_matrices(method)
         self.info[self.brok_lin.name + ' cav'] = \
             debug.output_cavities(self.brok_lin, debug_cav)
         print('\n', sol)
