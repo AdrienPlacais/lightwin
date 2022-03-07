@@ -459,6 +459,8 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
     else:
         bounds_fmt = (bounds[:, 0], bounds[:, 1])
 
+    # Get list of compensating cavities, and their original counterpart in
+    # the reference linac
     list_of_comp = fault_scenario.comp_list['only_cav']
     n_comp = len(list_of_comp)
     list_of_ref_cav = []
@@ -467,7 +469,6 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
         list_of_ref_cav.append(fault_scenario.ref_lin.elements['list'][idx])
 
     list_of_param = ['phi_0_rel', 'phi_0_abs', 'Norm']
-
     dict_param = {
         'phi_0_rel': pd.DataFrame(columns=('Idx', 'Min.', 'Max.', 'Fixed',
                                            'Orig.', '(var %)')),
@@ -481,13 +482,15 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
         'phi_0_abs': lambda acc_f: np.rad2deg(acc_f.phi_0['abs']),
         'Norm': lambda acc_f: acc_f.norm,
         }
+    # Hypothesis: the first guesses for the phases are the phases of the
+    # reference cavities
     dict_guess_bnds = {
-        'phi_0_rel': lambda i: [np.rad2deg(list_of_ref_cav[i].acc_field.
-                                           phi_0['rel']),
+        'phi_0_rel': lambda i: [dict_attribute['phi_0_rel'](
+            list_of_ref_cav[i].acc_field),
                                 np.rad2deg(bounds_fmt[0][i]),
                                 np.rad2deg(bounds_fmt[1][i])],
-        'phi_0_abs': lambda i: [np.rad2deg(list_of_ref_cav[i].acc_field.
-                                           phi_0['abs']),
+        'phi_0_abs': lambda i: [dict_attribute['phi_0_abs'](
+            list_of_ref_cav[i].acc_field),
                                 np.rad2deg(bounds_fmt[0][i]),
                                 np.rad2deg(bounds_fmt[1][i])],
         'Norm': lambda i: [initial_guess[i+n_comp], bounds_fmt[0][i+n_comp],
@@ -512,4 +515,5 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
             helper.printc(param, color='cyan')
             print('\n', dict_param[param], '\n')
             print('========================================================')
+
     return dict_param

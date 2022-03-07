@@ -242,7 +242,7 @@ class Particle():
         self.frac_omega['rf_to_bunch'] = self.omega0['bunch'] / new_omega
         self.frac_omega['bunch_to_rf'] = new_omega / self.omega0['bunch']
 
-    def enter_cavity(self, acc_field, flag_cav_comp=False):
+    def enter_cavity(self, acc_field, flag_cav_comp=False, idx_in=np.NaN):
         """
         Change the omega0 at the entrance and compute abs. entry phase.
 
@@ -254,6 +254,9 @@ class Particle():
             phase should be calculated. Default is FALSE.
         """
         self.phi['rel'] = 0.
+        if np.isnan(idx_in):
+            idx_in = np.where(np.isnan(self.phi['abs_array']))[0][0] - 1
+        self.phi['abs'] = self.phi['abs_array'][idx_in]
         self.z['rel'] = 0.
         self.f_e = 0.
 

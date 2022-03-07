@@ -93,7 +93,8 @@ def z_field_map_electric_field(cavity, synch):
     flag_phi_abs = synch.info['abs_phases']
 
     acc_f = cavity.acc_field
-    synch.enter_cavity(acc_f, flag_cav_comp=cavity.status['compensate'])
+    synch.enter_cavity(acc_f, flag_cav_comp=cavity.status['compensate'],
+                       idx_in=idx_in)
 
     # TODO: put this in Particle?
     phi = {

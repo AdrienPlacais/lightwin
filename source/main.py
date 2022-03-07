@@ -66,9 +66,9 @@ WHAT_TO_FIT = {
     # =========================================================================
     # 'objective': 'energy',
     # 'objective': 'phase',
-    'objective': 'energy_phase',
+    # 'objective': 'energy_phase',
     # 'objective': 'transfer_matrix',
-    # 'objective': 'all',
+    'objective': 'all',
     # =========================================================================
     #     Where should we evaluate objective?
     # =========================================================================
@@ -81,7 +81,7 @@ SAVE_FIX = False
 # If they are relative, the linac is implicitely rephased when some cavities
 # are faulty.
 # It is more relatable to use absolute phases when studying error compensation.
-FLAG_PHI_ABS = False
+FLAG_PHI_ABS = True
 # =============================================================================
 # Outputs
 # =============================================================================

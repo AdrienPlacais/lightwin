@@ -187,7 +187,8 @@ class FaultScenario():
                 cav = self.comp_list['only_cav'][i]
                 acc_f = cav.acc_field
                 # FIXME
-                if acc_f.absolute_phase_flag:
+                # if acc_f.absolute_phase_flag:
+                if self.brok_lin.synch.info['abs_phases']:
                     acc_f.phi_0['abs'] = prop_array[i]
 
                 else:
@@ -214,19 +215,16 @@ class FaultScenario():
                     (bounds[:, 0], bounds[:, 1])],
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[what_to_fit['objective']]
-
-        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2], verbose=0)
-        # TODO check if some boundaries are reached
+        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2])
         # TODO check methods
         # TODO check Jacobian
         # TODO check x_scale
 
         for i in range(n_cav):
-            # FIXME
             cav = self.comp_list['only_cav'][i]
             acc_f = cav.acc_field
             # FIXME
-            if acc_f.absolute_phase_flag:
+            if self.brok_lin.synch.info['abs_phases']:
                 acc_f.phi_0['abs'] = sol.x[i]
             else:
                 acc_f.phi_0['rel'] = sol.x[i]
@@ -239,9 +237,11 @@ class FaultScenario():
             self.brok_lin.name = 'Fixed'
         else:
             self.brok_lin.name = 'Poorly fixed'
+
         self.brok_lin.compute_transfer_matrices(method)
         self.info[self.brok_lin.name + ' cav'] = \
             debug.output_cavities(self.brok_lin, debug_cav)
+
         print('\n', sol)
         self.info['sol'] = sol
         self.info['fit'] = debug.output_fit(self, initial_guesses, bounds,
