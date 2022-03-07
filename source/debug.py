@@ -432,13 +432,15 @@ def compare_phase_space(accelerator):
 def output_cavities(linac, out=True):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
-        'Idx', 'Fail?', 'Comp?', 'Norm', 'phi0', 'Vs', 'phis'))
+        'Idx', 'Fail?', 'Comp?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
+        'phis'))
     list_of_cav = linac.elements_of('FIELD_MAP')
     for i in range(len(list_of_cav)):
         cav = list_of_cav[i]
         df_cav.loc[i] = [cav.idx['in'], cav.status['failed'],
                          cav.status['compensate'], cav.acc_field.norm,
-                         np.rad2deg(cav.acc_field.phi_0),
+                         np.rad2deg(cav.acc_field.phi_0['abs']),
+                         np.rad2deg(cav.acc_field.phi_0['rel']),
                          cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
     if(out):
         print('\n============================================================')
@@ -451,6 +453,8 @@ def output_cavities(linac, out=True):
 def output_fit(fault_scenario, initial_guess, bounds, out=True):
     """Output relatable parameters of fit."""
     # We change the shape of the bounds if necessary
+    print("\n\ndebug.output_fit: the phi_0's are relative, it may be a good",
+          "idea to allow a selection of the proper one.\n\n")
     if type(bounds) is tuple:
         bounds_fmt = bounds
     else:
@@ -468,7 +472,7 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
                                       '(var %)')),
         }
     dict_attribute = {
-        'phi_0': lambda acc_f: np.rad2deg(acc_f.phi_0),
+        'phi_0': lambda acc_f: np.rad2deg(acc_f.phi_0['rel']),
         'Norm': lambda acc_f: acc_f.norm,
         }
     dict_guess_bnds = {
