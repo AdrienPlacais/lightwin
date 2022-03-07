@@ -173,7 +173,7 @@ def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements,
             if line[0] == 'FIELD_MAP':
                 elt = list_of_elements[idx_elt]
                 line[3] = dict_phi[flag_phi_abs](elt)[0]
-                line[6] = str(elt.acc_field.norm)[0]
+                line[6] = str(elt.acc_field.norm)
                 line[10] = dict_phi[flag_phi_abs](elt)[1]
 
             idx_elt += 1

@@ -75,7 +75,7 @@ WHAT_TO_FIT = {
     'position': 'end_of_last_comp_cav',
     }
 FLAG_FIX = True
-SAVE_FIX = False
+SAVE_FIX = True
 
 # To determine if the phases in the cavities are absolute or relative.
 # If they are relative, the linac is implicitely rephased when some cavities
