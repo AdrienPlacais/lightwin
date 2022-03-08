@@ -69,7 +69,6 @@ class RfField():
             'v_cav_mv': pol_itg[0],
             'phi_s_deg': np.rad2deg(pol_itg[1])
             }
-        print('essai:', self.cav_params)
 
     def e_func_norm(self, norm, phi_0, x, phi_rf):
         """

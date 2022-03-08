@@ -148,16 +148,19 @@ class Accelerator():
                   'transport method.')
             transport.transport_particle(self, self.synch)
 
-    def get_from_elements(self, attribute, key=None):
+    def get_from_elements(self, attribute, key=None, other_key=None):
         """
         Return attribute from all elements in list_of_elements.
 
         Parameters
         ----------
-        attribute: string
+        attribute : string
             Name of the desired attribute.
-        key: string, optional
-            If attribute is a dict, key must be provided.
+        key : string, optional
+            If attribute is a dict, key must be provided. Default is None.
+        other_key : string, optional
+            If attribute[key] is a dict, a second key must be provided. Default
+            is None.
         """
         list_of_keys = vars(self.elements['list'][0])
         data_nature = str(type(list_of_keys[attribute]))
@@ -175,7 +178,10 @@ class Accelerator():
         data_out = []
         for elt in self.elements['list']:
             list_of_keys = vars(elt)
-            data_out.append(fun(list_of_keys[attribute], key))
+            piece_of_data = fun(list_of_keys[attribute], key)
+            if type(piece_of_data) is dict:
+                piece_of_data = piece_of_data[other_key]
+            data_out.append(piece_of_data)
 
         # Concatenate into a single matrix
         if attribute == 'transfer_matrix':
