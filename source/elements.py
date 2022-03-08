@@ -101,7 +101,7 @@ class _Element():
             self.solver_param_transf_mat['method']](self, synch=synch)
 
         if self.name == 'FIELD_MAP':
-            self._compute_synch_phase_and_acc_pot(synch)
+            self.acc_field.compute_param_cav(flag_fail=self.status['failed'])
 
 
 # =============================================================================
@@ -164,21 +164,6 @@ class FieldMap(_Element):
             'failed': False,
             'compensate': False
             }
-
-    def _compute_synch_phase_and_acc_pot(self, synch):
-        """Compute the sychronous phase and accelerating potential."""
-        if self.status['failed']:
-            self.acc_field.phi_s_deg = np.NaN
-            self.acc_field.v_cav_mv = np.NaN
-
-        else:
-            phi_s = cmath.phase(self.acc_field.f_e)
-            self.acc_field.phi_s_deg = np.rad2deg(phi_s)
-
-            energy_now = synch.energy['kin_array_mev'][self.idx['out']]
-            energy_before = synch.energy['kin_array_mev'][self.idx['in']]
-            self.acc_field.v_cav_mv = np.abs(energy_now - energy_before) \
-                / np.cos(phi_s)
 
     def fail(self):
         """Break this nice cavity."""

@@ -81,16 +81,16 @@ SAVE_FIX = False
 # If they are relative, the linac is implicitely rephased when some cavities
 # are faulty.
 # It is more relatable to use absolute phases when studying error compensation.
-FLAG_PHI_ABS = True
+FLAG_PHI_ABS = False
 # =============================================================================
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
+    # "energy",
+    # "phase",
     "cav",
     ]
-PLOT_TM = True
+PLOT_TM = False
 PHASE_SPACE = False
 TWISS = False
 
@@ -126,7 +126,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac, broken_linac]
+linacs = [ref_linac]#, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)

@@ -6,8 +6,9 @@ Created on Tue Nov 30 15:43:39 2021
 @author: placais
 """
 import numpy as np
+import cmath
 from scipy.interpolate import interp1d
-from constants import c
+from constants import c, q_adim
 
 phi0 = {
     True: lambda field: field.phi_0['abs'],
@@ -44,9 +45,31 @@ class RfField():
         self.set_phi_0(phi_0, absolute=self.absolute_phase_flag)
 
         self.n_cell = 2
-        self.f_e = 0.
+        self.integrated_rf_field = 0.
         self.phi_s_deg = np.NaN
         self.v_cav_mv = np.NaN
+        self.cav_params = {
+            'v_cav_mv': np.NaN,
+            'phi_s_deg': np.NaN,
+            }
+
+    def update_itg_field(self, x, phi_rf, flag_phi_abs, d_z):
+        """Add last integration step to the complex rf field."""
+        self.integrated_rf_field += q_adim \
+            * self.e_func(x, phi_rf, flag_phi_abs) \
+            * (1. + 1j * np.tan(phi_rf + phi0[flag_phi_abs](self))) * d_z
+
+    def compute_param_cav(self, flag_fail):
+        """Compute synchronous phase and accelerating field."""
+        if flag_fail:
+            pol_itg = np.array([np.NaN, np.NaN])
+        else:
+            pol_itg = cmath.polar(self.integrated_rf_field)
+        self.cav_params = {
+            'v_cav_mv': pol_itg[0],
+            'phi_s_deg': np.rad2deg(pol_itg[1])
+            }
+        print('essai:', self.cav_params)
 
     def e_func_norm(self, norm, phi_0, x, phi_rf):
         """

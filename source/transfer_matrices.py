@@ -123,13 +123,8 @@ def z_field_map_electric_field(cavity, synch):
         idx_abs = i + idx_in
         gamma['in'] = gamma['out']
 
-        # form cos + j * sin
-        # TODO put this elsewhere
-        acc_f.f_e += q_adim * acc_f.e_func(synch.z['rel'],
-                                           phi[flag_phi_abs](synch),
-                                           flag_phi_abs) \
-            * (1. + 1j * np.tan(phi[flag_phi_abs](synch)
-                                + electric_field.phi0[flag_phi_abs](acc_f)))
+        acc_f.update_itg_field(synch.z['rel'], phi[flag_phi_abs](synch),
+                               flag_phi_abs, d_z)
 
         if method == 'leapfrog':
             print('Warning, absolute phase not tested with leapfrog.')

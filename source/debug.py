@@ -230,8 +230,8 @@ def compare_with_tracewin(linac, x_dat='s',
         'energy': syn.energy['kin_array_mev'],
         'abs_phase': np.rad2deg(syn.phi['abs_array']),
         'beta_synch': syn.energy['beta_array'],
-        'v_cav_mv': linac.get_from_elements('acc_field', 'v_cav_mv'),
-        'phi_s_deg': linac.get_from_elements('acc_field', 'phi_s_deg'),
+        'v_cav_mv': linac.get_from_elements('acc_field', 'v_cav_mv'), # FIXME
+        'phi_s_deg': linac.get_from_elements('acc_field', 'phi_s_deg'), # FIXME
         'field_map_factor': linac.get_from_elements('acc_field', 'norm')
         }
 
@@ -441,7 +441,8 @@ def output_cavities(linac, out=True):
                          cav.status['compensate'], cav.acc_field.norm,
                          np.rad2deg(cav.acc_field.phi_0['abs']),
                          np.rad2deg(cav.acc_field.phi_0['rel']),
-                         cav.acc_field.v_cav_mv, cav.acc_field.phi_s_deg]
+                         cav.acc_field.cav_params['v_cav_mv'],
+                         cav.acc_field.cav_params['phi_s_deg']]
     df_cav.round(decimals=3)
     if(out):
         print('\n============================================================')
