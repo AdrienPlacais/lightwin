@@ -21,12 +21,6 @@ import electric_field
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def dummy():
-    """Return a dummy transfer matrix."""
-    r_zz = np.full((2, 2), np.NaN)
-    return r_zz
-
-
 def z_drift_element(elt, synch):
     """
     Compute the longitudinal sub-matrix of a drift.
@@ -242,9 +236,3 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
 # =============================================================================
     transf_mat = z_drift_length(.5 * d_z, gamma['out']) @ transf_mat
     return transf_mat
-
-
-def not_an_element():
-    """Return identity matrix."""
-    r_zz = np.eye(2, 2)
-    return r_zz
