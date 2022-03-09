@@ -17,24 +17,15 @@ import constants
 # =============================================================================
 def printc(message, color='cyan', opt_message=''):
     """Print colored messages."""
-    if color in ('red', 'r', 'warning'):
-        escape_code = '\x1B[31m'
-
-    if color in ('blue', 'b', 'message'):
-        escape_code = '\x1b[34m'
-
-    if color in ('green', 'g', 'results'):
-        escape_code = '\x1b[32m'
-
-    if color in ('magenta', 'm', 'error'):
-        escape_code = '\x1b[35m'
-
-    if color in ('cyan', 'c', 'info'):
-        escape_code = '\x1b[36m'
-
-    normal_code = '\x1b[0m'
-
-    print(escape_code + message + normal_code + opt_message)
+    dict_c = {
+        'red': '\x1B[31m',
+        'blue': '\x1b[34m',
+        'green': '\x1b[32m',
+        'magenta': '\x1b[35m',
+        'cyan': '\x1b[36m',
+        'normal': '\x1b[0m',
+    }
+    print(dict_c[color] + message + dict_c['normal'] + opt_message)
 
 
 def printd(message, color_header='cyan', header=''):
