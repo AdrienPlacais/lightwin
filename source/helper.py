@@ -138,7 +138,7 @@ def plot_structure(linac, ax, x_axis='s'):
         elif x_axis == 'elt':
             x0 = i
             width = 1
-        ax.add_patch(dict_elem_plot[elt.name](elt, x0, width))
+        ax.add_patch(dict_elem_plot[elt.info['name']](elt, x0, width))
         i += 1
 
     if x_axis == 's':
@@ -174,10 +174,10 @@ def _plot_field_map(field_map, x0, width):
     """Add an ellipse to show a field_map."""
     height = 1.
     y0 = height * .5
-    if field_map.status['failed']:
+    if field_map.info['failed']:
         color = 'red'
     else:
-        if field_map.status['compensate']:
+        if field_map.info['compensate']:
             color = 'orange'
         else:
             color = 'green'

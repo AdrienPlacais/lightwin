@@ -94,7 +94,7 @@ class Accelerator():
             elt.pos_m['abs'] = elt.pos_m['rel'] + pos['in']
 
             idx['in'] = idx['out']
-            idx['out'] += elt.solver_param_transf_mat['n_steps']
+            idx['out'] += elt.tmat['solver_param']['n_steps']
             elt.idx = idx.copy()
         return idx['out']
 
@@ -133,7 +133,7 @@ class Accelerator():
             elements = self.elements['list']
 
         for elt in elements:
-            elt.solver_param_transf_mat['method'] = method
+            elt.tmat['solver_param']['method'] = method
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
@@ -141,7 +141,7 @@ class Accelerator():
                 elt.compute_transfer_matrix(self.synch)
                 idx = [elt.idx['in'] + 1, elt.idx['out'] + 1]
                 self.transf_mat['indiv'][idx[0]:idx[1], :, :] = \
-                    elt.transfer_matrix
+                    elt.tmat['matrix']
 
             self.transf_mat['cumul'] = \
                 helper.individual_to_global_transfer_matrix(
@@ -216,7 +216,8 @@ class Accelerator():
         """
         if sub_list is None:
             sub_list = self.elements['list']
-        list_of = list(filter(lambda elt: elt.name == nature, sub_list))
+        list_of = list(filter(lambda elt: elt.info['name'] == nature,
+            sub_list))
         return list_of
 
     def where_is(self, elt, nature=False):
@@ -241,7 +242,7 @@ class Accelerator():
 
         """
         if nature:
-            idx = self.elements_of(nature=elt.name).index(elt)
+            idx = self.elements_of(nature=elt.info['name']).index(elt)
         else:
             idx = self.elements['list'].index(elt)
 

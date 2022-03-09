@@ -15,7 +15,6 @@ import helper
 import solver
 import elements
 import particle
-import electric_field
 
 
 # =============================================================================
@@ -37,7 +36,7 @@ def z_drift_element(elt, synch):
     """
     assert isinstance(synch, particle.Particle), 'A Particle should be ' \
         + 'given if element_or_length is an Element.'
-    n_steps = elt.solver_param_transf_mat['n_steps']
+    n_steps = elt.tmat['solver_param']['n_steps']
     delta_s = elt.length_m / n_steps
     r_zz = np.full((n_steps, 2, 2), np.NaN)
 
@@ -81,13 +80,11 @@ def z_field_map_electric_field(cavity, synch):
     assert isinstance(cavity, elements.FieldMap)
     assert isinstance(synch, particle.Particle)
     idx_in = cavity.idx['in']
-    solver_param = cavity.solver_param_transf_mat
-    method = solver_param['method']
-    d_z = solver_param['d_z']
+    method, n_steps, d_z = cavity.tmat['solver_param'].values()
     flag_phi_abs = synch.info['abs_phases']
 
     acc_f = cavity.acc_field
-    synch.enter_cavity(acc_f, flag_cav_comp=cavity.status['compensate'],
+    synch.enter_cavity(acc_f, flag_cav_comp=cavity.info['compensate'],
                        idx_in=idx_in)
 
     # TODO: put this in Particle?
@@ -114,12 +111,12 @@ def z_field_map_electric_field(cavity, synch):
         du_dz = solver.init_rk4_cavity(cavity, gamma, synch, flag_phi_abs)
 
     # We loop until reaching the end of the cavity
-    transfer_matrix = np.zeros((solver_param['n_steps'], 2, 2))
+    transfer_matrix = np.zeros((n_steps, 2, 2))
 
 # =============================================================================
 # Loop over cavity
 # =============================================================================
-    for i in range(solver_param['n_steps']):
+    for i in range(n_steps):
         idx_abs = i + idx_in
         gamma['in'] = gamma['out']
 

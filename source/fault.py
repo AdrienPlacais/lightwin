@@ -57,8 +57,8 @@ class FaultScenario():
         """
         for idx in fail_idx:
             cav = self.brok_lin.elements['list'][idx]
-            assert cav.name == 'FIELD_MAP', 'Error, the element at ' + \
-                'position ' + str(idx) + ' is not a FIELD_MAP.'
+            assert cav.info['name'] == 'FIELD_MAP', 'Error, the element at '\
+                 + 'position ' + str(idx) + ' is not a FIELD_MAP.'
             cav.fail()
             self.fail_list.append(cav)
 
@@ -87,7 +87,7 @@ class FaultScenario():
         Select the cavities that will be used for compensation.
 
         All compensating cavities are added to comp_list['only_cav'], and their
-        status['compensate'] flag is switched to True.
+        info['compensate'] flag is switched to True.
         comp_list['all_elts'] also contains drifts, quads, etc of the
         compensating modules.
         """
@@ -105,7 +105,7 @@ class FaultScenario():
                     nature='FIELD_MAP', sub_list=module)
 
                 for cav in cavities_modules:
-                    if cav.status['failed']:
+                    if cav.info['failed']:
                         modules_with_fail.append(module)
                         break
             print('There are', len(modules_with_fail), 'module(s) with at',
@@ -127,7 +127,7 @@ class FaultScenario():
                     nature='FIELD_MAP', sub_list=module)
 
                 for cav in cavities_modules:
-                    if not cav.status['failed']:
+                    if not cav.info['failed']:
                         comp_cav.append(cav)
             # Remove duplicate cavities
             self.comp_list['only_cav'] = comp_cav
@@ -136,9 +136,9 @@ class FaultScenario():
                                                 key=lambda elt:
                                                     elt.idx['in'])
 
-        # Change status of all the compensating cavities
+        # Change info of all the compensating cavities
         for cav in self.comp_list['only_cav']:
-            cav.status['compensate'] = True
+            cav.info['compensate'] = True
 
         # Portion of linac with compensating cavities, as well as drifts and
         # quads
