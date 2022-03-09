@@ -8,7 +8,7 @@ Created on Tue Nov 30 15:43:39 2021
 import cmath
 import numpy as np
 from scipy.interpolate import interp1d
-from constants import c, q_adim
+from constants import c, q_adim, FLAG_PHI_ABS
 
 phi0 = {
     True: lambda field: field.phi_0['abs'],
@@ -45,11 +45,11 @@ class RfField():
             'integrated_field': 0.
             }
 
-    def update_itg_field(self, pos, phi_rf, flag_phi_abs, d_z):
+    def update_itg_field(self, pos, phi_rf, d_z):
         """Add last integration step to the complex rf field."""
         self.cav_params['integrated_field'] += q_adim \
-            * self.e_func(pos, phi_rf, flag_phi_abs) \
-            * (1. + 1j * np.tan(phi_rf + phi0[flag_phi_abs](self))) * d_z
+            * self.e_func(pos, phi_rf) \
+            * (1. + 1j * np.tan(phi_rf + phi0[FLAG_PHI_ABS](self))) * d_z
 
     def compute_param_cav(self, flag_fail):
         """Compute synchronous phase and accelerating field."""
@@ -85,7 +85,7 @@ class RfField():
         """
         return norm * self.e_spat(pos) * np.cos(phi_rf + phi_0)
 
-    def e_func(self, pos, phi_rf, flag_phi_abs=False):
+    def e_func(self, pos, phi_rf):
         """
         Compute the rf electric field.
 
@@ -104,7 +104,7 @@ class RfField():
         e : float
             Electric field defined by self at position x and time phi.
         """
-        return self.e_func_norm(self.norm, phi0[flag_phi_abs](self), pos,
+        return self.e_func_norm(self.norm, phi0[FLAG_PHI_ABS](self), pos,
                                 phi_rf)
 
     def de_dt_func_norm(self, norm, phi_0, pos, phi_rf, beta):
@@ -134,7 +134,7 @@ class RfField():
         factor = norm * self.omega0_rf / (beta * c)
         return factor * self.e_spat(pos) * np.sin(phi_rf + phi_0)
 
-    def de_dt_func(self, pos, phi_rf, beta, flag_phi_abs=False):
+    def de_dt_func(self, pos, phi_rf, beta):
         """
         Compute the time derivative of the rf field.
 
@@ -155,7 +155,7 @@ class RfField():
         de/dt : float
             Time-derivative of the electric field at position x and time phi.
         """
-        return self.de_dt_func_norm(self.norm, phi0[flag_phi_abs](self),
+        return self.de_dt_func_norm(self.norm, phi0[FLAG_PHI_ABS](self),
                                     pos, phi_rf, beta)
 
     def set_phi_0(self, phi_0, absolute):

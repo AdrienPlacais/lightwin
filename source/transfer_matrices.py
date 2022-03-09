@@ -10,7 +10,7 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, E_rest_MeV
+from constants import c, q_adim, E_rest_MeV, FLAG_PHI_ABS
 import helper
 import solver
 import elements
@@ -81,7 +81,6 @@ def z_field_map_electric_field(cavity, synch):
     assert isinstance(synch, particle.Particle)
     idx_in = cavity.idx['in']
     method, n_steps, d_z = cavity.tmat['solver_param'].values()
-    flag_phi_abs = synch.info['abs_phases']
 
     acc_f = cavity.acc_field
     synch.enter_cavity(acc_f, flag_cav_comp=cavity.info['compensate'],
@@ -108,7 +107,7 @@ def z_field_map_electric_field(cavity, synch):
         solver.init_leapfrog_cavity(cavity, gamma, d_z, synch)
 
     elif method == 'RK':
-        du_dz = solver.init_rk4_cavity(cavity, gamma, synch, flag_phi_abs)
+        du_dz = solver.init_rk4_cavity(cavity, gamma, synch)
 
     # We loop until reaching the end of the cavity
     transfer_matrix = np.zeros((n_steps, 2, 2))
@@ -120,17 +119,15 @@ def z_field_map_electric_field(cavity, synch):
         idx_abs = i + idx_in
         gamma['in'] = gamma['out']
 
-        acc_f.update_itg_field(synch.z['rel'], phi[flag_phi_abs](synch),
-                               flag_phi_abs, d_z)
+        acc_f.update_itg_field(synch.z['rel'], phi[FLAG_PHI_ABS](synch), d_z)
 
         if method == 'leapfrog':
             print('Warning, absolute phase not tested with leapfrog.')
             delta['e_mev'] = q_adim \
-                * acc_f.e_func(synch.z['rel'], phi[flag_phi_abs](synch),
-                               flag_phi_abs) * d_z
+                * acc_f.e_func(synch.z['rel'], phi[FLAG_PHI_ABS](synch)) * d_z
 
         elif method == 'RK':
-            phi_rf = phi[flag_phi_abs](synch)
+            phi_rf = phi[FLAG_PHI_ABS](synch)
             u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs],
                               phi_rf]))
             temp = solver.rk4(u_rk, du_dz, synch.z['rel'], d_z)
@@ -147,8 +144,7 @@ def z_field_map_electric_field(cavity, synch):
 
         # Compute transfer matrix using thin lens approximation
         transfer_matrix[i, :, :] = z_thin_lens(cavity, d_z, gamma, beta_middle,
-                                               synch, phi[flag_phi_abs](synch),
-                                               flag_phi_abs=flag_phi_abs)
+                                               synch, phi[FLAG_PHI_ABS](synch))
 
         if method == 'leapfrog':
             delta['phi_rf'] = acc_f.n_cell * synch.omega0['bunch'] * d_z / (
@@ -163,7 +159,7 @@ def z_field_map_electric_field(cavity, synch):
 
 
 def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
-                flag_correction_determinant=True, flag_phi_abs=False):
+                flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
 
@@ -209,15 +205,14 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma['middle'] * beta_middle**2 * E_rest_MeV)
-    k_1 = k_0 * acc_f.de_dt_func(z_k, phi_rf_k, beta_middle, flag_phi_abs)
-    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_f.e_func(z_k, phi_rf_k,
-                                                          flag_phi_abs)
+    k_1 = k_0 * acc_f.de_dt_func(z_k, phi_rf_k, beta_middle)
+    k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_f.e_func(z_k, phi_rf_k)
 
     # Correction to ensure det < 1
     if flag_correction_determinant:
-        k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_rf_k, flag_phi_abs))  \
+        k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_rf_k))  \
             / (1. - k_0 * (2. - beta_middle**2)
-               * acc_f.e_func(z_k, phi_rf_k, flag_phi_abs))
+               * acc_f.e_func(z_k, phi_rf_k))
         transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
     else:

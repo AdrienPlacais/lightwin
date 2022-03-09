@@ -14,7 +14,7 @@ import helper
 # =============================================================================
 # RK4
 # =============================================================================
-def init_rk4_cavity(cavity, gamma, synch, flag_phi_abs):
+def init_rk4_cavity(cavity, gamma, synch):
     """Init RK4 methods to compute transfer matrix of a cavity."""
     gamma['out'] = gamma['in']
 
@@ -34,7 +34,7 @@ def init_rk4_cavity(cavity, gamma, synch, flag_phi_abs):
             First component is (e_mev(i+1) - e_mev(i)) / dz.
             Second component is (phi(i+1) - phi(i)) / dz.
         """
-        v0 = q_adim * cavity.acc_field.e_func(z, u[1], flag_phi_abs)
+        v0 = q_adim * cavity.acc_field.e_func(z, u[1])
         gamma_float = helper.kin_to_gamma(u[0], E_rest_MeV)
         beta = helper.gamma_to_beta(gamma_float)
         # TODO omega_rf = n_cell * omega_bunch?

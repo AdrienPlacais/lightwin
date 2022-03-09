@@ -11,12 +11,13 @@ import tracewin_interface as tw
 import helper
 import transport
 import particle
+from constants import FLAG_PHI_ABS
 
 
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, e_0_mev, f_mhz, dat_filepath, name, flag_phi_abs):
+    def __init__(self, e_0_mev, f_mhz, dat_filepath, name):
         """
         Create Accelerator object.
 
@@ -52,7 +53,6 @@ class Accelerator():
         reference = bool(name == 'Working')
         self.synch = particle.Particle(0., e_0_mev, omega_0,
                                        n_steps=last_idx, synchronous=True,
-                                       phi_abs=flag_phi_abs,
                                        reference=reference)
 
         # Transfer matrices
@@ -64,7 +64,7 @@ class Accelerator():
         self.transf_mat['indiv'][0, :, :] = np.eye(2)
 
         # Check that LW and TW computes the phases in the same way
-        self._check_consistency_phases(flag_phi_abs)
+        self._check_consistency_phases(FLAG_PHI_ABS)
 
     def _lattice_from_elements(self):
         """Gather elements by lattice."""
@@ -217,7 +217,7 @@ class Accelerator():
         if sub_list is None:
             sub_list = self.elements['list']
         list_of = list(filter(lambda elt: elt.info['name'] == nature,
-            sub_list))
+                              sub_list))
         return list_of
 
     def where_is(self, elt, nature=False):

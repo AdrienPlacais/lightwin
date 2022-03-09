@@ -11,6 +11,7 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
+from constants import FLAG_PHI_ABS
 import debug
 
 
@@ -43,7 +44,7 @@ class FaultScenario():
 
         self.info = {}
 
-        if not broken_linac.synch.info['abs_phases']:
+        if not FLAG_PHI_ABS:
             print('Warning, the phases in the broken linac are relative.',
                   'It may be more relatable to use absolute phases, as',
                   'it would avoid the implicit rephasing of the linac at',
@@ -157,6 +158,26 @@ class FaultScenario():
             complete_modules.append(elts[i])
         self.comp_list['all_elts'] = complete_modules
 
+
+    # def _wwrapper(prop_array, list_of_comp_cav):
+    #     # Unpack
+    #     for i, cav in enumerate(list_of_comp_cav):
+    #         acc_f = cav.acc_field
+    #         if FLAG_PHI_ABS:
+    #             acc_f.phi_0['abs'] = prop_array[i]
+    #         else:
+    #             acc_f.phi_0['rel'] = prop_array[i]
+
+    #         acc_f.norm = prop_array[i+n_cav]
+
+    #     # Update transfer matrices
+    #     self.brok_lin.compute_transfer_matrices(method,
+    #                                             self.comp_list['all_elts'])
+
+    #     obj = np.abs(fun_objective(self.ref_lin, idx_objective)
+    #                  - fun_objective(self.brok_lin, idx_objective))
+    #     return obj
+
     def fix(self, method, what_to_fit, manual_list=None):
         """
         Try to compensate the faulty cavities.
@@ -171,16 +192,18 @@ class FaultScenario():
             List of the indices of the cavities that compensate the fault when
             'strategy' == 'manual'. The default is None.
         """
-        debug_fit = True
-        debug_cav = False
+        debugs = {
+            'fit': True,
+            'cav': False,
+            }
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", what_to_fit)
 
         self._select_compensating_cavities(what_to_fit, manual_list)
         n_cav = len(self.comp_list['only_cav'])
         for linac in [self.ref_lin, self.brok_lin]:
-            self.info[linac.name + ' cav'] = debug.output_cavities(linac,
-                                                                   debug_cav)
+            self.info[linac.name + ' cav'] = \
+                debug.output_cavities(linac, debugs['cav'])
 
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
@@ -191,14 +214,10 @@ class FaultScenario():
         # TODO: set constraints on the synch phase
         def wrapper(prop_array):
             # Unpack
-            for i in range(n_cav):
-                cav = self.comp_list['only_cav'][i]
+            for i, cav in enumerate(self.comp_list['only_cav']):
                 acc_f = cav.acc_field
-                # FIXME
-                # if acc_f.absolute_phase_flag:
-                if self.brok_lin.synch.info['abs_phases']:
+                if FLAG_PHI_ABS:
                     acc_f.phi_0['abs'] = prop_array[i]
-
                 else:
                     acc_f.phi_0['rel'] = prop_array[i]
 
@@ -232,7 +251,7 @@ class FaultScenario():
             cav = self.comp_list['only_cav'][i]
             acc_f = cav.acc_field
             # FIXME
-            if self.brok_lin.synch.info['abs_phases']:
+            if FLAG_PHI_ABS:
                 acc_f.phi_0['abs'] = sol.x[i]
             else:
                 acc_f.phi_0['rel'] = sol.x[i]
@@ -248,12 +267,12 @@ class FaultScenario():
 
         self.brok_lin.compute_transfer_matrices(method)
         self.info[self.brok_lin.name + ' cav'] = \
-            debug.output_cavities(self.brok_lin, debug_cav)
+            debug.output_cavities(self.brok_lin, debugs['cav'])
 
         print('\n', sol)
         self.info['sol'] = sol
         self.info['fit'] = debug.output_fit(self, initial_guesses, bounds,
-                                            debug_fit)
+                                            debugs['fit'])
 
     def _set_fit_parameters(self):
         """
@@ -273,12 +292,11 @@ class FaultScenario():
         """
         initial_guess = []
         bounds = []
-        abs_flag = self.ref_lin.synch.info['abs_phases']
 
         # Handle phase
         limits_phase = (0., 2.*np.pi)
         for elt in self.comp_list['only_cav']:
-            initial_guess.append(dict_phase[abs_flag](elt))
+            initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
             bounds.append(limits_phase)
 
         # Handle norm

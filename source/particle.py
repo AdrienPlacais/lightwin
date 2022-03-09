@@ -8,7 +8,7 @@ Created on Thu Dec  2 13:44:00 2021
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_rest_MeV, c
+from constants import E_rest_MeV, c, FLAG_PHI_ABS
 
 
 class Particle():
@@ -22,14 +22,13 @@ class Particle():
     """
 
     def __init__(self, z, e_mev, omega0_bunch, n_steps=1, synchronous=False,
-                 phi_abs=True, reference=True):
+                 reference=True):
         self.info = {
             # Is this particle the generator?
             'synchronous': synchronous,
             # Is it in a reference (non-faulty) linac?
             'reference': reference,
             # Are the phases absolute? Or relative?
-            'abs_phases': phi_abs,
             'fixed': False,
             }
 
@@ -276,17 +275,16 @@ class Particle():
                 if flag_cav_comp:
                     if self.info['fixed']:
                         acc_field.convert_phi_0(self.phi['abs_rf'],
-                                                absolute=self.info[
-                                                    'abs_phases'])
+                                                absolute=FLAG_PHI_ABS)
                     else:
-                        if self.info['abs_phases']:
+                        if FLAG_PHI_ABS:
                             acc_field.phi_0['rel'] = np.NaN
                         else:
                             acc_field.phi_0['abs'] = np.NaN
                 # Non-compensating cavity: should remain unchanged
                 else:
                     acc_field.convert_phi_0(phi_rf_abs=self.phi['abs_rf'],
-                                            absolute=self.info['abs_phases'])
+                                            absolute=FLAG_PHI_ABS)
 
         else:
             print('Warning enter_cavity! Not sure what will happen with a',
