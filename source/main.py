@@ -86,8 +86,8 @@ FLAG_PHI_ABS = True
 # Outputs
 # =============================================================================
 PLOTS = [
-    # "energy",
-    # "phase",
+    "energy",
+    "phase",
     "cav",
     ]
 PLOT_TM = False
