@@ -106,7 +106,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
                                                flag_output=False)
 
     axnumlist = range(221, 225)
-    fig, axlist = helper.create_fig_if_not_exist(26, axnumlist)
+    _, axlist = helper.create_fig_if_not_exist(26, axnumlist)
     labels = {
         'TW': ['TW', '', '', ''],
         'LW': [accelerator.name, '', '', ''],
@@ -129,7 +129,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     axlist[0].legend()
 
     axlist = []
-    fig, axlist = helper.create_fig_if_not_exist(260, axnumlist)
+    _, axlist = helper.create_fig_if_not_exist(260, axnumlist)
 
     for i in range(4):
         axlist[i].plot(z_err, err[:, i], label=labels['LW'][i])
@@ -220,9 +220,8 @@ def _create_plot_dicts():
     return all_dicts
 
 
-def compare_with_tracewin(linac, x_dat='s',
-                          y_dat=['energy', 'energy_err', 'struct'],
-                          filepath_ref=None, fignum=21):
+def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
+                          fignum=21):
     """
     Compare data calculated by TraceWin and LightWin.
 
@@ -245,7 +244,8 @@ def compare_with_tracewin(linac, x_dat='s',
     fignum: int
         Number of the Figure.
     """
-    # Prep
+    if y_dat is None:
+        y_dat = ['energy', 'energy_err', 'struct']
     if filepath_ref is None:
         filepath_ref = linac.files['project_folder'] \
             + '/results/energy_ref.txt'
@@ -271,18 +271,21 @@ def compare_with_tracewin(linac, x_dat='s',
 
     # Plot
     first_axnum = len(y_dat) * 100 + 11
-    fig, axlist = helper.create_fig_if_not_exist(
+    _, axlist = helper.create_fig_if_not_exist(
         fignum, range(first_axnum, first_axnum + len(y_dat)))
 
     for i, y_d in enumerate(y_dat):
-        _single_plot(axlist[i], x_dat, y_d, dicts,
-                     filepath_ref, elts_indexes, linac)
+        _single_plot(axlist[i], [x_dat, y_d], dicts, filepath_ref, linac)
         axlist[i].set_ylabel(dicts['plot'][y_d][0])
     axlist[-1].set_xlabel(dicts['plot'][x_dat][0])
     axlist[0].legend()
 
 
-def _single_plot(axx, x_dat, y_d, dicts, filepath_ref, elts_indexes, linac):
+def _single_plot(axx, xydata, dicts, filepath_ref, linac):
+    """Plot proper data in proper subplot."""
+    x_dat = xydata[0]
+    y_d = xydata[1]
+    elts_indexes = linac.get_from_elements('idx', 'out')
     if y_d == 'struct':
         helper.plot_structure(linac, axx, x_axis=x_dat)
 
@@ -350,7 +353,7 @@ def compare_phase_space(accelerator):
     # y_axis = "z'"
 
     # Create plot
-    fig, axx = helper.create_fig_if_not_exist(41, [111])
+    _, axx = helper.create_fig_if_not_exist(41, [111])
     axx = axx[0]
     axx.set_xlabel(r'$\delta z$ [mm]')
 
@@ -457,24 +460,7 @@ def output_cavities(linac, out=True):
     return df_cav
 
 
-def output_fit(fault_scenario, initial_guess, bounds, out=True):
-    """Output relatable parameters of fit."""
-    # We change the shape of the bounds if necessary
-    if isinstance(bounds, tuple):
-        bounds_fmt = bounds
-    else:
-        bounds_fmt = (bounds[:, 0], bounds[:, 1])
-
-    # Get list of compensating cavities, and their original counterpart in
-    # the reference linac
-    list_of_comp = fault_scenario.comp_list['only_cav']
-    n_comp = len(list_of_comp)
-    list_of_ref_cav = []
-    for i, comp_cav in enumerate(list_of_comp):
-        idx = fault_scenario.brok_lin.where_is(comp_cav)
-        list_of_ref_cav.append(fault_scenario.ref_lin.elements['list'][idx])
-
-    list_of_param = ['phi_0_rel', 'phi_0_abs', 'Norm']
+def _create_output_fit_dicts(initial_guess, bounds, list_of_ref_cav):
     dict_param = {
         'phi_0_rel': pd.DataFrame(columns=('Idx', 'Min.', 'Max.', 'Fixed',
                                            'Orig.', '(var %)')),
@@ -490,32 +476,57 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
         }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
+    n_comp = len(list_of_ref_cav)
     dict_guess_bnds = {
         'phi_0_rel': lambda i: [dict_attribute['phi_0_rel'](
-            list_of_ref_cav[i].acc_field),
-                                np.rad2deg(bounds_fmt[0][i]),
-                                np.rad2deg(bounds_fmt[1][i])],
+            list_of_ref_cav[i].acc_field), np.rad2deg(bounds[0][i]),
+            np.rad2deg(bounds[1][i])],
         'phi_0_abs': lambda i: [dict_attribute['phi_0_abs'](
-            list_of_ref_cav[i].acc_field),
-                                np.rad2deg(bounds_fmt[0][i]),
-                                np.rad2deg(bounds_fmt[1][i])],
-        'Norm': lambda i: [initial_guess[i+n_comp], bounds_fmt[0][i+n_comp],
-                           bounds_fmt[1][i+n_comp]]
+            list_of_ref_cav[i].acc_field), np.rad2deg(bounds[0][i]),
+            np.rad2deg(bounds[1][i])],
+        'Norm': lambda i: [initial_guess[i+n_comp], bounds[0][i+n_comp],
+                           bounds[1][i+n_comp]]
         }
 
-    for param in list_of_param:
-        for i in range(n_comp):
-            cav = list_of_comp[i]
+    all_dicts = {
+        'param': dict_param,
+        'attribute': dict_attribute,
+        'guess_bnds': dict_guess_bnds,
+        }
 
-            x0_and_bnds = dict_guess_bnds[param](i)
+    return all_dicts
+
+
+def output_fit(fault_scenario, initial_guess, bounds, out=True):
+    """Output relatable parameters of fit."""
+    # We change the shape of the bounds if necessary
+    if not isinstance(bounds, tuple):
+        bounds = (bounds[:, 0], bounds[:, 1])
+
+    # Get list of compensating cavities, and their original counterpart in
+    # the reference linac
+    list_of_cav = {
+        'compensating': fault_scenario.comp_list['only_cav'],
+        'ref_equivalents': [],
+            }
+    for i, comp_cav in enumerate(list_of_cav['compensating']):
+        idx = fault_scenario.brok_lin.where_is(comp_cav)
+        list_of_cav['ref_equivalents'].append(
+            fault_scenario.ref_lin.elements['list'][idx])
+
+    dicts = _create_output_fit_dicts(initial_guess, bounds,
+                                     list_of_cav['ref_equivalents'])
+
+    for param in dicts['param']:
+        for i, cav in enumerate(list_of_cav['compensating']):
+            x0_and_bnds = dicts['guess_bnds'][param](i)
             old = x0_and_bnds[0]
-            new = dict_attribute[param](cav.acc_field)
+            new = dicts['attribute'][param](cav.acc_field)
             var = 100. * (new - old) / old
 
-            dict_param[param].loc[i] = [cav.idx['in'], x0_and_bnds[1],
-                                        x0_and_bnds[2], new, old, var]
-
+            dicts['param'][param].loc[i] = [cav.idx['in'], x0_and_bnds[1],
+                                            x0_and_bnds[2], new, old, var]
         if out:
-            helper.printd(dict_param[param].round(3), header=param)
+            helper.printd(dicts['param'][param].round(3), header=param)
 
-    return dict_param
+    return dicts['param']
