@@ -57,8 +57,8 @@ class FaultScenario():
         """
         for idx in fail_idx:
             cav = self.brok_lin.elements['list'][idx]
-            assert cav.info['name'] == 'FIELD_MAP', 'Error, the element at '\
-                 + 'position ' + str(idx) + ' is not a FIELD_MAP.'
+            assert cav.info['name'] == 'FIELD_MAP', 'Error, the element at ' \
+                + 'position ' + str(idx) + ' is not a FIELD_MAP.'
             cav.fail()
             self.fail_list.append(cav)
 
@@ -75,12 +75,56 @@ class FaultScenario():
         assert len(ref_cavities) == len(brok_cavities)
 
         # Transfer both relative and absolute phase flags
-        for i in range(len(ref_cavities)):
-            ref_acc_f = ref_cavities[i].acc_field
+        for i, ref_cav in enumerate(ref_cavities):
+            ref_acc_f = ref_cav.acc_field
             brok_acc_f = brok_cavities[i].acc_field
 
             brok_acc_f.phi_0['rel'] = ref_acc_f.phi_0['rel']
             brok_acc_f.phi_0['abs'] = ref_acc_f.phi_0['abs']
+
+    def _select_modules_with_failed_cav(self):
+        """Look for modules with at least one failed cavity."""
+        modules = self.brok_lin.elements['list_lattice']
+        modules_with_fail = []
+        for module in modules:
+            cav_module = self.brok_lin.elements_of(nature='FIELD_MAP',
+                                                   sub_list=module)
+            for cav in cav_module:
+                if cav.info['failed']:
+                    modules_with_fail.append(module)
+                    break
+        print('There are', len(modules_with_fail), 'module(s) with at',
+              'least one failed cavity.')
+        return modules_with_fail
+
+    def _select_comp_modules(self, modules_with_fail):
+        """Give failed modules and their neighbors."""
+        modules = self.brok_lin.elements['list_lattice']
+        neighbor_modules = []
+        for module in modules_with_fail:
+            idx = modules.index(module)
+            if idx > 0:
+                neighbor_modules.append(modules[idx-1])
+            if idx < len(modules) - 1:
+                neighbor_modules.append(modules[idx+1])
+        # We return all modules that could help to compensation, ie neighbors
+        # as well as faulty modules
+        return neighbor_modules + modules_with_fail
+
+    def _select_comp_cav(self, comp_modules):
+        """Give cavities in comp_modules that still work."""
+        comp_cav = []
+        for module in comp_modules:
+            # All cavities in comp_module
+            cavities_modules = self.brok_lin.elements_of(nature='FIELD_MAP',
+                                                         sub_list=module)
+            # Only working cavities in comp_module
+            for cav in cavities_modules:
+                if not cav.info['failed']:
+                    comp_cav.append(cav)
+        # Sort them in the proper order
+        comp_cav = sorted(comp_cav, key=lambda elt: elt.idx['in'])
+        return comp_cav
 
     def _select_compensating_cavities(self, what_to_fit, manual_list):
         """
@@ -96,45 +140,9 @@ class FaultScenario():
                                           for idx in manual_list]
 
         elif self.what_to_fit['strategy'] == 'neighbors':
-            modules = self.brok_lin.elements['list_lattice']
-
-            # Get modules where there is a fail
-            modules_with_fail = []
-            for module in modules:
-                cavities_modules = self.brok_lin.elements_of(
-                    nature='FIELD_MAP', sub_list=module)
-
-                for cav in cavities_modules:
-                    if cav.info['failed']:
-                        modules_with_fail.append(module)
-                        break
-            print('There are', len(modules_with_fail), 'module(s) with at',
-                  'least one failed cavity.')
-
-            # Get neighbor modules
-            neighbor_modules = []
-            for module in modules_with_fail:
-                idx = modules.index(module)
-                if idx > 0:
-                    neighbor_modules.append(modules[idx-1])
-                if idx < len(modules) - 1:
-                    neighbor_modules.append(modules[idx+1])
-
-            comp_modules = modules_with_fail + neighbor_modules
-            comp_cav = []
-            for module in comp_modules:
-                cavities_modules = self.brok_lin.elements_of(
-                    nature='FIELD_MAP', sub_list=module)
-
-                for cav in cavities_modules:
-                    if not cav.info['failed']:
-                        comp_cav.append(cav)
-            # Remove duplicate cavities
-            self.comp_list['only_cav'] = comp_cav
-            # Sort cavities according to their position
-            self.comp_list['only_cav'] = sorted(comp_cav,
-                                                key=lambda elt:
-                                                    elt.idx['in'])
+            modules_with_fail = self._select_modules_with_failed_cav()
+            comp_modules = self._select_comp_modules(modules_with_fail)
+            self.comp_list['only_cav'] = self._select_comp_cav(comp_modules)
 
         # Change info of all the compensating cavities
         for cav in self.comp_list['only_cav']:
@@ -283,9 +291,9 @@ class FaultScenario():
             initial_guess.append(norm)
             down = max(limits_norm['relative'][0] * norm,
                        limits_norm['absolute'][0])
-            up = min(limits_norm['relative'][1] * norm,
-                     limits_norm['absolute'][1])
-            bounds.append((down, up))
+            upp = min(limits_norm['relative'][1] * norm,
+                      limits_norm['absolute'][1])
+            bounds.append((down, upp))
 
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)

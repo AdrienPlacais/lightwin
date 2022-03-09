@@ -74,7 +74,7 @@ WHAT_TO_FIT = {
     # =========================================================================
     'position': 'end_of_last_comp_cav',
     }
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # To determine if the phases in the cavities are absolute or relative.
