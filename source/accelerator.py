@@ -35,19 +35,9 @@ class Accelerator():
             'n': len(list_of_elements),
             'list': list_of_elements,
             'n_per_lattice': n_lattice,
-            'list_lattice': [],
+            'list_lattice': None,
             }
-        lattice = []
-        for i in range(self.elements['n']):
-            lattice.append(self.elements['list'][i])
-            if len(lattice) == self.elements['n_per_lattice']:
-                self.elements['list_lattice'].append(lattice)
-                lattice = []
-        if len(lattice) > 0:
-            self.elements['list_lattice'].append(lattice)
-            print("Warning, the last module added to ",
-                  "self.elements['list_lattice'] was not full (", len(lattice),
-                  " elements instead of ", self.elements['n_per_lattice'], ")")
+        self.elements['list_lattice'] = self._lattice_from_elements()
 
         self.files = {
             'project_folder': os.path.dirname(dat_filepath),
@@ -55,6 +45,45 @@ class Accelerator():
             }
 
         # Set indexes and absolute position of the different elements
+        last_idx = self._set_indexes_and_abs_positions()
+
+        # Create synchronous particle
+        omega_0 = 2e6 * np.pi * f_mhz
+        reference = bool(name == 'Working')
+        self.synch = particle.Particle(0., e_0_mev, omega_0,
+                                       n_steps=last_idx, synchronous=True,
+                                       phi_abs=flag_phi_abs,
+                                       reference=reference)
+
+        # Transfer matrices
+        self.transf_mat = {
+            'cumul': np.expand_dims(np.eye(2), axis=0),
+            'indiv': np.full((last_idx+1, 2, 2), np.NaN),
+            'first_calc?': True,
+            }
+        self.transf_mat['indiv'][0, :, :] = np.eye(2)
+
+        # Check that LW and TW computes the phases in the same way
+        self._check_consistency_phases(flag_phi_abs)
+
+    def _lattice_from_elements(self):
+        """Gather elements by lattice."""
+        lattice = []
+        list_of_lattices = []
+        for i in range(self.elements['n']):
+            lattice.append(self.elements['list'][i])
+            if len(lattice) == self.elements['n_per_lattice']:
+                list_of_lattices.append(lattice)
+                lattice = []
+        if len(lattice) > 0:
+            list_of_lattices.append(lattice)
+            print("Warning, the last module added to ",
+                  "self.elements['list_lattice'] was not full (", len(lattice),
+                  " elements instead of ", self.elements['n_per_lattice'], ")")
+        return list_of_lattices
+
+    def _set_indexes_and_abs_positions(self):
+        """Init solvers, set indexes and absolute positions of elements."""
         pos = {'in': 0., 'out': 0.}
         idx = {'in': 0, 'out': 0}
         for elt in self.elements['list']:
@@ -67,30 +96,7 @@ class Accelerator():
             idx['in'] = idx['out']
             idx['out'] += elt.solver_param_transf_mat['n_steps']
             elt.idx = idx.copy()
-
-        # Create synchronous particle
-        omega_0 = 2e6 * np.pi * f_mhz
-
-        # FIXME
-        if name == 'Working':
-            reference = True
-        else:
-            reference = False
-        self.synch = particle.Particle(0., e_0_mev, omega_0,
-                                       n_steps=idx['out'], synchronous=True,
-                                       phi_abs=flag_phi_abs,
-                                       reference=reference)
-
-        # Transfer matrices
-        self.transf_mat = {
-            'cumul': np.expand_dims(np.eye(2), axis=0),
-            'indiv': np.full((idx['out']+1, 2, 2), np.NaN),
-            'first_calc?': True,
-            }
-        self.transf_mat['indiv'][0, :, :] = np.eye(2)
-
-        # Check that LW and TW computes the phases in the same way
-        self._check_consistency_phases(flag_phi_abs)
+        return idx['out']
 
     def _check_consistency_phases(self, flag_phi_abs):
         """Check that both TW and LW use absolute or relative phases."""
@@ -137,11 +143,9 @@ class Accelerator():
                 self.transf_mat['indiv'][idx[0]:idx[1], :, :] = \
                     elt.transfer_matrix
 
-            # TODO: only recompute what is necessary
             self.transf_mat['cumul'] = \
                 helper.individual_to_global_transfer_matrix(
                     self.transf_mat['indiv'])
-            # print(self.synch.df)
 
         elif method == 'transport':
             print('computer_transfer_matrices: no MT computation with ',
@@ -179,7 +183,7 @@ class Accelerator():
         for elt in self.elements['list']:
             list_of_keys = vars(elt)
             piece_of_data = fun(list_of_keys[attribute], key)
-            if type(piece_of_data) is dict:
+            if isinstance(piece_of_data, dict):
                 piece_of_data = piece_of_data[other_key]
             data_out.append(piece_of_data)
 
@@ -237,7 +241,7 @@ class Accelerator():
 
         """
         if nature:
-            idx = self.sub_list(elt.name).index(elt)
+            idx = self.elements_of(nature=elt.name).index(elt)
         else:
             idx = self.elements['list'].index(elt)
 
