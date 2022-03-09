@@ -44,7 +44,7 @@ def printd(message, color_header='cyan', header=''):
     if len(header) > 0:
         printc(header, color_header)
         print('\n')
-    print(message, '\n', line, '\n')
+    print(message, '\n' + line, '\n')
 
 
 def simple_plot(x, y, label_x, label_y, fignum=33):
