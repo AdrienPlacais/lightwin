@@ -159,25 +159,6 @@ class FaultScenario():
         self.comp_list['all_elts'] = complete_modules
 
 
-    # def _wwrapper(prop_array, list_of_comp_cav):
-    #     # Unpack
-    #     for i, cav in enumerate(list_of_comp_cav):
-    #         acc_f = cav.acc_field
-    #         if FLAG_PHI_ABS:
-    #             acc_f.phi_0['abs'] = prop_array[i]
-    #         else:
-    #             acc_f.phi_0['rel'] = prop_array[i]
-
-    #         acc_f.norm = prop_array[i+n_cav]
-
-    #     # Update transfer matrices
-    #     self.brok_lin.compute_transfer_matrices(method,
-    #                                             self.comp_list['all_elts'])
-
-    #     obj = np.abs(fun_objective(self.ref_lin, idx_objective)
-    #                  - fun_objective(self.brok_lin, idx_objective))
-    #     return obj
-
     def fix(self, method, what_to_fit, manual_list=None):
         """
         Try to compensate the faulty cavities.
@@ -211,26 +192,6 @@ class FaultScenario():
             self.what_to_fit['position'],
             self.what_to_fit['objective'])
 
-        # TODO: set constraints on the synch phase
-        def wrapper(prop_array):
-            # Unpack
-            for i, cav in enumerate(self.comp_list['only_cav']):
-                acc_f = cav.acc_field
-                if FLAG_PHI_ABS:
-                    acc_f.phi_0['abs'] = prop_array[i]
-                else:
-                    acc_f.phi_0['rel'] = prop_array[i]
-
-                acc_f.norm = prop_array[i+n_cav]
-
-            # Update transfer matrices
-            self.brok_lin.compute_transfer_matrices(method,
-                                                    self.comp_list['all_elts'])
-
-            obj = np.abs(fun_objective(self.ref_lin, idx_objective)
-                         - fun_objective(self.brok_lin, idx_objective))
-            return obj
-
         dict_fitter = {
             'energy': [minimize, initial_guesses, bounds],
             'phase': [minimize, initial_guesses, bounds],
@@ -242,7 +203,9 @@ class FaultScenario():
                     (bounds[:, 0], bounds[:, 1])],
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[what_to_fit['objective']]
-        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2])
+        # sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2])
+        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
+                        args=(self, method, fun_objective, idx_objective))
         # TODO check methods
         # TODO check Jacobian
         # TODO check x_scale
@@ -349,3 +312,25 @@ class FaultScenario():
         idx_pos = dict_position[position_str]
         fun_objective = dict_objective[objective_str]
         return fun_objective, idx_pos
+
+
+# TODO: set constraints on the synch phase
+def wrapper(prop_array, fault_sce, method, fun_objective, idx_objective):
+    """Fit function."""
+    # Unpack
+    for i, cav in enumerate(fault_sce.comp_list['only_cav']):
+        acc_f = cav.acc_field
+        if FLAG_PHI_ABS:
+            acc_f.phi_0['abs'] = prop_array[i]
+        else:
+            acc_f.phi_0['rel'] = prop_array[i]
+
+        acc_f.norm = prop_array[i+len(fault_sce.comp_list['only_cav'])]
+
+    # Update transfer matrices
+    fault_sce.brok_lin.compute_transfer_matrices(
+        method, fault_sce.comp_list['all_elts'])
+
+    obj = np.abs(fun_objective(fault_sce.ref_lin, idx_objective)
+                 - fun_objective(fault_sce.brok_lin, idx_objective))
+    return obj
