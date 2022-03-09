@@ -5,8 +5,8 @@ Created on Tue Nov 30 15:43:39 2021
 
 @author: placais
 """
-import numpy as np
 import cmath
+import numpy as np
 from scipy.interpolate import interp1d
 from constants import c, q_adim
 
@@ -29,13 +29,7 @@ class RfField():
 
     def __init__(self, frequency_mhz, norm=np.NaN, absolute_phase_flag=0,
                  phi_0=None):
-        self.f_mhz_rf = frequency_mhz
         self.omega0_rf = 2e6 * np.pi * frequency_mhz
-        self.omega_0 = self.omega0_rf  # FIXME
-        try:
-            self.lambda_rf = 1e-6 * c / frequency_mhz
-        except ZeroDivisionError:
-            self.lambda_rf = None
 
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
@@ -45,18 +39,16 @@ class RfField():
         self.set_phi_0(phi_0, absolute=self.absolute_phase_flag)
 
         self.n_cell = 2
-        self.integrated_rf_field = 0.
-        self.phi_s_deg = np.NaN
-        self.v_cav_mv = np.NaN
         self.cav_params = {
             'v_cav_mv': np.NaN,
             'phi_s_deg': np.NaN,
+            'integrated_field': 0.
             }
 
-    def update_itg_field(self, x, phi_rf, flag_phi_abs, d_z):
+    def update_itg_field(self, pos, phi_rf, flag_phi_abs, d_z):
         """Add last integration step to the complex rf field."""
-        self.integrated_rf_field += q_adim \
-            * self.e_func(x, phi_rf, flag_phi_abs) \
+        self.cav_params['integrated_field'] += q_adim \
+            * self.e_func(pos, phi_rf, flag_phi_abs) \
             * (1. + 1j * np.tan(phi_rf + phi0[flag_phi_abs](self))) * d_z
 
     def compute_param_cav(self, flag_fail):
@@ -64,13 +56,13 @@ class RfField():
         if flag_fail:
             pol_itg = np.array([np.NaN, np.NaN])
         else:
-            pol_itg = cmath.polar(self.integrated_rf_field)
+            pol_itg = cmath.polar(self.cav_params['integrated_field'])
         self.cav_params = {
             'v_cav_mv': pol_itg[0],
             'phi_s_deg': np.rad2deg(pol_itg[1])
             }
 
-    def e_func_norm(self, norm, phi_0, x, phi_rf):
+    def e_func_norm(self, norm, phi_0, pos, phi_rf):
         """
         Template of the cos-like rf field (normed).
 
@@ -80,7 +72,7 @@ class RfField():
             Norm of the electric field.
         phi_0 : float
             Initial phase of the field in rad.
-        x : float
+        pos : float
             Position of the particle in m.
         phi_rf : float
             Phase of the field. phi_rf = omega_RF * t, while in most of the
@@ -91,9 +83,9 @@ class RfField():
         e : float
             Electric field at position x and time phi.
         """
-        return norm * self.e_spat(x) * np.cos(phi_rf + phi_0)
+        return norm * self.e_spat(pos) * np.cos(phi_rf + phi_0)
 
-    def e_func(self, x, phi_rf, flag_phi_abs=False):
+    def e_func(self, pos, phi_rf, flag_phi_abs=False):
         """
         Compute the rf electric field.
 
@@ -101,7 +93,7 @@ class RfField():
 
         Parameters
         ----------
-        x : float
+        pos : float
             Position of the particle in m.
         phi_rf : float
             Phase of the field. phi_rf = omega_RF * t, while in most of the
@@ -112,9 +104,10 @@ class RfField():
         e : float
             Electric field defined by self at position x and time phi.
         """
-        return self.e_func_norm(self.norm, phi0[flag_phi_abs](self), x, phi_rf)
+        return self.e_func_norm(self.norm, phi0[flag_phi_abs](self), pos,
+                                phi_rf)
 
-    def de_dt_func_norm(self, norm, phi_0, x, phi_rf, beta):
+    def de_dt_func_norm(self, norm, phi_0, pos, phi_rf, beta):
         """
         Template of time derivative of the cos-like rf field (normed).
 
@@ -124,7 +117,7 @@ class RfField():
             Norm of the electric field.
         phi_0 : float
             Initial phase of the field in rad.
-        x : float
+        pos : float
             Position of the particle in m.
         phi_rf : float
             Phase of the field. phi_rf = omega_RF * t, while in most of the
@@ -139,9 +132,9 @@ class RfField():
 
         """
         factor = norm * self.omega0_rf / (beta * c)
-        return factor * self.e_spat(x) * np.sin(phi_rf + phi_0)
+        return factor * self.e_spat(pos) * np.sin(phi_rf + phi_0)
 
-    def de_dt_func(self, x, phi_rf, beta, flag_phi_abs=False):
+    def de_dt_func(self, pos, phi_rf, beta, flag_phi_abs=False):
         """
         Compute the time derivative of the rf field.
 
@@ -149,7 +142,7 @@ class RfField():
 
         Parameters
         ----------
-        x : float
+        pos : float
             Position of the particle in m.
         phi_rf : float
             Phase of the field. phi = omega_RF * t, while in most of the
@@ -163,7 +156,7 @@ class RfField():
             Time-derivative of the electric field at position x and time phi.
         """
         return self.de_dt_func_norm(self.norm, phi0[flag_phi_abs](self),
-                                    x, phi_rf, beta)
+                                    pos, phi_rf, beta)
 
     def set_phi_0(self, phi_0, absolute):
         """Set an initial phase, relative or absolute."""

@@ -126,7 +126,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac]#, broken_linac]
+linacs = [ref_linac, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)

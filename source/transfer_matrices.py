@@ -206,7 +206,7 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
 # =============================================================================
     # We place ourselves at the middle of the gap:
     z_k = synch.z['rel'] + .5 * d_z
-    delta_phi_half_step = .5 * d_z * acc_f.omega_0 / (beta_middle * c)
+    delta_phi_half_step = .5 * d_z * acc_f.omega0_rf / (beta_middle * c)
     phi_rf_k = phi_rf + delta_phi_half_step
     # TODO : also update phi_k (abs/rel)
 
