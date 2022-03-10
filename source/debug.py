@@ -444,12 +444,12 @@ def compare_phase_space(accelerator):
 def output_cavities(linac, out=True):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
-        'Idx', 'Fail?', 'Comp?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
+        'Idx', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
         'phis'))
     list_of_cav = linac.elements_of('FIELD_MAP')
     for i, cav in enumerate(list_of_cav):
-        df_cav.loc[i] = [cav.idx['in'], cav.info['failed'],
-                         cav.info['compensate'], cav.acc_field.norm,
+        df_cav.loc[i] = [cav.idx['in'], cav.info['status'],
+                         cav.acc_field.norm,
                          np.rad2deg(cav.acc_field.phi_0['abs']),
                          np.rad2deg(cav.acc_field.phi_0['rel']),
                          cav.acc_field.cav_params['v_cav_mv'],

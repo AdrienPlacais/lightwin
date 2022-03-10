@@ -46,9 +46,9 @@ class RfField():
             * self.e_func(pos, phi_rf) \
             * (1. + 1j * np.tan(phi_rf + self.phi_0[STR_PHI_ABS])) * d_z
 
-    def compute_param_cav(self, flag_fail):
+    def compute_param_cav(self, status):
         """Compute synchronous phase and accelerating field."""
-        if flag_fail:
+        if status == 'failed':
             pol_itg = np.array([np.NaN, np.NaN])
         else:
             pol_itg = cmath.polar(self.cav_params['integrated_field'])

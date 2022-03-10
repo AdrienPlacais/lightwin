@@ -31,8 +31,7 @@ class _Element():
         """
         self.info = {
             'name': elem[0],
-            'failed': None,     # Only makes sense for cavities
-            'compensate': None,
+            'status': 'nominal',    # Only make sense for cavities
             }
         self.length_m = 1e-3 * float(elem[1])
 
@@ -62,7 +61,7 @@ class _Element():
             assert self.info['name'] == 'FIELD_MAP'
             n_steps = 10 * self.acc_field.n_cell
 
-            if self.info['failed']:
+            if self.info['status'] == 'failed':
                 func_transf_mat = {
                     'RK': transfer_matrices.z_drift_element,
                     'leapfrog': transfer_matrices.z_drift_element,
@@ -101,7 +100,7 @@ class _Element():
             self.tmat['solver_param']['method']](self, synch=synch)
 
         if self.info['name'] == 'FIELD_MAP':
-            self.acc_field.compute_param_cav(flag_fail=self.info['failed'])
+            self.acc_field.compute_param_cav(status=self.info['status'])
 
 
 # =============================================================================
@@ -160,12 +159,10 @@ class FieldMap(_Element):
                                  absolute_phase_flag=absolute_phase_flag,
                                  phi_0=np.deg2rad(float(elem[3])))
         # FIXME frequency import
-        self.info['failed'] = False
-        self.info['compensate'] = False
 
     def fail(self):
         """Break this nice cavity."""
-        self.info['failed'] = True
+        self.info['status'] = 'failed'
         self.acc_field.norm = 0.
 
 

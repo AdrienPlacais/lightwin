@@ -164,10 +164,10 @@ def _plot_field_map(field_map, x0, width):
     """Add an ellipse to show a field_map."""
     height = 1.
     y0 = height * .5
-    if field_map.info['failed']:
+    if field_map.info['status'] == 'failed':
         color = 'red'
     else:
-        if field_map.info['compensate']:
+        if field_map.info['status'] == 'compensate':
             color = 'orange'
         else:
             color = 'green'

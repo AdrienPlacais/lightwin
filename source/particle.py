@@ -8,7 +8,7 @@ Created on Thu Dec  2 13:44:00 2021
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_rest_MeV, c, FLAG_PHI_ABS
+from constants import E_rest_MeV, c, FLAG_PHI_ABS, DICT_STR_PHI
 
 
 class Particle():
@@ -30,6 +30,9 @@ class Particle():
             'reference': reference,
             # Are the phases absolute? Or relative?
             'fixed': False,
+            # FIXME: still used. Can be replaced by cav status?
+            # I think it could be a good thing as to prepare the global + local
+            # compensation
             }
 
         self.z = {
@@ -41,6 +44,7 @@ class Particle():
         self.omega0 = {
             'ref': omega0_bunch,        # The one we use
             'bunch': omega0_bunch,      # Should match 'ref' outside cavities
+            # FIXME: default set f_rf = 2*f_bunch is dirty
             'rf': 2. * omega0_bunch,    # Should match 'ref' inside cavities
             'lambda_array': np.full((n_steps + 1), np.NaN),
             }
@@ -241,12 +245,15 @@ class Particle():
         self.frac_omega['rf_to_bunch'] = self.omega0['bunch'] / new_omega
         self.frac_omega['bunch_to_rf'] = new_omega / self.omega0['bunch']
 
-    def enter_cavity(self, acc_field, flag_cav_comp=False, idx_in=np.NaN):
+    def enter_cavity(self, acc_field,
+                     cav_status='nominal',
+                     idx_in=np.NaN):
         """
         Change the omega0 at the entrance and compute abs. entry phase.
 
         acc_field : RfField
             Accelerating field in the current cavity.
+        # FIXME: update doc
         flag_cav_comp : boolean, optional
             If True, the cavity under study is a compensating cavity which
             entry phase can be tuned to fix the linac. Thus, the absolute entry
@@ -272,15 +279,15 @@ class Particle():
                 # cavities.
                 # Not yet fixed linac: do not compute unused phi_0 to avoid
                 # using it by mistake
-                if flag_cav_comp:
+                # if flag_cav_comp:
+                if cav_status == 'compensate':
                     if self.info['fixed']:
                         acc_field.convert_phi_0(self.phi['abs_rf'],
                                                 absolute=FLAG_PHI_ABS)
                     else:
-                        if FLAG_PHI_ABS:
-                            acc_field.phi_0['rel'] = np.NaN
-                        else:
-                            acc_field.phi_0['abs'] = np.NaN
+                        # Set the unused phi_0 to NaN
+                        acc_field.phi_0[DICT_STR_PHI[not FLAG_PHI_ABS]] =\
+                            np.NaN
                 # Non-compensating cavity: should remain unchanged
                 else:
                     acc_field.convert_phi_0(phi_rf_abs=self.phi['abs_rf'],

@@ -83,7 +83,8 @@ def z_field_map_electric_field(cavity, synch):
     method, n_steps, d_z = cavity.tmat['solver_param'].values()
 
     acc_f = cavity.acc_field
-    synch.enter_cavity(acc_f, flag_cav_comp=cavity.info['compensate'],
+    synch.enter_cavity(acc_f,
+                       cav_status=cavity.info['status'],
                        idx_in=idx_in)
 
 # =============================================================================

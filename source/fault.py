@@ -105,7 +105,8 @@ class FaultScenario():
         comp_list['all_elts'] also contains drifts, quads, etc of the
         compensating modules.
         """
-        if what_to_fit['strategy'] == 'manual':
+        self.what_to_fit = what_to_fit
+        if self.what_to_fit['strategy'] == 'manual':
             self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx]
                                           for idx in manual_list]
 
@@ -114,7 +115,7 @@ class FaultScenario():
                 module
                 for module in self.brok_lin.elements['list_lattice']
                 for elt in module
-                if elt.info['failed']
+                if elt.info['status'] == 'failed'
                 ]
             # TODO: replace this with a coomprehension list
             comp_modules = self._select_comp_modules(modules_with_fail)
@@ -124,7 +125,7 @@ class FaultScenario():
                      for module in comp_modules
                      for cav in module
                      if cav.info['name'] == 'FIELD_MAP'
-                     and not cav.info['failed']
+                     and cav.info['status'] != 'failed'
                      ]
 
         self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
@@ -132,7 +133,7 @@ class FaultScenario():
 
         # Change info of all the compensating cavities
         for cav in self.comp_list['only_cav']:
-            cav.info['compensate'] = True
+            cav.info['status'] = 'compensate'
 
         # We take everything between first and last compensating cavities
         self.comp_list['all_elts'] = []
@@ -160,6 +161,7 @@ class FaultScenario():
             'fit': True,
             'cav': False,
             }
+        self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", self.what_to_fit)
 
         self._select_compensating_cavities(self.what_to_fit, manual_list)
@@ -196,7 +198,7 @@ class FaultScenario():
             cav.acc_field.norm = sol.x[i + len(self.comp_list['only_cav'])]
 
         # When fit is complete, also recompute last elements
-        self.brok_lin.synch.info['fixed'] = True
+        self.brok_lin.synch.info['status'] = 'fixed'
         if sol.success:
             self.brok_lin.name = 'Fixed'
         else:
