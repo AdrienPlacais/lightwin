@@ -111,31 +111,36 @@ class FaultScenario():
 
         elif self.what_to_fit['strategy'] == 'neighbors':
             modules_with_fail = [
-                module                 # We want modules among all modules
+                module
                 for module in self.brok_lin.elements['list_lattice']
-                for elt in module if elt.info['failed']]  # with failed element
-
+                for elt in module
+                if elt.info['failed']
+                ]
+            # TODO: replace this with a coomprehension list
             comp_modules = self._select_comp_modules(modules_with_fail)
 
-            self.comp_list['only_cav'] = sorted(
-                    [cav for module in comp_modules   # Browse comp modules
-                     for cav in module if             # browse elements in them
-                     cav.info['name'] == 'FIELD_MAP'  # take only cavities...
-                     and not cav.info['failed']],     # ...which did not fail
-                    key=lambda cav: cav.idx['in'])    # sort against position
+            self.comp_list['only_cav'] = [
+                     cav
+                     for module in comp_modules
+                     for cav in module
+                     if cav.info['name'] == 'FIELD_MAP'
+                     and not cav.info['failed']
+                     ]
+
+        self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
+                                            key=lambda elt: elt.idx['in'])
 
         # Change info of all the compensating cavities
         for cav in self.comp_list['only_cav']:
             cav.info['compensate'] = True
 
-        # Portion of linac with compensating cavities, as well as drifts and
-        # quads
-        complete_modules = []
+        # We take everything between first and last compensating cavities
+        self.comp_list['all_elts'] = []
         elts = self.brok_lin.elements['list']
         for i in range(elts.index(self.comp_list['only_cav'][0]),
                        elts.index(self.comp_list['only_cav'][-1])+1):
-            complete_modules.append(elts[i])
-        self.comp_list['all_elts'] = complete_modules
+            self.comp_list['all_elts'].append(elts[i])
+        # TODO : better with a comprehension list?
 
     def fix(self, method, what_to_fit, manual_list=None):
         """
