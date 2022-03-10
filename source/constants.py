@@ -31,8 +31,11 @@ project_folder = ''
 # =============================================================================
 # To determine if the phases in the cavities are absolute or relative.
 # If they are relative, the linac is implicitely rephased when some cavities
-# are faulty.
-# It is more relatable to use absolute phases when studying error compensation.
+# are faulty (global compensation).
 FLAG_PHI_ABS = True
+
 DICT_STR_PHI = {True: 'abs', False: 'rel'}
+DICT_STR_PHI_RF = {True: 'abs_rf', False: 'rel'}
+
 STR_PHI_ABS = DICT_STR_PHI[FLAG_PHI_ABS]
+STR_PHI_ABS_RF = DICT_STR_PHI_RF[FLAG_PHI_ABS]

@@ -8,12 +8,7 @@ Created on Tue Nov 30 15:43:39 2021
 import cmath
 import numpy as np
 from scipy.interpolate import interp1d
-from constants import c, q_adim, FLAG_PHI_ABS
-
-phi0 = {
-    True: lambda field: field.phi_0['abs'],
-    False: lambda field: field.phi_0['rel'],
-    }
+from constants import c, q_adim, STR_PHI_ABS
 
 
 class RfField():
@@ -49,7 +44,7 @@ class RfField():
         """Add last integration step to the complex rf field."""
         self.cav_params['integrated_field'] += q_adim \
             * self.e_func(pos, phi_rf) \
-            * (1. + 1j * np.tan(phi_rf + phi0[FLAG_PHI_ABS](self))) * d_z
+            * (1. + 1j * np.tan(phi_rf + self.phi_0[STR_PHI_ABS])) * d_z
 
     def compute_param_cav(self, flag_fail):
         """Compute synchronous phase and accelerating field."""
@@ -104,7 +99,7 @@ class RfField():
         e : float
             Electric field defined by self at position x and time phi.
         """
-        return self.e_func_norm(self.norm, phi0[FLAG_PHI_ABS](self), pos,
+        return self.e_func_norm(self.norm, self.phi_0[STR_PHI_ABS], pos,
                                 phi_rf)
 
     def de_dt_func_norm(self, norm, phi_0, pos, phi_rf, beta):
@@ -155,7 +150,7 @@ class RfField():
         de/dt : float
             Time-derivative of the electric field at position x and time phi.
         """
-        return self.de_dt_func_norm(self.norm, phi0[FLAG_PHI_ABS](self),
+        return self.de_dt_func_norm(self.norm, self.phi_0[STR_PHI_ABS],
                                     pos, phi_rf, beta)
 
     def set_phi_0(self, phi_0, absolute):

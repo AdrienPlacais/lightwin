@@ -10,7 +10,7 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, E_rest_MeV, FLAG_PHI_ABS
+from constants import c, q_adim, E_rest_MeV, STR_PHI_ABS_RF
 import helper
 import solver
 import elements
@@ -86,12 +86,6 @@ def z_field_map_electric_field(cavity, synch):
     synch.enter_cavity(acc_f, flag_cav_comp=cavity.info['compensate'],
                        idx_in=idx_in)
 
-    # TODO: put this in Particle?
-    phi = {
-        True: lambda sync: sync.phi['abs_rf'],
-        False: lambda sync: sync.phi['rel'],
-        }
-
 # =============================================================================
 # Initialisation
 # =============================================================================
@@ -119,15 +113,15 @@ def z_field_map_electric_field(cavity, synch):
         idx_abs = i + idx_in
         gamma['in'] = gamma['out']
 
-        acc_f.update_itg_field(synch.z['rel'], phi[FLAG_PHI_ABS](synch), d_z)
+        acc_f.update_itg_field(synch.z['rel'], synch.phi[STR_PHI_ABS_RF], d_z)
 
         if method == 'leapfrog':
             print('Warning, absolute phase not tested with leapfrog.')
             delta['e_mev'] = q_adim \
-                * acc_f.e_func(synch.z['rel'], phi[FLAG_PHI_ABS](synch)) * d_z
+                * acc_f.e_func(synch.z['rel'], synch.phi[STR_PHI_ABS_RF]) * d_z
 
         elif method == 'RK':
-            phi_rf = phi[FLAG_PHI_ABS](synch)
+            phi_rf = synch.phi[STR_PHI_ABS_RF]
             u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs],
                               phi_rf]))
             temp = solver.rk4(u_rk, du_dz, synch.z['rel'], d_z)
@@ -144,7 +138,7 @@ def z_field_map_electric_field(cavity, synch):
 
         # Compute transfer matrix using thin lens approximation
         transfer_matrix[i, :, :] = z_thin_lens(cavity, d_z, gamma, beta_middle,
-                                               synch, phi[FLAG_PHI_ABS](synch))
+                                               synch)
 
         if method == 'leapfrog':
             delta['phi_rf'] = acc_f.n_cell * synch.omega0['bunch'] * d_z / (
@@ -158,7 +152,7 @@ def z_field_map_electric_field(cavity, synch):
     return transfer_matrix
 
 
-def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
+def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
                 flag_correction_determinant=True):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
@@ -177,8 +171,6 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
         Lorentz speed factor at the middle of the cavity (beta_s in TW doc).
     synch : Particle
         Particle under study.
-    phi_rf : float
-        Phase of the particle, expressed as phi_rf = omega_0_rf * t.
     flag_correction_determinant : boolean, optional
         Determines if the rouine enforces Det(transf_mat) < 1. The default is
         True.
@@ -188,6 +180,7 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch, phi_rf,
     """
     assert isinstance(gamma, dict)
     acc_f = cavity.acc_field
+    phi_rf = synch.phi[STR_PHI_ABS_RF]
 
 # =============================================================================
 #   In
