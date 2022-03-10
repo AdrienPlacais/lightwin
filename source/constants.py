@@ -34,3 +34,5 @@ project_folder = ''
 # are faulty.
 # It is more relatable to use absolute phases when studying error compensation.
 FLAG_PHI_ABS = True
+DICT_STR_PHI = {True: 'abs', False: 'rel'}
+STR_PHI_ABS = DICT_STR_PHI[FLAG_PHI_ABS]

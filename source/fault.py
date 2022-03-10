@@ -11,7 +11,7 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
-from constants import FLAG_PHI_ABS
+from constants import FLAG_PHI_ABS, STR_PHI_ABS
 import debug
 
 
@@ -79,9 +79,8 @@ class FaultScenario():
         for i, ref_cav in enumerate(ref_cavities):
             ref_acc_f = ref_cav.acc_field
             brok_acc_f = brok_cavities[i].acc_field
-
-            brok_acc_f.phi_0['rel'] = ref_acc_f.phi_0['rel']
-            brok_acc_f.phi_0['abs'] = ref_acc_f.phi_0['abs']
+            for str_phi_abs in ['rel', 'abs']:
+                brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
 
     def _select_modules_with_failed_cav(self):
         """Look for modules with at least one failed cavity."""
@@ -158,7 +157,6 @@ class FaultScenario():
             complete_modules.append(elts[i])
         self.comp_list['all_elts'] = complete_modules
 
-
     def fix(self, method, what_to_fit, manual_list=None):
         """
         Try to compensate the faulty cavities.
@@ -213,11 +211,7 @@ class FaultScenario():
         for i in range(n_cav):
             cav = self.comp_list['only_cav'][i]
             acc_f = cav.acc_field
-            # FIXME
-            if FLAG_PHI_ABS:
-                acc_f.phi_0['abs'] = sol.x[i]
-            else:
-                acc_f.phi_0['rel'] = sol.x[i]
+            acc_f.phi_0[STR_PHI_ABS] = sol.x[i]
 
             acc_f.norm = sol.x[i+n_cav]
 
@@ -320,10 +314,7 @@ def wrapper(prop_array, fault_sce, method, fun_objective, idx_objective):
     # Unpack
     for i, cav in enumerate(fault_sce.comp_list['only_cav']):
         acc_f = cav.acc_field
-        if FLAG_PHI_ABS:
-            acc_f.phi_0['abs'] = prop_array[i]
-        else:
-            acc_f.phi_0['rel'] = prop_array[i]
+        acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
 
         acc_f.norm = prop_array[i+len(fault_sce.comp_list['only_cav'])]
 

@@ -64,7 +64,7 @@ class Accelerator():
         self.transf_mat['indiv'][0, :, :] = np.eye(2)
 
         # Check that LW and TW computes the phases in the same way
-        self._check_consistency_phases(FLAG_PHI_ABS)
+        self._check_consistency_phases()
 
     def _lattice_from_elements(self):
         """Gather elements by lattice."""
@@ -98,19 +98,19 @@ class Accelerator():
             elt.idx = idx.copy()
         return idx['out']
 
-    def _check_consistency_phases(self, flag_phi_abs):
+    def _check_consistency_phases(self):
         """Check that both TW and LW use absolute or relative phases."""
         cavities = self.elements_of(nature='FIELD_MAP')
         flags_absolute = []
         for cav in cavities:
             flags_absolute.append(cav.acc_field.absolute_phase_flag)
 
-        if flag_phi_abs and False in flags_absolute:
+        if FLAG_PHI_ABS and False in flags_absolute:
             print('Warning: you asked LW a simulation in absolute phase,',
                   'while there is at least one cavity in relative phase in',
                   "the .dat file used by TW. Results won't match if there",
                   'are faulty cavities.\n')
-        elif not flag_phi_abs and True in flags_absolute:
+        elif not FLAG_PHI_ABS and True in flags_absolute:
             print('Warning: you asked LW a simulation in relative phase,',
                   'while there is at least one cavity in absolute phase in',
                   "the .dat file used by TW. Results won't match if there",
