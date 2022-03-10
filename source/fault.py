@@ -160,11 +160,10 @@ class FaultScenario():
             'fit': True,
             'cav': False,
             }
-        self.what_to_fit = what_to_fit
-        print("Starting fit with parameters:", what_to_fit)
+        print("Starting fit with parameters:", self.what_to_fit)
 
-        self._select_compensating_cavities(what_to_fit, manual_list)
-        n_cav = len(self.comp_list['only_cav'])
+        self._select_compensating_cavities(self.what_to_fit, manual_list)
+
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \
                 debug.output_cavities(linac, debugs['cav'])
@@ -185,20 +184,16 @@ class FaultScenario():
             'all': [least_squares, initial_guesses,
                     (bounds[:, 0], bounds[:, 1])],
             }  # minimize and least_squares do not take the same bounds format
-        fitter = dict_fitter[what_to_fit['objective']]
-        # sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2])
+        fitter = dict_fitter[self.what_to_fit['objective']]
         sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
                         args=(self, method, fun_objective, idx_objective))
         # TODO check methods
         # TODO check Jacobian
         # TODO check x_scale
 
-        for i in range(n_cav):
-            cav = self.comp_list['only_cav'][i]
-            acc_f = cav.acc_field
-            acc_f.phi_0[STR_PHI_ABS] = sol.x[i]
-
-            acc_f.norm = sol.x[i+n_cav]
+        for i, cav in enumerate(self.comp_list['only_cav']):
+            cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
+            cav.acc_field.norm = sol.x[i + len(self.comp_list['only_cav'])]
 
         # When fit is complete, also recompute last elements
         self.brok_lin.synch.info['fixed'] = True
