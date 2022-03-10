@@ -448,7 +448,7 @@ def output_cavities(linac, out=True):
         'phis'))
     list_of_cav = linac.elements_of('FIELD_MAP')
     for i, cav in enumerate(list_of_cav):
-        df_cav.loc[i] = [cav.idx['in'], cav.info['status'],
+        df_cav.loc[i] = [cav.idx['in'], cav._info['status'],
                          cav.acc_field.norm,
                          np.rad2deg(cav.acc_field.phi_0['abs']),
                          np.rad2deg(cav.acc_field.phi_0['rel']),

@@ -58,9 +58,7 @@ class FaultScenario():
         """
         for idx in fail_idx:
             cav = self.brok_lin.elements['list'][idx]
-            assert cav.info['name'] == 'FIELD_MAP', 'Error, the element at ' \
-                + 'position ' + str(idx) + ' is not a FIELD_MAP.'
-            cav.fail()
+            cav.update_status('failed')
             self.fail_list.append(cav)
 
     def transfer_phi0_from_ref_to_broken(self):
@@ -115,7 +113,7 @@ class FaultScenario():
                 module
                 for module in self.brok_lin.elements['list_lattice']
                 for elt in module
-                if elt.info['status'] == 'failed'
+                if elt._info['status'] == 'failed'
                 ]
             # TODO: replace this with a coomprehension list
             comp_modules = self._select_comp_modules(modules_with_fail)
@@ -124,8 +122,8 @@ class FaultScenario():
                      cav
                      for module in comp_modules
                      for cav in module
-                     if cav.info['name'] == 'FIELD_MAP'
-                     and cav.info['status'] != 'failed'
+                     if cav._info['name'] == 'FIELD_MAP'
+                     and cav._info['status'] != 'failed'
                      ]
 
         self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
@@ -133,7 +131,7 @@ class FaultScenario():
 
         # Change info of all the compensating cavities
         for cav in self.comp_list['only_cav']:
-            cav.info['status'] = 'compensate'
+            cav.update_status('compensate')
 
         # We take everything between first and last compensating cavities
         self.comp_list['all_elts'] = []

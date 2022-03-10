@@ -29,9 +29,9 @@ class _Element():
         elem: list of string
             A valid line of the .dat file.
         """
-        self.info = {
+        self._info = {
             'name': elem[0],
-            'status': 'nominal',    # Only make sense for cavities
+            'status': None,    # Only make sense for cavities
             }
         self.length_m = 1e-3 * float(elem[1])
 
@@ -58,10 +58,10 @@ class _Element():
     def init_solvers(self):
         """Initialize solvers as well as general properties."""
         if self.accelerating:
-            assert self.info['name'] == 'FIELD_MAP'
+            assert self._info['name'] == 'FIELD_MAP'
             n_steps = 10 * self.acc_field.n_cell
 
-            if self.info['status'] == 'failed':
+            if self._info['status'] == 'failed':
                 func_transf_mat = {
                     'RK': transfer_matrices.z_drift_element,
                     'leapfrog': transfer_matrices.z_drift_element,
@@ -99,8 +99,29 @@ class _Element():
         self.tmat['matrix'] = self.tmat['func'][
             self.tmat['solver_param']['method']](self, synch=synch)
 
-        if self.info['name'] == 'FIELD_MAP':
-            self.acc_field.compute_param_cav(status=self.info['status'])
+        if self._info['name'] == 'FIELD_MAP':
+            self.acc_field.compute_param_cav(status=self._info['status'])
+
+    def update_status(self, new_status):
+        """
+        Change the status of a cavity.
+
+        We also ensure that the value new_status is correct. If the new value
+        is 'failed', we also set the norm of the electric field to 0.
+        """
+        assert self._info['name'] == 'FIELD_MAP', 'The status of an ' + \
+            'element only makes sense for cavities.'
+
+        authorized_values = [
+            'nominal',
+            'failed',
+            'compensate'
+            ]
+        assert new_status in authorized_values
+
+        self._info['status'] = new_status
+        if new_status == 'failed':
+            self.acc_field.norm = 0.
 
 
 # =============================================================================
@@ -158,12 +179,8 @@ class FieldMap(_Element):
         self.acc_field = RfField(352.2, norm=float(elem[6]),
                                  absolute_phase_flag=absolute_phase_flag,
                                  phi_0=np.deg2rad(float(elem[3])))
+        self.update_status('nominal')
         # FIXME frequency import
-
-    def fail(self):
-        """Break this nice cavity."""
-        self.info['status'] = 'failed'
-        self.acc_field.norm = 0.
 
 
 class Lattice():
