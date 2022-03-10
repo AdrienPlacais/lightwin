@@ -111,21 +111,6 @@ class FaultScenario():
         # as well as faulty modules
         return neighbor_modules + modules_with_fail
 
-    def _select_comp_cav(self, comp_modules):
-        """Give cavities in comp_modules that still work."""
-        comp_cav = []
-        for module in comp_modules:
-            # All cavities in comp_module
-            cavities_modules = self.brok_lin.elements_of(nature='FIELD_MAP',
-                                                         sub_list=module)
-            # Only working cavities in comp_module
-            for cav in cavities_modules:
-                if not cav.info['failed']:
-                    comp_cav.append(cav)
-        # Sort them in the proper order
-        comp_cav = sorted(comp_cav, key=lambda elt: elt.idx['in'])
-        return comp_cav
-
     def _select_compensating_cavities(self, what_to_fit, manual_list):
         """
         Select the cavities that will be used for compensation.
@@ -142,7 +127,14 @@ class FaultScenario():
         elif self.what_to_fit['strategy'] == 'neighbors':
             modules_with_fail = self._select_modules_with_failed_cav()
             comp_modules = self._select_comp_modules(modules_with_fail)
-            self.comp_list['only_cav'] = self._select_comp_cav(comp_modules)
+
+            # List of objects in the compensating modules
+            # that are FIELD_MAPS and that did not fail
+            self.comp_list['only_cav'] = sorted(
+                    [cav for module in comp_modules for cav in module if
+                     cav.info['name'] == 'FIELD_MAP'
+                     and not cav.info['failed']],
+                    key=lambda cav: cav.idx['in'])  # sort against position
 
         # Change info of all the compensating cavities
         for cav in self.comp_list['only_cav']:
