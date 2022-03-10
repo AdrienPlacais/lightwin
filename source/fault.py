@@ -82,21 +82,6 @@ class FaultScenario():
             for str_phi_abs in ['rel', 'abs']:
                 brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
 
-    def _select_modules_with_failed_cav(self):
-        """Look for modules with at least one failed cavity."""
-        modules = self.brok_lin.elements['list_lattice']
-        modules_with_fail = []
-        for module in modules:
-            cav_module = self.brok_lin.elements_of(nature='FIELD_MAP',
-                                                   sub_list=module)
-            for cav in cav_module:
-                if cav.info['failed']:
-                    modules_with_fail.append(module)
-                    break
-        print('There are', len(modules_with_fail), 'module(s) with at',
-              'least one failed cavity.')
-        return modules_with_fail
-
     def _select_comp_modules(self, modules_with_fail):
         """Give failed modules and their neighbors."""
         modules = self.brok_lin.elements['list_lattice']
@@ -125,16 +110,19 @@ class FaultScenario():
                                           for idx in manual_list]
 
         elif self.what_to_fit['strategy'] == 'neighbors':
-            modules_with_fail = self._select_modules_with_failed_cav()
+            modules_with_fail = [
+                module                 # We want modules among all modules
+                for module in self.brok_lin.elements['list_lattice']
+                for elt in module if elt.info['failed']]  # with failed element
+
             comp_modules = self._select_comp_modules(modules_with_fail)
 
-            # List of objects in the compensating modules
-            # that are FIELD_MAPS and that did not fail
             self.comp_list['only_cav'] = sorted(
-                    [cav for module in comp_modules for cav in module if
-                     cav.info['name'] == 'FIELD_MAP'
-                     and not cav.info['failed']],
-                    key=lambda cav: cav.idx['in'])  # sort against position
+                    [cav for module in comp_modules   # Browse comp modules
+                     for cav in module if             # browse elements in them
+                     cav.info['name'] == 'FIELD_MAP'  # take only cavities...
+                     and not cav.info['failed']],     # ...which did not fail
+                    key=lambda cav: cav.idx['in'])    # sort against position
 
         # Change info of all the compensating cavities
         for cav in self.comp_list['only_cav']:
