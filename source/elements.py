@@ -57,37 +57,26 @@ class _Element():
 
     def init_solvers(self):
         """Initialize solvers as well as general properties."""
-        if self.accelerating:
-            assert self._info['name'] == 'FIELD_MAP'
+        functions_transf_mat = {
+            'non_acc': {'RK': transfer_matrices.z_drift_element,
+                        'leapfrog': transfer_matrices.z_drift_element,
+                        'transport': transport.transport_beam,
+                        },
+            'accelerating': {'RK': transfer_matrices.z_drift_element,
+                             'leapfrog': transfer_matrices.z_drift_element,
+                             'transport': transport.transport_beam,
+                             }}
+        key = 'non_acc'
+        n_steps = 1
+        if self._info['name'] == 'FIELD_MAP':
             n_steps = 10 * self.acc_field.n_cell
-
-            if self._info['status'] == 'failed':
-                func_transf_mat = {
-                    'RK': transfer_matrices.z_drift_element,
-                    'leapfrog': transfer_matrices.z_drift_element,
-                    'transport': transport.transport_beam,
-                    }
-            else:
-                func_transf_mat = {
-                    'RK': transfer_matrices.z_field_map_electric_field,
-                    'leapfrog': transfer_matrices.
-                    z_field_map_electric_field,
-                    'transport': transport.transport_beam,
-                    }
-
-        else:
-            # By default, 1 step for non-accelerating elements
-            n_steps = 1
-            func_transf_mat = {
-                'RK': transfer_matrices.z_drift_element,
-                'leapfrog': transfer_matrices.z_drift_element,
-                'transport': transport.transport_beam,
-              }
+            if self._info['status'] != 'failed':
+                key = 'accelerating'
 
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
 
-        self.tmat['func'] = func_transf_mat
+        self.tmat['func'] = functions_transf_mat[key]
         self.tmat['solver_param'] = {
             'method': None,
             'n_steps': n_steps,
