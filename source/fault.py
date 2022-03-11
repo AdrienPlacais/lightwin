@@ -257,10 +257,15 @@ class FaultScenario():
     def _select_objective(self, position_str, objective_str):
         """Select the objective to fit."""
         # Where do you want to verify that the objective is matched?
+        c_list = self.comp_list['only_cav']
         dict_position = {
             'end_of_last_comp_cav':
-                self.comp_list['only_cav'][-1].idx['out'] - 1,
-            'one_module_after_last_comp_cav': np.NaN,   # TODO
+                c_list[-1].idx['out'] - 1,
+            'one_module_after_last_comp_cav':
+                self.brok_lin.elements['list'][
+                    self.brok_lin.elements['list'].index(
+                        c_list[-1])
+                    + self.brok_lin.elements['n_per_lattice']].idx['out'] - 1,
             }
 
         # What do you want to match?
