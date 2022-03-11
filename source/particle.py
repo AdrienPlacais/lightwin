@@ -269,6 +269,8 @@ class Particle():
                 acc_field.convert_phi_0(self.phi['abs_rf'],
                                         absolute=acc_field.absolute_phase_flag)
             else:
+                # Phases should have been imported from reference linac
+                # in fault
                 acc_field.convert_phi_0(self.phi['abs_rf'],
                                         absolute=FLAG_PHI_ABS)
 
