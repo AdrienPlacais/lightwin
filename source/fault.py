@@ -238,8 +238,8 @@ class FaultScenario():
 
         # Handle norm
         limits_norm = {
-            'relative': [0.6, 1.5],    # [60%, 150%] of norm
-            'absolute': [1., np.inf]   # ridiculous limits for the norm
+            'relative': [0.9, 1.3],    # [90%, 130%] of norm
+            'absolute': [1., np.inf]   # ridiculous abs limits
             }
         for elt in self.comp_list['only_cav']:
             norm = elt.acc_field.norm

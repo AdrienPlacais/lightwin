@@ -176,7 +176,7 @@ def _create_plot_dicts():
         'energy': ['Beam energy [MeV]',  '.'],
         'energy_err': ['Abs. error [keV]',  '.'],
         'abs_phase': ['Beam phase [deg]',  '.'],
-        'abs_phase_err': ['Abs. phase error [deg]',  '.'],
+        'abs_phase_err': ['Phase error [deg]',  '.'],
         'beta_synch': [r'Synch. $\beta$ [1]',  '.'],
         'beta_synch_err': [r'Abs. $\beta$ error [1]',  '.'],
         'struct': ['Structure',  '.'],
@@ -254,16 +254,19 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
 
     elts_indexes = linac.get_from_elements('idx', 'out')
 
-    def _err(y_d):
+    def _err(y_d, abs_diff=True):
         assert y_d in tw.dict_tw_data_table
         y_data_ref = tw.load_tw_results(filepath_ref, y_d)
         y_data = dicts['y_data_lw'][y_d](linac)[elts_indexes]
-        err_data = dicts['err_factor'][y_d] * np.abs(y_data_ref - y_data)
+        if abs_diff:
+            err_data = dicts['err_factor'][y_d] * np.abs(y_data_ref - y_data)
+        else:
+            err_data = dicts['err_factor'][y_d] * (y_data_ref - y_data)
         return err_data
     # Add it to the dict of y data
     dict_errors = {
         'energy_err': lambda lin: _err('energy'),
-        'abs_phase_err': lambda lin: _err('abs_phase'),
+        'abs_phase_err': lambda lin: _err('abs_phase', False),
         'beta_synch_err': lambda lin: _err('beta_synch'),
         }
     dicts['errors'] = dict_errors

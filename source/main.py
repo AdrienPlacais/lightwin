@@ -54,13 +54,13 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 failed_cav = [5]
-manual_list = [15, 17, 27, 35, 37]
+manual_list = [7, 15, 17, 25, 27]
 WHAT_TO_FIT = {
     # =========================================================================
     #     How compensatong cavities are chosen?
     # =========================================================================
-    # 'strategy': 'manual',
-    'strategy': 'neighbors',
+    'strategy': 'manual',
+    # 'strategy': 'neighbors',
     # =========================================================================
     #     What should we fit?
     # =========================================================================
@@ -85,7 +85,7 @@ PLOTS = [
     "phase",
     "cav",
     ]
-PLOT_TM = False
+PLOT_TM = True
 PHASE_SPACE = False
 TWISS = False
 
