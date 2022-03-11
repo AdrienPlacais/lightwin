@@ -248,3 +248,12 @@ class Accelerator():
             idx = self.elements['list'].index(elt)
 
         return idx
+
+    def where_is_this_index(self, idx, show_info=False):
+        """Give an equivalent index."""
+        for elt in self.elements['list']:
+            if idx in range(elt.idx['in'], elt.idx['out']):
+                break
+        if show_info:
+            print('Index', idx, 'is in:', elt._info)
+        return elt

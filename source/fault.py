@@ -285,6 +285,7 @@ class FaultScenario():
 
         idx_pos = dict_position[position_str]
         fun_objective = dict_objective[objective_str]
+        print('We try to match at synch index:', idx_pos)
         return fun_objective, idx_pos
 
 
