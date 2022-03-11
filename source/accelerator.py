@@ -255,5 +255,6 @@ class Accelerator():
             if idx in range(elt.idx['in'], elt.idx['out']):
                 break
         if show_info:
-            print('Index', idx, 'is in:', elt._info)
+            print('Synch index', idx, 'is in:', elt._info)
+            print('Synch indexes of this elt:', elt.idx, '\n\n')
         return elt

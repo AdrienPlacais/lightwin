@@ -285,7 +285,10 @@ class FaultScenario():
 
         idx_pos = dict_position[position_str]
         fun_objective = dict_objective[objective_str]
-        print('We try to match at synch index:', idx_pos)
+        elt = self.brok_lin.where_is_this_index(idx_pos)
+        print('We try to match at synch index:', idx_pos, 'which is',
+              elt._info, ', the', self.brok_lin.where_is(elt, nature=True),
+              'th of his kind.\n\n')
         return fun_objective, idx_pos
 
 
