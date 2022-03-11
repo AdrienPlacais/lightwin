@@ -284,12 +284,21 @@ class FaultScenario():
             }
 
         idx_pos = dict_position[position_str]
-        fun_objective = dict_objective[objective_str]
-        elt = self.brok_lin.where_is_this_index(idx_pos)
-        print('We try to match at synch index:', idx_pos, 'which is',
-              elt._info, ', the', self.brok_lin.where_is(elt, nature=True),
-              'th of his kind.\n\n')
-        return fun_objective, idx_pos
+
+        def fun_multi_objective(linac, idx_list):
+            fun_simple = dict_objective[objective_str]
+            obj = fun_simple(linac, idx_list[0])
+            for idx in idx_list[1:]:
+                obj = np.hstack((obj, fun_simple(linac, idx)))
+            return obj
+
+        idx_pos_list = [idx_pos]
+        for idx in idx_pos_list:
+            elt = self.brok_lin.where_is_this_index(idx)
+            print('\nWe try to match at synch index:', idx, 'which is',
+                  elt._info, ', the', self.brok_lin.where_is(elt, nature=True),
+                  'th of his kind.\n')
+        return fun_multi_objective, idx_pos_list
 
 
 # TODO: set constraints on the synch phase
