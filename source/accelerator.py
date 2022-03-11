@@ -68,6 +68,7 @@ class Accelerator():
 
     def _lattice_from_elements(self):
         """Gather elements by lattice."""
+        # FIXME: comprehension list
         lattice = []
         list_of_lattices = []
         for i in range(self.elements['n']):

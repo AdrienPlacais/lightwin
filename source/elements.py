@@ -37,7 +37,6 @@ class _Element():
 
         # By default, an element is non accelerating and has a dummy
         # accelerating field.
-        self.accelerating = False
         self.acc_field = RfField(0.)
 
         self.pos_m = {
@@ -62,10 +61,11 @@ class _Element():
                         'leapfrog': transfer_matrices.z_drift_element,
                         'transport': transport.transport_beam,
                         },
-            'accelerating': {'RK': transfer_matrices.z_drift_element,
-                             'leapfrog': transfer_matrices.z_drift_element,
-                             'transport': transport.transport_beam,
-                             }}
+            'accelerating': {
+                'RK': transfer_matrices.z_field_map_electric_field,
+                'leapfrog': transfer_matrices.z_field_map_electric_field,
+                'transport': transport.transport_beam,
+                }}
         key = 'non_acc'
         n_steps = 1
         if self._info['name'] == 'FIELD_MAP':
@@ -151,7 +151,6 @@ class FieldMap(_Element):
         assert n_attributes in [9, 10]
 
         super().__init__(elem)
-        self.accelerating = True
         self.geometry = int(elem[1])
         self.length_m = 1e-3 * float(elem[2])
         self.aperture_flag = int(elem[8])               # K_a

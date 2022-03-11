@@ -83,9 +83,7 @@ def z_field_map_electric_field(cavity, synch):
     method, n_steps, d_z = cavity.tmat['solver_param'].values()
 
     acc_f = cavity.acc_field
-    synch.enter_cavity(acc_f,
-                       cav_status=cavity._info['status'],
-                       idx_in=idx_in)
+    synch.enter_cavity(acc_f, cav_status=cavity._info['status'], idx_in=idx_in)
 
 # =============================================================================
 # Initialisation
@@ -117,6 +115,7 @@ def z_field_map_electric_field(cavity, synch):
         acc_f.update_itg_field(synch.z['rel'], synch.phi[STR_PHI_ABS_RF], d_z)
 
         if method == 'leapfrog':
+            # FIXME absolute phase with leapfrog
             print('Warning, absolute phase not tested with leapfrog.')
             delta['e_mev'] = q_adim \
                 * acc_f.e_func(synch.z['rel'], synch.phi[STR_PHI_ABS_RF]) * d_z

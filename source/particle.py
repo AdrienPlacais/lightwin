@@ -245,29 +245,23 @@ class Particle():
         self.frac_omega['rf_to_bunch'] = self.omega0['bunch'] / new_omega
         self.frac_omega['bunch_to_rf'] = new_omega / self.omega0['bunch']
 
-    def enter_cavity(self, acc_field,
-                     cav_status='nominal',
-                     idx_in=np.NaN):
+    def enter_cavity(self, acc_field, cav_status='nominal', idx_in=np.NaN):
         """
         Change the omega0 at the entrance and compute abs. entry phase.
 
         acc_field : RfField
             Accelerating field in the current cavity.
-        # FIXME: update doc
-        flag_cav_comp : boolean, optional
-            If True, the cavity under study is a compensating cavity which
-            entry phase can be tuned to fix the linac. Thus, the absolute entry
-            phase should be calculated. Default is FALSE.
+        cav_status: str, optional
+            Describe the working condition of the cavity. Default is 'nominal'.
         """
-        self.phi['rel'] = 0.
         if np.isnan(idx_in):
             idx_in = np.where(np.isnan(self.phi['abs_array']))[0][0] - 1
-        self.phi['abs'] = self.phi['abs_array'][idx_in]
-        self.z['rel'] = 0.
-        acc_field.cav_params['integrated_field'] = 0.
-
         self._set_omega_rf(acc_field.omega0_rf)
+        self.z['rel'] = 0.
+        self.phi['rel'] = 0.
+        self.phi['abs'] = self.phi['abs_array'][idx_in]
         self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']
+        acc_field.cav_params['integrated_field'] = 0.
 
         if self.info['synchronous']:
             # Ref linac: we compute every missing phi_0
@@ -275,23 +269,8 @@ class Particle():
                 acc_field.convert_phi_0(self.phi['abs_rf'],
                                         absolute=acc_field.absolute_phase_flag)
             else:
-                # Fixed linac: we compute the missing phi_0 in the compensating
-                # cavities.
-                # Not yet fixed linac: do not compute unused phi_0 to avoid
-                # using it by mistake
-                # if flag_cav_comp:
-                if cav_status == 'compensate':
-                    if self.info['fixed']:
-                        acc_field.convert_phi_0(self.phi['abs_rf'],
-                                                absolute=FLAG_PHI_ABS)
-                    else:
-                        # Set the unused phi_0 to NaN
-                        acc_field.phi_0[DICT_STR_PHI[not FLAG_PHI_ABS]] =\
-                            np.NaN
-                # Non-compensating cavity: should remain unchanged
-                else:
-                    acc_field.convert_phi_0(phi_rf_abs=self.phi['abs_rf'],
-                                            absolute=FLAG_PHI_ABS)
+                acc_field.convert_phi_0(self.phi['abs_rf'],
+                                        absolute=FLAG_PHI_ABS)
 
         else:
             print('Warning enter_cavity! Not sure what will happen with a',

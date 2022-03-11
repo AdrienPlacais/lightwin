@@ -31,7 +31,7 @@ class RfField():
 
         self.norm = norm
         self.absolute_phase_flag = bool(absolute_phase_flag)
-        self.set_phi_0(phi_0, absolute=self.absolute_phase_flag)
+        self.init_phi_0(phi_0, absolute=self.absolute_phase_flag)
 
         self.n_cell = 2
         self.cav_params = {
@@ -153,7 +153,7 @@ class RfField():
         return self.de_dt_func_norm(self.norm, self.phi_0[STR_PHI_ABS],
                                     pos, phi_rf, beta)
 
-    def set_phi_0(self, phi_0, absolute):
+    def init_phi_0(self, phi_0, absolute):
         """Set an initial phase, relative or absolute."""
         if absolute:
             self.phi_0 = {'rel': None, 'abs': phi_0}
