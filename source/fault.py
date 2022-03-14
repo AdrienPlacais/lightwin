@@ -266,38 +266,41 @@ class FaultScenario():
             'one_module_after_last_comp_cav':
                 all_list[all_list.index(c_list[-1]) + n_latt].idx['out'] - 1,
             }
+        dict_position['both'] = [
+            dict_position['end_of_last_comp_cav'],
+            dict_position['one_module_after_last_comp_cav']
+            ]
 
         # What do you want to match?
         dict_objective = {
             'energy': lambda linac, idx:
-                linac.synch.energy['kin_array_mev'][idx],
+                [linac.synch.energy['kin_array_mev'][idx]],
             'phase': lambda linac, idx:
-                linac.synch.phi['abs_array'][idx],
+                [linac.synch.phi['abs_array'][idx]],
             'transfer_matrix': lambda linac, idx:
-                linac.transf_mat['cumul'][idx, :, :].flatten(),
+                list(linac.transf_mat['cumul'][idx, :, :].flatten()),
                 }
         dict_objective['energy_phase'] = lambda linac, idx: \
-            np.array([dict_objective['energy'](linac, idx),
-                      dict_objective['phase'](linac, idx)])
+            dict_objective['energy'](linac, idx) \
+            + dict_objective['phase'](linac, idx)
         dict_objective['all'] = lambda linac, idx: \
-            np.hstack((dict_objective['energy_phase'](linac, idx),
-                       dict_objective['transfer_matrix'](linac, idx)))
+            dict_objective['energy_phase'](linac, idx) \
+            + dict_objective['transfer_matrix'](linac, idx)
 
-        idx_pos = dict_position[position_str]
+        idx_pos_list = dict_position[position_str]
+        fun_simple = dict_objective[objective_str]
 
         def fun_multi_objective(linac, idx_list):
-            fun_simple = dict_objective[objective_str]
             obj = fun_simple(linac, idx_list[0])
             for idx in idx_list[1:]:
-                obj = np.hstack((obj, fun_simple(linac, idx)))
-            return obj
+                obj = obj + fun_simple(linac, idx)
+            return np.array(obj)
 
-        idx_pos_list = [idx_pos]
         for idx in idx_pos_list:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
                   elt._info, ', the', self.brok_lin.where_is(elt, nature=True),
-                  'th of his kind.\n')
+                  "th of its kind.\n")
         return fun_multi_objective, idx_pos_list
 
 
@@ -308,7 +311,6 @@ def wrapper(prop_array, fault_sce, method, fun_objective, idx_objective):
     for i, cav in enumerate(fault_sce.comp_list['only_cav']):
         acc_f = cav.acc_field
         acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
-
         acc_f.norm = prop_array[i+len(fault_sce.comp_list['only_cav'])]
 
     # Update transfer matrices

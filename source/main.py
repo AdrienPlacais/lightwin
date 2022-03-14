@@ -72,8 +72,9 @@ WHAT_TO_FIT = {
     # =========================================================================
     #     Where should we evaluate objective?
     # =========================================================================
-    'position': 'end_of_last_comp_cav',
+    # 'position': 'end_of_last_comp_cav',
     # 'position': 'one_module_after_last_comp_cav',
+    'position': 'both',
     }
 FLAG_FIX = True
 SAVE_FIX = False
