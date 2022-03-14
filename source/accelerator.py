@@ -217,7 +217,7 @@ class Accelerator():
         """
         if sub_list is None:
             sub_list = self.elements['list']
-        list_of = list(filter(lambda elt: elt._info['name'] == nature,
+        list_of = list(filter(lambda elt: elt.info['name'] == nature,
                               sub_list))
         return list_of
 
@@ -243,18 +243,18 @@ class Accelerator():
 
         """
         if nature:
-            idx = self.elements_of(nature=elt._info['name']).index(elt)
+            idx = self.elements_of(nature=elt.info['name']).index(elt)
         else:
             idx = self.elements['list'].index(elt)
 
         return idx
 
-    def where_is_this_index(self, idx, show_info=False):
+    def where_is_this_index(self, idx, showinfo=False):
         """Give an equivalent index."""
         for elt in self.elements['list']:
             if idx in range(elt.idx['in'], elt.idx['out']):
                 break
-        if show_info:
-            print('Synch index', idx, 'is in:', elt._info)
+        if showinfo:
+            print('Synch index', idx, 'is in:', elt.info)
             print('Synch indexes of this elt:', elt.idx, '\n\n')
         return elt

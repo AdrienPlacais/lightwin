@@ -53,14 +53,14 @@ if FILEPATH == "":
 # =============================================================================
 # Fault compensation
 # =============================================================================
-failed_cav = [5]
+failed_cav = [5, 15]
 manual_list = [7, 15, 17, 25, 27]
 WHAT_TO_FIT = {
     # =========================================================================
     #     How compensatong cavities are chosen?
     # =========================================================================
-    'strategy': 'manual',
-    # 'strategy': 'neighbors',
+    # 'strategy': 'manual',
+    'strategy': 'neighbors',
     # =========================================================================
     #     What should we fit?
     # =========================================================================
@@ -72,9 +72,9 @@ WHAT_TO_FIT = {
     # =========================================================================
     #     Where should we evaluate objective?
     # =========================================================================
-    # 'position': 'end_of_last_comp_cav',
+    'position': 'end_of_last_comp_cav',
     # 'position': 'one_module_after_last_comp_cav',
-    'position': 'both',
+    # 'position': 'both',
     }
 FLAG_FIX = True
 SAVE_FIX = False

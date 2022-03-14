@@ -450,7 +450,7 @@ def output_cavities(linac, out=True):
         'Idx', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
         'phis'))
     for i, cav in enumerate(linac.elements_of('FIELD_MAP')):
-        df_cav.loc[i] = [cav.idx['in'], cav._info['status'],
+        df_cav.loc[i] = [cav.idx['in'], cav.info['status'],
                          cav.acc_field.norm,
                          np.rad2deg(cav.acc_field.phi_0['abs']),
                          np.rad2deg(cav.acc_field.phi_0['rel']),

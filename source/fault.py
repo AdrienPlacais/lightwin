@@ -54,12 +54,47 @@ class FaultScenario():
         """
         Break cavities at indices fail_idx.
 
-        All faulty cavities are added to fail_list.
+        All faulty cavities are added to fail_list. If the calculation is in
+        relative phase, all cavities after the first failed one are rephased.
+
+        Parameters
+        ----------
+        fail_idx : list of int
+            List of the indices of the failed cavities. The indices must be
+            the position in the list of **elements**, not in the synchronous
+            particle arrays.
         """
         for idx in fail_idx:
             cav = self.brok_lin.elements['list'][idx]
             cav.update_status('failed')
             self.fail_list.append(cav)
+
+    def set_cavities_to_rephase(self):
+        """
+        Change the status of some cavities to 'rephased'.
+
+        If the calculation is in relative phase, all cavities that are after
+        the the first failed one are rephased.
+        Even in the case of an absolute phase calculation, cavities in the
+        HEBT are rephased.
+        """
+        # FIXME HEBT
+        HEBT = False
+        # We get first failed cav
+        ffc = min([
+            self.brok_lin.where_is(fail_cav)
+            for fail_cav in self.fail_list
+            ])
+        after_ffc = self.brok_lin.elements['list'][ffc:]
+
+        cav_to_update = [cav
+                         for cav in after_ffc
+                         if (cav.info['name'] == 'FIELD_MAP'
+                             and cav.info['status'] == 'nominal')
+                         and (HEBT or FLAG_PHI_ABS)
+                         ]
+        for cav in cav_to_update:
+            cav.update_status('rephased')
 
     def transfer_phi0_from_ref_to_broken(self):
         """
@@ -113,7 +148,7 @@ class FaultScenario():
                 module
                 for module in self.brok_lin.elements['list_lattice']
                 for elt in module
-                if elt._info['status'] == 'failed'
+                if elt.info['status'] == 'failed'
                 ]
             # TODO: replace this with a coomprehension list
             comp_modules = self._select_comp_modules(modules_with_fail)
@@ -122,8 +157,8 @@ class FaultScenario():
                      cav
                      for module in comp_modules
                      for cav in module
-                     if cav._info['name'] == 'FIELD_MAP'
-                     and cav._info['status'] != 'failed'
+                     if cav.info['name'] == 'FIELD_MAP'
+                     and cav.info['status'] != 'failed'
                      ]
 
         self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
@@ -262,14 +297,12 @@ class FaultScenario():
         n_latt = self.brok_lin.elements['n_per_lattice']
         dict_position = {
             'end_of_last_comp_cav':
-                c_list[-1].idx['out'] - 1,
+                [c_list[-1].idx['out'] - 1],
             'one_module_after_last_comp_cav':
-                all_list[all_list.index(c_list[-1]) + n_latt].idx['out'] - 1,
+                [all_list[all_list.index(c_list[-1]) + n_latt].idx['out'] - 1],
             }
-        dict_position['both'] = [
-            dict_position['end_of_last_comp_cav'],
-            dict_position['one_module_after_last_comp_cav']
-            ]
+        dict_position['both'] = dict_position['end_of_last_comp_cav'] \
+            + dict_position['one_module_after_last_comp_cav']
 
         # What do you want to match?
         dict_objective = {
@@ -299,7 +332,7 @@ class FaultScenario():
         for idx in idx_pos_list:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
-                  elt._info, ', the', self.brok_lin.where_is(elt, nature=True),
+                  elt.info, ', the', self.brok_lin.where_is(elt, nature=True),
                   "th of its kind.\n")
         return fun_multi_objective, idx_pos_list
 

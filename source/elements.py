@@ -29,7 +29,7 @@ class _Element():
         elem: list of string
             A valid line of the .dat file.
         """
-        self._info = {
+        self.info = {
             'name': elem[0],
             'status': None,    # Only make sense for cavities
             }
@@ -68,9 +68,9 @@ class _Element():
                 }}
         key = 'non_acc'
         n_steps = 1
-        if self._info['name'] == 'FIELD_MAP':
+        if self.info['name'] == 'FIELD_MAP':
             n_steps = 10 * self.acc_field.n_cell
-            if self._info['status'] != 'failed':
+            if self.info['status'] != 'failed':
                 key = 'accelerating'
 
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
@@ -88,8 +88,8 @@ class _Element():
         self.tmat['matrix'] = self.tmat['func'][
             self.tmat['solver_param']['method']](self, synch=synch)
 
-        if self._info['name'] == 'FIELD_MAP':
-            self.acc_field.compute_param_cav(status=self._info['status'])
+        if self.info['name'] == 'FIELD_MAP':
+            self.acc_field.compute_param_cav(status=self.info['status'])
 
     def update_status(self, new_status):
         """
@@ -98,17 +98,18 @@ class _Element():
         We also ensure that the value new_status is correct. If the new value
         is 'failed', we also set the norm of the electric field to 0.
         """
-        assert self._info['name'] == 'FIELD_MAP', 'The status of an ' + \
+        assert self.info['name'] == 'FIELD_MAP', 'The status of an ' + \
             'element only makes sense for cavities.'
 
         authorized_values = [
             'nominal',
             'failed',
-            'compensate'
+            'compensate',
+            'rephased',
             ]
         assert new_status in authorized_values
 
-        self._info['status'] = new_status
+        self.info['status'] = new_status
         if new_status == 'failed':
             self.acc_field.norm = 0.
 
