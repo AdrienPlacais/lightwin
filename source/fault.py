@@ -258,14 +258,13 @@ class FaultScenario():
         """Select the objective to fit."""
         # Where do you want to verify that the objective is matched?
         c_list = self.comp_list['only_cav']
+        all_list = self.brok_lin.elements['list']
+        n_latt = self.brok_lin.elements['n_per_lattice']
         dict_position = {
             'end_of_last_comp_cav':
                 c_list[-1].idx['out'] - 1,
             'one_module_after_last_comp_cav':
-                self.brok_lin.elements['list'][
-                    self.brok_lin.elements['list'].index(
-                        c_list[-1])
-                    + self.brok_lin.elements['n_per_lattice']].idx['out'] - 1,
+                all_list[all_list.index(c_list[-1]) + n_latt].idx['out'] - 1,
             }
 
         # What do you want to match?
@@ -274,19 +273,15 @@ class FaultScenario():
                 linac.synch.energy['kin_array_mev'][idx],
             'phase': lambda linac, idx:
                 linac.synch.phi['abs_array'][idx],
-            'energy_phase': lambda linac, idx: np.array(
-                [linac.synch.energy['kin_array_mev'][idx],
-                 linac.synch.phi['abs_array'][idx]]),
             'transfer_matrix': lambda linac, idx:
                 linac.transf_mat['cumul'][idx, :, :].flatten(),
-            'all': lambda linac, idx:
-                np.hstack((
-                    np.array(
-                        [linac.synch.energy['kin_array_mev'][idx],
-                         linac.synch.phi['abs_array'][idx]]),
-                    linac.transf_mat['cumul'][idx, :, :].flatten()
-                    ))
-            }
+                }
+        dict_objective['energy_phase'] = lambda linac, idx: \
+            np.array([dict_objective['energy'](linac, idx),
+                      dict_objective['phase'](linac, idx)])
+        dict_objective['all'] = lambda linac, idx: \
+            np.hstack((dict_objective['energy_phase'](linac, idx),
+                       dict_objective['transfer_matrix'](linac, idx)))
 
         idx_pos = dict_position[position_str]
 
