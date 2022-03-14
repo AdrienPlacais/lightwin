@@ -54,8 +54,7 @@ class FaultScenario():
         """
         Break cavities at indices fail_idx.
 
-        All faulty cavities are added to fail_list. If the calculation is in
-        relative phase, all cavities after the first failed one are rephased.
+        All faulty cavities are added to fail_list.
 
         Parameters
         ----------
@@ -157,7 +156,7 @@ class FaultScenario():
                      for module in comp_modules
                      for cav in module
                      if cav.info['name'] == 'FIELD_MAP'
-                     and cav.info['status'] != 'failed'
+                     and cav.info['status'] == 'nominal'
                      ]
 
         self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],

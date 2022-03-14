@@ -8,7 +8,7 @@ Created on Thu Dec  2 13:44:00 2021
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_rest_MeV, c, FLAG_PHI_ABS, DICT_STR_PHI
+from constants import E_rest_MeV, c, FLAG_PHI_ABS
 
 
 class Particle():
@@ -138,15 +138,14 @@ class Particle():
                                   self.omega0['bunch'])
         self.phi['abs'] = phi_abs
         self.phi['abs_rf'] = phi_abs * self.frac_omega['bunch_to_rf']
-        self.phi['rel'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs
-        df = {
+        self.phi['rel'] = phi_abs
+        self.df = pd.DataFrame({
             'phi_abs_array': [self.phi['abs_array'][idx]],
             'phi_abs': [self.phi['abs']],
             'phi_abs_rf': [self.phi['abs_rf']],
             'phi_rel': [self.phi['rel']],
-            }
-        self.df = pd.DataFrame(df)
+            })
 
     def advance_phi(self, delta_phi, idx=np.NaN, flag_rf=False):
         """
@@ -257,6 +256,7 @@ class Particle():
         if np.isnan(idx_in):
             idx_in = np.where(np.isnan(self.phi['abs_array']))[0][0] - 1
         self._set_omega_rf(acc_field.omega0_rf)
+
         self.z['rel'] = 0.
         self.phi['rel'] = 0.
         self.phi['abs'] = self.phi['abs_array'][idx_in]

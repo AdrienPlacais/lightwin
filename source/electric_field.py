@@ -161,19 +161,12 @@ class RfField():
             self.phi_0 = {'rel': phi_0, 'abs': None}
 
     def convert_phi_0(self, phi_rf_abs, absolute):
-        """Calculate the missing phi_0 (relative or absolute)."""
-        if absolute:
-            self._phi_0_abs_to_rel(phi_rf_abs)
-        else:
-            self._phi_0_rel_to_abs(phi_rf_abs)
-
-    def _phi_0_rel_to_abs(self, phi_rf_abs):
         """
-        Convert relative phi_0 to absolute.
+        Calculate the missing phi_0 (relative or absolute).
 
         By default, TW uses relative phases. In other words, it considers that
         particles always enter in the cavity at phi = 0 rad, and phi_0 is
-        defined accordingly. This function recalculates phi_0 so that
+        defined accordingly. _phi_0_rel_to_abs recalculates phi_0 so that
         modulo(phi_abs + phi_0_abs, 2pi) = phi_rel + phi_0_rel = phi_0_rel
 
         All phases in this routine are defined by:
@@ -184,23 +177,14 @@ class RfField():
         phi_rf_abs : float
             Absolute phase of the particle at the entrance of the cavity.
         """
-        phi_0_abs = self.phi_0['rel'] - phi_rf_abs
-        phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
-        self.phi_0['abs'] = phi_0_abs
-
-    def _phi_0_abs_to_rel(self, phi_rf_abs):
-        """
-        Convert absolute phi_0 to relative.
-
-        Parameters
-        ----------
-        phi_rf_abs : float
-            Absolute phase of the particle at the entrance of the cavity.
-        """
-        phi_0_rel = self.phi_0['abs'] + phi_rf_abs
-        phi_0_rel = np.mod(phi_0_rel, 2. * np.pi)
-        self.phi_0['rel'] = phi_0_rel
-
+        if absolute:
+            phi_0_abs = self.phi_0['rel'] - phi_rf_abs
+            phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
+            self.phi_0['abs'] = phi_0_abs
+        else:
+            phi_0_rel = self.phi_0['abs'] + phi_rf_abs
+            phi_0_rel = np.mod(phi_0_rel, 2. * np.pi)
+            self.phi_0['rel'] = phi_0_rel
 
 # =============================================================================
 # Helper functions dedicated to electric fields
