@@ -191,7 +191,7 @@ class FaultScenario():
         """
         debugs = {
             'fit': True,
-            'cav': True,
+            'cav': False,
             }
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", self.what_to_fit)

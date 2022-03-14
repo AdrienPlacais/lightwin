@@ -9,6 +9,7 @@ import os.path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import numpy as np
+from constants import FLAG_PHI_ABS
 from electric_field import load_field_map_file
 import elements
 
@@ -146,8 +147,7 @@ def save_new_dat(fixed_linac, filepath_old):
     """Save a new dat with the new linac settings."""
     print('saving new dat\n\n')
     _update_dat_with_fixed_cavities(fixed_linac.files['dat_filecontent'],
-                                    fixed_linac.elements['list'],
-                                    fixed_linac.synch.info['abs_phases'])
+                                    fixed_linac.elements['list'])
 
     filepath_new = filepath_old[:-4] + '_fixed.dat'
     with open(filepath_new, 'w') as file:
@@ -155,8 +155,7 @@ def save_new_dat(fixed_linac, filepath_old):
             file.write(' '.join(line) + '\n')
 
 
-def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements,
-                                    flag_phi_abs):
+def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements):
     """Create a new dat containing the new linac settings."""
     idx_elt = 0
 
@@ -172,9 +171,9 @@ def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements,
         else:
             if line[0] == 'FIELD_MAP':
                 elt = list_of_elements[idx_elt]
-                line[3] = dict_phi[flag_phi_abs](elt)[0]
+                line[3] = dict_phi[FLAG_PHI_ABS](elt)[0]
                 line[6] = str(elt.acc_field.norm)
-                line[10] = dict_phi[flag_phi_abs](elt)[1]
+                line[10] = dict_phi[FLAG_PHI_ABS](elt)[1]
 
             idx_elt += 1
 
