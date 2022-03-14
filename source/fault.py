@@ -78,8 +78,6 @@ class FaultScenario():
         Even in the case of an absolute phase calculation, cavities in the
         HEBT are rephased.
         """
-        # FIXME HEBT
-        HEBT = False
         # We get first failed cav
         ffc = min([
             self.brok_lin.where_is(fail_cav)
@@ -87,13 +85,14 @@ class FaultScenario():
             ])
         after_ffc = self.brok_lin.elements['list'][ffc:]
 
-        cav_to_update = [cav
-                         for cav in after_ffc
-                         if (cav.info['name'] == 'FIELD_MAP'
-                             and cav.info['status'] == 'nominal')
-                         and (HEBT or FLAG_PHI_ABS)
-                         ]
-        for cav in cav_to_update:
+        cav_to_rephase = [cav
+                          for cav in after_ffc
+                          if (cav.info['name'] == 'FIELD_MAP'
+                              and cav.info['status'] == 'nominal')
+                          and (cav.info['zone'] == 'HEBT'
+                               or FLAG_PHI_ABS)
+                          ]
+        for cav in cav_to_rephase:
             cav.update_status('rephased')
 
     def transfer_phi0_from_ref_to_broken(self):
