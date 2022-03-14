@@ -156,11 +156,11 @@ class RfField():
     def init_phi_0(self, phi_0, absolute):
         """Set an initial phase, relative or absolute."""
         if absolute:
-            self.phi_0 = {'rel': None, 'abs': phi_0}
+            self.phi_0 = {'rel': None, 'abs': phi_0, 'nominal_rel': None}
         else:
-            self.phi_0 = {'rel': phi_0, 'abs': None}
+            self.phi_0 = {'rel': phi_0, 'abs': None, 'nominal_rel': phi_0}
 
-    def convert_phi_0(self, phi_rf_abs, absolute):
+    def convert_phi_0(self, phi_rf_abs, abs_to_rel):
         """
         Calculate the missing phi_0 (relative or absolute).
 
@@ -176,15 +176,29 @@ class RfField():
         ----------
         phi_rf_abs : float
             Absolute phase of the particle at the entrance of the cavity.
+        abs_to_rel : bool
+            True if you want to convert absolute into relative.
+            False if you want to convert relative into absolute,
         """
-        if absolute:
-            phi_0_abs = self.phi_0['rel'] - phi_rf_abs
-            phi_0_abs = np.mod(phi_0_abs, 2. * np.pi)
-            self.phi_0['abs'] = phi_0_abs
+        if abs_to_rel:
+            self.phi_0['rel'] = np.mod(self.phi_0['abs'] + phi_rf_abs,
+                                       2. * np.pi)
         else:
-            phi_0_rel = self.phi_0['abs'] + phi_rf_abs
-            phi_0_rel = np.mod(phi_0_rel, 2. * np.pi)
-            self.phi_0['rel'] = phi_0_rel
+            self.phi_0['abs'] = np.mod(self.phi_0['rel'] - phi_rf_abs,
+                                       2. * np.pi)
+
+    def rephase_cavity(self, phi_rf_abs):
+        """
+        Rephase the cavity.
+
+        In other words, we want the particle to enter with the same relative
+        phase as in the nominal linac.
+        """
+        assert self.phi_0['nominal_rel'] is not None
+        self.phi_0['rel'] = self.phi_0['nominal_rel']
+        self.phi_0['abs'] = np.mod(self.phi_0['nominal_rel'] - phi_rf_abs,
+                                   2. * np.pi)
+
 
 # =============================================================================
 # Helper functions dedicated to electric fields

@@ -244,7 +244,8 @@ class Particle():
         self.frac_omega['rf_to_bunch'] = self.omega0['bunch'] / new_omega
         self.frac_omega['bunch_to_rf'] = new_omega / self.omega0['bunch']
 
-    def enter_cavity(self, acc_field, cav_status='nominal', idx_in=np.NaN):
+    def enter_cavity(self, acc_field, cav_status='nominal', idx_in=np.NaN,
+                     nominal_phi_0_rel=None):
         """
         Change the omega0 at the entrance and compute abs. entry phase.
 
@@ -266,13 +267,33 @@ class Particle():
         if self.info['synchronous']:
             # Ref linac: we compute every missing phi_0
             if self.info['reference']:
-                acc_field.convert_phi_0(self.phi['abs_rf'],
-                                        absolute=acc_field.absolute_phase_flag)
+                acc_field.convert_phi_0(
+                    self.phi['abs_rf'],
+                    abs_to_rel=acc_field.absolute_phase_flag
+                    )
             else:
                 # Phases should have been imported from reference linac
-                # in fault
-                acc_field.convert_phi_0(self.phi['abs_rf'],
-                                        absolute=FLAG_PHI_ABS)
+                if cav_status == 'nominal':
+                    # We already have the phi0's from the reference linac.
+                    # We recompute the relative or absolute one according to
+                    # FLAG_PHI_ABS
+                    acc_field.convert_phi_0(self.phi['abs_rf'],
+                                            abs_to_rel=FLAG_PHI_ABS)
+                elif cav_status == 'rephased':
+                    # We must keep the relative phase equal to reference linac
+                    acc_field.rephase_cavity(self.phi['abs_rf'])
+
+                elif cav_status == 'fault':
+                    # Useless, as we used drift functions when there is a fault
+                    print('prout')
+
+                elif cav_status == 'compensate':
+                    # The phi0's are set by the fitting algorithm. We compute
+                    # the missing (abs or rel) value of phi0 for the sake of
+                    # completeness, but it won't be used to calculate the
+                    # matrix
+                    acc_field.convert_phi_0(self.phi['abs_rf'],
+                                            abs_to_rel=FLAG_PHI_ABS)
 
         else:
             print('Warning enter_cavity! Not sure what will happen with a',

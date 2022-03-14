@@ -464,11 +464,12 @@ def output_cavities(linac, out=True):
 
 def _create_output_fit_dicts(initial_guess, bounds, list_of_ref_cav):
     dict_param = {
-        'phi_0_rel': pd.DataFrame(columns=('Idx', 'Min.', 'Max.', 'Fixed',
+        'phi_0_rel': pd.DataFrame(columns=('Idx', 'Status', 'Min.', 'Max.',
+                                           'Fixed',
                                            'Orig.', '(var %)')),
-        'phi_0_abs': pd.DataFrame(columns=('Idx', 'Min.', 'Max.', 'Fixed',
+        'phi_0_abs': pd.DataFrame(columns=('Idx', 'Status', 'Min.', 'Max.', 'Fixed',
                                            'Orig.', '(var %)')),
-        'Norm': pd.DataFrame(columns=('Idx', 'Min.', 'Max.', 'Fixed', 'Orig.',
+        'Norm': pd.DataFrame(columns=('Idx', 'Status', 'Min.', 'Max.', 'Fixed', 'Orig.',
                                       '(var %)')),
         }
     dict_attribute = {
@@ -526,7 +527,8 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
             new = dicts['attribute'][param](cav.acc_field)
             var = 100. * (new - old) / old
 
-            dicts['param'][param].loc[i] = [cav.idx['in'], x0_and_bnds[1],
+            dicts['param'][param].loc[i] = [cav.idx['in'], cav.info['status'],
+                                            x0_and_bnds[1],
                                             x0_and_bnds[2], new, old, var]
         if out:
             helper.printd(dicts['param'][param].round(3), header=param)

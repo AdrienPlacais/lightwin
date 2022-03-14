@@ -112,6 +112,7 @@ class FaultScenario():
             brok_acc_f = brok_cavities[i].acc_field
             for str_phi_abs in ['rel', 'abs']:
                 brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
+            brok_acc_f.phi_0['nominal_rel'] = ref_acc_f.phi_0['rel']
 
     def _select_comp_modules(self, modules_with_fail):
         """Give failed modules and their neighbors."""
@@ -190,7 +191,7 @@ class FaultScenario():
         """
         debugs = {
             'fit': True,
-            'cav': False,
+            'cav': True,
             }
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", self.what_to_fit)

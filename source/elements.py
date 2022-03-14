@@ -32,8 +32,8 @@ class _Element():
         self.info = {
             'name': elem[0],
             'status': None,    # Only make sense for cavities
-            'zone': 'HEBT',
-            # 'zone': 'LEBT',     # FIXME: automatic detection of the zone
+            # 'zone': 'HEBT',
+            'zone': 'LEBT',     # FIXME: automatic detection of the zone
             }
         self.length_m = 1e-3 * float(elem[1])
 
