@@ -32,7 +32,7 @@ project_folder = ''
 # To determine if the phases in the cavities are absolute or relative.
 # If they are relative, the linac is implicitely rephased when some cavities
 # are faulty (global compensation).
-FLAG_PHI_ABS = False
+FLAG_PHI_ABS = True
 
 
 # =============================================================================

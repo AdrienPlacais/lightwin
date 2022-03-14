@@ -69,7 +69,7 @@ class FaultScenario():
             cav.update_status('failed')
             self.fail_list.append(cav)
 
-    def set_cavities_to_rephase(self):
+    def _select_cavities_to_rephase(self):
         """
         Change the status of some cavities to 'rephased'.
 
@@ -90,7 +90,7 @@ class FaultScenario():
                           if (cav.info['name'] == 'FIELD_MAP'
                               and cav.info['status'] == 'nominal')
                           and (cav.info['zone'] == 'HEBT'
-                               or FLAG_PHI_ABS)
+                               or not FLAG_PHI_ABS)
                           ]
         for cav in cav_to_rephase:
             cav.update_status('rephased')
@@ -197,6 +197,7 @@ class FaultScenario():
         print("Starting fit with parameters:", self.what_to_fit)
 
         self._select_compensating_cavities(self.what_to_fit, manual_list)
+        self._select_cavities_to_rephase()
 
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \
