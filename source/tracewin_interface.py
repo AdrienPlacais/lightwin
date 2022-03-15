@@ -14,7 +14,8 @@ from electric_field import load_field_map_file
 import elements
 
 to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
-                     # 'LATTICE',
+                     'SET_SYNC_PHASE', 'ADJUST',
+                     'DIAG_DSIZE3', 'DIAG_ENERGY', 'DIAG_TWISS',
                      'END']
 not_an_element = ['LATTICE']
 # Dict of data that can be imported from TW's "Data" table.
@@ -76,7 +77,9 @@ def _create_structure(dat_filepath, dat_filecontent):
 
     Parameters
     ----------
-    dat_filecontent: list, opt
+    dat_filepath : str
+        Path to the .dat file.
+    dat_filecontent : list of str
         List containing all the lines of dat_filepath.
 
     Return
@@ -84,8 +87,7 @@ def _create_structure(dat_filepath, dat_filecontent):
     list_of_elements: list of Element
         List containing all the Element objects.
     """
-    # @TODO Implement lattice
-    # Dictionnary linking element name with correct sub-class
+    # Dictionnary linking element nature with correct sub-class
     subclasses_dispatcher = {
         'QUAD': elements.Quad,
         'DRIFT': elements.Drift,
@@ -112,8 +114,26 @@ def _create_structure(dat_filepath, dat_filecontent):
             break
 
     _load_filemaps(dat_filepath, dat_filecontent, list_of_elements)
+    _give_name(list_of_elements)
 
     return list_of_elements, n_lattice
+
+
+def _give_name(list_of_elements):
+    """Give a name (the same as TW) to every element."""
+    civil_register = {
+            'QUAD': 'QP',
+            'DRIFT': 'DR',
+            'FIELD_MAP': 'FM',
+            'SOLENOID': 'SOL',
+            }
+    for key in civil_register.keys():
+        sub_list = [elt
+                    for elt in list_of_elements
+                    if elt.info['nature'] == key
+                    ]
+        for i, elt in enumerate(sub_list, start=1):
+            elt.info['name'] = civil_register[key] + str(i)
 
 
 def _load_filemaps(dat_filepath, dat_filecontent, list_of_elements):

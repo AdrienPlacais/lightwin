@@ -128,7 +128,7 @@ def plot_structure(linac, ax, x_axis='s'):
         elif x_axis == 'elt':
             x0 = i
             width = 1
-        ax.add_patch(dict_elem_plot[elt.info['name']](elt, x0, width))
+        ax.add_patch(dict_elem_plot[elt.info['nature']](elt, x0, width))
         i += 1
 
     if x_axis == 's':

@@ -86,7 +86,7 @@ class FaultScenario():
 
         cav_to_rephase = [cav
                           for cav in after_ffc
-                          if (cav.info['name'] == 'FIELD_MAP'
+                          if (cav.info['nature'] == 'FIELD_MAP'
                               and cav.info['status'] == 'nominal')
                           and (cav.info['zone'] == 'HEBT'
                                or not FLAG_PHI_ABS)
@@ -156,7 +156,7 @@ class FaultScenario():
                      cav
                      for module in comp_modules
                      for cav in module
-                     if cav.info['name'] == 'FIELD_MAP'
+                     if cav.info['nature'] == 'FIELD_MAP'
                      and cav.info['status'] == 'nominal'
                      ]
 
@@ -332,8 +332,7 @@ class FaultScenario():
         for idx in idx_pos_list:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
-                  elt.info, ', the', self.brok_lin.where_is(elt, nature=True),
-                  "th of its kind.\n")
+                  elt.info, ".\n")
         return fun_multi_objective, idx_pos_list
 
 

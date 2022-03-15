@@ -447,10 +447,10 @@ def compare_phase_space(accelerator):
 def output_cavities(linac, out=True):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
-        'Idx', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
+        'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
         'phis'))
     for i, cav in enumerate(linac.elements_of('FIELD_MAP')):
-        df_cav.loc[i] = [cav.idx['in'], cav.info['status'],
+        df_cav.loc[i] = [cav.info['name'], cav.info['status'],
                          cav.acc_field.norm,
                          np.rad2deg(cav.acc_field.phi_0['abs']),
                          np.rad2deg(cav.acc_field.phi_0['rel']),
@@ -464,12 +464,12 @@ def output_cavities(linac, out=True):
 
 def _create_output_fit_dicts(initial_guess, bounds, list_of_ref_cav):
     dict_param = {
-        'phi_0_rel': pd.DataFrame(columns=('Idx', 'Status', 'Min.', 'Max.',
+        'phi_0_rel': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                            'Fixed',
                                            'Orig.', '(var %)')),
-        'phi_0_abs': pd.DataFrame(columns=('Idx', 'Status', 'Min.', 'Max.', 'Fixed',
+        'phi_0_abs': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.', 'Fixed',
                                            'Orig.', '(var %)')),
-        'Norm': pd.DataFrame(columns=('Idx', 'Status', 'Min.', 'Max.', 'Fixed', 'Orig.',
+        'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.', 'Fixed', 'Orig.',
                                       '(var %)')),
         }
     dict_attribute = {
@@ -527,8 +527,8 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
             new = dicts['attribute'][param](cav.acc_field)
             var = 100. * (new - old) / old
 
-            dicts['param'][param].loc[i] = [cav.idx['in'], cav.info['status'],
-                                            x0_and_bnds[1],
+            dicts['param'][param].loc[i] = [cav.info['name'],
+                                            cav.info['status'], x0_and_bnds[1],
                                             x0_and_bnds[2], new, old, var]
         if out:
             helper.printd(dicts['param'][param].round(3), header=param)

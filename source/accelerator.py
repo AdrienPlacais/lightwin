@@ -217,7 +217,7 @@ class Accelerator():
         """
         if sub_list is None:
             sub_list = self.elements['list']
-        list_of = list(filter(lambda elt: elt.info['name'] == nature,
+        list_of = list(filter(lambda elt: elt.info['nature'] == nature,
                               sub_list))
         return list_of
 
@@ -243,7 +243,7 @@ class Accelerator():
 
         """
         if nature:
-            idx = self.elements_of(nature=elt.info['name']).index(elt)
+            idx = self.elements_of(nature=elt.info['nature']).index(elt)
         else:
             idx = self.elements['list'].index(elt)
 
