@@ -8,6 +8,7 @@ Created on Thu Feb 17 15:52:37 2022
 import os.path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+import pandas as pd
 import numpy as np
 from constants import FLAG_PHI_ABS
 from electric_field import load_field_map_file
@@ -258,3 +259,54 @@ def load_transfer_matrices(filepath_list):
         i += 1
 
     return r_zz_tot_ref
+
+
+def output_data_in_tw_fashion(linac):
+    """Mimick TW's Data tab."""
+    larousse = {
+            '#': lambda i, elt, synch: i,
+            'Name': lambda i, elt, synch: elt.info['name'],
+            'Type': lambda i, elt, synch: elt.info['nature'],
+            'Length (mm)': lambda i, elt, synch: elt.length_m * 1e3,
+            'Grad/Field/Amp': lambda i, elt, synch:
+            elt.grad
+            if(elt.info['nature'] == 'QUAD')
+            else np.NaN,
+            'EoT (MV/m)': lambda i, elt, synch: None,
+            'EoTLc (MV)': lambda i, elt, synch:
+            elt.acc_field.cav_params['v_cav_mv']
+            if(elt.info['nature'] == 'FIELD_MAP')
+            else np.NaN,
+            'Input_Phase (deg)': lambda i, elt, synch:
+            np.rad2deg(elt.acc_field.phi_0['rel'])
+            if(elt.info['nature'] == 'FIELD_MAP')
+            else np.NaN,
+            'Sync_Phase (deg)': lambda i, elt, synch:
+            elt.acc_field.cav_params['phi_s_deg']
+            if(elt.info['nature'] == 'FIELD_MAP')
+            else np.NaN,
+            'Energy (MeV)': lambda i, elt, synch:
+            synch.energy['kin_array_mev'][elt.idx['out']],
+            'Beta Synch.': lambda i, elt, synch:
+            synch.energy['beta_array'][elt.idx['out']],
+            'Full length (mm)': lambda i, elt, synch:
+            synch.z['abs_array'][elt.idx['out']] * 1e3,
+            'Abs. phase (deg)': lambda i, elt, synch:
+            np.rad2deg(synch.phi['abs_array'][elt.idx['out']]),
+        }
+
+    data = []
+    n_latt = linac.elements['n_per_lattice']
+    for i, elt in enumerate(linac.elements['list']):
+        row = []
+        if i % n_latt == 0:
+            lattice_n = '--------M' + str(i // n_latt + 1)
+            data.append([np.NaN, lattice_n, '', np.NaN, np.NaN, np.NaN, np.NaN,
+                         np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN])
+        for key in larousse.keys():
+            row.append(larousse[key](i, elt, linac.synch))
+        data.append(row)
+        #  data.loc[i] = row
+        #  data.append(row, ignore_index=True)
+    data = pd.DataFrame(data, columns=larousse.keys())
+    return data

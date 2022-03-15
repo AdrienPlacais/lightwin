@@ -136,6 +136,7 @@ class Quad(_Element):
         n_attributes = len(elem) - 1
         assert n_attributes in range(3, 10)
         super().__init__(elem)
+        self.grad = float(elem[2])
 
 
 class Solenoid(_Element):
