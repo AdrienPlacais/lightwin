@@ -49,12 +49,12 @@ class RfField():
     def compute_param_cav(self, status):
         """Compute synchronous phase and accelerating field."""
         if status == 'failed':
-            pol_itg = np.array([np.NaN, np.NaN])
+            polar_itg = np.array([np.NaN, np.NaN])
         else:
-            pol_itg = cmath.polar(self.cav_params['integrated_field'])
+            polar_itg = cmath.polar(self.cav_params['integrated_field'])
         self.cav_params = {
-            'v_cav_mv': pol_itg[0],
-            'phi_s_deg': np.rad2deg(pol_itg[1])
+            'v_cav_mv': polar_itg[0],
+            'phi_s_deg': np.rad2deg(polar_itg[1])
             }
 
     def e_func_norm(self, norm, phi_0, pos, phi_rf):
