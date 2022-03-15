@@ -191,7 +191,7 @@ class FaultScenario():
         """
         debugs = {
             'fit': True,
-            'cav': False,
+            'cav': True,
             }
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", self.what_to_fit)
@@ -292,17 +292,17 @@ class FaultScenario():
     def _select_objective(self, position_str, objective_str):
         """Select the objective to fit."""
         # Where do you want to verify that the objective is matched?
-        c_list = self.comp_list['only_cav']
         all_list = self.brok_lin.elements['list']
         n_latt = self.brok_lin.elements['n_per_lattice']
         dict_position = {
-            'end_of_last_comp_cav':
+            'end_of_last_comp_cav': lambda c_list:
                 [c_list[-1].idx['out'] - 1],
-            'one_module_after_last_comp_cav':
+            'one_module_after_last_comp_cav': lambda c_list:
                 [all_list[all_list.index(c_list[-1]) + n_latt].idx['out'] - 1],
             }
-        dict_position['both'] = dict_position['end_of_last_comp_cav'] \
-            + dict_position['one_module_after_last_comp_cav']
+        dict_position['both'] = lambda c_list: \
+            dict_position['end_of_last_comp_cav'](c_list) \
+            + dict_position['one_module_after_last_comp_cav'](c_list)
 
         # What do you want to match?
         dict_objective = {
@@ -320,7 +320,7 @@ class FaultScenario():
             dict_objective['energy_phase'](linac, idx) \
             + dict_objective['transfer_matrix'](linac, idx)
 
-        idx_pos_list = dict_position[position_str]
+        idx_pos_list = dict_position[position_str](self.comp_list['only_cav'])
         fun_simple = dict_objective[objective_str]
 
         def fun_multi_objective(linac, idx_list):
@@ -351,4 +351,14 @@ def wrapper(prop_array, fault_sce, method, fun_objective, idx_objective):
 
     obj = np.abs(fun_objective(fault_sce.ref_lin, idx_objective)
                  - fun_objective(fault_sce.brok_lin, idx_objective))
+
+    for cav in fault_sce.comp_list['only_cav']:
+        if cav.acc_field.cav_params['phi_s_deg'] > 0.:
+            # print('lala')
+            obj *= 1e8
+        # else:
+            # print('sa va')
+    # print(obj)
+    # print('===============================================\n\n')
+
     return obj
