@@ -181,3 +181,10 @@ class Lattice():
 
     def __init__(self, elem):
         self.n_lattice = int(elem[1])
+
+
+class Freq():
+    """Used to get the frequency of every Section."""
+
+    def __init__(self, elem):
+        self.f_rf_mhz = float(elem[1])

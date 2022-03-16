@@ -16,11 +16,11 @@ import elements
 import section_and_lattice as sec
 
 
-to_be_implemented = ['SPACE_CHARGE_COMP', 'FREQ', 'FIELD_MAP_PATH',
+to_be_implemented = ['SPACE_CHARGE_COMP', 'FIELD_MAP_PATH',
                      'SET_SYNC_PHASE', 'ADJUST',
                      'DIAG_DSIZE3', 'DIAG_ENERGY', 'DIAG_TWISS',
                      'END']
-not_an_element = ['LATTICE']
+not_an_element = ['LATTICE', 'FREQ']
 # Dict of data that can be imported from TW's "Data" table.
 # More info in load_tw_results
 dict_tw_data_table = {
@@ -68,69 +68,9 @@ def load_dat_file(dat_filepath):
 
             dat_filecontent.append(line)
 
-    list_of_elements, n_lattice = _create_structure(dat_filepath,
-                                                    dat_filecontent)
+    list_of_elements = _create_structure(dat_filepath, dat_filecontent)
 
-    return dat_filecontent, list_of_elements, n_lattice
-
-
-def new_create_structure(dat_filepath, dat_filecontent):
-    """Create structure, handling Sections and Lattices."""
-    subclasses_dispatcher = {
-        'QUAD': elements.Quad,
-        'DRIFT': elements.Drift,
-        'FIELD_MAP': elements.FieldMap,
-        'SOLENOID': elements.Solenoid,
-        # 'LATTICE': elements.Lattice,
-    }
-    list_of_sections = []
-    current_section = None
-
-    list_of_lattices = []
-    n_latt = np.NaN
-    i_latt = 0
-
-    list_of_elements = []
-
-    for line in dat_filecontent:
-        # If we reached the end, add Section to list of Sections
-        if line[0] == 'END':
-            print(line[0])
-            list_of_sections.append(current_section)
-
-        # Prepare the new section creation
-        elif line[0] == 'LATTICE':
-            print(line[0])
-            n_latt = int(line[1])
-
-        # Create a new section
-        elif line[0] == 'FREQ':
-            print(line[0])
-            # If there was a section before this one, we add it to the list
-            # of sections
-            if current_section is not None:
-                list_of_sections.append(current_section)
-
-            current_section = sec.Section(freq_rf_mhz=float(line[1]),
-                                          n_cell=2)  # FIXME
-            i_latt = 0
-
-        # Add a new element
-        elif line[0] in subclasses_dispatcher.keys():
-            print(line[0])
-            list_of_elements.append(subclasses_dispatcher[line[0]](line))
-
-            # If we are at the end of a lattice, add it to the list of lattices
-            # and start over a new lattice
-            if i_latt % n_latt == n_latt - 1:
-                current_section.elements['list_of_lattices'].append(
-                    sec.Latticee(list_of_elements, i_latt % n_latt)
-                    )
-                list_of_elements = []
-
-            i_latt += 1
-
-    return list_of_sections
+    return dat_filecontent, list_of_elements
 
 
 def _create_structure(dat_filepath, dat_filecontent):
@@ -156,6 +96,7 @@ def _create_structure(dat_filepath, dat_filecontent):
         'FIELD_MAP': elements.FieldMap,
         'SOLENOID': elements.Solenoid,
         'LATTICE': elements.Lattice,
+        'FREQ': elements.Freq,
     }
 
     # We look at each element in dat_filecontent, and according to the
@@ -168,20 +109,10 @@ def _create_structure(dat_filepath, dat_filecontent):
     except KeyError:
         print('Warning, an element from filepath was not recognized.')
 
-    n_lattice = None
-    for elt in list_of_elements:
-        if type(elt) is elements.Lattice:
-            n_lattice = elt.n_lattice
-            list_of_elements.remove(elt)
-            break
-
-    _load_filemaps(dat_filepath, dat_filecontent, list_of_elements)
-    _give_name(list_of_elements)
-
-    return list_of_elements, n_lattice
+    return list_of_elements
 
 
-def _give_name(list_of_elements):
+def give_name(list_of_elements):
     """Give a name (the same as TW) to every element."""
     civil_register = {
             'QUAD': 'QP',
@@ -198,7 +129,7 @@ def _give_name(list_of_elements):
             elt.info['name'] = civil_register[key] + str(i)
 
 
-def _load_filemaps(dat_filepath, dat_filecontent, list_of_elements):
+def load_filemaps(dat_filepath, dat_filecontent, list_of_elements):
     """
     Load all the filemaps.
 

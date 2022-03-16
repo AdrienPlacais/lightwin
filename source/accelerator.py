@@ -12,7 +12,7 @@ import helper
 import transport
 import particle
 from constants import FLAG_PHI_ABS
-import section_and_lattice
+import elements
 
 
 class Accelerator():
@@ -30,16 +30,18 @@ class Accelerator():
         self.name = name
 
         # Load dat file, clean it up (remove comments, etc), load elements
-        dat_filecontent, list_of_elements, n_lattice = \
-            tw.load_dat_file(dat_filepath)
+        dat_filecontent, list_of_elements = tw.load_dat_file(dat_filepath)
+        list_of_elements = self._sections_lattices(list_of_elements)
 
         self.elements = {
             'n': len(list_of_elements),
             'list': list_of_elements,
-            'n_per_lattice': n_lattice,
+            # 'n_per_lattice': n_lattice,
             'list_lattice': None,
             }
-        self.elements['list_lattice'] = self._lattice_from_elements()
+
+        tw.load_filemaps(dat_filepath, dat_filecontent, self.elements['list'])
+        tw.give_name(self.elements['list'])
 
         self.files = {
             'project_folder': os.path.dirname(dat_filepath),
@@ -67,22 +69,66 @@ class Accelerator():
         # Check that LW and TW computes the phases in the same way
         self._check_consistency_phases()
 
-    def _lattice_from_elements(self):
-        """Gather elements by lattice."""
-        # FIXME: comprehension list
-        lattice = []
-        list_of_lattices = []
-        for i in range(self.elements['n']):
-            lattice.append(self.elements['list'][i])
-            if len(lattice) == self.elements['n_per_lattice']:
-                list_of_lattices.append(lattice)
-                lattice = []
-        if len(lattice) > 0:
-            list_of_lattices.append(lattice)
-            print("Warning, the last module added to ",
-                  "self.elements['list_lattice'] was not full (", len(lattice),
-                  " elements instead of ", self.elements['n_per_lattice'], ")")
-        return list_of_lattices
+    def _sections_lattices(self, list_of_elements):
+        """Gather elements by section and lattice."""
+        list_of_elements, dict_struct = \
+            self._prepare_sections_and_lattices(list_of_elements)
+
+        lattices = []
+        sections = []
+        j = 0
+        for i in range(dict_struct['n_sections']):
+            lattices = []
+            n_lattice = dict_struct['lattices'][i].n_lattice
+            while j < dict_struct['indices'][i]:
+                lattices.append(list_of_elements[j:j+n_lattice])
+                j += n_lattice
+            sections.append(lattices)
+        return list_of_elements, sections
+
+    def _prepare_sections_and_lattices(self, list_of_elements):
+        """
+        Save info on the accelerator structure.
+
+        In particular: in every section, the number of elements per lattice,
+        the rf frequency of cavities, the position of the delimitations between
+        two sections.
+        """
+        lattices = [
+            lattice
+            for lattice in list_of_elements
+            if type(lattice) is elements.Lattice
+            ]
+        frequencies = [
+            frequency
+            for frequency in list_of_elements
+            if type(frequency) is elements.Freq
+            ]
+        n_sections = len(lattices)
+        assert n_sections == len(frequencies)
+
+        idx_of_section_changes = []
+        n_of_sections_before_this_one = 0
+        for i in range(n_sections):
+            latt, freq = lattices[i], frequencies[i]
+
+            idx_latt = list_of_elements.index(latt)
+            idx_freq = list_of_elements.index(freq)
+            assert idx_freq - idx_latt == 1
+
+            idx_of_section_changes.append(idx_latt
+                                          - 2 * n_of_sections_before_this_one)
+            n_of_sections_before_this_one += 1
+
+            list_of_elements.pop(idx_freq)
+            list_of_elements.pop(idx_latt)
+        idx_of_section_changes.pop(0)
+        idx_of_section_changes.append(len(list_of_elements))
+
+        return list_of_elements, {'lattices': lattices,
+                                  'frequencies': frequencies,
+                                  'indices': idx_of_section_changes,
+                                  'n_sections': n_sections}
 
     def _set_indexes_and_abs_positions(self):
         """Init solvers, set indexes and absolute positions of elements."""

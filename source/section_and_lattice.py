@@ -25,11 +25,3 @@ class Section():
                         for elt in lattice.list_of_elements
                         ]
         self.elements['list'] = list_of_elts
-
-
-class Latticee():
-    """Class to hold one lattice."""
-
-    def __init__(self, list_of_elements, lattice_number):
-        self.lattice_number = lattice_number
-        self.list_of_elements = list_of_elements
