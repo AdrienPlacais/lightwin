@@ -22,19 +22,13 @@ import fault
 # =============================================================================
 # TODO: direct import of this parameters from the .ini file
 # TODO: handle different particles
-# Kinetic beam energy in MeV
-E_MEV = 16.6
-
 # Current in mA
 I_MILLI_A = 0.0
-
-# Bunch frequency in MHz
-F_MHZ = 176.1
 
 # Input normalized rms emittance (pi.mm.mrad)
 EMIT_Z_Z_PRIME = 0.27
 # Longitudinal rms emittance (pi.deg.MeV)
-emit_pw = emittance.mm_mrad_to_deg_mev(EMIT_Z_Z_PRIME, F_MHZ)
+# emit_pw = emittance.mm_mrad_to_deg_mev(EMIT_Z_Z_PRIME, F_MHZ)
 
 # Input Twiss parameters. Not modified by EMIT_Z_Z_PRIME
 ALPHA_Z = 0.1389194
@@ -102,8 +96,8 @@ start_time = time.monotonic()
 # Start
 # =============================================================================
 FILEPATH = os.path.abspath(FILEPATH)
-ref_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Working")
-broken_linac = acc.Accelerator(E_MEV, F_MHZ, FILEPATH, "Broken")
+ref_linac = acc.Accelerator(FILEPATH, "Working")
+broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
 
 basic_fault = fault.FaultScenario(ref_linac, broken_linac)

@@ -11,14 +11,14 @@ import tracewin_interface as tw
 import helper
 import transport
 import particle
-from constants import FLAG_PHI_ABS
+from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ
 import elements
 
 
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, e_0_mev, f_mhz, dat_filepath, name):
+    def __init__(self, dat_filepath, name):
         """
         Create Accelerator object.
 
@@ -53,9 +53,9 @@ class Accelerator():
         last_idx = self._set_indexes_and_abs_positions()
 
         # Create synchronous particle
-        omega_0 = 2e6 * np.pi * f_mhz
+        omega_0 = 2e6 * np.pi * F_BUNCH_MHZ
         reference = bool(name == 'Working')
-        self.synch = particle.Particle(0., e_0_mev, omega_0,
+        self.synch = particle.Particle(0., E_MEV, omega_0,
                                        n_steps=last_idx, synchronous=True,
                                        reference=reference)
 

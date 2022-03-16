@@ -10,7 +10,7 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import pandas as pd
 import numpy as np
-from constants import FLAG_PHI_ABS
+from constants import FLAG_PHI_ABS, F_BUNCH_MHZ
 from electric_field import load_field_map_file
 import elements
 
@@ -154,7 +154,7 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
 
     for i, section in enumerate(sections):
         f_mhz = freqs[i].f_rf_mhz
-        n_cell = 2   # FIXME
+        n_cell = int(f_mhz / F_BUNCH_MHZ)   # FIXME
         for lattice in section:
             for elt in lattice:
                 if elt.info['nature'] == 'FIELD_MAP':

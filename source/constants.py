@@ -34,6 +34,8 @@ project_folder = ''
 # are faulty (global compensation).
 FLAG_PHI_ABS = True
 
+E_MEV = 16.6
+F_BUNCH_MHZ = 176.1
 
 # =============================================================================
 # Simulation constants -- end of user interface
