@@ -12,6 +12,7 @@ import helper
 import transport
 import particle
 from constants import FLAG_PHI_ABS
+import section_and_lattice
 
 
 class Accelerator():
