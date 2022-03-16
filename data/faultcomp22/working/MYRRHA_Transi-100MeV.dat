@@ -24,7 +24,7 @@
 ; -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ;FIELD_MAP_PATH  C:\Users\fbouly\DATA\Etudes_fault_tolerance\2021_Tracewin\global_comp\field_maps_1D
-FIELD_MAP_PATH field_maps_1D/
+FIELD_MAP_PATH ./field_maps_1D
 
 ; Section #1
 ; Period type: 1

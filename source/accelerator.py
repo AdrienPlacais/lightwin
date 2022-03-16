@@ -31,16 +31,17 @@ class Accelerator():
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, list_of_elements = tw.load_dat_file(dat_filepath)
-        list_of_elements = self._sections_lattices(list_of_elements)
+        list_of_elements, sections, freqs =\
+            self._sections_lattices(list_of_elements)
 
         self.elements = {
             'n': len(list_of_elements),
             'list': list_of_elements,
-            # 'n_per_lattice': n_lattice,
-            'list_lattice': None,
+            'sections': sections,
             }
 
-        tw.load_filemaps(dat_filepath, dat_filecontent, self.elements['list'])
+        tw.load_filemaps(dat_filepath, dat_filecontent,
+                         self.elements['sections'], freqs)
         tw.give_name(self.elements['list'])
 
         self.files = {
@@ -84,7 +85,7 @@ class Accelerator():
                 lattices.append(list_of_elements[j:j+n_lattice])
                 j += n_lattice
             sections.append(lattices)
-        return list_of_elements, sections
+        return list_of_elements, sections, dict_struct['frequencies']
 
     def _prepare_sections_and_lattices(self, list_of_elements):
         """

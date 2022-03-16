@@ -169,7 +169,7 @@ class FieldMap(_Element):
             elem.append('0')
             absolute_phase_flag = int(elem[10])
 
-        self.acc_field = RfField(352.2, norm=float(elem[6]),
+        self.acc_field = RfField(norm=float(elem[6]),
                                  absolute_phase_flag=absolute_phase_flag,
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')

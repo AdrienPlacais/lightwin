@@ -22,9 +22,8 @@ class RfField():
         phi = omega_0_bunch * t
     """
 
-    def __init__(self, frequency_mhz, norm=np.NaN, absolute_phase_flag=0,
-                 phi_0=None):
-        self.omega0_rf = 2e6 * np.pi * frequency_mhz
+    def __init__(self, norm=np.NaN, absolute_phase_flag=0, phi_0=None):
+        self.omega0_rf = None#
 
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
@@ -33,12 +32,16 @@ class RfField():
         self.absolute_phase_flag = bool(absolute_phase_flag)
         self.init_phi_0(phi_0, absolute=self.absolute_phase_flag)
 
-        self.n_cell = 2
         self.cav_params = {
             'v_cav_mv': np.NaN,
             'phi_s_deg': np.NaN,
             'integrated_field': 0.
             }
+
+    def init_freq_ncell(self, f_mhz, n_cell):
+        """Initialize the frequency and the number of cells."""
+        self.omega0_rf = 2e6 * np.pi * f_mhz
+        self.n_cell = n_cell
 
     def update_itg_field(self, pos, phi_rf, d_z):
         """Add last integration step to the complex rf field."""

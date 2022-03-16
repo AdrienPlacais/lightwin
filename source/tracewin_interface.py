@@ -13,7 +13,6 @@ import numpy as np
 from constants import FLAG_PHI_ABS
 from electric_field import load_field_map_file
 import elements
-import section_and_lattice as sec
 
 
 to_be_implemented = ['SPACE_CHARGE_COMP', 'FIELD_MAP_PATH',
@@ -129,7 +128,7 @@ def give_name(list_of_elements):
             elt.info['name'] = civil_register[key] + str(i)
 
 
-def load_filemaps(dat_filepath, dat_filecontent, list_of_elements):
+def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
     """
     Load all the filemaps.
 
@@ -139,21 +138,30 @@ def load_filemaps(dat_filepath, dat_filecontent, list_of_elements):
         Filepath to the .dat file, as understood by TraceWin.
     dat_filecontent: list, opt
         List containing all the lines of dat_filepath.
-    list_of_elements: list of Element
-        List containing all the Element objects.
+    sections: list of lists of Element
+        List of sections containing lattices containing Element objects.
+    freqs:
+        List of the RF frequencies in MHz in every section
     """
-    # Get folder of all field maps
-    for line in dat_filecontent:
-        if line[0] == 'FIELD_MAP_PATH':
-            field_map_folder = line[1]
+    assert len(sections) == len(freqs)
 
+    field_map_folder = [
+        line[1]
+        for line in dat_filecontent
+        if line[0] == 'FIELD_MAP_PATH'
+        ][0]
     field_map_folder = os.path.dirname(dat_filepath) + field_map_folder[1:]
 
-    for elt in list_of_elements:
-        if 'field_map_file_name' in vars(elt):
-            elt.field_map_file_name = field_map_folder + '/' \
-                + elt.field_map_file_name
-            load_field_map_file(elt, elt.acc_field)
+    for i, section in enumerate(sections):
+        f_mhz = freqs[i].f_rf_mhz
+        n_cell = 2   # FIXME
+        for lattice in section:
+            for elt in lattice:
+                if elt.info['nature'] == 'FIELD_MAP':
+                    elt.field_map_file_name = field_map_folder + '/' \
+                        + elt.field_map_file_name
+                    load_field_map_file(elt, elt.acc_field)
+                    elt.acc_field.init_freq_ncell(f_mhz, n_cell)
 
 
 def save_new_dat(fixed_linac, filepath_old):
@@ -288,16 +296,31 @@ def output_data_in_tw_fashion(linac):
         }
 
     data = []
-    n_latt = linac.elements['n_per_lattice']
-    for i, elt in enumerate(linac.elements['list']):
-        row = []
-        if i % n_latt == 0:
-            lattice_n = '--------M' + str(i // n_latt + 1)
+    n_latt = 1
+    i = 0
+    for section in linac.elements['sections']:
+        for lattice in section:
+            lattice_n = '--------M' + str(n_latt)
             data.append([np.NaN, lattice_n, '', np.NaN, np.NaN, np.NaN, np.NaN,
                          np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN])
-        for key in larousse.keys():
-            row.append(larousse[key](i, elt, linac.synch))
-        data.append(row)
+            n_latt += 1
+            for elt in lattice:
+                row = []
+                for key in larousse.keys():
+                    row.append(larousse[key](i, elt, linac.synch))
+                data.append(row)
+                i += 1
+
+    # n_latt = linac.elements['n_per_lattice']
+    # for i, elt in enumerate(linac.elements['list']):
+    #     row = []
+    #     if i % n_latt == 0:
+    #         lattice_n = '--------M' + str(i // n_latt + 1)
+    #         data.append([np.NaN, lattice_n, '', np.NaN, np.NaN, np.NaN, np.NaN,
+    #                      np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN])
+    #     for key in larousse.keys():
+    #         row.append(larousse[key](i, elt, linac.synch))
+    #     data.append(row)
         #  data.loc[i] = row
         #  data.append(row, ignore_index=True)
     data = pd.DataFrame(data, columns=larousse.keys())

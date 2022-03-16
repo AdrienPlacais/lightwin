@@ -1,5 +1,6 @@
 source/__pycache__/*
 *.swp
 data/*.txt
+*.old.ini
 !data/full_energy_and_MT.txt
 !data/Vcav_and_phis.txt
