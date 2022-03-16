@@ -72,7 +72,7 @@ class _Element():
         key = 'non_acc'
         n_steps = 1
         if self.info['nature'] == 'FIELD_MAP':
-            n_steps = 10 * self.acc_field.n_cell
+            n_steps = 100 * self.acc_field.n_cell
             if self.info['status'] != 'failed':
                 key = 'accelerating'
 
