@@ -9,6 +9,7 @@ import numpy as np
 import transfer_matrices
 import transport
 from electric_field import RfField
+from constants import N_STEPS_PER_CELL
 
 
 # =============================================================================
@@ -72,7 +73,7 @@ class _Element():
         key = 'non_acc'
         n_steps = 1
         if self.info['nature'] == 'FIELD_MAP':
-            n_steps = 100 * self.acc_field.n_cell
+            n_steps = N_STEPS_PER_CELL * self.acc_field.n_cell
             if self.info['status'] != 'failed':
                 key = 'accelerating'
 
