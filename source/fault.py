@@ -293,7 +293,8 @@ class FaultScenario():
         """Select the objective to fit."""
         # Where do you want to verify that the objective is matched?
         all_list = self.brok_lin.elements['list']
-        n_latt = self.brok_lin.elements['n_per_lattice']
+        # FIXME
+        n_latt = 10 #self.brok_lin.elements['n_per_lattice']
         dict_position = {
             'end_of_last_comp_cav': lambda c_list:
                 [c_list[-1].idx['out'] - 1],
@@ -329,6 +330,12 @@ class FaultScenario():
                 obj = obj + fun_simple(linac, idx)
             return np.array(obj)
 
+        # FIXME
+        idx_tmp = [47, 177, 327, 367, 401, 555, 597]
+        idx_pos_list = []
+        for idx in idx_tmp:
+            idx_pos_list.append(self.brok_lin.elements['list'][idx].idx['out'] - 1)
+
         for idx in idx_pos_list:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
@@ -354,12 +361,7 @@ def wrapper(prop_array, fault_sce, method, fun_objective, idx_objective):
 
     for cav in fault_sce.comp_list['only_cav']:
         if cav.acc_field.cav_params['phi_s_deg'] > 0.:
-            # print('lala')
             obj *= 1e8
-        # else:
-            # print('sa va')
-    # print(obj)
-    # print('===============================================\n\n')
 
     return obj
 

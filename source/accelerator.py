@@ -31,12 +31,13 @@ class Accelerator():
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, list_of_elements = tw.load_dat_file(dat_filepath)
-        list_of_elements, sections, freqs =\
+        list_of_elements, sections, lattices, freqs =\
             self._sections_lattices(list_of_elements)
 
         self.elements = {
             'n': len(list_of_elements),
             'list': list_of_elements,
+            'list_lattice': lattices,
             'sections': sections,
             }
 
@@ -91,7 +92,11 @@ class Accelerator():
             for lattice in sec:
                 for elt in lattice:
                     elt.info['zone'] = zones[i]
-        return list_of_elements, sections, dict_struct['frequencies']
+
+        lattices = []
+        for sec in sections:
+            lattices += sec
+        return list_of_elements, sections, lattices, dict_struct['frequencies']
 
     def _prepare_sections_and_lattices(self, list_of_elements):
         """
