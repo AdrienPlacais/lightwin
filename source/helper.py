@@ -120,25 +120,26 @@ def plot_structure(linac, ax, x_axis='s'):
         'QUAD': _plot_quad,
         'FIELD_MAP': _plot_field_map,
         }
+    dict_x_axis = {  # first element is patch dimension. second is x limits
+        's': lambda elt, i: [
+            {'x0': elt.pos_m['abs'][0], 'width': elt.length_m},
+            [linac.elements['list'][0].pos_m['abs'][0],
+             linac.elements['list'][-1].pos_m['abs'][-1]]
+            ],
+        'elt': lambda elt, i: [
+            {'x0': i, 'width': 1},
+            [0, i]
+            ]
+        }
     start = 0
     for j, section in enumerate(linac.elements['sections']):
         for lattice in section:
             for i, elt in enumerate(lattice, start):
-                if x_axis == 's':
-                    x0 = elt.pos_m['abs'][0]
-                    width = elt.length_m
-                elif x_axis == 'elt':
-                    x0 = i
-                    width = 1
-                ax.add_patch(dict_elem_plot[elt.info['nature']](elt, x0,
-                                                                width))
+                kwargs = dict_x_axis[x_axis](elt, i)[0]
+                ax.add_patch(dict_elem_plot[elt.info['nature']](elt, **kwargs))
             start += len(lattice)
 
-    if x_axis == 's':
-        ax.set_xlim([linac.elements['list'][0].pos_m['abs'][0],
-                     linac.elements['list'][-1].pos_m['abs'][-1]])
-    elif x_axis == 'elt':
-        ax.set_xlim([0, i])
+    ax.set_xlim(dict_x_axis[x_axis](elt, i)[1])
     ax.set_yticklabels([])
     ax.set_yticks([])
     ax.set_ylim([-.05, 1.05])
