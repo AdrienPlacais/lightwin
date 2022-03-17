@@ -133,13 +133,10 @@ def plot_structure(linac, ax, x_axis='s'):
             [0, i]
             ]
         }
-    start = 0
-    for j, section in enumerate(linac.elements['sections']):
-        for lattice in section:
-            for i, elt in enumerate(lattice, start):
-                kwargs = dict_x_axis[x_axis](elt, i)[0]
-                ax.add_patch(dict_elem_plot[elt.info['nature']](elt, **kwargs))
-            start += len(lattice)
+
+    for i, elt in enumerate(linac.elements['list']):
+        kwargs = dict_x_axis[x_axis](elt, i)[0]
+        ax.add_patch(dict_elem_plot[elt.info['nature']](elt, **kwargs))
 
     ax.set_xlim(dict_x_axis[x_axis](elt, i)[1])
     ax.set_yticklabels([])
@@ -179,6 +176,24 @@ def _plot_field_map(field_map, x0, width):
     patch = pat.Ellipse((x0 + .5*width, y0), width, height, fill=True, lw=0.5,
                         fc=dict_colors[field_map.info['status']], ec='k')
     return patch
+
+
+def plot_section(linac, ax, x_axis='s'):
+    """Add light grey rectangles behind the plot to show the sections."""
+    dict_x_axis = {
+        'last_elt_of_sec': lambda sec: sec[-1][-1],
+        's': lambda elt: linac.synch.z['abs_array'][elt.idx['out']],
+        'elt': lambda elt: linac.where_is(elt) + 1,
+        }
+    x_ax = [0]
+    for i, section in enumerate(linac.elements['sections']):
+        elt = dict_x_axis['last_elt_of_sec'](section)
+        x_ax.append(dict_x_axis[x_axis](elt))
+
+    for i in range(len(x_ax) - 1):
+        if i % 2 == 1:
+            ax.axvspan(x_ax[i], x_ax[i+1], ymin=-1e8, ymax=1e8, fill=True,
+                       alpha=.1, fc='k')
 
 
 # =============================================================================

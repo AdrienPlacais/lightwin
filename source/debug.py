@@ -297,11 +297,13 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
     axlist[0].legend()
 
 
-def _single_plot(axx, xydata, dicts, filepath_ref, linac):
+def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
     """Plot proper data in proper subplot."""
     x_dat = xydata[0]
     y_d = xydata[1]
     elts_indexes = linac.get_from_elements('idx', 'out')
+    if plot_section:
+        helper.plot_section(linac, axx, x_axis=x_dat)
     if y_d == 'struct':
         helper.plot_structure(linac, axx, x_axis=x_dat)
 
