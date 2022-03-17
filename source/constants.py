@@ -37,7 +37,7 @@ FLAG_PHI_ABS = True
 E_MEV = 16.6
 F_BUNCH_MHZ = 176.1
 
-N_STEPS_PER_CELL = 2
+N_STEPS_PER_CELL = 20
 
 # =============================================================================
 # Simulation constants -- end of user interface

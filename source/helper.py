@@ -145,7 +145,7 @@ def _plot_drift(drift, x0, width):
     """Add a little rectangle to show a drift."""
     height = .4
     y0 = .3
-    patch = pat.Rectangle((x0, y0), width, height, fill=False)
+    patch = pat.Rectangle((x0, y0), width, height, fill=False, lw=0.5)
     return patch
 
 
@@ -156,7 +156,7 @@ def _plot_quad(quad, x0, width):
     path = np.array(([x0, y0], [x0 + width, y0], [x0 + width, y0 + height],
                      [x0, y0 + height], [x0, y0], [x0 + width, y0 + height],
                      [np.NaN, np.NaN], [x0, y0 + height], [x0 + width, y0]))
-    patch = pat.Polygon(path, closed=False, fill=False)
+    patch = pat.Polygon(path, closed=False, fill=False, lw=0.5)
     return patch
 
 
@@ -170,7 +170,7 @@ def _plot_field_map(field_map, x0, width):
         'rephased': 'yellow',
         'nominal': 'green',
         }
-    patch = pat.Ellipse((x0 + .5*width, y0), width, height, fill=True,
+    patch = pat.Ellipse((x0 + .5*width, y0), width, height, fill=True, lw=0.5,
                         fc=dict_colors[field_map.info['status']], ec='k')
     return patch
 

@@ -483,10 +483,10 @@ def _create_output_fit_dicts(initial_guess, bounds, list_of_ref_cav):
         'phi_0_rel': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                            'Fixed',
                                            'Orig.', '(var %)')),
-        'phi_0_abs': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.', 'Fixed',
-                                           'Orig.', '(var %)')),
-        'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.', 'Fixed', 'Orig.',
-                                      '(var %)')),
+        'phi_0_abs': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
+                                           'Fixed', 'Orig.', '(var %)')),
+        'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
+                                      'Fixed', 'Orig.', '(var %)')),
         }
     dict_attribute = {
         'phi_0_rel': lambda acc_f: np.rad2deg(acc_f.phi_0['rel']),

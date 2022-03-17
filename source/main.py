@@ -82,7 +82,7 @@ PLOTS = [
     "phase",
     "cav",
     ]
-PLOT_TM = True
+PLOT_TM = False
 PHASE_SPACE = False
 TWISS = False
 
