@@ -47,7 +47,7 @@ def simple_plot(x, y, label_x, label_y, fignum=33):
     axlist[0].grid(True)
 
 
-def create_fig_if_not_exist(fignum, axnum):
+def create_fig_if_not_exist(fignum, axnum, sharex=False):
     """
     Check if figures were already created, create it if not.
 
@@ -68,8 +68,9 @@ def create_fig_if_not_exist(fignum, axnum):
 
     else:
         fig = plt.figure(fignum)
-        for i in axnum:
-            axlist.append(fig.add_subplot(i))
+        axlist.append(fig.add_subplot(axnum[0]))
+        for i in axnum[1:]:
+            axlist.append(fig.add_subplot(i, sharex=axlist[0]))
 
     return fig, axlist
 
