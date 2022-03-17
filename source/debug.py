@@ -287,7 +287,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
     # Plot
     first_axnum = len(y_dat) * 100 + 11
     _, axlist = helper.create_fig_if_not_exist(
-        fignum, range(first_axnum, first_axnum + len(y_dat)), sharex='all',
+        fignum, range(first_axnum, first_axnum + len(y_dat)), sharex=True,
         )
 
     for i, y_d in enumerate(y_dat):

@@ -69,8 +69,9 @@ def create_fig_if_not_exist(fignum, axnum, sharex=False):
     else:
         fig = plt.figure(fignum)
         axlist.append(fig.add_subplot(axnum[0]))
+        dict_sharex = {True: axlist[0], False: None}
         for i in axnum[1:]:
-            axlist.append(fig.add_subplot(i, sharex=axlist[0]))
+            axlist.append(fig.add_subplot(i, sharex=dict_sharex[sharex]))
 
     return fig, axlist
 
