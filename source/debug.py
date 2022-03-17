@@ -171,18 +171,18 @@ def _reformat(x_data, y_data, elts_indexes):
 def _create_plot_dicts():
     # [label, marker]
     dict_plot = {
-        's': ['Synch. position [m]', '.'],
-        'elt': ['Element number',  '.'],
-        'energy': ['Beam energy [MeV]',  '.'],
-        'energy_err': ['Abs. error [keV]',  '.'],
-        'abs_phase': ['Beam phase [deg]',  '.'],
-        'abs_phase_err': ['Phase error [deg]',  '.'],
-        'beta_synch': [r'Synch. $\beta$ [1]',  '.'],
-        'beta_synch_err': [r'Abs. $\beta$ error [1]',  '.'],
-        'struct': ['Structure',  '.'],
-        'v_cav_mv': ['Acc. field [MV]', 'o'],
-        'phi_s_deg': ['Synch. phase [deg]', 'o'],
-        'field_map_factor': [r'$k_e$ [1]', 'o'],
+            's': ['Synch. position [m]', {'marker': None}],
+            'elt': ['Element number', {'marker': None}],
+            'energy': ['Beam energy [MeV]', {'marker': None}],
+            'energy_err': ['Abs. error [keV]', {'marker': None}],
+            'abs_phase': ['Beam phase [deg]', {'marker': None}],
+            'abs_phase_err': ['Phase error [deg]', {'marker': None}],
+            'beta_synch': [r'Synch. $\beta$ [1]', {'marker': None}],
+            'beta_synch_err': [r'Abs. $\beta$ error [1]', {'marker': None}],
+            'struct': ['Structure', {'marker': None}],
+            'v_cav_mv': ['Acc. field [MV]', {'marker': 'o'}],
+            'phi_s_deg': ['Synch. phase [deg]', {'marker': 'o'}],
+            'field_map_factor': [r'$k_e$ [1]', {'marker': 'o'}],
         }
 
     dict_x_data = {
@@ -302,14 +302,18 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac):
             y_data_ref = tw.load_tw_results(filepath_ref, y_d)
             x_data_ref, y_data_ref = _reformat(x_data_ref, y_data_ref,
                                                elts_indexes)
-            axx.plot(x_data_ref, y_data_ref, dicts['plot'][y_d][1], label='TW',
-                     c='k', ls='--', linewidth=2.)
+            axx.plot(x_data_ref, y_data_ref, label='TW',
+                     c='k', ls='--', linewidth=2., **dicts['plot'][y_d][1])
         axx.grid(True)
         x_data = dicts['x_data'][x_dat](linac)
         y_data = dicts['y_data_lw'][y_d](linac)
         x_data, y_data = _reformat(x_data, y_data, elts_indexes)
-        axx.plot(x_data, y_data, dicts['plot'][y_d][1],
-                 label='LW ' + linac.name, ls='-')
+        # dicts['plot'][y_d][1] is a dict that looks like to:
+        # {'marker': '+', 'linewidth': 5}
+        # ** (**kwargs) unpacks it to:
+        # marker='+', linewidth=5
+        axx.plot(x_data, y_data, label='LW ' + linac.name, ls='-',
+                 **dicts['plot'][y_d][1])
 
 
 def load_phase_space(accelerator):

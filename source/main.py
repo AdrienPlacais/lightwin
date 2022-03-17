@@ -68,6 +68,8 @@ WHAT_TO_FIT = {
     'position': 'end_of_last_comp_cav',
     # 'position': 'one_module_after_last_comp_cav',
     # 'position': 'both',
+    # 'position': 'end_of_last_comp_cav_after_each_fault', # TODO
+    # 'position': 'one_module_after_last_comp_cav_of_each_fault',  # TODO
     }
 FLAG_FIX = False
 SAVE_FIX = False
