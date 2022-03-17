@@ -311,17 +311,5 @@ def output_data_in_tw_fashion(linac):
                 data.append(row)
                 i += 1
 
-    # n_latt = linac.elements['n_per_lattice']
-    # for i, elt in enumerate(linac.elements['list']):
-    #     row = []
-    #     if i % n_latt == 0:
-    #         lattice_n = '--------M' + str(i // n_latt + 1)
-    #         data.append([np.NaN, lattice_n, '', np.NaN, np.NaN, np.NaN, np.NaN,
-    #                      np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN])
-    #     for key in larousse.keys():
-    #         row.append(larousse[key](i, elt, linac.synch))
-    #     data.append(row)
-        #  data.loc[i] = row
-        #  data.append(row, ignore_index=True)
     data = pd.DataFrame(data, columns=larousse.keys())
     return data

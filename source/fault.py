@@ -362,3 +362,51 @@ def wrapper(prop_array, fault_sce, method, fun_objective, idx_objective):
     # print('===============================================\n\n')
 
     return obj
+
+
+def find_location_of_faults(linac):
+    """Find which failed cavity we are talking about."""
+    shift_n_latt = [0]
+    for i, sec in enumerate(linac.elements['sections']):
+        shift_n_latt.append(shift_n_latt[i] + len(sec))
+# =============================================================================
+#     Failing cavities
+# =============================================================================
+    # Section numbers (first section is 1)
+    secs = [1, 1, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3]
+    # Lattice numbers (also start at 1, not re-initialized when changing of
+    # section)
+    latts = [4, 16, 16, 30, 31, 36, 40, 49, 49, 49, 49, 53]
+    # Number of the cavity in the lattice (start at 1)
+    pos_in_latt = [1, 1, 2, 1, 2, 1, 1, 1, 2, 3, 4, 4]
+
+    print("Failing cavities...")
+    idx_f_cav = []
+    for i, sec in enumerate(secs):
+        section = linac.elements['sections'][sec - 1]
+        latt = section[latts[i] - shift_n_latt[sec - 1] - 1]
+        cavities = linac.elements_of(nature='FIELD_MAP', sub_list=latt)
+        cav = cavities[pos_in_latt[i] - 1]
+
+        print(cav.info, 'Norm:', cav.acc_field.norm,
+              'phi_0', np.rad2deg(cav.acc_field.phi_0['nominal_rel']))
+
+        idx_f_cav.append(linac.where_is(cav))
+    print(idx_f_cav)
+
+# =============================================================================
+#     Compensating cavities
+# =============================================================================
+    secs =        [1, 1, 1, 1, 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,]
+    latts =       [3, 3, 4, 5, 5, 14, 14, 15, 15, 17, 17, 18, 18, 29, 29, 30, 31, 32, 32, 33, 33, 35, 35, 36, 37, 37, 39, 39, 40, 40, 40, 47, 47, 47, 47, 48, 48, 48, 48, 50, 50, 50, 50, 51, 51, 51, 51, 53, 53, 54, 54, 54, 54,]
+    pos_in_latt = [1, 2, 2, 1, 2,  1,  2,  1,  2,  1,  2,  1,  2,  1,  2,  2,  1,  1,  2,  1,  2,  1,  2,  2,  1,  2,  1,  2,  2,  3,  4,  1,  2,  3,  4,  1,  2,  3,  4,  1,  2,  3,  4,  1,  2,  3,  4,  2,  3,  1,  2,  3,  4,]
+
+    print("Compensating cavities...")
+    idx_c_cav = []
+    for i, sec in enumerate(secs):
+        section = linac.elements['sections'][sec - 1]
+        latt = section[latts[i] - shift_n_latt[sec - 1] - 1]
+        cavities = linac.elements_of(nature='FIELD_MAP', sub_list=latt)
+        cav = cavities[pos_in_latt[i] - 1]
+        idx_c_cav.append(linac.where_is(cav))
+    print(idx_c_cav)

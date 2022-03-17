@@ -34,8 +34,7 @@ class _Element():
             'name': None,
             'nature': elem[0],
             'status': None,    # Only make sense for cavities
-            # 'zone': 'HEBT',
-            'zone': 'LEBT',     # FIXME: automatic detection of the zone
+            'zone': None,
             }
         self.length_m = 1e-3 * float(elem[1])
 

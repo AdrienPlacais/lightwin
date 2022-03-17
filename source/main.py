@@ -46,8 +46,13 @@ if FILEPATH == "":
 # =============================================================================
 # Fault compensation
 # =============================================================================
-failed_cav = [25]
-manual_list = [7, 15, 17, 25, 27]
+# failed_cav = [25]
+# manual_list = [7, 15, 17, 25, 27]
+failed_cav = [35, 155, 157, 295, 307, 355, 395, 521, 523, 525, 527, 583]
+manual_list = [25, 27, 37, 45, 47, 135, 137, 145, 147, 165, 167, 175, 177, 285,
+               287, 297, 305, 315, 317, 325, 327, 345, 347, 357, 365, 367, 385,
+               387, 397, 399, 401, 493, 495, 497, 499, 507, 509, 511, 513, 535,
+               537, 539, 541, 549, 551, 553, 555, 579, 581, 591, 593, 595, 597]
 WHAT_TO_FIT = {
     # =========================================================================
     #     How compensatong cavities are chosen?
@@ -71,7 +76,7 @@ WHAT_TO_FIT = {
     # 'position': 'end_of_last_comp_cav_after_each_fault', # TODO
     # 'position': 'one_module_after_last_comp_cav_of_each_fault',  # TODO
     }
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # =============================================================================
@@ -116,7 +121,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac]#, broken_linac]
+linacs = [ref_linac, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)
@@ -156,6 +161,3 @@ for lin in linacs:
 # =============================================================================
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
-
-import numpy as np
-print(np.rad2deg(broken_linac.synch.phi['abs_array'][-1]))

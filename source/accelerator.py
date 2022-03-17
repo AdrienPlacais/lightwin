@@ -85,6 +85,12 @@ class Accelerator():
                 lattices.append(list_of_elements[j:j+n_lattice])
                 j += n_lattice
             sections.append(lattices)
+
+        zones = ['LEBT', 'MEBT', 'HEBT']
+        for i, sec in enumerate(sections):
+            for lattice in sec:
+                for elt in lattice:
+                    elt.info['zone'] = zones[i]
         return list_of_elements, sections, dict_struct['frequencies']
 
     def _prepare_sections_and_lattices(self, list_of_elements):
