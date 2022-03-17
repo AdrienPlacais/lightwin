@@ -79,8 +79,8 @@ SAVE_FIX = False
 # =============================================================================
 PLOTS = [
     "energy",
-    "phase",
-    "cav",
+    # "phase",
+    # "cav",
     ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -126,7 +126,7 @@ for lin in linacs:
             basic_fault.transfer_phi0_from_ref_to_broken()
 
         for plot in PLOTS:
-            debug.compare_with_tracewin(lin, x_dat="s",
+            debug.compare_with_tracewin(lin, x_dat="elt",
                                         y_dat=DICT_PLOTS_PRESETS[plot][0],
                                         fignum=DICT_PLOTS_PRESETS[plot][1])
         if PLOT_TM:

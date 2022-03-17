@@ -199,7 +199,7 @@ def _create_plot_dicts():
 
     dict_x_data = {
         's': lambda lin: lin.synch.z['abs_array'],
-        'elt': lambda lin: range(lin.elements['n']),
+        'elt': lambda lin: np.array(range(lin.elements['n'])),
         }
 
     # LW y data

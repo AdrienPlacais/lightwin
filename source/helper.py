@@ -120,16 +120,19 @@ def plot_structure(linac, ax, x_axis='s'):
         'QUAD': _plot_quad,
         'FIELD_MAP': _plot_field_map,
         }
-    i = 0
-    for elt in linac.elements['list']:
-        if x_axis == 's':
-            x0 = elt.pos_m['abs'][0]
-            width = elt.length_m
-        elif x_axis == 'elt':
-            x0 = i
-            width = 1
-        ax.add_patch(dict_elem_plot[elt.info['nature']](elt, x0, width))
-        i += 1
+    start = 0
+    for j, section in enumerate(linac.elements['sections']):
+        for lattice in section:
+            for i, elt in enumerate(lattice, start):
+                if x_axis == 's':
+                    x0 = elt.pos_m['abs'][0]
+                    width = elt.length_m
+                elif x_axis == 'elt':
+                    x0 = i
+                    width = 1
+                ax.add_patch(dict_elem_plot[elt.info['nature']](elt, x0,
+                                                                width))
+            start += len(lattice)
 
     if x_axis == 's':
         ax.set_xlim([linac.elements['list'][0].pos_m['abs'][0],
