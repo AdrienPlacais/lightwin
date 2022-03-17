@@ -23,8 +23,6 @@ class RfField():
     """
 
     def __init__(self, norm=np.NaN, absolute_phase_flag=0, phi_0=None):
-        self.omega0_rf = None#
-
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
 
@@ -37,6 +35,9 @@ class RfField():
             'phi_s_deg': np.NaN,
             'integrated_field': 0.
             }
+
+        # Initialized later as it depends on the Section the cavity is in
+        self.omega0_rf, self.n_cell = None, None
 
     def init_freq_ncell(self, f_mhz, n_cell):
         """Initialize the frequency and the number of cells."""

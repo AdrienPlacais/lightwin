@@ -41,7 +41,7 @@ class _Element():
 
         # By default, an element is non accelerating and has a dummy
         # accelerating field.
-        self.acc_field = RfField(0.)
+        self.acc_field = RfField()
 
         self.pos_m = {
             'abs': None,
