@@ -35,6 +35,7 @@ class _Element():
             'nature': elem[0],
             'status': None,    # Only make sense for cavities
             'zone': None,
+            'lattice_number': None,
             }
         self.length_m = 1e-3 * float(elem[1])
 
@@ -47,8 +48,9 @@ class _Element():
             'rel': None,
             }
         self.idx = {
-            'in': None,         # @TODO: replace by synch_in
+            'in': None,         # TODO: replace by synch_in
             'out': None,
+            'nested': None,
             }
         # tmat stands for 'transfer matrix'
         self.tmat = {

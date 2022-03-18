@@ -88,11 +88,15 @@ class Accelerator():
             sections.append(lattices)
 
         zones = ['LEBT', 'MEBT', 'HEBT']
+        shift_lattice = 1
         for i, sec in enumerate(sections):
-            for lattice in sec:
-                for elt in lattice:
+            for j, lattice in enumerate(sec):
+                for k, elt in enumerate(lattice):
                     elt.info['zone'] = zones[i]
-
+                    elt.idx['nested'] = [(i, j, k)]
+                    elt.info['lattice_number'] = j + shift_lattice
+            shift_lattice += j + 1
+        print(elt.info, elt.idx)
         lattices = []
         for sec in sections:
             lattices += sec
@@ -155,7 +159,7 @@ class Accelerator():
 
             idx['in'] = idx['out']
             idx['out'] += elt.tmat['solver_param']['n_steps']
-            elt.idx = idx.copy()
+            elt.idx['in'], elt.idx['out'] = idx['in'], idx['out']
         return idx['out']
 
     def _check_consistency_phases(self):
