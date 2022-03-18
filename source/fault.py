@@ -9,6 +9,7 @@ Module holding all the fault-related functions.
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
+import itertools
 import numpy as np
 from scipy.optimize import minimize, least_squares
 from constants import FLAG_PHI_ABS, STR_PHI_ABS
@@ -20,18 +21,25 @@ dict_phase = {
     False: lambda elt: elt.acc_field.phi_0['rel']
     }
 
+n_comp_cav_per_fault = 2
+
 
 class FaultScenario():
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_linac, broken_linac):
+    def __init__(self, ref_linac, broken_linac, l_idx_cav):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
 
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
 
-        self.list_of_faults = []
+        self.faults = {
+            'l_faults_obj': [],
+            'l_idx_cav': sorted(l_idx_cav),
+                }
+        self.list_of_faults = []    # TODO: remove
+        self.distribute_faults()
 
         self.fail_list = []
         self.comp_list = {
@@ -54,9 +62,24 @@ class FaultScenario():
 
     def distribute_faults(self):
         """Create the Fault objects."""
-        # First, get lattice of every failed cav
-        for f in self.fail_list:
-            self.list_of_faults.append(Fault(f, self.brok_lin))
+        assert n_comp_cav_per_fault % 2 == 0
+
+        def are_close(idx1, idx2):
+            latt1 = self.brok_lin.elements['list'][idx1].info['lattice_number']
+            latt2 = self.brok_lin.elements['list'][idx2].info['lattice_number']
+            return abs(latt1 - latt2) <= n_comp_cav_per_fault / 2
+        grouped_faults = [[idx1
+                           for idx1 in self.faults['l_idx_cav']
+                           if are_close(idx1, idx2)]
+                          for idx2 in self.faults['l_idx_cav']]
+        # Remove doublons
+        grouped_faults = list(grouped_faults
+                              for grouped_faults, _ in itertools.groupby(
+                                      grouped_faults
+                                      ))
+
+        for f in grouped_faults:
+            self.faults['l_faults_obj'].append(Fault(f, self.brok_lin))
 
     def fix_all(self):
         """
@@ -77,7 +100,7 @@ class Fault():
         self.brok_lin = brok_lin
 
         self.break_at(fail_idx)
-        self._select_compensating_cavities()
+        # self._select_compensating_cavities()
 
     def break_at(self, fail_idx):
         """

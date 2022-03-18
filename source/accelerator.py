@@ -96,7 +96,6 @@ class Accelerator():
                     elt.idx['nested'] = [(i, j, k)]
                     elt.info['lattice_number'] = j + shift_lattice
             shift_lattice += j + 1
-        print(elt.info, elt.idx)
         lattices = []
         for sec in sections:
             lattices += sec

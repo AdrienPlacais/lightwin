@@ -83,9 +83,9 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
+    # "energy",
+    # "phase",
+    # "cav",
     ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -104,10 +104,10 @@ start_time = time.monotonic()
 # =============================================================================
 FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(FILEPATH, "Working")
-# broken_linac = acc.Accelerator(FILEPATH, "Broken")
+broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
 
-# basic_fault = fault.FaultScenario(ref_linac, broken_linac)
+fail = fault.FaultScenario(ref_linac, broken_linac, failed_cav)
 # basic_fault.break_at(failed_cav)
 
 DICT_PLOTS_PRESETS = {
