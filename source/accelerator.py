@@ -312,23 +312,6 @@ class Accelerator():
 
         return idx
 
-    def where_is_section(self, elt):
-        """Give the abs position of the element."""
-        idx = {
-            'absolute_lattice': None,
-            'absolute_element': self.elements['list'].index(elt),
-            'nested': [(idsec, idlatt, idelt)
-                       for (idsec, sec) in enumerate(self.elements['sections'])
-                       for (idlatt, latt) in enumerate(sec)
-                       for (idelt, elem) in enumerate(latt)
-                       if elem is elt][0]
-            }
-        idx['absolute_lattice'] = idx['nested'][1]
-        for n_sec in range(idx['nested'][0]):
-            idx['absolute_lattice'] += len(self.elements['sections'][n_sec])
-
-        return idx
-
     def where_is_this_index(self, idx, showinfo=False):
         """Give an equivalent index."""
         for elt in self.elements['list']:
