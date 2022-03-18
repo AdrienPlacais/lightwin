@@ -57,8 +57,8 @@ WHAT_TO_FIT = {
     # =========================================================================
     #     How compensatong cavities are chosen?
     # =========================================================================
-    # 'strategy': 'manual',
-    'strategy': 'neighbors',
+    'strategy': 'manual',
+    # 'strategy': 'neighbors',
     # =========================================================================
     #     What should we fit?
     # =========================================================================
@@ -76,7 +76,7 @@ WHAT_TO_FIT = {
     # 'position': 'end_of_last_comp_cav_after_each_fault', # TODO
     # 'position': 'one_module_after_last_comp_cav_of_each_fault',  # TODO
     }
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 # =============================================================================
@@ -84,8 +84,8 @@ SAVE_FIX = False
 # =============================================================================
 PLOTS = [
     "energy",
-    # "phase",
-    # "cav",
+    "phase",
+    "cav",
     ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -104,11 +104,11 @@ start_time = time.monotonic()
 # =============================================================================
 FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(FILEPATH, "Working")
-broken_linac = acc.Accelerator(FILEPATH, "Broken")
+# broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
 
-basic_fault = fault.FaultScenario(ref_linac, broken_linac)
-basic_fault.break_at(failed_cav)
+# basic_fault = fault.FaultScenario(ref_linac, broken_linac)
+# basic_fault.break_at(failed_cav)
 
 DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
@@ -121,14 +121,14 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac, broken_linac]
+linacs = [ref_linac]#, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)
 
         # FIXME find a way to make this part cleaner
-        if lin.name == 'Working':
-            basic_fault.transfer_phi0_from_ref_to_broken()
+        # if lin.name == 'Working':
+            # basic_fault.transfer_phi0_from_ref_to_broken()
 
         for plot in PLOTS:
             debug.compare_with_tracewin(lin, x_dat="s",
@@ -148,13 +148,13 @@ for lin in linacs:
             DICT_SAVES[save](lin)
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
-        if FLAG_FIX and lin.name == "Broken":
-            basic_fault.fix(method, WHAT_TO_FIT, manual_list)
-            if SAVE_FIX:
-                tw.save_new_dat(broken_linac, FILEPATH)
-            # Redo this whole loop with a fixed linacTrue
-            linacs.append(broken_linac)
-            info = basic_fault.info['fit']
+        # if FLAG_FIX and lin.name == "Broken":
+        #     basic_fault.fix(method, WHAT_TO_FIT, manual_list)
+        #     if SAVE_FIX:
+        #         tw.save_new_dat(broken_linac, FILEPATH)
+        #     # Redo this whole loop with a fixed linacTrue
+        #     linacs.append(broken_linac)
+        #     info = basic_fault.info['fit']
 
 # =============================================================================
 # End

@@ -31,6 +31,8 @@ class FaultScenario():
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
 
+        self.list_of_faults = []
+
         self.fail_list = []
         self.comp_list = {
             'only_cav': [],
@@ -50,6 +52,33 @@ class FaultScenario():
                   'it would avoid the implicit rephasing of the linac at',
                   'each cavity.\n')
 
+    def distribute_faults(self):
+        """Create the Fault objects."""
+        # First, get lattice of every failed cav
+        for f in self.fail_list:
+            self.list_of_faults.append(Fault(f, self.brok_lin))
+
+    def fix_all(self):
+        """
+        Fix the linac.
+
+        First, fix all the Faults independently. Then, recompute the linac
+        and make small adjustments.
+        """
+        for fault in self.list_of_faults:
+            fault.fix_single(self.what_to_fit, self.manual_list)
+
+
+class Fault():
+    """A class to hold one or several close Faults."""
+
+    def __init__(self, fail_idx, brok_lin):
+        self.fail_list = []
+        self.brok_lin = brok_lin
+
+        self.break_at(fail_idx)
+        self._select_compensating_cavities()
+
     def break_at(self, fail_idx):
         """
         Break cavities at indices fail_idx.
@@ -67,6 +96,49 @@ class FaultScenario():
             cav = self.brok_lin.elements['list'][idx]
             cav.update_status('failed')
             self.fail_list.append(cav)
+
+
+    def _select_compensating_cavities(self):
+         """
+         Select the cavities that will be used for compensation.
+         """
+         self.what_to_fit = what_to_fit
+         if self.what_to_fit['strategy'] == 'manual':
+             self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx]
+                                           for idx in manual_list]
+
+         elif self.what_to_fit['strategy'] == 'neighbors':
+             modules_with_fail = [
+                 module
+                 for module in self.brok_lin.elements['list_lattice']
+                 for elt in module
+                 if elt.info['status'] == 'failed'
+                 ]
+             # TODO: replace this with a coomprehension list
+             comp_modules = self._select_comp_modules(modules_with_fail)
+
+             self.comp_list['only_cav'] = [
+                      cav
+                      for module in comp_modules
+                      for cav in module
+                      if cav.info['nature'] == 'FIELD_MAP'
+                      and cav.info['status'] == 'nominal'
+                      ]
+
+         self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
+                                             key=lambda elt: elt.idx['in'])
+
+         # Change info of all the compensating cavities
+         for cav in self.comp_list['only_cav']:
+             cav.update_status('compensate')
+
+         # We take everything between first and last compensating cavities
+         self.comp_list['all_elts'] = []
+         elts = self.brok_lin.elements['list']
+         for i in range(elts.index(self.comp_list['only_cav'][0]),
+                        elts.index(self.comp_list['only_cav'][-1])+1):
+             self.comp_list['all_elts'].append(elts[i])
+         # TODO : better with a comprehension list?
 
     def _select_cavities_to_rephase(self):
         """
@@ -128,54 +200,9 @@ class FaultScenario():
         # as well as faulty modules
         return neighbor_modules + modules_with_fail
 
-    def _select_compensating_cavities(self, what_to_fit, manual_list):
-        """
-        Select the cavities that will be used for compensation.
 
-        All compensating cavities are added to comp_list['only_cav'], and their
-        info['compensate'] flag is switched to True.
-        comp_list['all_elts'] also contains drifts, quads, etc of the
-        compensating modules.
-        """
-        self.what_to_fit = what_to_fit
-        if self.what_to_fit['strategy'] == 'manual':
-            self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx]
-                                          for idx in manual_list]
 
-        elif self.what_to_fit['strategy'] == 'neighbors':
-            modules_with_fail = [
-                module
-                for module in self.brok_lin.elements['list_lattice']
-                for elt in module
-                if elt.info['status'] == 'failed'
-                ]
-            # TODO: replace this with a coomprehension list
-            comp_modules = self._select_comp_modules(modules_with_fail)
-
-            self.comp_list['only_cav'] = [
-                     cav
-                     for module in comp_modules
-                     for cav in module
-                     if cav.info['nature'] == 'FIELD_MAP'
-                     and cav.info['status'] == 'nominal'
-                     ]
-
-        self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
-                                            key=lambda elt: elt.idx['in'])
-
-        # Change info of all the compensating cavities
-        for cav in self.comp_list['only_cav']:
-            cav.update_status('compensate')
-
-        # We take everything between first and last compensating cavities
-        self.comp_list['all_elts'] = []
-        elts = self.brok_lin.elements['list']
-        for i in range(elts.index(self.comp_list['only_cav'][0]),
-                       elts.index(self.comp_list['only_cav'][-1])+1):
-            self.comp_list['all_elts'].append(elts[i])
-        # TODO : better with a comprehension list?
-
-    def fix(self, method, what_to_fit, manual_list=None):
+    def fix_single(self, method, what_to_fit, manual_list=None):
         """
         Try to compensate the faulty cavities.
 
@@ -343,6 +370,9 @@ class FaultScenario():
         return fun_multi_objective, idx_pos_list
 
 
+
+
+
 # TODO: set constraints on the synch phase
 def wrapper(prop_array, fault_sce, method, fun_objective, idx_objective):
     """Fit function."""
@@ -375,12 +405,12 @@ def find_location_of_faults(linac):
 #     Failing cavities
 # =============================================================================
     # Section numbers (first section is 1)
-    secs = [1, 1, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3]
     # Lattice numbers (also start at 1, not re-initialized when changing of
     # section)
-    latts = [4, 16, 16, 30, 31, 36, 40, 49, 49, 49, 49, 53]
+    secs =          [1,  1,  1,  1,  2,  2,  3,  3,  3,  3,  3,  3]
+    latts =         [4, 16, 16, 30, 31, 36, 40, 49, 49, 49, 49, 53]
+    pos_in_latt =   [1,  1,  2,  1,  2,  1,  1,  1,  2,  3,  4,  4]
     # Number of the cavity in the lattice (start at 1)
-    pos_in_latt = [1, 1, 2, 1, 2, 1, 1, 1, 2, 3, 4, 4]
 
     print("Failing cavities...")
     idx_f_cav = []
