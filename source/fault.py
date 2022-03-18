@@ -21,7 +21,7 @@ dict_phase = {
     False: lambda elt: elt.acc_field.phi_0['rel']
     }
 
-n_comp_cav_per_fault = 2
+n_comp_latt_per_fault = 2
 
 
 class FaultScenario():
@@ -35,11 +35,11 @@ class FaultScenario():
         assert broken_linac.synch.info['reference'] is False
 
         self.faults = {
-            'l_faults_obj': [],
-            'l_idx_cav': sorted(l_idx_cav),
+            'l_obj': [],
+            'l_idx': sorted(l_idx_cav),
                 }
         self.list_of_faults = []    # TODO: remove
-        self.distribute_faults()
+        self.faults['l_obj'] = self.distribute_faults()
 
         self.fail_list = []
         self.comp_list = {
@@ -61,25 +61,52 @@ class FaultScenario():
                   'each cavity.\n')
 
     def distribute_faults(self):
-        """Create the Fault objects."""
-        assert n_comp_cav_per_fault % 2 == 0
+        """
+        Create the Fault objects.
+
+        First we gather faults indices that are in the same or neighboring
+        lattices.
+        Then we determine which cavities will compensate these faults. If two
+        different faults need the same cavity, we merge them.
+        """
+        assert n_comp_latt_per_fault % 2 == 0, 'You need an even number of ' \
+            + 'compensating lattices per faulty cav to distribute them ' \
+            + 'equally.'
+        assert all([self.brok_lin.elements['list'][idx].info['nature']
+                    == 'FIELD_MAP'
+                    for idx in self.faults['l_idx']]), 'Not all failed '\
+            'cavities that you asked are cavities.'
 
         def are_close(idx1, idx2):
             latt1 = self.brok_lin.elements['list'][idx1].info['lattice_number']
             latt2 = self.brok_lin.elements['list'][idx2].info['lattice_number']
-            return abs(latt1 - latt2) <= n_comp_cav_per_fault / 2
-        grouped_faults = [[idx1
-                           for idx1 in self.faults['l_idx_cav']
-                           if are_close(idx1, idx2)]
-                          for idx2 in self.faults['l_idx_cav']]
+            return abs(latt1 - latt2) <= n_comp_latt_per_fault / 2
+        # Regroup faults that are too close to each other as they will be fixed
+        # at the same moment
+        grouped_faults_idx = [[idx1
+                               for idx1 in self.faults['l_idx']
+                               if are_close(idx1, idx2)]
+                              for idx2 in self.faults['l_idx']]
         # Remove doublons
-        grouped_faults = list(grouped_faults
-                              for grouped_faults, _ in itertools.groupby(
-                                      grouped_faults
-                                      ))
+        grouped_faults_idx = \
+            list(grouped_faults_idx
+                 for grouped_faults_idx, _
+                 in itertools.groupby(grouped_faults_idx))
 
-        for f in grouped_faults:
-            self.faults['l_faults_obj'].append(Fault(f, self.brok_lin))
+        # Create Fault objects
+        l_faults_obj = []
+        for f_idx in grouped_faults_idx:
+            l_faults_obj.append(Fault(self.brok_lin, f_idx))
+        # Get cavities necessary for every Fault
+        all_comp_cav = []
+        for fault in l_faults_obj:
+            all_comp_cav.append(fault.select_compensating_cavities())
+        print('Check that there is no cavity in common.')
+
+        for (fault, l_comp_cav) in zip(l_faults_obj, all_comp_cav):
+            fault.update_status_cavities(l_comp_cav)
+
+        return l_faults_obj
 
     def fix_all(self):
         """
@@ -95,12 +122,104 @@ class FaultScenario():
 class Fault():
     """A class to hold one or several close Faults."""
 
-    def __init__(self, fail_idx, brok_lin):
-        self.fail_list = []
+    def __init__(self, brok_lin, fail_idx):
         self.brok_lin = brok_lin
+        self.fail = {'l_cav': [], 'l_idx': fail_idx}
+        self.comp = {'l_cav': [], 'l_all_elts': None}
 
-        self.break_at(fail_idx)
-        # self._select_compensating_cavities()
+    def select_compensating_cavities(self):
+        """Determine the cavitites to compensate the failed cav(s)."""
+        comp_lattices_idx = []
+        l_lattices = [lattice
+                      for section in self.brok_lin.elements['sections']
+                      for lattice in section
+                      ]
+        # Get lattices neighboring each faulty cavity
+        # FIXME: too many lattices for faults in Section 3
+        for idx in self.fail['l_idx']:
+            failed_cav = self.brok_lin.elements['list'][idx]
+            idx_lattice = failed_cav.info['lattice_number'] - 1
+            for shift in [-1, +1]:
+                idx = idx_lattice + shift
+                while ((idx in comp_lattices_idx)
+                       and (idx in range(0, len(l_lattices)))):
+                    idx += shift
+                # FIXME: dirty hack
+                if abs(idx - idx_lattice) < 3:
+                    comp_lattices_idx.append(idx)
+                # Also add the lattice with the fault. Will be used if there
+                # is a least one working cavity inside
+                if idx_lattice not in comp_lattices_idx:
+                    comp_lattices_idx.append(idx_lattice)
+        comp_lattices_idx.sort()
+
+        # List of all elements of the compensating zone
+        self.comp['l_all_elts'] = [elt
+                                   for latt_idx in comp_lattices_idx
+                                   for elt in l_lattices[latt_idx]
+                                   ]
+        # List of compensating (+ broken) cavitites
+        l_comp_cav = [cav
+                      for cav in self.comp['l_all_elts']
+                      if cav.info['nature'] == 'FIELD_MAP'
+                      ]
+
+        return l_comp_cav
+
+    def update_status_cavities(self, l_comp_cav):
+        """Give status 'compensate' and 'broken' to proper cavities."""
+        for idx in self.fail['l_idx']:
+            cav = self.brok_lin.elements['list'][idx]
+            cav.update_status('failed')
+            l_comp_cav.remove(cav)
+            self.fail['l_cav'].append(cav)
+
+        for cav in l_comp_cav:
+            if cav.info['status'] != 'nominal':
+                print('warning check fault.update_status_cavities: ',
+                      'several faults want the same compensating cavity!')
+            cav.update_status('compensate')
+            self.comp['l_cav'].append(cav)
+
+    # def select_compensating_cavities(self, what_to_fit, manual_list=[]):
+    #     """Select the cavities that will be used for compensation."""
+    #     self.what_to_fit = what_to_fit
+    #     if self.what_to_fit['strategy'] == 'manual':
+    #         self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx]
+    #                                       for idx in manual_list]
+
+    #     elif self.what_to_fit['strategy'] == 'neighbors':
+    #         modules_with_fail = [
+    #             module
+    #             for module in self.brok_lin.elements['list_lattice']
+    #             for elt in module
+    #             if elt.info['status'] == 'failed'
+    #             ]
+    #         # TODO: replace this with a coomprehension list
+    #         comp_modules = self._select_comp_modules(modules_with_fail)
+
+    #         self.comp_list['only_cav'] = [
+    #                  cav
+    #                  for module in comp_modules
+    #                  for cav in module
+    #                  if cav.info['nature'] == 'FIELD_MAP'
+    #                  and cav.info['status'] == 'nominal'
+    #                  ]
+
+    #     self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
+    #                                         key=lambda elt: elt.idx['in'])
+
+    #     # Change info of all the compensating cavities
+    #     for cav in self.comp_list['only_cav']:
+    #         cav.update_status('compensate')
+
+    #     # We take everything between first and last compensating cavities
+    #     self.comp_list['all_elts'] = []
+    #     elts = self.brok_lin.elements['list']
+    #     for i in range(elts.index(self.comp_list['only_cav'][0]),
+    #                    elts.index(self.comp_list['only_cav'][-1])+1):
+    #         self.comp_list['all_elts'].append(elts[i])
+    #     # TODO : better with a comprehension list?
 
     def break_at(self, fail_idx):
         """
@@ -119,49 +238,6 @@ class Fault():
             cav = self.brok_lin.elements['list'][idx]
             cav.update_status('failed')
             self.fail_list.append(cav)
-
-
-    def _select_compensating_cavities(self):
-         """
-         Select the cavities that will be used for compensation.
-         """
-         self.what_to_fit = what_to_fit
-         if self.what_to_fit['strategy'] == 'manual':
-             self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx]
-                                           for idx in manual_list]
-
-         elif self.what_to_fit['strategy'] == 'neighbors':
-             modules_with_fail = [
-                 module
-                 for module in self.brok_lin.elements['list_lattice']
-                 for elt in module
-                 if elt.info['status'] == 'failed'
-                 ]
-             # TODO: replace this with a coomprehension list
-             comp_modules = self._select_comp_modules(modules_with_fail)
-
-             self.comp_list['only_cav'] = [
-                      cav
-                      for module in comp_modules
-                      for cav in module
-                      if cav.info['nature'] == 'FIELD_MAP'
-                      and cav.info['status'] == 'nominal'
-                      ]
-
-         self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
-                                             key=lambda elt: elt.idx['in'])
-
-         # Change info of all the compensating cavities
-         for cav in self.comp_list['only_cav']:
-             cav.update_status('compensate')
-
-         # We take everything between first and last compensating cavities
-         self.comp_list['all_elts'] = []
-         elts = self.brok_lin.elements['list']
-         for i in range(elts.index(self.comp_list['only_cav'][0]),
-                        elts.index(self.comp_list['only_cav'][-1])+1):
-             self.comp_list['all_elts'].append(elts[i])
-         # TODO : better with a comprehension list?
 
     def _select_cavities_to_rephase(self):
         """
