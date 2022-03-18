@@ -519,7 +519,7 @@ def _create_output_fit_dicts(initial_guess, bounds, list_of_ref_cav):
     return all_dicts
 
 
-def output_fit(fault_scenario, initial_guess, bounds, out=True):
+def output_fit(fault, initial_guess, bounds, out=True):
     """Output relatable parameters of fit."""
     # We change the shape of the bounds if necessary
     if not isinstance(bounds, tuple):
@@ -528,13 +528,13 @@ def output_fit(fault_scenario, initial_guess, bounds, out=True):
     # Get list of compensating cavities, and their original counterpart in
     # the reference linac
     list_of_cav = {
-        'compensating': fault_scenario.comp_list['only_cav'],
+        'compensating': fault.comp['l_cav'],
         'ref_equivalents': [],
             }
     for i, comp_cav in enumerate(list_of_cav['compensating']):
-        idx = fault_scenario.brok_lin.where_is(comp_cav)
+        idx = fault.brok_lin.where_is(comp_cav)
         list_of_cav['ref_equivalents'].append(
-            fault_scenario.ref_lin.elements['list'][idx])
+            fault.ref_lin.elements['list'][idx])
 
     dicts = _create_output_fit_dicts(initial_guess, bounds,
                                      list_of_cav['ref_equivalents'])

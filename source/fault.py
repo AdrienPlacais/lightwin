@@ -96,7 +96,7 @@ class FaultScenario():
         # Create Fault objects
         l_faults_obj = []
         for f_idx in grouped_faults_idx:
-            l_faults_obj.append(Fault(self.brok_lin, f_idx))
+            l_faults_obj.append(Fault(self.ref_lin, self.brok_lin, f_idx))
         # Get cavities necessary for every Fault
         all_comp_cav = []
         for fault in l_faults_obj:
@@ -108,24 +108,26 @@ class FaultScenario():
 
         return l_faults_obj
 
-    def fix_all(self):
+    def fix_all(self, method, what_to_fit, manual_list):
         """
         Fix the linac.
 
         First, fix all the Faults independently. Then, recompute the linac
         and make small adjustments.
         """
-        for fault in self.list_of_faults:
-            fault.fix_single(self.what_to_fit, self.manual_list)
+        for fault in self.faults['l_obj']:
+            fault.fix_single(method, what_to_fit, manual_list)
 
 
 class Fault():
     """A class to hold one or several close Faults."""
 
-    def __init__(self, brok_lin, fail_idx):
+    def __init__(self, ref_lin, brok_lin, fail_idx):
+        self.ref_lin = ref_lin
         self.brok_lin = brok_lin
         self.fail = {'l_cav': [], 'l_idx': fail_idx}
         self.comp = {'l_cav': [], 'l_all_elts': None}
+        self.info = {}
 
     def select_compensating_cavities(self):
         """Determine the cavitites to compensate the failed cav(s)."""
@@ -163,7 +165,7 @@ class Fault():
                       for cav in self.comp['l_all_elts']
                       if cav.info['nature'] == 'FIELD_MAP'
                       ]
-
+        # TODO: handle manual_lists
         return l_comp_cav
 
     def update_status_cavities(self, l_comp_cav):
@@ -180,64 +182,6 @@ class Fault():
                       'several faults want the same compensating cavity!')
             cav.update_status('compensate')
             self.comp['l_cav'].append(cav)
-
-    # def select_compensating_cavities(self, what_to_fit, manual_list=[]):
-    #     """Select the cavities that will be used for compensation."""
-    #     self.what_to_fit = what_to_fit
-    #     if self.what_to_fit['strategy'] == 'manual':
-    #         self.comp_list['only_cav'] = [self.brok_lin.elements['list'][idx]
-    #                                       for idx in manual_list]
-
-    #     elif self.what_to_fit['strategy'] == 'neighbors':
-    #         modules_with_fail = [
-    #             module
-    #             for module in self.brok_lin.elements['list_lattice']
-    #             for elt in module
-    #             if elt.info['status'] == 'failed'
-    #             ]
-    #         # TODO: replace this with a coomprehension list
-    #         comp_modules = self._select_comp_modules(modules_with_fail)
-
-    #         self.comp_list['only_cav'] = [
-    #                  cav
-    #                  for module in comp_modules
-    #                  for cav in module
-    #                  if cav.info['nature'] == 'FIELD_MAP'
-    #                  and cav.info['status'] == 'nominal'
-    #                  ]
-
-    #     self.comp_list['only_cav'] = sorted(self.comp_list['only_cav'],
-    #                                         key=lambda elt: elt.idx['in'])
-
-    #     # Change info of all the compensating cavities
-    #     for cav in self.comp_list['only_cav']:
-    #         cav.update_status('compensate')
-
-    #     # We take everything between first and last compensating cavities
-    #     self.comp_list['all_elts'] = []
-    #     elts = self.brok_lin.elements['list']
-    #     for i in range(elts.index(self.comp_list['only_cav'][0]),
-    #                    elts.index(self.comp_list['only_cav'][-1])+1):
-    #         self.comp_list['all_elts'].append(elts[i])
-    #     # TODO : better with a comprehension list?
-
-    def break_at(self, fail_idx):
-        """
-        Break cavities at indices fail_idx.
-
-        All faulty cavities are added to fail_list.
-
-        Parameters
-        ----------
-        fail_idx : list of int
-            List of the indices of the failed cavities. The indices must be
-            the position in the list of **elements**, not in the synchronous
-            particle arrays.
-        """
-        for idx in fail_idx:
-            cav = self.brok_lin.elements['list'][idx]
-            cav.update_status('failed')
-            self.fail_list.append(cav)
 
     def _select_cavities_to_rephase(self):
         """
@@ -299,8 +243,6 @@ class Fault():
         # as well as faulty modules
         return neighbor_modules + modules_with_fail
 
-
-
     def fix_single(self, method, what_to_fit, manual_list=None):
         """
         Try to compensate the faulty cavities.
@@ -322,8 +264,8 @@ class Fault():
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", self.what_to_fit)
 
-        self._select_compensating_cavities(self.what_to_fit, manual_list)
-        self._select_cavities_to_rephase()
+        # FIXME
+        # self._select_cavities_to_rephase()
 
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \
@@ -352,17 +294,19 @@ class Fault():
         # TODO check Jacobian
         # TODO check x_scale
 
-        for i, cav in enumerate(self.comp_list['only_cav']):
+        for i, cav in enumerate(self.comp['l_cav']):
             cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
-            cav.acc_field.norm = sol.x[i + len(self.comp_list['only_cav'])]
+            cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
         # When fit is complete, also recompute last elements
+        # FIXME conflict when several faults
         self.brok_lin.synch.info['status'] = 'fixed'
         if sol.success:
             self.brok_lin.name = 'Fixed'
         else:
             self.brok_lin.name = 'Poorly fixed'
 
+        # FIXME conflict
         self.brok_lin.compute_transfer_matrices(method)
         self.info[self.brok_lin.name + ' cav'] = \
             debug.output_cavities(self.brok_lin, debugs['cav'])
@@ -393,7 +337,7 @@ class Fault():
 
         # Handle phase
         limits_phase = (0., 2.*np.pi)
-        for elt in self.comp_list['only_cav']:
+        for elt in self.comp['l_cav']:
             initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
             bounds.append(limits_phase)
 
@@ -402,7 +346,7 @@ class Fault():
             'relative': [0.9, 1.3],    # [90%, 130%] of norm
             'absolute': [1., np.inf]   # ridiculous abs limits
             }
-        for elt in self.comp_list['only_cav']:
+        for elt in self.comp['l_cav']:
             norm = elt.acc_field.norm
             initial_guess.append(norm)
             down = max(limits_norm['relative'][0] * norm,
@@ -447,7 +391,7 @@ class Fault():
             dict_objective['energy_phase'](linac, idx) \
             + dict_objective['transfer_matrix'](linac, idx)
 
-        idx_pos_list = dict_position[position_str](self.comp_list['only_cav'])
+        idx_pos_list = dict_position[position_str](self.comp['l_cav'])
         fun_simple = dict_objective[objective_str]
 
         def fun_multi_objective(linac, idx_list):
@@ -456,12 +400,6 @@ class Fault():
                 obj = obj + fun_simple(linac, idx)
             return np.array(obj)
 
-        # FIXME
-        idx_tmp = [47, 177, 327, 367, 401, 555, 597]
-        idx_pos_list = []
-        for idx in idx_tmp:
-            idx_pos_list.append(self.brok_lin.elements['list'][idx].idx['out'] - 1)
-
         for idx in idx_pos_list:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
@@ -469,29 +407,26 @@ class Fault():
         return fun_multi_objective, idx_pos_list
 
 
-
-
-
 # TODO: set constraints on the synch phase
-def wrapper(prop_array, fault_sce, method, fun_objective, idx_objective):
+def wrapper(prop_array, fault, method, fun_objective, idx_objective):
     """Fit function."""
     # Unpack
-    for i, cav in enumerate(fault_sce.comp_list['only_cav']):
+    for i, cav in enumerate(fault.comp['l_cav']):
         acc_f = cav.acc_field
         acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
-        acc_f.norm = prop_array[i+len(fault_sce.comp_list['only_cav'])]
+        acc_f.norm = prop_array[i+len(fault.comp['l_cav'])]
 
     # Update transfer matrices
-    fault_sce.brok_lin.compute_transfer_matrices(
-        method, fault_sce.comp_list['all_elts'])
+    fault.brok_lin.compute_transfer_matrices(
+        method, fault.comp['l_all_elts'])
 
-    obj = np.abs(fun_objective(fault_sce.ref_lin, idx_objective)
-                 - fun_objective(fault_sce.brok_lin, idx_objective))
+    obj = np.abs(fun_objective(fault.ref_lin, idx_objective)
+                 - fun_objective(fault.brok_lin, idx_objective))
 
-    for cav in fault_sce.comp_list['only_cav']:
-        if cav.acc_field.cav_params['phi_s_deg'] > 0.:
-            obj *= 1e8
-
+    # for cav in fault.comp['l_cav']:
+        # if cav.acc_field.cav_params['phi_s_deg'] > 0.:
+            # obj *= 1e8
+    print(prop_array, obj)
     return obj
 
 
