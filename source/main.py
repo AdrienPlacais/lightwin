@@ -72,10 +72,8 @@ WHAT_TO_FIT = {
     #     Where should we evaluate objective?
     # =========================================================================
     'position': 'end_of_last_comp_cav',
-    # 'position': 'one_module_after_last_comp_cav',
+    # 'position': 'one_module_after_last_comp_cav', # FIXME wrong n_lattice in _select_objective
     # 'position': 'both',
-    # 'position': 'end_of_last_comp_cav_after_each_fault', # TODO
-    # 'position': 'one_module_after_last_comp_cav_of_each_fault',  # TODO
     }
 FLAG_FIX = True
 SAVE_FIX = False
@@ -85,8 +83,8 @@ SAVE_FIX = False
 # =============================================================================
 PLOTS = [
     "energy",
-    # "phase",
-    # "cav",
+    "phase",
+    "cav",
     ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -152,7 +150,6 @@ for lin in linacs:
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         if FLAG_FIX and lin.name == "Broken":
             fail.fix_all(method, WHAT_TO_FIT, manual_list)
-            lin.name += 'other'
 
             if SAVE_FIX:
                 tw.save_new_dat(broken_linac, FILEPATH)

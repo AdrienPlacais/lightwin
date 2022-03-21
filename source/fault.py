@@ -117,6 +117,7 @@ class FaultScenario():
         """
         for fault in self.faults['l_obj']:
             fault.fix_single(method, what_to_fit, manual_list)
+        self.brok_lin.compute_transfer_matrices(method)
 
 
 class Fault():
@@ -298,7 +299,6 @@ class Fault():
             cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
-        # When fit is complete, also recompute last elements
         # FIXME conflict when several faults
         self.brok_lin.synch.info['status'] = 'fixed'
         if sol.success:
@@ -307,7 +307,7 @@ class Fault():
             self.brok_lin.name = 'Poorly fixed'
 
         # FIXME conflict
-        self.brok_lin.compute_transfer_matrices(method)
+        # self.brok_lin.compute_transfer_matrices(method)
         self.info[self.brok_lin.name + ' cav'] = \
             debug.output_cavities(self.brok_lin, debugs['cav'])
 
@@ -345,7 +345,7 @@ class Fault():
         limits_norm = {
             'relative': [0.9, 1.3],    # [90%, 130%] of norm
             'absolute': [1., np.inf]   # ridiculous abs limits
-            }
+            }   # TODO: personnalize limits according to zone, technology
         for elt in self.comp['l_cav']:
             norm = elt.acc_field.norm
             initial_guess.append(norm)
@@ -417,8 +417,7 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective):
         acc_f.norm = prop_array[i+len(fault.comp['l_cav'])]
 
     # Update transfer matrices
-    fault.brok_lin.compute_transfer_matrices(
-        method, fault.comp['l_all_elts'])
+    fault.brok_lin.compute_transfer_matrices(method, fault.comp['l_all_elts'])
 
     obj = np.abs(fun_objective(fault.ref_lin, idx_objective)
                  - fun_objective(fault.brok_lin, idx_objective))
@@ -426,7 +425,6 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective):
     # for cav in fault.comp['l_cav']:
         # if cav.acc_field.cav_params['phi_s_deg'] > 0.:
             # obj *= 1e8
-    print(prop_array, obj)
     return obj
 
 

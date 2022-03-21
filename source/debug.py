@@ -277,7 +277,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
         return err_data
     # Add it to the dict of y data
     dict_errors = {
-        'energy_err': lambda lin: _err('energy'),
+        'energy_err': lambda lin: _err('energy', False),
         'abs_phase_err': lambda lin: _err('abs_phase', False),
         'beta_synch_err': lambda lin: _err('beta_synch'),
         }
