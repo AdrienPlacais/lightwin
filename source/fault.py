@@ -43,11 +43,6 @@ class FaultScenario():
         self.list_of_faults = []    # TODO: remove
         self.faults['l_obj'] = self.distribute_faults()
 
-        self.fail_list = []
-        self.comp_list = {
-            'only_cav': [],
-            'all_elts': []}
-
         self.what_to_fit = {
             'strategy': None,   # How are selected the compensating cavities?
             'objective': None,  # What do we want to fit?
@@ -142,9 +137,21 @@ class FaultScenario():
 
         # We fix all Faults individually
         successes = []
-        for fault in self.faults['l_obj']:
+        for i, fault in enumerate(self.faults['l_obj']):
             suc = fault.fix_single(method, what_to_fit, manual_list)
             successes.append(suc)
+
+            # Recompute transfer matrices between this fault and the next
+            if i < len(self.faults['l_obj']) - 1:
+                # FIXME: necessary to take '-2'? This is just to be sure...
+                elt1 = fault.comp['l_all_elts'][-2]
+                elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]
+                idx1 = self.brok_lin.elements['list'].index(elt1)
+                idx2 = self.brok_lin.elements['list'].index(elt2)
+                elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
+                self.brok_lin.compute_transfer_matrices(method, elt1_to_elt2)
+
+            # self.brok_lin.compute_transfer_matrices(method)
 
         # TODO we remake a small fit to be sure
 
@@ -300,7 +307,8 @@ class Fault():
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[self.what_to_fit['objective']]
         sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
-                        args=(self, method, fun_objective, idx_objective))
+                        args=(self, method, fun_objective, idx_objective),
+                        x_scale='jac')
         # TODO check methods
         # TODO check Jacobian
         # TODO check x_scale
@@ -346,16 +354,23 @@ class Fault():
 
         # Handle norm
         limits_norm = {
-            'relative': [0.9, 1.3],    # [90%, 130%] of norm
+            'relative': [0.5, 1.3],    # [90%, 130%] of norm
             'absolute': [1., np.inf]   # ridiculous abs limits
             }   # TODO: personnalize limits according to zone, technology
+        limits_norm_up = {
+            'low beta': 1.3 * 3.03726,
+            'medium beta': 1.3 * 4.45899,
+            'high beta': 1.3 * 6.67386,
+            }
         for elt in self.comp['l_cav']:
             norm = elt.acc_field.norm
-            initial_guess.append(norm)
+            # initial_guess.append(norm)
             down = max(limits_norm['relative'][0] * norm,
                        limits_norm['absolute'][0])
-            upp = min(limits_norm['relative'][1] * norm,
-                      limits_norm['absolute'][1])
+            # upp = min(limits_norm['relative'][1] * norm,
+                      # limits_norm['absolute'][1])
+            upp = limits_norm_up[elt.info['zone']]
+            initial_guess.append(norm)
             bounds.append((down, upp))
 
         initial_guess = np.array(initial_guess)
@@ -410,7 +425,6 @@ class Fault():
         return fun_multi_objective, idx_pos_list
 
 
-# TODO: set constraints on the synch phase
 def wrapper(prop_array, fault, method, fun_objective, idx_objective):
     """Fit function."""
     # Unpack
@@ -424,10 +438,10 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective):
 
     obj = np.abs(fun_objective(fault.ref_lin, idx_objective)
                  - fun_objective(fault.brok_lin, idx_objective))
-    print(obj)
-
+    # TODO: could be cleaner?
     if False:
         for cav in fault.comp['l_cav']:
             if cav.acc_field.cav_params['phi_s_deg'] > 0.:
                 obj *= 1e8
+    # print(np.linalg.norm(obj))
     return obj

@@ -175,14 +175,14 @@ class Particle():
         self.phi['abs'] += delta_phi
         self.phi['abs_array'][idx] = self.phi['abs_array'][idx-1] + delta_phi
 
-        new_row = {
-            'phi_abs_array': self.phi['abs_array'][idx],
-            'phi_abs': self.phi['abs'],
-            'phi_abs_rf': self.phi['abs_rf'],
-            'phi_rel': self.phi['rel'],
-            }
-        new_row = pd.Series(data=new_row)
-        self.df = self.df.append(new_row, ignore_index=True)
+        # new_row = {
+        #     'phi_abs_array': self.phi['abs_array'][idx],
+        #     'phi_abs': self.phi['abs'],
+        #     'phi_abs_rf': self.phi['abs_rf'],
+        #     'phi_rel': self.phi['rel'],
+        #     }
+        # new_row = pd.Series(data=new_row)
+        # self.df = self.df.append(new_row, ignore_index=True)
 
     def set_abs_phi(self, new_phi, idx=np.NaN, flag_rf=False):
         """

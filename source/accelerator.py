@@ -87,7 +87,7 @@ class Accelerator():
                 j += n_lattice
             sections.append(lattices)
 
-        zones = ['LEBT', 'MEBT', 'HEBT']
+        zones = ['low beta', 'medium beta', 'high beta']
         shift_lattice = 1
         for i, sec in enumerate(sections):
             for j, lattice in enumerate(sec):
@@ -198,10 +198,10 @@ class Accelerator():
         for elt in elements:
             elt.tmat['solver_param']['method'] = method
 
-        print('============================================================')
-        print('Compute transfer matrix of linac ', self.name)
-        print('\tFirst element: ', elements[0].info)
-        print('\tLast element: ', elements[-1].info)
+        # print('============================================================')
+        # print('Compute transfer matrix of linac ', self.name)
+        # print('\tFirst element: ', elements[0].info)
+        # print('\tLast element: ', elements[-1].info)
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
