@@ -34,6 +34,8 @@ class FaultScenario():
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
 
+        self.transfer_phi0_from_ref_to_broken()
+
         self.faults = {
             'l_obj': [],
             'l_idx': sorted(l_idx_cav),
@@ -59,6 +61,26 @@ class FaultScenario():
                   'It may be more relatable to use absolute phases, as',
                   'it would avoid the implicit rephasing of the linac at',
                   'each cavity.\n')
+
+    def transfer_phi0_from_ref_to_broken(self):
+        """
+        Transfer the entry phases from ref linac to broken.
+
+        If the absolute initial phases are not kept between reference and
+        broken linac, it comes down to rephasing the linac. This is what we
+        want to avoid when FLAG_PHI_ABS = True.
+        """
+        ref_cavities = self.ref_lin.elements_of('FIELD_MAP')
+        brok_cavities = self.brok_lin.elements_of('FIELD_MAP')
+        assert len(ref_cavities) == len(brok_cavities)
+
+        # Transfer both relative and absolute phase flags
+        for i, ref_cav in enumerate(ref_cavities):
+            ref_acc_f = ref_cav.acc_field
+            brok_acc_f = brok_cavities[i].acc_field
+            for str_phi_abs in ['rel', 'abs']:
+                brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
+            brok_acc_f.phi_0['nominal_rel'] = ref_acc_f.phi_0['rel']
 
     def distribute_faults(self):
         """
@@ -115,14 +137,19 @@ class FaultScenario():
         First, fix all the Faults independently. Then, recompute the linac
         and make small adjustments.
         """
+        # FIXME
+        # self._select_cavities_to_rephase()
+
+        # We fix all Faults individually
         successes = []
         for fault in self.faults['l_obj']:
             suc = fault.fix_single(method, what_to_fit, manual_list)
             successes.append(suc)
 
+        # TODO we remake a small fit to be sure
+
         self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
             str(len(successes)) + ')'
-        self.brok_lin.compute_transfer_matrices(method)
 
 
 class Fault():
@@ -215,26 +242,6 @@ class Fault():
         for cav in cav_to_rephase:
             cav.update_status('rephased')
 
-    def transfer_phi0_from_ref_to_broken(self):
-        """
-        Transfer the entry phases from ref linac to broken.
-
-        If the absolute initial phases are not kept between reference and
-        broken linac, it comes down to rephasing the linac. This is what we
-        want to avoid when FLAG_PHI_ABS = True.
-        """
-        ref_cavities = self.ref_lin.elements_of('FIELD_MAP')
-        brok_cavities = self.brok_lin.elements_of('FIELD_MAP')
-        assert len(ref_cavities) == len(brok_cavities)
-
-        # Transfer both relative and absolute phase flags
-        for i, ref_cav in enumerate(ref_cavities):
-            ref_acc_f = ref_cav.acc_field
-            brok_acc_f = brok_cavities[i].acc_field
-            for str_phi_abs in ['rel', 'abs']:
-                brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
-            brok_acc_f.phi_0['nominal_rel'] = ref_acc_f.phi_0['rel']
-
     def _select_comp_modules(self, modules_with_fail):
         """Give failed modules and their neighbors."""
         modules = self.brok_lin.elements['list_lattice']
@@ -265,14 +272,12 @@ class Fault():
         """
         debugs = {
             'fit': True,
-            'cav': True,
+            'cav': False,
             }
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", self.what_to_fit)
 
-        # FIXME
-        # self._select_cavities_to_rephase()
-
+        # FIXME conflict
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \
                 debug.output_cavities(linac, debugs['cav'])
@@ -304,15 +309,7 @@ class Fault():
             cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
-        # FIXME conflict when several faults
-        # self.brok_lin.synch.info['status'] = 'fixed'
-        # if sol.success:
-            # self.brok_lin.name = 'Fixed'
-        # else:
-            # self.brok_lin.name = 'Poorly fixed'
-
         # FIXME conflict
-        # self.brok_lin.compute_transfer_matrices(method)
         self.info[self.brok_lin.name + ' cav'] = \
             debug.output_cavities(self.brok_lin, debugs['cav'])
 
@@ -427,56 +424,10 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective):
 
     obj = np.abs(fun_objective(fault.ref_lin, idx_objective)
                  - fun_objective(fault.brok_lin, idx_objective))
+    print(obj)
 
-    # for cav in fault.comp['l_cav']:
-        # if cav.acc_field.cav_params['phi_s_deg'] > 0.:
-            # obj *= 1e8
+    if False:
+        for cav in fault.comp['l_cav']:
+            if cav.acc_field.cav_params['phi_s_deg'] > 0.:
+                obj *= 1e8
     return obj
-
-
-def find_location_of_faults(linac):
-    """Find which failed cavity we are talking about."""
-    shift_n_latt = [0]
-    for i, sec in enumerate(linac.elements['sections']):
-        shift_n_latt.append(shift_n_latt[i] + len(sec))
-# =============================================================================
-#     Failing cavities
-# =============================================================================
-    # Section numbers (first section is 1)
-    # Lattice numbers (also start at 1, not re-initialized when changing of
-    # section)
-    secs =          [1,  1,  1,  1,  2,  2,  3,  3,  3,  3,  3,  3]
-    latts =         [4, 16, 16, 30, 31, 36, 40, 49, 49, 49, 49, 53]
-    pos_in_latt =   [1,  1,  2,  1,  2,  1,  1,  1,  2,  3,  4,  4]
-    # Number of the cavity in the lattice (start at 1)
-
-    print("Failing cavities...")
-    idx_f_cav = []
-    for i, sec in enumerate(secs):
-        section = linac.elements['sections'][sec - 1]
-        latt = section[latts[i] - shift_n_latt[sec - 1] - 1]
-        cavities = linac.elements_of(nature='FIELD_MAP', sub_list=latt)
-        cav = cavities[pos_in_latt[i] - 1]
-
-        print(cav.info, 'Norm:', cav.acc_field.norm,
-              'phi_0', np.rad2deg(cav.acc_field.phi_0['nominal_rel']))
-
-        idx_f_cav.append(linac.where_is(cav))
-    print(idx_f_cav)
-
-# =============================================================================
-#     Compensating cavities
-# =============================================================================
-    secs =        [1, 1, 1, 1, 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,]
-    latts =       [3, 3, 4, 5, 5, 14, 14, 15, 15, 17, 17, 18, 18, 29, 29, 30, 31, 32, 32, 33, 33, 35, 35, 36, 37, 37, 39, 39, 40, 40, 40, 47, 47, 47, 47, 48, 48, 48, 48, 50, 50, 50, 50, 51, 51, 51, 51, 53, 53, 54, 54, 54, 54,]
-    pos_in_latt = [1, 2, 2, 1, 2,  1,  2,  1,  2,  1,  2,  1,  2,  1,  2,  2,  1,  1,  2,  1,  2,  1,  2,  2,  1,  2,  1,  2,  2,  3,  4,  1,  2,  3,  4,  1,  2,  3,  4,  1,  2,  3,  4,  1,  2,  3,  4,  2,  3,  1,  2,  3,  4,]
-
-    print("Compensating cavities...")
-    idx_c_cav = []
-    for i, sec in enumerate(secs):
-        section = linac.elements['sections'][sec - 1]
-        latt = section[latts[i] - shift_n_latt[sec - 1] - 1]
-        cavities = linac.elements_of(nature='FIELD_MAP', sub_list=latt)
-        cav = cavities[pos_in_latt[i] - 1]
-        idx_c_cav.append(linac.where_is(cav))
-    print(idx_c_cav)

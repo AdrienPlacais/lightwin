@@ -198,6 +198,11 @@ class Accelerator():
         for elt in elements:
             elt.tmat['solver_param']['method'] = method
 
+        print('============================================================')
+        print('Compute transfer matrix of linac ', self.name)
+        print('\tFirst element: ', elements[0].info)
+        print('\tLast element: ', elements[-1].info)
+
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
             for elt in elements:
