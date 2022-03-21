@@ -38,22 +38,22 @@ BETA_W = 71.215849  # deg/pi.MeV
 # Select .dat file
 Tk().withdraw()
 # FILEPATH = ""
-# FILEPATH = "../data/work_field_map/work_field_map.dat"
-FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+FILEPATH = "../data/work_field_map/work_field_map.dat"
+# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
 # =============================================================================
 # Fault compensation
 # =============================================================================
-# failed_cav = [25]
-# manual_list = [7, 15, 17, 25, 27]
-failed_cav = [35, 155, 157, 295, 307, 355, 395, 521, 523, 525, 527, 583]
-failed_cav = [35]
-manual_list = [25, 27, 37, 45, 47, 135, 137, 145, 147, 165, 167, 175, 177, 285,
-               287, 297, 305, 315, 317, 325, 327, 345, 347, 357, 365, 367, 385,
-               387, 397, 399, 401, 493, 495, 497, 499, 507, 509, 511, 513, 535,
-               537, 539, 541, 549, 551, 553, 555, 579, 581, 591, 593, 595, 597]
+failed_cav = [25]
+manual_list = [7, 15, 17, 25, 27]
+# failed_cav = [35, 155, 157, 295, 307, 355, 395, 521, 523, 525, 527, 583]
+# failed_cav = [35]
+# manual_list = [25, 27, 37, 45, 47, 135, 137, 145, 147, 165, 167, 175, 177, 285,
+               # 287, 297, 305, 315, 317, 325, 327, 345, 347, 357, 365, 367, 385,
+               # 387, 397, 399, 401, 493, 495, 497, 499, 507, 509, 511, 513, 535,
+               # 537, 539, 541, 549, 551, 553, 555, 579, 581, 591, 593, 595, 597]
 WHAT_TO_FIT = {
     # =========================================================================
     #     How compensatong cavities are chosen?

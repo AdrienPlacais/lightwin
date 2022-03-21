@@ -115,8 +115,13 @@ class FaultScenario():
         First, fix all the Faults independently. Then, recompute the linac
         and make small adjustments.
         """
+        successes = []
         for fault in self.faults['l_obj']:
-            fault.fix_single(method, what_to_fit, manual_list)
+            suc = fault.fix_single(method, what_to_fit, manual_list)
+            successes.append(suc)
+
+        self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
+            str(len(successes)) + ')'
         self.brok_lin.compute_transfer_matrices(method)
 
 
@@ -300,11 +305,11 @@ class Fault():
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
         # FIXME conflict when several faults
-        self.brok_lin.synch.info['status'] = 'fixed'
-        if sol.success:
-            self.brok_lin.name = 'Fixed'
-        else:
-            self.brok_lin.name = 'Poorly fixed'
+        # self.brok_lin.synch.info['status'] = 'fixed'
+        # if sol.success:
+            # self.brok_lin.name = 'Fixed'
+        # else:
+            # self.brok_lin.name = 'Poorly fixed'
 
         # FIXME conflict
         # self.brok_lin.compute_transfer_matrices(method)
@@ -315,6 +320,7 @@ class Fault():
         self.info['sol'] = sol
         self.info['fit'] = debug.output_fit(self, initial_guesses, bounds,
                                             debugs['fit'])
+        return sol.success
 
     def _set_fit_parameters(self):
         """
