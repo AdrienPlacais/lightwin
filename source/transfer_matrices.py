@@ -152,8 +152,7 @@ def z_field_map_electric_field(cavity, synch):
     return transfer_matrix
 
 
-def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
-                flag_correction_determinant=True):
+def z_thin_lens(cavity, d_z, gamma, beta_middle, synch):
     """
     Compute the longitudinal transfer matrix of a thin slice of cavity.
 
@@ -171,12 +170,6 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
         Lorentz speed factor at the middle of the cavity (beta_s in TW doc).
     synch : Particle
         Particle under study.
-    flag_correction_determinant : boolean, optional
-        Determines if the rouine enforces Det(transf_mat) < 1. The default is
-        True.
-    flag_phi_abs : boolean, optional
-        Determines if the phase should be calculated with absolute value or
-        with relative. The default is False.
     """
     assert isinstance(gamma, dict)
     acc_f = cavity.acc_field
@@ -202,14 +195,10 @@ def z_thin_lens(cavity, d_z, gamma, beta_middle, synch,
     k_2 = 1. - (2. - beta_middle**2) * k_0 * acc_f.e_func(z_k, phi_rf_k)
 
     # Correction to ensure det < 1
-    if flag_correction_determinant:
-        k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_rf_k))  \
-            / (1. - k_0 * (2. - beta_middle**2)
-               * acc_f.e_func(z_k, phi_rf_k))
-        transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
-
-    else:
-        transf_mat = np.array(([1., 0.], [k_1, k_2])) @ transf_mat
+    k_3 = (1. - k_0 * acc_f.e_func(z_k, phi_rf_k))  \
+        / (1. - k_0 * (2. - beta_middle**2)
+           * acc_f.e_func(z_k, phi_rf_k))
+    transf_mat = np.array(([k_3, 0.], [k_1, k_2])) @ transf_mat
 
 # =============================================================================
 #   Out

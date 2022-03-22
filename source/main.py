@@ -16,7 +16,7 @@ import helper
 import emittance
 import tracewin_interface as tw
 import fault
-import cProfile
+# import cProfile
 
 # =============================================================================
 # User inputs
@@ -50,7 +50,7 @@ if FILEPATH == "":
 # failed_cav = [25]
 manual_list = [7, 15, 17, 25, 27]
 # failed_cav = [35, 155, 157, 295, 307, 355, 395, 521, 523, 525, 527, 583]
-failed_cav = [35]#, 155, 157]
+failed_cav = [35, 295]#, 155, 157]
 # manual_list = [25, 27, 37, 45, 47, 135, 137, 145, 147, 165, 167, 175, 177, 285,
                # 287, 297, 305, 315, 317, 325, 327, 345, 347, 357, 365, 367, 385,
                # 387, 397, 399, 401, 493, 495, 497, 499, 507, 509, 511, 513, 535,
@@ -148,11 +148,11 @@ for lin in linacs:
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         if FLAG_FIX and lin.name == "Broken":
-            # fail.fix_all(method, WHAT_TO_FIT, manual_list)
-            pr = cProfile.Profile()
-            pr.enable()
-            pr.runcall(fail.fix_all, method, WHAT_TO_FIT, manual_list)
-            pr.disable()
+            fail.fix_all(method, WHAT_TO_FIT, manual_list)
+            # pr = cProfile.Profile()
+            # pr.enable()
+            # pr.runcall(fail.fix_all, method, WHAT_TO_FIT, manual_list)
+            # pr.disable()
 
             if SAVE_FIX:
                 tw.save_new_dat(broken_linac, FILEPATH)
@@ -167,9 +167,9 @@ end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
 
-import pstats
-ps = pstats.Stats(pr).sort_stats('tottime')
-ps.print_stats(.05)
+# import pstats
+# ps = pstats.Stats(pr).sort_stats('tottime')
+# ps.print_stats(.05)
 
-ps2 = pstats.Stats(pr).sort_stats('cumtime')
-ps.print_stats(.05)
+# ps2 = pstats.Stats(pr).sort_stats('cumtime')
+# ps.print_stats(.05)
