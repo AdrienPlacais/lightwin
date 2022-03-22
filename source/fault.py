@@ -142,16 +142,16 @@ class FaultScenario():
             successes.append(suc)
 
             # Recompute transfer matrices between this fault and the next
-            if i < len(self.faults['l_obj']) - 1:
-                # FIXME: necessary to take '-2'? This is just to be sure...
-                elt1 = fault.comp['l_all_elts'][-2]
-                elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]
-                idx1 = self.brok_lin.elements['list'].index(elt1)
-                idx2 = self.brok_lin.elements['list'].index(elt2)
-                elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
-                self.brok_lin.compute_transfer_matrices(method, elt1_to_elt2)
+            # if i < len(self.faults['l_obj']) - 1:
+            #     # FIXME: necessary to take '-2'? This is just to be sure...
+            #     elt1 = fault.comp['l_all_elts'][-2]
+            #     elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]
+            #     idx1 = self.brok_lin.elements['list'].index(elt1)
+            #     idx2 = self.brok_lin.elements['list'].index(elt2)
+            #     elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
+            #     self.brok_lin.compute_transfer_matrices(method, elt1_to_elt2)
 
-            # self.brok_lin.compute_transfer_matrices(method)
+            self.brok_lin.compute_transfer_matrices(method)
 
         # TODO we remake a small fit to be sure
 
@@ -444,4 +444,5 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective):
             if cav.acc_field.cav_params['phi_s_deg'] > 0.:
                 obj *= 1e8
     # print(np.linalg.norm(obj))
+    # print(obj)
     return obj

@@ -353,6 +353,29 @@ def individual_to_global_transfer_matrix(m_in):
     return m_out
 
 
+def individual_to_global_transfer_matrix_bis(m_in, m_out, idxs):
+    """
+    Compute the transfer matrix of several elements.
+
+    Parameters
+    ----------
+    m_in: dim 3 np.array
+        Array of the form (n, 2, 2). Transfer matrices of INDIVIDUAL elements.
+
+    Return
+    ------
+    m_out: dim 3 np.array
+        Same shape as M. Contains transfer matrices of line from the start of
+        the line.
+    """
+    if idxs == [0, m_in.shape[0]]:
+        m_out[0, :, :] = np.eye(2)
+        idxs = [0, m_in.shape[0]]
+
+    for i in range(idxs[0]+1, idxs[1]):
+        m_out[i, :, :] = m_in[i, :, :] @ m_out[i-1, :, :]
+
+
 def right_recursive_matrix_product(m_in, idx_min, idx_max):
     """
     Compute the matrix product along the last array. For transfer matrices.

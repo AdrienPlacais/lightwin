@@ -62,7 +62,7 @@ class Accelerator():
 
         # Transfer matrices
         self.transf_mat = {
-            'cumul': np.expand_dims(np.eye(2), axis=0),
+            'cumul': np.full((last_idx+1, 2, 2), np.NaN),
             'indiv': np.full((last_idx+1, 2, 2), np.NaN),
             'first_calc?': True,
             }
@@ -192,33 +192,41 @@ class Accelerator():
         elements: list of Elements, opt
             List of elements from which you want the transfer matrices.
         """
+        # self.transf_mat['cumul'] *= np.NaN
         if elements is None:
             elements = self.elements['list']
 
         for elt in elements:
             elt.tmat['solver_param']['method'] = method
 
-        # print('============================================================')
-        # print('Compute transfer matrix of linac ', self.name)
-        # print('\tFirst element: ', elements[0].info)
-        # print('\tLast element: ', elements[-1].info)
-
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
             for elt in elements:
                 elt.compute_transfer_matrix(self.synch)
                 idx = [elt.idx['in'] + 1, elt.idx['out'] + 1]
-                self.transf_mat['indiv'][idx[0]:idx[1], :, :] = \
-                    elt.tmat['matrix']
+                self.transf_mat['indiv'][idx[0]:idx[1], :, :] \
+                    = elt.tmat['matrix']
 
-            self.transf_mat['cumul'] = \
-                helper.individual_to_global_transfer_matrix(
-                    self.transf_mat['indiv'])
+        idx_first = elements[0].idx['in']
+        idx_last = elements[-1].idx['out'] + 1
 
-        elif method == 'transport':
-            print('computer_transfer_matrices: no MT computation with ',
-                  'transport method.')
-            transport.transport_particle(self, self.synch)
+        # print('============================================================')
+        # print('Compute transfer matrix of linac ', self.name)
+        # print('\tFirst element: ', elements[0].info, idx_first)
+        # print('\tLast element: ', elements[-1].info, idx_last)
+
+        helper.individual_to_global_transfer_matrix_bis(
+                self.transf_mat['indiv'], self.transf_mat['cumul'],
+                [idx_first, idx_last])
+
+        # self.transf_mat['cumul'] = \
+            # helper.individual_to_global_transfer_matrix(
+                # self.transf_mat['indiv'])
+
+        # elif method == 'transport':
+        #     print('computer_transfer_matrices: no MT computation with ',
+        #           'transport method.')
+        #     transport.transport_particle(self, self.synch)
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """
