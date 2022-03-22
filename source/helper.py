@@ -353,45 +353,35 @@ def individual_to_global_transfer_matrix(m_in):
     return m_out
 
 
-def individual_to_global_transfer_matrix_bis(m_in, m_out, idxs):
+def individual_to_global_transfer_matrix_bis(m_in, m_out, idxs=None):
     """
     Compute the transfer matrix of several elements.
 
+    For efficiency reasons, we compute transfer matrices only between idxs[0]
+    and idxs[1]. If idxs is not provided, or if it matches the full dimensions
+    of the linac, we recompute the full linac.
+
     Parameters
     ----------
-    m_in: dim 3 np.array
+    m_in : np.array
         Array of the form (n, 2, 2). Transfer matrices of INDIVIDUAL elements.
+    m_out : np.array
+        Array of the form (n, 2, 2). Transfer matrices of from the start of the
+        line.
+    idxs : list
+        First and last index of the matrix to recompute.
 
     Return
     ------
-    m_out: dim 3 np.array
-        Same shape as M. Contains transfer matrices of line from the start of
-        the line.
+    m_out : np.array
+        Array of the form (n, 2, 2). Transfer matrices of from the start of the
+        line.
     """
+    if idxs is None:
+        idxs = [0, m_in.shape[0]]
+
     if idxs == [0, m_in.shape[0]]:
         m_out[0, :, :] = np.eye(2)
-        idxs = [0, m_in.shape[0]]
 
     for i in range(idxs[0]+1, idxs[1]):
         m_out[i, :, :] = m_in[i, :, :] @ m_out[i-1, :, :]
-
-
-def right_recursive_matrix_product(m_in, idx_min, idx_max):
-    """
-    Compute the matrix product along the last array. For transfer matrices.
-
-    Parameters
-    ----------
-    M: dim 3 np.array
-        Array of the form (2, 2, n).
-    idx_min: int
-        First index to consider.
-    idx_max: int
-        Last index to consider.
-    """
-    m_out = np.eye(2)
-
-    for i in range(idx_min, idx_max + 1):
-        m_out = m_in[i, :, :] @ m_out
-
-    return m_out
