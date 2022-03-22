@@ -328,32 +328,7 @@ def mrad_and_mev_to_delta(z_prime, e_kin, e_rest):
 # =============================================================================
 # Matrix manipulation
 # =============================================================================
-def individual_to_global_transfer_matrix(m_in):
-    """
-    Compute the transfer matrix of several elements.
-
-    Parameters
-    ----------
-    m_in: dim 3 np.array
-        Array of the form (n, 2, 2). Transfer matrices of INDIVIDUAL elements.
-
-    Return
-    ------
-    m_out: dim 3 np.array
-        Same shape as M. Contains transfer matrices of line from the start of
-        the line.
-    """
-    m_out = np.full_like(m_in, np.NaN)
-    m_out[0, :, :] = m_in[0, :, :]
-
-    n = m_in.shape[0]
-    for i in range(1, n):
-        m_out[i, :, :] = m_in[i, :, :] @ m_out[i-1, :, :]
-
-    return m_out
-
-
-def individual_to_global_transfer_matrix_bis(m_in, m_out, idxs=None):
+def individual_to_global_transfer_matrix(m_in, m_out, idxs=None):
     """
     Compute the transfer matrix of several elements.
 

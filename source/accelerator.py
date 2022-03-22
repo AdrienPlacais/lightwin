@@ -207,26 +207,14 @@ class Accelerator():
                 self.transf_mat['indiv'][idx[0]:idx[1], :, :] \
                     = elt.tmat['matrix']
 
-        idx_first = elements[0].idx['in']
-        idx_last = elements[-1].idx['out'] + 1
+            idxs = [elements[0].idx['in'], elements[-1].idx['out'] + 1]
+            helper.individual_to_global_transfer_matrix(
+                    self.transf_mat['indiv'], self.transf_mat['cumul'], idxs)
 
-        # print('============================================================')
-        # print('Compute transfer matrix of linac ', self.name)
-        # print('\tFirst element: ', elements[0].info, idx_first)
-        # print('\tLast element: ', elements[-1].info, idx_last)
-
-        helper.individual_to_global_transfer_matrix_bis(
-                self.transf_mat['indiv'], self.transf_mat['cumul'],
-                [idx_first, idx_last])
-
-        # self.transf_mat['cumul'] = \
-            # helper.individual_to_global_transfer_matrix(
-                # self.transf_mat['indiv'])
-
-        # elif method == 'transport':
-        #     print('computer_transfer_matrices: no MT computation with ',
-        #           'transport method.')
-        #     transport.transport_particle(self, self.synch)
+        elif method == 'transport':
+            print('computer_transfer_matrices: no MT computation with ',
+                  'transport method.')
+            transport.transport_particle(self, self.synch)
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """
