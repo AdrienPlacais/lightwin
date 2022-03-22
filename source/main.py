@@ -83,9 +83,9 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    # "energy",
-    # "phase",
-    # "cav",
+    "energy",
+    "phase",
+    "cav",
     ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -148,15 +148,11 @@ for lin in linacs:
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         if FLAG_FIX and lin.name == "Broken":
-            fail.fix_all(method, WHAT_TO_FIT, manual_list)
-            # dic = {
-            #     'method': method,
-            #     'what_to_fit': WHAT_TO_FIT,
-            #     'manual_list': manual_list}
-            # pr = cProfile.Profile()
-            # pr.enable()
-            # pr.runcall(fail.fix_all, method, WHAT_TO_FIT, manual_list)
-            # pr.disable()
+            # fail.fix_all(method, WHAT_TO_FIT, manual_list)
+            pr = cProfile.Profile()
+            pr.enable()
+            pr.runcall(fail.fix_all, method, WHAT_TO_FIT, manual_list)
+            pr.disable()
 
             if SAVE_FIX:
                 tw.save_new_dat(broken_linac, FILEPATH)
@@ -170,6 +166,10 @@ for lin in linacs:
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
-# import pstats
-# ps = pstats.Stats(pr).sort_stats('tottime')
-# ps.print_stats(.1)
+
+import pstats
+ps = pstats.Stats(pr).sort_stats('tottime')
+ps.print_stats(.05)
+
+ps2 = pstats.Stats(pr).sort_stats('cumtime')
+ps.print_stats(.05)

@@ -233,7 +233,7 @@ def load_field_map_file(element, rf_field):
     z_cavity_array = np.linspace(0., zmax, n_z + 1)
     rf_field.e_spat = interp1d(z_cavity_array, f_z, bounds_error=False,
                                kind='linear', fill_value=0.,
-                               assume_sorted=True)
+                               assume_sorted=True, copy=False)
 
 
 def check_geom(element):

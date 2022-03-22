@@ -370,6 +370,7 @@ class Fault():
             # upp = min(limits_norm['relative'][1] * norm,
                       # limits_norm['absolute'][1])
             upp = limits_norm_up[elt.info['zone']]
+
             initial_guess.append(norm)
             bounds.append((down, upp))
 
@@ -443,6 +444,5 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective):
         for cav in fault.comp['l_cav']:
             if cav.acc_field.cav_params['phi_s_deg'] > 0.:
                 obj *= 1e8
-    # print(np.linalg.norm(obj))
     # print(obj)
     return obj
