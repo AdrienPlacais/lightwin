@@ -122,8 +122,7 @@ def z_field_map_electric_field(cavity, synch):
 
         elif method == 'RK':
             phi_rf = synch.phi[STR_PHI_ABS_RF]
-            u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs],
-                              phi_rf]))
+            u_rk = np.array(([synch.energy['kin_array_mev'][idx_abs], phi_rf]))
             temp = solver.rk4(u_rk, du_dz, synch.z['rel'], d_z)
             delta['e_mev'] = temp[0]
             delta['phi_rf'] = temp[1]
