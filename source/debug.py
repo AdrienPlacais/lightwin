@@ -177,11 +177,11 @@ def _create_plot_dicts():
                     {'marker': None}],
             'energy': ['Beam energy [MeV]',
                        {'marker': None}],
-            'energy_err': ['Abs. error [keV]',
+            'energy_err': ['Log of abs. error [1]',
                            {'marker': None}],
             'abs_phase': ['Beam phase [deg]',
                           {'marker': None}],
-            'abs_phase_err': ['Phase error [deg]',
+            'abs_phase_err': ['Log of phase error [1]',
                               {'marker': None}],
             'beta_synch': [r'Synch. $\beta$ [1]',
                            {'marker': None}],
@@ -216,7 +216,7 @@ def _create_plot_dicts():
         }
 
     dict_err_factor = {
-        'energy': 1e3,
+        'energy': 1,
         'abs_phase': 1.,
         'beta_synch': 1.,
         }
@@ -266,20 +266,22 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
 
     elts_indexes = linac.get_from_elements('idx', 'out')
 
-    def _err(y_d, abs_diff=True):
+    def _err(y_d, diff='abs'):
         assert y_d in tw.dict_tw_data_table
         y_data_ref = tw.load_tw_results(filepath_ref, y_d)
         y_data = dicts['y_data_lw'][y_d](linac)[elts_indexes]
-        if abs_diff:
+        if diff == 'abs':
             err_data = dicts['err_factor'][y_d] * np.abs(y_data_ref - y_data)
-        else:
+        elif diff == 'rel':
             err_data = dicts['err_factor'][y_d] * (y_data_ref - y_data)
+        elif diff == 'log':
+            err_data = dicts['err_factor'][y_d] * np.log10(y_data / y_data_ref)
         return err_data
     # Add it to the dict of y data
     dict_errors = {
-        'energy_err': lambda lin: _err('energy', False),
-        'abs_phase_err': lambda lin: _err('abs_phase', False),
-        'beta_synch_err': lambda lin: _err('beta_synch'),
+        'energy_err': lambda lin: _err('energy', 'log'),
+        'abs_phase_err': lambda lin: _err('abs_phase', 'log'),
+        'beta_synch_err': lambda lin: _err('beta_synch', 'abs'),
         }
     dicts['errors'] = dict_errors
     dicts['y_data_lw'].update(dict_errors)
