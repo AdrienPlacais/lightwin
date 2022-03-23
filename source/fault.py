@@ -219,7 +219,9 @@ class Fault():
             cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
-        print('\n', sol)
+        print('message:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
+              sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
+              sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
         self.info['sol'] = sol
 
         return sol.success
