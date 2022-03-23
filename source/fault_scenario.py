@@ -188,4 +188,5 @@ class FaultScenario():
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \
                 debug.output_cavities(linac, mod_f.debugs['cav'])
-        self.info['fit'] = debug.output_fit(self, out=True)
+        self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
+                                            mod_f.debugs['fit_compact'])

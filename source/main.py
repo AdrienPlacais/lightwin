@@ -53,7 +53,7 @@ failed_cav = [
     35,
     # 155, 157,
     # 295, 307,
-    # 355,
+    355,
     # 395,
     # 521, 523, 525, 527,
     # 583
@@ -180,7 +180,7 @@ for lin in linacs:
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
-
+data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 # import pstats
 # ps = pstats.Stats(pr).sort_stats('tottime')
 # ps.print_stats(.05)

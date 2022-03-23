@@ -24,7 +24,8 @@ dict_phase = {
 
 n_comp_latt_per_fault = 2
 debugs = {
-    'fit': True,
+    'fit_complete': False,
+    'fit_compact': True,
     'cav': False,
     }
 
@@ -208,8 +209,11 @@ class Fault():
                     (bounds[:, 0], bounds[:, 1])],
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[self.what_to_fit['objective']]
+        global count
+        count = 0
         sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
-                        args=(self, method, fun_objective, idx_objective),
+                        args=(self, method, fun_objective, idx_objective,
+                              ),
                         x_scale='jac')
         # TODO check methods
         # TODO check Jacobian
@@ -219,7 +223,7 @@ class Fault():
             cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
-        print('message:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
+        print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
               sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
               sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
         self.info['sol'] = sol
@@ -321,12 +325,17 @@ class Fault():
         for idx in idx_pos_list:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
-                  elt.info, ".\n")
+                  elt.info, ".")
         return fun_multi_objective, idx_pos_list
 
 
-def wrapper(prop_array, fault, method, fun_objective, idx_objective):
+def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
     """Fit function."""
+    global count
+    count += 1
+    if count % 500 == 0:
+        print('Number of iterations:', count)
+
     # Unpack
     for i, cav in enumerate(fault.comp['l_cav']):
         acc_f = cav.acc_field

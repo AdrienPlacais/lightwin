@@ -524,9 +524,10 @@ def _create_output_fit_dicts():
     return all_dicts
 
 
-def output_fit(fault_scenario, out=False):
+def output_fit(fault_scenario, out_detail=False, out_compact=True):
     """Output relatable parameters of fit."""
     dicts = _create_output_fit_dicts()
+
     shift_i = 0
     for f in fault_scenario.faults['l_obj']:
         # We change the shape of the bounds if necessary
@@ -541,21 +542,35 @@ def output_fit(fault_scenario, out=False):
             ]
 
         for param in dicts['param']:
+            dicts['param'][param].loc[shift_i] = \
+                ['----', '----------', None, None, None, None, None]
             for i, cav in enumerate(f.comp['l_cav']):
                 bnds = dicts['guess_bnds'][param](f, i)
                 old = dicts['attribute'][param](ref_equiv[i])
                 new = dicts['attribute'][param](cav)
                 var = 100. * (new - old) / old
 
-                dicts['param'][param].loc[i + shift_i] =\
+                dicts['param'][param].loc[i + shift_i + 1] =\
                     [cav.info['name'], cav.info['status'], bnds[0], bnds[1],
                      new, old, var]
-            dicts['param'][param].loc[i + shift_i + 1] = \
-                ['----', '----------', None, None, None, None, None]
-        shift_i += i + 2
+        shift_i += i + 1
 
-    if out:
+    if out_detail:
         for param in dicts['param']:
             helper.printd(dicts['param'][param].round(3), header=param)
+
+    compact = pd.DataFrame(columns=('Name', 'Status', 'Norm', '(var %)',
+                                    'phi_0 (rel)', 'phi_0 (abs)'))
+    for i in range(dicts['param']['Norm'].shape[0]):
+        compact.loc[i] = [
+            dicts['param']['Norm']['Name'][i],
+            dicts['param']['Norm']['Status'][i],
+            dicts['param']['Norm']['Fixed'][i],
+            dicts['param']['Norm']['(var %)'][i],
+            dicts['param']['phi_0_rel']['Fixed'][i],
+            dicts['param']['phi_0_abs']['Fixed'][i],
+                          ]
+    if out_compact:
+        helper.printd(compact.round(3), header='Fit compact resume')
 
     return dicts['param']
