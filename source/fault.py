@@ -14,6 +14,7 @@ import numpy as np
 from scipy.optimize import minimize, least_squares
 from constants import FLAG_PHI_ABS, STR_PHI_ABS
 import debug
+import helper
 
 
 dict_phase = {
@@ -22,6 +23,10 @@ dict_phase = {
     }
 
 n_comp_latt_per_fault = 2
+debugs = {
+    'fit': True,
+    'cav': False,
+    }
 
 
 class FaultScenario():
@@ -49,7 +54,7 @@ class FaultScenario():
             'position': None,   # Where are we measuring 'objective'?
             }
 
-        self.info = {}
+        self.info = {'fit': None}
 
         if not FLAG_PHI_ABS:
             print('Warning, the phases in the broken linac are relative.',
@@ -151,12 +156,17 @@ class FaultScenario():
                 elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
                 self.brok_lin.compute_transfer_matrices(method, elt1_to_elt2)
 
-            # self.brok_lin.compute_transfer_matrices(method)
-
         # TODO we remake a small fit to be sure
+        # at the end we recompute the full transfer matrix
+        self.brok_lin.compute_transfer_matrices(method)
 
         self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
             str(len(successes)) + ')'
+
+        for linac in [self.ref_lin, self.brok_lin]:
+            self.info[linac.name + ' cav'] = \
+                debug.output_cavities(linac, debugs['cav'])
+        self.info['fit'] = debug.output_fit(self, out=True)
 
 
 class Fault():
@@ -167,7 +177,7 @@ class Fault():
         self.brok_lin = brok_lin
         self.fail = {'l_cav': [], 'l_idx': fail_idx}
         self.comp = {'l_cav': [], 'l_all_elts': None}
-        self.info = {}
+        self.info = {'sol': None, 'initial_guesses': None, 'bounds': None}
 
     def select_compensating_cavities(self):
         """Determine the cavitites to compensate the failed cav(s)."""
@@ -277,20 +287,13 @@ class Fault():
             List of the indices of the cavities that compensate the fault when
             'strategy' == 'manual'. The default is None.
         """
-        debugs = {
-            'fit': True,
-            'cav': False,
-            }
         self.what_to_fit = what_to_fit
         print("Starting fit with parameters:", self.what_to_fit)
 
-        # FIXME conflict
-        for linac in [self.ref_lin, self.brok_lin]:
-            self.info[linac.name + ' cav'] = \
-                debug.output_cavities(linac, debugs['cav'])
-
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
+        self.info['initial_guesses'], self.info['bounds'] = \
+            initial_guesses, bounds
         fun_objective, idx_objective = self._select_objective(
             self.what_to_fit['position'],
             self.what_to_fit['objective'])
@@ -317,14 +320,9 @@ class Fault():
             cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
-        # FIXME conflict
-        self.info[self.brok_lin.name + ' cav'] = \
-            debug.output_cavities(self.brok_lin, debugs['cav'])
-
         print('\n', sol)
         self.info['sol'] = sol
-        self.info['fit'] = debug.output_fit(self, initial_guesses, bounds,
-                                            debugs['fit'])
+
         return sol.success
 
     def _set_fit_parameters(self):

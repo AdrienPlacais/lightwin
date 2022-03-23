@@ -463,7 +463,7 @@ def compare_phase_space(accelerator):
     accelerator.partran_data = partran_data
 
 
-def output_cavities(linac, out=True):
+def output_cavities(linac, out=False):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
         'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
@@ -481,33 +481,35 @@ def output_cavities(linac, out=True):
     return df_cav
 
 
-def _create_output_fit_dicts(initial_guess, bounds, list_of_ref_cav):
+def _create_output_fit_dicts():
     dict_param = {
         'phi_0_rel': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
-                                           'Fixed',
-                                           'Orig.', '(var %)')),
+                                           'Fixed', 'Orig.', '(var %)')),
         'phi_0_abs': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                            'Fixed', 'Orig.', '(var %)')),
         'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                       'Fixed', 'Orig.', '(var %)')),
         }
     dict_attribute = {
-        'phi_0_rel': lambda acc_f: np.rad2deg(acc_f.phi_0['rel']),
-        'phi_0_abs': lambda acc_f: np.rad2deg(acc_f.phi_0['abs']),
-        'Norm': lambda acc_f: acc_f.norm,
+        'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['rel']),
+        'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['abs']),
+        'Norm': lambda cav: cav.acc_field.norm,
         }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
-    n_comp = len(list_of_ref_cav)
     dict_guess_bnds = {
-        'phi_0_rel': lambda i: [dict_attribute['phi_0_rel'](
-            list_of_ref_cav[i].acc_field), np.rad2deg(bounds[0][i]),
-            np.rad2deg(bounds[1][i])],
-        'phi_0_abs': lambda i: [dict_attribute['phi_0_abs'](
-            list_of_ref_cav[i].acc_field), np.rad2deg(bounds[0][i]),
-            np.rad2deg(bounds[1][i])],
-        'Norm': lambda i: [initial_guess[i+n_comp], bounds[0][i+n_comp],
-                           bounds[1][i+n_comp]]
+        'phi_0_rel':
+            lambda f, i:
+                [np.rad2deg(f.info['bounds'][0][i]),
+                 np.rad2deg(f.info['bounds'][1][i])
+                 ],
+        'phi_0_abs':
+            lambda f, i:
+                [np.rad2deg(f.info['bounds'][0][i]),
+                 np.rad2deg(f.info['bounds'][1][i])],
+        'Norm': lambda f, i:
+            [f.info['bounds'][0][i+len(f.comp['l_cav'])],
+             f.info['bounds'][1][i+len(f.comp['l_cav'])]]
         }
 
     all_dicts = {
@@ -519,37 +521,38 @@ def _create_output_fit_dicts(initial_guess, bounds, list_of_ref_cav):
     return all_dicts
 
 
-def output_fit(fault, initial_guess, bounds, out=True):
+def output_fit(fault_scenario, out=False):
     """Output relatable parameters of fit."""
-    # We change the shape of the bounds if necessary
-    if not isinstance(bounds, tuple):
-        bounds = (bounds[:, 0], bounds[:, 1])
+    dicts = _create_output_fit_dicts()
+    shift_i = 0
+    for f in fault_scenario.faults['l_obj']:
+        # We change the shape of the bounds if necessary
+        if not isinstance(f.info['bounds'], tuple):
+            f.info['bounds'] = (f.info['bounds'][:, 0], f.info['bounds'][:, 1])
 
-    # Get list of compensating cavities, and their original counterpart in
-    # the reference linac
-    list_of_cav = {
-        'compensating': fault.comp['l_cav'],
-        'ref_equivalents': [],
-            }
-    for i, comp_cav in enumerate(list_of_cav['compensating']):
-        idx = fault.brok_lin.where_is(comp_cav)
-        list_of_cav['ref_equivalents'].append(
-            fault.ref_lin.elements['list'][idx])
+        # Get list of compensating cavities, and their original counterpart in
+        # the reference linac
+        ref_equiv = [
+            f.ref_lin.elements['list'][f.brok_lin.where_is(cav)]
+            for cav in f.comp['l_cav']
+            ]
 
-    dicts = _create_output_fit_dicts(initial_guess, bounds,
-                                     list_of_cav['ref_equivalents'])
+        for param in dicts['param']:
+            for i, cav in enumerate(f.comp['l_cav']):
+                bnds = dicts['guess_bnds'][param](f, i)
+                old = dicts['attribute'][param](ref_equiv[i])
+                new = dicts['attribute'][param](cav)
+                var = 100. * (new - old) / old
 
-    for param in dicts['param']:
-        for i, cav in enumerate(list_of_cav['compensating']):
-            x0_and_bnds = dicts['guess_bnds'][param](i)
-            old = x0_and_bnds[0]
-            new = dicts['attribute'][param](cav.acc_field)
-            var = 100. * (new - old) / old
+                dicts['param'][param].loc[i + shift_i] =\
+                    [cav.info['name'], cav.info['status'], bnds[0], bnds[1],
+                     new, old, var]
+            dicts['param'][param].loc[i + shift_i + 1] = \
+                ['----', '----------', None, None, None, None, None]
+        shift_i += i + 2
 
-            dicts['param'][param].loc[i] = [cav.info['name'],
-                                            cav.info['status'], x0_and_bnds[1],
-                                            x0_and_bnds[2], new, old, var]
-        if out:
+    if out:
+        for param in dicts['param']:
             helper.printd(dicts['param'][param].round(3), header=param)
 
     return dicts['param']
