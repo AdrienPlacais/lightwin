@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jan 24 12:51:15 2022
+Created on Mon Jan 24 12:51:15 2022.
 
 @author: placais
 
-Module holding all the Fault_Scenario, which distribute the Faults. Each Fault
-object fixes himself (Fault.fix_single), and a second optimization is performed
-to smoothen the individual fixes. # TODO
+Module holding the FaultScenario, which holds the Faults. Each Fault object
+fixes himself (Fault.fix_single), and a second optimization is performed to
+smoothen the individual fixes. # TODO
+
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
@@ -26,15 +27,14 @@ class FaultScenario():
 
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
-
         self.transfer_phi0_from_ref_to_broken()
 
+        # Save faults as a list of Fault objects and as a list of cavity idx
+        l_idx_cav = sorted(l_idx_cav)
         self.faults = {
-            'l_obj': [],
-            'l_idx': sorted(l_idx_cav),
+            'l_obj': self._distribute_and_create_fault_objects(l_idx_cav),
+            'l_idx': l_idx_cav,
                 }
-        self.list_of_faults = []    # TODO: remove
-        self.faults['l_obj'] = self.distribute_faults()
 
         self.what_to_fit = {
             'strategy': None,   # How are selected the compensating cavities?
@@ -70,7 +70,7 @@ class FaultScenario():
                 brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
             brok_acc_f.phi_0['nominal_rel'] = ref_acc_f.phi_0['rel']
 
-    def distribute_faults(self):
+    def _distribute_and_create_fault_objects(self, l_idx_cav):
         """
         Create the Fault objects.
 
@@ -84,8 +84,8 @@ class FaultScenario():
             + 'cav to distribute them equally.'
         assert all([
             self.brok_lin.elements['list'][idx].info['nature'] == 'FIELD_MAP'
-            for idx in self.faults['l_idx']]), \
-            'Not all failed cavities that you asked are cavities.'
+            for idx in l_idx_cav
+            ]), 'Not all failed cavities that you asked are cavities.'
 
         def are_close(idx1, idx2):
             latt1 = self.brok_lin.elements['list'][idx1].info['lattice_number']
@@ -94,9 +94,9 @@ class FaultScenario():
         # Regroup faults that are too close to each other as they will be fixed
         # at the same moment
         grouped_faults_idx = [[idx1
-                               for idx1 in self.faults['l_idx']
+                               for idx1 in l_idx_cav
                                if are_close(idx1, idx2)]
-                              for idx2 in self.faults['l_idx']]
+                              for idx2 in l_idx_cav]
         # Remove doublons
         grouped_faults_idx = \
             list(grouped_faults_idx
@@ -146,10 +146,12 @@ class FaultScenario():
                 elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
                 self.brok_lin.compute_transfer_matrices(method, elt1_to_elt2)
 
+        # TODO plot interesting data before the second fit to see if it is
+        # useful
         # TODO we remake a small fit to be sure
-        # at the end we recompute the full transfer matrix
-        self.brok_lin.compute_transfer_matrices(method)
 
+        # At the end we recompute the full transfer matrix
+        self.brok_lin.compute_transfer_matrices(method)
         self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
             str(len(successes)) + ')'
 
