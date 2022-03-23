@@ -15,7 +15,7 @@ import debug
 import helper
 import emittance
 import tracewin_interface as tw
-import fault
+import fault_scenario as mod_fs
 # import cProfile
 
 # =============================================================================
@@ -107,7 +107,7 @@ ref_linac = acc.Accelerator(FILEPATH, "Working")
 broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
 
-fail = fault.FaultScenario(ref_linac, broken_linac, failed_cav)
+fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
 
 DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],

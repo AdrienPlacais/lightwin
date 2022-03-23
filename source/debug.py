@@ -507,9 +507,10 @@ def _create_output_fit_dicts():
             lambda f, i:
                 [np.rad2deg(f.info['bounds'][0][i]),
                  np.rad2deg(f.info['bounds'][1][i])],
-        'Norm': lambda f, i:
-            [f.info['bounds'][0][i+len(f.comp['l_cav'])],
-             f.info['bounds'][1][i+len(f.comp['l_cav'])]]
+        'Norm':
+            lambda f, i:
+                [f.info['bounds'][0][i+len(f.comp['l_cav'])],
+                 f.info['bounds'][1][i+len(f.comp['l_cav'])]]
         }
 
     all_dicts = {
