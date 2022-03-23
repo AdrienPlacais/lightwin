@@ -49,23 +49,31 @@ if FILEPATH == "":
 # =============================================================================
 # failed_cav = [25]
 manual_list = [7, 15, 17, 25, 27]
-# failed_cav = [35, 155, 157, 295, 307, 355, 395, 521, 523, 525, 527, 583]
-failed_cav = [35]
+failed_cav = [
+    35,
+    # 155, 157,
+    # 295, 307,
+    355,
+    # 395,
+    # 521, 523, 525, 527,
+    # 583
+    ]
 manual_list = [
     [25, 27, 37, 45, 47],
-    [135, 137, 145, 147, 165, 167, 175, 177],
-    [285, 287, 297, 305, 315, 317, 325, 327],
-    [345, 347, 357, 365, 367, 385, 387, 397, 399, 401],
-    [493, 495, 497, 499, 507, 509, 511, 513],
-    [535, 537, 539, 541, 549, 551, 553, 555],
-    [579, 581, 591, 593, 595, 597]
+    # [135, 137, 145, 147, 165, 167, 175, 177],
+    # [285, 287, 297, 305, 315, 317, 325, 327],
+    [345, 347, 357, 365, 367],
+    # [385, 387, 397, 399, 401],
+    # [493, 495, 497, 499, 507, 509, 511, 513,
+     # 535, 537, 539, 541, 549, 551, 553, 555],
+    # [579, 581, 591, 593, 595, 597]
     ]
 WHAT_TO_FIT = {
     # =========================================================================
     #     How compensatong cavities are chosen?
     # =========================================================================
-    # 'strategy': 'manual',
-    'strategy': 'neighbors',
+    'strategy': 'manual',
+    # 'strategy': 'neighbors',
     # =========================================================================
     #     What should we fit?
     # =========================================================================
@@ -112,7 +120,8 @@ ref_linac = acc.Accelerator(FILEPATH, "Working")
 broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
 
-fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
+fail = mod_fs.FaultScenario(ref_linac, broken_linac, WHAT_TO_FIT,
+                            failed_cav, manual_list)
 
 DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
@@ -153,7 +162,7 @@ for lin in linacs:
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         if FLAG_FIX and lin.name == "Broken":
-            fail.fix_all(method, WHAT_TO_FIT, manual_list)
+            fail.fix_all(method)
             # pr = cProfile.Profile()
             # pr.enable()
             # pr.runcall(fail.fix_all, method, WHAT_TO_FIT, manual_list)

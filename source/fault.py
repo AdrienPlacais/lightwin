@@ -39,8 +39,30 @@ class Fault():
         self.comp = {'l_cav': [], 'l_all_elts': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None}
 
-    def select_compensating_cavities(self):
-        """Determine the cavitites to compensate the failed cav(s)."""
+    def select_neighboring_cavities(self):
+        """
+        Select the cavities neighboring the failed one(s).
+
+        More precisely:
+        Select the lattices with comp cav, extract cavities from it.
+
+        As for now, n_comp_latt_per_fault is the number of compensating
+        lattices per faulty cavity. This number is however too high for
+        MYRRHA's high beta section.
+
+        # TODO: get this function out of the Class?
+        Would be better for consistency w/ manual list
+        Required arguments:
+            l_lattices from brok_lin.elements['sections'] list of lattices
+            list of elements of brok_lin
+            index in lattice reference
+            self.fail['l_idx'] indexes of failed cavities
+
+        Return
+        ------
+        l_comp_cav : list
+            List of the cavities (_Element object) used for compensation.
+        """
         comp_lattices_idx = []
         l_lattices = [lattice
                       for section in self.brok_lin.elements['sections']
@@ -59,39 +81,56 @@ class Fault():
                 # FIXME: dirty hack
                 if abs(idx - idx_lattice) < 3:
                     comp_lattices_idx.append(idx)
-                # Also add the lattice with the fault. Will be used if there
-                # is a least one working cavity inside
+
+                # Also add the lattice with the fault
                 if idx_lattice not in comp_lattices_idx:
                     comp_lattices_idx.append(idx_lattice)
+
         comp_lattices_idx.sort()
 
-        # List of all elements of the compensating zone
-        self.comp['l_all_elts'] = [elt
-                                   for latt_idx in comp_lattices_idx
-                                   for elt in l_lattices[latt_idx]
-                                   ]
         # List of compensating (+ broken) cavitites
         l_comp_cav = [cav
-                      for cav in self.comp['l_all_elts']
+                      for idx in comp_lattices_idx
+                      for cav in l_lattices[idx]
                       if cav.info['nature'] == 'FIELD_MAP'
                       ]
-        # TODO: handle manual_lists
         return l_comp_cav
 
-    def update_status_cavities(self, l_comp_cav):
-        """Give status 'compensate' and 'broken' to proper cavities."""
+    def prepare_cavities(self, l_comp_cav):
+        """
+        Prepare the optimisation process.
+
+        In particular, give status 'compensate' and 'broken' to proper
+        cavities. Define the full lattices incorporating the compensating and
+        faulty cavities.
+        """
+        # Break proper cavities
         for idx in self.fail['l_idx']:
             cav = self.brok_lin.elements['list'][idx]
             cav.update_status('failed')
-            l_comp_cav.remove(cav)
+            if cav in l_comp_cav:
+                l_comp_cav.remove(cav)
             self.fail['l_cav'].append(cav)
 
+        # Assign compensating cavities
         for cav in l_comp_cav:
             if cav.info['status'] != 'nominal':
                 print('warning check fault.update_status_cavities: ',
                       'several faults want the same compensating cavity!')
             cav.update_status('compensate')
             self.comp['l_cav'].append(cav)
+
+        # List of all elements of the compensating zone
+        l_lattices = [lattice
+                      for section in self.brok_lin.elements['sections']
+                      for lattice in section
+                      ]
+        self.comp['l_all_elts'] = [elt
+                                   for lattice in l_lattices
+                                   for elt in lattice
+                                   if any([cav in lattice
+                                           for cav in self.comp['l_cav']])
+                                   ]
 
     def _select_cavities_to_rephase(self):
         """
@@ -133,7 +172,7 @@ class Fault():
         # as well as faulty modules
         return neighbor_modules + modules_with_fail
 
-    def fix_single(self, method, what_to_fit, manual_list=None):
+    def fix_single(self, method, what_to_fit):
         """
         Try to compensate the faulty cavities.
 

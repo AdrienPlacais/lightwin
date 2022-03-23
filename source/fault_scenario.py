@@ -21,7 +21,8 @@ import fault as mod_f
 class FaultScenario():
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_linac, broken_linac, l_idx_cav):
+    def __init__(self, ref_linac, broken_linac, what_to_fit, l_idx_fault,
+                 l_idx_comp):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
 
@@ -29,18 +30,22 @@ class FaultScenario():
         assert broken_linac.synch.info['reference'] is False
         self.transfer_phi0_from_ref_to_broken()
 
-        # Save faults as a list of Fault objects and as a list of cavity idx
-        l_idx_cav = sorted(l_idx_cav)
-        self.faults = {
-            'l_obj': self._distribute_and_create_fault_objects(l_idx_cav),
-            'l_idx': l_idx_cav,
-                }
-
         self.what_to_fit = {
-            'strategy': None,   # How are selected the compensating cavities?
-            'objective': None,  # What do we want to fit?
-            'position': None,   # Where are we measuring 'objective'?
+            # How are selected the compensating cavities?
+            'strategy': what_to_fit['strategy'],
+            # What do we want to fit?
+            'objective': what_to_fit['objective'],
+            # Where are we measuring 'objective'?
+            'position': what_to_fit['position'],
             }
+
+        # Save faults as a list of Fault objects and as a list of cavity idx
+        l_idx_fault = sorted(l_idx_fault)
+        self.faults = {
+            'l_obj': self._distribute_and_create_fault_objects(
+                l_idx_fault, l_idx_comp),
+            'l_idx': l_idx_fault,
+                }
 
         self.info = {'fit': None}
 
@@ -70,7 +75,7 @@ class FaultScenario():
                 brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
             brok_acc_f.phi_0['nominal_rel'] = ref_acc_f.phi_0['rel']
 
-    def _distribute_and_create_fault_objects(self, l_idx_cav):
+    def _distribute_and_create_fault_objects(self, l_idx_fault, l_idx_comp):
         """
         Create the Fault objects.
 
@@ -78,13 +83,23 @@ class FaultScenario():
         lattices.
         Then we determine which cavities will compensate these faults. If two
         different faults need the same cavity, we merge them.
+
+        Parameters
+        ----------
+        l_idx_fault : list
+            List of the indices (in linac.elements['list']) of the faulty
+            linacs.
+        l_idx_comp : list of lists
+            List of list of indices (same) of the cavity that will be used to
+            compensate the faults. The len of this list should match the number
+            of faults.
         """
         assert mod_f.n_comp_latt_per_fault % 2 == 0, \
             'You need an even number of compensating lattices per faulty '\
             + 'cav to distribute them equally.'
         assert all([
             self.brok_lin.elements['list'][idx].info['nature'] == 'FIELD_MAP'
-            for idx in l_idx_cav
+            for idx in l_idx_fault
             ]), 'Not all failed cavities that you asked are cavities.'
 
         def are_close(idx1, idx2):
@@ -94,9 +109,9 @@ class FaultScenario():
         # Regroup faults that are too close to each other as they will be fixed
         # at the same moment
         grouped_faults_idx = [[idx1
-                               for idx1 in l_idx_cav
+                               for idx1 in l_idx_fault
                                if are_close(idx1, idx2)]
-                              for idx2 in l_idx_cav]
+                              for idx2 in l_idx_fault]
         # Remove doublons
         grouped_faults_idx = \
             list(grouped_faults_idx
@@ -109,18 +124,33 @@ class FaultScenario():
             l_faults_obj.append(
                 mod_f.Fault(self.ref_lin, self.brok_lin, f_idx)
                 )
+
         # Get cavities necessary for every Fault
         all_comp_cav = []
-        for fault in l_faults_obj:
-            all_comp_cav.append(fault.select_compensating_cavities())
-        print('Check that there is no cavity in common.')
+        if self.what_to_fit['strategy'] == 'neighbors':
+            for fault in l_faults_obj:
+                all_comp_cav.append(fault.select_neighboring_cavities())
+            print('Check that there is no cavity in common.')
 
-        for (fault, l_comp_cav) in zip(l_faults_obj, all_comp_cav):
-            fault.update_status_cavities(l_comp_cav)
+        elif self.what_to_fit['strategy'] == 'manual':
+            assert len(l_idx_comp) == len(l_faults_obj), \
+                'Error, the number of group of compensating cavities do not' \
+                + ' match the number of Fault objects.'
+            all_comp_cav = [
+                [self.brok_lin.elements['list'][idx]
+                 for idx in idx_list]
+                for idx_list in l_idx_comp
+                ]
+
+        # Change status (failed, compensate) of the proper cavities, create the
+        # fault.comp['l_all_elts'] list containing the full lattices in which
+        # we have our compensating and faulty cavities
+        for (f, l_comp_cav) in zip(l_faults_obj, all_comp_cav):
+            f.prepare_cavities(l_comp_cav)
 
         return l_faults_obj
 
-    def fix_all(self, method, what_to_fit, manual_list):
+    def fix_all(self, method):
         """
         Fix the linac.
 
@@ -133,7 +163,7 @@ class FaultScenario():
         # We fix all Faults individually
         successes = []
         for i, f in enumerate(self.faults['l_obj']):
-            suc = f.fix_single(method, what_to_fit, manual_list)
+            suc = f.fix_single(method, self.what_to_fit)
             successes.append(suc)
 
             # Recompute transfer matrices between this fault and the next
