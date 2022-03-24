@@ -48,7 +48,7 @@ class _Element():
             'rel': None,
             }
         self.idx = {
-            'in': None,         # TODO: replace by synch_in
+            'in': None,
             'out': None,
             'nested': None,
             }

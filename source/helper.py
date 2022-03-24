@@ -186,7 +186,7 @@ def plot_section(linac, ax, x_axis='s'):
         'elt': lambda elt: linac.where_is(elt) + 1,
         }
     x_ax = [0]
-    for i, section in enumerate(linac.elements['sections']):
+    for i, section in enumerate(linac.elements['l_sections']):
         elt = dict_x_axis['last_elt_of_sec'](section)
         x_ax.append(dict_x_axis[x_axis](elt))
 

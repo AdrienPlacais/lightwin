@@ -90,7 +90,7 @@ WHAT_TO_FIT = {
     # 'position': 'both',
     }
 FLAG_FIX = True
-SAVE_FIX = True
+SAVE_FIX = False
 
 # =============================================================================
 # Outputs

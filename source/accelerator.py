@@ -37,12 +37,12 @@ class Accelerator():
         self.elements = {
             'n': len(list_of_elements),
             'list': list_of_elements,
-            'list_lattice': lattices,
-            'sections': sections,
+            'l_lattices': lattices,
+            'l_sections': sections,
             }
 
         tw.load_filemaps(dat_filepath, dat_filecontent,
-                         self.elements['sections'], freqs)
+                         self.elements['l_sections'], freqs)
         tw.give_name(self.elements['list'])
 
         self.files = {

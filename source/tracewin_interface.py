@@ -298,7 +298,7 @@ def output_data_in_tw_fashion(linac):
     data = []
     n_latt = 1
     i = 0
-    for section in linac.elements['sections']:
+    for section in linac.elements['l_sections']:
         for lattice in section:
             lattice_n = '--------M' + str(n_latt)
             data.append([np.NaN, lattice_n, '', np.NaN, np.NaN, np.NaN, np.NaN,

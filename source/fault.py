@@ -54,7 +54,7 @@ class Fault():
         # TODO: get this function out of the Class?
         Would be better for consistency w/ manual list
         Required arguments:
-            l_lattices from brok_lin.elements['sections'] list of lattices
+            l_lattices from brok_lin.elements['l_sections'] list of lattices
             list of elements of brok_lin
             index in lattice reference
             self.fail['l_idx'] indexes of failed cavities
@@ -66,7 +66,7 @@ class Fault():
         """
         comp_lattices_idx = []
         l_lattices = [lattice
-                      for section in self.brok_lin.elements['sections']
+                      for section in self.brok_lin.elements['l_sections']
                       for lattice in section
                       ]
         # Get lattices neighboring each faulty cavity
@@ -123,7 +123,7 @@ class Fault():
 
         # List of all elements of the compensating zone
         l_lattices = [lattice
-                      for section in self.brok_lin.elements['sections']
+                      for section in self.brok_lin.elements['l_sections']
                       for lattice in section
                       ]
         self.comp['l_all_elts'] = [elt
@@ -161,7 +161,7 @@ class Fault():
 
     def _select_comp_modules(self, modules_with_fail):
         """Give failed modules and their neighbors."""
-        modules = self.brok_lin.elements['list_lattice']
+        modules = self.brok_lin.elements['l_lattices']
         neighbor_modules = []
         for module in modules_with_fail:
             idx = modules.index(module)
