@@ -191,7 +191,7 @@ class Fault():
         print("Starting fit with parameters:", self.what_to_fit)
 
         # Set the fit variables
-        initial_guesses, bounds = self._set_fit_parameters()
+        initial_guesses, bounds, x_scales = self._set_fit_parameters()
         self.info['initial_guesses'], self.info['bounds'] = \
             initial_guesses, bounds
         fun_objective, idx_objective = self._select_objective(
@@ -214,7 +214,9 @@ class Fault():
         sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
                         args=(self, method, fun_objective, idx_objective,
                               ),
-                        x_scale='jac')
+                        # x_scale=x_scales,
+                        x_scale='jac',
+                        )
         # TODO check methods
         # TODO check Jacobian
         # TODO check x_scale
@@ -248,12 +250,17 @@ class Fault():
         """
         initial_guess = []
         bounds = []
+        x_scales = []
+
+        typical_phase_var = np.deg2rad(10.)
+        typical_norm_var = .1
 
         # Handle phase
         limits_phase = (0., 2.*np.pi)
         for elt in self.comp['l_cav']:
             initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
             bounds.append(limits_phase)
+            x_scales.append(typical_phase_var)
 
         # Handle norm
         limits_norm = {
@@ -276,10 +283,11 @@ class Fault():
 
             initial_guess.append(norm)
             bounds.append((down, upp))
+            x_scales.append(typical_norm_var)
 
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)
-        return initial_guess, bounds
+        return initial_guess, bounds, x_scales
 
     def _select_objective(self, position_str, objective_str):
         """Select the objective to fit."""
@@ -348,9 +356,8 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
     obj = np.abs(fun_objective(fault.ref_lin, idx_objective)
                  - fun_objective(fault.brok_lin, idx_objective))
     # TODO: could be cleaner?
-    if False:
-        for cav in fault.comp['l_cav']:
-            if cav.acc_field.cav_params['phi_s_deg'] > 0.:
-                obj *= 1e8
+    for cav in fault.comp['l_cav']:
+        if cav.acc_field.cav_params['phi_s_deg'] > 0.:
+            obj *= 1e3
     # print(obj)
     return obj

@@ -553,7 +553,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
                 dicts['param'][param].loc[i + shift_i + 1] =\
                     [cav.info['name'], cav.info['status'], bnds[0], bnds[1],
                      new, old, var]
-        shift_i += i + 1
+        shift_i += i + 2
 
     if out_detail:
         for param in dicts['param']:
