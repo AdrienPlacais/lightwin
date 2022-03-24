@@ -103,8 +103,8 @@ class FaultScenario():
             ]), 'Not all failed cavities that you asked are cavities.'
 
         def are_close(idx1, idx2):
-            latt1 = self.brok_lin.elements['list'][idx1].info['lattice_number']
-            latt2 = self.brok_lin.elements['list'][idx2].info['lattice_number']
+            latt1 = self.brok_lin.elements['list'][idx1].idx['lattice'][0]
+            latt2 = self.brok_lin.elements['list'][idx2].idx['lattice'][0]
             return abs(latt1 - latt2) <= mod_f.n_comp_latt_per_fault / 2
         # Regroup faults that are too close to each other as they will be fixed
         # at the same moment

@@ -183,7 +183,7 @@ def plot_section(linac, ax, x_axis='s'):
     dict_x_axis = {
         'last_elt_of_sec': lambda sec: sec[-1][-1],
         's': lambda elt: linac.synch.z['abs_array'][elt.idx['s_out']],
-        'elt': lambda elt: linac.where_is(elt) + 1,
+        'elt': lambda elt: elt.idx['element'] + 1,
         }
     x_ax = [0]
     for i, section in enumerate(linac.elements['l_sections']):

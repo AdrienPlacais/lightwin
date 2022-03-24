@@ -93,8 +93,9 @@ class Accelerator():
             for j, lattice in enumerate(sec):
                 for k, elt in enumerate(lattice):
                     elt.info['zone'] = zones[i]
-                    elt.idx['nested'] = [(i, j, k)]
-                    elt.info['lattice_number'] = j + shift_lattice
+                    elt.idx['section'] = [(i, j, k)]
+                    elt.idx['lattice'] = (j + shift_lattice, k)
+                    elt.idx['element'] = list_of_elements.index(elt)
             shift_lattice += j + 1
         lattices = []
         for sec in sections:
@@ -306,8 +307,10 @@ class Accelerator():
 
         """
         if nature:
+            print('Warning, calling where_is with argument nature.')
             idx = self.elements_of(nature=elt.info['nature']).index(elt)
         else:
+            print('Warning, where_is should be useless now.')
             idx = self.elements['list'].index(elt)
 
         return idx
@@ -319,5 +322,5 @@ class Accelerator():
                 break
         if showinfo:
             print('Synch index', idx, 'is in:', elt.info)
-            print('Synch indexes of this elt:', elt.idx, '\n\n')
+            print('Indexes of this elt:', elt.idx, '\n\n')
         return elt

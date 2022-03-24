@@ -299,7 +299,7 @@ class Particle():
             print('Warning enter_cavity! Not sure what will happen with a',
                   'non synchronous particle.')
 
-    def exit_cavity(self, index):
+    def exit_cavity(self):
         """Reset frac_omega."""
         self._set_omega_rf(self.omega0['bunch'])
         self.phi['abs_rf'] = None

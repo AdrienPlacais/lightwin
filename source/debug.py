@@ -451,7 +451,7 @@ def compare_phase_space(accelerator):
         particle_list[i].compute_phase_space_tot(accelerator.synch)
 
     # Plot LW data
-    idx = accelerator.get_from_elements('idx', 'in')
+    idx = accelerator.get_from_elements('idx', 's_in')
 
     i = 0
     for part in particle_list:
@@ -537,7 +537,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
         # Get list of compensating cavities, and their original counterpart in
         # the reference linac
         ref_equiv = [
-            f.ref_lin.elements['list'][f.brok_lin.where_is(cav)]
+            f.ref_lin.elements['list'][cav.idx['element']]
             for cav in f.comp['l_cav']
             ]
 

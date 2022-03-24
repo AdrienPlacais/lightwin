@@ -146,7 +146,7 @@ def z_field_map_electric_field(cavity, synch):
         synch.advance_phi(delta['phi_rf'], idx=idx_abs + 1, flag_rf=True)
         synch.advance_position(d_z, idx=idx_abs + 1)
 
-    synch.exit_cavity(cavity.idx)
+    synch.exit_cavity()
 
     return transfer_matrix
 

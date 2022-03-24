@@ -73,7 +73,7 @@ class Fault():
         # FIXME: too many lattices for faults in Section 3
         for idx in self.fail['l_idx']:
             failed_cav = self.brok_lin.elements['list'][idx]
-            idx_lattice = failed_cav.info['lattice_number'] - 1
+            idx_lattice = failed_cav.idx['lattice'][0] - 1
             for shift in [-1, +1]:
                 idx = idx_lattice + shift
                 while ((idx in comp_lattices_idx)
@@ -142,12 +142,12 @@ class Fault():
         Even in the case of an absolute phase calculation, cavities in the
         HEBT are rephased.
         """
-        # We get first failed cav
-        ffc = min([
-            self.brok_lin.where_is(fail_cav)
+        # We get first failed cav index
+        ffc_idx = min([
+            fail_cav.idx['elements']
             for fail_cav in self.fail_list
             ])
-        after_ffc = self.brok_lin.elements['list'][ffc:]
+        after_ffc = self.brok_lin.elements['list'][ffc_idx:]
 
         cav_to_rephase = [cav
                           for cav in after_ffc
