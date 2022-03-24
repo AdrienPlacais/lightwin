@@ -48,8 +48,8 @@ class _Element():
             'rel': None,
             }
         self.idx = {
-            'in': None,
-            'out': None,
+            's_in': None,
+            's_out': None,
             'nested': None,
             }
         # tmat stands for 'transfer matrix'

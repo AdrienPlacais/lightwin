@@ -158,7 +158,7 @@ class Accelerator():
 
             idx['in'] = idx['out']
             idx['out'] += elt.tmat['solver_param']['n_steps']
-            elt.idx['in'], elt.idx['out'] = idx['in'], idx['out']
+            elt.idx['s_in'], elt.idx['s_out'] = idx['in'], idx['out']
         return idx['out']
 
     def _check_consistency_phases(self):
@@ -203,11 +203,11 @@ class Accelerator():
         if method in ['RK', 'leapfrog']:
             for elt in elements:
                 elt.compute_transfer_matrix(self.synch)
-                idx = [elt.idx['in'] + 1, elt.idx['out'] + 1]
+                idx = [elt.idx['s_in'] + 1, elt.idx['s_out'] + 1]
                 self.transf_mat['indiv'][idx[0]:idx[1], :, :] \
                     = elt.tmat['matrix']
 
-            idxs = [elements[0].idx['in'], elements[-1].idx['out'] + 1]
+            idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
             helper.individual_to_global_transfer_matrix(
                     self.transf_mat['indiv'], self.transf_mat['cumul'], idxs)
 
@@ -315,7 +315,7 @@ class Accelerator():
     def where_is_this_index(self, idx, showinfo=False):
         """Give an equivalent index."""
         for elt in self.elements['list']:
-            if idx in range(elt.idx['in'], elt.idx['out']):
+            if idx in range(elt.idx['s_in'], elt.idx['s_out']):
                 break
         if showinfo:
             print('Synch index', idx, 'is in:', elt.info)

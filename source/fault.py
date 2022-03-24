@@ -297,9 +297,9 @@ class Fault():
         n_latt = 10 #self.brok_lin.elements['n_per_lattice']
         dict_position = {
             'end_of_last_comp_cav': lambda c_list:
-                [c_list[-1].idx['out'] - 1],
+                [c_list[-1].idx['s_out'] - 1],
             'one_module_after_last_comp_cav': lambda c_list:
-                [all_list[all_list.index(c_list[-1]) + n_latt].idx['out'] - 1],
+                [all_list[all_list.index(c_list[-1]) + n_latt].idx['s_out'] - 1],
             }
         dict_position['both'] = lambda c_list: \
             dict_position['end_of_last_comp_cav'](c_list) \

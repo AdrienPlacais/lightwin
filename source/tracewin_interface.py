@@ -286,13 +286,13 @@ def output_data_in_tw_fashion(linac):
             if(elt.info['nature'] == 'FIELD_MAP')
             else np.NaN,
             'Energy (MeV)': lambda i, elt, synch:
-            synch.energy['kin_array_mev'][elt.idx['out']],
+            synch.energy['kin_array_mev'][elt.idx['s_out']],
             'Beta Synch.': lambda i, elt, synch:
-            synch.energy['beta_array'][elt.idx['out']],
+            synch.energy['beta_array'][elt.idx['s_out']],
             'Full length (mm)': lambda i, elt, synch:
-            synch.z['abs_array'][elt.idx['out']] * 1e3,
+            synch.z['abs_array'][elt.idx['s_out']] * 1e3,
             'Abs. phase (deg)': lambda i, elt, synch:
-            np.rad2deg(synch.phi['abs_array'][elt.idx['out']]),
+            np.rad2deg(synch.phi['abs_array'][elt.idx['s_out']]),
         }
 
     data = []

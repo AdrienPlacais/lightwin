@@ -41,7 +41,7 @@ def z_drift_element(elt, synch):
     r_zz = np.full((n_steps, 2, 2), np.NaN)
 
     for i in range(n_steps):
-        idx_abs = elt.idx['in'] + i
+        idx_abs = elt.idx['s_in'] + i
         r_zz[i, :, :] = z_drift_length(delta_s,
                                        synch.energy['gamma_array'][idx_abs])
 
@@ -79,7 +79,7 @@ def z_field_map_electric_field(cavity, synch):
     """
     assert isinstance(cavity, elements.FieldMap)
     assert isinstance(synch, particle.Particle)
-    idx_in = cavity.idx['in']
+    idx_in = cavity.idx['s_in']
     method, n_steps, d_z = cavity.tmat['solver_param'].values()
 
     acc_f = cavity.acc_field

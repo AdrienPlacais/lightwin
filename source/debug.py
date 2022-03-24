@@ -264,7 +264,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
 
     dicts = _create_plot_dicts()
 
-    elts_indexes = linac.get_from_elements('idx', 'out')
+    elts_indexes = linac.get_from_elements('idx', 's_out')
 
     def _err(y_d, diff='abs'):
         assert y_d in tw.dict_tw_data_table
@@ -303,7 +303,7 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
     """Plot proper data in proper subplot."""
     x_dat = xydata[0]
     y_d = xydata[1]
-    elts_indexes = linac.get_from_elements('idx', 'out')
+    elts_indexes = linac.get_from_elements('idx', 's_out')
     if plot_section:
         helper.plot_section(linac, axx, x_axis=x_dat)
     if y_d == 'struct':
