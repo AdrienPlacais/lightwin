@@ -336,6 +336,8 @@ class Fault():
                   elt.info, ".")
         return fun_multi_objective, idx_pos_list
 
+def phis(cav):
+    return cav.acc_field.cav_params['phi_s_deg']
 
 def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
     """Fit function."""
@@ -357,7 +359,31 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
                  - fun_objective(fault.brok_lin, idx_objective))
     # TODO: could be cleaner?
     for cav in fault.comp['l_cav']:
-        if cav.acc_field.cav_params['phi_s_deg'] > 0.:
+        equiv_cav = fault.ref_lin.elements['list'][cav.idx['element']]
+        if not acceptable_synch_phase(cav, equiv_cav):
             obj *= 1e3
+    print('================================================================')
     # print(obj)
     return obj
+
+
+def acceptable_synch_phase(cav, ref_cav):
+    """Checks if the synchronous phase of cav is acceptable."""
+    phi_s = np.array([
+        cavity.acc_field.cav_params['phi_s_rad']
+        for cavity in [cav, ref_cav]
+        ])
+    acceptable_delta = np.deg2rad(25.)
+    actual_delta = np.abs(np.arctan2(
+        np.sin(phi_s[1] - phi_s[0]), np.cos(phi_s[1] - phi_s[0])))
+    if np.rad2deg(phi_s[0]) > 0.:
+        print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'rejected > 0')
+        out = False
+    elif actual_delta > acceptable_delta:
+        print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'rejected > diff')
+        out = False
+    else:
+        print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'ok')
+        out = True
+    return out
+

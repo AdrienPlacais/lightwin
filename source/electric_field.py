@@ -33,6 +33,7 @@ class RfField():
         self.cav_params = {
             'v_cav_mv': np.NaN,
             'phi_s_deg': np.NaN,
+            'phi_s_rad': np.NaN,
             'integrated_field': 0.
             }
 
@@ -58,7 +59,8 @@ class RfField():
             polar_itg = cmath.polar(self.cav_params['integrated_field'])
         self.cav_params = {
             'v_cav_mv': polar_itg[0],
-            'phi_s_deg': np.rad2deg(polar_itg[1])
+            'phi_s_deg': np.rad2deg(polar_itg[1]),
+            'phi_s_rad': polar_itg[1],
             }
 
     def e_func_norm(self, norm, phi_0, pos, phi_rf):
