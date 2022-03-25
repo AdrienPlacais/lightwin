@@ -216,6 +216,7 @@ class Fault():
                               ),
                         # x_scale=x_scales,
                         x_scale='jac',
+                        # method='dogbox',
                         )
         # TODO check methods
         # TODO check Jacobian
@@ -274,11 +275,8 @@ class Fault():
             }
         for elt in self.comp['l_cav']:
             norm = elt.acc_field.norm
-            # initial_guess.append(norm)
             down = max(limits_norm['relative'][0] * norm,
                        limits_norm['absolute'][0])
-            # upp = min(limits_norm['relative'][1] * norm,
-                      # limits_norm['absolute'][1])
             upp = limits_norm_up[elt.info['zone']]
 
             initial_guess.append(norm)
@@ -299,7 +297,8 @@ class Fault():
             'end_of_last_comp_cav': lambda c_list:
                 [c_list[-1].idx['s_out'] - 1],
             'one_module_after_last_comp_cav': lambda c_list:
-                [all_list[all_list.index(c_list[-1]) + n_latt].idx['s_out'] - 1],
+                [all_list[
+                    all_list.index(c_list[-1]) + n_latt].idx['s_out'] - 1],
             }
         dict_position['both'] = lambda c_list: \
             dict_position['end_of_last_comp_cav'](c_list) \
@@ -336,8 +335,11 @@ class Fault():
                   elt.info, ".")
         return fun_multi_objective, idx_pos_list
 
+
 def phis(cav):
+    """Shorthand for synch phase."""
     return cav.acc_field.cav_params['phi_s_deg']
+
 
 def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
     """Fit function."""
@@ -357,33 +359,40 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
 
     obj = np.abs(fun_objective(fault.ref_lin, idx_objective)
                  - fun_objective(fault.brok_lin, idx_objective))
+
     # TODO: could be cleaner?
     for cav in fault.comp['l_cav']:
         equiv_cav = fault.ref_lin.elements['list'][cav.idx['element']]
+        flag, factor = acceptable_synch_phase(cav, equiv_cav)
         if not acceptable_synch_phase(cav, equiv_cav):
-            obj *= 1e3
+            obj *= factor
     print('================================================================')
-    # print(obj)
     return obj
 
 
 def acceptable_synch_phase(cav, ref_cav):
-    """Checks if the synchronous phase of cav is acceptable."""
+    """Check if the synchronous phase of cav is acceptable."""
     phi_s = np.array([
         cavity.acc_field.cav_params['phi_s_rad']
         for cavity in [cav, ref_cav]
         ])
-    acceptable_delta = np.deg2rad(25.)
+    acceptable_delta = np.deg2rad(30.)
     actual_delta = np.abs(np.arctan2(
         np.sin(phi_s[1] - phi_s[0]), np.cos(phi_s[1] - phi_s[0])))
+
     if np.rad2deg(phi_s[0]) > 0.:
         print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'rejected > 0')
         out = False
+        factor = 1e3
+
     elif actual_delta > acceptable_delta:
-        print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'rejected > diff')
-        out = False
+        print(np.rad2deg(phi_s), np.rad2deg(actual_delta),
+              '> diff')
+        out = True
+        factor = 1e1
+
     else:
         print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'ok')
         out = True
-    return out
-
+        factor = 1
+    return out, factor
