@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep 21 11:54:19 2021
+Created on Tue Sep 21 11:54:19 2021.
 
 @author: placais
 """
@@ -180,7 +180,8 @@ class Accelerator():
                   "the .dat file used by TW. Results won't match if there",
                   'are faulty cavities.\n')
 
-    def compute_transfer_matrices(self, method, elements=None):
+    def compute_transfer_matrices(self, method, elements=None,
+                                  flag_synch=False):
         """
         Compute the transfer matrices of Accelerator's elements.
 
@@ -203,7 +204,13 @@ class Accelerator():
         # Compute transfer matrix and acceleration (gamma) in each element
         if method in ['RK', 'leapfrog']:
             for elt in elements:
-                elt.compute_transfer_matrix(self.synch)
+                if elt.info['nature'] == 'FIELD_MAP' and flag_synch and \
+                        elt.info['status'] == 'compensate':
+                    elt.match_synch_phase(self.synch,
+                                          elt.acc_field.phi_s_rad_objective)
+                else:
+                    elt.compute_transfer_matrix(self.synch)
+
                 idx = [elt.idx['s_in'] + 1, elt.idx['s_out'] + 1]
                 self.transf_mat['indiv'][idx[0]:idx[1], :, :] \
                     = elt.tmat['matrix']

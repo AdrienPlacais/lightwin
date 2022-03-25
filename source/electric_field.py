@@ -36,6 +36,7 @@ class RfField():
             'phi_s_rad': np.NaN,
             'integrated_field': 0.
             }
+        self.phi_s_rad_objective = None
 
         # Initialized later as it depends on the Section the cavity is in
         self.omega0_rf, self.n_cell = None, None

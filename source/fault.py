@@ -191,7 +191,8 @@ class Fault():
         print("Starting fit with parameters:", self.what_to_fit)
 
         # Set the fit variables
-        initial_guesses, bounds, x_scales = self._set_fit_parameters()
+        flag_synch = True
+        initial_guesses, bounds, x_scales = self._set_fit_parameters(flag_synch)
         self.info['initial_guesses'], self.info['bounds'] = \
             initial_guesses, bounds
         fun_objective, idx_objective = self._select_objective(
@@ -213,6 +214,7 @@ class Fault():
         count = 0
         sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
                         args=(self, method, fun_objective, idx_objective,
+                              flag_synch,
                               ),
                         # x_scale=x_scales,
                         x_scale='jac',
@@ -222,8 +224,10 @@ class Fault():
         # TODO check Jacobian
         # TODO check x_scale
 
+        # FIXME: is this necessary?
         for i, cav in enumerate(self.comp['l_cav']):
-            cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
+            if not flag_synch:
+                cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
         print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
@@ -233,7 +237,7 @@ class Fault():
 
         return sol.success
 
-    def _set_fit_parameters(self):
+    def _set_fit_parameters(self, flag_synch=False):
         """
         Set initial conditions and boundaries for the fit.
 
@@ -257,10 +261,17 @@ class Fault():
         typical_norm_var = .1
 
         # Handle phase
-        limits_phase = (0., 2.*np.pi)
+        if flag_synch:
+            limits_phase = (-np.pi/2., 0.)
+        else:
+            limits_phase = (0., 2.*np.pi)
+
         for elt in self.comp['l_cav']:
-            # initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
-            initial_guess.append(0.)
+            if flag_synch:
+                initial_guess.append(-np.pi/4.)     # FIXME
+            else:
+                # initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
+                initial_guess.append(0.)
             bounds.append(limits_phase)
             x_scales.append(typical_phase_var)
 
@@ -342,7 +353,8 @@ def phis(cav):
     return cav.acc_field.cav_params['phi_s_deg']
 
 
-def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
+def wrapper(prop_array, fault, method, fun_objective, idx_objective,
+            flag_synch):
     """Fit function."""
     global count
     count += 1
@@ -352,11 +364,15 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
     # Unpack
     for i, cav in enumerate(fault.comp['l_cav']):
         acc_f = cav.acc_field
-        acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
+        if not flag_synch:
+            acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
+        else:
+            acc_f.phi_s_rad_objective = prop_array[i]
         acc_f.norm = prop_array[i+len(fault.comp['l_cav'])]
 
     # Update transfer matrices
-    fault.brok_lin.compute_transfer_matrices(method, fault.comp['l_all_elts'])
+    fault.brok_lin.compute_transfer_matrices(method, fault.comp['l_all_elts'],
+                                             flag_synch)
 
     obj = np.abs(fun_objective(fault.ref_lin, idx_objective)
                  - fun_objective(fault.brok_lin, idx_objective))

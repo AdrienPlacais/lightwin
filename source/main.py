@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep 21 11:32:12 2021
+Created on Tue Sep 21 11:32:12 2021.
 
 @author: placais
 """
@@ -50,8 +50,8 @@ if FILEPATH == "":
 # failed_cav = [25]
 manual_list = [7, 15, 17, 25, 27]
 failed_cav = [
-    # 35,
-    155, 157,
+    35,
+    # 155, 157,
     # 295, 307,
     # 355,
     # 395,
@@ -89,7 +89,7 @@ WHAT_TO_FIT = {
     # 'position': 'one_module_after_last_comp_cav', # FIXME wrong n_lattice in _select_objective
     # 'position': 'both',
     }
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # =============================================================================

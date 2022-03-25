@@ -179,18 +179,15 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def match_synch_phase(self, synch, phi_s_deg):
+    def match_synch_phase(self, synch, phi_s_rad):
         """Sweeps phi_0 until the cavity synch phase matches phi_s."""
         bounds = (0, 2.*np.pi)
-        global lphi_0
-        global lphi_s
-        lphi_0, lphi_s = [], []
 
         def _wrapper(phi_0_rad):
             self.acc_field.phi_0[STR_PHI_ABS] = phi_0_rad
             self.compute_transfer_matrix(synch)
             diff = helper.diff_angle(
-                np.deg2rad(phi_s_deg),
+                phi_s_rad,
                 np.deg2rad(self.acc_field.cav_params['phi_s_deg']))
             return np.abs(diff)
 
