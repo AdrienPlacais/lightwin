@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 22 16:04:34 2021
+Created on Wed Sep 22 16:04:34 2021.
 
 @author: placais
 
@@ -70,7 +70,7 @@ def z_drift_length(delta_s, gamma):
     return r_zz
 
 
-def z_field_map_electric_field(cavity, synch):
+def z_field_map_electric_field(cavity, synch, flag=False):
     """
     Compute the z transfer submatrix of an accelerating cavity.
 

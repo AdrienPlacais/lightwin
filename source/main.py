@@ -89,7 +89,7 @@ WHAT_TO_FIT = {
     # 'position': 'one_module_after_last_comp_cav', # FIXME wrong n_lattice in _select_objective
     # 'position': 'both',
     }
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 # =============================================================================

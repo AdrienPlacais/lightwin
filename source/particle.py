@@ -285,7 +285,7 @@ class Particle():
 
                 elif cav_status == 'fault':
                     # Useless, as we used drift functions when there is a fault
-                    print('prout')
+                    print('prout particle.enter_cavity')
 
                 elif cav_status == 'compensate':
                     # The phi0's are set by the fitting algorithm. We compute

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 22 14:15:48 2021
+Created on Wed Sep 22 14:15:48 2021.
 
 @author: placais
 """
@@ -323,6 +323,15 @@ def mrad_and_mev_to_delta(z_prime, e_kin, e_rest):
     """Convert z' in mrad with energy to delta = dp/p in %."""
     gamma = kin_to_gamma(e_kin, e_rest)
     return mrad_and_gamma_to_delta(z_prime, gamma)
+
+
+def diff_angle(phi_1, phi_2):
+    """Compute smallest difference between two angles."""
+    delta_phi = np.arctan2(
+        np.sin(phi_2 - phi_1),
+        np.cos(phi_2 - phi_1)
+        )
+    return delta_phi
 
 
 # =============================================================================

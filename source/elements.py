@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 22 10:26:19 2021
+Created on Wed Sep 22 10:26:19 2021.
 
 @author: placais
 """
 import numpy as np
+from scipy.optimize import minimize_scalar
 import transfer_matrices
 import transport
 from electric_field import RfField
-from constants import N_STEPS_PER_CELL
+from constants import N_STEPS_PER_CELL, STR_PHI_ABS, FLAG_PHI_ABS
+import helper
 
 
 # =============================================================================
@@ -176,7 +178,24 @@ class FieldMap(_Element):
                                  absolute_phase_flag=absolute_phase_flag,
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
-        # FIXME frequency import
+
+    def match_synch_phase(self, synch, phi_s_deg):
+        """Sweeps phi_0 until the cavity synch phase matches phi_s."""
+        bounds = (0, 2.*np.pi)
+        global lphi_0
+        global lphi_s
+        lphi_0, lphi_s = [], []
+
+        def _wrapper(phi_0_rad):
+            self.acc_field.phi_0[STR_PHI_ABS] = phi_0_rad
+            self.compute_transfer_matrix(synch)
+            diff = helper.diff_angle(
+                np.deg2rad(phi_s_deg),
+                np.deg2rad(self.acc_field.cav_params['phi_s_deg']))
+            return np.abs(diff)
+
+        res = minimize_scalar(_wrapper, bounds=bounds)
+        assert np.abs(res.x - self.acc_field.phi_0[STR_PHI_ABS]) < 1e-5
 
 
 class Lattice():

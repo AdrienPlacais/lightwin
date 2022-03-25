@@ -259,7 +259,8 @@ class Fault():
         # Handle phase
         limits_phase = (0., 2.*np.pi)
         for elt in self.comp['l_cav']:
-            initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
+            # initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
+            initial_guess.append(0.)
             bounds.append(limits_phase)
             x_scales.append(typical_phase_var)
 
@@ -366,7 +367,7 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective, ):
         flag, factor = acceptable_synch_phase(cav, equiv_cav)
         if not acceptable_synch_phase(cav, equiv_cav):
             obj *= factor
-    print('================================================================')
+    # print('================================================================')
     return obj
 
 
@@ -378,21 +379,22 @@ def acceptable_synch_phase(cav, ref_cav):
         ])
     acceptable_delta = np.deg2rad(30.)
     actual_delta = np.abs(np.arctan2(
-        np.sin(phi_s[1] - phi_s[0]), np.cos(phi_s[1] - phi_s[0])))
+        np.sin(phi_s[1] - phi_s[0]),
+        np.cos(phi_s[1] - phi_s[0])))
 
     if np.rad2deg(phi_s[0]) > 0.:
-        print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'rejected > 0')
+        # print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'rejected > 0')
         out = False
-        factor = 1e3
+        factor = 1
 
     elif actual_delta > acceptable_delta:
-        print(np.rad2deg(phi_s), np.rad2deg(actual_delta),
-              '> diff')
+        # print(np.rad2deg(phi_s), np.rad2deg(actual_delta),
+              # '> diff')
         out = True
-        factor = 1e1
+        factor = 1
 
     else:
-        print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'ok')
+        # print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'ok')
         out = True
         factor = 1
     return out, factor
