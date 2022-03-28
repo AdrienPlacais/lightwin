@@ -597,3 +597,26 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
         helper.printd(compact.round(3), header='Fit compact resume')
 
     return dicts['param']
+
+
+def output_fit_progress(count, obj, final=False):
+    """Output the evolution of the objective, etc."""
+    if count == 0:
+        print('=============================================================' +
+              '=============================================================' +
+              '=============')
+        print('n_iter:', 'objective_array:')
+        print('=============================================================' +
+              '=============================================================' +
+              '=============')
+    print(count, end='\t')
+    max_width = 10
+    precision = 3
+    for num in obj:
+        # print(str(round(num, 3)), end=' ')
+        print(f"{num: {max_width}.{precision}}", end=' ')
+    print(' ')
+    if final:
+        print('=============================================================' +
+              '=============================================================' +
+              '=============')

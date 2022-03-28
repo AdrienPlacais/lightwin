@@ -15,6 +15,7 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 import numpy as np
 from scipy.optimize import minimize, least_squares
 from constants import FLAG_PHI_ABS, STR_PHI_ABS
+import debug
 
 
 dict_phase = {
@@ -193,29 +194,32 @@ class Fault():
         # Set the fit variables
         initial_guesses, bounds, x_scales = \
             self._set_fit_parameters(what_to_fit['fit_over_phi_s'])
-        self.info['initial_guesses'], self.info['bounds'] = \
-            initial_guesses, bounds
+        self.info['initial_guesses'] = initial_guesses
+        self.info['bounds'] = bounds
+
         fun_objective, idx_objective = self._select_objective(
             self.what_to_fit['position'],
             self.what_to_fit['objective'])
 
         dict_fitter = {
-            'energy': [minimize, initial_guesses, bounds],
-            'phase': [minimize, initial_guesses, bounds],
-            'energy_phase': [least_squares, initial_guesses,
-                             (bounds[:, 0], bounds[:, 1])],
-            'transfer_matrix': [least_squares, initial_guesses,
-                                (bounds[:, 0], bounds[:, 1])],
-            'all': [least_squares, initial_guesses,
-                    (bounds[:, 0], bounds[:, 1])],
+            'energy':
+                [minimize, initial_guesses, bounds],
+            'phase':
+                [minimize, initial_guesses, bounds],
+            'energy_phase':
+                [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
+            'transfer_matrix':
+                [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
+            'all':
+                [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
             }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[self.what_to_fit['objective']]
+
         global count
         count = 0
         sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2], xtol=1e-10,
                         args=(self, method, fun_objective, idx_objective,
-                              what_to_fit['fit_over_phi_s'],
-                              ),
+                              what_to_fit),
                         # x_scale=x_scales,
                         x_scale='jac',
                         )
@@ -229,6 +233,7 @@ class Fault():
                 cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
+        debug.output_fit_progress(count, sol.fun, final=True)
         print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
               sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
               sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
@@ -360,27 +365,28 @@ class Fault():
 
 
 def wrapper(prop_array, fault, method, fun_objective, idx_objective,
-            flag_synch):
+            what_to_fit):
     """Fit function."""
     global count
-    count += 1
-    if count % 500 == 0:
-        print('Number of iterations:', count)
 
     # Unpack
     for i, cav in enumerate(fault.comp['l_cav']):
         acc_f = cav.acc_field
-        if not flag_synch:
+        if not what_to_fit['fit_over_phi_s']:
             acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
         else:
             acc_f.phi_s_rad_objective = prop_array[i]
         acc_f.norm = prop_array[i+len(fault.comp['l_cav'])]
 
     # Update transfer matrices
-    fault.brok_lin.compute_transfer_matrices(method, fault.comp['l_all_elts'],
-                                             flag_synch)
+    fault.brok_lin.compute_transfer_matrices(
+        method, fault.comp['l_all_elts'], what_to_fit['fit_over_phi_s'])
 
     obj = (fun_objective(fault.ref_lin, idx_objective)
            - fun_objective(fault.brok_lin, idx_objective))
+
+    if count % 50 == 0:
+        debug.output_fit_progress(count, obj)
+    count += 1
 
     return obj
