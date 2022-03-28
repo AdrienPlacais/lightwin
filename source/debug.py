@@ -113,6 +113,12 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         'x': ['', '', 's [m]', 's [m]'],
         'y': [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$'],
         }
+    lims = {
+        0: np.array([-1.3, 1.4]),
+        1: np.array([-1.9, 1.9]),
+        2: np.array([-1., 1.2]),
+        3: np.array([-1.4, 1.4]),
+        }
 
     if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
         for i in range(4):
@@ -125,6 +131,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         axlist[i].set_xlabel(labels['x'][i])
         axlist[i].set_ylabel(labels['y'][i])
         axlist[i].grid(True)
+        axlist[i].set_ylim(lims[i])
 
     axlist[0].legend()
 

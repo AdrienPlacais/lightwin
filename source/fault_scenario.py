@@ -37,6 +37,7 @@ class FaultScenario():
             'objective': what_to_fit['objective'],
             # Where are we measuring 'objective'?
             'position': what_to_fit['position'],
+            'fit_over_phi_s': what_to_fit['fit_over_phi_s'],
             }
 
         # Save faults as a list of Fault objects and as a list of cavity idx
@@ -182,8 +183,10 @@ class FaultScenario():
 
         import numpy as np
         print('fit finished!',
-              np.rad2deg(self.brok_lin.elements['list'][175].acc_field.phi_0['rel']),
-              np.rad2deg(self.brok_lin.elements['list'][175].acc_field.phi_0['abs']),
+              np.rad2deg(self.brok_lin.elements['list'][175].
+                         acc_field.phi_0['rel']),
+              np.rad2deg(self.brok_lin.elements['list'][175].
+                         acc_field.phi_0['abs']),
               )
 
         # At the end we recompute the full transfer matrix

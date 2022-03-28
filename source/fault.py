@@ -213,7 +213,7 @@ class Fault():
         fitter = dict_fitter[self.what_to_fit['objective']]
         global count
         count = 0
-        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
+        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2], xtol=1e-10,
                         args=(self, method, fun_objective, idx_objective,
                               flag_synch,
                               ),
@@ -379,43 +379,7 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
     fault.brok_lin.compute_transfer_matrices(method, fault.comp['l_all_elts'],
                                              flag_synch)
 
-    obj = np.abs(fun_objective(fault.ref_lin, idx_objective)
-                 - fun_objective(fault.brok_lin, idx_objective))
+    obj = (fun_objective(fault.ref_lin, idx_objective)
+           - fun_objective(fault.brok_lin, idx_objective))**2
 
-    # TODO: could be cleaner?
-    # for cav in fault.comp['l_cav']:
-    #     equiv_cav = fault.ref_lin.elements['list'][cav.idx['element']]
-    #     flag, factor = acceptable_synch_phase(cav, equiv_cav)
-    #     if not acceptable_synch_phase(cav, equiv_cav):
-    #         obj *= factor
-    # print('================================================================')
     return obj
-
-
-def acceptable_synch_phase(cav, ref_cav):
-    """Check if the synchronous phase of cav is acceptable."""
-    phi_s = np.array([
-        cavity.acc_field.cav_params['phi_s_rad']
-        for cavity in [cav, ref_cav]
-        ])
-    acceptable_delta = np.deg2rad(30.)
-    actual_delta = np.abs(np.arctan2(
-        np.sin(phi_s[1] - phi_s[0]),
-        np.cos(phi_s[1] - phi_s[0])))
-
-    if np.rad2deg(phi_s[0]) > 0.:
-        # print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'rejected > 0')
-        out = False
-        factor = 1
-
-    elif actual_delta > acceptable_delta:
-        # print(np.rad2deg(phi_s), np.rad2deg(actual_delta),
-              # '> diff')
-        out = True
-        factor = 1
-
-    else:
-        # print(np.rad2deg(phi_s), np.rad2deg(actual_delta), 'ok')
-        out = True
-        factor = 1
-    return out, factor
