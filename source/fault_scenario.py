@@ -195,8 +195,10 @@ class FaultScenario():
             str(len(successes)) + ')'
 
         print('any change?',
-              np.rad2deg(self.brok_lin.elements['list'][175].acc_field.phi_0['rel']),
-              np.rad2deg(self.brok_lin.elements['list'][175].acc_field.phi_0['abs']),
+              np.rad2deg(self.brok_lin.elements['list'][175].
+                         acc_field.phi_0['rel']),
+              np.rad2deg(self.brok_lin.elements['list'][175].
+                         acc_field.phi_0['abs']),
               )
 
         for linac in [self.ref_lin, self.brok_lin]:

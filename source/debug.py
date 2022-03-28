@@ -273,7 +273,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
 
     elts_indexes = linac.get_from_elements('idx', 's_out')
 
-    def _err(y_d, diff='abs'):
+    def _err(y_d, diff):
         assert y_d in tw.dict_tw_data_table
         y_data_ref = tw.load_tw_results(filepath_ref, y_d)
         y_data = dicts['y_data_lw'][y_d](linac)[elts_indexes]
@@ -286,9 +286,9 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
         return err_data
     # Add it to the dict of y data
     dict_errors = {
-        'energy_err': lambda lin: _err('energy', 'log'),
-        'abs_phase_err': lambda lin: _err('abs_phase', 'log'),
-        'beta_synch_err': lambda lin: _err('beta_synch', 'abs'),
+        'energy_err': lambda lin: _err('energy', diff='log'),
+        'abs_phase_err': lambda lin: _err('abs_phase', diff='log'),
+        'beta_synch_err': lambda lin: _err('beta_synch', diff='abs'),
         }
     dicts['errors'] = dict_errors
     dicts['y_data_lw'].update(dict_errors)
@@ -336,8 +336,11 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
         # {'marker': '+', 'linewidth': 5}
         # ** (**kwargs) unpacks it to:
         # marker='+', linewidth=5
-        axx.plot(x_data, y_data, label='LW ' + linac.name, ls='-',
-                 **dicts['plot'][y_d][1])
+        label = 'LW ' + linac.name
+        if not (linac.name in ['Working', 'Broken'] and
+                label in axx.get_legend_handles_labels()[1]):
+            axx.plot(x_data, y_data, label=label, ls='-',
+                     **dicts['plot'][y_d][1])
 
 
 def load_phase_space(accelerator):
