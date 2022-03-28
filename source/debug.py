@@ -480,7 +480,9 @@ def output_cavities(linac, out=False):
     df_cav = pd.DataFrame(columns=(
         'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
         'phis'))
-    for i, cav in enumerate(linac.elements_of('FIELD_MAP')):
+    full_list_of_cav = linac.elements_of('FIELD_MAP')
+
+    for i, cav in enumerate(full_list_of_cav):
         df_cav.loc[i] = [cav.info['name'], cav.info['status'],
                          cav.acc_field.norm,
                          np.rad2deg(cav.acc_field.phi_0['abs']),
@@ -488,8 +490,19 @@ def output_cavities(linac, out=False):
                          cav.acc_field.cav_params['v_cav_mv'],
                          cav.acc_field.cav_params['phi_s_deg']]
     df_cav.round(decimals=3)
-    if out:
-        helper.printd(df_cav, header=linac.name)
+
+    # Output only the cavities that have changed
+    if 'Fixed' in linac.name:
+        df_out = pd.DataFrame(columns=(
+            'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
+            'phis'))
+        i = 0
+        for c in full_list_of_cav:
+            if c.info['status'] != 'nominal':
+                i += 1
+                df_out.loc[i] = df_cav.loc[full_list_of_cav.index(c)]
+        if out:
+            helper.printd(df_out, header=linac.name)
     return df_cav
 
 

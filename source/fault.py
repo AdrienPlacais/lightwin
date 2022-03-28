@@ -25,8 +25,8 @@ dict_phase = {
 n_comp_latt_per_fault = 2
 debugs = {
     'fit_complete': False,
-    'fit_compact': True,
-    'cav': False,
+    'fit_compact': False,
+    'cav': True,
     }
 
 
@@ -288,7 +288,7 @@ class Fault():
 
         # Handle norm
         limits_norm = {
-            'relative': [0.5, 1.3],    # [90%, 130%] of norm
+            'relative': [0.5, 1.3],    # [50%, 130%] of norm
             'absolute': [1., np.inf]   # ridiculous abs limits
             }   # TODO: personnalize limits according to zone, technology
         limits_norm_up = {
