@@ -10,7 +10,7 @@ from scipy.optimize import minimize_scalar
 import transfer_matrices
 import transport
 from electric_field import RfField
-from constants import N_STEPS_PER_CELL, STR_PHI_ABS, FLAG_PHI_ABS
+from constants import N_STEPS_PER_CELL, STR_PHI_ABS
 import helper
 
 
@@ -180,10 +180,11 @@ class FieldMap(_Element):
         self.update_status('nominal')
 
     def match_synch_phase(self, synch, phi_s_rad):
-        """Sweeps phi_0 until the cavity synch phase matches phi_s."""
+        """Sweeps phi_0 until the cavity synch phase matches phi_s_rad."""
         bounds = (0, 2.*np.pi)
 
         def _wrapper(phi_0_rad):
+            # self.acc_field.phi_0[STR_PHI_ABS] = np.mod(phi_0_rad, 2.*np.pi)
             self.acc_field.phi_0[STR_PHI_ABS] = phi_0_rad
             self.compute_transfer_matrix(synch)
             diff = helper.diff_angle(
@@ -191,8 +192,8 @@ class FieldMap(_Element):
                 np.deg2rad(self.acc_field.cav_params['phi_s_deg']))
             return np.abs(diff)
 
-        res = minimize_scalar(_wrapper, bounds=bounds)
-        assert np.abs(res.x - self.acc_field.phi_0[STR_PHI_ABS]) < 1e-5
+        _ = minimize_scalar(_wrapper, bounds=bounds)
+        # assert np.abs(res.x - self.acc_field.phi_0[STR_PHI_ABS]) < 1e-5
 
 
 class Lattice():

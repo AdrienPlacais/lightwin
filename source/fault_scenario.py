@@ -175,15 +175,26 @@ class FaultScenario():
                 idx2 = self.brok_lin.elements['list'].index(elt2)
                 elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
                 self.brok_lin.compute_transfer_matrices(method, elt1_to_elt2)
-
+            print('====================================================')
         # TODO plot interesting data before the second fit to see if it is
         # useful
         # TODO we remake a small fit to be sure
 
+        import numpy as np
+        print('fit finished!',
+              np.rad2deg(self.brok_lin.elements['list'][175].acc_field.phi_0['rel']),
+              np.rad2deg(self.brok_lin.elements['list'][175].acc_field.phi_0['abs']),
+              )
+
         # At the end we recompute the full transfer matrix
-        self.brok_lin.compute_transfer_matrices(method)
+        self.brok_lin.compute_transfer_matrices(method, flag_synch=False)
         self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
             str(len(successes)) + ')'
+
+        print('any change?',
+              np.rad2deg(self.brok_lin.elements['list'][175].acc_field.phi_0['rel']),
+              np.rad2deg(self.brok_lin.elements['list'][175].acc_field.phi_0['abs']),
+              )
 
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \

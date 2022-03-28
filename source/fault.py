@@ -192,7 +192,8 @@ class Fault():
 
         # Set the fit variables
         flag_synch = True
-        initial_guesses, bounds, x_scales = self._set_fit_parameters(flag_synch)
+        initial_guesses, bounds, x_scales = \
+            self._set_fit_parameters(flag_synch)
         self.info['initial_guesses'], self.info['bounds'] = \
             initial_guesses, bounds
         fun_objective, idx_objective = self._select_objective(
@@ -218,7 +219,6 @@ class Fault():
                               ),
                         # x_scale=x_scales,
                         x_scale='jac',
-                        # method='dogbox',
                         )
         # TODO check methods
         # TODO check Jacobian
@@ -263,16 +263,26 @@ class Fault():
         # Handle phase
         if flag_synch:
             limits_phase = (-np.pi/2., 0.)
+            delta_phi_s_max = np.deg2rad(25.)
         else:
             limits_phase = (0., 2.*np.pi)
 
         for elt in self.comp['l_cav']:
             if flag_synch:
-                initial_guess.append(-np.pi/4.)     # FIXME
+                equiv_cav = self.ref_lin.elements['list'][elt.idx['element']]
+                equiv_phi_s = equiv_cav.acc_field.cav_params['phi_s_rad']
+                initial_guess.append(equiv_phi_s)
+                lim_down = max(limits_phase[0],
+                               equiv_phi_s - delta_phi_s_max)
+                lim_up = min(limits_phase[1],
+                             equiv_phi_s + delta_phi_s_max)
+                lim_phase = (lim_down, lim_up)
+
+                bounds.append(lim_phase)
             else:
                 # initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
                 initial_guess.append(0.)
-            bounds.append(limits_phase)
+                bounds.append(limits_phase)
             x_scales.append(typical_phase_var)
 
         # Handle norm
@@ -348,11 +358,6 @@ class Fault():
         return fun_multi_objective, idx_pos_list
 
 
-def phis(cav):
-    """Shorthand for synch phase."""
-    return cav.acc_field.cav_params['phi_s_deg']
-
-
 def wrapper(prop_array, fault, method, fun_objective, idx_objective,
             flag_synch):
     """Fit function."""
@@ -378,11 +383,11 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
                  - fun_objective(fault.brok_lin, idx_objective))
 
     # TODO: could be cleaner?
-    for cav in fault.comp['l_cav']:
-        equiv_cav = fault.ref_lin.elements['list'][cav.idx['element']]
-        flag, factor = acceptable_synch_phase(cav, equiv_cav)
-        if not acceptable_synch_phase(cav, equiv_cav):
-            obj *= factor
+    # for cav in fault.comp['l_cav']:
+    #     equiv_cav = fault.ref_lin.elements['list'][cav.idx['element']]
+    #     flag, factor = acceptable_synch_phase(cav, equiv_cav)
+    #     if not acceptable_synch_phase(cav, equiv_cav):
+    #         obj *= factor
     # print('================================================================')
     return obj
 

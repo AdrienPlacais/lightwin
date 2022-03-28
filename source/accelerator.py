@@ -208,6 +208,7 @@ class Accelerator():
                         elt.info['status'] == 'compensate':
                     elt.match_synch_phase(self.synch,
                                           elt.acc_field.phi_s_rad_objective)
+
                 else:
                     elt.compute_transfer_matrix(self.synch)
 
