@@ -599,26 +599,33 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
     return dicts['param']
 
 
-def output_fit_progress(count, obj, final=False):
+def output_fit_progress(count, obj, what_to_fit=None, final=False):
     """Output the evolution of the objective, etc."""
-    if count == 0:
-        print('=============================================================' +
-              '=============================================================' +
-              '=============')
-        print('iter', '      phi', '    energy', '      M_11', '      M_12',
-              '      M_21', '      M_22', '       phi', '    energy',
-              '      M_11', '      M_12', '      M_21', '      M_22')
-        print('=============================================================' +
-              '=============================================================' +
-              '=============')
-    print(count, end='\t')
-    max_width = 10
+    single_width = 10
     precision = 3
+    total_width = len(obj + 1) * (single_width + precision)
+
+    dict_header = {
+        'energy': ['energy'],
+        'phase': ['phi'],
+        'energy_phase': ['phi', 'energy'],
+        'transfer_matrix': ['M_11', 'M_12', 'M_21', 'M_22'],
+        'all': ['phi', 'energy', 'M_11', 'M_12', 'M_21', 'M_22']
+        }
+
+    if count == 0:
+        n_different_param = len(dict_header[what_to_fit['objective']])
+        n_different_cavities = len(obj) // n_different_param
+        print(''.center(total_width, '='))
+        print(" iteration", end=' ')
+        for i in range(n_different_cavities):
+            for header in dict_header[what_to_fit['objective']]:
+                print(f"{header: >{single_width}}", end=' ')
+        print('\n' + ''.center(total_width, '='))
+
+    print(f"{count: {single_width}}", end=' ')
     for num in obj:
-        # print(str(round(num, 3)), end=' ')
-        print(f"{num: {max_width}.{precision}}", end=' ')
+        print(f"{num: {single_width}.{precision}e}", end=' ')
     print(' ')
     if final:
-        print('=============================================================' +
-              '=============================================================' +
-              '=============')
+        print(''.center(total_width, '='))

@@ -386,7 +386,7 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
            - fun_objective(fault.brok_lin, idx_objective))
 
     if count % 50 == 0:
-        debug.output_fit_progress(count, obj)
+        debug.output_fit_progress(count, obj, what_to_fit)
     count += 1
 
     return obj
