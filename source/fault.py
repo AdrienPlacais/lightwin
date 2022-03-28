@@ -191,9 +191,8 @@ class Fault():
         print("Starting fit with parameters:", self.what_to_fit)
 
         # Set the fit variables
-        flag_synch = True
         initial_guesses, bounds, x_scales = \
-            self._set_fit_parameters(flag_synch)
+            self._set_fit_parameters(what_to_fit['fit_over_phi_s'])
         self.info['initial_guesses'], self.info['bounds'] = \
             initial_guesses, bounds
         fun_objective, idx_objective = self._select_objective(
@@ -215,7 +214,7 @@ class Fault():
         count = 0
         sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2], xtol=1e-10,
                         args=(self, method, fun_objective, idx_objective,
-                              flag_synch,
+                              what_to_fit['fit_over_phi_s'],
                               ),
                         # x_scale=x_scales,
                         x_scale='jac',
@@ -226,7 +225,7 @@ class Fault():
 
         # FIXME: is this necessary?
         for i, cav in enumerate(self.comp['l_cav']):
-            if not flag_synch:
+            if not what_to_fit['fit_over_phi_s']:
                 cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
             cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
 
@@ -380,6 +379,6 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
                                              flag_synch)
 
     obj = (fun_objective(fault.ref_lin, idx_objective)
-           - fun_objective(fault.brok_lin, idx_objective))**2
+           - fun_objective(fault.brok_lin, idx_objective))
 
     return obj
