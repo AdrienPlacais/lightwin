@@ -264,7 +264,9 @@ class Fault():
             limits_phase = (-np.pi/2., 0.)
             delta_phi_s_max = np.deg2rad(25.)
         else:
-            limits_phase = (0., 2.*np.pi)
+            limits_phase = (-np.inf, np.inf)
+            # These bounds seems more logical but disturb the optimisation
+            # limits_phase = (0., 2.*np.pi)
 
         for elt in self.comp['l_cav']:
             if flag_synch:
