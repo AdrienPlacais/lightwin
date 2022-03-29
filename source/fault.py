@@ -27,7 +27,7 @@ n_comp_latt_per_fault = 2
 debugs = {
     'fit_complete': False,
     'fit_compact': False,
-    'fit_progression': False,
+    'fit_progression': True,
     'cav': False,
     }
 
@@ -39,7 +39,7 @@ class Fault():
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
         self.fail = {'l_cav': [], 'l_idx': fail_idx}
-        self.comp = {'l_cav': [], 'l_all_elts': None}
+        self.comp = {'l_cav': [], 'l_all_elts': None, 'l_recompute': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None}
 
     def select_neighboring_cavities(self):
@@ -75,7 +75,7 @@ class Fault():
         # FIXME: too many lattices for faults in Section 3
         for idx in self.fail['l_idx']:
             failed_cav = self.brok_lin.elements['list'][idx]
-            idx_lattice = failed_cav.idx['lattice'][0] - 1
+            idx_lattice = failed_cav.idx['lattice'][0]
             for shift in [-1, +1]:
                 idx = idx_lattice + shift
                 while ((idx in comp_lattices_idx)
@@ -197,10 +197,13 @@ class Fault():
             self._set_fit_parameters(what_to_fit['fit_over_phi_s'])
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
+        print('initial guesses:', initial_guesses)
+        print('bounds:', bounds)
 
-        fun_objective, idx_objective = self._select_objective(
+        fun_objective, idx_objective, l_elements = self._select_objective(
             self.what_to_fit['position'],
             self.what_to_fit['objective'])
+        self.comp['l_recompute'] = l_elements
 
         dict_fitter = {
             'energy':
@@ -223,7 +226,6 @@ class Fault():
                               what_to_fit),
                         # x_scale=x_scales,
                         x_scale='jac',
-                        verbose=2,
                         # xtol=1e-10,
                         )
         # TODO check methods
@@ -233,6 +235,7 @@ class Fault():
 
         if debugs['fit_progression']:
             debug.output_fit_progress(count, sol.fun, final=True)
+
         print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
               sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
               sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
@@ -314,25 +317,53 @@ class Fault():
         bounds = np.array(bounds)
         return initial_guess, bounds, x_scales
 
-    def _select_objective(self, position_str, objective_str):
-        """Select the objective to fit."""
+    def _select_objective(self, str_position, str_objective):
+        """
+        Select the objective to fit.
+
+        Parameters
+        ----------
+        str_position : string
+            Indicates where the objective should be matched.
+        str_objective : string
+            Indicates what should be fitted.
+
+        Return
+        ------
+        fun_multi_objective : function
+            Takes linac and a list of indices into argument, returns a list
+            of the physical quantities defined by str_objective at the
+            positions defined by the list of indices.
+        l_idx_pos : list of int
+            Indices where the objectives should be matched. Expressed as
+            indexes for the synchronous particle.
+        l_elements : list of _Element
+            Fraction of the linac that will be recomputed.
+        """
         # Where do you want to verify that the objective is matched?
-        all_list = self.brok_lin.elements['list']
-        # FIXME
-        n_latt = 10 #self.brok_lin.elements['n_per_lattice']
-        dict_position = {
-            'end_of_last_comp_cav': lambda c_list:
-                [c_list[-1].idx['s_out'] - 1],
-            'one_module_after_last_comp_cav': lambda c_list:
-                [all_list[
-                    all_list.index(c_list[-1]) + n_latt].idx['s_out'] - 1],
+        d_lattices = {
+            'end_of_last_comp_cav': lambda l_cav:
+                self.brok_lin.elements['l_lattices']
+                [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 1],
+            'one_module_after_last_comp_cav': lambda l_cav:
+                self.brok_lin.elements['l_lattices']
+                [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
+            'both': lambda l_cav:
+                self.brok_lin.elements['l_lattices']
+                [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
             }
-        dict_position['both'] = lambda c_list: \
-            dict_position['end_of_last_comp_cav'](c_list) \
-            + dict_position['one_module_after_last_comp_cav'](c_list)
+
+        d_position = {
+            'end_of_last_comp_cav': lambda lattices:
+                [lattices[-1][-1].idx['s_out'] - 1],
+            'one_module_after_last_comp_cav': lambda lattices:
+                [lattices[-1][-1].idx['s_out'] - 1],
+            'both': lambda lattices: [lattices[-2][-1].idx['s_out'] - 1,
+                                      lattices[-1][-1].idx['s_out'] - 1],
+            }
 
         # What do you want to match?
-        dict_objective = {
+        d_objective = {
             'energy': lambda linac, idx:
                 [linac.synch.energy['kin_array_mev'][idx]],
             'phase': lambda linac, idx:
@@ -340,27 +371,34 @@ class Fault():
             'transfer_matrix': lambda linac, idx:
                 list(linac.transf_mat['cumul'][idx, :, :].flatten()),
                 }
-        dict_objective['energy_phase'] = lambda linac, idx: \
-            dict_objective['energy'](linac, idx) \
-            + dict_objective['phase'](linac, idx)
-        dict_objective['all'] = lambda linac, idx: \
-            dict_objective['energy_phase'](linac, idx) \
-            + dict_objective['transfer_matrix'](linac, idx)
+        d_objective['energy_phase'] = lambda linac, idx: \
+            d_objective['energy'](linac, idx) \
+            + d_objective['phase'](linac, idx)
+        d_objective['all'] = lambda linac, idx: \
+            d_objective['energy_phase'](linac, idx) \
+            + d_objective['transfer_matrix'](linac, idx)
 
-        idx_pos_list = dict_position[position_str](self.comp['l_cav'])
-        fun_simple = dict_objective[objective_str]
+        l_lattices = d_lattices[str_position](self.comp['l_cav'])
+        l_elements = [elt
+                      for lattice in l_lattices
+                      for elt in lattice
+                      ]
+        l_idx_pos = d_position[str_position](l_lattices)
+        fun_simple = d_objective[str_objective]
 
-        def fun_multi_objective(linac, idx_list):
-            obj = fun_simple(linac, idx_list[0])
-            for idx in idx_list[1:]:
+        def fun_multi_objective(linac, l_idx):
+            obj = fun_simple(linac, l_idx[0])
+            for idx in l_idx[1:]:
                 obj = obj + fun_simple(linac, idx)
             return np.array(obj)
 
-        for idx in idx_pos_list:
+        for idx in l_idx_pos:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
                   elt.info, ".")
-        return fun_multi_objective, idx_pos_list
+        print('first of l_elements:', l_elements[0].idx, l_elements[0].info)
+        print('first of l_elements:', l_elements[-1].idx, l_elements[-1].info)
+        return fun_multi_objective, l_idx_pos, l_elements
 
 
 def wrapper(prop_array, fault, method, fun_objective, idx_objective,
@@ -379,12 +417,12 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
 
     # Update transfer matrices
     fault.brok_lin.compute_transfer_matrices(
-        method, fault.comp['l_all_elts'], what_to_fit['fit_over_phi_s'])
+        method, fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'])
 
     obj = fun_objective(fault.ref_lin, idx_objective) \
         - fun_objective(fault.brok_lin, idx_objective)
 
-    if debugs['fit_progression'] and count % 50 == 0:
+    if debugs['fit_progression'] and count % 500 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
     count += 1
 

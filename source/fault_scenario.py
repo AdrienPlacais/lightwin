@@ -169,6 +169,7 @@ class FaultScenario():
 
             # Recompute transfer matrices between this fault and the next
             if i < len(self.faults['l_obj']) - 1:
+                print('fix_all: computing mt between two errors...')
                 # FIXME: necessary to take '-2'? This is just to be sure...
                 elt1 = f.comp['l_all_elts'][-2]
                 elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]

@@ -88,7 +88,7 @@ class Accelerator():
             sections.append(lattices)
 
         zones = ['low beta', 'medium beta', 'high beta']
-        shift_lattice = 1
+        shift_lattice = 0
         for i, sec in enumerate(sections):
             for j, lattice in enumerate(sec):
                 for k, elt in enumerate(lattice):
