@@ -26,8 +26,8 @@ dict_phase = {
 n_comp_latt_per_fault = 2
 debugs = {
     'fit_complete': False,
-    'fit_compact': False,
-    'fit_progression': True,
+    'fit_compact': True,
+    'fit_progression': False,
     'cav': False,
     }
 
@@ -197,8 +197,6 @@ class Fault():
             self._set_fit_parameters(what_to_fit['fit_over_phi_s'])
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
-        print('initial guesses:', initial_guesses)
-        print('bounds:', bounds)
 
         fun_objective, idx_objective, l_elements = self._select_objective(
             self.what_to_fit['position'],
@@ -227,6 +225,7 @@ class Fault():
                         # x_scale=x_scales,
                         x_scale='jac',
                         # xtol=1e-10,
+                        verbose=2,
                         )
         # TODO check methods
         # TODO check Jacobian
@@ -271,9 +270,9 @@ class Fault():
             limits_phase = (-np.pi/2., 0.)
             delta_phi_s_max = np.deg2rad(25.)
         else:
-            limits_phase = (-np.inf, np.inf)
+            # limits_phase = (-np.inf, np.inf)
             # These bounds seems more logical but disturb the optimisation
-            # limits_phase = (0., 2.*np.pi)
+            limits_phase = (0., 8.*np.pi)
 
         for elt in self.comp['l_cav']:
             if flag_synch:
@@ -340,7 +339,7 @@ class Fault():
         l_elements : list of _Element
             Fraction of the linac that will be recomputed.
         """
-        # Where do you want to verify that the objective is matched?
+        # Which lattices' transfer matrices will be required?
         d_lattices = {
             'end_of_last_comp_cav': lambda l_cav:
                 self.brok_lin.elements['l_lattices']
@@ -353,13 +352,14 @@ class Fault():
                 [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
             }
 
+        # Where do you want to verify that the objective is matched?
         d_position = {
             'end_of_last_comp_cav': lambda lattices:
-                [lattices[-1][-1].idx['s_out'] - 1],
+                [lattices[-1][-1].idx['s_out']],
             'one_module_after_last_comp_cav': lambda lattices:
-                [lattices[-1][-1].idx['s_out'] - 1],
-            'both': lambda lattices: [lattices[-2][-1].idx['s_out'] - 1,
-                                      lattices[-1][-1].idx['s_out'] - 1],
+                [lattices[-1][-1].idx['s_out']],
+            'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
+                                      lattices[-1][-1].idx['s_out']],
             }
 
         # What do you want to match?
@@ -396,8 +396,6 @@ class Fault():
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
                   elt.info, ".")
-        print('first of l_elements:', l_elements[0].idx, l_elements[0].info)
-        print('first of l_elements:', l_elements[-1].idx, l_elements[-1].info)
         return fun_multi_objective, l_idx_pos, l_elements
 
 
