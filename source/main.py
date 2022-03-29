@@ -85,13 +85,13 @@ WHAT_TO_FIT = {
     # =========================================================================
     #     Where should we evaluate objective?
     # =========================================================================
-    'position': 'end_of_last_comp_cav',
-    # 'position': 'one_module_after_last_comp_cav', # FIXME wrong n_lattice in _select_objective
-    # 'position': 'both',
+    # 'position': 'end_of_last_comp_cav',
+    # 'position': 'one_module_after_last_comp_cav',
+    'position': 'both',
     # =========================================================================
     #    Is the fit performed over the synchronous phase?
     # =========================================================================
-    'fit_over_phi_s': False,
+    'fit_over_phi_s': True,
     # 'fit_over_phi_s': False,
     }
 FLAG_FIX = True

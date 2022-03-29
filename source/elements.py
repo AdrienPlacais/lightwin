@@ -183,17 +183,23 @@ class FieldMap(_Element):
         """Sweeps phi_0 until the cavity synch phase matches phi_s_rad."""
         bounds = (0, 2.*np.pi)
 
-        def _wrapper(phi_0_rad):
+        def _wrapper_synch(phi_0_rad):
             # self.acc_field.phi_0[STR_PHI_ABS] = np.mod(phi_0_rad, 2.*np.pi)
             self.acc_field.phi_0[STR_PHI_ABS] = phi_0_rad
             self.compute_transfer_matrix(synch)
             diff = helper.diff_angle(
                 phi_s_rad,
                 np.deg2rad(self.acc_field.cav_params['phi_s_deg']))
-            return np.abs(diff)
+            return diff**2
 
-        _ = minimize_scalar(_wrapper, bounds=bounds)
+        res = minimize_scalar(_wrapper_synch, bounds=bounds)
+        # print(res.success, 'match synch, consigne:', np.rad2deg(phi_s_rad),
+        #       ' found ',
+        #       self.acc_field.cav_params['phi_s_deg'], ' in phi0: ',
+        #       np.rad2deg(self.acc_field.phi_0['rel']))
         # assert np.abs(res.x - self.acc_field.phi_0[STR_PHI_ABS]) < 1e-5
+        if not res.success:
+            print('match synch phase not found')
 
 
 class Lattice():

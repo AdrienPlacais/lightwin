@@ -28,7 +28,8 @@ debugs = {
     'fit_complete': False,
     'fit_compact': True,
     'fit_progression': False,
-    'cav': False,
+    'cav': True,
+    'verbose': 0,
     }
 
 
@@ -224,8 +225,8 @@ class Fault():
                               what_to_fit),
                         # x_scale=x_scales,
                         x_scale='jac',
-                        # xtol=1e-10,
-                        verbose=2,
+                        xtol=None,
+                        verbose=debugs['verbose'],
                         )
         # TODO check methods
         # TODO check Jacobian
@@ -411,7 +412,10 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
             acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
         else:
             acc_f.phi_s_rad_objective = prop_array[i]
+            print(np.round(np.rad2deg(acc_f.phi_s_rad_objective), 3), end=' ')
         acc_f.norm = prop_array[i+len(fault.comp['l_cav'])]
+        print(np.round(acc_f.norm, 3), end=' ')
+    print('  ')
 
     # Update transfer matrices
     fault.brok_lin.compute_transfer_matrices(
@@ -420,7 +424,7 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
     obj = fun_objective(fault.ref_lin, idx_objective) \
         - fun_objective(fault.brok_lin, idx_objective)
 
-    if debugs['fit_progression'] and count % 500 == 0:
+    if debugs['fit_progression'] and count % 25 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
     count += 1
 
