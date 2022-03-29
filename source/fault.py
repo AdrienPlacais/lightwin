@@ -27,7 +27,8 @@ n_comp_latt_per_fault = 2
 debugs = {
     'fit_complete': False,
     'fit_compact': False,
-    'cav': True,
+    'fit_progression': False,
+    'cav': False,
     }
 
 
@@ -217,23 +218,21 @@ class Fault():
 
         global count
         count = 0
-        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2], xtol=1e-10,
+        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
                         args=(self, method, fun_objective, idx_objective,
                               what_to_fit),
                         # x_scale=x_scales,
                         x_scale='jac',
+                        verbose=2,
+                        # xtol=1e-10,
                         )
         # TODO check methods
         # TODO check Jacobian
         # TODO check x_scale
+        # TODO check loss
 
-        # FIXME: is this necessary?
-        for i, cav in enumerate(self.comp['l_cav']):
-            if not what_to_fit['fit_over_phi_s']:
-                cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[i]
-            cav.acc_field.norm = sol.x[i + len(self.comp['l_cav'])]
-
-        debug.output_fit_progress(count, sol.fun, final=True)
+        if debugs['fit_progression']:
+            debug.output_fit_progress(count, sol.fun, final=True)
         print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
               sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
               sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
@@ -382,10 +381,10 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
     fault.brok_lin.compute_transfer_matrices(
         method, fault.comp['l_all_elts'], what_to_fit['fit_over_phi_s'])
 
-    obj = (fun_objective(fault.ref_lin, idx_objective)
-           - fun_objective(fault.brok_lin, idx_objective))
+    obj = fun_objective(fault.ref_lin, idx_objective) \
+        - fun_objective(fault.brok_lin, idx_objective)
 
-    if count % 50 == 0:
+    if debugs['fit_progression'] and count % 50 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
     count += 1
 
