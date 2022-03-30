@@ -4,6 +4,14 @@
 Created on Tue Sep 21 11:32:12 2021.
 
 @author: placais
+
+General TODO list:
+    Easy way to plot TW's solutions.
+    Better way to compare various LW solutions?
+    Reprofile to check where could be speed up.
+        Externalize, declassify computation of transfer matrices?
+        Interpolation function could be replaced by pre-interpolated array?
+    Recheck non synch particles.
 """
 import os
 import time
