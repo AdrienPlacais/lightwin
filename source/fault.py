@@ -279,7 +279,7 @@ class Fault():
         # Handle phase
         if flag_synch:
             limits_phase = (-np.pi/2., 0.)
-            delta_phi_s_max = np.deg2rad(25.)
+            rel_limit_phase_up = .4    # +40% over nominal synch phase
         else:
             # limits_phase = (-np.inf, np.inf)
             # These bounds seems more logical but disturb the optimisation
@@ -290,10 +290,9 @@ class Fault():
                 equiv_cav = self.ref_lin.elements['list'][elt.idx['element']]
                 equiv_phi_s = equiv_cav.acc_field.cav_params['phi_s_rad']
                 initial_guess.append(equiv_phi_s)
-                lim_down = max(limits_phase[0],
-                               equiv_phi_s - delta_phi_s_max)
+                lim_down = limits_phase[0]
                 lim_up = min(limits_phase[1],
-                             equiv_phi_s + delta_phi_s_max)
+                             equiv_phi_s * (1. - rel_limit_phase_up))
                 lim_phase = (lim_down, lim_up)
 
                 bounds.append(lim_phase)
