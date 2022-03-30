@@ -1,4 +1,13 @@
 ;------------------------------------
+; TraceWin Version: 2.17.5.3
+; OS: Linux (64-bit)
+; ldd (GNU libc) 2.34
+; Date: Wed Mar 30 14:56:54 2022
+; User: PLACAIS
+; Computer: LPSC5057X
+;------------------------------------
+
+;------------------------------------
 ; TraceWin Version: 2.17.3.15
 ; OS: Win10 (64-bit)
 ; Date: Wed Dec 15 13:53:48 2021
@@ -765,3 +774,4 @@ DRIFT 445 45 0 0 0
 DRIFT 150 100 0 0 0
 
 END
+

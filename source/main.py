@@ -85,9 +85,9 @@ WHAT_TO_FIT = {
     # =========================================================================
     #     Where should we evaluate objective?
     # =========================================================================
-    # 'position': 'end_of_last_comp_cav',
+    'position': 'end_of_last_comp_cav',
     # 'position': 'one_module_after_last_comp_cav',
-    'position': 'both',
+    # 'position': 'both',
     # =========================================================================
     #    Is the fit performed over the synchronous phase?
     # =========================================================================
@@ -95,7 +95,7 @@ WHAT_TO_FIT = {
     # 'fit_over_phi_s': False,
     }
 FLAG_FIX = True
-SAVE_FIX = False
+SAVE_FIX = True
 
 # =============================================================================
 # Outputs

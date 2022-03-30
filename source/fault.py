@@ -27,7 +27,7 @@ n_comp_latt_per_fault = 2
 debugs = {
     'fit_complete': False,
     'fit_compact': True,
-    'fit_progression': False,
+    'fit_progression': True,
     'cav': True,
     'verbose': 0,
     }
@@ -41,7 +41,8 @@ class Fault():
         self.brok_lin = brok_lin
         self.fail = {'l_cav': [], 'l_idx': fail_idx}
         self.comp = {'l_cav': [], 'l_all_elts': None, 'l_recompute': None}
-        self.info = {'sol': None, 'initial_guesses': None, 'bounds': None}
+        self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
+                     'jac': None}
 
     def select_neighboring_cavities(self):
         """
@@ -220,18 +221,26 @@ class Fault():
 
         global count
         count = 0
-        sol = fitter[0](wrapper, x0=fitter[1], bounds=fitter[2],
+        sol = fitter[0](fun=wrapper, x0=fitter[1], bounds=fitter[2],
                         args=(self, method, fun_objective, idx_objective,
                               what_to_fit),
-                        # x_scale=x_scales,
-                        x_scale='jac',
-                        xtol=None,
+                        jac='2-point',  # Default
+                        # 'trf' not ideal as jac is not sparse.
+                        # 'dogbox' may have difficulties with rank-defficient
+                        # jac.
+                        method='dogbox',
+                        ftol=1e-8, gtol=1e-8,   # Default
+                        xtol=1e-8,      # Solver is sometimes 'lazy' and ends
+                        # with xtol termination condition, while settings are
+                        # clearly not optimized
+                        # x_scale='jac',    # TODO
+                        # loss=linear,      # TODO
+                        # f_scale=1.0,      # TODO
+                        # diff_step=None,   # TODO
+                        # tr_solver=None, tr_options={},   # TODO
+                        # jac_sparsity=None,    # TODO
                         verbose=debugs['verbose'],
                         )
-        # TODO check methods
-        # TODO check Jacobian
-        # TODO check x_scale
-        # TODO check loss
 
         if debugs['fit_progression']:
             debug.output_fit_progress(count, sol.fun, final=True)
@@ -240,6 +249,7 @@ class Fault():
               sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
               sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
         self.info['sol'] = sol
+        self.info['jac'] = sol.jac
 
         return sol.success
 
@@ -404,7 +414,6 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
             what_to_fit):
     """Fit function."""
     global count
-
     # Unpack
     for i, cav in enumerate(fault.comp['l_cav']):
         acc_f = cav.acc_field
@@ -412,10 +421,7 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
             acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
         else:
             acc_f.phi_s_rad_objective = prop_array[i]
-            print(np.round(np.rad2deg(acc_f.phi_s_rad_objective), 3), end=' ')
         acc_f.norm = prop_array[i+len(fault.comp['l_cav'])]
-        print(np.round(acc_f.norm, 3), end=' ')
-    print('  ')
 
     # Update transfer matrices
     fault.brok_lin.compute_transfer_matrices(
@@ -424,7 +430,7 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
     obj = fun_objective(fault.ref_lin, idx_objective) \
         - fun_objective(fault.brok_lin, idx_objective)
 
-    if debugs['fit_progression'] and count % 25 == 0:
+    if debugs['fit_progression'] and count % 500 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
     count += 1
 
