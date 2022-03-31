@@ -60,8 +60,8 @@ if FILEPATH == "":
 # failed_cav = [25]
 manual_list = [7, 15, 17, 25, 27]
 failed_cav = [
-    35,
-    # 155, 157,
+    # 35,
+    155, 157,
     # 295, 307,
     # 355,
     # 395,
@@ -107,7 +107,7 @@ WHAT_TO_FIT = {
 FLAG_FIX = True
 SAVE_FIX = False
 
-FLAG_PROFILE = True
+FLAG_PROFILE = False
 # =============================================================================
 # Outputs
 # =============================================================================
@@ -116,7 +116,7 @@ PLOTS = [
     "phase",
     "cav",
     ]
-PLOT_TM = True
+PLOT_TM = False
 PHASE_SPACE = False
 TWISS = False
 
@@ -178,12 +178,13 @@ for lin in linacs:
 
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         if FLAG_FIX and lin.name == "Broken":
-            fail.fix_all(method)
             if FLAG_PROFILE:
                 pr = cProfile.Profile()
                 pr.enable()
-                pr.runcall(fail.fix_all, method, WHAT_TO_FIT, manual_list)
+                pr.runcall(fail.fix_all, method)
                 pr.disable()
+            else:
+                fail.fix_all(method)
 
             if SAVE_FIX:
                 tw.save_new_dat(broken_linac, FILEPATH)
