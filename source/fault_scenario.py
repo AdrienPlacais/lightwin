@@ -168,39 +168,28 @@ class FaultScenario():
             successes.append(suc)
 
             # Recompute transfer matrices between this fault and the next
-            if i < len(self.faults['l_obj']) - 1:
+            if i < len(self.faults['l_obj']) - 1 and suc:
                 print('fix_all: computing mt between two errors...')
                 # FIXME: necessary to take '-2'? This is just to be sure...
                 elt1 = f.comp['l_all_elts'][-2]
-                elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]
                 idx1 = self.brok_lin.elements['list'].index(elt1)
+
+                if i < len(self.faults['l_obj'] - 1):
+                    elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]
+                else:
+                    elt2 = self.brok_lin.elements['list'][-1]
                 idx2 = self.brok_lin.elements['list'].index(elt2)
+
                 elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
                 self.brok_lin.compute_transfer_matrices(method, elt1_to_elt2)
-            print('====================================================')
         # TODO plot interesting data before the second fit to see if it is
         # useful
         # TODO we remake a small fit to be sure
 
-        import numpy as np
-        print('fit finished!',
-              np.rad2deg(self.brok_lin.elements['list'][175].
-                         acc_field.phi_0['rel']),
-              np.rad2deg(self.brok_lin.elements['list'][175].
-                         acc_field.phi_0['abs']),
-              )
-
         # At the end we recompute the full transfer matrix
-        self.brok_lin.compute_transfer_matrices(method, flag_synch=False)
+        # self.brok_lin.compute_transfer_matrices(method, flag_synch=False)
         self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
             str(len(successes)) + ')'
-
-        print('any change?',
-              np.rad2deg(self.brok_lin.elements['list'][175].
-                         acc_field.phi_0['rel']),
-              np.rad2deg(self.brok_lin.elements['list'][175].
-                         acc_field.phi_0['abs']),
-              )
 
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \

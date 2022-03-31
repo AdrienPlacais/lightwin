@@ -405,7 +405,7 @@ class Fault():
         for idx in l_idx_pos:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
-                  elt.info, ".")
+                  elt.info, elt.idx, ".")
         return fun_multi_objective, l_idx_pos, l_elements
 
 

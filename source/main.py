@@ -24,7 +24,9 @@ import helper
 import emittance
 import tracewin_interface as tw
 import fault_scenario as mod_fs
-# import cProfile
+import cProfile
+import pstats
+
 
 # =============================================================================
 # User inputs
@@ -103,8 +105,9 @@ WHAT_TO_FIT = {
     # 'fit_over_phi_s': False,
     }
 FLAG_FIX = True
-SAVE_FIX = True
+SAVE_FIX = False
 
+FLAG_PROFILE = True
 # =============================================================================
 # Outputs
 # =============================================================================
@@ -176,16 +179,16 @@ for lin in linacs:
         # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
         if FLAG_FIX and lin.name == "Broken":
             fail.fix_all(method)
-            # pr = cProfile.Profile()
-            # pr.enable()
-            # pr.runcall(fail.fix_all, method, WHAT_TO_FIT, manual_list)
-            # pr.disable()
+            if FLAG_PROFILE:
+                pr = cProfile.Profile()
+                pr.enable()
+                pr.runcall(fail.fix_all, method, WHAT_TO_FIT, manual_list)
+                pr.disable()
 
             if SAVE_FIX:
                 tw.save_new_dat(broken_linac, FILEPATH)
-            # Redo this whole loop with a fixed linacTrue
+            # Redo this whole loop with a fixed linac
             linacs.append(broken_linac)
-            # info = basic_fault.info['fit']
 
 # =============================================================================
 # End
@@ -194,9 +197,10 @@ end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
 data_fixed = tw.output_data_in_tw_fashion(broken_linac)
-# import pstats
-# ps = pstats.Stats(pr).sort_stats('tottime')
-# ps.print_stats(.05)
 
-# ps2 = pstats.Stats(pr).sort_stats('cumtime')
-# ps.print_stats(.05)
+if FLAG_PROFILE:
+    ps = pstats.Stats(pr).sort_stats('tottime')
+    ps.print_stats(.05)
+
+    ps2 = pstats.Stats(pr).sort_stats('cumtime')
+    ps.print_stats(.05)
