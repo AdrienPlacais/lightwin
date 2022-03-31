@@ -206,6 +206,7 @@ class Accelerator():
             for elt in elements:
                 if elt.info['nature'] == 'FIELD_MAP' and flag_synch and \
                         elt.info['status'] == 'compensate':
+                    raise IOError('not implemented yet')
                     elt.match_synch_phase(self.synch,
                                           elt.acc_field.phi_s_rad_objective)
 

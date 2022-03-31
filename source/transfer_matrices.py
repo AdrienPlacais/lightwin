@@ -10,7 +10,7 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, E_rest_MeV, STR_PHI_ABS_RF
+from constants import c, q_adim, E_rest_MeV, STR_PHI_ABS_RF, inv_E_rest_MeV
 import helper
 import solver
 import elements
@@ -68,7 +68,6 @@ def z_drift_length(delta_s, gamma):
     r_zz = np.array(([1., delta_s*gamma**-2],
                      [0., 1.]))
     return r_zz
-
 
 def z_field_map_electric_field(cavity, synch, flag=False):
     """

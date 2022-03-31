@@ -104,7 +104,7 @@ WHAT_TO_FIT = {
     'fit_over_phi_s': True,
     # 'fit_over_phi_s': False,
     }
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 FLAG_PROFILE = False
@@ -150,7 +150,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac, broken_linac]
+linacs = [ref_linac]#, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)
@@ -197,7 +197,7 @@ for lin in linacs:
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
-data_fixed = tw.output_data_in_tw_fashion(broken_linac)
+data_fixed = tw.output_data_in_tw_fashion(ref_linac)
 
 if FLAG_PROFILE:
     ps = pstats.Stats(pr).sort_stats('tottime')

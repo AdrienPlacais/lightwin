@@ -7,10 +7,10 @@ Created on Wed Sep 22 10:26:19 2021.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-import transfer_matrices
+import transfer_matrices_p
 import transport
 from electric_field import RfField
-from constants import N_STEPS_PER_CELL, STR_PHI_ABS
+from constants import N_STEPS_PER_CELL, STR_PHI_ABS, E_rest_MeV
 import helper
 
 
@@ -65,13 +65,13 @@ class _Element():
     def init_solvers(self):
         """Initialize solvers as well as general properties."""
         functions_transf_mat = {
-            'non_acc': {'RK': transfer_matrices.z_drift_element,
-                        'leapfrog': transfer_matrices.z_drift_element,
+            'non_acc': {'RK': transfer_matrices_p.z_drift_p,
+                        'leapfrog': transfer_matrices_p.z_drift_p,
                         'transport': transport.transport_beam,
                         },
             'accelerating': {
-                'RK': transfer_matrices.z_field_map_electric_field,
-                'leapfrog': transfer_matrices.z_field_map_electric_field,
+                'RK': transfer_matrices_p.z_field_map_p,
+                'leapfrog': transfer_matrices_p.z_field_map_p,
                 'transport': transport.transport_beam,
                 }}
         key = 'non_acc'
@@ -93,11 +93,44 @@ class _Element():
 
     def compute_transfer_matrix(self, synch):
         """Compute longitudinal matrix."""
-        self.tmat['matrix'] = self.tmat['func'][
-            self.tmat['solver_param']['method']](self, synch=synch)
+        d_z = self.tmat['solver_param']['d_z']
+        W_kin_in = synch.energy['kin_array_mev'][self.idx['s_in']]
+        n_steps = self.tmat['solver_param']['n_steps']
+        omega0 = synch.omega0['bunch']
+        idx = range(self.idx['s_in'] + 1, self.idx['s_out'] + 1)
 
         if self.info['nature'] == 'FIELD_MAP':
+            omega0_rf = self.acc_field.omega0_rf
+            frac = omega0 / omega0_rf
+            k_e = self.acc_field.norm
+            phi_0_rel = self.acc_field.phi_0['rel']
+            self.acc_field.convert_phi_0(synch.phi['abs_array'][idx[0] - 1] / frac,
+                                         abs_to_rel=False)
+            e_spat = self.acc_field.e_spat
+            r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
+                self.tmat['func'][self.tmat['solver_param']['method']](
+                d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat)
+
+            self.acc_field.cav_params['integrated_field'] = itg_field
             self.acc_field.compute_param_cav(status=self.info['status'])
+
+            synch.phi['abs_array'][idx] = \
+                synch.phi['abs_array'][idx[0] - 1] +\
+                np.array(l_phi_rel) * frac
+
+        else:
+            r_zz, l_gamma, l_beta, l_delta_phi = \
+                    self.tmat['func'][self.tmat['solver_param']['method']]\
+                    (d_z, W_kin_in, n_steps, omega0)
+            for i in range(n_steps):
+                synch.phi['abs_array'][idx[i]] = \
+                    synch.phi['abs_array'][idx[i]-1] + l_delta_phi[i]
+
+        self.tmat['matrix'] = r_zz
+        synch.energy['gamma_array'][idx] = np.array(l_gamma)
+        synch.energy['kin_array_mev'][idx] = \
+            helper.gamma_to_kin(np.array(l_gamma), E_rest_MeV)
+        synch.energy['beta_array'][idx] = np.array(l_beta)
 
     def update_status(self, new_status):
         """
