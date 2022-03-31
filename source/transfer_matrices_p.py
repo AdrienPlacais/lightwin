@@ -73,8 +73,8 @@ def z_field_map_p(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
                                  z_rel, d_z)
 
         # Update
-        itg_field += delta_W * (1. + 1j * np.tan(
-            l_phi_rel[-1] + phi_0_rel)) * d_z
+        itg_field += e_func(k_e, z_rel, e_spat, l_phi_rel[-1], phi_0_rel) \
+            * (1. + 1j * np.tan(l_phi_rel[-1] + phi_0_rel)) * d_z
         # synch.set_energy
         l_W_kin.append(l_W_kin[-1] + delta_W)
         l_gamma.append(1. + l_W_kin[-1] * inv_E_rest_MeV)

@@ -131,6 +131,8 @@ class _Element():
         synch.energy['kin_array_mev'][idx] = \
             helper.gamma_to_kin(np.array(l_gamma), E_rest_MeV)
         synch.energy['beta_array'][idx] = np.array(l_beta)
+        synch.z['abs_array'][idx] = synch.z['abs_array'][idx[0] - 1] \
+            + self.pos_m['rel'][1:]
 
     def update_status(self, new_status):
         """
