@@ -101,10 +101,10 @@ WHAT_TO_FIT = {
     # =========================================================================
     #    Is the fit performed over the synchronous phase?
     # =========================================================================
-    'fit_over_phi_s': False,
+    'fit_over_phi_s': True,
     # 'fit_over_phi_s': False,
     }
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 FLAG_PROFILE = False
@@ -116,7 +116,7 @@ PLOTS = [
     "phase",
     "cav",
     ]
-PLOT_TM = False
+PLOT_TM = True
 PHASE_SPACE = False
 TWISS = False
 
