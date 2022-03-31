@@ -258,11 +258,11 @@ class Particle():
             idx_in = np.where(np.isnan(self.phi['abs_array']))[0][0] - 1
         self._set_omega_rf(acc_field.omega0_rf)
 
-        self.z['rel'] = 0.
-        self.phi['rel'] = 0.
+        # self.z['rel'] = 0.
+        # self.phi['rel'] = 0.
         self.phi['abs'] = self.phi['abs_array'][idx_in]
         self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']
-        acc_field.cav_params['integrated_field'] = 0.
+        # acc_field.cav_params['integrated_field'] = 0.
 
         if self.info['synchronous']:
             # Ref linac: we compute every missing phi_0

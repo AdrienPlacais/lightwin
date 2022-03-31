@@ -2,15 +2,6 @@
 ; TraceWin Version: 2.17.5.3
 ; OS: Linux (64-bit)
 ; ldd (GNU libc) 2.34
-; Date: Thu Mar 31 17:17:24 2022
-; User: PLACAIS
-; Computer: LPSC5057X
-;------------------------------------
-
-;------------------------------------
-; TraceWin Version: 2.17.5.3
-; OS: Linux (64-bit)
-; ldd (GNU libc) 2.34
 ; Date: Wed Mar 30 14:56:54 2022
 ; User: PLACAIS
 ; Computer: LPSC5057X
@@ -93,6 +84,7 @@ DRIFT 150 100 0 0 0
 DRIFT 589.42 30 0 0 0
 ; ERROR_CAV_NCPL_STAT 1 0 0 0 0 0 -100 0 0
 FIELD_MAP 100 415.16 137.745 30 0 1.68927 0 0 Simple_Spoke_1D 0
+; FIELD_MAP 100 415.16 137.745 30 0 0 0 0 Simple_Spoke_1D 0
 DRIFT 264.84 30 0 0 0
 FIELD_MAP 100 415.16 142.089 30 0 1.68927 0 0 Simple_Spoke_1D 0
 DRIFT 505.42 30 0 0 0
@@ -783,5 +775,4 @@ DRIFT 445 45 0 0 0
 DRIFT 150 100 0 0 0
 
 END
-
 

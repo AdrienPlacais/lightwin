@@ -10,7 +10,7 @@ from scipy.optimize import minimize_scalar
 import transfer_matrices_p
 import transport
 from electric_field import RfField
-from constants import N_STEPS_PER_CELL, STR_PHI_ABS, E_rest_MeV
+from constants import N_STEPS_PER_CELL, STR_PHI_ABS, E_rest_MeV, FLAG_PHI_ABS
 import helper
 
 
@@ -103,9 +103,10 @@ class _Element():
             omega0_rf = self.acc_field.omega0_rf
             frac = omega0 / omega0_rf
             k_e = self.acc_field.norm
+            synch.enter_cavity(self.acc_field, self.info['status'],
+                               idx_in=self.idx['s_in'])
             phi_0_rel = self.acc_field.phi_0['rel']
-            self.acc_field.convert_phi_0(synch.phi['abs_array'][idx[0] - 1] / frac,
-                                         abs_to_rel=False)
+
             e_spat = self.acc_field.e_spat
             r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
                 self.tmat['func'][self.tmat['solver_param']['method']](

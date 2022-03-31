@@ -60,8 +60,8 @@ if FILEPATH == "":
 # failed_cav = [25]
 manual_list = [7, 15, 17, 25, 27]
 failed_cav = [
-    # 35,
-    155, 157,
+    35,
+    # 155, 157,
     # 295, 307,
     # 355,
     # 395,
@@ -101,7 +101,7 @@ WHAT_TO_FIT = {
     # =========================================================================
     #    Is the fit performed over the synchronous phase?
     # =========================================================================
-    'fit_over_phi_s': True,
+    'fit_over_phi_s': False,
     # 'fit_over_phi_s': False,
     }
 FLAG_FIX = False
@@ -150,7 +150,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac]#, broken_linac]
+linacs = [ref_linac, broken_linac]
 for lin in linacs:
     for method in ["RK"]:
         lin.compute_transfer_matrices(method)
@@ -197,7 +197,7 @@ for lin in linacs:
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
-data_fixed = tw.output_data_in_tw_fashion(ref_linac)
+data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 
 if FLAG_PROFILE:
     ps = pstats.Stats(pr).sort_stats('tottime')
