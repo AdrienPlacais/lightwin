@@ -102,22 +102,19 @@ class _Element():
 
         if self.info['nature'] == 'FIELD_MAP':
             acc_f = self.acc_field
-            e_spat = acc_f.e_spat
-            k_e = acc_f.norm
-            omega0_rf = acc_f.omega0_rf
-            frac = omega0 / omega0_rf
             synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])
-            phi_0_rel = acc_f.phi_0['rel']
+            args = [acc_f.omega0_rf, acc_f.norm, acc_f.phi_0['rel'],
+                    acc_f.e_spat]
 
             r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
-                tmat_fun(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
-                         e_spat)
+                tmat_fun(d_z, W_kin_in, n_steps, *args)
 
             acc_f.cav_params = compute_param_cav(itg_field,
                                                  self.info['status'])
 
             synch.phi['abs_array'][idx] = \
-                synch.phi['abs_array'][idx[0] - 1] + np.array(l_phi_rel) * frac
+                synch.phi['abs_array'][idx[0] - 1] \
+                    + np.array(l_phi_rel) * synch.frac_omega['rf_to_bunch']
 
             synch.exit_cavity()
 

@@ -44,10 +44,11 @@ def rk4(u, du_dx, x, dx):
     return delta_u[0], delta_u[1]
 
 
-def z_field_map_p(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
+def z_field_map_p(d_z, W_kin_in, n_steps, *args):
     #  print('TODO elsewhere for enter_cavity:')
     #  print('\tconvert_phi_0')
     #  print('\trephase cavity')
+    omega0_rf, k_e, phi_0_rel, e_spat = args
     z_rel = 0.
     itg_field = 0.
     half_d_z = .5 * d_z
