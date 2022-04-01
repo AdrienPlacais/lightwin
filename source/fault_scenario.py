@@ -167,29 +167,10 @@ class FaultScenario():
         for i, f in enumerate(self.faults['l_obj']):
             sol = f.fix_single(method, self.what_to_fit)
             successes.append(sol.success)
-            # Assign sol
-            for j, cav in enumerate(f.comp['l_cav']):
-                acc_f = cav.acc_field
-                if self.what_to_fit['fit_over_phi_s']:
-                    cav.acc_field.phi_s_rad_objective = sol.x[j]
-                else:
-                    cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[j]
-                acc_f.norm = sol.x[j+len(f.comp['l_cav'])]
+            update_cav_parameters(f, sol.x, self.what_to_fit['fit_over_phi_s'])
 
             # Recompute transfer matrices between this fault and the next
-            elt1 = f.comp['l_all_elts'][0]
-            idx1 = self.brok_lin.elements['list'].index(elt1)
-
-            if i < len(self.faults['l_obj']) - 1 and sol.success:
-                elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]
-                print('fix_all: computing mt between two errors...')
-            else:
-                elt2 = self.brok_lin.elements['list'][-1]
-            idx2 = self.brok_lin.elements['list'].index(elt2)
-
-            elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
-            self.brok_lin.compute_transfer_matrices(
-                method, elt1_to_elt2, self.what_to_fit['fit_over_phi_s'])
+            self.compute_matrix_to_next_fault(method, f, sol.success)
         # TODO plot interesting data before the second fit to see if it is
         # useful
         # TODO we remake a small fit to be sure
@@ -204,3 +185,31 @@ class FaultScenario():
                 debug.output_cavities(linac, mod_f.debugs['cav'])
         self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
                                             mod_f.debugs['fit_compact'])
+
+    def compute_matrix_to_next_fault(self, method, fault, success):
+        # Recompute transfer matrices between this fault and the next
+        l_faults = self.faults['l_obj']
+        l_elts = self.brok_lin.elements['list']
+        idx1 = l_elts.index(fault.comp['l_all_elts'][0])
+
+        if fault is not l_faults[-1] and success:
+            next_fault = l_faults[l_faults.index(fault) + 1]
+            idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+            print('fault_scenario: recompute only until index', idx2)
+        else:
+            idx2 = len(l_elts)
+            print('fault_scenario: recompute until end')
+
+        elt1_to_elt2 = l_elts[idx1:idx2]
+        self.brok_lin.compute_transfer_matrices(
+            method, elt1_to_elt2, self.what_to_fit['fit_over_phi_s'])
+
+def update_cav_parameters(fault, sol_array, fit_over_phi_s):
+    # Assign sol
+    for j, cav in enumerate(fault.comp['l_cav']):
+        acc_f = cav.acc_field
+        if fit_over_phi_s:
+            cav.acc_field.phi_s_rad_objective = sol_array[j]
+        else:
+            cav.acc_field.phi_0[STR_PHI_ABS] = sol_array[j]
+        acc_f.norm = sol_array[j+len(fault.comp['l_cav'])]
