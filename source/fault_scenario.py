@@ -68,6 +68,7 @@ class FaultScenario():
         brok_cavities = self.brok_lin.elements_of('FIELD_MAP')
         assert len(ref_cavities) == len(brok_cavities)
 
+        # TODO more compact formulation with zip?
         # Transfer both relative and absolute phase flags
         for i, ref_cav in enumerate(ref_cavities):
             ref_acc_f = ref_cav.acc_field
@@ -187,7 +188,7 @@ class FaultScenario():
         # TODO we remake a small fit to be sure
 
         # At the end we recompute the full transfer matrix
-        # self.brok_lin.compute_transfer_matrices(method, flag_synch=False)
+        self.brok_lin.compute_transfer_matrices(method, flag_synch=False)
         self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
             str(len(successes)) + ')'
 

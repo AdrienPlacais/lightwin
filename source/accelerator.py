@@ -11,7 +11,7 @@ import tracewin_interface as tw
 import helper
 import transport
 import particle
-from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ
+from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ, STR_PHI_ABS
 import elements
 
 
@@ -199,7 +199,6 @@ class Accelerator():
             phi_0 until the acc_field.phi_s_objective are matched. Default is
             False.
         """
-        # self.transf_mat['cumul'] *= np.NaN
         if elements is None:
             elements = self.elements['list']
 
@@ -211,11 +210,11 @@ class Accelerator():
             for elt in elements:
                 if elt.info['nature'] == 'FIELD_MAP' and flag_synch and \
                         elt.info['status'] == 'compensate':
-                    elt.match_synch_phase(self.synch,
-                                          elt.acc_field.phi_s_rad_objective)
+                    elt.acc_field.phi_0[STR_PHI_ABS] = \
+                        elt.match_synch_phase(
+                            self.synch, elt.acc_field.phi_s_rad_objective)
 
-                else:
-                    elt.compute_transfer_matrix(self.synch)
+                elt.compute_transfer_matrix(self.synch)
 
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
                 self.transf_mat['indiv'][idx] = elt.tmat['matrix']

@@ -106,7 +106,7 @@ WHAT_TO_FIT = {
     # 'fit_over_phi_s': False,
     }
 FLAG_FIX = True
-SAVE_FIX = False
+SAVE_FIX = True
 
 FLAG_PROFILE = False
 # =============================================================================

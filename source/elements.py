@@ -94,8 +94,6 @@ class _Element():
     def compute_transfer_matrix(self, synch):
         """Compute longitudinal matrix."""
         _, n_steps, d_z = self.tmat['solver_param'].values()
-        # n_steps = self.tmat['solver_param']['n_steps']
-        # d_z = self.tmat['solver_param']['d_z']
         tmat_fun = self.tmat['func'][self.tmat['solver_param']['method']]
 
         W_kin_in = synch.energy['kin_array_mev'][self.idx['s_in']]
@@ -121,6 +119,8 @@ class _Element():
             synch.phi['abs_array'][idx] = \
                 synch.phi['abs_array'][idx[0] - 1] + np.array(l_phi_rel) * frac
 
+            synch.exit_cavity()
+
         else:
             r_zz, l_gamma, l_beta, l_delta_phi = tmat_fun(d_z, W_kin_in,
                                                           n_steps, omega0)
@@ -134,6 +134,10 @@ class _Element():
         synch.energy['beta_array'][idx] = np.array(l_beta)
         synch.z['abs_array'][idx] = synch.z['abs_array'][idx[0] - 1] \
             + self.pos_m['rel'][1:]
+        flag = False
+        if flag:
+            print(W_kin_in, synch.phi['abs_array'][self.idx['s_in']],
+                  synch.phi['abs_array'][idx[0]])
 
     def update_status(self, new_status):
         """
@@ -228,9 +232,10 @@ class FieldMap(_Element):
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)
-        print('consigne', phi_s_rad, 'we have', self.acc_field.cav_params, self.acc_field.phi_0)
         if not res.success:
             print('match synch phase not found')
+
+        return res.x
 
 
 class Lattice():
