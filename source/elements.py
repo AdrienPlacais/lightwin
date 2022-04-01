@@ -90,38 +90,29 @@ class _Element():
             'd_z': self.length_m / n_steps,
             }
 
-    def compute_transfer_matrix(self, synch, transfer_data=True):
+    def compute_transfer_matrix(self, W_kin_in, omega0, **kwargs):
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
         tmat_fun = self.tmat['func'][METHOD]
 
-        W_kin_in = synch.energy['kin_array_mev'][self.idx['s_in']]
-        omega0 = synch.omega0['bunch']
-
         if self.info['nature'] == 'FIELD_MAP':
             acc_f = self.acc_field
-            synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])
-            args = [acc_f.omega0_rf, acc_f.norm, acc_f.phi_0['rel'],
-                    acc_f.e_spat]
-
             r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
-                tmat_fun(d_z, W_kin_in, n_steps, *args)
+                tmat_fun(d_z, W_kin_in, n_steps, **kwargs)
 
             acc_f.cav_params = compute_param_cav(itg_field,
                                                  self.info['status'])
             l_delta_phi = [
-                phi_rf * synch.frac_omega['rf_to_bunch']
+                phi_rf * omega0 / kwargs['omega0_rf']
                 for phi_rf in l_phi_rel
                 ]
-            synch.exit_cavity()
 
         else:
             r_zz, l_gamma, l_beta, l_delta_phi = tmat_fun(d_z, W_kin_in,
                                                           n_steps, omega0)
 
         self.tmat['matrix'] = r_zz
-        if transfer_data:
-            synch.transfer_data_to_synch(self, l_gamma, l_beta, l_delta_phi)
+        return l_gamma, l_beta, l_delta_phi
 
     def update_status(self, new_status):
         """
@@ -203,13 +194,21 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def match_synch_phase(self, synch, phi_s_rad):
+    def match_synch_phase(self, W_kin_in, omega0, phi_s_rad):
         """Sweeps phi_0 until the cavity synch phase matches phi_s_rad."""
         bounds = (0, 2.*np.pi)
+        acc_f = self.acc_field
+        kwargs = {
+            'omega0_rf': acc_f.omega0_rf,
+            'norm': acc_f.norm,
+            'phi_0_rel': acc_f.phi_0['rel'],
+            'e_spat': acc_f.e_spat,
+            }
 
         def _wrapper_synch(phi_0_rad):
-            self.acc_field.phi_0[STR_PHI_ABS] = phi_0_rad
-            self.compute_transfer_matrix(synch)
+            kwargs['phi_0_rel'] = phi_0_rad
+            l_gamma, l_beta, l_delta_phi =\
+                self.compute_transfer_matrix(W_kin_in, omega0, **kwargs)
             diff = helper.diff_angle(
                 phi_s_rad,
                 np.deg2rad(self.acc_field.cav_params['phi_s_deg']))

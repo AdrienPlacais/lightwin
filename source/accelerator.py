@@ -11,7 +11,8 @@ import tracewin_interface as tw
 import helper
 import transport
 import particle
-from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ, STR_PHI_ABS, METHOD
+from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ, STR_PHI_ABS, METHOD, \
+    E_rest_MeV
 import elements
 
 
@@ -198,16 +199,48 @@ class Accelerator():
         if elements is None:
             elements = self.elements['list']
 
+        l_gamma, l_beta, l_delta_phi = [], [], []
+        W_kin_in = self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]
+        omega0 = self.synch.omega0['bunch']
+
         # Compute transfer matrix and acceleration (gamma) in each element
         if METHOD in ['RK', 'leapfrog']:
             for elt in elements:
-                if elt.info['nature'] == 'FIELD_MAP' and flag_synch and \
-                        elt.info['status'] == 'compensate':
-                    elt.acc_field.phi_0[STR_PHI_ABS] = \
-                        elt.match_synch_phase(
-                            self.synch, elt.acc_field.phi_s_rad_objective)
+                if elt.info['nature'] == 'FIELD_MAP':
+                    acc_f = elt.acc_field
+                    self.synch.enter_cavity(acc_f, elt.info['status'],
+                                            elt.idx['s_in'])
 
-                elt.compute_transfer_matrix(self.synch, transfer_data)
+                    kwargs = {
+                        'omega0_rf': acc_f.omega0_rf,
+                        'norm': acc_f.norm,
+                        'phi_0_rel': acc_f.phi_0['rel'],
+                        'e_spat': acc_f.e_spat,
+                        }
+
+                    if flag_synch and elt.info['status'] == 'compensate':
+                        elt.acc_field.phi_0[STR_PHI_ABS] = \
+                            elt.match_synch_phase(
+                                W_kin_in, omega0,
+                                elt.acc_field.phi_s_rad_objective)
+
+                    l_g_tmp, l_b_tmp, l_p_tmp = \
+                        elt.compute_transfer_matrix(W_kin_in, omega0, **kwargs)
+
+                    self.synch.exit_cavity()
+
+                else:
+                    l_g_tmp, l_b_tmp, l_p_tmp = \
+                        elt.compute_transfer_matrix(W_kin_in, omega0)
+
+                l_gamma.append(l_g_tmp)
+                l_beta.append(l_b_tmp)
+                l_delta_phi.append(l_p_tmp)
+                W_kin_in = helper.gamma_to_kin(l_gamma[-1][-1], E_rest_MeV)
+
+                if transfer_data:
+                    self.synch.transfer_data_to_synch(elt, l_g_tmp, l_b_tmp,
+                                                      l_p_tmp)
 
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
                 self.transf_mat['indiv'][idx] = elt.tmat['matrix']
