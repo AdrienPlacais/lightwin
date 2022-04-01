@@ -22,7 +22,6 @@ def z_drift_p(delta_s, W_kin_in, n_steps=1, omega0=np.NaN):
                                               [0., 1.]]))
     beta_in = np.sqrt(1. - gamma_in**-2)
     delta_phi = omega0 * delta_s / (beta_in * c)
-
     return r_zz, [gamma_in], [beta_in], [delta_phi]
 
 

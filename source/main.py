@@ -153,44 +153,43 @@ DICT_SAVES = {
 
 linacs = [ref_linac, broken_linac]
 for lin in linacs:
-    for method in ["RK"]:
-        lin.compute_transfer_matrices(method)
+    lin.compute_transfer_matrices()
 
-        # FIXME find a way to make this part cleaner
-        if lin.name == 'Working':
-            fail.transfer_phi0_from_ref_to_broken()
+    # FIXME find a way to make this part cleaner
+    if lin.name == 'Working':
+        fail.transfer_phi0_from_ref_to_broken()
 
-        for plot in PLOTS:
-            debug.compare_with_tracewin(lin, x_dat="s",
-                                        y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                        fignum=DICT_PLOTS_PRESETS[plot][1])
-        if PLOT_TM:
-            debug.plot_transfer_matrices(lin, lin.transf_mat["cumul"])
+    for plot in PLOTS:
+        debug.compare_with_tracewin(lin, x_dat="s",
+                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                    fignum=DICT_PLOTS_PRESETS[plot][1])
+    if PLOT_TM:
+        debug.plot_transfer_matrices(lin, lin.transf_mat["cumul"])
 
-        if PHASE_SPACE:
-            debug.compare_phase_space(lin)
+    if PHASE_SPACE:
+        debug.compare_phase_space(lin)
 
-        if TWISS:
-            twiss = emittance.transport_twiss_parameters(lin, ALPHA_Z, BETA_Z)
-            emittance.plot_twiss(lin, twiss)
+    if TWISS:
+        twiss = emittance.transport_twiss_parameters(lin, ALPHA_Z, BETA_Z)
+        emittance.plot_twiss(lin, twiss)
 
-        for save in SAVES:
-            DICT_SAVES[save](lin)
+    for save in SAVES:
+        DICT_SAVES[save](lin)
 
-        # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
-        if FLAG_FIX and lin.name == "Broken":
-            if FLAG_PROFILE:
-                pr = cProfile.Profile()
-                pr.enable()
-                pr.runcall(fail.fix_all, method)
-                pr.disable()
-            else:
-                fail.fix_all(method)
+    # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
+    if FLAG_FIX and lin.name == "Broken":
+        if FLAG_PROFILE:
+            pr = cProfile.Profile()
+            pr.enable()
+            pr.runcall(fail.fix_all)
+            pr.disable()
+        else:
+            fail.fix_all()
 
-            if SAVE_FIX:
-                tw.save_new_dat(broken_linac, FILEPATH)
-            # Redo this whole loop with a fixed linac
-            linacs.append(broken_linac)
+        if SAVE_FIX:
+            tw.save_new_dat(broken_linac, FILEPATH)
+        # Redo this whole loop with a fixed linac
+        linacs.append(broken_linac)
 
 # =============================================================================
 # End

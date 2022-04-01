@@ -10,7 +10,7 @@ from scipy.optimize import minimize_scalar
 import transfer_matrices_p
 import transport
 from electric_field import RfField, compute_param_cav
-from constants import N_STEPS_PER_CELL, STR_PHI_ABS, E_rest_MeV
+from constants import N_STEPS_PER_CELL, STR_PHI_ABS, E_rest_MeV, METHOD
 import helper
 
 
@@ -58,7 +58,7 @@ class _Element():
         # tmat stands for 'transfer matrix'
         self.tmat = {
             'matrix': None,
-            'solver_param': {'method': None, 'n_steps': None, 'd_z': None},
+            'solver_param': {'n_steps': None, 'd_z': None},
             'func': {'RK': None, 'leapfrog': None, 'transport': None},
             }
 
@@ -86,19 +86,17 @@ class _Element():
 
         self.tmat['func'] = functions_transf_mat[key]
         self.tmat['solver_param'] = {
-            'method': None,
             'n_steps': n_steps,
             'd_z': self.length_m / n_steps,
             }
 
-    def compute_transfer_matrix(self, synch):
+    def compute_transfer_matrix(self, synch, transfer_data=True):
         """Compute longitudinal matrix."""
-        _, n_steps, d_z = self.tmat['solver_param'].values()
-        tmat_fun = self.tmat['func'][self.tmat['solver_param']['method']]
+        n_steps, d_z = self.tmat['solver_param'].values()
+        tmat_fun = self.tmat['func'][METHOD]
 
         W_kin_in = synch.energy['kin_array_mev'][self.idx['s_in']]
         omega0 = synch.omega0['bunch']
-        idx = range(self.idx['s_in'] + 1, self.idx['s_out'] + 1)
 
         if self.info['nature'] == 'FIELD_MAP':
             acc_f = self.acc_field
@@ -111,26 +109,19 @@ class _Element():
 
             acc_f.cav_params = compute_param_cav(itg_field,
                                                  self.info['status'])
-
-            synch.phi['abs_array'][idx] = \
-                synch.phi['abs_array'][idx[0] - 1] \
-                    + np.array(l_phi_rel) * synch.frac_omega['rf_to_bunch']
-
+            l_delta_phi = [
+                phi_rf * synch.frac_omega['rf_to_bunch']
+                for phi_rf in l_phi_rel
+                ]
             synch.exit_cavity()
 
         else:
             r_zz, l_gamma, l_beta, l_delta_phi = tmat_fun(d_z, W_kin_in,
                                                           n_steps, omega0)
-            synch.phi['abs_array'][idx] = synch.phi['abs_array'][idx[0] - 1] +\
-                np.array(l_delta_phi)
 
         self.tmat['matrix'] = r_zz
-        synch.energy['gamma_array'][idx] = np.array(l_gamma)
-        synch.energy['kin_array_mev'][idx] = \
-            helper.gamma_to_kin(np.array(l_gamma), E_rest_MeV)
-        synch.energy['beta_array'][idx] = np.array(l_beta)
-        synch.z['abs_array'][idx] = synch.z['abs_array'][idx[0] - 1] \
-            + self.pos_m['rel'][1:]
+        if transfer_data:
+            synch.transfer_data_to_synch(self, l_gamma, l_beta, l_delta_phi)
 
     def update_status(self, new_status):
         """

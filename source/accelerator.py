@@ -11,7 +11,7 @@ import tracewin_interface as tw
 import helper
 import transport
 import particle
-from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ, STR_PHI_ABS
+from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ, STR_PHI_ABS, METHOD
 import elements
 
 
@@ -180,17 +180,13 @@ class Accelerator():
                   "the .dat file used by TW. Results won't match if there",
                   'are faulty cavities.\n')
 
-    def compute_transfer_matrices(self, method, elements=None,
-                                  flag_synch=False):
+    def compute_transfer_matrices(self, elements=None, flag_synch=False,
+                                  transfer_data=True):
         """
         Compute the transfer matrices of Accelerator's elements.
 
         Parameters
         ----------
-        method : string
-            Resolution method. 'RK' (Runge-Kutta) or 'leapfrog' for analytical
-            transfer matrices. 'transport' for calculation by transporting
-            particles through the line.
         elements : list of Elements, optional
             List of elements from which you want the transfer matrices. Default
             is None.
@@ -202,11 +198,8 @@ class Accelerator():
         if elements is None:
             elements = self.elements['list']
 
-        for elt in elements:
-            elt.tmat['solver_param']['method'] = method
-
         # Compute transfer matrix and acceleration (gamma) in each element
-        if method in ['RK', 'leapfrog']:
+        if METHOD in ['RK', 'leapfrog']:
             for elt in elements:
                 if elt.info['nature'] == 'FIELD_MAP' and flag_synch and \
                         elt.info['status'] == 'compensate':
@@ -214,7 +207,7 @@ class Accelerator():
                         elt.match_synch_phase(
                             self.synch, elt.acc_field.phi_s_rad_objective)
 
-                elt.compute_transfer_matrix(self.synch)
+                elt.compute_transfer_matrix(self.synch, transfer_data)
 
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
                 self.transf_mat['indiv'][idx] = elt.tmat['matrix']
@@ -223,7 +216,7 @@ class Accelerator():
             helper.individual_to_global_transfer_matrix(
                     self.transf_mat['indiv'], self.transf_mat['cumul'], idxs)
 
-        elif method == 'transport':
+        elif METHOD == 'transport':
             print('computer_transfer_matrices: no MT computation with ',
                   'transport method.')
             transport.transport_particle(self, self.synch)

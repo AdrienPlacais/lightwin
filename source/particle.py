@@ -175,15 +175,6 @@ class Particle():
         self.phi['abs'] += delta_phi
         self.phi['abs_array'][idx] = self.phi['abs_array'][idx-1] + delta_phi
 
-        # new_row = {
-        #     'phi_abs_array': self.phi['abs_array'][idx],
-        #     'phi_abs': self.phi['abs'],
-        #     'phi_abs_rf': self.phi['abs_rf'],
-        #     'phi_rel': self.phi['rel'],
-        #     }
-        # new_row = pd.Series(data=new_row)
-        # self.df = self.df.append(new_row, ignore_index=True)
-
     def set_abs_phi(self, new_phi, idx=np.NaN, flag_rf=False):
         """
         Set new absolute phase.
@@ -300,6 +291,22 @@ class Particle():
         """Reset frac_omega."""
         self._set_omega_rf(self.omega0['bunch'])
         self.phi['abs_rf'] = None
+
+    def transfer_data_to_synch(self, elt, l_gamma, l_beta, l_delta_phi):
+        r_idx_elt = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
+        idx_elt_prec = r_idx_elt[0] - 1
+
+        ene = self.energy
+        ene['gamma_array'][r_idx_elt] = np.array(l_gamma)
+        ene['kin_array_mev'][r_idx_elt] = \
+            helper.gamma_to_kin(np.array(l_gamma), E_rest_MeV)
+        ene['beta_array'][r_idx_elt] = np.array(l_beta)
+
+        self.z['abs_array'][r_idx_elt] = \
+            self.z['abs_array'][idx_elt_prec] + elt.pos_m['rel'][1:]
+
+        self.phi['abs_array'][r_idx_elt] = \
+            self.phi['abs_array'][idx_elt_prec] + np.array(l_delta_phi)
 
 def create_rand_particles(e_0_mev, omega0_bunch):
     """Create two random particles."""

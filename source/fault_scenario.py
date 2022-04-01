@@ -152,7 +152,7 @@ class FaultScenario():
 
         return l_faults_obj
 
-    def fix_all(self, method):
+    def fix_all(self):
         """
         Fix the linac.
 
@@ -165,18 +165,18 @@ class FaultScenario():
         # We fix all Faults individually
         successes = []
         for i, f in enumerate(self.faults['l_obj']):
-            sol = f.fix_single(method, self.what_to_fit)
+            sol = f.fix_single(self.what_to_fit)
             successes.append(sol.success)
             update_cav_parameters(f, sol.x, self.what_to_fit['fit_over_phi_s'])
 
             # Recompute transfer matrices between this fault and the next
-            self.compute_matrix_to_next_fault(method, f, sol.success)
+            self.compute_matrix_to_next_fault(f, sol.success)
         # TODO plot interesting data before the second fit to see if it is
         # useful
         # TODO we remake a small fit to be sure
 
         # At the end we recompute the full transfer matrix
-        self.brok_lin.compute_transfer_matrices(method, flag_synch=False)
+        self.brok_lin.compute_transfer_matrices(flag_synch=False)
         self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
             str(len(successes)) + ')'
 
@@ -186,7 +186,7 @@ class FaultScenario():
         self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
                                             mod_f.debugs['fit_compact'])
 
-    def compute_matrix_to_next_fault(self, method, fault, success):
+    def compute_matrix_to_next_fault(self, fault, success):
         # Recompute transfer matrices between this fault and the next
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elements['list']
@@ -202,7 +202,7 @@ class FaultScenario():
 
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(
-            method, elt1_to_elt2, self.what_to_fit['fit_over_phi_s'])
+            elt1_to_elt2, self.what_to_fit['fit_over_phi_s'])
 
 def update_cav_parameters(fault, sol_array, fit_over_phi_s):
     # Assign sol

@@ -177,14 +177,12 @@ class Fault():
         # as well as faulty modules
         return neighbor_modules + modules_with_fail
 
-    def fix_single(self, method, what_to_fit):
+    def fix_single(self, what_to_fit):
         """
         Try to compensate the faulty cavities.
 
         Parameters
         ----------
-        method : str
-            Tells which algorithm should be used to compute transfer matrices.
         what_to_fit : dict
             Holds the strategies of optimisation.
         manual_list : list, optional
@@ -222,7 +220,7 @@ class Fault():
         global count
         count = 0
         sol = fitter[0](fun=wrapper, x0=fitter[1], bounds=fitter[2],
-                        args=(self, method, fun_objective, idx_objective,
+                        args=(self, fun_objective, idx_objective,
                               what_to_fit),
                         jac='2-point',  # Default
                         # 'trf' not ideal as jac is not sparse.
@@ -409,7 +407,7 @@ class Fault():
         return fun_multi_objective, l_idx_pos, l_elements
 
 
-def wrapper(prop_array, fault, method, fun_objective, idx_objective,
+def wrapper(prop_array, fault, fun_objective, idx_objective,
             what_to_fit):
     """
     Fit function.
@@ -429,7 +427,7 @@ def wrapper(prop_array, fault, method, fun_objective, idx_objective,
 
     # Update transfer matrices
     fault.brok_lin.compute_transfer_matrices(
-        method, fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'])
+        fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'])
 
     obj = fun_objective(fault.ref_lin, idx_objective) \
         - fun_objective(fault.brok_lin, idx_objective)
