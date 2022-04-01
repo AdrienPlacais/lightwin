@@ -212,9 +212,8 @@ class Accelerator():
                 else:
                     elt.compute_transfer_matrix(self.synch)
 
-                idx = [elt.idx['s_in'] + 1, elt.idx['s_out'] + 1]
-                self.transf_mat['indiv'][idx[0]:idx[1], :, :] \
-                    = elt.tmat['matrix']
+                idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
+                self.transf_mat['indiv'][idx] = elt.tmat['matrix']
 
             idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
             helper.individual_to_global_transfer_matrix(

@@ -60,8 +60,8 @@ if FILEPATH == "":
 # failed_cav = [25]
 manual_list = [7, 15, 17, 25, 27]
 failed_cav = [
-    35,
-    # 155, 157,
+    # 35,
+    155, 157,
     # 295, 307,
     # 355,
     # 395,
@@ -104,7 +104,7 @@ WHAT_TO_FIT = {
     'fit_over_phi_s': True,
     # 'fit_over_phi_s': False,
     }
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 FLAG_PROFILE = False
