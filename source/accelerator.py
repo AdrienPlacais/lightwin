@@ -187,12 +187,17 @@ class Accelerator():
 
         Parameters
         ----------
-        method: string
+        method : string
             Resolution method. 'RK' (Runge-Kutta) or 'leapfrog' for analytical
             transfer matrices. 'transport' for calculation by transporting
             particles through the line.
-        elements: list of Elements, opt
-            List of elements from which you want the transfer matrices.
+        elements : list of Elements, optional
+            List of elements from which you want the transfer matrices. Default
+            is None.
+        flag_synch : boolean, optional
+            If False, we use phi_0 from the cavities. If True, we explore the
+            phi_0 until the acc_field.phi_s_objective are matched. Default is
+            False.
         """
         # self.transf_mat['cumul'] *= np.NaN
         if elements is None:

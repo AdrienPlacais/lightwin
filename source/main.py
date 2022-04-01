@@ -12,6 +12,7 @@ General TODO list:
         Externalize, declassify computation of transfer matrices?
         Interpolation function could be replaced by pre-interpolated array?
     Recheck non synch particles.
+    Method should be in constants.
 """
 import os
 import time
@@ -104,7 +105,7 @@ WHAT_TO_FIT = {
     'fit_over_phi_s': True,
     # 'fit_over_phi_s': False,
     }
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 FLAG_PROFILE = False

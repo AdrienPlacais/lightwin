@@ -9,8 +9,8 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 import transfer_matrices_p
 import transport
-from electric_field import RfField
-from constants import N_STEPS_PER_CELL, STR_PHI_ABS, E_rest_MeV, FLAG_PHI_ABS
+from electric_field import RfField, compute_param_cav
+from constants import N_STEPS_PER_CELL, STR_PHI_ABS, E_rest_MeV
 import helper
 
 
@@ -93,39 +93,39 @@ class _Element():
 
     def compute_transfer_matrix(self, synch):
         """Compute longitudinal matrix."""
-        d_z = self.tmat['solver_param']['d_z']
+        _, n_steps, d_z = self.tmat['solver_param'].values()
+        # n_steps = self.tmat['solver_param']['n_steps']
+        # d_z = self.tmat['solver_param']['d_z']
+        tmat_fun = self.tmat['func'][self.tmat['solver_param']['method']]
+
         W_kin_in = synch.energy['kin_array_mev'][self.idx['s_in']]
-        n_steps = self.tmat['solver_param']['n_steps']
         omega0 = synch.omega0['bunch']
         idx = range(self.idx['s_in'] + 1, self.idx['s_out'] + 1)
 
         if self.info['nature'] == 'FIELD_MAP':
-            omega0_rf = self.acc_field.omega0_rf
+            acc_f = self.acc_field
+            e_spat = acc_f.e_spat
+            k_e = acc_f.norm
+            omega0_rf = acc_f.omega0_rf
             frac = omega0 / omega0_rf
-            k_e = self.acc_field.norm
-            synch.enter_cavity(self.acc_field, self.info['status'],
-                               idx_in=self.idx['s_in'])
-            phi_0_rel = self.acc_field.phi_0['rel']
+            synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])
+            phi_0_rel = acc_f.phi_0['rel']
 
-            e_spat = self.acc_field.e_spat
             r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
-                self.tmat['func'][self.tmat['solver_param']['method']](
-                d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat)
+                tmat_fun(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
+                         e_spat)
 
-            self.acc_field.cav_params['integrated_field'] = itg_field
-            self.acc_field.compute_param_cav(status=self.info['status'])
+            acc_f.cav_params = compute_param_cav(itg_field,
+                                                 self.info['status'])
 
             synch.phi['abs_array'][idx] = \
-                synch.phi['abs_array'][idx[0] - 1] +\
-                np.array(l_phi_rel) * frac
+                synch.phi['abs_array'][idx[0] - 1] + np.array(l_phi_rel) * frac
 
         else:
-            r_zz, l_gamma, l_beta, l_delta_phi = \
-                    self.tmat['func'][self.tmat['solver_param']['method']]\
-                    (d_z, W_kin_in, n_steps, omega0)
-            for i in range(n_steps):
-                synch.phi['abs_array'][idx[i]] = \
-                    synch.phi['abs_array'][idx[i]-1] + l_delta_phi[i]
+            r_zz, l_gamma, l_beta, l_delta_phi = tmat_fun(d_z, W_kin_in,
+                                                          n_steps, omega0)
+            synch.phi['abs_array'][idx] = synch.phi['abs_array'][idx[0] - 1] +\
+                np.array(l_delta_phi)
 
         self.tmat['matrix'] = r_zz
         synch.energy['gamma_array'][idx] = np.array(l_gamma)
@@ -220,7 +220,6 @@ class FieldMap(_Element):
         bounds = (0, 2.*np.pi)
 
         def _wrapper_synch(phi_0_rad):
-            # self.acc_field.phi_0[STR_PHI_ABS] = np.mod(phi_0_rad, 2.*np.pi)
             self.acc_field.phi_0[STR_PHI_ABS] = phi_0_rad
             self.compute_transfer_matrix(synch)
             diff = helper.diff_angle(
@@ -229,11 +228,7 @@ class FieldMap(_Element):
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)
-        # print(res.success, 'match synch, consigne:', np.rad2deg(phi_s_rad),
-        #       ' found ',
-        #       self.acc_field.cav_params['phi_s_deg'], ' in phi0: ',
-        #       np.rad2deg(self.acc_field.phi_0['rel']))
-        # assert np.abs(res.x - self.acc_field.phi_0[STR_PHI_ABS]) < 1e-5
+        print('consigne', phi_s_rad, 'we have', self.acc_field.cav_params, self.acc_field.phi_0)
         if not res.success:
             print('match synch phase not found')
 

@@ -7,8 +7,21 @@ Created on Tue Nov 30 15:43:39 2021.
 """
 import cmath
 import numpy as np
-from scipy.interpolate import interp1d
-from constants import c, q_adim, STR_PHI_ABS
+from constants import c, STR_PHI_ABS
+
+
+def compute_param_cav(integrated_field, status):
+    """Compute synchronous phase and accelerating field."""
+    if status == 'failed':
+        polar_itg = np.array([np.NaN, np.NaN])
+    else:
+        polar_itg = cmath.polar(integrated_field)
+    cav_params = {
+        'v_cav_mv': polar_itg[0],
+        'phi_s_deg': np.rad2deg(polar_itg[1]),
+        'phi_s_rad': polar_itg[1],
+        }
+    return cav_params
 
 
 class RfField():
@@ -34,7 +47,6 @@ class RfField():
             'v_cav_mv': np.NaN,
             'phi_s_deg': np.NaN,
             'phi_s_rad': np.NaN,
-            'integrated_field': 0.
             }
         self.phi_s_rad_objective = None
 
@@ -45,24 +57,6 @@ class RfField():
         """Initialize the frequency and the number of cells."""
         self.omega0_rf = 2e6 * np.pi * f_mhz
         self.n_cell = n_cell
-
-    def update_itg_field(self, pos, phi_rf, d_z):
-        """Add last integration step to the complex rf field."""
-        self.cav_params['integrated_field'] += q_adim \
-            * self.e_func(pos, phi_rf) \
-            * (1. + 1j * np.tan(phi_rf + self.phi_0[STR_PHI_ABS])) * d_z
-
-    def compute_param_cav(self, status):
-        """Compute synchronous phase and accelerating field."""
-        if status == 'failed':
-            polar_itg = np.array([np.NaN, np.NaN])
-        else:
-            polar_itg = cmath.polar(self.cav_params['integrated_field'])
-        self.cav_params = {
-            'v_cav_mv': polar_itg[0],
-            'phi_s_deg': np.rad2deg(polar_itg[1]),
-            'phi_s_rad': polar_itg[1],
-            }
 
     def e_func_norm(self, norm, phi_0, pos, phi_rf):
         """

@@ -411,15 +411,20 @@ class Fault():
 
 def wrapper(prop_array, fault, method, fun_objective, idx_objective,
             what_to_fit):
-    """Fit function."""
+    """
+    Fit function.
+
+    TODO: should not modify the acc_f objects, and instead transfer the norm
+    and phi_0.
+    """
     global count
     # Unpack
     for i, cav in enumerate(fault.comp['l_cav']):
         acc_f = cav.acc_field
-        if not what_to_fit['fit_over_phi_s']:
-            acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
-        else:
+        if what_to_fit['fit_over_phi_s']:
             acc_f.phi_s_rad_objective = prop_array[i]
+        else:
+            acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
         acc_f.norm = prop_array[i+len(fault.comp['l_cav'])]
 
     # Update transfer matrices
