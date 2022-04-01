@@ -134,10 +134,6 @@ class _Element():
         synch.energy['beta_array'][idx] = np.array(l_beta)
         synch.z['abs_array'][idx] = synch.z['abs_array'][idx[0] - 1] \
             + self.pos_m['rel'][1:]
-        flag = False
-        if flag:
-            print(W_kin_in, synch.phi['abs_array'][self.idx['s_in']],
-                  synch.phi['abs_array'][idx[0]])
 
     def update_status(self, new_status):
         """

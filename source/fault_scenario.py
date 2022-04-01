@@ -13,7 +13,7 @@ brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import itertools
-from constants import FLAG_PHI_ABS
+from constants import FLAG_PHI_ABS, STR_PHI_ABS
 import debug
 import fault as mod_f
 
@@ -165,24 +165,31 @@ class FaultScenario():
         # We fix all Faults individually
         successes = []
         for i, f in enumerate(self.faults['l_obj']):
-            suc = f.fix_single(method, self.what_to_fit)
-            successes.append(suc)
+            sol = f.fix_single(method, self.what_to_fit)
+            successes.append(sol.success)
+            # Assign sol
+            for j, cav in enumerate(f.comp['l_cav']):
+                acc_f = cav.acc_field
+                if self.what_to_fit['fit_over_phi_s']:
+                    cav.acc_field.phi_s_rad_objective = sol.x[j]
+                else:
+                    cav.acc_field.phi_0[STR_PHI_ABS] = sol.x[j]
+                acc_f.norm = sol.x[j+len(f.comp['l_cav'])]
 
             # Recompute transfer matrices between this fault and the next
-            if i < len(self.faults['l_obj']) - 1 and suc:
+            elt1 = f.comp['l_all_elts'][0]
+            idx1 = self.brok_lin.elements['list'].index(elt1)
+
+            if i < len(self.faults['l_obj']) - 1 and sol.success:
+                elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]
                 print('fix_all: computing mt between two errors...')
-                # FIXME: necessary to take '-2'? This is just to be sure...
-                elt1 = f.comp['l_all_elts'][-2]
-                idx1 = self.brok_lin.elements['list'].index(elt1)
+            else:
+                elt2 = self.brok_lin.elements['list'][-1]
+            idx2 = self.brok_lin.elements['list'].index(elt2)
 
-                if i < len(self.faults['l_obj'] - 1):
-                    elt2 = self.faults['l_obj'][i+1].comp['l_all_elts'][0]
-                else:
-                    elt2 = self.brok_lin.elements['list'][-1]
-                idx2 = self.brok_lin.elements['list'].index(elt2)
-
-                elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
-                self.brok_lin.compute_transfer_matrices(method, elt1_to_elt2)
+            elt1_to_elt2 = self.brok_lin.elements['list'][idx1:idx2+1]
+            self.brok_lin.compute_transfer_matrices(
+                method, elt1_to_elt2, self.what_to_fit['fit_over_phi_s'])
         # TODO plot interesting data before the second fit to see if it is
         # useful
         # TODO we remake a small fit to be sure

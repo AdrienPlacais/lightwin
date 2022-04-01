@@ -251,7 +251,7 @@ class Fault():
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
 
-        return sol.success
+        return sol
 
     def _set_fit_parameters(self, flag_synch=False):
         """
