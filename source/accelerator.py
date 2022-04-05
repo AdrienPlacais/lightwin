@@ -182,7 +182,8 @@ class Accelerator():
                   'are faulty cavities.\n')
 
     def compute_transfer_matrices(self, elements=None, flag_synch=False,
-                                  transfer_data=True):
+                                  transfer_data=True,
+                                  fit=False, l_norm=[], l_phi=[]):
         """
         Compute the transfer matrices of Accelerator's elements.
 
@@ -199,9 +200,10 @@ class Accelerator():
         if elements is None:
             elements = self.elements['list']
 
-        l_gamma, l_beta, l_delta_phi = [], [], []
+        l_r_zz, l_gamma, l_beta, l_delta_phi = [], [], [], []
         W_kin_in = self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]
         omega0 = self.synch.omega0['bunch']
+        i_fm = 0
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if METHOD in ['RK', 'leapfrog']:
@@ -210,49 +212,80 @@ class Accelerator():
                     acc_f = elt.acc_field
                     self.synch.enter_cavity(acc_f, elt.info['status'],
                                             elt.idx['s_in'])
-
                     kwargs = {
                         'omega0_rf': acc_f.omega0_rf,
                         'norm': acc_f.norm,
                         'phi_0_rel': acc_f.phi_0['rel'],
+                        'phi_s_objective': None,
                         'e_spat': acc_f.e_spat,
                         }
 
-                    if flag_synch and elt.info['status'] == 'compensate':
-                        elt.acc_field.phi_0[STR_PHI_ABS] = \
-                            elt.match_synch_phase(
-                                W_kin_in, omega0,
-                                elt.acc_field.phi_s_rad_objective)
+                    if fit and elt.info['status'] == 'compensate':
+                        kwargs['norm'] = l_norm[i_fm]
+                        if flag_synch:
+                            kwargs['phi_s_objective'] = l_phi[i_fm]
+                        else:
+                            kwargs['phi_0_rel'] = l_phi[i_fm]
+                        i_fm += 1
+                        print(elt.info, kwargs)
 
-                    l_g_tmp, l_b_tmp, l_p_tmp = \
+                    if flag_synch and elt.info['status'] == 'compensate':
+                        phi_0 = elt.match_synch_phase(W_kin_in, omega0,
+                                                      **kwargs)
+                        kwargs['phi_0_rel'] = phi_0
+
+                    r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
                         elt.compute_transfer_matrix(W_kin_in, omega0, **kwargs)
 
-                    self.synch.exit_cavity()
-
                 else:
-                    l_g_tmp, l_b_tmp, l_p_tmp = \
+                    r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
                         elt.compute_transfer_matrix(W_kin_in, omega0)
 
-                l_gamma.append(l_g_tmp)
-                l_beta.append(l_b_tmp)
-                l_delta_phi.append(l_p_tmp)
-                W_kin_in = helper.gamma_to_kin(l_gamma[-1][-1], E_rest_MeV)
-
-                if transfer_data:
-                    self.synch.transfer_data_to_synch(elt, l_g_tmp, l_b_tmp,
-                                                      l_p_tmp)
+                l_r_zz.append(r_zz)
+                l_gamma += l_g_tmp
+                l_beta += l_b_tmp
+                l_delta_phi += l_p_tmp
+                # Prepare W for next iteration
+                W_kin_in = helper.gamma_to_kin(l_gamma[-1], E_rest_MeV)
 
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
-                self.transf_mat['indiv'][idx] = elt.tmat['matrix']
+
+                if transfer_data:
+                    self.synch.transfer_data_to_synch(
+                        elt, l_g_tmp, l_b_tmp, l_p_tmp)
+                    elt.tmat['matrix'] = r_zz
+                    self.transf_mat['indiv'][idx] = r_zz
+
+                    if elt.info['nature'] == 'FIELD_MAP':
+                        acc_f.norm = kwargs['norm']
+                        acc_f.phi_0['rel'] = kwargs['phi_0_rel']
+                        phi_rf_abs = self.synch.phi['abs_rf']
+                        acc_f.convert_phi_0(phi_rf_abs, abs_to_rel=False)
 
             idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
-            helper.individual_to_global_transfer_matrix(
-                    self.transf_mat['indiv'], self.transf_mat['cumul'], idxs)
+
+            flattened_r_zz = np.concatenate(l_r_zz)
+            n_r_zz = len(range(idxs[0], idxs[1]))
+            cumul_r_zz = np.full((n_r_zz, 2, 2), np.NaN)
+
+            if idxs[0] == 0:
+                cumul_r_zz[0, :, :] = np.eye(2)
+            else:
+                cumul_r_zz[0, :, :] = self.transf_mat['cumul'][idxs[0], :, :]
+
+            for i in range(1, n_r_zz):
+                cumul_r_zz[i, :, :] = flattened_r_zz[i-1, :, :] @ cumul_r_zz[i-1, :, :]
+            if transfer_data:
+                self.transf_mat['cumul'][idxs[0]:idxs[1]] = cumul_r_zz
 
         elif METHOD == 'transport':
             print('computer_transfer_matrices: no MT computation with ',
                   'transport method.')
             transport.transport_particle(self, self.synch)
+
+        l_phi = [phi + self.synch.phi['abs_array'][elements[0].idx['s_in']]
+                 for phi in l_delta_phi]
+        return cumul_r_zz, l_gamma, l_beta, l_phi
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """

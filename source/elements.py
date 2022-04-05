@@ -100,8 +100,7 @@ class _Element():
             r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
                 tmat_fun(d_z, W_kin_in, n_steps, **kwargs)
 
-            acc_f.cav_params = compute_param_cav(itg_field,
-                                                 self.info['status'])
+            cav_params = compute_param_cav(itg_field, self.info['status'])
             l_delta_phi = [
                 phi_rf * omega0 / kwargs['omega0_rf']
                 for phi_rf in l_phi_rel
@@ -110,9 +109,10 @@ class _Element():
         else:
             r_zz, l_gamma, l_beta, l_delta_phi = tmat_fun(d_z, W_kin_in,
                                                           n_steps, omega0)
+            cav_params = None
 
-        self.tmat['matrix'] = r_zz
-        return l_gamma, l_beta, l_delta_phi
+        # self.tmat['matrix'] = r_zz
+        return r_zz, l_gamma, l_beta, l_delta_phi, cav_params
 
     def update_status(self, new_status):
         """
@@ -194,24 +194,17 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def match_synch_phase(self, W_kin_in, omega0, phi_s_rad):
+    def match_synch_phase(self, W_kin_in, omega0, **kwargs):
         """Sweeps phi_0 until the cavity synch phase matches phi_s_rad."""
         bounds = (0, 2.*np.pi)
-        acc_f = self.acc_field
-        kwargs = {
-            'omega0_rf': acc_f.omega0_rf,
-            'norm': acc_f.norm,
-            'phi_0_rel': acc_f.phi_0['rel'],
-            'e_spat': acc_f.e_spat,
-            }
 
         def _wrapper_synch(phi_0_rad):
             kwargs['phi_0_rel'] = phi_0_rad
-            l_gamma, l_beta, l_delta_phi =\
+            l_gamma, l_beta, l_delta_phi, cav_params =\
                 self.compute_transfer_matrix(W_kin_in, omega0, **kwargs)
             diff = helper.diff_angle(
-                phi_s_rad,
-                np.deg2rad(self.acc_field.cav_params['phi_s_deg']))
+                kwargs['phi_s_objective'],
+                cav_params['phi_s_rad'])
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)

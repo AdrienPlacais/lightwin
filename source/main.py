@@ -90,9 +90,9 @@ WHAT_TO_FIT = {
     # =========================================================================
     # 'objective': 'energy',
     # 'objective': 'phase',
-    # 'objective': 'energy_phase',
+    'objective': 'energy_phase',
     # 'objective': 'transfer_matrix',
-    'objective': 'all',
+    # 'objective': 'all',
     # =========================================================================
     #     Where should we evaluate objective?
     # =========================================================================
@@ -102,8 +102,8 @@ WHAT_TO_FIT = {
     # =========================================================================
     #    Is the fit performed over the synchronous phase?
     # =========================================================================
-    'fit_over_phi_s': True,
-    # 'fit_over_phi_s': False,
+    # 'fit_over_phi_s': True,
+    'fit_over_phi_s': False,
     }
 FLAG_FIX = False
 SAVE_FIX = False
@@ -151,7 +151,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
     }
 
-linacs = [ref_linac]#, broken_linac]
+linacs = [ref_linac, broken_linac]
 for lin in linacs:
     lin.compute_transfer_matrices()
 

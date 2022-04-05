@@ -16,6 +16,7 @@ import numpy as np
 from scipy.optimize import minimize, least_squares
 from constants import FLAG_PHI_ABS, STR_PHI_ABS
 import debug
+import helper
 
 
 dict_phase = {
@@ -198,9 +199,10 @@ class Fault():
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
 
-        fun_objective, idx_objective, l_elements = self._select_objective(
-            self.what_to_fit['position'],
-            self.what_to_fit['objective'])
+        fun_objective, idx_objective, idx_objective2, l_elements = \
+            self._select_objective(
+                self.what_to_fit['position'],
+                self.what_to_fit['objective'])
         self.comp['l_recompute'] = l_elements
 
         dict_fitter = {
@@ -221,7 +223,7 @@ class Fault():
         count = 0
         sol = fitter[0](fun=wrapper, x0=fitter[1], bounds=fitter[2],
                         args=(self, fun_objective, idx_objective,
-                              what_to_fit),
+                              idx_objective2, what_to_fit),
                         jac='2-point',  # Default
                         # 'trf' not ideal as jac is not sparse.
                         # 'dogbox' may have difficulties with rank-defficient
@@ -372,20 +374,19 @@ class Fault():
 
         # What do you want to match?
         d_objective = {
-            'energy': lambda linac, idx:
-                [linac.synch.energy['kin_array_mev'][idx]],
-            'phase': lambda linac, idx:
-                [linac.synch.phi['abs_array'][idx]],
-            'transfer_matrix': lambda linac, idx:
-                list(linac.transf_mat['cumul'][idx, :, :].flatten()),
+            'energy': lambda ref_linac, idx:
+                [ref_linac.synch.energy['kin_array_mev'][idx]],
+            'phase': lambda ref_linac, idx:
+                [ref_linac.synch.phi['abs_array'][idx]],
+            'transfer_matrix': lambda ref_linac, idx:
+                list(ref_linac.transf_mat['cumul'][idx, :, :].flatten()),
                 }
-        d_objective['energy_phase'] = lambda linac, idx: \
-            d_objective['energy'](linac, idx) \
-            + d_objective['phase'](linac, idx)
-        d_objective['all'] = lambda linac, idx: \
-            d_objective['energy_phase'](linac, idx) \
-            + d_objective['transfer_matrix'](linac, idx)
-
+        d_objective['energy_phase'] = lambda ref_linac, idx: \
+            d_objective['energy'](ref_linac, idx) \
+            + d_objective['phase'](ref_linac, idx)
+        d_objective['all'] = lambda ref_linac, idx: \
+            d_objective['energy_phase'](ref_linac, idx) \
+            + d_objective['transfer_matrix'](ref_linac, idx)
         l_lattices = d_lattices[str_position](self.comp['l_cav'])
         l_elements = [elt
                       for lattice in l_lattices
@@ -394,20 +395,51 @@ class Fault():
         l_idx_pos = d_position[str_position](l_lattices)
         fun_simple = d_objective[str_objective]
 
-        def fun_multi_objective(linac, l_idx):
-            obj = fun_simple(linac, l_idx[0])
-            for idx in l_idx[1:]:
-                obj = obj + fun_simple(linac, idx)
-            return np.array(obj)
+        d_objective_broken_linac = {
+            'energy': lambda l_gamma, l_phi, transf_mat, idx:
+                [helper.gamma_to_kin(l_gamma[idx])],
+            'phase': lambda l_gamma, l_phi, transf_mat, idx: [l_phi[idx]],
+            'transfer_matrix': lambda l_gamma, l_phi, transf_mat, idx:
+                [transf_mat[idx, 0, 0], transf_mat[idx, 0, 1],
+                 transf_mat[idx, 1, 0], transf_mat[idx, 1, 1]],
+            }
+        d_objective_broken_linac['energy_phase'] = \
+            lambda l_gamma, l_phi, transf_mat, idx: \
+            d_objective['energy'](l_gamma, l_phi, transf_mat, idx) + \
+            d_objective['phase'](l_gamma, l_phi, transf_mat, idx)
+        d_objective_broken_linac['all'] = \
+            lambda l_gamma, l_phi, transf_mat, idx: \
+            d_objective['energy_phase'](l_gamma, l_phi, transf_mat, idx) + \
+            d_objective['transfer_matrix'](l_gamma, l_phi, transf_mat, idx)
+        d_position_broken_linac = {
+            'end_of_last_comp_cav': lambda n_lattice: [-1],
+            'one_module_after_last_comp_cav': lambda n_lattice: [-1],
+            'both': lambda n_lattice: [-n_lattice, -1],
+            }
+        # FIXME
+        l_idx_pos_broken_linac = d_position_broken_linac[str_position](10)
+        fun_simple_broken_linac = d_objective_broken_linac[str_objective]
+
+        def fun_multi_objective(ref_linac, l_idx, resume_brok, l_idx_brok):
+            obj = fun_simple(ref_linac, l_idx[0]) - \
+                fun_simple_broken_linac(resume_brok[0], resume_brok[1],
+                                        resume_brok[2], l_idx_brok[0])
+            for idx1, idx2 in zip(l_idx[1:], l_idx_brok[1:]):
+                next_obj = fun_simple(ref_linac, idx1) - \
+                    fun_simple_broken_linac(resume_brok[0], resume_brok[1],
+                                            resume_brok[2], idx2)
+                obj = obj + next_obj
+            return np.abs(np.array(obj))
 
         for idx in l_idx_pos:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
                   elt.info, elt.idx, ".")
-        return fun_multi_objective, l_idx_pos, l_elements
+        return fun_multi_objective, l_idx_pos, l_idx_pos_broken_linac, \
+            l_elements
 
 
-def wrapper(prop_array, fault, fun_objective, idx_objective,
+def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
             what_to_fit):
     """
     Fit function.
@@ -417,20 +449,20 @@ def wrapper(prop_array, fault, fun_objective, idx_objective,
     """
     global count
     # Unpack
+    l_phi = []
+    l_norm = []
     for i, cav in enumerate(fault.comp['l_cav']):
-        acc_f = cav.acc_field
-        if what_to_fit['fit_over_phi_s']:
-            acc_f.phi_s_rad_objective = prop_array[i]
-        else:
-            acc_f.phi_0[STR_PHI_ABS] = prop_array[i]
-        acc_f.norm = prop_array[i+len(fault.comp['l_cav'])]
+        l_phi.append(prop_array[i])
+        l_norm.append(prop_array[i+len(fault.comp['l_cav'])])
 
     # Update transfer matrices
-    fault.brok_lin.compute_transfer_matrices(
-        fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'])
+    l_gamma, l_beta, l_phi = fault.brok_lin.compute_transfer_matrices(
+        fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'],
+        fit=True, l_norm=l_norm, l_phi=l_phi)
+    transf_mat = np.NaN  # FIXME
+    resume = (l_gamma, l_phi, transf_mat)
 
-    obj = fun_objective(fault.ref_lin, idx_objective) \
-        - fun_objective(fault.brok_lin, idx_objective)
+    obj = fun_objective(fault.ref_lin, idx_objective, resume, idx_objective2)
 
     if debugs['fit_progression'] and count % 20 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
