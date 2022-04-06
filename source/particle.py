@@ -8,7 +8,7 @@ Created on Thu Dec  2 13:44:00 2021
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_rest_MeV, c, FLAG_PHI_ABS
+from constants import E_rest_MeV, c, FLAG_PHI_ABS, OMEGA_0_BUNCH
 
 
 class Particle():
@@ -21,7 +21,7 @@ class Particle():
         phi = omega_0_rf * t
     """
 
-    def __init__(self, z, e_mev, omega0_bunch, n_steps=1, synchronous=False,
+    def __init__(self, z, e_mev, n_steps=1, synchronous=False,
                  reference=True):
         self.info = {
             # Is this particle the generator?
@@ -42,10 +42,9 @@ class Particle():
         self.z['abs_array'][0] = z
 
         self.omega0 = {
-            'ref': omega0_bunch,        # The one we use
-            'bunch': omega0_bunch,      # Should match 'ref' outside cavities
+            'ref': OMEGA_0_BUNCH,        # The one we use
             # FIXME: default set f_rf = 2*f_bunch is dirty
-            'rf': 2. * omega0_bunch,    # Should match 'ref' inside cavities
+            'rf': 2. * OMEGA_0_BUNCH,    # Should match 'ref' inside cavities
             'lambda_array': np.full((n_steps + 1), np.NaN),
             }
 
@@ -135,7 +134,7 @@ class Particle():
         """Init phi by taking z_rel and beta."""
         phi_abs = helper.z_to_phi(self.z['abs_array'][idx],
                                   self.energy['beta_array'][idx],
-                                  self.omega0['bunch'])
+                                  OMEGA_0_BUNCH)
         self.phi['abs'] = phi_abs
         self.phi['abs_rf'] = phi_abs * self.frac_omega['bunch_to_rf']
         self.phi['abs_array'][idx] = phi_abs
@@ -214,8 +213,7 @@ class Particle():
         # make any sense outside of cavities.
         self.phase_space['z_array'] = helper.phi_to_z(
             self.phase_space['phi_array_rad'],
-            self.energy['beta_array'],
-            self.omega0['bunch'])
+            self.energy['beta_array'], OMEGA_0_BUNCH)
 
         self.phase_space['delta_array'] = (self.energy['p_array_mev']
                                            - synch.energy['p_array_mev']) \
@@ -232,8 +230,8 @@ class Particle():
         """Define rf pulsation."""
         self.omega0['rf'] = new_omega
         self.omega0['ref'] = new_omega
-        self.frac_omega['rf_to_bunch'] = self.omega0['bunch'] / new_omega
-        self.frac_omega['bunch_to_rf'] = new_omega / self.omega0['bunch']
+        self.frac_omega['rf_to_bunch'] = OMEGA_0_BUNCH / new_omega
+        self.frac_omega['bunch_to_rf'] = new_omega / OMEGA_0_BUNCH
 
     def enter_cavity(self, acc_field, cav_status='nominal', idx_in=np.NaN,
                      nominal_phi_0_rel=None):
@@ -289,7 +287,7 @@ class Particle():
 
     def exit_cavity(self):
         """Reset frac_omega."""
-        self._set_omega_rf(self.omega0['bunch'])
+        self._set_omega_rf(OMEGA_0_BUNCH)
         self.phi['abs_rf'] = None
 
     def transfer_data_to_synch(self, elt, l_gamma, l_beta, l_delta_phi):
@@ -308,17 +306,26 @@ class Particle():
         self.phi['abs_array'][r_idx_elt] = \
             self.phi['abs_array'][idx_elt_prec] + np.array(l_delta_phi)
 
-def create_rand_particles(e_0_mev, omega0_bunch):
+
+def convert_phi_0_p(phi_in, phi_rf_abs, abs_to_rel):
+    """Calculate the missing phi_0 (relative or absolute)."""
+    if abs_to_rel:
+        phi_out = np.mod(phi_in + phi_rf_abs, 2. * np.pi)
+    else:
+        phi_out = np.mod(phi_in - phi_rf_abs, 2. * np.pi)
+    return phi_out
+
+
+
+def create_rand_particles(e_0_mev):
     """Create two random particles."""
     delta_z = 1e-4
     delta_E = 1e-4
 
     rand_1 = Particle(-1.42801442802603928417e-04,
-                      1.66094219207764304258e+01,
-                      omega0_bunch)
+                      1.66094219207764304258e+01,)
     rand_2 = Particle(2.21221539793564048182e-03,
-                      1.65923664093018210508e+01,
-                      omega0_bunch)
+                      1.65923664093018210508e+01,)
 
     # rand_1 = Particle(
     #     random.uniform(0., delta_z * .5),

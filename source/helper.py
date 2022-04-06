@@ -260,13 +260,13 @@ def kin_mev_to_v(e_kin_mev, q_over_m):
     return v
 
 
-def kin_to_gamma(e_kin, e_rest):
+def kin_to_gamma(e_kin, e_rest=constants.E_rest_MeV):
     """Convert kinetic and rest energies into relativistic mass factor."""
     gamma = 1. + e_kin / e_rest
     return gamma    # Both energies in same unit
 
 
-def gamma_to_kin(gamma, e_rest):
+def gamma_to_kin(gamma, e_rest=constants.E_rest_MeV):
     """Convert relativistic mass factor and rest energy to kinetic energy."""
     e_kin = e_rest * (gamma - 1.)
     return e_kin    # Same unit as e_rest
@@ -278,28 +278,28 @@ def gamma_to_beta(gamma):
     return beta
 
 
-def kin_to_beta(e_kin, e_rest):
+def kin_to_beta(e_kin, e_rest=constants.E_rest_MeV):
     """Convert kinetic and rest energies into reduced velocity."""
     gamma = kin_to_gamma(e_kin, e_rest)
     beta = gamma_to_beta(gamma)
     return beta     # Same unit for both energies
 
 
-def kin_to_p(e_kin, e_rest):
+def kin_to_p(e_kin, e_rest=constants.E_rest_MeV):
     """Convert kinetic energy to impulsion."""
     e_tot = e_kin + e_rest
     p = np.sqrt(e_tot**2 - e_rest**2)
     return p    # If energies in MeV, p in MeV/c
 
 
-def p_to_kin(p, e_rest):
+def p_to_kin(p, e_rest=constants.E_rest_MeV):
     """Convert impulsion to kinetic energy."""
     e_tot = np.sqrt(p**2 + e_rest**2)
     e_kin = e_tot - e_rest
     return e_kin    # Attention to units!
 
 
-def gamma_and_beta_to_p(gamma, beta, e_rest):
+def gamma_and_beta_to_p(gamma, beta, e_rest=constants.E_rest_MeV):
     """Compute p from Lorentz factors."""
     return gamma * beta * e_rest
 
@@ -319,7 +319,7 @@ def mrad_and_gamma_to_delta(z_prime, gamma):
     return z_prime * gamma**2 * 1e-1
 
 
-def mrad_and_mev_to_delta(z_prime, e_kin, e_rest):
+def mrad_and_mev_to_delta(z_prime, e_kin, e_rest=constants.E_rest_MeV):
     """Convert z' in mrad with energy to delta = dp/p in %."""
     gamma = kin_to_gamma(e_kin, e_rest)
     return mrad_and_gamma_to_delta(z_prime, gamma)

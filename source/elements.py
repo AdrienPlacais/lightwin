@@ -10,7 +10,8 @@ from scipy.optimize import minimize_scalar
 import transfer_matrices_p
 import transport
 from electric_field import RfField, compute_param_cav
-from constants import N_STEPS_PER_CELL, STR_PHI_ABS, E_rest_MeV, METHOD
+from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, STR_PHI_ABS, E_rest_MeV,\
+                      METHOD, STR_PHI_0_ABS, OMEGA_0_BUNCH
 import helper
 
 
@@ -64,7 +65,7 @@ class _Element():
 
     def init_solvers(self):
         """Initialize solvers as well as general properties."""
-        functions_transf_mat = {
+        self.functions_transf_mat = {
             'non_acc': {'RK': transfer_matrices_p.z_drift_p,
                         'leapfrog': transfer_matrices_p.z_drift_p,
                         'transport': transport.transport_beam,
@@ -74,6 +75,7 @@ class _Element():
                 'leapfrog': transfer_matrices_p.z_field_map_p,
                 'transport': transport.transport_beam,
                 }}
+
         key = 'non_acc'
         n_steps = 1
         if self.info['nature'] == 'FIELD_MAP':
@@ -84,34 +86,32 @@ class _Element():
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
 
-        self.tmat['func'] = functions_transf_mat[key]
+        self.tmat['func'] = self.functions_transf_mat[key]
         self.tmat['solver_param'] = {
             'n_steps': n_steps,
             'd_z': self.length_m / n_steps,
             }
 
-    def compute_transfer_matrix(self, W_kin_in, omega0, **kwargs):
+    def compute_transfer_matrix(self, W_kin_in, **kwargs):
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
         tmat_fun = self.tmat['func'][METHOD]
 
         if self.info['nature'] == 'FIELD_MAP':
-            acc_f = self.acc_field
             r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
                 tmat_fun(d_z, W_kin_in, n_steps, **kwargs)
 
             cav_params = compute_param_cav(itg_field, self.info['status'])
             l_delta_phi = [
-                phi_rf * omega0 / kwargs['omega0_rf']
+                phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
                 for phi_rf in l_phi_rel
                 ]
 
         else:
-            r_zz, l_gamma, l_beta, l_delta_phi = tmat_fun(d_z, W_kin_in,
-                                                          n_steps, omega0)
+            r_zz, l_gamma, l_beta, l_delta_phi, _ = tmat_fun(d_z, W_kin_in,
+                                                             n_steps)
             cav_params = None
 
-        # self.tmat['matrix'] = r_zz
         return r_zz, l_gamma, l_beta, l_delta_phi, cav_params
 
     def update_status(self, new_status):
@@ -194,14 +194,63 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def match_synch_phase(self, W_kin_in, omega0, **kwargs):
+    def set_proper_cavity_parameters(self, synch, flag_synch, phi_abs_in,
+                                     fit={'flag': False}):
+        """
+        Set the properties of the electric field.
+
+        If the cavity is in nominal workking condition, we use the properties
+        (norm, phi_0) defined in the RfField object. If we are compensating
+        a fault, we use the properties given by the optimisation algorithm.
+        """
+        acc_f = self.acc_field
+        synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])
+
+        kwargs = {
+            'omega0_rf': acc_f.omega0_rf,
+            'norm': np.NaN,
+            'phi_0_rel': np.NaN,
+            'phi_0_abs': np.NaN,
+            'phi_s_objective': None,
+            'e_spat': acc_f.e_spat,
+            }
+
+        # Fit [and cavity under study is in nominal working order]
+        if fit['flag'] and self.info['status'] == 'compensate':
+            kwargs['norm'] = fit['norm']
+
+            if flag_synch:
+                kwargs['phi_s_objective'] = fit['phi']
+                # TODO check: phi_0 rel or abs given by match synch phase?
+                kwargs[STR_PHI_ABS_RF] = self.match_synch_phase(
+                        W_kin_in, **kwargs)
+            else:
+                # fit['phi'] is phi_0_rel or phi_0_abs according to
+                # FLAG_PHI_ABS.
+                # We set it and calculate the abs/rel phi_0 that is missing.
+                phi_rf_abs = phi_abs_in * acc_f.omega0_rf / OMEGA_0_BUNCH
+                kwargs[STR_PHI_0_ABS] = fit['phi']
+                kwargs['phi_0_abs'], kwargs['phi_0_rel'] = acc_f.convert_phi_0(
+                    phi_rf_abs, FLAG_PHI_ABS, kwargs['phi_0_rel'],
+                    kwargs['phi_0_abs']
+                    )
+
+        # Nominal working condition
+        else:
+            kwargs['norm'] = acc_f.norm
+            kwargs['phi_0_rel'] = acc_f.phi_0['rel']
+            kwargs['phi_0_abs'] = acc_f.phi_0['abs']
+
+        return kwargs
+
+    def match_synch_phase(self, W_kin_in, **kwargs):
         """Sweeps phi_0 until the cavity synch phase matches phi_s_rad."""
         bounds = (0, 2.*np.pi)
 
         def _wrapper_synch(phi_0_rad):
             kwargs['phi_0_rel'] = phi_0_rad
             l_gamma, l_beta, l_delta_phi, cav_params =\
-                self.compute_transfer_matrix(W_kin_in, omega0, **kwargs)
+                self.compute_transfer_matrix(W_kin_in, **kwargs)
             diff = helper.diff_angle(
                 kwargs['phi_s_objective'],
                 cav_params['phi_s_rad'])

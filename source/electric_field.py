@@ -161,7 +161,8 @@ class RfField():
         else:
             self.phi_0 = {'rel': phi_0, 'abs': None, 'nominal_rel': phi_0}
 
-    def convert_phi_0(self, phi_rf_abs, abs_to_rel):
+    def convert_phi_0(self, phi_rf_abs, abs_to_rel, phi_0_rel=None,
+                      phi_0_abs=None):
         """
         Calculate the missing phi_0 (relative or absolute).
 
@@ -181,12 +182,22 @@ class RfField():
             True if you want to convert absolute into relative.
             False if you want to convert relative into absolute,
         """
-        if abs_to_rel:
-            self.phi_0['rel'] = np.mod(self.phi_0['abs'] + phi_rf_abs,
-                                       2. * np.pi)
+        if phi_0_rel is None or phi_0_abs is None:
+            if abs_to_rel:
+                self.phi_0['rel'] = np.mod(self.phi_0['abs'] + phi_rf_abs,
+                                           2. * np.pi)
+
+            else:
+                self.phi_0['abs'] = np.mod(self.phi_0['rel'] - phi_rf_abs,
+                                           2. * np.pi)
+            return
+
         else:
-            self.phi_0['abs'] = np.mod(self.phi_0['rel'] - phi_rf_abs,
-                                       2. * np.pi)
+            if abs_to_rel:
+                phi_0_rel = np.mod(phi_0_abs + phi_rf_abs, 2. * np.pi)
+            else:
+                phi_0_abs = np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
+            return phi_0_abs, phi_0_rel
 
     def rephase_cavity(self, phi_rf_abs):
         """

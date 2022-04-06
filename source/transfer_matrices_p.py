@@ -10,19 +10,18 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV
-
+from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH
 
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def z_drift_p(delta_s, W_kin_in, n_steps=1, omega0=np.NaN):
+def z_drift_p(delta_s, W_kin_in, n_steps=1, **kwargs):
     gamma_in = 1. + W_kin_in * inv_E_rest_MeV
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in**-2],
                                               [0., 1.]]))
     beta_in = np.sqrt(1. - gamma_in**-2)
-    delta_phi = omega0 * delta_s / (beta_in * c)
-    return r_zz, [gamma_in], [beta_in], [delta_phi]
+    delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
+    return r_zz, [gamma_in], [beta_in], [delta_phi], None
 
 
 def e_func(k_e, z, e_spat, phi, phi_0):
@@ -45,7 +44,6 @@ def rk4(u, du_dx, x, dx):
 
 def z_field_map_p(d_z, W_kin_in, n_steps, **kwargs):
     #  print('TODO elsewhere for enter_cavity:')
-    #  print('\tconvert_phi_0')
     #  print('\trephase cavity')
     omega0_rf = kwargs['omega0_rf']
     k_e = kwargs['norm']
@@ -70,7 +68,6 @@ def z_field_map_p(d_z, W_kin_in, n_steps, **kwargs):
         return np.array([v0, v1])
 
     for i in range(n_steps):
-
         # Compute energy and phase changes
         delta_W, delta_phi = rk4(np.array([l_W_kin[-1], l_phi_rel[-1]]), du_dz,
                                  z_rel, d_z)

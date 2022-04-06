@@ -324,6 +324,7 @@ class Fault():
 
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)
+        print('initial_guess:', initial_guess, '\tbounds:', bounds)
         return initial_guess, bounds, x_scales
 
     def _select_objective(self, str_position, str_objective):
@@ -397,39 +398,39 @@ class Fault():
 
         d_objective_broken_linac = {
             'energy': lambda l_gamma, l_phi, transf_mat, idx:
-                [helper.gamma_to_kin(l_gamma[idx])],
-            'phase': lambda l_gamma, l_phi, transf_mat, idx: [l_phi[idx]],
+                [helper.gamma_to_kin(l_gamma[idx - 1])],
+            'phase': lambda l_gamma, l_phi, transf_mat, idx:
+                [l_phi[idx - 1]],
             'transfer_matrix': lambda l_gamma, l_phi, transf_mat, idx:
                 [transf_mat[idx, 0, 0], transf_mat[idx, 0, 1],
                  transf_mat[idx, 1, 0], transf_mat[idx, 1, 1]],
             }
         d_objective_broken_linac['energy_phase'] = \
             lambda l_gamma, l_phi, transf_mat, idx: \
-            d_objective['energy'](l_gamma, l_phi, transf_mat, idx) + \
-            d_objective['phase'](l_gamma, l_phi, transf_mat, idx)
+            d_objective_broken_linac['energy'](l_gamma, l_phi, transf_mat, idx) + \
+            d_objective_broken_linac['phase'](l_gamma, l_phi, transf_mat, idx)
         d_objective_broken_linac['all'] = \
             lambda l_gamma, l_phi, transf_mat, idx: \
-            d_objective['energy_phase'](l_gamma, l_phi, transf_mat, idx) + \
-            d_objective['transfer_matrix'](l_gamma, l_phi, transf_mat, idx)
-        d_position_broken_linac = {
-            'end_of_last_comp_cav': lambda n_lattice: [-1],
-            'one_module_after_last_comp_cav': lambda n_lattice: [-1],
-            'both': lambda n_lattice: [-n_lattice, -1],
-            }
-        # FIXME
-        l_idx_pos_broken_linac = d_position_broken_linac[str_position](10)
+            d_objective_broken_linac['energy_phase'](l_gamma, l_phi, transf_mat, idx) + \
+            d_objective_broken_linac['transfer_matrix'](l_gamma, l_phi, transf_mat, idx)
+
+        # MT calculated for linac under study does not encompass elements
+        # before the compensating region
+        shift_s_idx_broken_linac = self.comp['l_all_elts'][0].idx['s_in']
+        l_idx_pos_broken_linac = [idx - shift_s_idx_broken_linac
+                                  for idx in l_idx_pos]
         fun_simple_broken_linac = d_objective_broken_linac[str_objective]
 
         def fun_multi_objective(ref_linac, l_idx, resume_brok, l_idx_brok):
-            obj = fun_simple(ref_linac, l_idx[0]) - \
-                fun_simple_broken_linac(resume_brok[0], resume_brok[1],
-                                        resume_brok[2], l_idx_brok[0])
+            obj_ref = fun_simple(ref_linac, l_idx[0])
+            obj_brok = fun_simple_broken_linac(resume_brok[0], resume_brok[1],
+                                               resume_brok[2], l_idx_brok[0])
             for idx1, idx2 in zip(l_idx[1:], l_idx_brok[1:]):
-                next_obj = fun_simple(ref_linac, idx1) - \
-                    fun_simple_broken_linac(resume_brok[0], resume_brok[1],
-                                            resume_brok[2], idx2)
-                obj = obj + next_obj
-            return np.abs(np.array(obj))
+                obj_ref += fun_simple(ref_linac, idx1)
+                obj_brok += fun_simple_broken_linac(
+                    resume_brok[0], resume_brok[1], resume_brok[2], idx2)
+            # print(obj_ref, obj_brok)
+            return np.abs(np.array(obj_ref) - np.array(obj_brok))
 
         for idx in l_idx_pos:
             elt = self.brok_lin.where_is_this_index(idx)
@@ -449,21 +450,20 @@ def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
     """
     global count
     # Unpack
-    l_phi = []
+    l_phi_0 = []
     l_norm = []
     for i, cav in enumerate(fault.comp['l_cav']):
-        l_phi.append(prop_array[i])
+        l_phi_0.append(prop_array[i])
         l_norm.append(prop_array[i+len(fault.comp['l_cav'])])
-
     # Update transfer matrices
-    l_gamma, l_beta, l_phi = fault.brok_lin.compute_transfer_matrices(
-        fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'],
-        fit=True, l_norm=l_norm, l_phi=l_phi)
-    transf_mat = np.NaN  # FIXME
+    transf_mat, l_gamma, l_beta, l_phi = \
+        fault.brok_lin.compute_transfer_matrices(
+            fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'],
+            fit=True, l_norm=l_norm, l_phi_0=l_phi_0)
     resume = (l_gamma, l_phi, transf_mat)
 
     obj = fun_objective(fault.ref_lin, idx_objective, resume, idx_objective2)
-
+    print(obj)
     if debugs['fit_progression'] and count % 20 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
     count += 1
