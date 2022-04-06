@@ -99,6 +99,8 @@ class _Element():
 
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
+            if self.info['name'] == 'FM5':
+                print('on y est')
             r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
                 tmat_fun(d_z, W_kin_in, n_steps, **kwargs)
 

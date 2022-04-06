@@ -212,8 +212,6 @@ class Accelerator():
                     if fit and elt.info['status'] == 'compensate':
                         d_fit = {'flag': True, 'norm': l_norm[i_fm],
                                  'phi': l_phi_0[i_fm]}
-                        if elt.info['name'] == 'FM5':
-                            print('transm to dic:', d_fit)
                         i_fm += 1
                     else:
                         d_fit = {'flag': False}
@@ -222,8 +220,7 @@ class Accelerator():
                             self.synch, flag_synch, phi_abs_in, W_kin_in,
                             d_fit)
                     if elt.info['name'] == 'FM5':
-                        print(kwargs['norm'], kwargs['phi_0_rel'],
-                              kwargs['phi_0_abs'])  
+                        print(kwargs)
                     r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
                         elt.compute_transfer_matrix(W_kin_in, **kwargs)
 
@@ -241,6 +238,9 @@ class Accelerator():
                 # Prepare W and phi for next iteration
                 W_kin_in = helper.gamma_to_kin(l_gamma[-1], E_rest_MeV)
                 phi_abs_in = l_phi_abs[-1]
+                if elt.info['name'] == 'FM5':
+                    print('ene and phase out of fm5:\n', W_kin_in, phi_abs_in,
+                          '\n')  
 
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
 
