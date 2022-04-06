@@ -27,9 +27,9 @@ dict_phase = {
 n_comp_latt_per_fault = 2
 debugs = {
     'fit_complete': False,
-    'fit_compact': True,
-    'fit_progression': True,
-    'cav': True,
+    'fit_compact': False,
+    'fit_progression': False,
+    'cav': False,
     'verbose': 0,
     }
 
@@ -191,7 +191,7 @@ class Fault():
             'strategy' == 'manual'. The default is None.
         """
         self.what_to_fit = what_to_fit
-        print("Starting fit with parameters:", self.what_to_fit)
+        #  print("Starting fit with parameters:", self.what_to_fit)
 
         # Set the fit variables
         initial_guesses, bounds, x_scales = \
@@ -245,9 +245,9 @@ class Fault():
         if debugs['fit_progression']:
             debug.output_fit_progress(count, sol.fun, final=True)
 
-        print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
-              sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
-              sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
+        #  print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
+              #  sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
+              #  sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
 
@@ -297,9 +297,12 @@ class Fault():
 
                 bounds.append(lim_phase)
             else:
-                # initial_guess.append(dict_phase[FLAG_PHI_ABS](elt))
-                initial_guess.append(0.)
-                bounds.append(limits_phase)
+                # DEBUG
+                phi = dict_phase[FLAG_PHI_ABS](elt)
+                initial_guess.append(phi)
+                bounds.append((phi - 1e-10, phi + 1e-10))
+                #  initial_guess.append(0.)
+                #  bounds.append(limits_phase)
             x_scales.append(typical_phase_var)
 
         # Handle norm
@@ -318,13 +321,17 @@ class Fault():
                        limits_norm['absolute'][0])
             upp = limits_norm_up[elt.info['zone']]
 
+            # DEBUG
+            down = norm - 1e-10
+            upp = norm + 1e-10
+
             initial_guess.append(norm)
             bounds.append((down, upp))
             x_scales.append(typical_norm_var)
 
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)
-        print('initial_guess:', initial_guess, '\tbounds:', bounds)
+        #  print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
         return initial_guess, bounds, x_scales
 
     def _select_objective(self, str_position, str_objective):
@@ -434,8 +441,8 @@ class Fault():
 
         for idx in l_idx_pos:
             elt = self.brok_lin.where_is_this_index(idx)
-            print('\nWe try to match at synch index:', idx, 'which is',
-                  elt.info, elt.idx, ".")
+            #  print('\nWe try to match at synch index:', idx, 'which is',
+                  #  elt.info, elt.idx, ".")
         return fun_multi_objective, l_idx_pos, l_idx_pos_broken_linac, \
             l_elements
 
@@ -463,7 +470,7 @@ def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
     resume = (l_gamma, l_phi, transf_mat)
 
     obj = fun_objective(fault.ref_lin, idx_objective, resume, idx_objective2)
-    print(obj)
+    #  print(obj)
     if debugs['fit_progression'] and count % 20 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
     count += 1

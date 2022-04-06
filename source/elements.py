@@ -11,7 +11,7 @@ import transfer_matrices_p
 import transport
 from electric_field import RfField, compute_param_cav
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, STR_PHI_ABS, E_rest_MeV,\
-                      METHOD, STR_PHI_0_ABS, OMEGA_0_BUNCH
+                      METHOD, STR_PHI_0_ABS, OMEGA_0_BUNCH, STR_PHI_ABS_RF
 import helper
 
 
@@ -136,7 +136,6 @@ class _Element():
         if new_status == 'failed':
             self.acc_field.norm = 0.
 
-
 # =============================================================================
 # More specific classes
 # =============================================================================
@@ -194,8 +193,16 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def set_proper_cavity_parameters(self, synch, flag_synch, phi_abs_in,
-                                     fit={'flag': False}):
+    def _import_from_acc_f(self, kwargs):
+        """Import norm and phi_0 from the accelerating field."""
+        kwargs['norm'] = self.acc_field.norm
+        kwargs['phi_0_rel'] = self.acc_field.phi_0['rel']
+        kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
+        return kwargs
+
+    def set_cavity_parameters(self, synch, flag_synch, phi_abs_in,
+                                     W_kin_in,
+                                     flag_ref_linac, fit={'flag': False}):
         """
         Set the properties of the electric field.
 
@@ -203,8 +210,18 @@ class FieldMap(_Element):
         (norm, phi_0) defined in the RfField object. If we are compensating
         a fault, we use the properties given by the optimisation algorithm.
         """
+        if self.info['name'] == 'FM5':
+            print('start set_proper_cavity_parameters')
         acc_f = self.acc_field
-        synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])
+        #  synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])
+        # Equiv of synch._set_omega_rf:
+        new_omega = 2. * OMEGA_0_BUNCH
+        synch.omega0['rf'] = new_omega
+        synch.omega0['ref'] = new_omega
+        synch.frac_omega['rf_to_bunch'] = OMEGA_0_BUNCH / new_omega
+        synch.frac_omega['bunch_to_rf'] = new_omega / OMEGA_0_BUNCH
+        # FIXME: really crado
+        phi_rf_abs = phi_abs_in * acc_f.omega0_rf / OMEGA_0_BUNCH
 
         kwargs = {
             'omega0_rf': acc_f.omega0_rf,
@@ -215,31 +232,60 @@ class FieldMap(_Element):
             'e_spat': acc_f.e_spat,
             }
 
-        # Fit [and cavity under study is in nominal working order]
-        if fit['flag'] and self.info['status'] == 'compensate':
-            kwargs['norm'] = fit['norm']
+        assert synch.info['synchronous'], 'Not sure what should happen here.'
+        # Ref linac: we compute every missing phi_0
+        if synch.info['reference']:
+            acc_f.convert_phi_0(phi_rf_abs, acc_f.absolute_phase_flag)
+            kwargs = self._import_from_acc_f(kwargs)
 
-            if flag_synch:
-                kwargs['phi_s_objective'] = fit['phi']
-                # TODO check: phi_0 rel or abs given by match synch phase?
-                kwargs[STR_PHI_ABS_RF] = self.match_synch_phase(
-                        W_kin_in, **kwargs)
-            else:
-                # fit['phi'] is phi_0_rel or phi_0_abs according to
-                # FLAG_PHI_ABS.
-                # We set it and calculate the abs/rel phi_0 that is missing.
-                phi_rf_abs = phi_abs_in * acc_f.omega0_rf / OMEGA_0_BUNCH
-                kwargs[STR_PHI_0_ABS] = fit['phi']
-                kwargs['phi_0_abs'], kwargs['phi_0_rel'] = acc_f.convert_phi_0(
-                    phi_rf_abs, FLAG_PHI_ABS, kwargs['phi_0_rel'],
-                    kwargs['phi_0_abs']
-                    )
-
-        # Nominal working condition
         else:
-            kwargs['norm'] = acc_f.norm
-            kwargs['phi_0_rel'] = acc_f.phi_0['rel']
-            kwargs['phi_0_abs'] = acc_f.phi_0['abs']
+            # Phases should have been imported from reference linac
+            if self.info['status'] == 'nominal':
+                # We already have the phi0's from the reference linac. We
+                # recompute the relative or absolute one according to
+                # FLAG_PHI_ABS
+                acc_f.convert_phi_0(phi_rf_abs, FLAG_PHI_ABS)
+                kwargs = self._import_from_acc_f(kwargs)
+
+            elif self.info['status'] == 'rephased':
+                # We must keep the relative phase equal to reference linac
+                acc_f.rephase_cavity(phi_rf_abs)
+                print('set_proper_cavity_parameters: cav rephasing not',
+                      'reimplemented yet.')
+
+            elif self.info['status'] == 'fault':
+                # Useless, as we used drift functions when there is a fault
+                print('prout particle.enter_cavity')
+
+            elif self.info['status'] == 'compensate':
+                # The phi0's are set by the fitting algorithm. We compute
+                # the missing (abs or rel) value of phi0 for the sake of
+                # completeness, but it won't be used to calculate the
+                # matrix
+                if fit['flag']:
+                    kwargs['norm'] = fit['norm']
+
+                    if flag_synch:
+                        kwargs['phi_s_objective'] = fit['phi']
+                        # TODO check: phi_0 rel or abs given by match synch
+                        # phase?
+                        kwargs[STR_PHI_ABS_RF] = self.match_synch_phase(
+                                W_kin_in, **kwargs)
+                        print('set_proper_cavity_parameters: convert phi0')
+                    else:
+                        # fit['phi'] is phi_0_rel or phi_0_abs according to
+                        # FLAG_PHI_ABS.
+                        # We set it and calculate the abs/rel phi_0 that is
+                        # missing.
+                        kwargs[STR_PHI_0_ABS] = fit['phi']
+                        kwargs['phi_0_abs'], kwargs['phi_0_rel'] = \
+                                acc_f.convert_phi_0(
+                            phi_rf_abs, FLAG_PHI_ABS, kwargs['phi_0_rel'],
+                            kwargs['phi_0_abs'])
+
+                else:
+                    acc_f.convert_phi_0(phi_rf_abs, FLAG_PHI_ABS)
+                    kwargs = self._import_from_acc_f(kwargs)
 
         return kwargs
 

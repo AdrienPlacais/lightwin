@@ -209,18 +209,23 @@ class Accelerator():
         if METHOD in ['RK', 'leapfrog']:
             for elt in elements:
                 if elt.info['nature'] == 'FIELD_MAP':
-                    if fit:
-                        print(l_norm, l_phi_0, i_fm)
+                    if fit and elt.info['status'] == 'compensate':
                         d_fit = {'flag': True, 'norm': l_norm[i_fm],
                                  'phi': l_phi_0[i_fm]}
                         i_fm += 1
                     else:
                         d_fit = {'flag': False}
 
-                    kwargs = elt.set_proper_cavity_parameters(
-                            self.synch, flag_synch, phi_abs_in, d_fit)
+                    kwargs = elt.set_cavity_parameters(
+                            self.synch, flag_synch, phi_abs_in, W_kin_in,
+                            d_fit)
                     r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
                         elt.compute_transfer_matrix(W_kin_in, **kwargs)
+
+
+                    if elt.info['name'] == 'FM5':
+                        print(elt.info['status'], '\t', kwargs['phi_0_abs'],
+                                kwargs['phi_0_rel'], phi_abs_in)  
 
                 else:
                     r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
