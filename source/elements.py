@@ -97,7 +97,8 @@ class _Element():
         n_steps, d_z = self.tmat['solver_param'].values()
         tmat_fun = self.tmat['func'][METHOD]
 
-        if self.info['nature'] == 'FIELD_MAP':
+        if self.info['nature'] == 'FIELD_MAP' and \
+                self.info['status'] != 'failed':
             r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
                 tmat_fun(d_z, W_kin_in, n_steps, **kwargs)
 
@@ -135,6 +136,8 @@ class _Element():
         self.info['status'] = new_status
         if new_status == 'failed':
             self.acc_field.norm = 0.
+            # FIXME
+            self.tmat['func'][METHOD] = transfer_matrices_p.z_drift_p
 
 # =============================================================================
 # More specific classes
@@ -210,7 +213,7 @@ class FieldMap(_Element):
         (norm, phi_0) defined in the RfField object. If we are compensating
         a fault, we use the properties given by the optimisation algorithm.
         """
-        if self.info['name'] == 'FM5':
+        if self.info['name'] == 'FM9':
             print('start set_proper_cavity_parameters')
         acc_f = self.acc_field
         #  synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])

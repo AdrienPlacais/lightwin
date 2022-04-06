@@ -16,7 +16,6 @@ from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ, STR_PHI_ABS, METHOD, \
 import elements
 
 
-
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
@@ -208,7 +207,8 @@ class Accelerator():
         # Compute transfer matrix and acceleration (gamma) in each element
         if METHOD in ['RK', 'leapfrog']:
             for elt in elements:
-                if elt.info['nature'] == 'FIELD_MAP':
+                if elt.info['nature'] == 'FIELD_MAP' \
+                        and elt.info['status'] != 'failed':
                     if fit and elt.info['status'] == 'compensate':
                         d_fit = {'flag': True, 'norm': l_norm[i_fm],
                                  'phi': l_phi_0[i_fm]}
@@ -222,10 +222,11 @@ class Accelerator():
                     r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
                         elt.compute_transfer_matrix(W_kin_in, **kwargs)
 
-
-                    if elt.info['name'] == 'FM5':
-                        print(elt.info['status'], '\t', kwargs['phi_0_abs'],
-                                kwargs['phi_0_rel'], phi_abs_in)  
+                    if elt.info['name'] == 'FM9':
+                        print('post transf mat:', elt.info['status'], '\n',
+                              'kwargs:', kwargs['phi_0_abs'], kwargs['phi_0_rel'],
+                              '\nacc_f:', elt.acc_field.phi_0,
+                              '\n', phi_abs_in, '\n')
 
                 else:
                     r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
@@ -237,6 +238,7 @@ class Accelerator():
                 l_phi_rel += l_p_tmp
                 l_phi_abs += [phi_abs_in + phi
                               for phi in l_p_tmp]
+                print(elt.info['name'], '\t', len(l_g_tmp), '\t', len(l_gamma))
                 # Prepare W and phi for next iteration
                 W_kin_in = helper.gamma_to_kin(l_gamma[-1], E_rest_MeV)
                 phi_abs_in = l_phi_abs[-1]
@@ -253,8 +255,9 @@ class Accelerator():
                         acc_f = elt.acc_field
                         acc_f.norm = kwargs['norm']
                         acc_f.phi_0['rel'] = kwargs['phi_0_rel']
-                        phi_rf_abs = self.synch.phi['abs_rf']
-                        acc_f.convert_phi_0(phi_rf_abs, abs_to_rel=False)
+                        acc_f.phi_0['abs'] = kwargs['phi_0_abs']
+                        # phi_rf_abs = self.synch.phi['abs_rf']
+                        # acc_f.convert_phi_0(phi_rf_abs, abs_to_rel=False)
 
             idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
 

@@ -28,7 +28,6 @@ class FaultScenario():
 
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
-        self.transfer_phi0_from_ref_to_broken()
 
         self.what_to_fit = {
             # How are selected the compensating cavities?
@@ -72,9 +71,19 @@ class FaultScenario():
         for i, ref_c in enumerate(ref_cs):
             ref_acc_f = ref_c.acc_field
             brok_acc_f = brok_cs[i].acc_field
+            # DEBUG
+            if ref_c.info['name'] == 'FM9':
+                print('pre transfer:\n', ref_acc_f.phi_0, '\n',
+                       brok_acc_f.phi_0)
+
             for str_phi_abs in ['rel', 'abs']:
                 brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
             brok_acc_f.phi_0['nominal_rel'] = ref_acc_f.phi_0['rel']
+
+            # DEBUG
+            if ref_c.info['name'] == 'FM9':
+                print('post transfer:\n', ref_acc_f.phi_0, '\n',
+                      brok_acc_f.phi_0, '\n')
 
     def _distribute_and_create_fault_objects(self, l_idx_fault, l_idx_comp):
         """
