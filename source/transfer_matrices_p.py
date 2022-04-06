@@ -21,7 +21,9 @@ def z_drift_p(delta_s, W_kin_in, n_steps=1, **kwargs):
                                               [0., 1.]]))
     beta_in = np.sqrt(1. - gamma_in**-2)
     delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
-    return r_zz, [gamma_in], [beta_in], [delta_phi], None
+    return r_zz, [gamma_in for i in range(n_steps)], \
+        [beta_in for i in range(n_steps)], \
+        [delta_phi for i in range(n_steps)], None
 
 
 def e_func(k_e, z, e_spat, phi, phi_0):

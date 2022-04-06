@@ -29,7 +29,7 @@ debugs = {
     'fit_complete': False,
     'fit_compact': False,
     'fit_progression': False,
-    'cav': False,
+    'cav': True,
     'verbose': 0,
     }
 
@@ -245,9 +245,9 @@ class Fault():
         if debugs['fit_progression']:
             debug.output_fit_progress(count, sol.fun, final=True)
 
-        #  print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
-              #  sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
-              #  sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
+        print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
+              sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
+              sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
 
@@ -297,12 +297,9 @@ class Fault():
 
                 bounds.append(lim_phase)
             else:
-                # DEBUG
-                phi = dict_phase[FLAG_PHI_ABS](elt)
-                initial_guess.append(phi)
-                bounds.append((phi - 1e-10, phi + 1e-10))
-                #  initial_guess.append(0.)
-                #  bounds.append(limits_phase)
+                #  phi = dict_phase[FLAG_PHI_ABS](elt)
+                initial_guess.append(0.)
+                bounds.append(limits_phase)
             x_scales.append(typical_phase_var)
 
         # Handle norm
@@ -320,10 +317,6 @@ class Fault():
             down = max(limits_norm['relative'][0] * norm,
                        limits_norm['absolute'][0])
             upp = limits_norm_up[elt.info['zone']]
-
-            # DEBUG
-            down = norm - 1e-10
-            upp = norm + 1e-10
 
             initial_guess.append(norm)
             bounds.append((down, upp))
@@ -436,7 +429,7 @@ class Fault():
                 obj_ref += fun_simple(ref_linac, idx1)
                 obj_brok += fun_simple_broken_linac(
                     resume_brok[0], resume_brok[1], resume_brok[2], idx2)
-            # print(obj_ref, obj_brok)
+            print('Energy and phase:\n', obj_ref, '\n', obj_brok, '\n')
             return np.abs(np.array(obj_ref) - np.array(obj_brok))
 
         for idx in l_idx_pos:

@@ -212,6 +212,8 @@ class Accelerator():
                     if fit and elt.info['status'] == 'compensate':
                         d_fit = {'flag': True, 'norm': l_norm[i_fm],
                                  'phi': l_phi_0[i_fm]}
+                        if elt.info['name'] == 'FM5':
+                            print('transm to dic:', d_fit)
                         i_fm += 1
                     else:
                         d_fit = {'flag': False}
@@ -219,14 +221,11 @@ class Accelerator():
                     kwargs = elt.set_cavity_parameters(
                             self.synch, flag_synch, phi_abs_in, W_kin_in,
                             d_fit)
+                    if elt.info['name'] == 'FM5':
+                        print(kwargs['norm'], kwargs['phi_0_rel'],
+                              kwargs['phi_0_abs'])  
                     r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
                         elt.compute_transfer_matrix(W_kin_in, **kwargs)
-
-                    if elt.info['name'] == 'FM9':
-                        print('post transf mat:', elt.info['status'], '\n',
-                              'kwargs:', kwargs['phi_0_abs'], kwargs['phi_0_rel'],
-                              '\nacc_f:', elt.acc_field.phi_0,
-                              '\n', phi_abs_in, '\n')
 
                 else:
                     r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
@@ -238,7 +237,7 @@ class Accelerator():
                 l_phi_rel += l_p_tmp
                 l_phi_abs += [phi_abs_in + phi
                               for phi in l_p_tmp]
-                print(elt.info['name'], '\t', len(l_g_tmp), '\t', len(l_gamma))
+
                 # Prepare W and phi for next iteration
                 W_kin_in = helper.gamma_to_kin(l_gamma[-1], E_rest_MeV)
                 phi_abs_in = l_phi_abs[-1]

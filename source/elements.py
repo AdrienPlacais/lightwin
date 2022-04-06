@@ -204,8 +204,7 @@ class FieldMap(_Element):
         return kwargs
 
     def set_cavity_parameters(self, synch, flag_synch, phi_abs_in,
-                                     W_kin_in,
-                                     flag_ref_linac, fit={'flag': False}):
+                                     W_kin_in, fit={'flag': False}):
         """
         Set the properties of the electric field.
 
@@ -213,8 +212,6 @@ class FieldMap(_Element):
         (norm, phi_0) defined in the RfField object. If we are compensating
         a fault, we use the properties given by the optimisation algorithm.
         """
-        if self.info['name'] == 'FM9':
-            print('start set_proper_cavity_parameters')
         acc_f = self.acc_field
         #  synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])
         # Equiv of synch._set_omega_rf:
@@ -234,6 +231,8 @@ class FieldMap(_Element):
             'phi_s_objective': None,
             'e_spat': acc_f.e_spat,
             }
+        # if self.info['name'] == 'FM5':
+            # print('on y est')
 
         assert synch.info['synchronous'], 'Not sure what should happen here.'
         # Ref linac: we compute every missing phi_0
