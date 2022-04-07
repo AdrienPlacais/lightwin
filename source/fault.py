@@ -14,7 +14,7 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
-from constants import FLAG_PHI_ABS, STR_PHI_ABS
+from constants import FLAG_PHI_ABS, STR_PHI_ABS, FLAG_PHI_S_FIT
 import debug
 import helper
 
@@ -194,8 +194,7 @@ class Fault():
         #  print("Starting fit with parameters:", self.what_to_fit)
 
         # Set the fit variables
-        initial_guesses, bounds, x_scales = \
-            self._set_fit_parameters(what_to_fit['fit_over_phi_s'])
+        initial_guesses, bounds, x_scales = self._set_fit_parameters()
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
 
@@ -253,7 +252,7 @@ class Fault():
 
         return sol
 
-    def _set_fit_parameters(self, flag_synch=False):
+    def _set_fit_parameters(self):
         """
         Set initial conditions and boundaries for the fit.
 
@@ -277,7 +276,7 @@ class Fault():
         typical_norm_var = .1
 
         # Handle phase
-        if flag_synch:
+        if FLAG_PHI_S_FIT:
             limits_phase = (-np.pi/2., 0.)
             rel_limit_phase_up = .4    # +40% over nominal synch phase
         else:
@@ -286,7 +285,7 @@ class Fault():
             limits_phase = (0., 8.*np.pi)
 
         for elt in self.comp['l_cav']:
-            if flag_synch:
+            if FLAG_PHI_S_FIT:
                 equiv_cav = self.ref_lin.elements['list'][elt.idx['element']]
                 equiv_phi_s = equiv_cav.acc_field.cav_params['phi_s_rad']
                 initial_guess.append(equiv_phi_s)
@@ -455,8 +454,8 @@ def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
     # Update transfer matrices
     transf_mat, l_W_kin, l_phi_abs = \
         fault.brok_lin.compute_transfer_matrices(
-            fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'],
-            fit=True, l_norm=l_norm, l_phi_0=l_phi_0,
+            fault.comp['l_recompute'], fit=True, l_norm=l_norm,
+            l_phi_0=l_phi_0,
             transfer_data=False)
     resume = (transf_mat, l_W_kin, l_phi_abs)
 

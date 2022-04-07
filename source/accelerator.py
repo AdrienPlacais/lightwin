@@ -11,7 +11,7 @@ import tracewin_interface as tw
 import helper
 import transport
 import particle
-from constants import FLAG_PHI_ABS, E_MEV, METHOD, E_rest_MeV
+from constants import FLAG_PHI_ABS, E_MEV, METHOD, E_rest_MeV, FLAG_PHI_S_FIT
 import elements
 
 
@@ -178,8 +178,7 @@ class Accelerator():
                   "the .dat file used by TW. Results won't match if there",
                   'are faulty cavities.\n')
 
-    def compute_transfer_matrices(self, elements=None, flag_synch=False,
-                                  transfer_data=True,
+    def compute_transfer_matrices(self, elements=None, transfer_data=True,
                                   fit=False, l_norm=[], l_phi_0=[]):
         """
         Compute the transfer matrices of Accelerator's elements.
@@ -189,10 +188,6 @@ class Accelerator():
         elements : list of Elements, optional
             List of elements from which you want the transfer matrices. Default
             is None.
-        flag_synch : boolean, optional
-            If False, we use phi_0 from the cavities. If True, we explore the
-            phi_0 until the acc_field.phi_s_objective are matched. Default is
-            False.
         """
         if elements is None:
             elements = self.elements['list']
@@ -200,7 +195,6 @@ class Accelerator():
         l_r_zz = []
         l_W_kin = [self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]]
         l_phi_abs = [self.synch.phi['abs_array'][elements[0].idx['s_in']]]
-        i_fm = 0
 
         # Compute transfer matrix and acceleration (gamma) in each element
         if METHOD in ['RK', 'leapfrog']:
@@ -208,15 +202,13 @@ class Accelerator():
                 if elt.info['nature'] == 'FIELD_MAP' \
                         and elt.info['status'] != 'failed':
                     if fit and elt.info['status'] == 'compensate':
-                        d_fit = {'flag': True, 'norm': l_norm[i_fm],
-                                 'phi': l_phi_0[i_fm]}
-                        i_fm += 1
+                        d_fit = {'flag': True, 'norm': l_norm.pop(0),
+                                 'phi': l_phi_0.pop(0)}
                     else:
                         d_fit = {'flag': False}
 
                     kwargs = elt.set_cavity_parameters(
-                            self.synch, flag_synch, l_phi_abs[-1], l_W_kin[-1],
-                            d_fit)
+                            self.synch, l_phi_abs[-1], l_W_kin[-1], d_fit)
                     l_r_zz_elt, l_W_kin_elt, l_phi_rel_elt, _ = \
                         elt.compute_transfer_matrix(l_W_kin[-1], **kwargs)
 
