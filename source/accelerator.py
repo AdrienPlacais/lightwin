@@ -197,13 +197,9 @@ class Accelerator():
         if elements is None:
             elements = self.elements['list']
 
-        # l_r_zz, l_W_kin, l_phi_rel = [], [], []
-        W_kin_in = self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]
-        phi_abs_in = self.synch.phi['abs_array'][elements[0].idx['s_in']]
-
         l_r_zz = []
         l_W_kin = [self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]]
-        l_phi_abs = [phi_abs_in]
+        l_phi_abs = [self.synch.phi['abs_array'][elements[0].idx['s_in']]]
         i_fm = 0
 
         # Compute transfer matrix and acceleration (gamma) in each element

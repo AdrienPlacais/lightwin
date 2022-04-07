@@ -197,6 +197,7 @@ for lin in linacs:
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
+data_ref = tw.output_data_in_tw_fashion(ref_linac)
 data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 
 if FLAG_PROFILE:
