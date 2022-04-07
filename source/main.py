@@ -90,9 +90,9 @@ WHAT_TO_FIT = {
     # =========================================================================
     # 'objective': 'energy',
     # 'objective': 'phase',
-    'objective': 'energy_phase',
-    # 'objective': 'transfer_matrix',
-    # 'objective': 'all',
+    #  'objective': 'energy_phase',
+    # 'objective': 'transf_mat',
+    'objective': 'all',
     # =========================================================================
     #     Where should we evaluate objective?
     # =========================================================================

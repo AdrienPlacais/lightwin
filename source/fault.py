@@ -213,7 +213,7 @@ class Fault():
                 [minimize, initial_guesses, bounds],
             'energy_phase':
                 [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
-            'transfer_matrix':
+            'transf_mat':
                 [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
             'all':
                 [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
@@ -351,100 +351,80 @@ class Fault():
         l_elements : list of _Element
             Fraction of the linac that will be recomputed.
         """
-        # Which lattices' transfer matrices will be required?
+        # Which lattices' data are necessary?
         d_lattices = {
-            'end_mod': lambda l_cav:
-                self.brok_lin.elements['l_lattices']
+            'end_mod': lambda l_cav: self.brok_lin.elements['l_lattices']
                 [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 1],
-            '1_mod_after': lambda l_cav:
-                self.brok_lin.elements['l_lattices']
+            '1_mod_after': lambda l_cav: self.brok_lin.elements['l_lattices']
                 [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
-            'both': lambda l_cav:
-                self.brok_lin.elements['l_lattices']
+            'both': lambda l_cav: self.brok_lin.elements['l_lattices']
                 [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
             }
-
-        # Where do you want to verify that the objective is matched?
-        d_position = {
-            'end_mod': lambda lattices:
-                [lattices[-1][-1].idx['s_out']],
-            '1_mod_after': lambda lattices:
-                [lattices[-1][-1].idx['s_out']],
-            'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
-                                      lattices[-1][-1].idx['s_out']],
-            }
-
-        # What do you want to match?
-        d_objective = {
-            'energy': lambda ref_linac, idx:
-                [ref_linac.synch.energy['kin_array_mev'][idx]],
-            'phase': lambda ref_linac, idx:
-                [ref_linac.synch.phi['abs_array'][idx]],
-            'transfer_matrix': lambda ref_linac, idx:
-                list(ref_linac.transf_mat['cumul'][idx, :, :].flatten()),
-                }
-        d_objective['energy_phase'] = lambda ref_linac, idx: \
-            d_objective['energy'](ref_linac, idx) \
-            + d_objective['phase'](ref_linac, idx)
-        d_objective['all'] = lambda ref_linac, idx: \
-            d_objective['energy_phase'](ref_linac, idx) \
-            + d_objective['transfer_matrix'](ref_linac, idx)
         l_lattices = d_lattices[str_position](self.comp['l_cav'])
         l_elements = [elt
                       for lattice in l_lattices
-                      for elt in lattice
-                      ]
-        l_idx_pos = d_position[str_position](l_lattices)
-        fun_simple = d_objective[str_objective]
+                      for elt in lattice]
 
-        d_objective_broken_linac = {
-            'energy': lambda r_zz, W_kin, phi_abs, idx:
-                [W_kin[idx - 1]],
-            'phase': lambda r_zz, W_kin, phi_abs, idx:
-                [phi_abs[idx - 1]],
-            'transfer_matrix': lambda r_zz, W_kin, phi_abs, idx:
-                [r_zz[idx, 0, 0], r_zz[idx, 0, 1],
-                 r_zz[idx, 1, 0], r_zz[idx, 1, 1]],
+        # Where do you want to verify that the objective is matched?
+        d_pos = {
+            'end_mod': lambda lattices: [lattices[-1][-1].idx['s_out']],
+            '1_mod_after': lambda lattices: [lattices[-1][-1].idx['s_out']],
+            'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
+                                      lattices[-1][-1].idx['s_out']],
             }
-        d_objective_broken_linac['energy_phase'] = \
-            lambda r_zz, W_kin, phi_abs, idx: \
-            d_objective_broken_linac['energy'](r_zz, W_kin, phi_abs, idx) + \
-            d_objective_broken_linac['phase'](r_zz, W_kin, phi_abs, idx)
-        d_objective_broken_linac['all'] = \
-            lambda r_zz, W_kin, phi_abs, idx: \
-            d_objective_broken_linac['energy_phase'](
-                r_zz, W_kin, phi_abs, idx) + \
-            d_objective_broken_linac['transfer_matrix'](
-                r_zz, W_kin, phi_abs, idx)
+        l_idx_ref = d_pos[str_position](l_lattices)
+        shift_s_idx_brok = self.comp['l_all_elts'][0].idx['s_in']
+        l_idx_brok = [idx - shift_s_idx_brok
+                      for idx in l_idx_ref]
 
-        # MT calculated for linac under study does not encompass elements
-        # before the compensating region
-        shift_s_idx_broken_linac = self.comp['l_all_elts'][0].idx['s_in']
-        l_idx_pos_broken_linac = [idx - shift_s_idx_broken_linac
-                                  for idx in l_idx_pos]
-        fun_simple_broken_linac = d_objective_broken_linac[str_objective]
+        # What do you want to match?
+        d_obj_ref = {
+            'energy': lambda ref_lin, idx:
+                [ref_lin.synch.energy['kin_array_mev'][idx]],
+            'phase': lambda ref_lin, idx:
+                [ref_lin.synch.phi['abs_array'][idx]],
+            'transf_mat': lambda ref_lin, idx:
+                list(ref_lin.transf_mat['cumul'][idx].flatten()),
+                }
+        d_obj_ref['energy_phase'] = lambda ref_lin, idx: \
+            d_obj_ref['energy'](ref_lin, idx) \
+            + d_obj_ref['phase'](ref_lin, idx)
+        d_obj_ref['all'] = lambda ref_lin, idx: \
+            d_obj_ref['energy_phase'](ref_lin, idx) \
+            + d_obj_ref['transf_mat'](ref_lin, idx)
 
-        def fun_multi_objective(ref_linac, l_idx, resume_brok, l_idx_brok):
-            obj_ref = fun_simple(ref_linac, l_idx[0])
-            obj_brok = fun_simple_broken_linac(resume_brok[0], resume_brok[1],
-                                               resume_brok[2], l_idx_brok[0])
-            for idx1, idx2 in zip(l_idx[1:], l_idx_brok[1:]):
-                obj_ref += fun_simple(ref_linac, idx1)
-                obj_brok += fun_simple_broken_linac(
-                    resume_brok[0], resume_brok[1], resume_brok[2], idx2)
-            # print('Energy and phase:\n', obj_ref, '\n', obj_brok, '\n')
+        fun_ref = d_obj_ref[str_objective]
+
+        d_obj_brok = {
+            'energy': lambda calc, idx: [calc['W_kin'][idx - 1]],
+            'phase': lambda calc, idx: [calc['phi_abs'][idx - 1]],
+            'transf_mat': lambda calc, idx: list(calc['r_zz'][idx].flatten())
+            }
+        d_obj_brok['energy_phase'] = lambda calc, idx: \
+            d_obj_brok['energy'](calc, idx) + d_obj_brok['phase'](calc, idx)
+        d_obj_brok['all'] = lambda calc, idx: \
+            d_obj_brok['energy_phase'](calc, idx) + \
+            d_obj_brok['transf_mat'](calc, idx)
+
+        fun_brok = d_obj_brok[str_objective]
+
+        def fun_multi_obj(ref_lin, calc, l_idx_ref, l_idx_brok):
+            obj_ref = fun_ref(ref_lin, l_idx_ref[0])
+            obj_brok = fun_brok(calc, l_idx_brok[0])
+
+            for idx1, idx2 in zip(l_idx_ref[1:], l_idx_brok[1:]):
+                obj_ref += fun_ref(ref_lin, idx1)
+                obj_brok += fun_brok(calc, idx2)
             return np.abs(np.array(obj_ref) - np.array(obj_brok))
 
-        for idx in l_idx_pos:
+        for idx in l_idx_ref:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
                   elt.info, elt.idx, ".")
-        return fun_multi_objective, l_idx_pos, l_idx_pos_broken_linac, \
-            l_elements
+        return fun_multi_obj, l_idx_ref, l_idx_brok, l_elements
 
 
-def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
-            what_to_fit):
+def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
     """Fit function."""
     global count
 
@@ -455,12 +435,12 @@ def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
         }
 
     # Update transfer matrices
-    transf_mat, l_W_kin, l_phi_abs = \
-        fault.brok_lin.compute_transfer_matrices(
+    keys = ('r_zz', 'W_kin', 'phi_abs')
+    values = fault.brok_lin.compute_transfer_matrices(
             fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    resume = (transf_mat, l_W_kin, l_phi_abs)
+    calc = dict(zip(keys, values))
+    obj = fun_multi_obj(fault.ref_lin, calc, idx_ref, idx_brok)
 
-    obj = fun_objective(fault.ref_lin, idx_objective, resume, idx_objective2)
     if debugs['fit_progression'] and count % 20 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
     count += 1
