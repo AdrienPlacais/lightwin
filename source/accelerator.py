@@ -179,7 +179,7 @@ class Accelerator():
                   'are faulty cavities.\n')
 
     def compute_transfer_matrices(self, elements=None, transfer_data=True,
-                                  fit=False, l_norm=[], l_phi_0=[]):
+                                  d_fits={'flag': False}):
         """
         Compute the transfer matrices of Accelerator's elements.
 
@@ -201,14 +201,16 @@ class Accelerator():
             for elt in elements:
                 if elt.info['nature'] == 'FIELD_MAP' \
                         and elt.info['status'] != 'failed':
-                    if fit and elt.info['status'] == 'compensate':
-                        d_fit = {'flag': True, 'norm': l_norm.pop(0),
-                                 'phi': l_phi_0.pop(0)}
+                    if d_fits['flag'] and elt.info['status'] == 'compensate':
+                        d_fit_elt = {'flag': True,
+                                     'phi': d_fits['l_phi'].pop(0),
+                                     'norm': d_fits['l_norm'].pop(0),
+                                     }
                     else:
-                        d_fit = {'flag': False}
+                        d_fit_elt = d_fits
 
                     kwargs = elt.set_cavity_parameters(
-                            self.synch, l_phi_abs[-1], l_W_kin[-1], d_fit)
+                            self.synch, l_phi_abs[-1], l_W_kin[-1], d_fit_elt)
                     l_r_zz_elt, l_W_kin_elt, l_phi_rel_elt, _ = \
                         elt.compute_transfer_matrix(l_W_kin[-1], **kwargs)
 

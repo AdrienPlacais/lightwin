@@ -41,7 +41,8 @@ class Fault():
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
         self.fail = {'l_cav': [], 'l_idx': fail_idx}
-        self.comp = {'l_cav': [], 'l_all_elts': None, 'l_recompute': None}
+        self.comp = {'l_cav': [], 'l_all_elts': None, 'l_recompute': None,
+                     'n_cav': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
                      'jac': None}
 
@@ -125,6 +126,7 @@ class Fault():
                       'several faults want the same compensating cavity!')
             cav.update_status('compensate')
             self.comp['l_cav'].append(cav)
+        self.comp['n_cav'] = len(self.comp['l_cav'])
 
         # List of all elements of the compensating zone
         l_lattices = [lattice
@@ -445,22 +447,20 @@ def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
             what_to_fit):
     """Fit function."""
     global count
-    # Unpack
-    l_phi_0 = []
-    l_norm = []
-    for i, cav in enumerate(fault.comp['l_cav']):
-        l_phi_0.append(prop_array[i])
-        l_norm.append(prop_array[i+len(fault.comp['l_cav'])])
+
+    d_fits = {
+        'flag': True,
+        'l_phi': prop_array[:fault.comp['n_cav']].tolist(),
+        'l_norm': prop_array[fault.comp['n_cav']:].tolist()
+        }
+
     # Update transfer matrices
     transf_mat, l_W_kin, l_phi_abs = \
         fault.brok_lin.compute_transfer_matrices(
-            fault.comp['l_recompute'], fit=True, l_norm=l_norm,
-            l_phi_0=l_phi_0,
-            transfer_data=False)
+            fault.comp['l_recompute'], d_fits=d_fits, transfer_data=False)
     resume = (transf_mat, l_W_kin, l_phi_abs)
 
     obj = fun_objective(fault.ref_lin, idx_objective, resume, idx_objective2)
-    #  print(obj)
     if debugs['fit_progression'] and count % 20 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
     count += 1

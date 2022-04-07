@@ -11,7 +11,7 @@ import transfer_matrices_p
 import transport
 from electric_field import RfField, compute_param_cav
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
-                      OMEGA_0_BUNCH, STR_PHI_ABS_RF
+                      OMEGA_0_BUNCH, STR_PHI_ABS_RF, FLAG_PHI_S_FIT
 import helper
 
 
@@ -200,8 +200,8 @@ class FieldMap(_Element):
         kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
         return kwargs
 
-    def set_cavity_parameters(self, synch, flag_synch, phi_abs_in,
-                                     W_kin_in, fit={'flag': False}):
+    def set_cavity_parameters(self, synch, phi_abs_in, W_kin_in,
+                              d_fit={'flag': False}):
         """
         Set the properties of the electric field.
 
@@ -210,14 +210,13 @@ class FieldMap(_Element):
         a fault, we use the properties given by the optimisation algorithm.
         """
         acc_f = self.acc_field
-        #  synch.enter_cavity(acc_f, self.info['status'], self.idx['s_in'])
-        # Equiv of synch._set_omega_rf:
+
+        # FIXME Equiv of synch._set_omega_rf:
         new_omega = 2. * OMEGA_0_BUNCH
         synch.omega0['rf'] = new_omega
         synch.omega0['ref'] = new_omega
         synch.frac_omega['rf_to_bunch'] = OMEGA_0_BUNCH / new_omega
         synch.frac_omega['bunch_to_rf'] = new_omega / OMEGA_0_BUNCH
-        # FIXME: really crado
         phi_rf_abs = phi_abs_in * acc_f.omega0_rf / OMEGA_0_BUNCH
 
         kwargs = {
@@ -228,8 +227,6 @@ class FieldMap(_Element):
             'phi_s_objective': None,
             'e_spat': acc_f.e_spat,
             }
-        # if self.info['name'] == 'FM5':
-            # print('on y est')
 
         assert synch.info['synchronous'], 'Not sure what should happen here.'
         # Ref linac: we compute every missing phi_0
@@ -254,29 +251,29 @@ class FieldMap(_Element):
 
             elif self.info['status'] == 'fault':
                 # Useless, as we used drift functions when there is a fault
-                print('prout particle.enter_cavity')
+                raise IOError('Faulty cavity should not have parameters.')
 
             elif self.info['status'] == 'compensate':
                 # The phi0's are set by the fitting algorithm. We compute
                 # the missing (abs or rel) value of phi0 for the sake of
                 # completeness, but it won't be used to calculate the
                 # matrix
-                if fit['flag']:
-                    kwargs['norm'] = fit['norm']
+                if d_fit['flag']:
+                    kwargs['norm'] = d_fit['norm']
 
-                    if flag_synch:
-                        kwargs['phi_s_objective'] = fit['phi']
+                    if FLAG_PHI_S_FIT:
+                        kwargs['phi_s_objective'] = d_fit['phi']
                         # TODO check: phi_0 rel or abs given by match synch
                         # phase?
-                        kwargs[STR_PHI_ABS_RF] = self.match_synch_phase(
-                                W_kin_in, **kwargs)
+                        kwargs[STR_PHI_ABS_RF] = \
+                            self.match_synch_phase(W_kin_in, **kwargs)
                         print('set_proper_cavity_parameters: convert phi0')
                     else:
                         # fit['phi'] is phi_0_rel or phi_0_abs according to
                         # FLAG_PHI_ABS.
                         # We set it and calculate the abs/rel phi_0 that is
                         # missing.
-                        kwargs[STR_PHI_0_ABS] = fit['phi']
+                        kwargs[STR_PHI_0_ABS] = d_fit['phi']
                         kwargs['phi_0_abs'], kwargs['phi_0_rel'] = \
                                 acc_f.convert_phi_0(
                             phi_rf_abs, FLAG_PHI_ABS, kwargs['phi_0_rel'],

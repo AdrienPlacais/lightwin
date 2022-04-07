@@ -169,12 +169,13 @@ class FaultScenario():
             # Recompute transfer matrix with proper solution
             # The norms and phi_0 from sol.x will be transfered to the electric
             # field objects thanks to transfer_data=True
-            n_comp_cav = len(f.comp['l_cav'])
-            l_phi_0 = sol.x[0:n_comp_cav].tolist()
-            l_norm = sol.x[n_comp_cav:2*n_comp_cav].tolist()
+            d_fits = {
+                'flag': True,
+                'l_phi': sol.x[:f.comp['n_cav']].tolist(),
+                'l_norm': sol.x[f.comp['n_cav']:].tolist(),
+                }
             self.brok_lin.compute_transfer_matrices(
-                f.comp['l_recompute'], fit=True, l_norm=l_norm,
-                l_phi_0=l_phi_0, transfer_data=True)
+                f.comp['l_recompute'], d_fits=d_fits, transfer_data=True)
 
             self.compute_matrix_to_next_fault(f, sol.success)
         # TODO plot interesting data before the second fit to see if it is
