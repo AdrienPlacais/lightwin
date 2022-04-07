@@ -178,7 +178,7 @@ class Accelerator():
                   "the .dat file used by TW. Results won't match if there",
                   'are faulty cavities.\n')
 
-    def compute_transfer_matrices(self, elements=None, transfer_data=True,
+    def compute_transfer_matrices(self, elements=None, flag_transfer_data=True,
                                   d_fits={'flag': False}):
         """
         Compute the transfer matrices of Accelerator's elements.
@@ -196,11 +196,14 @@ class Accelerator():
         l_W_kin = [self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]]
         l_phi_abs = [self.synch.phi['abs_array'][elements[0].idx['s_in']]]
 
+        l_c = ['FM5', 'FM6', 'FM8', 'FM9', 'FM10']
+
         # Compute transfer matrix and acceleration (gamma) in each element
         if METHOD in ['RK', 'leapfrog']:
             for elt in elements:
                 if elt.info['nature'] == 'FIELD_MAP' \
                         and elt.info['status'] != 'failed':
+
                     if d_fits['flag'] and elt.info['status'] == 'compensate':
                         d_fit_elt = {'flag': True,
                                      'phi': d_fits['l_phi'].pop(0),
@@ -227,12 +230,24 @@ class Accelerator():
 
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
 
-                if transfer_data:
+                if flag_transfer_data:
                     self.synch.transfer_data(elt, l_W_kin_elt, l_phi_abs_elt)
                     elt.tmat['matrix'] = l_r_zz_elt
                     self.transf_mat['indiv'][idx] = l_r_zz_elt
                     if kwargs is not None:
                         elt.acc_field.transfer_data(**kwargs)
+
+                if elt.info['name'] in l_c and False:
+                    print(elt.info['name'], elt.info['status'], 'fit:',
+                          d_fits['flag'], 'transfer data:', flag_transfer_data)
+                    print('kwargs:', kwargs['norm'],
+                          kwargs['phi_0_abs'],
+                          kwargs['phi_0_rel'],
+                          )
+                    print('acc_f:', elt.acc_field.norm,
+                          elt.acc_field.phi_0['abs'],
+                          elt.acc_field.phi_0['rel'],
+                          '\n')
 
             idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
 
@@ -248,7 +263,7 @@ class Accelerator():
             for i in range(1, n_r_zz):
                 cumul_r_zz[i, :, :] = flattened_r_zz[i-1, :, :] \
                     @ cumul_r_zz[i-1, :, :]
-            if transfer_data:
+            if flag_transfer_data:
                 self.transf_mat['cumul'][idxs[0]:idxs[1]] = cumul_r_zz
 
         elif METHOD == 'transport':

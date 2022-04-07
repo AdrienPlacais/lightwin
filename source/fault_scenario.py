@@ -175,7 +175,7 @@ class FaultScenario():
                 'l_norm': sol.x[f.comp['n_cav']:].tolist(),
                 }
             self.brok_lin.compute_transfer_matrices(
-                f.comp['l_recompute'], d_fits=d_fits, transfer_data=True)
+                f.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=True)
 
             self.compute_matrix_to_next_fault(f, sol.success)
         # TODO plot interesting data before the second fit to see if it is
@@ -209,4 +209,4 @@ class FaultScenario():
 
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2,
-                                                transfer_data=True)
+                                                flag_transfer_data=True)

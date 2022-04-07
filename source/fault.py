@@ -353,10 +353,10 @@ class Fault():
         """
         # Which lattices' transfer matrices will be required?
         d_lattices = {
-            'end_of_last_comp_cav': lambda l_cav:
+            'end_mod': lambda l_cav:
                 self.brok_lin.elements['l_lattices']
                 [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 1],
-            'one_module_after_last_comp_cav': lambda l_cav:
+            '1_mod_after': lambda l_cav:
                 self.brok_lin.elements['l_lattices']
                 [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
             'both': lambda l_cav:
@@ -366,9 +366,9 @@ class Fault():
 
         # Where do you want to verify that the objective is matched?
         d_position = {
-            'end_of_last_comp_cav': lambda lattices:
+            'end_mod': lambda lattices:
                 [lattices[-1][-1].idx['s_out']],
-            'one_module_after_last_comp_cav': lambda lattices:
+            '1_mod_after': lambda lattices:
                 [lattices[-1][-1].idx['s_out']],
             'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
                                       lattices[-1][-1].idx['s_out']],
@@ -457,7 +457,7 @@ def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
     # Update transfer matrices
     transf_mat, l_W_kin, l_phi_abs = \
         fault.brok_lin.compute_transfer_matrices(
-            fault.comp['l_recompute'], d_fits=d_fits, transfer_data=False)
+            fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
     resume = (transf_mat, l_W_kin, l_phi_abs)
 
     obj = fun_objective(fault.ref_lin, idx_objective, resume, idx_objective2)
