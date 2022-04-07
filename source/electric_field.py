@@ -41,6 +41,7 @@ class RfField():
 
         self.norm = norm
         self.absolute_phase_flag = bool(absolute_phase_flag)
+        self.phi_0 = {'rel': None, 'abs': None, 'nominal_rel': None}
         self.init_phi_0(phi_0, absolute=self.absolute_phase_flag)
 
         self.cav_params = {
@@ -57,6 +58,12 @@ class RfField():
         """Initialize the frequency and the number of cells."""
         self.omega0_rf = 2e6 * np.pi * f_mhz
         self.n_cell = n_cell
+
+    def transfer_data(self, **kwargs):
+        """Assign the norm, phi_0 after a fit."""
+        self.norm = kwargs['norm']
+        self.phi_0['rel'] = kwargs['phi_0_rel']
+        self.phi_0['abs'] = kwargs['phi_0_abs']
 
     def e_func_norm(self, norm, phi_0, pos, phi_rf):
         """
@@ -82,24 +89,7 @@ class RfField():
         return norm * self.e_spat(pos) * np.cos(phi_rf + phi_0)
 
     def e_func(self, pos, phi_rf):
-        """
-        Compute the rf electric field.
-
-        We use the norm and initial phase defined as attribute.
-
-        Parameters
-        ----------
-        pos : float
-            Position of the particle in m.
-        phi_rf : float
-            Phase of the field. phi_rf = omega_RF * t, while in most of the
-            code it is written as phi = omega_bunch * t.
-
-        Return
-        ------
-        e : float
-            Electric field defined by self at position x and time phi.
-        """
+        """Compute the rf electric field."""
         return self.e_func_norm(self.norm, self.phi_0[STR_PHI_ABS], pos,
                                 phi_rf)
 
@@ -131,26 +121,7 @@ class RfField():
         return factor * self.e_spat(pos) * np.sin(phi_rf + phi_0)
 
     def de_dt_func(self, pos, phi_rf, beta):
-        """
-        Compute the time derivative of the rf field.
-
-        We use the norm and initial phase defined as attribute.
-
-        Parameters
-        ----------
-        pos : float
-            Position of the particle in m.
-        phi_rf : float
-            Phase of the field. phi = omega_RF * t, while in most of the
-            code it is written as phi = omega_bunch * t.
-        beta : float
-            Lorentz speed factor of the particle.
-
-        Return
-        ------
-        de/dt : float
-            Time-derivative of the electric field at position x and time phi.
-        """
+        """Compute the time derivative of the rf field."""
         return self.de_dt_func_norm(self.norm, self.phi_0[STR_PHI_ABS],
                                     pos, phi_rf, beta)
 

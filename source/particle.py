@@ -290,7 +290,8 @@ class Particle():
         self._set_omega_rf(OMEGA_0_BUNCH)
         self.phi['abs_rf'] = None
 
-    def transfer_data_to_synch(self, elt, l_W_kin, l_phi_abs):
+    def transfer_data(self, elt, l_W_kin, l_phi_abs):
+        """Assign the energy and phase data to synch after MT calculation."""
         r_idx_elt = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
         idx_elt_prec = r_idx_elt[0] - 1
 

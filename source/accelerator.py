@@ -234,18 +234,11 @@ class Accelerator():
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
 
                 if transfer_data:
-                    self.synch.transfer_data_to_synch(elt, l_W_kin_elt,
-                                                      l_phi_abs_elt)
+                    self.synch.transfer_data(elt, l_W_kin_elt, l_phi_abs_elt)
                     elt.tmat['matrix'] = l_r_zz_elt
                     self.transf_mat['indiv'][idx] = l_r_zz_elt
-
                     if kwargs is not None:
-                        acc_f = elt.acc_field
-                        acc_f.norm = kwargs['norm']
-                        acc_f.phi_0['rel'] = kwargs['phi_0_rel']
-                        acc_f.phi_0['abs'] = kwargs['phi_0_abs']
-                        # phi_rf_abs = self.synch.phi['abs_rf']
-                        # acc_f.convert_phi_0(phi_rf_abs, abs_to_rel=False)
+                        elt.acc_field.transfer_data(**kwargs)
 
             idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
 

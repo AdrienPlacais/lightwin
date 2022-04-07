@@ -431,7 +431,7 @@ class Fault():
                 obj_ref += fun_simple(ref_linac, idx1)
                 obj_brok += fun_simple_broken_linac(
                     resume_brok[0], resume_brok[1], resume_brok[2], idx2)
-            print('Energy and phase:\n', obj_ref, '\n', obj_brok, '\n')
+            # print('Energy and phase:\n', obj_ref, '\n', obj_brok, '\n')
             return np.abs(np.array(obj_ref) - np.array(obj_brok))
 
         for idx in l_idx_pos:
@@ -444,12 +444,7 @@ class Fault():
 
 def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
             what_to_fit):
-    """
-    Fit function.
-
-    TODO: should not modify the acc_f objects, and instead transfer the norm
-    and phi_0.
-    """
+    """Fit function."""
     global count
     # Unpack
     l_phi_0 = []
