@@ -10,8 +10,8 @@ from scipy.optimize import minimize_scalar
 import transfer_matrices_p
 import transport
 from electric_field import RfField, compute_param_cav
-from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, STR_PHI_ABS, E_rest_MeV,\
-                      METHOD, STR_PHI_0_ABS, OMEGA_0_BUNCH, STR_PHI_ABS_RF
+from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
+                      OMEGA_0_BUNCH, STR_PHI_ABS_RF
 import helper
 
 
@@ -99,23 +99,18 @@ class _Element():
 
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
-            if self.info['name'] == 'FM5':
-                print('on y est')
-            r_zz, l_gamma, l_beta, l_phi_rel, itg_field = \
+            r_zz, l_W_kin, l_phi_rel_rf, itg_field = \
                 tmat_fun(d_z, W_kin_in, n_steps, **kwargs)
-
+            l_phi_rel = [phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
+                         for phi_rf in l_phi_rel_rf]
             cav_params = compute_param_cav(itg_field, self.info['status'])
-            l_delta_phi = [
-                phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
-                for phi_rf in l_phi_rel
-                ]
 
         else:
-            r_zz, l_gamma, l_beta, l_delta_phi, _ = tmat_fun(d_z, W_kin_in,
-                                                             n_steps)
+            r_zz, l_W_kin, l_phi_rel, _ = \
+                tmat_fun(d_z, W_kin_in, n_steps)
             cav_params = None
 
-        return r_zz, l_gamma, l_beta, l_delta_phi, cav_params
+        return r_zz, l_W_kin, l_phi_rel, cav_params
 
     def update_status(self, new_status):
         """

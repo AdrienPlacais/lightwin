@@ -397,22 +397,24 @@ class Fault():
         fun_simple = d_objective[str_objective]
 
         d_objective_broken_linac = {
-            'energy': lambda l_gamma, l_phi, transf_mat, idx:
-                [helper.gamma_to_kin(l_gamma[idx - 1])],
-            'phase': lambda l_gamma, l_phi, transf_mat, idx:
-                [l_phi[idx - 1]],
-            'transfer_matrix': lambda l_gamma, l_phi, transf_mat, idx:
-                [transf_mat[idx, 0, 0], transf_mat[idx, 0, 1],
-                 transf_mat[idx, 1, 0], transf_mat[idx, 1, 1]],
+            'energy': lambda r_zz, W_kin, phi_abs, idx:
+                [W_kin[idx - 1]],
+            'phase': lambda r_zz, W_kin, phi_abs, idx:
+                [phi_abs[idx - 1]],
+            'transfer_matrix': lambda r_zz, W_kin, phi_abs, idx:
+                [r_zz[idx, 0, 0], r_zz[idx, 0, 1],
+                 r_zz[idx, 1, 0], r_zz[idx, 1, 1]],
             }
         d_objective_broken_linac['energy_phase'] = \
-            lambda l_gamma, l_phi, transf_mat, idx: \
-            d_objective_broken_linac['energy'](l_gamma, l_phi, transf_mat, idx) + \
-            d_objective_broken_linac['phase'](l_gamma, l_phi, transf_mat, idx)
+            lambda r_zz, W_kin, phi_abs, idx: \
+            d_objective_broken_linac['energy'](r_zz, W_kin, phi_abs, idx) + \
+            d_objective_broken_linac['phase'](r_zz, W_kin, phi_abs, idx)
         d_objective_broken_linac['all'] = \
-            lambda l_gamma, l_phi, transf_mat, idx: \
-            d_objective_broken_linac['energy_phase'](l_gamma, l_phi, transf_mat, idx) + \
-            d_objective_broken_linac['transfer_matrix'](l_gamma, l_phi, transf_mat, idx)
+            lambda r_zz, W_kin, phi_abs, idx: \
+            d_objective_broken_linac['energy_phase'](
+                r_zz, W_kin, phi_abs, idx) + \
+            d_objective_broken_linac['transfer_matrix'](
+                r_zz, W_kin, phi_abs, idx)
 
         # MT calculated for linac under study does not encompass elements
         # before the compensating region
@@ -456,11 +458,12 @@ def wrapper(prop_array, fault, fun_objective, idx_objective, idx_objective2,
         l_phi_0.append(prop_array[i])
         l_norm.append(prop_array[i+len(fault.comp['l_cav'])])
     # Update transfer matrices
-    transf_mat, l_gamma, l_beta, l_phi = \
+    transf_mat, l_W_kin, l_phi_abs = \
         fault.brok_lin.compute_transfer_matrices(
             fault.comp['l_recompute'], what_to_fit['fit_over_phi_s'],
-            fit=True, l_norm=l_norm, l_phi_0=l_phi_0)
-    resume = (l_gamma, l_phi, transf_mat)
+            fit=True, l_norm=l_norm, l_phi_0=l_phi_0,
+            transfer_data=False)
+    resume = (transf_mat, l_W_kin, l_phi_abs)
 
     obj = fun_objective(fault.ref_lin, idx_objective, resume, idx_objective2)
     #  print(obj)

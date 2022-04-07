@@ -290,21 +290,21 @@ class Particle():
         self._set_omega_rf(OMEGA_0_BUNCH)
         self.phi['abs_rf'] = None
 
-    def transfer_data_to_synch(self, elt, l_gamma, l_beta, l_delta_phi):
+    def transfer_data_to_synch(self, elt, l_W_kin, l_phi_abs):
         r_idx_elt = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
         idx_elt_prec = r_idx_elt[0] - 1
 
         ene = self.energy
-        ene['gamma_array'][r_idx_elt] = np.array(l_gamma)
-        ene['kin_array_mev'][r_idx_elt] = \
-            helper.gamma_to_kin(np.array(l_gamma), E_rest_MeV)
-        ene['beta_array'][r_idx_elt] = np.array(l_beta)
+        ene['kin_array_mev'][r_idx_elt] = np.array(l_W_kin)
+        ene['gamma_array'][r_idx_elt] = \
+            helper.kin_to_gamma(ene['kin_array_mev'][r_idx_elt], E_rest_MeV)
+        ene['beta_array'][r_idx_elt] = \
+            helper.gamma_to_beta(ene['gamma_array'][r_idx_elt])
 
         self.z['abs_array'][r_idx_elt] = \
             self.z['abs_array'][idx_elt_prec] + elt.pos_m['rel'][1:]
 
-        self.phi['abs_array'][r_idx_elt] = \
-            self.phi['abs_array'][idx_elt_prec] + np.array(l_delta_phi)
+        self.phi['abs_array'][r_idx_elt] = np.array(l_phi_abs)
 
 
 def convert_phi_0_p(phi_in, phi_rf_abs, abs_to_rel):

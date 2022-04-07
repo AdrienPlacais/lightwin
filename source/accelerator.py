@@ -11,8 +11,7 @@ import tracewin_interface as tw
 import helper
 import transport
 import particle
-from constants import FLAG_PHI_ABS, E_MEV, F_BUNCH_MHZ, STR_PHI_ABS, METHOD, \
-    E_rest_MeV, STR_PHI_ABS_RF
+from constants import FLAG_PHI_ABS, E_MEV, METHOD, E_rest_MeV
 import elements
 
 
@@ -198,9 +197,12 @@ class Accelerator():
         if elements is None:
             elements = self.elements['list']
 
-        l_r_zz, l_gamma, l_beta, l_phi_rel = [], [], [], []
+        # l_r_zz, l_W_kin, l_phi_rel = [], [], []
         W_kin_in = self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]
         phi_abs_in = self.synch.phi['abs_array'][elements[0].idx['s_in']]
+
+        l_r_zz = []
+        l_W_kin = [self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]]
         l_phi_abs = [phi_abs_in]
         i_fm = 0
 
@@ -217,40 +219,31 @@ class Accelerator():
                         d_fit = {'flag': False}
 
                     kwargs = elt.set_cavity_parameters(
-                            self.synch, flag_synch, phi_abs_in, W_kin_in,
+                            self.synch, flag_synch, l_phi_abs[-1], l_W_kin[-1],
                             d_fit)
-                    if elt.info['name'] == 'FM5':
-                        print(kwargs)
-                    r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
-                        elt.compute_transfer_matrix(W_kin_in, **kwargs)
+                    l_r_zz_elt, l_W_kin_elt, l_phi_rel_elt, _ = \
+                        elt.compute_transfer_matrix(l_W_kin[-1], **kwargs)
 
                 else:
-                    r_zz, l_g_tmp, l_b_tmp, l_p_tmp, _ = \
-                        elt.compute_transfer_matrix(W_kin_in)
+                    kwargs = None
+                    l_r_zz_elt, l_W_kin_elt, l_phi_rel_elt, _ = \
+                        elt.compute_transfer_matrix(l_W_kin[-1])
 
-                l_r_zz.append(r_zz)
-                l_gamma += l_g_tmp
-                l_beta += l_b_tmp
-                l_phi_rel += l_p_tmp
-                l_phi_abs += [phi_abs_in + phi
-                              for phi in l_p_tmp]
-
-                # Prepare W and phi for next iteration
-                W_kin_in = helper.gamma_to_kin(l_gamma[-1], E_rest_MeV)
-                phi_abs_in = l_phi_abs[-1]
-                if elt.info['name'] == 'FM5':
-                    print('ene and phase out of fm5:\n', W_kin_in, phi_abs_in,
-                          '\n')  
+                l_r_zz.append(l_r_zz_elt)
+                l_phi_abs_elt = [l_phi_abs[-1] + phi_rel
+                                 for phi_rel in l_phi_rel_elt]
+                l_phi_abs += l_phi_abs_elt
+                l_W_kin += l_W_kin_elt
 
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
 
                 if transfer_data:
-                    self.synch.transfer_data_to_synch(
-                        elt, l_g_tmp, l_b_tmp, l_p_tmp)
-                    elt.tmat['matrix'] = r_zz
-                    self.transf_mat['indiv'][idx] = r_zz
+                    self.synch.transfer_data_to_synch(elt, l_W_kin_elt,
+                                                      l_phi_abs_elt)
+                    elt.tmat['matrix'] = l_r_zz_elt
+                    self.transf_mat['indiv'][idx] = l_r_zz_elt
 
-                    if elt.info['nature'] == 'FIELD_MAP':
+                    if kwargs is not None:
                         acc_f = elt.acc_field
                         acc_f.norm = kwargs['norm']
                         acc_f.phi_0['rel'] = kwargs['phi_0_rel']
@@ -280,7 +273,7 @@ class Accelerator():
                   'transport method.')
             transport.transport_particle(self, self.synch)
 
-        return cumul_r_zz, l_gamma, l_beta, l_phi_abs
+        return cumul_r_zz, l_W_kin, l_phi_abs
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """

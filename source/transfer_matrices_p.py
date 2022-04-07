@@ -21,9 +21,10 @@ def z_drift_p(delta_s, W_kin_in, n_steps=1, **kwargs):
                                               [0., 1.]]))
     beta_in = np.sqrt(1. - gamma_in**-2)
     delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
-    return r_zz, [gamma_in for i in range(n_steps)], \
-        [beta_in for i in range(n_steps)], \
-        [delta_phi for i in range(n_steps)], None
+
+    l_W_kin = [E_rest_MeV * (gamma_in - 1.) for i in range(n_steps)]
+    l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
+    return r_zz, l_W_kin, l_phi_rel, None
 
 
 def e_func(k_e, z, e_spat, phi, phi_0):
@@ -96,7 +97,7 @@ def z_field_map_p(d_z, W_kin_in, n_steps, **kwargs):
         l_phi_rel.append(l_phi_rel[-1] + delta_phi)
 
     # synch,exit_cavity
-    return np.array(r_zz), l_gamma[1:], l_beta[1:], l_phi_rel[1:], itg_field
+    return np.array(r_zz), l_W_kin[1:], l_phi_rel[1:], itg_field
 
 
 def z_thin_lense_p(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
