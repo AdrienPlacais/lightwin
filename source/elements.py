@@ -110,7 +110,10 @@ class _Element():
                 self.tmat['func'](d_z, w_kin_in, n_steps)
             cav_params = None
 
-        return r_zz, l_w_kin, l_phi_rel, cav_params
+        results = {'r_zz': r_zz, 'l_W_kin': l_w_kin, 'l_phi_rel': l_phi_rel,
+                   'cav_params': cav_params}
+
+        return results
 
     def update_status(self, new_status):
         """
@@ -294,10 +297,10 @@ class FieldMap(_Element):
 
         def _wrapper_synch(phi_0_rad):
             kwargs['phi_0_rel'] = phi_0_rad
-            _, _, _, cav_params = self.calc_transf_mat(w_kin_in, **kwargs)
+            results = self.calc_transf_mat(w_kin_in, **kwargs)
             diff = helper.diff_angle(
                 kwargs['phi_s_objective'],
-                cav_params['phi_s_rad'])
+                results['cav_params']['phi_s_rad'])
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)

@@ -20,7 +20,7 @@ def compute_param_cav(integrated_field, status):
         'v_cav_mv': polar_itg[0],
         'phi_s_deg': np.rad2deg(polar_itg[1]),
         'phi_s_rad': polar_itg[1],
-        }
+    }
     return cav_params
 
 
@@ -48,7 +48,7 @@ class RfField():
             'v_cav_mv': np.NaN,
             'phi_s_deg': np.NaN,
             'phi_s_rad': np.NaN,
-            }
+        }
         self.phi_s_rad_objective = None
 
         # Initialized later as it depends on the Section the cavity is in

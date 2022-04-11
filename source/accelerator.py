@@ -140,29 +140,20 @@ class Accelerator():
 
                 kwargs = elt.set_cavity_parameters(
                     self.synch, l_phi_abs[-1], l_w_kin[-1], d_fit_elt)
-                l_r_zz_elt, l_w_kin_elt, l_phi_rel_elt, cav_params = \
-                    elt.calc_transf_mat(l_w_kin[-1], **kwargs)
+                elt_results = elt.calc_transf_mat(l_w_kin[-1], **kwargs)
 
             else:
                 kwargs = None
-                l_r_zz_elt, l_w_kin_elt, l_phi_rel_elt, _ = \
-                    elt.calc_transf_mat(l_w_kin[-1])
+                elt_results = elt.calc_transf_mat(l_w_kin[-1])
 
-            l_r_zz.append(l_r_zz_elt)
+            l_r_zz.append(elt_results['r_zz'])
             l_phi_abs_elt = [l_phi_abs[-1] + phi_rel
-                             for phi_rel in l_phi_rel_elt]
+                             for phi_rel in elt_results['l_phi_rel']]
             l_phi_abs += l_phi_abs_elt
-            l_w_kin += l_w_kin_elt
-
-            idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
+            l_w_kin += elt_results['l_W_kin']
 
             if flag_transfer_data:
-                self.synch.transfer_data(elt, l_w_kin_elt, l_phi_abs_elt)
-                elt.tmat['matrix'] = l_r_zz_elt
-                self.transf_mat['indiv'][idx] = l_r_zz_elt
-                if kwargs is not None:
-                    elt.acc_field.transfer_data(**kwargs)
-                    elt.acc_field.cav_params = cav_params
+                self.transfer_data(elt, elt_results, l_phi_abs_elt, kwargs)
 
         idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
 
@@ -182,6 +173,21 @@ class Accelerator():
             self.transf_mat['cumul'][idxs[0]:idxs[1]] = cumul_r_zz
 
         return cumul_r_zz, l_w_kin, l_phi_abs
+
+    def transfer_data(self, elt, elt_results, l_phi_abs_elt, kwargs):
+        """
+        Transfer calculated energies, phases, MTs, etc to proper Objects.
+
+        This function is to be used when NO optimisation is performed.
+        """
+        idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
+        self.synch.transfer_data(elt, elt_results['l_W_kin'], l_phi_abs_elt)
+        elt.tmat['matrix'] = elt_results['r_zz']
+        self.transf_mat['indiv'][idx] = elt_results['r_zz']
+
+        if kwargs is not None:
+            elt.acc_field.transfer_data(**kwargs)
+            elt.acc_field.cav_params = elt_results['cav_params']
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """

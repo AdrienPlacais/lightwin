@@ -21,7 +21,7 @@ import debug
 dict_phase = {
     True: lambda elt: elt.acc_field.phi_0['abs'],
     False: lambda elt: elt.acc_field.phi_0['rel']
-    }
+}
 
 n_comp_latt_per_fault = 2
 debugs = {
@@ -30,7 +30,7 @@ debugs = {
     'fit_progression': False,
     'cav': True,
     'verbose': 2,
-    }
+}
 
 
 class Fault():
@@ -81,8 +81,8 @@ class Fault():
             idx_lattice = failed_cav.idx['lattice'][0]
             for shift in [-1, +1]:
                 idx = idx_lattice + shift
-                while ((idx in comp_lattices_idx)
-                       and (idx in range(0, len(l_lattices)))):
+                while ((idx in comp_lattices_idx) and
+                       (idx in range(0, len(l_lattices)))):
                     idx += shift
                 # FIXME: dirty hack
                 if abs(idx - idx_lattice) < 3:
@@ -152,7 +152,7 @@ class Fault():
         ffc_idx = min([
             fail_cav.idx['elements']
             for fail_cav in self.fail_list
-            ])
+        ])
         after_ffc = self.brok_lin.elements['list'][ffc_idx:]
 
         cav_to_rephase = [cav
@@ -172,9 +172,9 @@ class Fault():
         for module in modules_with_fail:
             idx = modules.index(module)
             if idx > 0:
-                neighbor_modules.append(modules[idx-1])
+                neighbor_modules.append(modules[idx - 1])
             if idx < len(modules) - 1:
-                neighbor_modules.append(modules[idx+1])
+                neighbor_modules.append(modules[idx + 1])
         # We return all modules that could help to compensation, ie neighbors
         # as well as faulty modules
         return neighbor_modules + modules_with_fail
@@ -216,7 +216,7 @@ class Fault():
                 [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
             'all':
                 [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
-            }  # minimize and least_squares do not take the same bounds format
+        }  # minimize and least_squares do not take the same bounds format
         fitter = dict_fitter[self.what_to_fit['objective']]
 
         global count
@@ -278,11 +278,11 @@ class Fault():
 
         # Handle phase
         if FLAG_PHI_S_FIT:
-            limits_phase = (-np.pi/2., 0.)
+            limits_phase = (-np.pi / 2., 0.)
             rel_limit_phase_up = .4    # +40% over nominal synch phase
         else:
             # limits_phase = (-np.inf, np.inf)
-            limits_phase = (0., 8.*np.pi)
+            limits_phase = (0., 8. * np.pi)
 
         for elt in self.comp['l_cav']:
             if FLAG_PHI_S_FIT:
@@ -304,12 +304,12 @@ class Fault():
         limits_norm = {
             'relative': [0.5, 1.3],    # [50%, 130%] of norm
             'absolute': [1., np.inf]   # ridiculous abs limits
-            }   # TODO: personnalize limits according to zone, technology
+        }   # TODO: personnalize limits according to zone, technology
         limits_norm_up = {
             'low beta': 1.3 * 3.03726,
             'medium beta': 1.3 * 4.45899,
             'high beta': 1.3 * 6.67386,
-            }
+        }
         for elt in self.comp['l_cav']:
             norm = elt.acc_field.norm
             down = max(limits_norm['relative'][0] * norm,
@@ -356,7 +356,7 @@ class Fault():
             [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
             'both': lambda l_cav: self.brok_lin.elements['l_lattices']
             [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
-            }
+        }
         l_lattices = d_lattices[str_position](self.comp['l_cav'])
         l_elements = [elt
                       for lattice in l_lattices
@@ -368,7 +368,7 @@ class Fault():
             '1_mod_after': lambda lattices: [lattices[-1][-1].idx['s_out']],
             'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
                                       lattices[-1][-1].idx['s_out']],
-            }
+        }
         l_idx_ref = d_pos[str_position](l_lattices)
         shift_s_idx_brok = self.comp['l_all_elts'][0].idx['s_in']
         l_idx_brok = [idx - shift_s_idx_brok
@@ -382,7 +382,7 @@ class Fault():
                 [ref_lin.synch.phi['abs_array'][idx]],
             'transf_mat': lambda ref_lin, idx:
                 list(ref_lin.transf_mat['cumul'][idx].flatten()),
-                }
+        }
         d_obj_ref['energy_phase'] = lambda ref_lin, idx: \
             d_obj_ref['energy'](ref_lin, idx) \
             + d_obj_ref['phase'](ref_lin, idx)
@@ -396,7 +396,7 @@ class Fault():
             'energy': lambda calc, idx: [calc['W_kin'][idx]],
             'phase': lambda calc, idx: [calc['phi_abs'][idx]],
             'transf_mat': lambda calc, idx: list(calc['r_zz'][idx].flatten())
-            }
+        }
         d_obj_brok['energy_phase'] = lambda calc, idx: \
             d_obj_brok['energy'](calc, idx) + d_obj_brok['phase'](calc, idx)
         d_obj_brok['all'] = lambda calc, idx: \
@@ -405,25 +405,14 @@ class Fault():
 
         fun_brok = d_obj_brok[str_objective]
 
-        def fun_multi_obj(ref_lin, calc, l_idx_ref, l_idx_brok, flag_out=False):
+        def fun_multi_obj(ref_lin, calc, l_idx_ref, l_idx_brok,
+                          flag_out=False):
             obj_ref = fun_ref(ref_lin, l_idx_ref[0])
             obj_brok = fun_brok(calc, l_idx_brok[0])
 
             for idx1, idx2 in zip(l_idx_ref[1:], l_idx_brok[1:]):
                 obj_ref += fun_ref(ref_lin, idx1)
                 obj_brok += fun_brok(calc, idx2)
-            if flag_out:
-                print('\nobj that we get:')
-                print('\tW_kin:', obj_brok[0])
-                print('\tphi_abs:', obj_brok[1])
-                print('\tMT:', obj_brok[2], obj_brok[3], obj_brok[4],
-                      obj_brok[5])
-                print('\nobjective:')
-                print('\tW_kin:', obj_ref[0])
-                print('\tphi_abs:', obj_ref[1])
-                print('\tMT:', obj_ref[2], obj_ref[3], obj_ref[4],
-                      obj_ref[5])
-                print('===========================================================')
             return np.abs(np.array(obj_ref) - np.array(obj_brok))
 
         for idx in l_idx_ref:
@@ -441,25 +430,14 @@ def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
         'flag': True,
         'l_phi': prop_array[:fault.comp['n_cav']].tolist(),
         'l_norm': prop_array[fault.comp['n_cav']:].tolist()
-        }
-    # if count % 20 == 0:
-    #     print('\n\nStep ', count // 20)
-    #     print('Angles:', [np.rad2deg(phi) for phi in d_fits['l_phi']])
-    #     print('Norms:', d_fits['l_norm'])
+    }
 
     # Update transfer matrices
     keys = ('r_zz', 'W_kin', 'phi_abs')
     values = fault.brok_lin.compute_transfer_matrices(
-            fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
+        fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
     calc = dict(zip(keys, values))
-    # if count % 20 == 0:
-    #     print('\nobj that I should get:')
-    #     print('\tW_kin:', calc['W_kin'][-1])
-    #     print('\tphi_abs:', calc['phi_abs'][-1])
-    #     print('\tMT:', calc['r_zz'][-1, 0, 0], calc['r_zz'][-1, 0, 1],
-    #           calc['r_zz'][-1, 1, 0], calc['r_zz'][-1, 1, 1])
     obj = fun_multi_obj(fault.ref_lin, calc, idx_ref, idx_brok,)
-                        # flag_out=count%20==0)
 
     if debugs['fit_progression'] and count % 20 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
