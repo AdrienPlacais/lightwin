@@ -101,7 +101,7 @@ WHAT_TO_FIT = {
     # 'position': 'both',
     }
 FLAG_FIX = True
-SAVE_FIX = False
+SAVE_FIX = True
 
 FLAG_PROFILE = False
 # =============================================================================

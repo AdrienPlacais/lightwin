@@ -29,7 +29,7 @@ debugs = {
     'fit_compact': False,
     'fit_progression': False,
     'cav': True,
-    'verbose': 0,
+    'verbose': 2,
     }
 
 
@@ -393,8 +393,8 @@ class Fault():
         fun_ref = d_obj_ref[str_objective]
 
         d_obj_brok = {
-            'energy': lambda calc, idx: [calc['W_kin'][idx - 1]],
-            'phase': lambda calc, idx: [calc['phi_abs'][idx - 1]],
+            'energy': lambda calc, idx: [calc['W_kin'][idx]],
+            'phase': lambda calc, idx: [calc['phi_abs'][idx]],
             'transf_mat': lambda calc, idx: list(calc['r_zz'][idx].flatten())
             }
         d_obj_brok['energy_phase'] = lambda calc, idx: \
@@ -405,13 +405,25 @@ class Fault():
 
         fun_brok = d_obj_brok[str_objective]
 
-        def fun_multi_obj(ref_lin, calc, l_idx_ref, l_idx_brok):
+        def fun_multi_obj(ref_lin, calc, l_idx_ref, l_idx_brok, flag_out=False):
             obj_ref = fun_ref(ref_lin, l_idx_ref[0])
             obj_brok = fun_brok(calc, l_idx_brok[0])
 
             for idx1, idx2 in zip(l_idx_ref[1:], l_idx_brok[1:]):
                 obj_ref += fun_ref(ref_lin, idx1)
                 obj_brok += fun_brok(calc, idx2)
+            if flag_out:
+                print('\nobj that we get:')
+                print('\tW_kin:', obj_brok[0])
+                print('\tphi_abs:', obj_brok[1])
+                print('\tMT:', obj_brok[2], obj_brok[3], obj_brok[4],
+                      obj_brok[5])
+                print('\nobjective:')
+                print('\tW_kin:', obj_ref[0])
+                print('\tphi_abs:', obj_ref[1])
+                print('\tMT:', obj_ref[2], obj_ref[3], obj_ref[4],
+                      obj_ref[5])
+                print('===========================================================')
             return np.abs(np.array(obj_ref) - np.array(obj_brok))
 
         for idx in l_idx_ref:
@@ -424,19 +436,30 @@ class Fault():
 def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
     """Fit function."""
     global count
-    # print(prop_array)
 
     d_fits = {
         'flag': True,
         'l_phi': prop_array[:fault.comp['n_cav']].tolist(),
         'l_norm': prop_array[fault.comp['n_cav']:].tolist()
         }
+    # if count % 20 == 0:
+    #     print('\n\nStep ', count // 20)
+    #     print('Angles:', [np.rad2deg(phi) for phi in d_fits['l_phi']])
+    #     print('Norms:', d_fits['l_norm'])
+
     # Update transfer matrices
     keys = ('r_zz', 'W_kin', 'phi_abs')
     values = fault.brok_lin.compute_transfer_matrices(
             fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
     calc = dict(zip(keys, values))
-    obj = fun_multi_obj(fault.ref_lin, calc, idx_ref, idx_brok)
+    # if count % 20 == 0:
+    #     print('\nobj that I should get:')
+    #     print('\tW_kin:', calc['W_kin'][-1])
+    #     print('\tphi_abs:', calc['phi_abs'][-1])
+    #     print('\tMT:', calc['r_zz'][-1, 0, 0], calc['r_zz'][-1, 0, 1],
+    #           calc['r_zz'][-1, 1, 0], calc['r_zz'][-1, 1, 1])
+    obj = fun_multi_obj(fault.ref_lin, calc, idx_ref, idx_brok,)
+                        # flag_out=count%20==0)
 
     if debugs['fit_progression'] and count % 20 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)
