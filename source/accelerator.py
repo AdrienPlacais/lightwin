@@ -29,25 +29,23 @@ class Accelerator():
         self.name = name
 
         # Load dat file, clean it up (remove comments, etc), load elements
-        dat_filecontent, list_of_elements = tw.load_dat_file(dat_filepath)
-        list_of_elements, sections, lattices, freqs =\
-            self._sections_lattices(list_of_elements)
+        dat_filecontent, l_elts = tw.load_dat_file(dat_filepath)
+        l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
 
         self.elements = {
-            'n': len(list_of_elements),
-            'list': list_of_elements,
-            'l_lattices': lattices,
-            'l_sections': sections,
+            'n': len(l_elts),
+            'list': l_elts,
+            'l_lattices': l_latts,
+            'l_sections': l_secs,
             }
 
         tw.load_filemaps(dat_filepath, dat_filecontent,
                          self.elements['l_sections'], freqs)
         tw.give_name(self.elements['list'])
 
-        self.files = {
-            'project_folder': os.path.dirname(dat_filepath),
-            'dat_filecontent': dat_filecontent,
-            }
+        self.files = {'project_folder': os.path.dirname(dat_filepath),
+                      'dat_filecontent': dat_filecontent,
+                      }
 
         # Set indexes and absolute position of the different elements
         last_idx = self._set_indexes_and_abs_positions()
@@ -67,81 +65,6 @@ class Accelerator():
 
         # Check that LW and TW computes the phases in the same way
         self._check_consistency_phases()
-
-    def _sections_lattices(self, list_of_elements):
-        """Gather elements by section and lattice."""
-        list_of_elements, dict_struct = \
-            self._prepare_sections_and_lattices(list_of_elements)
-
-        lattices = []
-        sections = []
-        j = 0
-        for i in range(dict_struct['n_sections']):
-            lattices = []
-            n_lattice = dict_struct['lattices'][i].n_lattice
-            while j < dict_struct['indices'][i]:
-                lattices.append(list_of_elements[j:j+n_lattice])
-                j += n_lattice
-            sections.append(lattices)
-
-        zones = ['low beta', 'medium beta', 'high beta']
-        shift_lattice = 0
-        for i, sec in enumerate(sections):
-            for j, lattice in enumerate(sec):
-                for k, elt in enumerate(lattice):
-                    elt.info['zone'] = zones[i]
-                    elt.idx['section'] = [(i, j, k)]
-                    elt.idx['lattice'] = (j + shift_lattice, k)
-                    elt.idx['element'] = list_of_elements.index(elt)
-            shift_lattice += j + 1
-        lattices = []
-        for sec in sections:
-            lattices += sec
-        return list_of_elements, sections, lattices, dict_struct['frequencies']
-
-    def _prepare_sections_and_lattices(self, list_of_elements):
-        """
-        Save info on the accelerator structure.
-
-        In particular: in every section, the number of elements per lattice,
-        the rf frequency of cavities, the position of the delimitations between
-        two sections.
-        """
-        lattices = [
-            lattice
-            for lattice in list_of_elements
-            if type(lattice) is elements.Lattice
-            ]
-        frequencies = [
-            frequency
-            for frequency in list_of_elements
-            if type(frequency) is elements.Freq
-            ]
-        n_sections = len(lattices)
-        assert n_sections == len(frequencies)
-
-        idx_of_section_changes = []
-        n_of_sections_before_this_one = 0
-        for i in range(n_sections):
-            latt, freq = lattices[i], frequencies[i]
-
-            idx_latt = list_of_elements.index(latt)
-            idx_freq = list_of_elements.index(freq)
-            assert idx_freq - idx_latt == 1
-
-            idx_of_section_changes.append(idx_latt
-                                          - 2 * n_of_sections_before_this_one)
-            n_of_sections_before_this_one += 1
-
-            list_of_elements.pop(idx_freq)
-            list_of_elements.pop(idx_latt)
-        idx_of_section_changes.pop(0)
-        idx_of_section_changes.append(len(list_of_elements))
-
-        return list_of_elements, {'lattices': lattices,
-                                  'frequencies': frequencies,
-                                  'indices': idx_of_section_changes,
-                                  'n_sections': n_sections}
 
     def _set_indexes_and_abs_positions(self):
         """Init solvers, set indexes and absolute positions of elements."""
@@ -192,7 +115,7 @@ class Accelerator():
             elements = self.elements['list']
 
         l_r_zz = []
-        l_W_kin = [self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]]
+        l_w_kin = [self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]]
         l_phi_abs = [self.synch.phi['abs_array'][elements[0].idx['s_in']]]
 
         # Compute transfer matrix and acceleration in each element
@@ -210,25 +133,25 @@ class Accelerator():
                         d_fit_elt = d_fits
 
                     kwargs = elt.set_cavity_parameters(
-                            self.synch, l_phi_abs[-1], l_W_kin[-1], d_fit_elt)
-                    l_r_zz_elt, l_W_kin_elt, l_phi_rel_elt, cav_params = \
-                        elt.compute_transfer_matrix(l_W_kin[-1], **kwargs)
+                            self.synch, l_phi_abs[-1], l_w_kin[-1], d_fit_elt)
+                    l_r_zz_elt, l_w_kin_elt, l_phi_rel_elt, cav_params = \
+                        elt.calc_transf_mat(l_w_kin[-1], **kwargs)
 
                 else:
                     kwargs = None
-                    l_r_zz_elt, l_W_kin_elt, l_phi_rel_elt, _ = \
-                        elt.compute_transfer_matrix(l_W_kin[-1])
+                    l_r_zz_elt, l_w_kin_elt, l_phi_rel_elt, _ = \
+                        elt.calc_transf_mat(l_w_kin[-1])
 
                 l_r_zz.append(l_r_zz_elt)
                 l_phi_abs_elt = [l_phi_abs[-1] + phi_rel
                                  for phi_rel in l_phi_rel_elt]
                 l_phi_abs += l_phi_abs_elt
-                l_W_kin += l_W_kin_elt
+                l_w_kin += l_w_kin_elt
 
                 idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
 
                 if flag_transfer_data:
-                    self.synch.transfer_data(elt, l_W_kin_elt, l_phi_abs_elt)
+                    self.synch.transfer_data(elt, l_w_kin_elt, l_phi_abs_elt)
                     elt.tmat['matrix'] = l_r_zz_elt
                     self.transf_mat['indiv'][idx] = l_r_zz_elt
                     if kwargs is not None:
@@ -257,7 +180,7 @@ class Accelerator():
                   'transport method.')
             transport.transport_particle(self, self.synch)
 
-        return cumul_r_zz, l_W_kin, l_phi_abs
+        return cumul_r_zz, l_w_kin, l_phi_abs
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """
@@ -366,3 +289,77 @@ class Accelerator():
             print('Synch index', idx, 'is in:', elt.info)
             print('Indexes of this elt:', elt.idx, '\n\n')
         return elt
+
+
+def _prepare_sections_and_lattices(l_elts):
+    """
+    Save info on the accelerator structure.
+
+    In particular: in every section, the number of elements per lattice,
+    the rf frequency of cavities, the position of the delimitations between
+    two sections.
+    """
+    lattices = [
+        lattice
+        for lattice in l_elts
+        if isinstance(lattice, elements.Lattice)
+        ]
+    frequencies = [
+        frequency
+        for frequency in l_elts
+        if isinstance(frequency, elements.Freq)
+        ]
+    n_sections = len(lattices)
+    assert n_sections == len(frequencies)
+
+    idx_of_section_changes = []
+    n_secs_before_current = 0
+    for i in range(n_sections):
+        latt, freq = lattices[i], frequencies[i]
+
+        idx_latt = l_elts.index(latt)
+        idx_freq = l_elts.index(freq)
+        assert idx_freq - idx_latt == 1
+
+        idx_of_section_changes.append(idx_latt - 2 * n_secs_before_current)
+        n_secs_before_current += 1
+
+        l_elts.pop(idx_freq)
+        l_elts.pop(idx_latt)
+    idx_of_section_changes.pop(0)
+    idx_of_section_changes.append(len(l_elts))
+
+    return l_elts, {'lattices': lattices, 'frequencies': frequencies,
+                    'indices': idx_of_section_changes,
+                    'n_sections': n_sections}
+
+
+def _sections_lattices(l_elts):
+    """Gather elements by section and lattice."""
+    l_elts, dict_struct = _prepare_sections_and_lattices(l_elts)
+
+    lattices = []
+    sections = []
+    j = 0
+    for i in range(dict_struct['n_sections']):
+        lattices = []
+        n_lattice = dict_struct['lattices'][i].n_lattice
+        while j < dict_struct['indices'][i]:
+            lattices.append(l_elts[j:j+n_lattice])
+            j += n_lattice
+        sections.append(lattices)
+
+    zones = ['low beta', 'medium beta', 'high beta']
+    shift_lattice = 0
+    for i, sec in enumerate(sections):
+        for j, lattice in enumerate(sec):
+            for k, elt in enumerate(lattice):
+                elt.info['zone'] = zones[i]
+                elt.idx['section'] = [(i, j, k)]
+                elt.idx['lattice'] = (j + shift_lattice, k)
+                elt.idx['element'] = l_elts.index(elt)
+        shift_lattice += j + 1
+    lattices = []
+    for sec in sections:
+        lattices += sec
+    return l_elts, sections, lattices, dict_struct['frequencies']

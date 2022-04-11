@@ -7,12 +7,24 @@ Created on Wed Sep 22 10:26:19 2021.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-import transfer_matrices_p
+import transfer_matrices_p as tm
 import transport
 from electric_field import RfField, compute_param_cav
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
                       OMEGA_0_BUNCH, FLAG_PHI_S_FIT
 import helper
+
+
+d_fun_tm = {
+    'non_acc': {'RK': tm.z_drift,
+                'leapfrog': tm.z_drift,
+                'transport': transport.transport_beam,
+                },
+    'accelerating': {'RK': tm.z_field_map,
+                     'leapfrog': tm.z_field_map,
+                     'transport': transport.transport_beam,
+                     }
+    }
 
 
 # =============================================================================
@@ -45,17 +57,13 @@ class _Element():
         # accelerating field.
         self.acc_field = RfField()
 
-        self.pos_m = {
-            'abs': None,
-            'rel': None,
-            }
-        self.idx = {
-            's_in': None,
-            's_out': None,
-            'element': None,
-            'lattice': None,
-            'section': None,
-            }
+        self.pos_m = {'abs': None, 'rel': None}
+        self.idx = {'s_in': None,
+                    's_out': None,
+                    'element': None,
+                    'lattice': None,
+                    'section': None,
+                    }
         # tmat stands for 'transfer matrix'
         self.tmat = {
             'matrix': None,
@@ -65,49 +73,41 @@ class _Element():
 
     def init_solvers(self):
         """Initialize solvers as well as general properties."""
-        self.functions_transf_mat = {
-            'non_acc': {'RK': transfer_matrices_c.z_drift_p,
-                        'leapfrog': transfer_matrices_c.z_drift_p,
-                        'transport': transport.transport_beam,
-                        },
-            'accelerating': {
-                'RK': transfer_matrices_c.z_field_map_p,
-                'leapfrog': transfer_matrices_c.z_field_map_p,
-                'transport': transport.transport_beam,
-                }}
-
-        key = 'non_acc'
-        n_steps = 1
+        assert METHOD == 'RK', 'leapfrog to reimplement. transport to update.'
         if self.info['nature'] == 'FIELD_MAP':
-            n_steps = N_STEPS_PER_CELL * self.acc_field.n_cell
-            if self.info['status'] != 'failed':
+            if self.info['status'] == 'failed':
+                key = 'non_acc'
+            else:
                 key = 'accelerating'
+            n_steps = N_STEPS_PER_CELL * self.acc_field.n_cell
+
+        else:
+            key = 'non_acc'
+            n_steps = 1
 
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
+
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
+        self.tmat['func'] = d_fun_tm[key][METHOD]
+        self.tmat['solver_param'] = {'n_steps': n_steps,
+                                     'd_z': self.length_m / n_steps,
+                                     }
 
-        self.tmat['func'] = self.functions_transf_mat[key]
-        self.tmat['solver_param'] = {
-            'n_steps': n_steps,
-            'd_z': self.length_m / n_steps,
-            }
-
-    def compute_transfer_matrix(self, W_kin_in, **kwargs):
+    def calc_transf_mat(self, W_kin_in, **kwargs):
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
-        tmat_fun = self.tmat['func'][METHOD]
 
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
             r_zz, l_W_kin, l_phi_rel_rf, itg_field = \
-                tmat_fun(d_z, W_kin_in, n_steps, **kwargs)
+                self.tmat['func'](d_z, W_kin_in, n_steps, **kwargs)
             l_phi_rel = [phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
                          for phi_rf in l_phi_rel_rf]
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
             r_zz, l_W_kin, l_phi_rel, _ = \
-                tmat_fun(d_z, W_kin_in, n_steps)
+                self.tmat['func'](d_z, W_kin_in, n_steps)
             cav_params = None
 
         return r_zz, l_W_kin, l_phi_rel, cav_params
@@ -133,8 +133,7 @@ class _Element():
         self.info['status'] = new_status
         if new_status == 'failed':
             self.acc_field.norm = 0.
-            # FIXME
-            self.tmat['func'][METHOD] = transfer_matrices_c.z_drift_p
+            self.init_solvers()
 
 
 # =============================================================================
@@ -202,7 +201,7 @@ class FieldMap(_Element):
         return kwargs
 
     def set_cavity_parameters(self, synch, phi_abs_in, W_kin_in,
-                              d_fit={'flag': False}):
+                              d_fit=None):
         """
         Set the properties of the electric field.
 
@@ -210,6 +209,8 @@ class FieldMap(_Element):
         (norm, phi_0) defined in the RfField object. If we are compensating
         a fault, we use the properties given by the optimisation algorithm.
         """
+        if d_fit is None:
+            d_fit = {'flag': False}
         acc_f = self.acc_field
 
         # FIXME Equiv of synch._set_omega_rf:
@@ -294,8 +295,7 @@ class FieldMap(_Element):
 
         def _wrapper_synch(phi_0_rad):
             kwargs['phi_0_rel'] = phi_0_rad
-            l_gamma, l_beta, l_delta_phi, cav_params =\
-                self.compute_transfer_matrix(W_kin_in, **kwargs)
+            _, _, _, cav_params = self.calc_transf_mat(W_kin_in, **kwargs)
             diff = helper.diff_angle(
                 kwargs['phi_s_objective'],
                 cav_params['phi_s_rad'])

@@ -15,7 +15,7 @@ from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def z_drift_p(delta_s, W_kin_in, n_steps=1, **kwargs):
+def z_drift(delta_s, W_kin_in, n_steps=1, **kwargs):
     gamma_in = 1. + W_kin_in * inv_E_rest_MeV
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in**-2],
                                               [0., 1.]]))
@@ -45,7 +45,7 @@ def rk4(u, du_dx, x, dx):
     return delta_u[0], delta_u[1]
 
 
-def z_field_map_p(d_z, W_kin_in, n_steps, **kwargs):
+def z_field_map(d_z, W_kin_in, n_steps, **kwargs):
     #  print('TODO elsewhere for enter_cavity:')
     #  print('\trephase cavity')
     omega0_rf = kwargs['omega0_rf']
@@ -86,7 +86,7 @@ def z_field_map_p(d_z, W_kin_in, n_steps, **kwargs):
         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
         beta_middle = np.sqrt(1. - gamma_middle**-2)
 
-        r_zz.append(z_thin_lense_p(d_z, half_d_z, l_W_kin[-2], gamma_middle,
+        r_zz.append(z_thin_lense(d_z, half_d_z, l_W_kin[-2], gamma_middle,
                                    l_W_kin[-1], beta_middle, z_rel,
                                    l_phi_rel[-1], omega0_rf, k_e, phi_0_rel,
                                    e_spat))
@@ -100,11 +100,11 @@ def z_field_map_p(d_z, W_kin_in, n_steps, **kwargs):
     return np.array(r_zz), l_W_kin[1:], l_phi_rel[1:], itg_field
 
 
-def z_thin_lense_p(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
+def z_thin_lense(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
                    beta_middle, z_rel, phi_rel, omega0_rf, norm, phi_0,
                    e_spat):
     # In
-    r_zz = z_drift_p(half_dz, W_kin_in)[0][0]
+    r_zz = z_drift(half_dz, W_kin_in)[0][0]
 
     # Middle
     z_k = z_rel + half_dz
@@ -124,7 +124,7 @@ def z_thin_lense_p(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
     r_zz = np.array(([k_3, 0.], [k_1, k_2])) @ r_zz
 
     # Out
-    tmp = z_drift_p(half_dz, W_kin_out)[0][0]
+    tmp = z_drift(half_dz, W_kin_out)[0][0]
     r_zz = tmp @ r_zz
 
     return r_zz
