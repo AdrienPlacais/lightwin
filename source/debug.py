@@ -6,9 +6,9 @@ Created on Tue Oct 12 13:50:44 2021
 @author: placais
 """
 from os import listdir
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
-import matplotlib.pyplot as plt
 import pandas as pd
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler

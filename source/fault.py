@@ -14,9 +14,8 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
-from constants import FLAG_PHI_ABS, STR_PHI_ABS, FLAG_PHI_S_FIT
+from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT
 import debug
-import helper
 
 
 dict_phase = {
@@ -283,7 +282,6 @@ class Fault():
             rel_limit_phase_up = .4    # +40% over nominal synch phase
         else:
             # limits_phase = (-np.inf, np.inf)
-            # These bounds seems more logical but disturb the optimisation
             limits_phase = (0., 8.*np.pi)
 
         for elt in self.comp['l_cav']:
@@ -298,7 +296,6 @@ class Fault():
 
                 bounds.append(lim_phase)
             else:
-                #  phi = dict_phase[FLAG_PHI_ABS](elt)
                 initial_guess.append(0.)
                 bounds.append(limits_phase)
             x_scales.append(typical_phase_var)
@@ -325,7 +322,7 @@ class Fault():
 
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)
-        #  print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
+        print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
         return initial_guess, bounds, x_scales
 
     def _select_objective(self, str_position, str_objective):
@@ -354,11 +351,11 @@ class Fault():
         # Which lattices' data are necessary?
         d_lattices = {
             'end_mod': lambda l_cav: self.brok_lin.elements['l_lattices']
-                [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 1],
+            [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 1],
             '1_mod_after': lambda l_cav: self.brok_lin.elements['l_lattices']
-                [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
+            [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
             'both': lambda l_cav: self.brok_lin.elements['l_lattices']
-                [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
+            [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
             }
         l_lattices = d_lattices[str_position](self.comp['l_cav'])
         l_elements = [elt
@@ -427,13 +424,13 @@ class Fault():
 def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
     """Fit function."""
     global count
+    # print(prop_array)
 
     d_fits = {
         'flag': True,
         'l_phi': prop_array[:fault.comp['n_cav']].tolist(),
         'l_norm': prop_array[fault.comp['n_cav']:].tolist()
         }
-
     # Update transfer matrices
     keys = ('r_zz', 'W_kin', 'phi_abs')
     values = fault.brok_lin.compute_transfer_matrices(

@@ -136,6 +136,7 @@ class _Element():
             # FIXME
             self.tmat['func'][METHOD] = transfer_matrices_p.z_drift_p
 
+
 # =============================================================================
 # More specific classes
 # =============================================================================
@@ -263,19 +264,21 @@ class FieldMap(_Element):
 
                     if FLAG_PHI_S_FIT:
                         kwargs['phi_s_objective'] = d_fit['phi']
-                        # TODO check: phi_0 rel or abs given by match synch
-                        # phase?
-                        kwargs[STR_PHI_ABS_RF] = \
+                        kwargs['phi_0_rel'] = \
                             self.match_synch_phase(W_kin_in, **kwargs)
-                        print('set_proper_cavity_parameters: convert phi0')
+
+                        kwargs['phi_0_rel'], kwargs['phi_0_abs'] = \
+                            acc_f.convert_phi_0(
+                            phi_rf_abs, False, kwargs['phi_0_rel'],
+                            kwargs['phi_0_abs'])
                     else:
                         # fit['phi'] is phi_0_rel or phi_0_abs according to
                         # FLAG_PHI_ABS.
                         # We set it and calculate the abs/rel phi_0 that is
                         # missing.
                         kwargs[STR_PHI_0_ABS] = d_fit['phi']
-                        kwargs['phi_0_abs'], kwargs['phi_0_rel'] = \
-                                acc_f.convert_phi_0(
+                        kwargs['phi_0_rel'], kwargs['phi_0_abs'] = \
+                            acc_f.convert_phi_0(
                             phi_rf_abs, FLAG_PHI_ABS, kwargs['phi_0_rel'],
                             kwargs['phi_0_abs'])
 
@@ -286,7 +289,7 @@ class FieldMap(_Element):
         return kwargs
 
     def match_synch_phase(self, W_kin_in, **kwargs):
-        """Sweeps phi_0 until the cavity synch phase matches phi_s_rad."""
+        """Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad."""
         bounds = (0, 2.*np.pi)
 
         def _wrapper_synch(phi_0_rad):

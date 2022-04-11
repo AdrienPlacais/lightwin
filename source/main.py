@@ -19,14 +19,14 @@ import time
 from datetime import timedelta
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+import cProfile
+import pstats
 import accelerator as acc
 import debug
 import helper
 import emittance
 import tracewin_interface as tw
 import fault_scenario as mod_fs
-import cProfile
-import pstats
 
 
 # =============================================================================

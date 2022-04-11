@@ -196,9 +196,7 @@ class Accelerator():
         l_W_kin = [self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]]
         l_phi_abs = [self.synch.phi['abs_array'][elements[0].idx['s_in']]]
 
-        l_c = ['FM5', 'FM6', 'FM8', 'FM9', 'FM10']
-
-        # Compute transfer matrix and acceleration (gamma) in each element
+        # Compute transfer matrix and acceleration in each element
         if METHOD in ['RK', 'leapfrog']:
             for elt in elements:
                 if elt.info['nature'] == 'FIELD_MAP' \
@@ -214,7 +212,7 @@ class Accelerator():
 
                     kwargs = elt.set_cavity_parameters(
                             self.synch, l_phi_abs[-1], l_W_kin[-1], d_fit_elt)
-                    l_r_zz_elt, l_W_kin_elt, l_phi_rel_elt, _ = \
+                    l_r_zz_elt, l_W_kin_elt, l_phi_rel_elt, cav_params = \
                         elt.compute_transfer_matrix(l_W_kin[-1], **kwargs)
 
                 else:
@@ -236,18 +234,7 @@ class Accelerator():
                     self.transf_mat['indiv'][idx] = l_r_zz_elt
                     if kwargs is not None:
                         elt.acc_field.transfer_data(**kwargs)
-
-                if elt.info['name'] in l_c and False:
-                    print(elt.info['name'], elt.info['status'], 'fit:',
-                          d_fits['flag'], 'transfer data:', flag_transfer_data)
-                    print('kwargs:', kwargs['norm'],
-                          kwargs['phi_0_abs'],
-                          kwargs['phi_0_rel'],
-                          )
-                    print('acc_f:', elt.acc_field.norm,
-                          elt.acc_field.phi_0['abs'],
-                          elt.acc_field.phi_0['rel'],
-                          '\n')
+                        elt.acc_field.cav_params = cav_params
 
             idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
 

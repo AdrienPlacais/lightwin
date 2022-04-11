@@ -168,7 +168,7 @@ class RfField():
                 phi_0_rel = np.mod(phi_0_abs + phi_rf_abs, 2. * np.pi)
             else:
                 phi_0_abs = np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
-            return phi_0_abs, phi_0_rel
+            return phi_0_rel, phi_0_abs
 
     def rephase_cavity(self, phi_rf_abs):
         """
