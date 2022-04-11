@@ -11,7 +11,7 @@ import transfer_matrices_p
 import transport
 from electric_field import RfField, compute_param_cav
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
-                      OMEGA_0_BUNCH, STR_PHI_ABS_RF, FLAG_PHI_S_FIT
+                      OMEGA_0_BUNCH, FLAG_PHI_S_FIT
 import helper
 
 
@@ -66,13 +66,13 @@ class _Element():
     def init_solvers(self):
         """Initialize solvers as well as general properties."""
         self.functions_transf_mat = {
-            'non_acc': {'RK': transfer_matrices_p.z_drift_p,
-                        'leapfrog': transfer_matrices_p.z_drift_p,
+            'non_acc': {'RK': transfer_matrices_c.z_drift_p,
+                        'leapfrog': transfer_matrices_c.z_drift_p,
                         'transport': transport.transport_beam,
                         },
             'accelerating': {
-                'RK': transfer_matrices_p.z_field_map_p,
-                'leapfrog': transfer_matrices_p.z_field_map_p,
+                'RK': transfer_matrices_c.z_field_map_p,
+                'leapfrog': transfer_matrices_c.z_field_map_p,
                 'transport': transport.transport_beam,
                 }}
 
@@ -134,7 +134,7 @@ class _Element():
         if new_status == 'failed':
             self.acc_field.norm = 0.
             # FIXME
-            self.tmat['func'][METHOD] = transfer_matrices_p.z_drift_p
+            self.tmat['func'][METHOD] = transfer_matrices_c.z_drift_p
 
 
 # =============================================================================

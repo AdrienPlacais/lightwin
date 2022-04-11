@@ -1,10 +1,12 @@
 archives/
 source/__pycache__/*
+source/build/
 source/untitled*.py
 *.ini_******
 *.dat_******
 *.cal
 *.old.ini
+*.so
 *.swp
 data/*.txt
 !data/full_energy_and_MT.txt

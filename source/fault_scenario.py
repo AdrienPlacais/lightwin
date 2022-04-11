@@ -13,7 +13,7 @@ brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import itertools
-from constants import FLAG_PHI_ABS, STR_PHI_ABS
+from constants import FLAG_PHI_ABS
 import debug
 import fault as mod_f
 

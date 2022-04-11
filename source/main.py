@@ -6,13 +6,13 @@ Created on Tue Sep 21 11:32:12 2021.
 @author: placais
 
 General TODO list:
-    Easy way to plot TW's solutions.
-    Better way to compare various LW solutions?
-    Reprofile to check where could be speed up.
-        Externalize, declassify computation of transfer matrices?
+    - Easy way to plot TW's solutions.
+    - Better way to compare various LW solutions?
+    - Reprofile to check where could be speed up.
         Interpolation function could be replaced by pre-interpolated array?
-    Recheck non synch particles.
-    Method should be in constants.
+    - Recheck non synch particles.
+    - Method should be in constants.
+    - Replace flag phi_abs/phi_rel by a three positions switch: synch/abs/rel?
 """
 import os
 import time
@@ -61,8 +61,8 @@ if FILEPATH == "":
 # failed_cav = [25]
 manual_list = [7, 15, 17, 25, 27]
 failed_cav = [
-    35,
-    # 155, 157,
+    # 35,
+    155, 157,
     # 295, 307,
     # 355,
     # 395,

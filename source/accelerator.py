@@ -8,10 +8,9 @@ Created on Tue Sep 21 11:54:19 2021.
 import os.path
 import numpy as np
 import tracewin_interface as tw
-import helper
 import transport
 import particle
-from constants import FLAG_PHI_ABS, E_MEV, METHOD, E_rest_MeV, FLAG_PHI_S_FIT
+from constants import FLAG_PHI_ABS, E_MEV, METHOD
 import elements
 
 

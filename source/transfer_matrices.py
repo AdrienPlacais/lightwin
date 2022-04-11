@@ -10,7 +10,7 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, E_rest_MeV, STR_PHI_ABS_RF, inv_E_rest_MeV
+from constants import c, q_adim, E_rest_MeV, STR_PHI_ABS_RF
 import helper
 import solver
 import elements
