@@ -11,7 +11,7 @@ import transfer_matrices_p as tm
 import transport
 from electric_field import RfField, compute_param_cav
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
-                      OMEGA_0_BUNCH, FLAG_PHI_S_FIT
+    OMEGA_0_BUNCH, FLAG_PHI_S_FIT
 import helper
 
 
@@ -24,7 +24,7 @@ d_fun_tm = {
                      'leapfrog': tm.z_field_map,
                      'transport': transport.transport_beam,
                      }
-    }
+}
 
 
 # =============================================================================
@@ -50,7 +50,7 @@ class _Element():
             'nature': elem[0],
             'status': None,    # Only make sense for cavities
             'zone': None,
-            }
+        }
         self.length_m = 1e-3 * float(elem[1])
 
         # By default, an element is non accelerating and has a dummy
@@ -66,10 +66,10 @@ class _Element():
                     }
         # tmat stands for 'transfer matrix'
         self.tmat = {
+            'func': {'RK': None, 'leapfrog': None, 'transport': None},
             'matrix': None,
             'solver_param': {'n_steps': None, 'd_z': None},
-            'func': {'RK': None, 'leapfrog': None, 'transport': None},
-            }
+        }
 
     def init_solvers(self):
         """Initialize solvers as well as general properties."""
@@ -93,24 +93,24 @@ class _Element():
                                      'd_z': self.length_m / n_steps,
                                      }
 
-    def calc_transf_mat(self, W_kin_in, **kwargs):
+    def calc_transf_mat(self, w_kin_in, **kwargs):
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
 
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
-            r_zz, l_W_kin, l_phi_rel_rf, itg_field = \
-                self.tmat['func'](d_z, W_kin_in, n_steps, **kwargs)
+            r_zz, l_w_kin, l_phi_rel_rf, itg_field = \
+                self.tmat['func'](d_z, w_kin_in, n_steps, **kwargs)
             l_phi_rel = [phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
                          for phi_rf in l_phi_rel_rf]
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
-            r_zz, l_W_kin, l_phi_rel, _ = \
-                self.tmat['func'](d_z, W_kin_in, n_steps)
+            r_zz, l_w_kin, l_phi_rel, _ = \
+                self.tmat['func'](d_z, w_kin_in, n_steps)
             cav_params = None
 
-        return r_zz, l_W_kin, l_phi_rel, cav_params
+        return r_zz, l_w_kin, l_phi_rel, cav_params
 
     def update_status(self, new_status):
         """
@@ -127,7 +127,7 @@ class _Element():
             'failed',
             'compensate',
             'rephased',
-            ]
+        ]
         assert new_status in authorized_values
 
         self.info['status'] = new_status
@@ -200,8 +200,7 @@ class FieldMap(_Element):
         kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
         return kwargs
 
-    def set_cavity_parameters(self, synch, phi_abs_in, W_kin_in,
-                              d_fit=None):
+    def set_cavity_parameters(self, synch, phi_abs_in, w_kin_in, d_fit=None):
         """
         Set the properties of the electric field.
 
@@ -228,7 +227,7 @@ class FieldMap(_Element):
             'phi_0_abs': np.NaN,
             'phi_s_objective': None,
             'e_spat': acc_f.e_spat,
-            }
+        }
 
         assert synch.info['synchronous'], 'Not sure what should happen here.'
         # Ref linac: we compute every missing phi_0
@@ -266,7 +265,7 @@ class FieldMap(_Element):
                     if FLAG_PHI_S_FIT:
                         kwargs['phi_s_objective'] = d_fit['phi']
                         kwargs['phi_0_rel'] = \
-                            self.match_synch_phase(W_kin_in, **kwargs)
+                            self.match_synch_phase(w_kin_in, **kwargs)
 
                         kwargs['phi_0_rel'], kwargs['phi_0_abs'] = \
                             acc_f.convert_phi_0(
@@ -289,13 +288,13 @@ class FieldMap(_Element):
 
         return kwargs
 
-    def match_synch_phase(self, W_kin_in, **kwargs):
+    def match_synch_phase(self, w_kin_in, **kwargs):
         """Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad."""
-        bounds = (0, 2.*np.pi)
+        bounds = (0, 2. * np.pi)
 
         def _wrapper_synch(phi_0_rad):
             kwargs['phi_0_rel'] = phi_0_rad
-            _, _, _, cav_params = self.calc_transf_mat(W_kin_in, **kwargs)
+            _, _, _, cav_params = self.calc_transf_mat(w_kin_in, **kwargs)
             diff = helper.diff_angle(
                 kwargs['phi_s_objective'],
                 cav_params['phi_s_rad'])
