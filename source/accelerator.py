@@ -43,8 +43,7 @@ class Accelerator():
         tw.give_name(self.elements['list'])
 
         self.files = {'project_folder': os.path.dirname(dat_filepath),
-                      'dat_filecontent': dat_filecontent,
-                      }
+                      'dat_filecontent': dat_filecontent}
 
         # Set indexes and absolute position of the different elements
         last_idx = self._set_indexes_and_abs_positions()

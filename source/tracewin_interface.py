@@ -67,25 +67,23 @@ def load_dat_file(dat_filepath):
 
             dat_filecontent.append(line)
 
-    list_of_elements = _create_structure(dat_filepath, dat_filecontent)
+    l_elts = _create_structure(dat_filecontent)
 
-    return dat_filecontent, list_of_elements
+    return dat_filecontent, l_elts
 
 
-def _create_structure(dat_filepath, dat_filecontent):
+def _create_structure(dat_filecontent):
     """
     Create structure using the loaded dat file.
 
     Parameters
     ----------
-    dat_filepath : str
-        Path to the .dat file.
     dat_filecontent : list of str
         List containing all the lines of dat_filepath.
 
     Return
     ------
-    list_of_elements: list of Element
+    l_elts: list of Element
         List containing all the Element objects.
     """
     # Dictionnary linking element nature with correct sub-class
@@ -100,18 +98,18 @@ def _create_structure(dat_filepath, dat_filecontent):
 
     # We look at each element in dat_filecontent, and according to the
     # value of the 1st column string we create the appropriate Element
-    # subclass and store this instance in list_of_elements
+    # subclass and store this instance in l_elts
     try:
-        list_of_elements = [subclasses_dispatcher[elem[0]](elem)
-                            for elem in dat_filecontent if elem[0]
-                            not in to_be_implemented]
+        l_elts = [subclasses_dispatcher[elem[0]](elem)
+                  for elem in dat_filecontent
+                  if elem[0] not in to_be_implemented]
     except KeyError:
         print('Warning, an element from filepath was not recognized.')
 
-    return list_of_elements
+    return l_elts
 
 
-def give_name(list_of_elements):
+def give_name(l_elts):
     """Give a name (the same as TW) to every element."""
     civil_register = {
         'QUAD': 'QP',
@@ -119,13 +117,13 @@ def give_name(list_of_elements):
         'FIELD_MAP': 'FM',
         'SOLENOID': 'SOL',
     }
-    for key in civil_register.keys():
+    for key, value in civil_register.items():
         sub_list = [elt
-                    for elt in list_of_elements
+                    for elt in l_elts
                     if elt.info['nature'] == key
                     ]
         for i, elt in enumerate(sub_list, start=1):
-            elt.info['name'] = civil_register[key] + str(i)
+            elt.info['name'] = value + str(i)
 
 
 def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
@@ -176,27 +174,26 @@ def save_new_dat(fixed_linac, filepath_old):
             file.write(' '.join(line) + '\n')
 
 
-def _update_dat_with_fixed_cavities(dat_filecontent, list_of_elements):
+def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
     """Create a new dat containing the new linac settings."""
     idx_elt = 0
 
     dict_phi = {
         True: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['abs'])), '1'],
         False: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['rel'])), '0']
-        }
+    }
 
     for line in dat_filecontent:
         if line[0] in to_be_implemented or line[0] in not_an_element:
             continue
 
-        else:
-            if line[0] == 'FIELD_MAP':
-                elt = list_of_elements[idx_elt]
-                line[3] = dict_phi[FLAG_PHI_ABS](elt)[0]
-                line[6] = str(elt.acc_field.norm)
-                line[10] = dict_phi[FLAG_PHI_ABS](elt)[1]
+        if line[0] == 'FIELD_MAP':
+            elt = l_elts[idx_elt]
+            line[3] = dict_phi[FLAG_PHI_ABS](elt)[0]
+            line[6] = str(elt.acc_field.norm)
+            line[10] = dict_phi[FLAG_PHI_ABS](elt)[1]
 
-            idx_elt += 1
+        idx_elt += 1
 
 
 def load_tw_results(filepath, prop):
@@ -264,36 +261,36 @@ def load_transfer_matrices(filepath_list):
 def output_data_in_tw_fashion(linac):
     """Mimick TW's Data tab."""
     larousse = {
-            '#': lambda i, elt, synch: i,
-            'Name': lambda i, elt, synch: elt.info['name'],
-            'Type': lambda i, elt, synch: elt.info['nature'],
-            'Length (mm)': lambda i, elt, synch: elt.length_m * 1e3,
-            'Grad/Field/Amp': lambda i, elt, synch:
-            elt.grad
-            if(elt.info['nature'] == 'QUAD')
-            else np.NaN,
-            'EoT (MV/m)': lambda i, elt, synch: None,
-            'EoTLc (MV)': lambda i, elt, synch:
-            elt.acc_field.cav_params['v_cav_mv']
-            if(elt.info['nature'] == 'FIELD_MAP')
-            else np.NaN,
-            'Input_Phase (deg)': lambda i, elt, synch:
-            np.rad2deg(elt.acc_field.phi_0['rel'])
-            if(elt.info['nature'] == 'FIELD_MAP')
-            else np.NaN,
-            'Sync_Phase (deg)': lambda i, elt, synch:
-            elt.acc_field.cav_params['phi_s_deg']
-            if(elt.info['nature'] == 'FIELD_MAP')
-            else np.NaN,
-            'Energy (MeV)': lambda i, elt, synch:
-            synch.energy['kin_array_mev'][elt.idx['s_out']],
-            'Beta Synch.': lambda i, elt, synch:
-            synch.energy['beta_array'][elt.idx['s_out']],
-            'Full length (mm)': lambda i, elt, synch:
-            synch.z['abs_array'][elt.idx['s_out']] * 1e3,
-            'Abs. phase (deg)': lambda i, elt, synch:
-            np.rad2deg(synch.phi['abs_array'][elt.idx['s_out']]),
-        }
+        '#': lambda i, elt, synch: i,
+        'Name': lambda i, elt, synch: elt.info['name'],
+        'Type': lambda i, elt, synch: elt.info['nature'],
+        'Length (mm)': lambda i, elt, synch: elt.length_m * 1e3,
+        'Grad/Field/Amp': lambda i, elt, synch:
+        elt.grad
+        if(elt.info['nature'] == 'QUAD')
+        else np.NaN,
+        'EoT (MV/m)': lambda i, elt, synch: None,
+        'EoTLc (MV)': lambda i, elt, synch:
+        elt.acc_field.cav_params['v_cav_mv']
+        if(elt.info['nature'] == 'FIELD_MAP')
+        else np.NaN,
+        'Input_Phase (deg)': lambda i, elt, synch:
+        np.rad2deg(elt.acc_field.phi_0['rel'])
+        if(elt.info['nature'] == 'FIELD_MAP')
+        else np.NaN,
+        'Sync_Phase (deg)': lambda i, elt, synch:
+        elt.acc_field.cav_params['phi_s_deg']
+        if(elt.info['nature'] == 'FIELD_MAP')
+        else np.NaN,
+        'Energy (MeV)': lambda i, elt, synch:
+        synch.energy['kin_array_mev'][elt.idx['s_out']],
+        'Beta Synch.': lambda i, elt, synch:
+        synch.energy['beta_array'][elt.idx['s_out']],
+        'Full length (mm)': lambda i, elt, synch:
+        synch.z['abs_array'][elt.idx['s_out']] * 1e3,
+        'Abs. phase (deg)': lambda i, elt, synch:
+        np.rad2deg(synch.phi['abs_array'][elt.idx['s_out']]),
+    }
 
     data = []
     n_latt = 1
@@ -306,8 +303,8 @@ def output_data_in_tw_fashion(linac):
             n_latt += 1
             for elt in lattice:
                 row = []
-                for key in larousse.keys():
-                    row.append(larousse[key](i, elt, linac.synch))
+                for value in larousse.values():
+                    row.append(value(i, elt, linac.synch))
                 data.append(row)
                 i += 1
 
