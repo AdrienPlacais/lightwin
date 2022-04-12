@@ -9,7 +9,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 import transfer_matrices_p as tm
 import transport
-from electric_field import RfField, compute_param_cav
+from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
     OMEGA_0_BUNCH, FLAG_PHI_S_FIT
 import helper
@@ -235,7 +235,10 @@ class FieldMap(_Element):
         assert synch.info['synchronous'], 'Not sure what should happen here.'
         # Ref linac: we compute every missing phi_0
         if synch.info['reference']:
-            acc_f.convert_phi_0(phi_rf_abs, acc_f.phi_0['abs_phase_flag'])
+            acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
+                phi_rf_abs, acc_f.phi_0['abs_phase_flag'], acc_f.phi_0['rel'],
+                acc_f.phi_0['abs'])
+            # acc_f.convert_phi_0(phi_rf_abs, acc_f.phi_0['abs_phase_flag'])
             kwargs = self._import_from_acc_f(kwargs)
 
         else:
@@ -244,7 +247,9 @@ class FieldMap(_Element):
                 # We already have the phi0's from the reference linac. We
                 # recompute the relative or absolute one according to
                 # FLAG_PHI_ABS
-                acc_f.convert_phi_0(phi_rf_abs, FLAG_PHI_ABS)
+                acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
+                    phi_rf_abs, FLAG_PHI_ABS, acc_f.phi_0['rel'],
+                    acc_f.phi_0['abs'])
                 kwargs = self._import_from_acc_f(kwargs)
 
             elif self.info['status'] == 'rephased':
@@ -271,9 +276,9 @@ class FieldMap(_Element):
                             self.match_synch_phase(w_kin_in, **kwargs)
 
                         kwargs['phi_0_rel'], kwargs['phi_0_abs'] = \
-                            acc_f.convert_phi_0(
-                            phi_rf_abs, False, kwargs['phi_0_rel'],
-                            kwargs['phi_0_abs'])
+                            convert_phi_0(phi_rf_abs, False,
+                                          kwargs['phi_0_rel'],
+                                          kwargs['phi_0_abs'])
                     else:
                         # fit['phi'] is phi_0_rel or phi_0_abs according to
                         # FLAG_PHI_ABS.
@@ -281,12 +286,14 @@ class FieldMap(_Element):
                         # missing.
                         kwargs[STR_PHI_0_ABS] = d_fit['phi']
                         kwargs['phi_0_rel'], kwargs['phi_0_abs'] = \
-                            acc_f.convert_phi_0(
+                            convert_phi_0(
                             phi_rf_abs, FLAG_PHI_ABS, kwargs['phi_0_rel'],
                             kwargs['phi_0_abs'])
 
                 else:
-                    acc_f.convert_phi_0(phi_rf_abs, FLAG_PHI_ABS)
+                    acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
+                        phi_rf_abs, FLAG_PHI_ABS, acc_f.phi_0['rel'],
+                        acc_f.phi_0['abs'])
                     kwargs = self._import_from_acc_f(kwargs)
 
         return kwargs

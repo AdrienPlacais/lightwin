@@ -68,43 +68,6 @@ class RfField():
         self.phi_0['rel'] = kwargs['phi_0_rel']
         self.phi_0['abs'] = kwargs['phi_0_abs']
 
-    def convert_phi_0(self, phi_rf_abs, abs_to_rel, phi_0_rel=None,
-                      phi_0_abs=None):
-        """
-        Calculate the missing phi_0 (relative or absolute).
-
-        By default, TW uses relative phases. In other words, it considers that
-        particles always enter in the cavity at phi = 0 rad, and phi_0 is
-        defined accordingly. _phi_0_rel_to_abs recalculates phi_0 so that
-        modulo(phi_abs + phi_0_abs, 2pi) = phi_rel + phi_0_rel = phi_0_rel
-
-        All phases in this routine are defined by:
-            phi = omega_rf * t
-
-        Parameters
-        ----------
-        phi_rf_abs : float
-            Absolute phase of the particle at the entrance of the cavity.
-        abs_to_rel : bool
-            True if you want to convert absolute into relative.
-            False if you want to convert relative into absolute,
-        """
-        if phi_0_rel is None or phi_0_abs is None:
-            if abs_to_rel:
-                self.phi_0['rel'] = np.mod(self.phi_0['abs'] + phi_rf_abs,
-                                           2. * np.pi)
-
-            else:
-                self.phi_0['abs'] = np.mod(self.phi_0['rel'] - phi_rf_abs,
-                                           2. * np.pi)
-
-        else:
-            if abs_to_rel:
-                phi_0_rel = np.mod(phi_0_abs + phi_rf_abs, 2. * np.pi)
-            else:
-                phi_0_abs = np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
-            return phi_0_rel, phi_0_abs
-
     def rephase_cavity(self, phi_rf_abs):
         """
         Rephase the cavity.
@@ -146,8 +109,8 @@ def load_field_map_file(elt):
     # Interpolation
     z_cavity_array = np.linspace(0., zmax, n_z + 1)
 
-    def e_spat(x):
-        return np.interp(x=x, xp=z_cavity_array, fp=f_z, left=0., right=0.)
+    def e_spat(pos):
+        return np.interp(x=pos, xp=z_cavity_array, fp=f_z, left=0., right=0.)
     return e_spat
 
 
@@ -230,3 +193,32 @@ def _load_electric_field_1d(path):
             i += 1
 
     return n_z, zmax, norm, f_z
+
+
+def convert_phi_0(phi_rf_abs, abs_to_rel, phi_0_rel=None, phi_0_abs=None):
+    """
+    Calculate the missing phi_0 (relative or absolute).
+
+    By default, TW uses relative phases. In other words, it considers that
+    particles always enter in the cavity at phi = 0 rad, and phi_0 is
+    defined accordingly. _phi_0_rel_to_abs recalculates phi_0 so that
+    modulo(phi_abs + phi_0_abs, 2pi) = phi_rel + phi_0_rel = phi_0_rel
+
+    All phases in this routine are defined by:
+        phi = omega_rf * t
+
+    Parameters
+    ----------
+    phi_rf_abs : float
+        Absolute phase of the particle at the entrance of the cavity.
+    abs_to_rel : bool
+        True if you want to convert absolute into relative.
+        False if you want to convert relative into absolute,
+    """
+    if abs_to_rel:
+        assert phi_0_abs is not None
+        phi_0_rel = np.mod(phi_0_abs + phi_rf_abs, 2. * np.pi)
+    else:
+        assert phi_0_rel is not None
+        phi_0_abs = np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
+    return phi_0_rel, phi_0_abs
