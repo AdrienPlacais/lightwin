@@ -68,7 +68,7 @@ failed_cav = [
     # 395,
     # 521, 523, 525, 527,
     # 583
-    ]
+]
 manual_list = [
     # [25, 27, 37, 45, 47],
     [145, 147, 165, 167, 175, 177, 185, 187],
@@ -78,7 +78,7 @@ manual_list = [
     # [493, 495, 497, 499, 507, 509, 511, 513,
      # 535, 537, 539, 541, 549, 551, 553, 555],
     # [579, 581, 591, 593, 595, 597]
-    ]
+]
 WHAT_TO_FIT = {
     # =========================================================================
     #     How compensatong cavities are chosen?
@@ -99,7 +99,7 @@ WHAT_TO_FIT = {
     'position': 'end_mod',
     # 'position': '1_mod_after',
     # 'position': 'both',
-    }
+}
 FLAG_FIX = True
 SAVE_FIX = True
 
@@ -111,7 +111,7 @@ PLOTS = [
     "energy",
     "phase",
     "cav",
-    ]
+]
 PLOT_TM = True
 PHASE_SPACE = False
 TWISS = False
@@ -119,7 +119,7 @@ TWISS = False
 SAVES = [
     # "MT and energy",
     # "Vcav and phis",
-    ]
+]
 SAVE_MT_AND_ENERGY = False
 SAVE_VCAV_AND_PHIS = False
 
@@ -131,7 +131,6 @@ FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(FILEPATH, "Working")
 broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
-
 fail = mod_fs.FaultScenario(ref_linac, broken_linac, WHAT_TO_FIT,
                             failed_cav, manual_list)
 
@@ -139,12 +138,12 @@ DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
     "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
     "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
-    }
+}
 
 DICT_SAVES = {
     "MT and energy": lambda lin: helper.save_full_mt_and_energy_evolution(lin),
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
-    }
+}
 
 linacs = [ref_linac, broken_linac]
 for lin in linacs:

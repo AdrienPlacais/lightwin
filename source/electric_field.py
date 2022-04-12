@@ -7,7 +7,6 @@ Created on Tue Nov 30 15:43:39 2021.
 """
 import cmath
 import numpy as np
-from constants import c, STR_PHI_ABS
 
 
 def compute_param_cav(integrated_field, status):
@@ -122,7 +121,7 @@ class RfField():
 # =============================================================================
 # Helper functions dedicated to electric fields
 # =============================================================================
-def load_field_map_file(element, rf_field):
+def load_field_map_file(elt):
     """
     Select the field map file and call the proper loading function.
 
@@ -135,23 +134,24 @@ def load_field_map_file(element, rf_field):
     """
     # Check nature and geometry of the field map, and select proper file
     # extension and import function
-    extension, import_function = check_geom(element)
-    element.field_map_file_name = element.field_map_file_name + extension
+    extension, import_function = _check_geom(elt)
+    elt.field_map_file_name = elt.field_map_file_name + extension
 
     # Load the field map
-    n_z, zmax, norm, f_z = import_function(element.field_map_file_name)
-    assert abs(zmax - element.length_m) < 1e-6
+    n_z, zmax, norm, f_z = import_function(elt.field_map_file_name)
+    assert abs(zmax - elt.length_m) < 1e-6
     assert abs(norm - 1.) < 1e-6, 'Warning, imported electric field ' \
         + 'different from 1. Conflict with electric_field_factor?'
 
     # Interpolation
     z_cavity_array = np.linspace(0., zmax, n_z + 1)
-    rf_field.e_spat = lambda x: np.interp(x=x,
-                                          xp=z_cavity_array, fp=f_z,
-                                          left=0., right=0.)
+
+    def e_spat(x):
+        return np.interp(x=x, xp=z_cavity_array, fp=f_z, left=0., right=0.)
+    return e_spat
 
 
-def check_geom(element):
+def _check_geom(elt):
     """
     Verify that the file can be correctly imported.
 
@@ -164,23 +164,23 @@ def check_geom(element):
     """
     # TODO: autodetect extensions
     # First, we check the nature of the given file
-    assert element.geometry >= 0, \
+    assert elt.geometry >= 0, \
         "Second order off-axis development not implemented."
 
-    field_nature = int(np.log10(element.geometry))
-    field_geometry = int(str(element.geometry)[0])
+    field_nature = int(np.log10(elt.geometry))
+    field_geometry = int(str(elt.geometry)[0])
 
     assert field_nature == 2, "Only RF electric fields implemented."
     assert field_geometry == 1, "Only 1D field implemented."
-    assert element.aperture_flag <= 0, \
+    assert elt.aperture_flag <= 0, \
         "Warning! Space charge compensation maps not implemented."
 
     extension = ".edz"
-    import_function = load_electric_field_1d
+    import_function = _load_electric_field_1d
     return extension, import_function
 
 
-def load_electric_field_1d(path):
+def _load_electric_field_1d(path):
     """
     Load a 1D electric field (.edz extension).
 

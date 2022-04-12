@@ -31,7 +31,7 @@ dict_tw_data_table = {
     'beta_synch': 10,
     'full_length': 11,
     'abs_phase': 12,
-    }
+}
 
 
 def load_dat_file(dat_filepath):
@@ -114,11 +114,11 @@ def _create_structure(dat_filepath, dat_filecontent):
 def give_name(list_of_elements):
     """Give a name (the same as TW) to every element."""
     civil_register = {
-            'QUAD': 'QP',
-            'DRIFT': 'DR',
-            'FIELD_MAP': 'FM',
-            'SOLENOID': 'SOL',
-            }
+        'QUAD': 'QP',
+        'DRIFT': 'DR',
+        'FIELD_MAP': 'FM',
+        'SOLENOID': 'SOL',
+    }
     for key in civil_register.keys():
         sub_list = [elt
                     for elt in list_of_elements
@@ -149,7 +149,7 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
         line[1]
         for line in dat_filecontent
         if line[0] == 'FIELD_MAP_PATH'
-        ][0]
+    ][0]
     field_map_folder = os.path.dirname(dat_filepath) + field_map_folder[1:]
 
     for i, section in enumerate(sections):
@@ -160,7 +160,7 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
                 if elt.info['nature'] == 'FIELD_MAP':
                     elt.field_map_file_name = field_map_folder + '/' \
                         + elt.field_map_file_name
-                    load_field_map_file(elt, elt.acc_field)
+                    elt.acc_field.e_spat = load_field_map_file(elt)
                     elt.acc_field.init_freq_ncell(f_mhz, n_cell)
 
 
