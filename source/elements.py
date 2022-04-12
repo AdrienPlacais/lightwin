@@ -235,7 +235,7 @@ class FieldMap(_Element):
         assert synch.info['synchronous'], 'Not sure what should happen here.'
         # Ref linac: we compute every missing phi_0
         if synch.info['reference']:
-            acc_f.convert_phi_0(phi_rf_abs, acc_f.absolute_phase_flag)
+            acc_f.convert_phi_0(phi_rf_abs, acc_f.phi_0['abs_phase_flag'])
             kwargs = self._import_from_acc_f(kwargs)
 
         else:

@@ -8,9 +8,8 @@ Created on Tue Sep 21 11:54:19 2021.
 import os.path
 import numpy as np
 import tracewin_interface as tw
-import transport
 import particle
-from constants import FLAG_PHI_ABS, E_MEV, METHOD
+from constants import FLAG_PHI_ABS, E_MEV
 import elements
 
 
@@ -87,7 +86,7 @@ class Accelerator():
         cavities = self.elements_of(nature='FIELD_MAP')
         flags_absolute = []
         for cav in cavities:
-            flags_absolute.append(cav.acc_field.absolute_phase_flag)
+            flags_absolute.append(cav.acc_field.phi_0['abs_phase_flag'])
 
         if FLAG_PHI_ABS and False in flags_absolute:
             print('Warning: you asked LW a simulation in absolute phase,',
