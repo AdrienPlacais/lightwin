@@ -29,7 +29,7 @@ debugs = {
     'fit_compact': False,
     'fit_progression': False,
     'cav': True,
-    'verbose': 2,
+    'verbose': 0,
 }
 
 
