@@ -99,15 +99,21 @@ class _Element():
 
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
+            print('call fm')
+            for lll in [d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
+                        kwargs['norm'], float(kwargs['phi_0_rel']),
+                        kwargs['e_spat']]:
+                print(lll, type(lll))
             r_zz, l_w_kin, l_phi_rel_rf, itg_field = \
                 self.tmat['func'](d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
-                                  kwargs['norm'], kwargs['phi_0_rel'],
+                                  kwargs['norm'], float(kwargs['phi_0_rel']),
                                   kwargs['e_spat'])
             l_phi_rel = [phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
                          for phi_rf in l_phi_rel_rf]
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
+            print('call drift')
             r_zz, l_w_kin, l_phi_rel, _ = \
                 self.tmat['func'](d_z, w_kin_in, n_steps)
             cav_params = None
