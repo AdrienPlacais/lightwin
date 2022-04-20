@@ -99,26 +99,21 @@ class _Element():
 
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
-            print('call fm')
-            for lll in [d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
-                        kwargs['norm'], float(kwargs['phi_0_rel']),
-                        kwargs['e_spat']]:
-                print(lll, type(lll))
-            r_zz, l_w_kin, l_phi_rel_rf, itg_field = \
+            r_zz, w_phi, itg_field = \
                 self.tmat['func'](d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
                                   kwargs['norm'], float(kwargs['phi_0_rel']),
                                   kwargs['e_spat'])
-            l_phi_rel = [phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
-                         for phi_rf in l_phi_rel_rf]
+            w_phi[:, 1] *= OMEGA_0_BUNCH / kwargs['omega0_rf']
+            # l_phi_rel = [phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
+                         # for phi_rf in l_phi_rel_rf]
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
-            print('call drift')
-            r_zz, l_w_kin, l_phi_rel, _ = \
-                self.tmat['func'](d_z, w_kin_in, n_steps)
+            r_zz, w_phi, _ = self.tmat['func'](d_z, w_kin_in, n_steps)
             cav_params = None
 
-        results = {'r_zz': r_zz, 'l_W_kin': l_w_kin, 'l_phi_rel': l_phi_rel,
+        results = {'r_zz': r_zz, 'l_W_kin': w_phi[:, 0].tolist(),
+                   'l_phi_rel': w_phi[:, 1].tolist(),
                    'cav_params': cav_params}
 
         return results
