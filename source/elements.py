@@ -101,7 +101,7 @@ class _Element():
                 self.info['status'] != 'failed':
             r_zz, w_phi, itg_field = \
                 self.tmat['func'](d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
-                                  kwargs['norm'], float(kwargs['phi_0_rel']),
+                                  kwargs['norm'], kwargs['phi_0_rel'],
                                   kwargs['e_spat'])
             w_phi[:, 1] *= OMEGA_0_BUNCH / kwargs['omega0_rf']
             # l_phi_rel = [phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']

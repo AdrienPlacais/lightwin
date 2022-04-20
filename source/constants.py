@@ -35,9 +35,9 @@ project_folder = ''
 # To determine if the phases in the cavities are absolute or relative.
 # If they are relative, the linac is implicitely rephased when some cavities
 # are faulty (global compensation).
-FLAG_PHI_ABS = True
+FLAG_PHI_ABS = False
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = True
+FLAG_PHI_S_FIT = False
 
 E_MEV = 16.6
 F_BUNCH_MHZ = 176.1
