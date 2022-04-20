@@ -36,7 +36,7 @@ class FaultScenario():
             'objective': what_to_fit['objective'],
             # Where are we measuring 'objective'?
             'position': what_to_fit['position'],
-            }
+        }
 
         # Save faults as a list of Fault objects and as a list of cavity idx
         l_idx_fault = sorted(l_idx_fault)
@@ -44,7 +44,7 @@ class FaultScenario():
             'l_obj': self._distribute_and_create_fault_objects(
                 l_idx_fault, l_idx_comp),
             'l_idx': l_idx_fault,
-                }
+        }
 
         self.info = {'fit': None}
 
@@ -100,7 +100,7 @@ class FaultScenario():
         assert all([
             self.brok_lin.elements['list'][idx].info['nature'] == 'FIELD_MAP'
             for idx in l_idx_fault
-            ]), 'Not all failed cavities that you asked are cavities.'
+        ]), 'Not all failed cavities that you asked are cavities.'
 
         def are_close(idx1, idx2):
             latt1 = self.brok_lin.elements['list'][idx1].idx['lattice'][0]
@@ -123,7 +123,7 @@ class FaultScenario():
         for f_idx in grouped_faults_idx:
             l_faults_obj.append(
                 mod_f.Fault(self.ref_lin, self.brok_lin, f_idx)
-                )
+            )
 
         # Get cavities necessary for every Fault
         all_comp_cav = []
@@ -140,7 +140,7 @@ class FaultScenario():
                 [self.brok_lin.elements['list'][idx]
                  for idx in idx_list]
                 for idx_list in l_idx_comp
-                ]
+            ]
 
         # Change status (failed, compensate) of the proper cavities, create the
         # fault.comp['l_all_elts'] list containing the full lattices in which
@@ -173,7 +173,7 @@ class FaultScenario():
                 'flag': True,
                 'l_phi': sol.x[:f.comp['n_cav']].tolist(),
                 'l_norm': sol.x[f.comp['n_cav']:].tolist(),
-                }
+            }
             self.brok_lin.compute_transfer_matrices(
                 f.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=True)
 
