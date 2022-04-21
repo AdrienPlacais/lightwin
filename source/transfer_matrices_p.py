@@ -22,9 +22,15 @@ def z_drift(delta_s, W_kin_in, n_steps=1):
     beta_in = np.sqrt(1. - gamma_in**-2)
     delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
 
+    # Two possibilites: which one is the best?
+    # l_W_kin = [W_kin_in for i in range(n_steps)]
+    # l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
+    # w_phi = np.empty((n_steps, 2))
+    # w_phi[:, 0] = l_W_kin
+    # w_phi[:, 1] = l_phi_rel
     w_phi = np.empty((n_steps, 2))
     w_phi[:, 0] = W_kin_in
-    w_phi[:, 1] = np.linspace(delta_phi, n_steps * delta_phi, n_steps)
+    w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
     return r_zz, w_phi, None
 
 
