@@ -7,7 +7,7 @@ Created on Wed Sep 22 10:26:19 2021.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-import transfer_matrices_c as tm
+import transfer_matrices_p as tm
 import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \

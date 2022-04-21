@@ -18,11 +18,11 @@ np.import_array()
 # Must be changed to double if C float is replaced by double
 DTYPE = np.float64
 
-cdef float c_cdef = 2.99792458e8
-cdef float E_rest_MeV_cdef = 938.27203
-cdef float inv_E_rest_MeV_cdef = 0.0010657889908537506
-cdef float OMEGA_0_BUNCH_cdef = 1106468932.594325
-cdef float q_adim_cdef = 1.
+cdef double c_cdef = 2.99792458e8
+cdef double E_rest_MeV_cdef = 938.27203
+cdef double inv_E_rest_MeV_cdef = 0.0010657889908537506
+cdef double OMEGA_0_BUNCH_cdef = 1106468932.594325
+cdef double q_adim_cdef = 1.
 
 # https://stackoverflow.com/questions/14124049/is-there-any-type-for-function-
 # in-cython
@@ -31,8 +31,8 @@ cdef float q_adim_cdef = 1.
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-cpdef z_drift(float delta_s, float W_kin_in, Py_ssize_t n_steps=1):
-    cdef float gamma_in_min2, beta_in, delta_phi
+cpdef z_drift(double delta_s, double W_kin_in, Py_ssize_t n_steps=1):
+    cdef double gamma_in_min2, beta_in, delta_phi
     cdef np.ndarray r_zz = np.empty([n_steps, 2, 2], dtype = DTYPE)
     cdef np.ndarray w_phi = np.empty([n_steps, 2], dtype = DTYPE)
     cdef Py_ssize_t i
@@ -54,19 +54,19 @@ cpdef z_drift(float delta_s, float W_kin_in, Py_ssize_t n_steps=1):
     return r_zz, w_phi, None
 
 
-cdef float e_func(float k_e, float z, e_spat, float phi, float phi_0):
+cdef double e_func(double k_e, double z, e_spat, double phi, double phi_0):
     return k_e * e_spat(z) * cos(phi + phi_0)
 
 
-cdef float de_dt_func(float k_e, float z, e_spat, float phi, float phi_0,
-                           float factor):
+cdef double de_dt_func(double k_e, double z, e_spat, double phi, double phi_0,
+                           double factor):
     return factor * k_e * e_spat(z) * sin(phi + phi_0)
 
 
 # TODO: types of u and du_dx
-# cdef rk4(float[:] u, du_dx, float x, float dx):
-cdef rk4(double [:] u, du_dx, float x, float dx):
-    cdef float half_dx = .5 * dx
+# cdef rk4(double[:] u, du_dx, double x, double dx):
+cdef rk4(double [:] u, du_dx, double x, double dx):
+    cdef double half_dx = .5 * dx
     cdef np.ndarray k_1 = np.zeros([2], dtype = DTYPE)
     cdef np.ndarray k_2 = np.zeros([2], dtype = DTYPE)
     cdef np.ndarray k_3 = np.zeros([2], dtype = DTYPE)
@@ -81,11 +81,11 @@ cdef rk4(double [:] u, du_dx, float x, float dx):
 
 
 # TODO cpdef, type e_spat
-def z_field_map(float d_z, float W_kin_in, Py_ssize_t n_steps, float omega0_rf,
-                float k_e, float phi_0_rel, e_spat):
-    cdef float z_rel = 0.
+def z_field_map(double d_z, double W_kin_in, Py_ssize_t n_steps, double omega0_rf,
+                double k_e, double phi_0_rel, e_spat):
+    cdef double z_rel = 0.
     cdef complex itg_field = 0.
-    cdef float half_d_z = .5 * d_z
+    cdef double half_d_z = .5 * d_z
 
     cdef list r_zz = []
     cdef np.ndarray W_phi = np.empty([n_steps + 1, 2], dtype = DTYPE)
@@ -94,19 +94,19 @@ def z_field_map(float d_z, float W_kin_in, Py_ssize_t n_steps, float omega0_rf,
     cdef list l_beta = [sqrt(1. - l_gamma[0]**-2)]
 
     cdef Py_ssize_t i
-    cdef float tmp
+    cdef double tmp
     W_phi[0, 0] = W_kin_in
     W_phi[0, 1] = 0.
 
     # u is defined as a MEMORYVIEW for more efficient access
-    # def du_dz(float z, float[:] u):
-    def du_dz(float z, double[:] u):
-        cdef float gamma_float, beta
+    # def du_dz(double z, double[:] u):
+    def du_dz(double z, double[:] u):
+        cdef double gamma_double, beta
         cdef np.ndarray v = np.empty([2], dtype = DTYPE)
 
         v[0] = q_adim_cdef * e_func(k_e, z, e_spat, u[1], phi_0_rel)
-        gamma_float = 1. + u[0] * inv_E_rest_MeV_cdef
-        beta = sqrt(1. - gamma_float**-2)
+        gamma_double = 1. + u[0] * inv_E_rest_MeV_cdef
+        beta = sqrt(1. - gamma_double**-2)
         v[1] = omega0_rf / (beta * c_cdef)
         return v
 
@@ -134,12 +134,12 @@ def z_field_map(float d_z, float W_kin_in, Py_ssize_t n_steps, float omega0_rf,
     return np.array(r_zz), W_phi[1:, :], itg_field
 
 
-cdef z_thin_lense(float d_z, float half_dz, float W_kin_in, float gamma_middle,
-                  float W_kin_out, float beta_middle, float z_rel,
-                  float phi_rel, float omega0_rf, float norm, float phi_0,
+cdef z_thin_lense(double d_z, double half_dz, double W_kin_in, double gamma_middle,
+                  double W_kin_out, double beta_middle, double z_rel,
+                  double phi_rel, double omega0_rf, double norm, double phi_0,
                  e_spat):
-    cdef float z_k, delta_phi_half_step, phi_k, k_0, k_1, k_2, k_3, factor
-    cdef float e_func_k
+    cdef double z_k, delta_phi_half_step, phi_k, k_0, k_1, k_2, k_3, factor
+    cdef double e_func_k
     cdef np.ndarray r_zz = np.zeros([2, 2], dtype = DTYPE)
     cdef np.ndarray tmp = np.zeros([2, 2], dtype = DTYPE)
     # In
