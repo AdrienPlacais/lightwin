@@ -15,7 +15,7 @@ from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def z_drift(delta_s, W_kin_in, n_steps=1, **kwargs):
+def z_drift(delta_s, W_kin_in, n_steps=1):
     gamma_in = 1. + W_kin_in * inv_E_rest_MeV
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in**-2],
                                               [0., 1.]]))
@@ -24,7 +24,11 @@ def z_drift(delta_s, W_kin_in, n_steps=1, **kwargs):
 
     l_W_kin = [E_rest_MeV * (gamma_in - 1.) for i in range(n_steps)]
     l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
-    return r_zz, l_W_kin, l_phi_rel, None
+
+    w_phi = np.full((n_steps, 2), np.NaN)
+    w_phi[:, 0] = l_W_kin
+    w_phi[:, 1] = l_phi_rel
+    return r_zz, w_phi, None
 
 
 def e_func(k_e, z, e_spat, phi, phi_0):
@@ -45,13 +49,13 @@ def rk4(u, du_dx, x, dx):
     return delta_u[0], delta_u[1]
 
 
-def z_field_map(d_z, W_kin_in, n_steps, **kwargs):
+def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     #  print('TODO elsewhere for enter_cavity:')
     #  print('\trephase cavity')
-    omega0_rf = kwargs['omega0_rf']
-    k_e = kwargs['norm']
-    phi_0_rel = kwargs['phi_0_rel']
-    e_spat = kwargs['e_spat']
+    # omega0_rf = kwargs['omega0_rf']
+    # k_e = kwargs['norm']
+    # phi_0_rel = kwargs['phi_0_rel']
+    # e_spat = kwargs['e_spat']
     z_rel = 0.
     itg_field = 0.
     half_d_z = .5 * d_z
@@ -87,9 +91,9 @@ def z_field_map(d_z, W_kin_in, n_steps, **kwargs):
         beta_middle = np.sqrt(1. - gamma_middle**-2)
 
         r_zz.append(z_thin_lense(d_z, half_d_z, l_W_kin[-2], gamma_middle,
-                                   l_W_kin[-1], beta_middle, z_rel,
-                                   l_phi_rel[-1], omega0_rf, k_e, phi_0_rel,
-                                   e_spat))
+                                 l_W_kin[-1], beta_middle, z_rel,
+                                 l_phi_rel[-1], omega0_rf, k_e, phi_0_rel,
+                                 e_spat))
 
         # synch.advance_position
         z_rel += d_z
@@ -97,12 +101,15 @@ def z_field_map(d_z, W_kin_in, n_steps, **kwargs):
         l_phi_rel.append(l_phi_rel[-1] + delta_phi)
 
     # synch,exit_cavity
-    return np.array(r_zz), l_W_kin[1:], l_phi_rel[1:], itg_field
+    w_phi = np.full((n_steps, 2), np.NaN)
+    w_phi[:, 0] = l_W_kin[1:]
+    w_phi[:, 1] = l_phi_rel[1:]
+    return np.array(r_zz), w_phi, itg_field
 
 
 def z_thin_lense(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
-                   beta_middle, z_rel, phi_rel, omega0_rf, norm, phi_0,
-                   e_spat):
+                 beta_middle, z_rel, phi_rel, omega0_rf, norm, phi_0,
+                 e_spat):
     # In
     r_zz = z_drift(half_dz, W_kin_in)[0][0]
 
