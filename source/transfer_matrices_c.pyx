@@ -32,27 +32,26 @@ cdef float q_adim_cdef = 1.
 # Transfer matrices
 # =============================================================================
 cpdef z_drift(float delta_s, float W_kin_in, Py_ssize_t n_steps=1):
-    cdef float gamma_in, beta_in, delta_phi
+    cdef float gamma_in_min2, beta_in, delta_phi
     cdef np.ndarray r_zz = np.empty([n_steps, 2, 2], dtype = DTYPE)
-    cdef np.ndarray W_phi = np.empty([n_steps, 2], dtype = DTYPE)
-    # cdef list l_W_kin, l_phi_rel
-    # cdef int i
+    cdef np.ndarray w_phi = np.empty([n_steps, 2], dtype = DTYPE)
     cdef Py_ssize_t i
 
-    gamma_in = 1. + W_kin_in * inv_E_rest_MeV_cdef
-    r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in**-2],
+    gamma_in_min2 = (1. + W_kin_in * inv_E_rest_MeV_cdef)**-2
+    r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
                                               [0., 1.]]))
 
-    beta_in = sqrt((1. - gamma_in**-2))
+    beta_in = sqrt(1. - gamma_in_min2)
     delta_phi = OMEGA_0_BUNCH_cdef * delta_s / (beta_in * c_cdef)
-    for i in range(n_steps):
-        W_phi[i, 0] = W_kin_in
-        W_phi[i, 1] = (i + 1) * delta_phi
-
-    # l_W_kin = [E_rest_MeV_cdef * (gamma_in - 1.) for i in range(n_steps)]
+    # Two possibilites: which one is the best?
+    # l_W_kin = [W_kin_in for i in range(n_steps)]
     # l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
-    # return r_zz, l_W_kin, l_phi_rel, None
-    return r_zz, W_phi, None
+    # w_phi = np.empty((n_steps, 2))
+    # w_phi[:, 0] = l_W_kin
+    # w_phi[:, 1] = l_phi_rel
+    w_phi[:, 0] = W_kin_in
+    w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
+    return r_zz, w_phi, None
 
 
 cdef float e_func(float k_e, float z, e_spat, float phi, float phi_0):
@@ -89,16 +88,15 @@ def z_field_map(float d_z, float W_kin_in, Py_ssize_t n_steps, float omega0_rf,
     cdef float half_d_z = .5 * d_z
 
     cdef list r_zz = []
+    cdef np.ndarray W_phi = np.empty([n_steps + 1, 2], dtype = DTYPE)
+    cdef np.ndarray delta_W_phi = np.zeros([2], dtype = DTYPE)
     cdef list l_gamma = [1. + W_kin_in * inv_E_rest_MeV_cdef]
     cdef list l_beta = [sqrt(1. - l_gamma[0]**-2)]
-    # cdef list l_W_kin = [W_kin_in]
-    # cdef list l_phi_rel = [0.]
-    cdef np.ndarray W_phi = np.zeros([n_steps + 1, 2], dtype = DTYPE)
 
     cdef Py_ssize_t i
-    cdef np.ndarray delta_W_phi = np.zeros([2], dtype = DTYPE)
     cdef float tmp
     W_phi[0, 0] = W_kin_in
+    W_phi[0, 1] = 0.
 
     # u is defined as a MEMORYVIEW for more efficient access
     # def du_dz(float z, float[:] u):
@@ -120,7 +118,6 @@ def z_field_map(float d_z, float W_kin_in, Py_ssize_t n_steps, float omega0_rf,
         itg_field += e_func(k_e, z_rel, e_spat, W_phi[i, 1], phi_0_rel) \
             * (1. + 1j * tan(W_phi[i, 1] + phi_0_rel)) * d_z
 
-        # l_W_kin.append(l_W_kin[-1] + delta_W_phi[0])
         W_phi[i + 1, :] = W_phi[i, :] + delta_W_phi
         l_gamma.append(1. + W_phi[i+1, 0] * inv_E_rest_MeV_cdef)
         l_beta.append(sqrt(1. - l_gamma[-1]**-2))
@@ -133,10 +130,8 @@ def z_field_map(float d_z, float W_kin_in, Py_ssize_t n_steps, float omega0_rf,
                                  W_phi[i, 1], omega0_rf, k_e, phi_0_rel,
                                  e_spat))
         z_rel += d_z
-        # l_phi_rel.append(l_phi_rel[-1] + delta_W_phi[1])
 
-    # return np.array(r_zz), l_W_kin[1:], l_phi_rel[1:], itg_field
-    return np.array(r_zz), np.delete(W_phi, (0), axis=0), itg_field
+    return np.array(r_zz), W_phi[1:, :], itg_field
 
 
 cdef z_thin_lense(float d_z, float half_dz, float W_kin_in, float gamma_middle,

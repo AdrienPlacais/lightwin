@@ -16,13 +16,13 @@ from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH
 # Transfer matrices
 # =============================================================================
 def z_drift(delta_s, W_kin_in, n_steps=1):
-    gamma_in = 1. + W_kin_in * inv_E_rest_MeV
-    r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in**-2],
+    gamma_in_min2 = (1. + W_kin_in * inv_E_rest_MeV)**-2
+    r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
                                               [0., 1.]]))
-    beta_in = np.sqrt(1. - gamma_in**-2)
+    beta_in = np.sqrt(1. - gamma_in_min2)
     delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
 
-    # Two possibilites: which one is the best?
+    # Two possibilites: second one is the best
     # l_W_kin = [W_kin_in for i in range(n_steps)]
     # l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
     # w_phi = np.empty((n_steps, 2))
