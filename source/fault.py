@@ -413,8 +413,8 @@ class Fault():
             for idx1, idx2 in zip(l_idx_ref[1:], l_idx_brok[1:]):
                 obj_ref += fun_ref(ref_lin, idx1)
                 obj_brok += fun_brok(calc, idx2)
-            print('ref', obj_ref)
-            print('brk', obj_brok)
+            # print('ref', obj_ref)
+            # print('brk', obj_brok)
             return np.abs(np.array(obj_ref) - np.array(obj_brok))
 
         for idx in l_idx_ref:

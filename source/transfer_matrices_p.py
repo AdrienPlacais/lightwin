@@ -22,12 +22,9 @@ def z_drift(delta_s, W_kin_in, n_steps=1):
     beta_in = np.sqrt(1. - gamma_in**-2)
     delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
 
-    l_W_kin = [E_rest_MeV * (gamma_in - 1.) for i in range(n_steps)]
-    l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
-
-    w_phi = np.full((n_steps, 2), np.NaN)
-    w_phi[:, 0] = l_W_kin
-    w_phi[:, 1] = l_phi_rel
+    w_phi = np.empty((n_steps, 2))
+    w_phi[:, 0] = W_kin_in
+    w_phi[:, 1] = np.linspace(delta_phi, n_steps * delta_phi, n_steps)
     return r_zz, w_phi, None
 
 
@@ -50,24 +47,20 @@ def rk4(u, du_dx, x, dx):
 
 
 def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
-    #  print('TODO elsewhere for enter_cavity:')
-    #  print('\trephase cavity')
-    # omega0_rf = kwargs['omega0_rf']
-    # k_e = kwargs['norm']
-    # phi_0_rel = kwargs['phi_0_rel']
-    # e_spat = kwargs['e_spat']
     z_rel = 0.
     itg_field = 0.
     half_d_z = .5 * d_z
 
     r_zz = []
-    l_W_kin = [W_kin_in]
+    # l_W_kin = [W_kin_in]
+    # l_phi_rel = [0.]
+    w_phi = np.empty((n_steps + 1, 2))
+    w_phi[0, 0] = W_kin_in
+    w_phi[0, 1] = 0.
     l_gamma = [1. + W_kin_in * inv_E_rest_MeV]
     l_beta = [np.sqrt(1. - l_gamma[0]**-2)]
-    l_phi_rel = [0.]
 
     def du_dz(z, u):
-        # v0 = q_adim * cavity.acc_field.e_func(z, u[1])
         v0 = q_adim * e_func(k_e, z, e_spat, u[1], phi_0_rel)
         gamma_float = 1. + u[0] * inv_E_rest_MeV
         beta = np.sqrt(1. - gamma_float**-2)
@@ -76,35 +69,38 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
 
     for i in range(n_steps):
         # Compute energy and phase changes
-        delta_W, delta_phi = rk4(np.array([l_W_kin[-1], l_phi_rel[-1]]), du_dz,
-                                 z_rel, d_z)
+        # delta_W, delta_phi = rk4(np.array([l_W_kin[-1], l_phi_rel[-1]]), du_dz,
+        delta_W, delta_phi = rk4(w_phi[i, :], du_dz, z_rel, d_z)
 
         # Update
-        itg_field += e_func(k_e, z_rel, e_spat, l_phi_rel[-1], phi_0_rel) \
-            * (1. + 1j * np.tan(l_phi_rel[-1] + phi_0_rel)) * d_z
-        # synch.set_energy
-        l_W_kin.append(l_W_kin[-1] + delta_W)
-        l_gamma.append(1. + l_W_kin[-1] * inv_E_rest_MeV)
+        # itg_field += e_func(k_e, z_rel, e_spat, l_phi_rel[-1], phi_0_rel) \
+            # * (1. + 1j * np.tan(l_phi_rel[-1] + phi_0_rel)) * d_z
+        itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
+            * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
+
+        # l_W_kin.append(l_W_kin[-1] + delta_W)
+        # l_gamma.append(1. + l_W_kin[-1] * inv_E_rest_MeV)
+        w_phi[i + 1, 0] = w_phi[i, 0] + delta_W
+        l_gamma.append(1. + w_phi[i + 1, 0] * inv_E_rest_MeV)
         l_beta.append(np.sqrt(1. - l_gamma[-1]**-2))
 
         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
         beta_middle = np.sqrt(1. - gamma_middle**-2)
 
-        r_zz.append(z_thin_lense(d_z, half_d_z, l_W_kin[-2], gamma_middle,
-                                 l_W_kin[-1], beta_middle, z_rel,
-                                 l_phi_rel[-1], omega0_rf, k_e, phi_0_rel,
+        # r_zz.append(z_thin_lense(d_z, half_d_z, l_W_kin[-2], gamma_middle,
+        #                          l_W_kin[-1], beta_middle, z_rel,
+        #                          l_phi_rel[-1], omega0_rf, k_e, phi_0_rel,
+        r_zz.append(z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
+                                 w_phi[i + 1, 0], beta_middle, z_rel,
+                                 w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
                                  e_spat))
 
-        # synch.advance_position
-        z_rel += d_z
         # synch.set_phase
-        l_phi_rel.append(l_phi_rel[-1] + delta_phi)
+        z_rel += d_z
+        # l_phi_rel.append(l_phi_rel[-1] + delta_phi)
+        w_phi[i + 1, 1] = w_phi[i, 1] + delta_phi
 
-    # synch,exit_cavity
-    w_phi = np.full((n_steps, 2), np.NaN)
-    w_phi[:, 0] = l_W_kin[1:]
-    w_phi[:, 1] = l_phi_rel[1:]
-    return np.array(r_zz), w_phi, itg_field
+    return np.array(r_zz), w_phi[1:, :], itg_field
 
 
 def z_thin_lense(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
