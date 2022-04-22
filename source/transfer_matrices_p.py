@@ -12,10 +12,12 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 import numpy as np
 from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH
 
+
 # =============================================================================
 # Transfer matrices
 # =============================================================================
 def z_drift(delta_s, W_kin_in, n_steps=1):
+    """Calculate the transfer matrix of a drift."""
     gamma_in_min2 = (1. + W_kin_in * inv_E_rest_MeV)**-2
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
                                               [0., 1.]]))
@@ -35,14 +37,37 @@ def z_drift(delta_s, W_kin_in, n_steps=1):
 
 
 def e_func(k_e, z, e_spat, phi, phi_0):
+    """Electric field."""
     return k_e * e_spat(z) * np.cos(phi + phi_0)
 
 
 def de_dt_func(k_e, z, e_spat, phi, phi_0, factor):
+    """Time-derivative of electric field."""
     return factor * k_e * e_spat(z) * np.sin(phi + phi_0)
 
 
 def rk4(u, du_dx, x, dx):
+    """
+    4-th order Runge-Kutta integration.
+
+    This function calculates the variation of u between x and x+dx.
+
+    Parameters
+    ----------
+    u: np.array
+        Holds the value of the function to integrate in x.
+    df_dx: function
+        Gives the variation of u components with x.
+    x: real
+        Where u is known.
+    dx: real
+        Integration step.
+
+    Return
+    ------
+    delta_u: real
+        Variation of u between x and x+dx.
+    """
     half_dx = .5 * dx
     k_1 = du_dx(x, u)
     k_2 = du_dx(x + half_dx, u + half_dx * k_1)
@@ -53,6 +78,7 @@ def rk4(u, du_dx, x, dx):
 
 
 def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
+    """Calculate the transfer matrix of a FIELD_MAP."""
     z_rel = 0.
     itg_field = 0.
     half_d_z = .5 * d_z
@@ -99,6 +125,7 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
 def z_thin_lense(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
                  beta_middle, z_rel, phi_rel, omega0_rf, norm, phi_0,
                  e_spat):
+    """Thin lense approximation: drift-acceleration-drift."""
     # In
     r_zz = z_drift(half_dz, W_kin_in)[0][0]
 
