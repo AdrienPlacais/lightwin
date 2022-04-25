@@ -37,7 +37,7 @@ project_folder = ''
 # are faulty (global compensation).
 FLAG_PHI_ABS = True
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = True
+FLAG_PHI_S_FIT = False
 
 E_MEV = 16.6
 F_BUNCH_MHZ = 176.1

@@ -194,17 +194,16 @@ class Fault():
 
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
+        l_elts, l_idx_ref, l_idx_brok = self._select_zone_to_recompute(
+            self.what_to_fit['position'])
 
-        fun_objective, idx_objective, idx_objective2, l_elts = \
-            self._select_objective(self.what_to_fit['position'],
-                                   self.what_to_fit['objective'])
-        # Save some
+        fun_multi_obj = self._select_objective(self.what_to_fit['objective'])
+        # Save some data for debug and output purposes
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
         self.comp['l_recompute'] = l_elts
 
-        args = (self, fun_objective, idx_objective, idx_objective2,
-                what_to_fit)
+        args = (self, fun_multi_obj, l_idx_ref, l_idx_brok, what_to_fit)
 
         if OPT_METHOD == 'classic':
             sol = self._proper_fix_classic_opt(initial_guesses, bounds, args)
@@ -338,28 +337,25 @@ class Fault():
         print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
         return initial_guess, bounds
 
-    def _select_objective(self, str_position, str_objective):
+    def _select_zone_to_recompute(self, str_position):
         """
-        Select the objective to fit.
+        Determine zone to recompute and indexes of where objective is checked.
 
-        Parameters
-        ----------
-        str_position : string
-            Indicates where the objective should be matched.
-        str_objective : string
-            Indicates what should be fitted.
+         Parameters
+         ----------
+         str_position : string
+             Indicates where the objective should be matched.
 
         Return
         ------
-        fun_multi_objective : function
-            Takes linac and a list of indices into argument, returns a list
-            of the physical quantities defined by str_objective at the
-            positions defined by the list of indices.
-        l_idx_pos : list of int
-            Indices where the objectives should be matched. Expressed as
-            indexes for the synchronous particle.
-        l_elements : list of _Element
-            Fraction of the linac that will be recomputed.
+        l_elts : list of _Element
+            List of elements that should be recomputed.
+        l_idx_ref : list of int
+            Indices for the synchronous particle of where objective should be
+            matched.
+        l_idx_brok : list of int
+            Indices for the arrays returned by compute_transfer_matrices
+            of where objective should be matched.
         """
         # Which lattices' data are necessary?
         d_lattices = {
@@ -371,10 +367,9 @@ class Fault():
             [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
         }
         l_lattices = d_lattices[str_position](self.comp['l_cav'])
-        l_elements = [elt
-                      for lattice in l_lattices
-                      for elt in lattice]
-
+        l_elts = [elt
+                  for lattice in l_lattices
+                  for elt in lattice]
         # Where do you want to verify that the objective is matched?
         d_pos = {
             'end_mod': lambda lattices: [lattices[-1][-1].idx['s_out']],
@@ -387,54 +382,60 @@ class Fault():
         l_idx_brok = [idx - shift_s_idx_brok
                       for idx in l_idx_ref]
 
-        # What do you want to match?
-        d_obj_ref = {
-            'energy': lambda ref_lin, idx:
-                [ref_lin.synch.energy['kin_array_mev'][idx]],
-            'phase': lambda ref_lin, idx:
-                [ref_lin.synch.phi['abs_array'][idx]],
-            'transf_mat': lambda ref_lin, idx:
-                list(ref_lin.transf_mat['cumul'][idx].flatten()),
-        }
-        d_obj_ref['energy_phase'] = lambda ref_lin, idx: \
-            d_obj_ref['energy'](ref_lin, idx) \
-            + d_obj_ref['phase'](ref_lin, idx)
-        d_obj_ref['all'] = lambda ref_lin, idx: \
-            d_obj_ref['energy_phase'](ref_lin, idx) \
-            + d_obj_ref['transf_mat'](ref_lin, idx)
-
-        fun_ref = d_obj_ref[str_objective]
-
-        d_obj_brok = {
-            'energy': lambda calc, idx: [calc['W_kin'][idx]],
-            'phase': lambda calc, idx: [calc['phi_abs'][idx]],
-            'transf_mat': lambda calc, idx: list(calc['r_zz'][idx].flatten())
-        }
-        d_obj_brok['energy_phase'] = lambda calc, idx: \
-            d_obj_brok['energy'](calc, idx) + d_obj_brok['phase'](calc, idx)
-        d_obj_brok['all'] = lambda calc, idx: \
-            d_obj_brok['energy_phase'](calc, idx) + \
-            d_obj_brok['transf_mat'](calc, idx)
-
-        fun_brok = d_obj_brok[str_objective]
-
-        def fun_multi_obj(ref_lin, calc, l_idx_ref, l_idx_brok,
-                          flag_out=False):
-            obj_ref = fun_ref(ref_lin, l_idx_ref[0])
-            obj_brok = fun_brok(calc, l_idx_brok[0])
-
-            for idx1, idx2 in zip(l_idx_ref[1:], l_idx_brok[1:]):
-                obj_ref += fun_ref(ref_lin, idx1)
-                obj_brok += fun_brok(calc, idx2)
-            # print('ref', obj_ref)
-            # print('brk', obj_brok)
-            return np.abs(np.array(obj_ref) - np.array(obj_brok))
-
         for idx in l_idx_ref:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
                   elt.info, elt.idx, ".")
-        return fun_multi_obj, l_idx_ref, l_idx_brok, l_elements
+
+        return l_elts, l_idx_ref, l_idx_brok
+
+    def _select_objective(self, str_objective):
+        """
+        Select the objective to fit.
+
+        Parameters
+        ----------
+        str_objective : string
+            Indicates what should be fitted.
+
+        Return
+        ------
+        fun_multi_objective : function
+            Takes linac and a list of indices into argument, returns a list
+            of the physical quantities defined by str_objective at the
+            positions defined by the list of indices.
+        """
+        # What do you want to match?
+        d_obj_ref = {
+            'energy': lambda ref_lin: ref_lin.synch.energy['kin_array_mev'],
+            'phase': lambda ref_lin: ref_lin.synch.phi['abs_array'],
+            'transf_mat': lambda ref_lin: np.resize(
+                ref_lin.transf_mat['cumul'],
+                (ref_lin.transf_mat['cumul'].shape[0], 4))
+        }
+        d_obj_ref['energy_phase'] = lambda ref_lin: np.column_stack(
+            (d_obj_ref['energy'](ref_lin), d_obj_ref['phase'](ref_lin)))
+        d_obj_ref['all'] = lambda ref_lin: np.hstack(
+            (d_obj_ref['energy_phase'](ref_lin),
+             d_obj_ref['transf_mat'](ref_lin)))
+        fun_ref = d_obj_ref[str_objective]
+
+        d_obj_brok = {'energy': lambda calc: calc['W_kin'],
+                      'phase': lambda calc: calc['phi_abs'],
+                      'transf_mat': lambda calc: np.resize(
+                          calc['r_zz'], (calc['r_zz'].shape[0], 4))}
+        d_obj_brok['energy_phase'] = lambda calc: np.column_stack((
+            d_obj_brok['energy'](calc), d_obj_brok['phase'](calc)))
+        d_obj_brok['all'] = lambda calc: np.hstack((
+            d_obj_brok['energy_phase'](calc), d_obj_brok['transf_mat'](calc)))
+        fun_brok = d_obj_brok[str_objective]
+
+        def fun_multi_obj(ref_lin, brok_calc, l_idx_ref, l_idx_brok,
+                          flag_out=False):
+            obj = np.abs(fun_ref(ref_lin)[l_idx_ref, :]
+                         - fun_brok(brok_calc)[l_idx_brok, :])
+            return obj.flatten()
+        return fun_multi_obj
 
 
 def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
