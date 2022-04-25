@@ -439,7 +439,7 @@ def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
     values = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
     calc = dict(zip(keys, values))
-    obj = fun_multi_obj(fault.ref_lin, calc, idx_ref, idx_brok,)
+    obj = fun_multi_obj(fault.ref_lin, calc, idx_ref, idx_brok)
 
     if debugs['fit_progression'] and count % 20 == 0:
         debug.output_fit_progress(count, obj, what_to_fit)

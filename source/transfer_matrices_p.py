@@ -83,7 +83,7 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     itg_field = 0.
     half_d_z = .5 * d_z
 
-    r_zz = []
+    r_zz = np.empty((n_steps, 2, 2))
     w_phi = np.empty((n_steps + 1, 2))
     w_phi[0, 0] = W_kin_in
     w_phi[0, 1] = 0.
@@ -112,14 +112,14 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
         beta_middle = np.sqrt(1. - gamma_middle**-2)
 
-        r_zz.append(z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
-                                 w_phi[i + 1, 0], beta_middle, z_rel,
-                                 w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
-                                 e_spat))
+        r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
+                                     w_phi[i + 1, 0], beta_middle, z_rel,
+                                     w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
+                                     e_spat)
 
         z_rel += d_z
 
-    return np.array(r_zz), w_phi[1:, :], itg_field
+    return r_zz, w_phi[1:, :], itg_field
 
 
 def z_thin_lense(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,

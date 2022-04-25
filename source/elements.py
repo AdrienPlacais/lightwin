@@ -7,7 +7,7 @@ Created on Wed Sep 22 10:26:19 2021.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-import transfer_matrices_p as tm
+import transfer_matrices_c as tm
 import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
@@ -104,17 +104,14 @@ class _Element():
                                   kwargs['norm'], kwargs['phi_0_rel'],
                                   kwargs['e_spat'])
             w_phi[:, 1] *= OMEGA_0_BUNCH / kwargs['omega0_rf']
-            # l_phi_rel = [phi_rf * OMEGA_0_BUNCH / kwargs['omega0_rf']
-                         # for phi_rf in l_phi_rel_rf]
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
             r_zz, w_phi, _ = self.tmat['func'](d_z, w_kin_in, n_steps)
             cav_params = None
 
-        results = {'r_zz': r_zz, 'l_W_kin': w_phi[:, 0].tolist(),
-                   'l_phi_rel': w_phi[:, 1].tolist(),
-                   'cav_params': cav_params}
+        results = {'r_zz': r_zz, 'cav_params': cav_params,
+                   'w_kin': w_phi[:, 0], 'phi_rel': w_phi[:, 1]}
 
         return results
 

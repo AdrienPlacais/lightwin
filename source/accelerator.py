@@ -98,14 +98,14 @@ class Accelerator():
                   "the .dat file used by TW. Results won't match if there",
                   'are faulty cavities.\n')
 
-    def compute_transfer_matrices(self, elements=None, flag_transfer_data=True,
+    def compute_transfer_matrices(self, l_elts=None, flag_transfer_data=True,
                                   d_fits={'flag': False}):
         """
         Compute the transfer matrices of Accelerator's elements.
 
         Parameters
         ----------
-        elements : list of Elements, optional
+        l_elts : list of Elements, optional
             List of elements from which you want the transfer matrices. Default
             is None. In this case, MT calculated for the whole linac.
         flag_transfer_data: bool, optional
@@ -116,70 +116,93 @@ class Accelerator():
             accelering fields data is taken from this dict instead of from
             the acc_field objects. Default is {'flag': False}.
         """
-        if elements is None:
-            elements = self.elements['list']
+        if l_elts is None:
+            l_elts = self.elements['list']
 
-        l_r_zz = []
-        l_w_kin = [self.synch.energy['kin_array_mev'][elements[0].idx['s_in']]]
-        l_phi_abs = [self.synch.phi['abs_array'][elements[0].idx['s_in']]]
+        n_steps = 1 + sum([elt.tmat['solver_param']['n_steps']
+                           for elt in l_elts])
+        # Index of entry of first element, index of exit of last one
+        endpoints = (l_elts[0].idx['s_in'], l_elts[-1].idx['s_out'] + 1)
+
+        # Create arrays
+        arr_r_zz_elt = np.full((n_steps - 1, 2, 2), np.NaN)
+        arr_r_zz_cumul = np.full((n_steps, 2, 2), np.NaN)
+        arr_w_kin = np.full(n_steps, np.NaN)
+        arr_phi_abs = np.full(n_steps, np.NaN)
+
+        # Initial values
+        w_kin = self.synch.energy['kin_array_mev'][endpoints[0]]
+        phi_abs = self.synch.phi['abs_array'][endpoints[0]]
+
+        # If we are at the start of the linac, initial transf mat is unity
+        if endpoints[0] == 0:
+            arr_r_zz_cumul[0] = np.eye(2)
+        else:
+            # Else we take the mt at the start of l_elts
+            # (should be already calculated)
+            arr_r_zz_cumul[0] = self.transf_mat['cumul'][endpoints[0], :, :]
+            assert ~np.isnan(arr_r_zz_cumul[0]).any(), \
+                'Previous transfer matrix was not calculated.'
+
+        arr_w_kin[0] = w_kin
+        arr_phi_abs[0] = phi_abs
 
         # Compute transfer matrix and acceleration in each element
-        for elt in elements:
+        for elt in l_elts:
+            tmp = [elt.idx['s_in'] - endpoints[0],
+                   elt.idx['s_out'] - endpoints[0]]
+
             if elt.info['nature'] == 'FIELD_MAP' \
                     and elt.info['status'] != 'failed':
 
                 if d_fits['flag'] and elt.info['status'] == 'compensate':
                     d_fit_elt = {'flag': True,
                                  'phi': d_fits['l_phi'].pop(0),
-                                 'norm': d_fits['l_norm'].pop(0),
-                                 }
+                                 'norm': d_fits['l_norm'].pop(0)}
                 else:
                     d_fit_elt = d_fits
 
-                kwargs = elt.set_cavity_parameters(
-                    self.synch, l_phi_abs[-1], l_w_kin[-1], d_fit_elt)
-                elt_results = elt.calc_transf_mat(l_w_kin[-1], **kwargs)
+                kwargs = elt.set_cavity_parameters(self.synch, phi_abs,
+                                                   w_kin, d_fit_elt)
+                elt_results = elt.calc_transf_mat(w_kin, **kwargs)
 
             else:
                 kwargs = None
-                elt_results = elt.calc_transf_mat(l_w_kin[-1])
+                elt_results = elt.calc_transf_mat(w_kin)
 
-            l_r_zz.append(elt_results['r_zz'])
-            l_phi_abs_elt = [l_phi_abs[-1] + phi_rel
-                             for phi_rel in elt_results['l_phi_rel']]
-            l_phi_abs += l_phi_abs_elt
-            l_w_kin += elt_results['l_W_kin']
+            # Extract TM, phase, energy of current element before we go on
+            arr_r_zz_elt[tmp[0]:tmp[1]] = elt_results['r_zz']
+            arr_w_kin[tmp[0] + 1:tmp[1] + 1] = elt_results['w_kin']
+            arr_phi_abs[tmp[0] + 1:tmp[1] + 1] =\
+                phi_abs + elt_results['phi_rel']
 
+            # FIXME
             if flag_transfer_data:
-                self.transfer_data(elt, elt_results, l_phi_abs_elt, kwargs)
+                self.transfer_data(elt, elt_results,
+                                   phi_abs + elt_results['phi_rel'], kwargs)
 
-        idxs = [elements[0].idx['s_in'], elements[-1].idx['s_out'] + 1]
+            # Update
+            w_kin = elt_results['w_kin'][-1]
+            phi_abs += elt_results['phi_rel'][-1]
 
-        flattened_r_zz = np.concatenate(l_r_zz)
-        n_r_zz = len(range(idxs[0], idxs[1]))
-        cumul_r_zz = np.full((n_r_zz, 2, 2), np.NaN)
+        # Compute transfer matrix of l_elts
+        for i in range(1, n_steps):
+            arr_r_zz_cumul[i] = arr_r_zz_elt[i - 1] @ arr_r_zz_cumul[i - 1]
 
-        if idxs[0] == 0:
-            cumul_r_zz[0, :, :] = np.eye(2)
-        else:
-            cumul_r_zz[0, :, :] = self.transf_mat['cumul'][idxs[0], :, :]
-
-        for i in range(1, n_r_zz):
-            cumul_r_zz[i, :, :] = flattened_r_zz[i - 1, :, :] \
-                @ cumul_r_zz[i - 1, :, :]
         if flag_transfer_data:
-            self.transf_mat['cumul'][idxs[0]:idxs[1]] = cumul_r_zz
+            self.transf_mat['cumul'][endpoints[0]:endpoints[1]] \
+                = arr_r_zz_cumul
 
-        return cumul_r_zz, l_w_kin, l_phi_abs
+        return arr_r_zz_cumul, arr_w_kin.tolist(), arr_phi_abs.tolist()
 
-    def transfer_data(self, elt, elt_results, l_phi_abs_elt, kwargs):
+    def transfer_data(self, elt, elt_results, phi_abs_elt, kwargs):
         """
         Transfer calculated energies, phases, MTs, etc to proper Objects.
 
         This function is to be used when NO optimisation is performed.
         """
         idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
-        self.synch.transfer_data(elt, elt_results['l_W_kin'], l_phi_abs_elt)
+        self.synch.transfer_data(elt, elt_results['w_kin'], phi_abs_elt)
         elt.tmat['matrix'] = elt_results['r_zz']
         self.transf_mat['indiv'][idx] = elt_results['r_zz']
 

@@ -33,12 +33,12 @@ class Particle():
             # FIXME: still used. Can be replaced by cav status?
             # I think it could be a good thing as to prepare the global + local
             # compensation
-            }
+        }
 
         self.z = {
             'rel': z,           # Position from the start of the element
             'abs_array': np.full((n_steps + 1), np.NaN),
-            }
+        }
         self.z['abs_array'][0] = z
 
         self.omega0 = {
@@ -46,14 +46,14 @@ class Particle():
             # FIXME: default set f_rf = 2*f_bunch is dirty
             'rf': 2. * OMEGA_0_BUNCH,    # Should match 'ref' inside cavities
             'lambda_array': np.full((n_steps + 1), np.NaN),
-            }
+        }
 
         self.energy = {
             'kin_array_mev': np.full((n_steps + 1), np.NaN),
             'gamma_array': np.full((n_steps + 1), np.NaN),
             'beta_array': np.full((n_steps + 1), np.NaN),
             'p_array_mev': np.full((n_steps + 1), np.NaN),
-            }
+        }
         self.set_energy(e_mev, idx=0, delta_e=False)
 
         # Dict used to navigate between phi_rf = omega_rf * t and
@@ -62,13 +62,13 @@ class Particle():
         self.frac_omega = {
             'rf_to_bunch': 1.,
             'bunch_to_rf': 1.,
-            }
+        }
         self.phi = {
             'rel': None,
             'abs': None,
             'abs_rf': None,
             'abs_array': np.full((n_steps + 1), np.NaN),
-            }
+        }
         self._init_phi(idx=0)
 
         self.phase_space = {
@@ -77,7 +77,7 @@ class Particle():
             'delta_array': np.full((n_steps + 1), np.NaN),  # (p - p_s) / p_s
             'both_array': np.full((n_steps + 1), np.NaN),
             'phi_array_rad': np.full((n_steps + 1), np.NaN),
-            }
+        }
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
@@ -99,7 +99,7 @@ class Particle():
 
         if delta_e:
             self.energy['kin_array_mev'][idx] = \
-                self.energy['kin_array_mev'][idx-1] + e_mev
+                self.energy['kin_array_mev'][idx - 1] + e_mev
         else:
             self.energy['kin_array_mev'][idx] = e_mev
 
@@ -128,7 +128,7 @@ class Particle():
         if np.isnan(idx):
             idx = np.where(np.isnan(self.z['abs_array']))[0][0]
         self.z['rel'] += delta_pos
-        self.z['abs_array'][idx] = self.z['abs_array'][idx-1] + delta_pos
+        self.z['abs_array'][idx] = self.z['abs_array'][idx - 1] + delta_pos
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
@@ -144,7 +144,7 @@ class Particle():
             'phi_abs': [self.phi['abs']],
             'phi_abs_rf': [self.phi['abs_rf']],
             'phi_rel': [self.phi['rel']],
-            })
+        })
 
     def advance_phi(self, delta_phi, idx=np.NaN, flag_rf=False):
         """
@@ -172,7 +172,7 @@ class Particle():
             delta_phi *= self.frac_omega['rf_to_bunch']
 
         self.phi['abs'] += delta_phi
-        self.phi['abs_array'][idx] = self.phi['abs_array'][idx-1] + delta_phi
+        self.phi['abs_array'][idx] = self.phi['abs_array'][idx - 1] + delta_phi
 
     def set_abs_phi(self, new_phi, idx=np.NaN, flag_rf=False):
         """
@@ -215,14 +215,14 @@ class Particle():
             self.phase_space['phi_array_rad'],
             self.energy['beta_array'], OMEGA_0_BUNCH)
 
-        self.phase_space['delta_array'] = (self.energy['p_array_mev']
-                                           - synch.energy['p_array_mev']) \
-            / synch.energy['p_array_mev']
+        self.phase_space['delta_array'] = \
+            (self.energy['p_array_mev'] - synch.energy['p_array_mev']) / \
+            synch.energy['p_array_mev']
 
         self.phase_space['both_array'] = np.vstack(
             (self.phase_space['z_array'],
              self.phase_space['delta_array'])
-            )
+        )
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
 
@@ -256,7 +256,7 @@ class Particle():
                 acc_field.convert_phi_0(
                     self.phi['abs_rf'],
                     abs_to_rel=acc_field.absolute_phase_flag
-                    )
+                )
             else:
                 # Phases should have been imported from reference linac
                 if cav_status == 'nominal':
@@ -290,22 +290,22 @@ class Particle():
         self._set_omega_rf(OMEGA_0_BUNCH)
         self.phi['abs_rf'] = None
 
-    def transfer_data(self, elt, l_W_kin, l_phi_abs):
+    def transfer_data(self, elt, w_kin, phi_abs):
         """Assign the energy and phase data to synch after MT calculation."""
         r_idx_elt = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
         idx_elt_prec = r_idx_elt[0] - 1
 
         ene = self.energy
-        ene['kin_array_mev'][r_idx_elt] = np.array(l_W_kin)
+        ene['kin_array_mev'][r_idx_elt] = w_kin
         ene['gamma_array'][r_idx_elt] = \
-            helper.kin_to_gamma(ene['kin_array_mev'][r_idx_elt], E_rest_MeV)
+            helper.kin_to_gamma(w_kin, E_rest_MeV)
         ene['beta_array'][r_idx_elt] = \
             helper.gamma_to_beta(ene['gamma_array'][r_idx_elt])
 
         self.z['abs_array'][r_idx_elt] = \
             self.z['abs_array'][idx_elt_prec] + elt.pos_m['rel'][1:]
 
-        self.phi['abs_array'][r_idx_elt] = np.array(l_phi_abs)
+        self.phi['abs_array'][r_idx_elt] = phi_abs
 
 
 def convert_phi_0_p(phi_in, phi_rf_abs, abs_to_rel):
