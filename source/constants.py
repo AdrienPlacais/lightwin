@@ -44,6 +44,8 @@ F_BUNCH_MHZ = 176.1
 OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 
 METHOD = 'RK'
+# classic or PSO
+OPT_METHOD = 'classic'
 N_STEPS_PER_CELL = 20
 
 # =============================================================================

@@ -14,7 +14,8 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
-from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT
+from pymoo.core.problem import Problem
+from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPT_METHOD
 import debug
 
 
@@ -81,8 +82,8 @@ class Fault():
             idx_lattice = failed_cav.idx['lattice'][0]
             for shift in [-1, +1]:
                 idx = idx_lattice + shift
-                while ((idx in comp_lattices_idx) and
-                       (idx in range(0, len(l_lattices)))):
+                while ((idx in comp_lattices_idx)
+                       and (idx in range(0, len(l_lattices)))):
                     idx += shift
                 # FIXME: dirty hack
                 if abs(idx - idx_lattice) < 3:
@@ -155,13 +156,13 @@ class Fault():
         ])
         after_ffc = self.brok_lin.elements['list'][ffc_idx:]
 
-        cav_to_rephase = [cav
-                          for cav in after_ffc
-                          if (cav.info['nature'] == 'FIELD_MAP'
-                              and cav.info['status'] == 'nominal')
-                          and (cav.info['zone'] == 'HEBT'
-                               or not FLAG_PHI_ABS)
-                          ]
+        cav_to_rephase = [
+            cav for cav in after_ffc
+            if (cav.info['nature'] == 'FIELD_MAP'
+                and cav.info['status'] == 'nominal')
+            and (cav.info['zone'] == 'HEBT'
+                 or not FLAG_PHI_ABS)
+        ]
         for cav in cav_to_rephase:
             cav.update_status('rephased')
 
@@ -192,7 +193,6 @@ class Fault():
             'strategy' == 'manual'. The default is None.
         """
         self.what_to_fit = what_to_fit
-        #  print("Starting fit with parameters:", self.what_to_fit)
 
         # Set the fit variables
         initial_guesses, bounds, x_scales = self._set_fit_parameters()
@@ -205,42 +205,46 @@ class Fault():
                 self.what_to_fit['objective'])
         self.comp['l_recompute'] = l_elements
 
-        dict_fitter = {
-            'energy':
-                [minimize, initial_guesses, bounds],
-            'phase':
-                [minimize, initial_guesses, bounds],
-            'energy_phase':
-                [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
-            'transf_mat':
-                [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
-            'all':
-                [least_squares, initial_guesses, (bounds[:, 0], bounds[:, 1])],
-        }  # minimize and least_squares do not take the same bounds format
-        fitter = dict_fitter[self.what_to_fit['objective']]
+        args = (self, fun_objective, idx_objective, idx_objective2,
+                what_to_fit)
 
+        if OPT_METHOD == 'classic':
+            sol = self._proper_fix_classic_opt(initial_guesses, bounds, args)
+
+        elif OPT_METHOD == 'PSO':
+            sol = self._proper_fix_pso(initial_guesses, bounds, args)
+
+        return sol
+
+    def _proper_fix_classic_opt(self, init_guess, bounds, args):
+        """Fix with classic optimisation."""
         global count
         count = 0
-        sol = fitter[0](fun=wrapper, x0=fitter[1], bounds=fitter[2],
-                        args=(self, fun_objective, idx_objective,
-                              idx_objective2, what_to_fit),
-                        jac='2-point',  # Default
-                        # 'trf' not ideal as jac is not sparse.
-                        # 'dogbox' may have difficulties with rank-defficient
-                        # jac.
-                        method='dogbox',
-                        ftol=1e-8, gtol=1e-8,   # Default
-                        xtol=1e-8,      # Solver is sometimes 'lazy' and ends
-                        # with xtol termination condition, while settings are
-                        # clearly not optimized
-                        # x_scale='jac',    # TODO
-                        # loss=linear,      # TODO
-                        # f_scale=1.0,      # TODO
-                        # diff_step=None,   # TODO
-                        # tr_solver=None, tr_options={},   # TODO
-                        # jac_sparsity=None,    # TODO
-                        verbose=debugs['verbose'],
-                        )
+
+        if init_guess.shape[0] == 1:
+            solver = minimize
+        else:
+            solver = least_squares
+            bounds = (bounds[:, 0], bounds[:, 1])
+
+        sol = solver(fun=wrapper, x0=init_guess, bounds=bounds, args=args,
+                     jac='2-point',  # Default
+                     # 'trf' not ideal as jac is not sparse.
+                     # 'dogbox' may have difficulties with
+                     # rank-defficient jac.
+                     method='dogbox',
+                     ftol=1e-8, gtol=1e-8,   # Default
+                     xtol=1e-8,    # Solver is sometimes 'lazy' and ends
+                     # with xtol termination condition, while settings
+                     # are clearly not optimized
+                     # x_scale='jac',    # TODO
+                     # loss=linear,      # TODO
+                     # f_scale=1.0,      # TODO
+                     # diff_step=None,   # TODO
+                     # tr_solver=None, tr_options={},   # TODO
+                     # jac_sparsity=None,    # TODO
+                     verbose=debugs['verbose'],
+                     )
 
         if debugs['fit_progression']:
             debug.output_fit_progress(count, sol.fun, final=True)
@@ -251,6 +255,21 @@ class Fault():
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
 
+        return sol
+
+    def _proper_fix_pso(self, init_guess, bounds, args):
+        """Fix with multi-PSO algorithm."""
+        class compensate(Problem):
+            def __init__(self):
+                # args = (self, fun_objective, idx_objective, idx_objective2,
+                #         what_to_fit)
+                super().__init__(n_var=init_guess.shape[0], n_obj=len(args[2]),
+                                 n_constr=0,
+                                 xl=bounds[:, 0], xu=bounds[:, 1])
+
+            def _evaluate(self,  var, out, *args, **kwargs):
+                out["F"] = wrapper(args)
+        sol = None
         return sol
 
     def _set_fit_parameters(self):
