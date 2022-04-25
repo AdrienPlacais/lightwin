@@ -94,7 +94,7 @@ class FaultScenario():
             compensate the faults. The len of this list should match the number
             of faults.
         """
-        assert mod_f.n_comp_latt_per_fault % 2 == 0, \
+        assert mod_f.N_COMP_LATT_PER_FAULT % 2 == 0, \
             'You need an even number of compensating lattices per faulty '\
             + 'cav to distribute them equally.'
         assert all([
@@ -105,7 +105,7 @@ class FaultScenario():
         def are_close(idx1, idx2):
             latt1 = self.brok_lin.elements['list'][idx1].idx['lattice'][0]
             latt2 = self.brok_lin.elements['list'][idx2].idx['lattice'][0]
-            return abs(latt1 - latt2) <= mod_f.n_comp_latt_per_fault / 2
+            return abs(latt1 - latt2) <= mod_f.N_COMP_LATT_PER_FAULT / 2
         # Regroup faults that are too close to each other as they will be fixed
         # at the same moment
         grouped_faults_idx = [[idx1

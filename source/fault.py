@@ -24,7 +24,7 @@ dict_phase = {
     False: lambda elt: elt.acc_field.phi_0['rel']
 }
 
-n_comp_latt_per_fault = 2
+N_COMP_LATT_PER_FAULT = 2
 debugs = {
     'fit_complete': False,
     'fit_compact': False,
@@ -53,7 +53,7 @@ class Fault():
         More precisely:
         Select the lattices with comp cav, extract cavities from it.
 
-        As for now, n_comp_latt_per_fault is the number of compensating
+        As for now, N_COMP_LATT_PER_FAULT is the number of compensating
         lattices per faulty cavity. This number is however too high for
         MYRRHA's high beta section.
 
@@ -133,11 +133,12 @@ class Fault():
                       for section in self.brok_lin.elements['l_sections']
                       for lattice in section
                       ]
+
         self.comp['l_all_elts'] = [elt
                                    for lattice in l_lattices
                                    for elt in lattice
-                                   if any([cav in lattice
-                                           for cav in self.comp['l_cav']])
+                                   if any((cav in lattice
+                                           for cav in self.comp['l_cav']))
                                    ]
 
     def _select_cavities_to_rephase(self):
@@ -188,22 +189,19 @@ class Fault():
         ----------
         what_to_fit : dict
             Holds the strategies of optimisation.
-        manual_list : list, optional
-            List of the indices of the cavities that compensate the fault when
-            'strategy' == 'manual'. The default is None.
         """
         self.what_to_fit = what_to_fit
 
         # Set the fit variables
-        initial_guesses, bounds, x_scales = self._set_fit_parameters()
+        initial_guesses, bounds = self._set_fit_parameters()
+
+        fun_objective, idx_objective, idx_objective2, l_elts = \
+            self._select_objective(self.what_to_fit['position'],
+                                   self.what_to_fit['objective'])
+        # Save some
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
-
-        fun_objective, idx_objective, idx_objective2, l_elements = \
-            self._select_objective(
-                self.what_to_fit['position'],
-                self.what_to_fit['objective'])
-        self.comp['l_recompute'] = l_elements
+        self.comp['l_recompute'] = l_elts
 
         args = (self, fun_objective, idx_objective, idx_objective2,
                 what_to_fit)
@@ -218,8 +216,8 @@ class Fault():
 
     def _proper_fix_classic_opt(self, init_guess, bounds, args):
         """Fix with classic optimisation."""
-        global count
-        count = 0
+        global COUNT
+        COUNT = 0
 
         if init_guess.shape[0] == 1:
             solver = minimize
@@ -230,13 +228,13 @@ class Fault():
         sol = solver(fun=wrapper, x0=init_guess, bounds=bounds, args=args,
                      jac='2-point',  # Default
                      # 'trf' not ideal as jac is not sparse.
-                     # 'dogbox' may have difficulties with
-                     # rank-defficient jac.
+                     # 'dogbox' may have difficulties with rank-defficient jac.
                      method='dogbox',
                      ftol=1e-8, gtol=1e-8,   # Default
-                     xtol=1e-8,    # Solver is sometimes 'lazy' and ends
-                     # with xtol termination condition, while settings
-                     # are clearly not optimized
+                     # Solver is sometimes 'lazy' and ends with xtol
+                     # termination condition, while settings are clearly not
+                     #  optimized
+                     xtol=1e-8,
                      # x_scale='jac',    # TODO
                      # loss=linear,      # TODO
                      # f_scale=1.0,      # TODO
@@ -247,7 +245,7 @@ class Fault():
                      )
 
         if debugs['fit_progression']:
-            debug.output_fit_progress(count, sol.fun, final=True)
+            debug.output_fit_progress(COUNT, sol.fun, final=True)
 
         print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
               sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
@@ -259,7 +257,10 @@ class Fault():
 
     def _proper_fix_pso(self, init_guess, bounds, args):
         """Fix with multi-PSO algorithm."""
-        class compensate(Problem):
+
+        class Compensate(Problem):
+            """Class holding PSO."""
+
             def __init__(self):
                 # args = (self, fun_objective, idx_objective, idx_objective2,
                 #         what_to_fit)
@@ -267,7 +268,7 @@ class Fault():
                                  n_constr=0,
                                  xl=bounds[:, 0], xu=bounds[:, 1])
 
-            def _evaluate(self,  var, out, *args, **kwargs):
+            def _evaluate(self, var, out, *args, **kwargs):
                 out["F"] = wrapper(args)
         sol = None
         return sol
@@ -290,23 +291,18 @@ class Fault():
         """
         initial_guess = []
         bounds = []
-        x_scales = []
-
-        typical_phase_var = np.deg2rad(10.)
-        typical_norm_var = .1
 
         # Handle phase
         if FLAG_PHI_S_FIT:
             limits_phase = (-np.pi / 2., 0.)
             rel_limit_phase_up = .4    # +40% over nominal synch phase
         else:
-            # limits_phase = (-np.inf, np.inf)
             limits_phase = (0., 8. * np.pi)
 
         for elt in self.comp['l_cav']:
             if FLAG_PHI_S_FIT:
-                equiv_cav = self.ref_lin.elements['list'][elt.idx['element']]
-                equiv_phi_s = equiv_cav.acc_field.cav_params['phi_s_rad']
+                equiv_phi_s = self.ref_lin.elements['list'][
+                    elt.idx['element']].acc_field.cav_params['phi_s_rad']
                 initial_guess.append(equiv_phi_s)
                 lim_down = limits_phase[0]
                 lim_up = min(limits_phase[1],
@@ -317,32 +313,30 @@ class Fault():
             else:
                 initial_guess.append(0.)
                 bounds.append(limits_phase)
-            x_scales.append(typical_phase_var)
 
         # Handle norm
         limits_norm = {
-            'relative': [0.5, 1.3],    # [50%, 130%] of norm
-            'absolute': [1., np.inf]   # ridiculous abs limits
-        }   # TODO: personnalize limits according to zone, technology
-        limits_norm_up = {
+            # Down norms
+            'relative': 0.5,    # [50%, 130%] of norm
+            'absolute': 1.,  # ridiculous abs limits
+            # Up norms according to technology:
             'low beta': 1.3 * 3.03726,
             'medium beta': 1.3 * 4.45899,
             'high beta': 1.3 * 6.67386,
         }
         for elt in self.comp['l_cav']:
             norm = elt.acc_field.norm
-            down = max(limits_norm['relative'][0] * norm,
-                       limits_norm['absolute'][0])
-            upp = limits_norm_up[elt.info['zone']]
+            lim_down = max(limits_norm['relative'] * norm,
+                           limits_norm['absolute'])
+            lim_up = limits_norm[elt.info['zone']]
 
             initial_guess.append(norm)
-            bounds.append((down, upp))
-            x_scales.append(typical_norm_var)
+            bounds.append((lim_down, lim_up))
 
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)
         print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
-        return initial_guess, bounds, x_scales
+        return initial_guess, bounds
 
     def _select_objective(self, str_position, str_objective):
         """
@@ -445,7 +439,7 @@ class Fault():
 
 def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
     """Fit function."""
-    global count
+    global COUNT
 
     d_fits = {
         'flag': True,
@@ -460,8 +454,8 @@ def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
     calc = dict(zip(keys, values))
     obj = fun_multi_obj(fault.ref_lin, calc, idx_ref, idx_brok)
 
-    if debugs['fit_progression'] and count % 20 == 0:
-        debug.output_fit_progress(count, obj, what_to_fit)
-    count += 1
+    if debugs['fit_progression'] and COUNT % 20 == 0:
+        debug.output_fit_progress(COUNT, obj, what_to_fit)
+    COUNT += 1
 
     return obj
