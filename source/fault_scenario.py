@@ -153,21 +153,21 @@ class FaultScenario():
         # We fix all Faults individually
         successes = []
         for i, f in enumerate(self.faults['l_obj']):
-            sol = f.fix_single()
-            successes.append(sol.success)
+            sol_succ, opti_sol = f.fix_single()
+            successes.append(sol_succ)
 
             # Recompute transfer matrix with proper solution
             # The norms and phi_0 from sol.x will be transfered to the electric
             # field objects thanks to transfer_data=True
             d_fits = {
                 'flag': True,
-                'l_phi': sol.x[:f.comp['n_cav']].tolist(),
-                'l_norm': sol.x[f.comp['n_cav']:].tolist(),
+                'l_phi': opti_sol[:f.comp['n_cav']].tolist(),
+                'l_norm': opti_sol[f.comp['n_cav']:].tolist(),
             }
             self.brok_lin.compute_transfer_matrices(
                 f.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=True)
 
-            self.compute_matrix_to_next_fault(f, sol.success)
+            self.compute_matrix_to_next_fault(f, sol_succ)
         # TODO plot interesting data before the second fit to see if it is
         # useful
         # TODO remake a small fit to be sure

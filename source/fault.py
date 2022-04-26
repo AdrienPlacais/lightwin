@@ -14,9 +14,10 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
-from pymoo.core.problem import Problem
+from PSO import MyProblem, perform_pso, mcdm, convergence
 from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT
 import debug
+import matplotlib.pyplot as plt
 
 
 dict_phase = {
@@ -59,20 +60,22 @@ class Fault():
         self.info['bounds'] = bounds
         self.comp['l_recompute'] = l_elts
 
-        args = (self, fun_residual, d_idx)
+        wrapper_args = (self, fun_residual, d_idx)
 
+        self.count = 0
         if OPTI_METHOD == 'classic':
-            sol = self._proper_fix_classic_opt(initial_guesses, bounds, args)
+            sol_succ, opti_sol = self._proper_fix_classic_opt(initial_guesses,
+                                                              bounds,
+                                                              wrapper_args)
 
         elif OPTI_METHOD == 'PSO':
-            sol = self._proper_fix_pso(initial_guesses, bounds, args)
+            sol_succ, opti_sol = self._proper_fix_pso(initial_guesses, bounds,
+                                                      wrapper_args)
 
-        return sol
+        return sol_succ, opti_sol
 
-    def _proper_fix_classic_opt(self, init_guess, bounds, args):
+    def _proper_fix_classic_opt(self, init_guess, bounds, wrapper_args):
         """Fix with classic optimisation."""
-        self.count = 0
-
         if init_guess.shape[0] == 1:
             solver = minimize
             # TODO: recheck
@@ -95,8 +98,8 @@ class Fault():
                       'jac_sparsity': None,
                       'verbose': debugs['verbose']
                       }
-        sol = solver(fun=wrapper, x0=init_guess, bounds=bounds, args=args,
-                     **kwargs)
+        sol = solver(fun=wrapper, x0=init_guess, bounds=bounds,
+                     args=wrapper_args, **kwargs)
 
         if debugs['fit_progression']:
             debug.output_fit_progress(self.count, sol.fun, final=True)
@@ -107,23 +110,19 @@ class Fault():
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
 
-        return sol
+        return sol.success, sol.x
 
-    def _proper_fix_pso(self, init_guess, bounds, args):
+    def _proper_fix_pso(self, init_guess, bounds, wrapper_args):
         """Fix with multi-PSO algorithm."""
+        problem = MyProblem(wrapper, init_guess, bounds, wrapper_args)
+        res = perform_pso(problem)
 
-        class Compensate(Problem):
-            """Class holding PSO."""
+        weights = np.array([.2, .3, .175, .175, .175, .175])
+        opti_sol, approx_ideal, approx_nadir = mcdm(res, weights)
 
-            def __init__(self):
-                super().__init__(n_var=init_guess.shape[0], n_obj=len(args[2]),
-                                 n_constr=0,
-                                 xl=bounds[:, 0], xu=bounds[:, 1])
+        convergence(res.history, approx_ideal, approx_nadir)
 
-            def _evaluate(self, var, out, *args, **kwargs):
-                out["F"] = wrapper(args)
-        sol = None
-        return sol
+        return True, opti_sol
 
     def select_neighboring_cavities(self):
         """
