@@ -121,18 +121,18 @@ def plot_structure(linac, ax, x_axis='s'):
         'DRIFT': _plot_drift,
         'QUAD': _plot_quad,
         'FIELD_MAP': _plot_field_map,
-        }
+    }
     dict_x_axis = {  # first element is patch dimension. second is x limits
         's': lambda elt, i: [
             {'x0': elt.pos_m['abs'][0], 'width': elt.length_m},
             [linac.elements['list'][0].pos_m['abs'][0],
              linac.elements['list'][-1].pos_m['abs'][-1]]
-            ],
+        ],
         'elt': lambda elt, i: [
             {'x0': i, 'width': 1},
             [0, i]
-            ]
-        }
+        ]
+    }
 
     for i, elt in enumerate(linac.elements['list']):
         kwargs = dict_x_axis[x_axis](elt, i)[0]
@@ -172,9 +172,10 @@ def _plot_field_map(field_map, x0, width):
         'compensate': 'orange',
         'rephased': 'yellow',
         'nominal': 'green',
-        }
-    patch = pat.Ellipse((x0 + .5*width, y0), width, height, fill=True, lw=0.5,
-                        fc=dict_colors[field_map.info['status']], ec='k')
+    }
+    patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
+                        lw=0.5, fc=dict_colors[field_map.info['status']],
+                        ec='k')
     return patch
 
 
@@ -184,7 +185,7 @@ def plot_section(linac, ax, x_axis='s'):
         'last_elt_of_sec': lambda sec: sec[-1][-1],
         's': lambda elt: linac.synch.z['abs_array'][elt.idx['s_out']],
         'elt': lambda elt: elt.idx['element'] + 1,
-        }
+    }
     x_ax = [0]
     for i, section in enumerate(linac.elements['l_sections']):
         elt = dict_x_axis['last_elt_of_sec'](section)
@@ -192,7 +193,7 @@ def plot_section(linac, ax, x_axis='s'):
 
     for i in range(len(x_ax) - 1):
         if i % 2 == 1:
-            ax.axvspan(x_ax[i], x_ax[i+1], ymin=-1e8, ymax=1e8, fill=True,
+            ax.axvspan(x_ax[i], x_ax[i + 1], ymin=-1e8, ymax=1e8, fill=True,
                        alpha=.1, fc='k')
 
 
@@ -330,7 +331,7 @@ def diff_angle(phi_1, phi_2):
     delta_phi = np.arctan2(
         np.sin(phi_2 - phi_1),
         np.cos(phi_2 - phi_1)
-        )
+    )
     return delta_phi
 
 
@@ -367,5 +368,5 @@ def individual_to_global_transfer_matrix(m_in, m_out, idxs=None):
     if idxs == [0, m_in.shape[0]]:
         m_out[0, :, :] = np.eye(2)
 
-    for i in range(idxs[0]+1, idxs[1]):
-        m_out[i, :, :] = m_in[i, :, :] @ m_out[i-1, :, :]
+    for i in range(idxs[0] + 1, idxs[1]):
+        m_out[i, :, :] = m_in[i, :, :] @ m_out[i - 1, :, :]

@@ -197,13 +197,13 @@ class Fault():
         l_elts, d_idx = self._select_zone_to_recompute(
             self.what_to_fit['position'])
 
-        fun_multi_obj = self._select_objective(self.what_to_fit['objective'])
+        fun_residual = self._select_objective(self.what_to_fit['objective'])
         # Save some data for debug and output purposes
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
         self.comp['l_recompute'] = l_elts
 
-        args = (self, fun_multi_obj, d_idx, what_to_fit)
+        args = (self, fun_residual, d_idx, what_to_fit)
 
         if OPTI_METHOD == 'classic':
             sol = self._proper_fix_classic_opt(initial_guesses, bounds, args)
@@ -417,7 +417,7 @@ class Fault():
         d_obj_ref['all'] = lambda ref_lin: np.hstack(
             (d_obj_ref['energy_phase'](ref_lin),
              d_obj_ref['transf_mat'](ref_lin)))
-        fun_ref = d_obj_ref[str_objective]
+        arr_ref = d_obj_ref[str_objective]
 
         d_obj_brok = {'energy': lambda calc: calc['W_kin'],
                       'phase': lambda calc: calc['phi_abs'],
@@ -427,31 +427,29 @@ class Fault():
             d_obj_brok['energy'](calc), d_obj_brok['phase'](calc)))
         d_obj_brok['all'] = lambda calc: np.hstack((
             d_obj_brok['energy_phase'](calc), d_obj_brok['transf_mat'](calc)))
-        fun_brok = d_obj_brok[str_objective]
+        arr_brok = d_obj_brok[str_objective]
 
-        def fun_multi_obj(ref_lin, brok_calc, d_idx, sflag_out=False):
-            obj = np.abs(fun_ref(ref_lin)[d_idx['l_ref'], :]
-                         - fun_brok(brok_calc)[d_idx['l_brok'], :])
+        def fun_residual(ref_lin, brok_calc, d_idx):
+            obj = np.abs(arr_ref(ref_lin)[d_idx['l_ref'], :]
+                         - arr_brok(brok_calc)[d_idx['l_brok'], :])
             return obj.flatten()
-        return fun_multi_obj
+        return fun_residual
 
 
-def wrapper(prop_array, fault, fun_multi_obj, d_idx, what_to_fit):
+def wrapper(arr_cav_prop, fault, fun_residual, d_idx, what_to_fit):
     """Fit function."""
     global COUNT
 
-    d_fits = {
-        'flag': True,
-        'l_phi': prop_array[:fault.comp['n_cav']].tolist(),
-        'l_norm': prop_array[fault.comp['n_cav']:].tolist()
-    }
+    d_fits = {'flag': True,
+              'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
+              'l_norm': arr_cav_prop[fault.comp['n_cav']:].tolist()}
+    keys = ('r_zz', 'W_kin', 'phi_abs')
 
     # Update transfer matrices
-    keys = ('r_zz', 'W_kin', 'phi_abs')
     values = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    calc = dict(zip(keys, values))
-    obj = fun_multi_obj(fault.ref_lin, calc, d_idx)
+    brok_calc = dict(zip(keys, values))
+    obj = fun_residual(fault.ref_lin, brok_calc, d_idx)
 
     if debugs['fit_progression'] and COUNT % 20 == 0:
         debug.output_fit_progress(COUNT, obj, what_to_fit)

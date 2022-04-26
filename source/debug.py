@@ -19,7 +19,7 @@ from constants import E_rest_MeV
 import tracewin_interface as tw
 
 font = {'family': 'serif',
-        'size':   20}
+        'size': 20}
 plt.rc('font', **font)
 plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
@@ -42,25 +42,25 @@ def compute_error_transfer_matrix(transf_mat, transf_mat_ref,
         err = np.full((n_z, 4), np.NaN)
         for i in range(4):
             f_interp = interp1d(x=transf_mat_ref[:, 0],
-                                y=transf_mat_ref[:, i+1],
+                                y=transf_mat_ref[:, i + 1],
                                 kind=kind, bounds_error=bounds_error,
                                 fill_value=fill_value)
-            err[:, i] = f_interp(z_err) - transf_mat[:, i+1]
+            err[:, i] = f_interp(z_err) - transf_mat[:, i + 1]
 
     else:
         z_err = transf_mat_ref[:, 0]
         err = np.full((n_z_ref, 4), np.NaN)
         for i in range(4):
             f_interp = interp1d(x=transf_mat[:, 0],
-                                y=transf_mat[:, i+1],
+                                y=transf_mat[:, i + 1],
                                 kind=kind, bounds_error=bounds_error,
                                 fill_value=fill_value)
-            err[:, i] = transf_mat_ref[:, i+1] - f_interp(z_err)
+            err[:, i] = transf_mat_ref[:, i + 1] - f_interp(z_err)
 
     if flag_output:
         header = 'Errors on transfer matrix'
         message = 'Error matrix at end of line*1e3:\n' \
-            + str(err[-1, 0:2]*1e3) + '\n' + str(err[-1, 2:4]*1e3) \
+            + str(err[-1, 0:2] * 1e3) + '\n' + str(err[-1, 2:4] * 1e3) \
             + '\nCumulated error:\n' \
             + str(np.linalg.norm(err, axis=0)[0:2]) + '\n' \
             + str(np.linalg.norm(err, axis=0)[2:4]) \
@@ -112,21 +112,21 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         'LW': [accelerator.name, '', '', ''],
         'x': ['', '', 's [m]', 's [m]'],
         'y': [r'$R_{11}$', r'$R_{12}$', r'$R_{21}$', r'$R_{22}$'],
-        }
+    }
     lims = {
         0: np.array([-1.3, 1.4]),
         1: np.array([-1.9, 1.9]),
         2: np.array([-1., 1.2]),
         3: np.array([-1.4, 1.4]),
-        }
+    }
 
     if 'TW' not in axlist[0].get_legend_handles_labels()[1]:
         for i in range(4):
-            axlist[i].plot(r_zz_tot_ref[:, 0], r_zz_tot_ref[:, i+1],
+            axlist[i].plot(r_zz_tot_ref[:, 0], r_zz_tot_ref[:, i + 1],
                            label=labels['TW'][i], ls='--', c='k')
 
     for i in range(4):
-        axlist[i].plot(r_zz_tot[:, 0], r_zz_tot[:, i+1],
+        axlist[i].plot(r_zz_tot[:, 0], r_zz_tot[:, i + 1],
                        label=labels['LW'][i])
         axlist[i].set_xlabel(labels['x'][i])
         axlist[i].set_ylabel(labels['y'][i])
@@ -178,36 +178,36 @@ def _reformat(x_data, y_data, elts_indexes):
 def _create_plot_dicts():
     # [label, marker]
     dict_plot = {
-            's': ['Synch. position [m]',
-                  {'marker': None}],
-            'elt': ['Element number',
-                    {'marker': None}],
-            'energy': ['Beam energy [MeV]',
+        's': ['Synch. position [m]',
+              {'marker': None}],
+        'elt': ['Element number',
+                {'marker': None}],
+        'energy': ['Beam energy [MeV]',
+                   {'marker': None}],
+        'energy_err': ['Log of abs. error [1]',
                        {'marker': None}],
-            'energy_err': ['Log of abs. error [1]',
-                           {'marker': None}],
-            'abs_phase': ['Beam phase [deg]',
+        'abs_phase': ['Beam phase [deg]',
+                      {'marker': None}],
+        'abs_phase_err': ['Log of phase error [1]',
                           {'marker': None}],
-            'abs_phase_err': ['Log of phase error [1]',
-                              {'marker': None}],
-            'beta_synch': [r'Synch. $\beta$ [1]',
-                           {'marker': None}],
-            'beta_synch_err': [r'Abs. $\beta$ error [1]',
-                               {'marker': None}],
-            'struct': ['Structure',
+        'beta_synch': [r'Synch. $\beta$ [1]',
                        {'marker': None}],
-            'v_cav_mv': ['Acc. field [MV]',
-                         {'marker': 'o'}],
-            'phi_s_deg': ['Synch. phase [deg]',
-                          {'marker': 'o'}],
-            'field_map_factor': [r'$k_e$ [1]',
-                                 {'marker': 'o'}],
-        }
+        'beta_synch_err': [r'Abs. $\beta$ error [1]',
+                           {'marker': None}],
+        'struct': ['Structure',
+                   {'marker': None}],
+        'v_cav_mv': ['Acc. field [MV]',
+                     {'marker': 'o'}],
+        'phi_s_deg': ['Synch. phase [deg]',
+                      {'marker': 'o'}],
+        'field_map_factor': [r'$k_e$ [1]',
+                             {'marker': 'o'}],
+    }
 
     dict_x_data = {
         's': lambda lin: lin.synch.z['abs_array'],
         'elt': lambda lin: np.array(range(lin.elements['n'])),
-        }
+    }
 
     # LW y data
     dict_y_data_lw = {
@@ -220,13 +220,13 @@ def _create_plot_dicts():
             lin.get_from_elements('acc_field', 'cav_params', 'phi_s_deg'),
         'field_map_factor': lambda lin:
             lin.get_from_elements('acc_field', 'norm')
-        }
+    }
 
     dict_err_factor = {
         'energy': 1,
         'abs_phase': 1.,
         'beta_synch': 1.,
-        }
+    }
 
     all_dicts = {
         'plot': dict_plot,
@@ -234,7 +234,7 @@ def _create_plot_dicts():
         'y_data_lw': dict_y_data_lw,
         'err_factor': dict_err_factor,
         # 'errors': dict_errors,
-        }
+    }
 
     return all_dicts
 
@@ -289,7 +289,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
         'energy_err': lambda lin: _err('energy', diff='log'),
         'abs_phase_err': lambda lin: _err('abs_phase', diff='log'),
         'beta_synch_err': lambda lin: _err('beta_synch', diff='abs'),
-        }
+    }
     dicts['errors'] = dict_errors
     dicts['y_data_lw'].update(dict_errors)
 
@@ -297,7 +297,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
     first_axnum = len(y_dat) * 100 + 11
     _, axlist = helper.create_fig_if_not_exist(
         fignum, range(first_axnum, first_axnum + len(y_dat)), sharex=True,
-        )
+    )
 
     for i, y_d in enumerate(y_dat):
         _single_plot(axlist[i], [x_dat, y_d], dicts, filepath_ref, linac)
@@ -337,8 +337,8 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
         # ** (**kwargs) unpacks it to:
         # marker='+', linewidth=5
         label = 'LW ' + linac.name
-        if not (linac.name in ['Working', 'Broken'] and
-                label in axx.get_legend_handles_labels()[1]):
+        if not (linac.name in ['Working', 'Broken']
+                and label in axx.get_legend_handles_labels()[1]):
             axx.plot(x_data, y_data, label=label, ls='-',
                      **dicts['plot'][y_d][1])
 
@@ -397,14 +397,14 @@ def compare_phase_space(accelerator):
         x_data = {
             'tw': lambda element, i: element['z(mm)'][i],
             'lw': lambda part: part.phase_space['z_array'] * 1e3,
-                }
+        }
 
     elif x_axis == 'phase':
         axx.set_xlabel(r'$\phi$ [deg]')
         x_data = {
             'tw': lambda element, i: element['Phase(deg)'][i],
             'lw': lambda part: np.rad2deg(part.phase_space['phi_array_rad']),
-                }
+        }
 
     else:
         raise IOError('Wrong x_axis argument in compare_phase_space.')
@@ -415,7 +415,7 @@ def compare_phase_space(accelerator):
         y_data = {
             'tw': lambda element, i: element['Energy(MeV)'][i],
             'lw': lambda part: part.energy['kin_array_mev'],
-                }
+        }
 
     elif y_axis == 'dp/p':
         axx.set_ylabel(r'$dp/p$ [%]')
@@ -423,7 +423,7 @@ def compare_phase_space(accelerator):
             'tw': lambda element, i: helper.mrad_and_mev_to_delta(
                 element["z'(mrad)"][i], element['Energy(MeV)'][i], E_rest_MeV),
             'lw': lambda part: part.phase_space['delta_array'] * 100.,
-                }
+        }
 
     elif y_axis == "z'":
         axx.set_ylabel(r"$z'$ [mrad]")
@@ -431,7 +431,7 @@ def compare_phase_space(accelerator):
             'tw': lambda element, i: element["z'(mrad)"][i],
             'lw': lambda part: part.phase_space['delta_array']
             * part.energy['gamma_array']**-2 * 1e3,
-                }
+        }
 
     else:
         raise IOError('Wrong y_axis argument in compare_phase_space.')
@@ -514,12 +514,12 @@ def _create_output_fit_dicts():
                                            'Fixed', 'Orig.', '(var %)')),
         'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                       'Fixed', 'Orig.', '(var %)')),
-        }
+    }
     dict_attribute = {
         'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['rel']),
         'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['abs']),
         'Norm': lambda cav: cav.acc_field.norm,
-        }
+    }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
     dict_guess_bnds = {
@@ -534,15 +534,15 @@ def _create_output_fit_dicts():
                  np.rad2deg(f.info['bounds'][1][i])],
         'Norm':
             lambda f, i:
-                [f.info['bounds'][0][i+len(f.comp['l_cav'])],
-                 f.info['bounds'][1][i+len(f.comp['l_cav'])]]
-        }
+                [f.info['bounds'][0][i + len(f.comp['l_cav'])],
+                 f.info['bounds'][1][i + len(f.comp['l_cav'])]]
+    }
 
     all_dicts = {
         'param': dict_param,
         'attribute': dict_attribute,
         'guess_bnds': dict_guess_bnds,
-        }
+    }
 
     return all_dicts
 
@@ -562,7 +562,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
         ref_equiv = [
             f.ref_lin.elements['list'][cav.idx['element']]
             for cav in f.comp['l_cav']
-            ]
+        ]
 
         for param in dicts['param']:
             dicts['param'][param].loc[shift_i] = \
@@ -592,7 +592,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
             dicts['param']['Norm']['(var %)'][i],
             dicts['param']['phi_0_rel']['Fixed'][i],
             dicts['param']['phi_0_abs']['Fixed'][i],
-                          ]
+        ]
     if out_compact:
         helper.printd(compact.round(3), header='Fit compact resume')
 
@@ -611,7 +611,7 @@ def output_fit_progress(count, obj, what_to_fit=None, final=False):
         'energy_phase': ['phi', 'energy'],
         'transfer_matrix': ['M_11', 'M_12', 'M_21', 'M_22'],
         'all': ['phi', 'energy', 'M_11', 'M_12', 'M_21', 'M_22']
-        }
+    }
 
     if count == 0:
         n_different_param = len(dict_header[what_to_fit['objective']])
