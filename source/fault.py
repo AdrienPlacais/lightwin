@@ -41,10 +41,89 @@ class Fault():
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
         self.fail = {'l_cav': [], 'l_idx': fail_idx}
-        self.comp = {'l_cav': [], 'l_all_elts': None, 'l_recompute': None,
+        self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
                      'jac': None}
+        self.count = None
+
+    def fix_single(self):
+        """Try to compensate the faulty cavities."""
+        # Set the fit variables
+        initial_guesses, bounds = self._set_fit_parameters()
+        l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
+
+        fun_residual = _select_objective(WHAT_TO_FIT['objective'])
+        # Save some data for debug and output purposes
+        self.info['initial_guesses'] = initial_guesses
+        self.info['bounds'] = bounds
+        self.comp['l_recompute'] = l_elts
+
+        args = (self, fun_residual, d_idx)
+
+        if OPTI_METHOD == 'classic':
+            sol = self._proper_fix_classic_opt(initial_guesses, bounds, args)
+
+        elif OPTI_METHOD == 'PSO':
+            sol = self._proper_fix_pso(initial_guesses, bounds, args)
+
+        return sol
+
+    def _proper_fix_classic_opt(self, init_guess, bounds, args):
+        """Fix with classic optimisation."""
+        self.count = 0
+
+        if init_guess.shape[0] == 1:
+            solver = minimize
+            # TODO: recheck
+            kwargs = {}
+        else:
+            solver = least_squares
+            bounds = (bounds[:, 0], bounds[:, 1])
+            kwargs = {'jac': '2-point',     # Default
+                      # 'trf' not ideal as jac is not sparse. 'dogbox' may have
+                      # difficulties with rank-defficient jacobian.
+                      'method': 'dogbox',
+                      'ftol': 1e-8, 'gtol': 1e-8,   # Default
+                      # Solver is sometimes 'lazy' and ends with xtol
+                      # termination condition, while settings are clearly not
+                      #  optimized
+                      'xtol': 1e-8,
+                      # TODO: check these args
+                      'x_scale': 'jac', 'loss': 'linear', 'f_scale': 1.0,
+                      'diff_step': None, 'tr_solver': None, 'tr_options': {},
+                      'jac_sparsity': None,
+                      'verbose': debugs['verbose']
+                      }
+        sol = solver(fun=wrapper, x0=init_guess, bounds=bounds, args=args,
+                     **kwargs)
+
+        if debugs['fit_progression']:
+            debug.output_fit_progress(self.count, sol.fun, final=True)
+
+        print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
+              sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
+              sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
+        self.info['sol'] = sol
+        self.info['jac'] = sol.jac
+
+        return sol
+
+    def _proper_fix_pso(self, init_guess, bounds, args):
+        """Fix with multi-PSO algorithm."""
+
+        class Compensate(Problem):
+            """Class holding PSO."""
+
+            def __init__(self):
+                super().__init__(n_var=init_guess.shape[0], n_obj=len(args[2]),
+                                 n_constr=0,
+                                 xl=bounds[:, 0], xu=bounds[:, 1])
+
+            def _evaluate(self, var, out, *args, **kwargs):
+                out["F"] = wrapper(args)
+        sol = None
+        return sol
 
     def select_neighboring_cavities(self):
         """
@@ -151,10 +230,8 @@ class Fault():
         HEBT are rephased.
         """
         # We get first failed cav index
-        ffc_idx = min([
-            fail_cav.idx['elements']
-            for fail_cav in self.fail_list
-        ])
+        ffc_idx = min([fail_cav.idx['elements']
+                       for fail_cav in self.fail['l_cav']])
         after_ffc = self.brok_lin.elements['list'][ffc_idx:]
 
         cav_to_rephase = [
@@ -180,85 +257,6 @@ class Fault():
         # We return all modules that could help to compensation, ie neighbors
         # as well as faulty modules
         return neighbor_modules + modules_with_fail
-
-    def fix_single(self):
-        """Try to compensate the faulty cavities."""
-        # Set the fit variables
-        initial_guesses, bounds = self._set_fit_parameters()
-        l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
-
-        fun_residual = self._select_objective(WHAT_TO_FIT['objective'])
-        # Save some data for debug and output purposes
-        self.info['initial_guesses'] = initial_guesses
-        self.info['bounds'] = bounds
-        self.comp['l_recompute'] = l_elts
-
-        args = (self, fun_residual, d_idx)
-
-        if OPTI_METHOD == 'classic':
-            sol = self._proper_fix_classic_opt(initial_guesses, bounds, args)
-
-        elif OPTI_METHOD == 'PSO':
-            sol = self._proper_fix_pso(initial_guesses, bounds, args)
-
-        return sol
-
-    def _proper_fix_classic_opt(self, init_guess, bounds, args):
-        """Fix with classic optimisation."""
-        global COUNT
-        COUNT = 0
-
-        if init_guess.shape[0] == 1:
-            solver = minimize
-        else:
-            solver = least_squares
-            bounds = (bounds[:, 0], bounds[:, 1])
-
-        sol = solver(fun=wrapper, x0=init_guess, bounds=bounds, args=args,
-                     jac='2-point',  # Default
-                     # 'trf' not ideal as jac is not sparse.
-                     # 'dogbox' may have difficulties with rank-defficient jac.
-                     method='dogbox',
-                     ftol=1e-8, gtol=1e-8,   # Default
-                     # Solver is sometimes 'lazy' and ends with xtol
-                     # termination condition, while settings are clearly not
-                     #  optimized
-                     xtol=1e-8,
-                     # x_scale='jac',    # TODO
-                     # loss=linear,      # TODO
-                     # f_scale=1.0,      # TODO
-                     # diff_step=None,   # TODO
-                     # tr_solver=None, tr_options={},   # TODO
-                     # jac_sparsity=None,    # TODO
-                     verbose=debugs['verbose'],
-                     )
-
-        if debugs['fit_progression']:
-            debug.output_fit_progress(COUNT, sol.fun, final=True)
-
-        print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
-              sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
-              sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
-        self.info['sol'] = sol
-        self.info['jac'] = sol.jac
-
-        return sol
-
-    def _proper_fix_pso(self, init_guess, bounds, args):
-        """Fix with multi-PSO algorithm."""
-
-        class Compensate(Problem):
-            """Class holding PSO."""
-
-            def __init__(self):
-                super().__init__(n_var=init_guess.shape[0], n_obj=len(args[2]),
-                                 n_constr=0,
-                                 xl=bounds[:, 0], xu=bounds[:, 1])
-
-            def _evaluate(self, var, out, *args, **kwargs):
-                out["F"] = wrapper(args)
-        sol = None
-        return sol
 
     def _set_fit_parameters(self):
         """
@@ -329,10 +327,10 @@ class Fault():
         """
         Determine zone to recompute and indexes of where objective is checked.
 
-         Parameters
-         ----------
-         str_position : string
-             Indicates where the objective should be matched.
+        Parameters
+        ----------
+        str_position : string
+            Indicates where the objective should be matched.
 
         Return
         ------
@@ -342,7 +340,7 @@ class Fault():
             Dict holding the lists of indexes (ref and broken) to evaluate the
             objectives at the right spot.
         """
-        d_idx = {'l_ref': None, 'l_brok': None}
+        d_idx = {'l_ref': [], 'l_brok': []}
 
         # Which lattices' data are necessary?
         d_lattices = {
@@ -376,58 +374,57 @@ class Fault():
 
         return l_elts, d_idx
 
-    def _select_objective(self, str_objective):
-        """
-        Select the objective to fit.
 
-        Parameters
-        ----------
-        str_objective : string
-            Indicates what should be fitted.
+def _select_objective(str_objective):
+    """
+    Select the objective to fit.
 
-        Return
-        ------
-        fun_multi_objective : function
-            Takes linac and a list of indices into argument, returns a list
-            of the physical quantities defined by str_objective at the
-            positions defined by the list of indices.
-        """
-        # What do you want to match?
-        d_obj_ref = {
-            'energy': lambda ref_lin: ref_lin.synch.energy['kin_array_mev'],
-            'phase': lambda ref_lin: ref_lin.synch.phi['abs_array'],
-            'transf_mat': lambda ref_lin: np.resize(
-                ref_lin.transf_mat['cumul'],
-                (ref_lin.transf_mat['cumul'].shape[0], 4))
-        }
-        d_obj_ref['energy_phase'] = lambda ref_lin: np.column_stack(
-            (d_obj_ref['energy'](ref_lin), d_obj_ref['phase'](ref_lin)))
-        d_obj_ref['all'] = lambda ref_lin: np.hstack(
-            (d_obj_ref['energy_phase'](ref_lin),
-             d_obj_ref['transf_mat'](ref_lin)))
-        arr_ref = d_obj_ref[str_objective]
+    Parameters
+    ----------
+    str_objective : string
+        Indicates what should be fitted.
 
-        d_obj_brok = {'energy': lambda calc: calc['W_kin'],
-                      'phase': lambda calc: calc['phi_abs'],
-                      'transf_mat': lambda calc: np.resize(
-                          calc['r_zz'], (calc['r_zz'].shape[0], 4))}
-        d_obj_brok['energy_phase'] = lambda calc: np.column_stack((
-            d_obj_brok['energy'](calc), d_obj_brok['phase'](calc)))
-        d_obj_brok['all'] = lambda calc: np.hstack((
-            d_obj_brok['energy_phase'](calc), d_obj_brok['transf_mat'](calc)))
-        arr_brok = d_obj_brok[str_objective]
+    Return
+    ------
+    fun_multi_objective : function
+        Takes linac and a list of indices into argument, returns a list
+        of the physical quantities defined by str_objective at the
+        positions defined by the list of indices.
+    """
+    # What do you want to match?
+    d_obj_ref = {
+        'energy': lambda ref_lin: ref_lin.synch.energy['kin_array_mev'],
+        'phase': lambda ref_lin: ref_lin.synch.phi['abs_array'],
+        'transf_mat': lambda ref_lin: np.resize(
+            ref_lin.transf_mat['cumul'],
+            (ref_lin.transf_mat['cumul'].shape[0], 4))
+    }
+    d_obj_ref['energy_phase'] = lambda ref_lin: np.column_stack(
+        (d_obj_ref['energy'](ref_lin), d_obj_ref['phase'](ref_lin)))
+    d_obj_ref['all'] = lambda ref_lin: np.hstack(
+        (d_obj_ref['energy_phase'](ref_lin),
+         d_obj_ref['transf_mat'](ref_lin)))
+    arr_ref = d_obj_ref[str_objective]
 
-        def fun_residual(ref_lin, brok_calc, d_idx):
-            obj = np.abs(arr_ref(ref_lin)[d_idx['l_ref'], :]
-                         - arr_brok(brok_calc)[d_idx['l_brok'], :])
-            return obj.flatten()
-        return fun_residual
+    d_obj_brok = {'energy': lambda calc: calc['W_kin'],
+                  'phase': lambda calc: calc['phi_abs'],
+                  'transf_mat': lambda calc: np.resize(
+                      calc['r_zz'], (calc['r_zz'].shape[0], 4))}
+    d_obj_brok['energy_phase'] = lambda calc: np.column_stack((
+        d_obj_brok['energy'](calc), d_obj_brok['phase'](calc)))
+    d_obj_brok['all'] = lambda calc: np.hstack((
+        d_obj_brok['energy_phase'](calc), d_obj_brok['transf_mat'](calc)))
+    arr_brok = d_obj_brok[str_objective]
+
+    def fun_residual(ref_lin, brok_calc, d_idx):
+        obj = np.abs(arr_ref(ref_lin)[d_idx['l_ref'], :]
+                     - arr_brok(brok_calc)[d_idx['l_brok'], :])
+        return obj.flatten()
+    return fun_residual
 
 
 def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
-    """Fit function."""
-    global COUNT
-
+    """Unpack arguments and compute proper residues at proper spot."""
     d_fits = {'flag': True,
               'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
               'l_norm': arr_cav_prop[fault.comp['n_cav']:].tolist()}
@@ -439,8 +436,8 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     brok_calc = dict(zip(keys, values))
     obj = fun_residual(fault.ref_lin, brok_calc, d_idx)
 
-    if debugs['fit_progression'] and COUNT % 20 == 0:
-        debug.output_fit_progress(COUNT, obj)
-    COUNT += 1
+    if debugs['fit_progression'] and fault.count % 20 == 0:
+        debug.output_fit_progress(fault.count, obj)
+    fault.count += 1
 
     return obj
