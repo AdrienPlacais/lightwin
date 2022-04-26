@@ -79,27 +79,7 @@ manual_list = [
      # 535, 537, 539, 541, 549, 551, 553, 555],
     # [579, 581, 591, 593, 595, 597]
 ]
-WHAT_TO_FIT = {
-    # =========================================================================
-    #     How compensatong cavities are chosen?
-    # =========================================================================
-    # 'strategy': 'manual',
-    'strategy': 'neighbors',
-    # =========================================================================
-    #     What should we fit?
-    # =========================================================================
-    # 'objective': 'energy',
-    # 'objective': 'phase',
-    #  'objective': 'energy_phase',
-    # 'objective': 'transf_mat',
-    'objective': 'all',
-    # =========================================================================
-    #     Where should we evaluate objective?
-    # =========================================================================
-    'position': 'end_mod',
-    # 'position': '1_mod_after',
-    # 'position': 'both',
-}
+
 FLAG_FIX = True
 SAVE_FIX = True
 
@@ -131,8 +111,7 @@ FILEPATH = os.path.abspath(FILEPATH)
 ref_linac = acc.Accelerator(FILEPATH, "Working")
 broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
-fail = mod_fs.FaultScenario(ref_linac, broken_linac, WHAT_TO_FIT,
-                            failed_cav, manual_list)
+fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav, manual_list)
 
 DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],

@@ -15,7 +15,7 @@ from cycler import cycler
 import helper
 import particle as particle_mod
 import transport
-from constants import E_rest_MeV
+from constants import E_rest_MeV, WHAT_TO_FIT
 import tracewin_interface as tw
 
 font = {'family': 'serif',
@@ -599,7 +599,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
     return dicts['param']
 
 
-def output_fit_progress(count, obj, what_to_fit=None, final=False):
+def output_fit_progress(count, obj, final=False):
     """Output the evolution of the objective, etc."""
     single_width = 10
     precision = 3
@@ -614,12 +614,12 @@ def output_fit_progress(count, obj, what_to_fit=None, final=False):
     }
 
     if count == 0:
-        n_different_param = len(dict_header[what_to_fit['objective']])
+        n_different_param = len(dict_header[WHAT_TO_FIT['objective']])
         n_different_cavities = len(obj) // n_different_param
         print(''.center(total_width, '='))
         print(" iteration", end=' ')
         for i in range(n_different_cavities):
-            for header in dict_header[what_to_fit['objective']]:
+            for header in dict_header[WHAT_TO_FIT['objective']]:
                 print(f"{header: >{single_width}}", end=' ')
         print('\n' + ''.center(total_width, '='))
 

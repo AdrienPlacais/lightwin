@@ -13,7 +13,7 @@ brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import itertools
-from constants import FLAG_PHI_ABS
+from constants import FLAG_PHI_ABS, WHAT_TO_FIT
 import debug
 import fault as mod_f
 
@@ -21,22 +21,12 @@ import fault as mod_f
 class FaultScenario():
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_linac, broken_linac, what_to_fit, l_idx_fault,
-                 l_idx_comp):
+    def __init__(self, ref_linac, broken_linac, l_idx_fault, l_idx_comp):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
 
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
-
-        self.what_to_fit = {
-            # How are selected the compensating cavities?
-            'strategy': what_to_fit['strategy'],
-            # What do we want to fit?
-            'objective': what_to_fit['objective'],
-            # Where are we measuring 'objective'?
-            'position': what_to_fit['position'],
-        }
 
         # Save faults as a list of Fault objects and as a list of cavity idx
         l_idx_fault = sorted(l_idx_fault)
@@ -127,12 +117,12 @@ class FaultScenario():
 
         # Get cavities necessary for every Fault
         all_comp_cav = []
-        if self.what_to_fit['strategy'] == 'neighbors':
+        if WHAT_TO_FIT['strategy'] == 'neighbors':
             for fault in l_faults_obj:
                 all_comp_cav.append(fault.select_neighboring_cavities())
             print('Check that there is no cavity in common.')
 
-        elif self.what_to_fit['strategy'] == 'manual':
+        elif WHAT_TO_FIT['strategy'] == 'manual':
             assert len(l_idx_comp) == len(l_faults_obj), \
                 'Error, the number of group of compensating cavities do not' \
                 + ' match the number of Fault objects.'
@@ -163,7 +153,7 @@ class FaultScenario():
         # We fix all Faults individually
         successes = []
         for i, f in enumerate(self.faults['l_obj']):
-            sol = f.fix_single(self.what_to_fit)
+            sol = f.fix_single()
             successes.append(sol.success)
 
             # Recompute transfer matrix with proper solution

@@ -15,7 +15,7 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 import numpy as np
 from scipy.optimize import minimize, least_squares
 from pymoo.core.problem import Problem
-from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD
+from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT
 import debug
 
 
@@ -181,29 +181,19 @@ class Fault():
         # as well as faulty modules
         return neighbor_modules + modules_with_fail
 
-    def fix_single(self, what_to_fit):
-        """
-        Try to compensate the faulty cavities.
-
-        Parameters
-        ----------
-        what_to_fit : dict
-            Holds the strategies of optimisation.
-        """
-        self.what_to_fit = what_to_fit
-
+    def fix_single(self):
+        """Try to compensate the faulty cavities."""
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
-        l_elts, d_idx = self._select_zone_to_recompute(
-            self.what_to_fit['position'])
+        l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
 
-        fun_residual = self._select_objective(self.what_to_fit['objective'])
+        fun_residual = self._select_objective(WHAT_TO_FIT['objective'])
         # Save some data for debug and output purposes
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
         self.comp['l_recompute'] = l_elts
 
-        args = (self, fun_residual, d_idx, what_to_fit)
+        args = (self, fun_residual, d_idx)
 
         if OPTI_METHOD == 'classic':
             sol = self._proper_fix_classic_opt(initial_guesses, bounds, args)
@@ -261,8 +251,6 @@ class Fault():
             """Class holding PSO."""
 
             def __init__(self):
-                # args = (self, fun_objective, idx_objective, idx_objective2,
-                #         what_to_fit)
                 super().__init__(n_var=init_guess.shape[0], n_obj=len(args[2]),
                                  n_constr=0,
                                  xl=bounds[:, 0], xu=bounds[:, 1])
@@ -436,7 +424,7 @@ class Fault():
         return fun_residual
 
 
-def wrapper(arr_cav_prop, fault, fun_residual, d_idx, what_to_fit):
+def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     """Fit function."""
     global COUNT
 
@@ -452,7 +440,7 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx, what_to_fit):
     obj = fun_residual(fault.ref_lin, brok_calc, d_idx)
 
     if debugs['fit_progression'] and COUNT % 20 == 0:
-        debug.output_fit_progress(COUNT, obj, what_to_fit)
+        debug.output_fit_progress(COUNT, obj)
     COUNT += 1
 
     return obj
