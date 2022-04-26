@@ -15,7 +15,7 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 import numpy as np
 from scipy.optimize import minimize, least_squares
 from pymoo.core.problem import Problem
-from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPT_METHOD
+from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD
 import debug
 
 
@@ -194,7 +194,7 @@ class Fault():
 
         # Set the fit variables
         initial_guesses, bounds = self._set_fit_parameters()
-        l_elts, l_idx_ref, l_idx_brok = self._select_zone_to_recompute(
+        l_elts, d_idx = self._select_zone_to_recompute(
             self.what_to_fit['position'])
 
         fun_multi_obj = self._select_objective(self.what_to_fit['objective'])
@@ -203,12 +203,12 @@ class Fault():
         self.info['bounds'] = bounds
         self.comp['l_recompute'] = l_elts
 
-        args = (self, fun_multi_obj, l_idx_ref, l_idx_brok, what_to_fit)
+        args = (self, fun_multi_obj, d_idx, what_to_fit)
 
-        if OPT_METHOD == 'classic':
+        if OPTI_METHOD == 'classic':
             sol = self._proper_fix_classic_opt(initial_guesses, bounds, args)
 
-        elif OPT_METHOD == 'PSO':
+        elif OPTI_METHOD == 'PSO':
             sol = self._proper_fix_pso(initial_guesses, bounds, args)
 
         return sol
@@ -350,13 +350,12 @@ class Fault():
         ------
         l_elts : list of _Element
             List of elements that should be recomputed.
-        l_idx_ref : list of int
-            Indices for the synchronous particle of where objective should be
-            matched.
-        l_idx_brok : list of int
-            Indices for the arrays returned by compute_transfer_matrices
-            of where objective should be matched.
+        d_idx : dict
+            Dict holding the lists of indexes (ref and broken) to evaluate the
+            objectives at the right spot.
         """
+        d_idx = {'l_ref': None, 'l_brok': None}
+
         # Which lattices' data are necessary?
         d_lattices = {
             'end_mod': lambda l_cav: self.brok_lin.elements['l_lattices']
@@ -377,17 +376,17 @@ class Fault():
             'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
                                       lattices[-1][-1].idx['s_out']],
         }
-        l_idx_ref = d_pos[str_position](l_lattices)
+        d_idx['l_ref'] = d_pos[str_position](l_lattices)
         shift_s_idx_brok = self.comp['l_all_elts'][0].idx['s_in']
-        l_idx_brok = [idx - shift_s_idx_brok
-                      for idx in l_idx_ref]
+        d_idx['l_brok'] = [idx - shift_s_idx_brok
+                           for idx in d_idx['l_ref']]
 
-        for idx in l_idx_ref:
+        for idx in d_idx['l_ref']:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
                   elt.info, elt.idx, ".")
 
-        return l_elts, l_idx_ref, l_idx_brok
+        return l_elts, d_idx
 
     def _select_objective(self, str_objective):
         """
@@ -430,15 +429,14 @@ class Fault():
             d_obj_brok['energy_phase'](calc), d_obj_brok['transf_mat'](calc)))
         fun_brok = d_obj_brok[str_objective]
 
-        def fun_multi_obj(ref_lin, brok_calc, l_idx_ref, l_idx_brok,
-                          flag_out=False):
-            obj = np.abs(fun_ref(ref_lin)[l_idx_ref, :]
-                         - fun_brok(brok_calc)[l_idx_brok, :])
+        def fun_multi_obj(ref_lin, brok_calc, d_idx, sflag_out=False):
+            obj = np.abs(fun_ref(ref_lin)[d_idx['l_ref'], :]
+                         - fun_brok(brok_calc)[d_idx['l_brok'], :])
             return obj.flatten()
         return fun_multi_obj
 
 
-def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
+def wrapper(prop_array, fault, fun_multi_obj, d_idx, what_to_fit):
     """Fit function."""
     global COUNT
 
@@ -453,7 +451,7 @@ def wrapper(prop_array, fault, fun_multi_obj, idx_ref, idx_brok, what_to_fit):
     values = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
     calc = dict(zip(keys, values))
-    obj = fun_multi_obj(fault.ref_lin, calc, idx_ref, idx_brok)
+    obj = fun_multi_obj(fault.ref_lin, calc, d_idx)
 
     if debugs['fit_progression'] and COUNT % 20 == 0:
         debug.output_fit_progress(COUNT, obj, what_to_fit)
