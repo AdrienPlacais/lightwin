@@ -17,7 +17,6 @@ from scipy.optimize import minimize, least_squares
 from PSO import MyProblem, perform_pso, mcdm, convergence
 from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT
 import debug
-import matplotlib.pyplot as plt
 
 
 dict_phase = {
@@ -51,7 +50,7 @@ class Fault():
     def fix_single(self):
         """Try to compensate the faulty cavities."""
         # Set the fit variables
-        initial_guesses, bounds = self._set_fit_parameters()
+        initial_guesses, bounds, phi_s_limits = self._set_fit_parameters()
         l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
 
         fun_residual = _select_objective(WHAT_TO_FIT['objective'])
@@ -75,7 +74,14 @@ class Fault():
         return sol_succ, opti_sol
 
     def _proper_fix_classic_opt(self, init_guess, bounds, wrapper_args):
-        """Fix with classic optimisation."""
+        """
+        Fix with classic least_squares optimisation.
+
+        The least_squares algorithm does not allow to add constraint functions.
+        In particular, if you want to control the synchronous phase, you should
+        directly optimise phi_s (FLAG_PHI_S_FIT == True) or use PSO algorithm
+        (OPTI_METHOD == 'PSO').
+        """
         if init_guess.shape[0] == 1:
             solver = minimize
             # TODO: recheck
@@ -301,7 +307,7 @@ class Fault():
                 l_prop = ['phi_0_abs']
             else:
                 l_prop = ['phi_0_rel']
-        l_prop.append('norm')
+        l_prop += ['norm', 'phi_s']
 
         # Get initial guess and bounds for every property of l_prop and every
         # compensating cavity
@@ -319,11 +325,16 @@ class Fault():
                                       d_bounds_rel[prop][1] * ref_value))
                 bounds.append((b_down, b_up))
                 initial_guess.append(d_init_g[prop](ref_value))
-        initial_guess = np.array(initial_guess)
-        bounds = np.array(bounds)
+
+        n_cav = len(self.comp['l_cav'])
+        initial_guess = np.array(initial_guess[:2 * n_cav])
+        phi_s_limits = np.array(bounds[2 * n_cav:])
+        bounds = np.array(bounds[:2 * n_cav])
 
         print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
-        return initial_guess, bounds
+        if OPTI_METHOD == 'PSO' and not FLAG_PHI_ABS:
+            print('Additional constraint: phi_s_limits:\n', phi_s_limits)
+        return initial_guess, bounds, phi_s_limits
 
     def _select_zone_to_recompute(self, str_position):
         """
