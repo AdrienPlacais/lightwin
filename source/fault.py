@@ -273,52 +273,55 @@ class Fault():
             Array of (min, max) bounds for the electric fields of the
             compensating cavities.
         """
-        initial_guess = []
-        bounds = []
-
-        # Handle phase
+        # Useful dicts
+        d_getter = {'norm': lambda cav: cav.acc_field.norm,
+                    'phi_0_rel': lambda cav: cav.acc_field.phi_0['rel'],
+                    'phi_0_abs': lambda cav: cav.acc_field.phi_0['abs'],
+                    'phi_s': lambda cav: cav.acc_field.cav_params['phi_s_rad']}
+        d_init_g = {'norm': lambda ref_value: ref_value,
+                    'phi_0_rel': lambda ref_value: 0.,
+                    'phi_0_abs': lambda ref_value: 0.,
+                    'phi_s': lambda ref_value: ref_value}
+        d_tech_n = {'low beta': 1.3 * 3.03726,
+                    'medium beta': 1.3 * 4.45899,
+                    'high beta': 1.3 * 6.67386}
+        d_bounds_abs = {'norm': [1., np.NaN],
+                        'phi_0_rel': [0., 8. * np.pi],
+                        'phi_0_abs': [0., 8. * np.pi],
+                        'phi_s': [-.5 * np.pi, 0.]}
+        d_bounds_rel = {'norm': [.5, np.NaN],
+                        'phi_0_rel': [np.NaN, np.NaN],
+                        'phi_0_abs': [np.NaN, np.NaN],
+                        'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
+        # Set a list of properties that will be fitted
         if FLAG_PHI_S_FIT:
-            limits_phase = (-np.pi / 2., 0.)
-            rel_limit_phase_up = .4    # +40% over nominal synch phase
+            l_prop = ['phi_s']
         else:
-            limits_phase = (0., 8. * np.pi)
-
-        for elt in self.comp['l_cav']:
-            if FLAG_PHI_S_FIT:
-                equiv_phi_s = self.ref_lin.elements['list'][
-                    elt.idx['element']].acc_field.cav_params['phi_s_rad']
-                initial_guess.append(equiv_phi_s)
-                lim_down = limits_phase[0]
-                lim_up = min(limits_phase[1],
-                             equiv_phi_s * (1. - rel_limit_phase_up))
-                lim_phase = (lim_down, lim_up)
-
-                bounds.append(lim_phase)
+            if FLAG_PHI_ABS:
+                l_prop = ['phi_0_abs']
             else:
-                initial_guess.append(0.)
-                bounds.append(limits_phase)
+                l_prop = ['phi_0_rel']
+        l_prop.append('norm')
 
-        # Handle norm
-        limits_norm = {
-            # Down norms
-            'relative': 0.5,    # [50%, 130%] of norm
-            'absolute': 1.,  # ridiculous abs limits
-            # Up norms according to technology:
-            'low beta': 1.3 * 3.03726,
-            'medium beta': 1.3 * 4.45899,
-            'high beta': 1.3 * 6.67386,
-        }
-        for elt in self.comp['l_cav']:
-            norm = elt.acc_field.norm
-            lim_down = max(limits_norm['relative'] * norm,
-                           limits_norm['absolute'])
-            lim_up = limits_norm[elt.info['zone']]
-
-            initial_guess.append(norm)
-            bounds.append((lim_down, lim_up))
-
+        # Get initial guess and bounds for every property of l_prop and every
+        # compensating cavity
+        initial_guess, bounds = [], []
+        for prop in l_prop:
+            for cav in self.comp['l_cav']:
+                equiv_cav = self.ref_lin.elements['list'][cav.idx['element']]
+                ref_value = d_getter[prop](equiv_cav)
+                b_down = np.nanmax((d_bounds_abs[prop][0],
+                                    d_bounds_rel[prop][0] * ref_value))
+                if prop == 'norm':
+                    b_up = d_tech_n[cav.info['zone']]
+                else:
+                    b_up = np.nanmin((d_bounds_abs[prop][1],
+                                      d_bounds_rel[prop][1] * ref_value))
+                bounds.append((b_down, b_up))
+                initial_guess.append(d_init_g[prop](ref_value))
         initial_guess = np.array(initial_guess)
         bounds = np.array(bounds)
+
         print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
         return initial_guess, bounds
 
