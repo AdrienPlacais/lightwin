@@ -114,7 +114,7 @@ class Fault():
 
     def _proper_fix_pso(self, init_guess, bounds, wrapper_args):
         """Fix with multi-PSO algorithm."""
-        problem = MyProblem(wrapper, init_guess, bounds, wrapper_args)
+        problem = MyProblem(wrapper, init_guess.shape[0], bounds, wrapper_args)
         res = perform_pso(problem)
 
         weights = np.array([.2, .3, .175, .175, .175, .175])

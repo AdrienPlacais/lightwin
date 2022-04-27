@@ -22,12 +22,12 @@ from pymoo.util.running_metric import RunningMetric
 class MyProblem(ElementwiseProblem):
     """Class holding PSO."""
 
-    def __init__(self, wrapper, init_guess, bounds, wrapper_args):
+    def __init__(self, wrapper, n_var, bounds, wrapper_args):
         self.wrapper = wrapper
         self.fault = wrapper_args[0]
         self.fun_residual = wrapper_args[1]
         self.d_idx = wrapper_args[2]
-        super().__init__(n_var=init_guess.shape[0],
+        super().__init__(n_var=n_var,
                          n_obj=len(self.d_idx['l_ref']),
                          n_constr=0,
                          xl=bounds[:, 0], xu=bounds[:, 1])
