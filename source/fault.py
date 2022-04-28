@@ -68,8 +68,8 @@ class Fault():
                                                               wrapper_args)
 
         elif OPTI_METHOD == 'PSO':
-            sol_succ, opti_sol = self._proper_fix_pso(initial_guesses, bounds,
-                                                      wrapper_args)
+            sol_succ, opti_sol = self._proper_fix_pso(
+                initial_guesses, bounds, wrapper_args, phi_s_limits)
 
         return sol_succ, opti_sol
 
@@ -118,9 +118,18 @@ class Fault():
 
         return sol.success, sol.x
 
-    def _proper_fix_pso(self, init_guess, bounds, wrapper_args):
+    def _proper_fix_pso(self, init_guess, bounds, wrapper_args,
+                        phi_s_limits=None):
         """Fix with multi-PSO algorithm."""
-        problem = MyProblem(wrapper, init_guess.shape[0], bounds, wrapper_args)
+        if FLAG_PHI_S_FIT:
+            n_constr = 0
+        else:
+            assert phi_s_limits is not None
+            # n_constr = phi_s_limits.shape[0]  # FIXME
+            n_constr = 0
+
+        problem = MyProblem(wrapper, init_guess.shape[0], n_constr,
+                            bounds, wrapper_args)
         res = perform_pso(problem)
 
         weights = np.array([.2, .3, .175, .175, .175, .175])
@@ -272,12 +281,15 @@ class Fault():
 
         Returns
         -------
-        initial_guess: np.array
+        initial_guess : np.array
             Initial guess for the initial phase and norm of the compensating
             cavities.
-        bounds: np.array of bounds
+        bounds : np.array of tuples
             Array of (min, max) bounds for the electric fields of the
             compensating cavities.
+        phi_s_limits : np.array of tuples
+            Contains upper and lower synchronous phase limits for each cavity.
+            Used to define constraints in PSO.
         """
         # Useful dicts
         d_getter = {'norm': lambda cav: cav.acc_field.norm,

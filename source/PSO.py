@@ -22,7 +22,7 @@ from pymoo.util.running_metric import RunningMetric
 class MyProblem(ElementwiseProblem):
     """Class holding PSO."""
 
-    def __init__(self, wrapper, n_var, bounds, wrapper_args):
+    def __init__(self, wrapper, n_var, n_constr, bounds, wrapper_args):
         self.wrapper = wrapper
         self.fault = wrapper_args[0]
         self.fun_residual = wrapper_args[1]
@@ -89,7 +89,7 @@ def mcdm(res, weights):
 
 def convergence(hist, approx_ideal, approx_nadir):
     """Study the convergence of the algorithm."""
-    flag_hypervolume = False
+    flag_hypervolume = True
     flag_running = False
 
     # Convergence study

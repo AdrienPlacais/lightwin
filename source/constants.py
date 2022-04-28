@@ -45,7 +45,7 @@ OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 
 METHOD = 'RK'
 # classic or PSO
-OPTI_METHOD = 'classic'
+OPTI_METHOD = 'PSO'
 N_STEPS_PER_CELL = 20
 
 WHAT_TO_FIT = {
