@@ -44,7 +44,7 @@ class Fault():
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
-                     'jac': None}
+                     'jac': None, 'l_obj_label': [], 'l_param_label': []}
         self.count = None
 
     def fix_single(self):
@@ -54,9 +54,12 @@ class Fault():
         l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
 
         fun_residual = _select_objective(WHAT_TO_FIT['objective'])
+        l_obj_label = _set_labels(WHAT_TO_FIT['objective'])
+
         # Save some data for debug and output purposes
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
+        self.info['l_obj_label'] = l_obj_label
         self.comp['l_recompute'] = l_elts
 
         wrapper_args = (self, fun_residual, d_idx)
@@ -132,7 +135,8 @@ class Fault():
                             bounds, wrapper_args)
         res = perform_pso(problem)
 
-        weights = np.array([.2, .3, .175, .175, .175, .175])
+        # weights = np.array([.3, .7, .1, .1, .1, .1])
+        weights = np.array([.3, .8])
         opti_sol, approx_ideal, approx_nadir = mcdm(res, weights)
 
         convergence(res.history, approx_ideal, approx_nadir)
@@ -446,6 +450,17 @@ def _select_objective(str_objective):
                      - arr_brok(brok_calc)[d_idx['l_brok'], :])
         return obj.flatten()
     return fun_residual
+
+
+def _set_labels(str_objective):
+    """Set strings for better visualisation of the optimisation."""
+    d_obj_str = {'energy': [r'W_{kin}'],
+                 'phase': [r'\phi'],
+                 'transf_mat': [r'M_{11}', r'M_{12}', r'M_{21}', r'M_{22}']}
+    d_obj_str['energy_phase'] = d_obj_str['energy'] + d_obj_str['phase']
+    d_obj_str['all'] = d_obj_str['energy_phase'] + d_obj_str['transf_mat']
+    l_obj_label = d_obj_str[str_objective]
+    return l_obj_label
 
 
 def wrapper(arr_cav_prop, fault, fun_residual, d_idx):

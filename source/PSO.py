@@ -10,8 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
-from pymoo.factory import get_sampling, get_crossover, get_mutation
-from pymoo.factory import get_termination
+from pymoo.factory import get_sampling, get_crossover, get_mutation, \
+    get_termination
+from pymoo.util.termination.default import MultiObjectiveDefaultTermination
 from pymoo.optimize import minimize
 from pymoo.decomposition.asf import ASF
 from pymoo.mcdm.pseudo_weights import PseudoWeights
@@ -48,6 +49,15 @@ def perform_pso(problem):
                       # other and from existing population:
                       eliminate_duplicates=True)
     termination = get_termination("n_gen", 100)
+    # termination = MultiObjectiveDefaultTermination(
+    #     x_tol=1e-8,
+    #     cv_tol=1e-6,
+    #     f_tol=0.0025,
+    #     nth_gen=5,
+    #     n_last=30,
+    #     n_max_gen=1000,
+    #     n_max_evals=100000
+    # )
     res = minimize(problem, algorithm, termination, seed=1,
                    save_history=True,
                    verbose=True)
@@ -78,18 +88,19 @@ def mcdm(res, weights):
     decomp = ASF()
     minASF = decomp.do(nF, 1. / weights)
     i = minASF.argmin()
-    print('Best solution regarding ASF:\nPoint i = %s\tF = %s' % (i, F[i]))
+    print('Best solution regarding ASF:\nPoint i = %s\nF = %s\nX = %s\n' %
+          (i, F[i], res.X[i]))
 
     i = PseudoWeights(weights).do(nF)
-    print('Best solution regarding Pseudo Weights:\nPoint i = %s\tF = %s'
-          % (i, F[i]))
+    print('Best solution regarding Pseudo Weights:',
+          '\nPoint i = %s\nF = %s\nX = %s\n' % (i, F[i], res.X[i]))
 
     return res.X[i], approx_ideal, approx_nadir
 
 
 def convergence(hist, approx_ideal, approx_nadir):
     """Study the convergence of the algorithm."""
-    flag_hypervolume = True
+    flag_hypervolume = False
     flag_running = False
 
     # Convergence study
@@ -143,7 +154,7 @@ def convergence(hist, approx_ideal, approx_nadir):
 def _convergence_hypervolume(n_evals, hist_F, approx_ideal, approx_nadir):
     """Study convergence using hypervolume. Not adapted when too many dims."""
     metric = Hypervolume(
-        ref_point=np.array([1.1, 1.1, 1.1, 1.1, 1.1, 1.1]),
+        ref_point=np.array([1.1, 1.1]), #, 1.1, 1.1, 1.1, 1.1]),
         norm_ref_point=False,
         zero_to_one=True,
         ideal=approx_ideal,
@@ -159,7 +170,6 @@ def _convergence_hypervolume(n_evals, hist_F, approx_ideal, approx_nadir):
     ax.set_title("Objective Space")
     ax.set_xlabel("Function Evaluations")
     ax.set_ylabel("Hypervolume")
-    plt.show()
 
 
 def _convergence_running_metrics(hist):
