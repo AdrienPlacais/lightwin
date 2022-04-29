@@ -311,8 +311,8 @@ class Fault():
                     'medium beta': 1.3 * 4.45899,
                     'high beta': 1.3 * 6.67386}
         d_bounds_abs = {'norm': [1., np.NaN],
-                        'phi_0_rel': [0., 8. * np.pi],
-                        'phi_0_abs': [0., 8. * np.pi],
+                        'phi_0_rel': [0., 2. * np.pi],
+                        'phi_0_abs': [0., 2. * np.pi],
                         'phi_s': [-.5 * np.pi, 0.]}
         d_bounds_rel = {'norm': [.5, np.NaN],
                         'phi_0_rel': [np.NaN, np.NaN],

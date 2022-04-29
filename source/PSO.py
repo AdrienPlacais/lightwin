@@ -49,7 +49,7 @@ def perform_pso(problem):
                       # Ensure that offsprings are different from each
                       # other and from existing population:
                       eliminate_duplicates=True)
-    termination = get_termination("n_gen", 15)
+    termination = get_termination("n_gen", 150)
     # termination = MultiObjectiveDefaultTermination(
     #     x_tol=1e-8,
     #     cv_tol=1e-6,
@@ -101,17 +101,20 @@ def _best_solutions(res, nF, weights, fault_info):
 
     decomp = ASF()
     minASF = decomp.do(nF, 1. / weights)
-    i = minASF.argmin()
-    pd_best_sol.loc[0] = ['ASF', i] + res.X[i].tolist() + res.F[i].tolist()
+    i_asf = minASF.argmin()
+    pd_best_sol.loc[0] = ['ASF', i_asf] + res.X[i_asf].tolist() \
+        + res.F[i_asf].tolist()
 
-    i = PseudoWeights(weights).do(nF)
-    pd_best_sol.loc[1] = ['PW', i] + res.X[i].tolist() + res.F[i].tolist()
+    i_pw = PseudoWeights(weights).do(nF)
+    pd_best_sol.loc[1] = ['PW', i_pw] + res.X[i_pw].tolist() \
+        + res.F[i_pw].tolist()
 
     for col in pd_best_sol:
         if 'phi' in col:
             pd_best_sol[col] = np.rad2deg(pd_best_sol[col])
-    print(pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']])
-    return pd_best_sol, i
+    print('\n\n', pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']],
+          '\n\n')
+    return pd_best_sol, i_asf
 
 
 def convergence(hist, approx_ideal, approx_nadir):
