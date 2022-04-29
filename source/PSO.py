@@ -106,6 +106,10 @@ def _best_solutions(res, nF, weights, fault_info):
 
     i = PseudoWeights(weights).do(nF)
     pd_best_sol.loc[1] = ['PW', i] + res.X[i].tolist() + res.F[i].tolist()
+
+    for col in pd_best_sol:
+        if 'phi' in col:
+            pd_best_sol[col] = np.rad2deg(pd_best_sol[col])
     print(pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']])
     return pd_best_sol, i
 
