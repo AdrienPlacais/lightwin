@@ -44,7 +44,8 @@ class Fault():
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
-                     'jac': None, 'l_obj_label': [], 'l_prop_label': []}
+                     'jac': None, 'l_obj_label': [], 'l_prop_label': [],
+                     'resume': None}
         self.count = None
 
     def fix_single(self):
@@ -138,7 +139,8 @@ class Fault():
         res = pso.perform_pso(problem)
 
         weights = pso.set_weights(WHAT_TO_FIT['objective'])
-        opti_sol, approx_ideal, approx_nadir = pso.mcdm(res, weights)
+        opti_sol, approx_ideal, approx_nadir = pso.mcdm(res, weights,
+                                                        self.info)
 
         pso.convergence(res.history, approx_ideal, approx_nadir)
 
@@ -318,7 +320,7 @@ class Fault():
                         'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
         d_prop_label = {'norm': r'$k_e$', 'phi_0_abs': r'$\phi_{0, abs}$',
                         'phi_0_rel': r'$\phi_{0, rel}$',
-                        'phi_s': r'$\varphi_S$'}
+                        'phi_s': r'$\varphi_s$'}
 
         # Set a list of properties that will be fitted
         if FLAG_PHI_S_FIT:
@@ -329,6 +331,7 @@ class Fault():
             else:
                 l_prop = ['phi_0_rel']
         l_prop += ['norm', 'phi_s']
+        l_prop_label = []
 
         # Get initial guess and bounds for every property of l_prop and every
         # compensating cavity
@@ -346,6 +349,8 @@ class Fault():
                                       d_bounds_rel[prop][1] * ref_value))
                 bounds.append((b_down, b_up))
                 initial_guess.append(d_init_g[prop](ref_value))
+                l_prop_label.append(' '.join((cav.info['name'],
+                                              d_prop_label[prop])))
 
         n_cav = len(self.comp['l_cav'])
         initial_guess = np.array(initial_guess[:2 * n_cav])
@@ -356,7 +361,6 @@ class Fault():
         if OPTI_METHOD == 'PSO' and not FLAG_PHI_ABS:
             print('Additional constraint: phi_s_limits:\n', phi_s_limits)
 
-        l_prop_label = [d_prop_label[prop] for prop in l_prop]
         return initial_guess, bounds, phi_s_limits, l_prop_label
 
     def _select_zone_to_recompute(self, str_position):
@@ -470,9 +474,10 @@ def _select_objective(str_objective):
 
 def _set_labels(str_objective):
     """Set strings for better visualisation of the optimisation."""
-    d_obj_str = {'energy': [r'W_{kin}'],
-                 'phase': [r'\phi'],
-                 'transf_mat': [r'M_{11}', r'M_{12}', r'M_{21}', r'M_{22}']}
+    d_obj_str = {'energy': [r'$W_{kin}$'],
+                 'phase': [r'$\phi$'],
+                 'transf_mat': [r'$M_{11}$', r'$M_{12}$',
+                                r'$M_{21}$', r'$M_{22}$']}
     d_obj_str['energy_phase'] = d_obj_str['energy'] + d_obj_str['phase']
     d_obj_str['all'] = d_obj_str['energy_phase'] + d_obj_str['transf_mat']
     l_obj_label = d_obj_str[str_objective]

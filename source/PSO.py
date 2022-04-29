@@ -8,6 +8,7 @@ Created on Tue Apr 26 16:44:53 2022.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.factory import get_sampling, get_crossover, get_mutation, \
@@ -48,7 +49,7 @@ def perform_pso(problem):
                       # Ensure that offsprings are different from each
                       # other and from existing population:
                       eliminate_duplicates=True)
-    termination = get_termination("n_gen", 100)
+    termination = get_termination("n_gen", 15)
     # termination = MultiObjectiveDefaultTermination(
     #     x_tol=1e-8,
     #     cv_tol=1e-6,
@@ -64,7 +65,7 @@ def perform_pso(problem):
     return res
 
 
-def mcdm(res, weights):
+def mcdm(res, weights, fault_info):
     """Perform Multi-Criteria Decision Making."""
     # Solutions
     F = res.F
@@ -73,7 +74,7 @@ def mcdm(res, weights):
     fl = F.min(axis=0)
     fu = F.max(axis=0)
     for _l, _u in zip(fl, fu):
-        print(f"Scale f: [{_l}, {_u}]")
+        print(f"Pre-scale f: [{_l}, {_u}]")
 
     approx_ideal = F.min(axis=0)
     approx_nadir = F.max(axis=0)
@@ -85,17 +86,28 @@ def mcdm(res, weights):
     for _l, _u in zip(fl, fu):
         print(f"Scale f: [{_l}, {_u}]")
 
+    pd_best_sol, i = _best_solutions(res, nF, weights, fault_info)
+    fault_info['resume'] = pd_best_sol
+
+    return res.X[i], approx_ideal, approx_nadir
+
+
+def _best_solutions(res, nF, weights, fault_info):
+    """Look for best solutions according to various criteria."""
+    two_n_cav = res.X.shape[1]
+    columns = ['Criteria', 'i'] + fault_info['l_prop_label'][:two_n_cav] \
+        + fault_info['l_obj_label']
+    pd_best_sol = pd.DataFrame(columns=(columns))
+
     decomp = ASF()
     minASF = decomp.do(nF, 1. / weights)
     i = minASF.argmin()
-    print('Best solution regarding ASF:\nPoint i = %s\nF = %s\nX = %s\n' %
-          (i, F[i], res.X[i]))
+    pd_best_sol.loc[0] = ['ASF', i] + res.X[i].tolist() + res.F[i].tolist()
 
     i = PseudoWeights(weights).do(nF)
-    print('Best solution regarding Pseudo Weights:',
-          '\nPoint i = %s\nF = %s\nX = %s\n' % (i, F[i], res.X[i]))
-
-    return res.X[i], approx_ideal, approx_nadir
+    pd_best_sol.loc[1] = ['PW', i] + res.X[i].tolist() + res.F[i].tolist()
+    print(pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']])
+    return pd_best_sol, i
 
 
 def convergence(hist, approx_ideal, approx_nadir):
@@ -117,6 +129,7 @@ def convergence(hist, approx_ideal, approx_nadir):
         # Filter out only the feasible and append and objective space values
         feas = np.where(opt.get("feasible"))[0]
         hist_F.append(opt.get("F")[feas])
+
     k = np.where(np.array(hist_cv) <= 0.)[0].min()
     print(f"At least one feasible solution in Generation {k} after",
           f"{n_evals[k]} evaluations.")

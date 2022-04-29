@@ -62,7 +62,7 @@ if FILEPATH == "":
 manual_list = [7, 15, 17, 25, 27]
 failed_cav = [
     # 35,
-    155, 157,
+    155#, 157,
     # 295, 307,
     # 355,
     # 395,
@@ -172,6 +172,7 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
 data_ref = tw.output_data_in_tw_fashion(ref_linac)
 data_fixed = tw.output_data_in_tw_fashion(broken_linac)
+fault_info = fail.faults['l_obj'][0].info
 
 if FLAG_PROFILE:
     ps = pstats.Stats(pr).sort_stats('tottime')
