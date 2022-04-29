@@ -416,11 +416,9 @@ def _select_objective(str_objective):
     Return
     ------
     fun_multi_objective : function
-        Takes linac and a list of indices into argument, returns a list
-        of the physical quantities defined by str_objective at the
-        positions defined by the list of indices.
+        Return the residuals for each objective at the proper position.
     """
-    # What do you want to match?
+    # Data getters
     d_obj_ref = {
         'energy': lambda ref_lin: ref_lin.synch.energy['kin_array_mev'],
         'phase': lambda ref_lin: ref_lin.synch.phi['abs_array'],
@@ -428,26 +426,37 @@ def _select_objective(str_objective):
             ref_lin.transf_mat['cumul'],
             (ref_lin.transf_mat['cumul'].shape[0], 4))
     }
-    d_obj_ref['energy_phase'] = lambda ref_lin: np.column_stack(
-        (d_obj_ref['energy'](ref_lin), d_obj_ref['phase'](ref_lin)))
-    d_obj_ref['all'] = lambda ref_lin: np.hstack(
-        (d_obj_ref['energy_phase'](ref_lin),
-         d_obj_ref['transf_mat'](ref_lin)))
-    arr_ref = d_obj_ref[str_objective]
-
     d_obj_brok = {'energy': lambda calc: calc['W_kin'],
                   'phase': lambda calc: calc['phi_abs'],
                   'transf_mat': lambda calc: np.resize(
                       calc['r_zz'], (calc['r_zz'].shape[0], 4))}
-    d_obj_brok['energy_phase'] = lambda calc: np.column_stack((
-        d_obj_brok['energy'](calc), d_obj_brok['phase'](calc)))
-    d_obj_brok['all'] = lambda calc: np.hstack((
-        d_obj_brok['energy_phase'](calc), d_obj_brok['transf_mat'](calc)))
-    arr_brok = d_obj_brok[str_objective]
+
+    d_obj_ref['energy_phase'] = lambda var: np.column_stack(
+        (d_obj_ref['energy'](var), d_obj_ref['phase'](var)))
+    d_obj_brok['energy_phase'] = lambda var: np.column_stack(
+        (d_obj_brok['energy'](var), d_obj_brok['phase'](var)))
+
+    d_obj_ref['all'] = lambda var: np.hstack(
+        (d_obj_ref['energy_phase'](var), d_obj_ref['transf_mat'](var)))
+    d_obj_brok['all'] = lambda var: np.hstack(
+        (d_obj_brok['energy_phase'](var), d_obj_brok['transf_mat'](var)))
+
+    # @FIXME: with this syntax the arguments aimed to go to
+    # d_obj_ref are sent to d_obj_brok (ie: Accelerator sent instead of calc)
+    # for dic in [d_obj_ref, d_obj_brok]:
+    #     dic['energy_phase'] = lambda var: np.column_stack(
+    #         (dic['energy'](var), dic['phase'](var)))
+    #     dic['all'] = lambda var: np.hstack(
+    #         (dic['energy_phase'](var), dic['transf_mat'](var)))
+
+    # Functions returning np.array's filled with desired quantities
+    fun_ref = d_obj_ref[str_objective]
+    fun_brok = d_obj_brok[str_objective]
 
     def fun_residual(ref_lin, brok_calc, d_idx):
-        obj = np.abs(arr_ref(ref_lin)[d_idx['l_ref'], :]
-                     - arr_brok(brok_calc)[d_idx['l_brok'], :])
+        """Compute difference between ref_linac and current optimis. param."""
+        obj = np.abs(fun_ref(ref_lin)[d_idx['l_ref'], :]
+                     - fun_brok(brok_calc)[d_idx['l_brok'], :])
         return obj.flatten()
     return fun_residual
 
