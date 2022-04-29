@@ -44,13 +44,14 @@ class Fault():
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
-                     'jac': None, 'l_obj_label': [], 'l_param_label': []}
+                     'jac': None, 'l_obj_label': [], 'l_prop_label': []}
         self.count = None
 
     def fix_single(self):
         """Try to compensate the faulty cavities."""
         # Set the fit variables
-        initial_guesses, bounds, phi_s_limits = self._set_fit_parameters()
+        initial_guesses, bounds, phi_s_limits, l_prop_label \
+            = self._set_fit_parameters()
         l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
 
         fun_residual = _select_objective(WHAT_TO_FIT['objective'])
@@ -59,6 +60,7 @@ class Fault():
         # Save some data for debug and output purposes
         self.info['initial_guesses'] = initial_guesses
         self.info['bounds'] = bounds
+        self.info['l_prop_label'] = l_prop_label
         self.info['l_obj_label'] = l_obj_label
         self.comp['l_recompute'] = l_elts
 
@@ -315,6 +317,10 @@ class Fault():
                         'phi_0_rel': [np.NaN, np.NaN],
                         'phi_0_abs': [np.NaN, np.NaN],
                         'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
+        d_prop_label = {'norm': r'$k_e$', 'phi_0_abs': r'$\phi_{0, abs}$',
+                        'phi_0_rel': r'$\phi_{0, rel}$',
+                        'phi_s': r'$\varphi_S$'}
+
         # Set a list of properties that will be fitted
         if FLAG_PHI_S_FIT:
             l_prop = ['phi_s']
@@ -350,7 +356,9 @@ class Fault():
         print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
         if OPTI_METHOD == 'PSO' and not FLAG_PHI_ABS:
             print('Additional constraint: phi_s_limits:\n', phi_s_limits)
-        return initial_guess, bounds, phi_s_limits
+
+        l_prop_label = [d_prop_label[prop] for prop in l_prop]
+        return initial_guess, bounds, phi_s_limits, l_prop_label
 
     def _select_zone_to_recompute(self, str_position):
         """
