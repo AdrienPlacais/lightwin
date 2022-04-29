@@ -181,3 +181,13 @@ def _convergence_running_metrics(hist):
                             do_show=True)
     for algorithm in hist:
         running.notify(algorithm)
+
+
+def set_weights(objective_str):
+    """Set array of weights for the different objectives."""
+    d_weights = {'energy': np.array([1.]),
+                 'phase': np.array([1.]),
+                 'energy_phase': np.array([.3, 8.]),
+                 'transf_mat': np.array([1., 1., 1., 1.]),
+                 'all': np.array([.2, .8, .1, .1, .1, .1])}
+    return d_weights[objective_str]

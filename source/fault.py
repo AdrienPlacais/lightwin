@@ -14,7 +14,7 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
-from PSO import MyProblem, perform_pso, mcdm, convergence
+import PSO as pso
 from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT
 import debug
 
@@ -133,15 +133,14 @@ class Fault():
             # n_constr = phi_s_limits.shape[0]  # FIXME
             n_constr = 0
 
-        problem = MyProblem(wrapper, init_guess.shape[0], n_constr,
-                            bounds, wrapper_args)
-        res = perform_pso(problem)
+        problem = pso.MyProblem(wrapper, init_guess.shape[0], n_constr,
+                                bounds, wrapper_args)
+        res = pso.perform_pso(problem)
 
-        # weights = np.array([.3, .7, .1, .1, .1, .1])
-        weights = np.array([.3, .8])
-        opti_sol, approx_ideal, approx_nadir = mcdm(res, weights)
+        weights = pso.set_weights(WHAT_TO_FIT['objective'])
+        opti_sol, approx_ideal, approx_nadir = pso.mcdm(res, weights)
 
-        convergence(res.history, approx_ideal, approx_nadir)
+        pso.convergence(res.history, approx_ideal, approx_nadir)
 
         return True, opti_sol
 
