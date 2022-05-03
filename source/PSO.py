@@ -70,7 +70,7 @@ def perform_pso(problem):
                       n_offsprings=10,
                       sampling=get_sampling("real_random"),
                       crossover=get_crossover("real_sbx", prob=.9, eta=10),
-                      mutation=get_mutation("real_pm", eta=50),
+                      mutation=get_mutation("real_pm", eta=5),
                       # Ensure that offsprings are different from each
                       # other and from existing population:
                       eliminate_duplicates=True)
@@ -86,7 +86,7 @@ def perform_pso(problem):
     # )
     res = minimize(problem, algorithm, termination, seed=1,
                    save_history=True,
-                   verbose=True)
+                   verbose=False)
     return res
 
 
