@@ -19,37 +19,62 @@ from pymoo.decomposition.asf import ASF
 from pymoo.mcdm.pseudo_weights import PseudoWeights
 from pymoo.indicators.hv import Hypervolume
 from pymoo.util.running_metric import RunningMetric
+from pymoo.visualization.pcp import PCP
 
 
 class MyProblem(ElementwiseProblem):
     """Class holding PSO."""
 
-    def __init__(self, wrapper, n_var, n_constr, bounds, wrapper_args):
-        self.wrapper = wrapper
+    def __init__(self, wrapper_fun, n_var, n_constr, bounds, wrapper_args,
+                 phi_s_limits):
+        self.wrapper = wrapper_fun
         self.fault = wrapper_args[0]
         self.fun_residual = wrapper_args[1]
         self.d_idx = wrapper_args[2]
+        self.phi_s_limits = phi_s_limits
         super().__init__(n_var=n_var,
                          n_obj=len(self.d_idx['l_ref']),
-                         n_constr=0,
+                         n_constr=n_constr,
                          xl=bounds[:, 0], xu=bounds[:, 1])
+        if n_constr > 0:
+            print(f"{n_constr} constraints")
+            print(phi_s_limits)
 
     def _evaluate(self, x, out, *args, **kwargs):
-        out["F"] = self.wrapper(x, self.fault, self.fun_residual, self.d_idx)
-        out["G"] = None
+        """
+        Compute residues and constraints.
+
+        Parameters
+        ----------
+        x : np.array
+            Holds phases (first half) and norms (second half) of cavities.
+        out : truc
+            Mmmh
+        """
+        objective, brok_results = self.wrapper(x, self.fault,
+                                               self.fun_residual, self.d_idx)
+        out["F"] = objective
+        out_G = []
+        for i in range(len(brok_results['phi_s_rad'])):
+            out_G.append(self.phi_s_limits[i][0]
+                         - brok_results['phi_s_rad'][i])
+            out_G.append(brok_results['phi_s_rad'][i]
+                         - self.phi_s_limits[i][1])
+
+        out["G"] = np.array(out_G)
 
 
 def perform_pso(problem):
     """Perform the PSO."""
     algorithm = NSGA2(pop_size=100,
-                      n_offsprings=20,
+                      n_offsprings=10,
                       sampling=get_sampling("real_random"),
-                      crossover=get_crossover("real_sbx", prob=.9, eta=15),
-                      mutation=get_mutation("real_pm", eta=20),
+                      crossover=get_crossover("real_sbx", prob=.9, eta=10),
+                      mutation=get_mutation("real_pm", eta=50),
                       # Ensure that offsprings are different from each
                       # other and from existing population:
                       eliminate_duplicates=True)
-    termination = get_termination("n_gen", 150)
+    termination = get_termination("n_gen", 500)
     # termination = MultiObjectiveDefaultTermination(
     #     x_tol=1e-8,
     #     cv_tol=1e-6,
@@ -114,6 +139,18 @@ def _best_solutions(res, nF, weights, fault_info):
             pd_best_sol[col] = np.rad2deg(pd_best_sol[col])
     print('\n\n', pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']],
           '\n\n')
+    # fig = plt.figure(51)
+    plot = PCP(title=("Run", {'pad': 30}),
+               n_ticks=10,
+               legend=(True, {'loc': "upper left"}),
+               # labels=fault_info['l_obj_label'],
+               # fig=fig,
+               )
+    plot.set_axis_style(color="grey", alpha=0.5)
+    plot.add(res.F, color="grey", alpha=0.3)
+    plot.add(res.F[i_asf], linewidth=5, color="red", label='ASF')
+    plot.add(res.F[i_pw], linewidth=5, color="blue", label='PW')
+    plot.show()
     return pd_best_sol, i_asf
 
 
@@ -148,7 +185,8 @@ def convergence(hist, approx_ideal, approx_nadir):
     print(f"Whole population feasible in Generation {k} after {n_evals[k]}",
           "evaluations.")
 
-    fig, ax = plt.subplots(2, 1)
+    fig = plt.figure(56)
+    ax = [fig.add_subplot(2, 1, 1), fig.add_subplot(2, 1, 2)]
 
     ax[0].plot(n_evals, hist_cv_avg, marker='o', c='k', lw=.7,
                label="Avg. CV of pop.")

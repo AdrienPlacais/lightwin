@@ -131,11 +131,11 @@ class Fault():
             n_constr = 0
         else:
             assert phi_s_limits is not None
-            # n_constr = phi_s_limits.shape[0]  # FIXME
-            n_constr = 0
+            n_constr = 2 * phi_s_limits.shape[0]  # FIXME
+            # n_constr = 0
 
-        problem = pso.MyProblem(wrapper, init_guess.shape[0], n_constr,
-                                bounds, wrapper_args)
+        problem = pso.MyProblem(wrapper_pso, init_guess.shape[0], n_constr,
+                                bounds, wrapper_args, phi_s_limits)
         res = pso.perform_pso(problem)
 
         weights = pso.set_weights(WHAT_TO_FIT['objective'])
@@ -311,8 +311,8 @@ class Fault():
                     'medium beta': 1.3 * 4.45899,
                     'high beta': 1.3 * 6.67386}
         d_bounds_abs = {'norm': [1., np.NaN],
-                        'phi_0_rel': [0., 2. * np.pi],
-                        'phi_0_abs': [0., 2. * np.pi],
+                        'phi_0_rel': [0., 4. * np.pi],
+                        'phi_0_abs': [0., 4. * np.pi],
                         'phi_s': [-.5 * np.pi, 0.]}
         d_bounds_rel = {'norm': [.5, np.NaN],
                         'phi_0_rel': [np.NaN, np.NaN],
@@ -489,7 +489,7 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     d_fits = {'flag': True,
               'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
               'l_norm': arr_cav_prop[fault.comp['n_cav']:].tolist()}
-    keys = ('r_zz', 'W_kin', 'phi_abs')
+    keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad')
 
     # Update transfer matrices
     values = fault.brok_lin.compute_transfer_matrices(
@@ -502,3 +502,23 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     fault.count += 1
 
     return obj
+
+
+def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
+    """Unpack arguments and compute proper residues at proper spot."""
+    d_fits = {'flag': True,
+              'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
+              'l_norm': arr_cav_prop[fault.comp['n_cav']:].tolist()}
+    keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad')
+
+    # Update transfer matrices
+    values = fault.brok_lin.compute_transfer_matrices(
+        fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
+    brok_calc = dict(zip(keys, values))
+    obj = fun_residual(fault.ref_lin, brok_calc, d_idx)
+
+    if debugs['fit_progression'] and fault.count % 20 == 0:
+        debug.output_fit_progress(fault.count, obj)
+    fault.count += 1
+
+    return obj, brok_calc

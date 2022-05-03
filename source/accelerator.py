@@ -133,6 +133,7 @@ class Accelerator():
         # Initial values
         w_kin = self.synch.energy['kin_array_mev'][endpoints[0]]
         phi_abs = self.synch.phi['abs_array'][endpoints[0]]
+        phi_s_rad = []
 
         # If we are at the start of the linac, initial transf mat is unity
         if endpoints[0] == 0:
@@ -165,6 +166,7 @@ class Accelerator():
                 kwargs = elt.set_cavity_parameters(self.synch, phi_abs,
                                                    w_kin, d_fit_elt)
                 elt_results = elt.calc_transf_mat(w_kin, **kwargs)
+                phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
 
             else:
                 kwargs = None
@@ -193,7 +195,8 @@ class Accelerator():
             self.transf_mat['cumul'][endpoints[0]:endpoints[1]] \
                 = arr_r_zz_cumul
 
-        return arr_r_zz_cumul, arr_w_kin.tolist(), arr_phi_abs.tolist()
+        return arr_r_zz_cumul, arr_w_kin.tolist(), arr_phi_abs.tolist(), \
+            phi_s_rad
 
     def transfer_data(self, elt, elt_results, phi_abs_elt, kwargs):
         """
