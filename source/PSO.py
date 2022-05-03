@@ -151,7 +151,7 @@ def _best_solutions(res, nF, weights, fault_info):
     plot.add(res.F[i_asf], linewidth=5, color="red", label='ASF')
     plot.add(res.F[i_pw], linewidth=5, color="blue", label='PW')
     plot.show()
-    return pd_best_sol, i_asf
+    return pd_best_sol, i_pw
 
 
 def convergence(hist, approx_ideal, approx_nadir):
@@ -247,5 +247,6 @@ def set_weights(objective_str):
                  'phase': np.array([1.]),
                  'energy_phase': np.array([.3, 8.]),
                  'transf_mat': np.array([1., 1., 1., 1.]),
-                 'all': np.array([.2, .8, .1, .1, .1, .1])}
+                  'all': np.array([2., 2., 1., 1., 1., 1.]),
+                 }
     return d_weights[objective_str]
