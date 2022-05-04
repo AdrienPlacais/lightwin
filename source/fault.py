@@ -131,18 +131,20 @@ class Fault():
             n_constr = 0
         else:
             assert phi_s_limits is not None
-            n_constr = 2 * phi_s_limits.shape[0]  # FIXME
-            # n_constr = 0
+            n_constr = 2 * phi_s_limits.shape[0]
 
         problem = pso.MyProblem(wrapper_pso, init_guess.shape[0], n_constr,
                                 bounds, wrapper_args, phi_s_limits)
         res = pso.perform_pso(problem)
 
+        res.X[-1], res.F[-1], res.G[-1] = problem.cheat()
+
         weights = pso.set_weights(WHAT_TO_FIT['objective'])
         opti_sol, approx_ideal, approx_nadir = pso.mcdm(res, weights,
                                                         self.info)
 
-        pso.convergence(res.history, approx_ideal, approx_nadir)
+        if pso.flag_convergence:
+            pso.convergence(res.history, approx_ideal, approx_nadir)
 
         return True, opti_sol
 

@@ -22,12 +22,17 @@ from pymoo.util.running_metric import RunningMetric
 from pymoo.visualization.pcp import PCP
 
 
+flag_hypervolume = False
+flag_running = False
+flag_convergence = True
+
+
 class MyProblem(ElementwiseProblem):
     """Class holding PSO."""
 
     def __init__(self, wrapper_fun, n_var, n_constr, bounds, wrapper_args,
                  phi_s_limits):
-        self.wrapper = wrapper_fun
+        self.wrapper_pso = wrapper_fun
         self.fault = wrapper_args[0]
         self.fun_residual = wrapper_args[1]
         self.d_idx = wrapper_args[2]
@@ -51,18 +56,43 @@ class MyProblem(ElementwiseProblem):
         out : truc
             Mmmh
         """
-        objective, brok_results = self.wrapper(x, self.fault,
-                                               self.fun_residual, self.d_idx)
-        out["F"] = objective
+        out["F"], brok_results = self.wrapper_pso(
+            x, self.fault, self.fun_residual, self.d_idx)
+
         out_G = []
         for i in range(len(brok_results['phi_s_rad'])):
             out_G.append(self.phi_s_limits[i][0]
                          - brok_results['phi_s_rad'][i])
             out_G.append(brok_results['phi_s_rad'][i]
                          - self.phi_s_limits[i][1])
-
         out["G"] = np.array(out_G)
 
+    def cheat(self):
+        # Results found with least squares
+        phi_0_cheat = np.deg2rad(np.array([22.091899,
+                                           57.085305,
+                                           224.586449,
+                                           70.098014,
+                                           187.441566]))
+        k_e_cheat = np.array([3.523201, 3.893933, 3.948438,
+                              3.402330, 3.527800])
+        X_cheat = np.hstack((phi_0_cheat, k_e_cheat))
+        print('X_cheat:', X_cheat)
+
+        F_cheat, brok_res_cheat = self.wrapper_pso(
+            X_cheat, self.fault, self.fun_residual, self.d_idx)
+        print('F_cheat:', F_cheat)
+        print('phi_s_cheat:', np.rad2deg(brok_res_cheat['phi_s_rad']))
+
+        G_cheat = []
+        for i in range(len(brok_res_cheat['phi_s_rad'])):
+            G_cheat.append(self.phi_s_limits[i][0]
+                         - brok_res_cheat['phi_s_rad'][i])
+            G_cheat.append(brok_res_cheat['phi_s_rad'][i]
+                         - self.phi_s_limits[i][1])
+        G_cheat = np.array(G_cheat)
+        print('G_cheat:', G_cheat)
+        return X_cheat, F_cheat, G_cheat
 
 def perform_pso(problem):
     """Perform the PSO."""
@@ -73,7 +103,7 @@ def perform_pso(problem):
                       mutation=get_mutation("real_pm", eta=5),
                       # Ensure that offsprings are different from each
                       # other and from existing population:
-                      eliminate_duplicates=True)
+                      eliminate_duplicates=False)
     termination = get_termination("n_gen", 100)
     # termination = MultiObjectiveDefaultTermination(
     #     x_tol=1e-8,
@@ -85,7 +115,7 @@ def perform_pso(problem):
     #     n_max_evals=100000
     # )
     res = minimize(problem, algorithm, termination, seed=1,
-                   save_history=True,
+                   save_history=flag_convergence,
                    verbose=False)
     return res
 
@@ -148,21 +178,17 @@ def _best_solutions(res, nF, weights, fault_info):
                         labels=fault_info['l_obj_label'],
                         **kwargs_matplotlib,
                         )
-    # best_sol_plot.close_on_destroy = False
     best_sol_plot.set_axis_style(color="grey", alpha=0.5)
     best_sol_plot.add(res.F, color="grey", alpha=0.3)
     best_sol_plot.add(res.F[i_asf], linewidth=5, color="red", label='ASF')
     best_sol_plot.add(res.F[i_pw], linewidth=5, color="blue", label='PW')
     best_sol_plot.show()
     best_sol_plot.ax.grid(True)
-    return pd_best_sol, i_pw
+    return pd_best_sol, i_asf
 
 
 def convergence(hist, approx_ideal, approx_nadir):
     """Study the convergence of the algorithm."""
-    flag_hypervolume = False
-    flag_running = False
-
     # Convergence study
     n_evals = []      # Num of func evaluations
     hist_F = []       # Objective space values in each generation
