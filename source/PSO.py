@@ -74,7 +74,7 @@ def perform_pso(problem):
                       # Ensure that offsprings are different from each
                       # other and from existing population:
                       eliminate_duplicates=True)
-    termination = get_termination("n_gen", 500)
+    termination = get_termination("n_gen", 100)
     # termination = MultiObjectiveDefaultTermination(
     #     x_tol=1e-8,
     #     cv_tol=1e-6,
@@ -139,18 +139,22 @@ def _best_solutions(res, nF, weights, fault_info):
             pd_best_sol[col] = np.rad2deg(pd_best_sol[col])
     print('\n\n', pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']],
           '\n\n')
-    # fig = plt.figure(51)
-    plot = PCP(title=("Run", {'pad': 30}),
-               n_ticks=10,
-               legend=(True, {'loc': "upper left"}),
-               # labels=fault_info['l_obj_label'],
-               # fig=fig,
-               )
-    plot.set_axis_style(color="grey", alpha=0.5)
-    plot.add(res.F, color="grey", alpha=0.3)
-    plot.add(res.F[i_asf], linewidth=5, color="red", label='ASF')
-    plot.add(res.F[i_pw], linewidth=5, color="blue", label='PW')
-    plot.show()
+
+    # Viualize solutions
+    kwargs_matplotlib = {'close_on_destroy': False}
+    best_sol_plot = PCP(title=("Run", {'pad': 30}),
+                        n_ticks=10,
+                        legend=(True, {'loc': "upper left"}),
+                        labels=fault_info['l_obj_label'],
+                        **kwargs_matplotlib,
+                        )
+    # best_sol_plot.close_on_destroy = False
+    best_sol_plot.set_axis_style(color="grey", alpha=0.5)
+    best_sol_plot.add(res.F, color="grey", alpha=0.3)
+    best_sol_plot.add(res.F[i_asf], linewidth=5, color="red", label='ASF')
+    best_sol_plot.add(res.F[i_pw], linewidth=5, color="blue", label='PW')
+    best_sol_plot.show()
+    best_sol_plot.ax.grid(True)
     return pd_best_sol, i_pw
 
 
