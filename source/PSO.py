@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.algorithms.moo.nsga3 import NSGA3
 from pymoo.factory import get_sampling, get_crossover, get_mutation, \
-    get_termination
+    get_termination, get_reference_directions
 from pymoo.util.termination.default import MultiObjectiveDefaultTermination
 from pymoo.optimize import minimize
 from pymoo.decomposition.asf import ASF
@@ -22,6 +23,8 @@ from pymoo.util.running_metric import RunningMetric
 from pymoo.visualization.pcp import PCP
 
 
+# algorithm = "NSGA-II"
+str_algorithm = "NSGA-II"
 flag_hypervolume = False
 flag_running = False
 flag_convergence = True
@@ -30,15 +33,17 @@ flag_convergence = True
 class MyProblem(ElementwiseProblem):
     """Class holding PSO."""
 
-    def __init__(self, wrapper_fun, n_var, n_constr, bounds, wrapper_args,
-                 phi_s_limits):
+    def __init__(self, wrapper_fun, n_var, n_obj, n_constr, bounds,
+                 wrapper_args, phi_s_limits):
         self.wrapper_pso = wrapper_fun
         self.fault = wrapper_args[0]
         self.fun_residual = wrapper_args[1]
         self.d_idx = wrapper_args[2]
         self.phi_s_limits = phi_s_limits
+        n_obj = n_obj
+        print('number of objectives:', n_obj)
         super().__init__(n_var=n_var,
-                         n_obj=len(self.d_idx['l_ref']),
+                         n_obj=n_obj,
                          n_constr=n_constr,
                          xl=bounds[:, 0], xu=bounds[:, 1])
         if n_constr > 0:
@@ -68,6 +73,7 @@ class MyProblem(ElementwiseProblem):
         out["G"] = np.array(out_G)
 
     def cheat(self):
+        """Set a solution that works for comparison."""
         # Results found with least squares
         phi_0_cheat = np.deg2rad(np.array([22.091899,
                                            57.085305,
@@ -87,24 +93,32 @@ class MyProblem(ElementwiseProblem):
         G_cheat = []
         for i in range(len(brok_res_cheat['phi_s_rad'])):
             G_cheat.append(self.phi_s_limits[i][0]
-                         - brok_res_cheat['phi_s_rad'][i])
+                           - brok_res_cheat['phi_s_rad'][i])
             G_cheat.append(brok_res_cheat['phi_s_rad'][i]
-                         - self.phi_s_limits[i][1])
+                           - self.phi_s_limits[i][1])
         G_cheat = np.array(G_cheat)
         print('G_cheat:', G_cheat)
         return X_cheat, F_cheat, G_cheat
 
+
 def perform_pso(problem):
     """Perform the PSO."""
-    algorithm = NSGA2(pop_size=100,
-                      n_offsprings=10,
-                      sampling=get_sampling("real_random"),
-                      crossover=get_crossover("real_sbx", prob=.9, eta=10),
-                      mutation=get_mutation("real_pm", eta=5),
-                      # Ensure that offsprings are different from each
-                      # other and from existing population:
-                      eliminate_duplicates=False)
-    termination = get_termination("n_gen", 100)
+    if str_algorithm == 'NSGA-II':
+        algorithm = NSGA2(pop_size=100,
+                          n_offsprings=10,
+                          sampling=get_sampling("real_random"),
+                          crossover=get_crossover("real_sbx", prob=.9, eta=10),
+                          mutation=get_mutation("real_pm", eta=5),
+                          # Ensure that offsprings are different from each
+                          # other and from existing population:
+                          eliminate_duplicates=True)
+
+    elif str_algorithm == 'NSGA-III':
+        ref_dirs = get_reference_directions("das-dennis", 6, n_partitions=10)
+        algorithm = NSGA3(pop_size=1000,
+                          ref_dirs=ref_dirs,
+                          )
+    termination = get_termination("n_gen", 600)
     # termination = MultiObjectiveDefaultTermination(
     #     x_tol=1e-8,
     #     cv_tol=1e-6,
@@ -122,24 +136,19 @@ def perform_pso(problem):
 
 def mcdm(res, weights, fault_info):
     """Perform Multi-Criteria Decision Making."""
-    # Solutions
-    F = res.F
-
+    print(f"Shapes: X={res.X.shape}, F={res.F.shape}, G={res.G.shape}")
     # Multi-Criteria Decision Making
-    fl = F.min(axis=0)
-    fu = F.max(axis=0)
+    fl = res.F.min(axis=0)
+    fu = res.F.max(axis=0)
     for _l, _u in zip(fl, fu):
-        print(f"Pre-scale f: [{_l}, {_u}]")
+        print(f"\nPre-scale f: [{_l}, {_u}]\n")
 
-    approx_ideal = F.min(axis=0)
-    approx_nadir = F.max(axis=0)
+    approx_ideal = res.F.min(axis=0)
+    approx_nadir = res.F.max(axis=0)
 
-    nF = (F - approx_ideal) / (approx_nadir - approx_ideal)
-
+    nF = (res.F - approx_ideal) / (approx_nadir - approx_ideal)
     fl = nF.min(axis=0)
     fu = nF.max(axis=0)
-    for _l, _u in zip(fl, fu):
-        print(f"Scale f: [{_l}, {_u}]")
 
     pd_best_sol, i = _best_solutions(res, nF, weights, fault_info)
     fault_info['resume'] = pd_best_sol

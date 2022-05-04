@@ -127,17 +127,19 @@ class Fault():
     def _proper_fix_pso(self, init_guess, bounds, wrapper_args,
                         phi_s_limits=None):
         """Fix with multi-PSO algorithm."""
+        n_obj = 6  # FIXME
         if FLAG_PHI_S_FIT:
             n_constr = 0
         else:
             assert phi_s_limits is not None
             n_constr = 2 * phi_s_limits.shape[0]
 
-        problem = pso.MyProblem(wrapper_pso, init_guess.shape[0], n_constr,
+        problem = pso.MyProblem(wrapper_pso, init_guess.shape[0], n_obj,
+                                n_constr,
                                 bounds, wrapper_args, phi_s_limits)
         res = pso.perform_pso(problem)
 
-        res.X[-1], res.F[-1], res.G[-1] = problem.cheat()
+        # res.X[-1], res.F[-1], res.G[-1] = problem.cheat()
 
         weights = pso.set_weights(WHAT_TO_FIT['objective'])
         opti_sol, approx_ideal, approx_nadir = pso.mcdm(res, weights,
