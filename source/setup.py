@@ -10,3 +10,7 @@ from setuptools import setup
 from Cython.Build import cythonize
 
 setup(ext_modules=cythonize("transfer_matrices_c.pyx"))
+# To compile, go to LightWin/source/ and enter:
+# python3 setup.py build_ext --inplace
+# IMPORTANT: in some interpreters such as Spyder, .so are loaded at the startup
+# of the software. Hence, youo must restart the kernel after each compilation

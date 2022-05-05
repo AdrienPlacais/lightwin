@@ -87,16 +87,16 @@ class Accelerator():
         for cav in cavities:
             flags_absolute.append(cav.acc_field.phi_0['abs_phase_flag'])
 
-        if FLAG_PHI_ABS and False in flags_absolute:
-            print('Warning: you asked LW a simulation in absolute phase,',
-                  'while there is at least one cavity in relative phase in',
-                  "the .dat file used by TW. Results won't match if there",
-                  'are faulty cavities.\n')
-        elif not FLAG_PHI_ABS and True in flags_absolute:
-            print('Warning: you asked LW a simulation in relative phase,',
-                  'while there is at least one cavity in absolute phase in',
-                  "the .dat file used by TW. Results won't match if there",
-                  'are faulty cavities.\n')
+        # if FLAG_PHI_ABS and False in flags_absolute:
+        #     print('Warning: you asked LW a simulation in absolute phase,',
+        #           'while there is at least one cavity in relative phase in',
+        #           "the .dat file used by TW. Results won't match if there",
+        #           'are faulty cavities.\n')
+        # elif not FLAG_PHI_ABS and True in flags_absolute:
+        #     print('Warning: you asked LW a simulation in relative phase,',
+        #           'while there is at least one cavity in absolute phase in',
+        #           "the .dat file used by TW. Results won't match if there",
+        #           'are faulty cavities.\n')
 
     def compute_transfer_matrices(self, l_elts=None, flag_transfer_data=True,
                                   d_fits={'flag': False}):
