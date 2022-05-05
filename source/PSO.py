@@ -21,13 +21,29 @@ from pymoo.mcdm.pseudo_weights import PseudoWeights
 from pymoo.indicators.hv import Hypervolume
 from pymoo.util.running_metric import RunningMetric
 from pymoo.visualization.pcp import PCP
+from pymoo.core.callback import Callback
 
 
 # algorithm = "NSGA-II"
 str_algorithm = "NSGA-II"
 flag_hypervolume = False
 flag_running = False
-flag_convergence = True
+flag_convergence_history = False  # Heavier in terms of memory usage
+flag_convergence_callback = True
+
+
+class MyCallback(Callback):
+    """Class to receive notification from algo at each iteration."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.n_evals = []
+        self.opt = []
+
+    def notify(self, algorithm):
+        """Notify."""
+        self.n_evals.append(algorithm.evaluator.n_eval)
+        self.opt.append(algorithm.opt[0].F)
 
 
 class MyProblem(ElementwiseProblem):
@@ -40,7 +56,7 @@ class MyProblem(ElementwiseProblem):
         self.fun_residual = wrapper_args[1]
         self.d_idx = wrapper_args[2]
         self.phi_s_limits = phi_s_limits
-        n_obj = n_obj
+        self.n_obj = n_obj
         print('number of objectives:', n_obj)
         super().__init__(n_var=n_var,
                          n_obj=n_obj,
@@ -105,32 +121,32 @@ def perform_pso(problem):
     """Perform the PSO."""
     if str_algorithm == 'NSGA-II':
         algorithm = NSGA2(pop_size=100,
-                          n_offsprings=10,
+                          n_offsprings=11,
                           sampling=get_sampling("real_random"),
                           crossover=get_crossover("real_sbx", prob=.9, eta=10),
                           mutation=get_mutation("real_pm", eta=5),
                           # Ensure that offsprings are different from each
                           # other and from existing population:
                           eliminate_duplicates=True)
+        termination = get_termination("n_gen", 135)
 
     elif str_algorithm == 'NSGA-III':
-        ref_dirs = get_reference_directions("das-dennis", 6, n_partitions=10)
-        algorithm = NSGA3(pop_size=1000,
+        ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
+                                            n_partitions=10)
+        algorithm = NSGA3(pop_size=3005,
                           ref_dirs=ref_dirs,
                           )
-    termination = get_termination("n_gen", 600)
-    # termination = MultiObjectiveDefaultTermination(
-    #     x_tol=1e-8,
-    #     cv_tol=1e-6,
-    #     f_tol=0.0025,
-    #     nth_gen=5,
-    #     n_last=30,
-    #     n_max_gen=1000,
-    #     n_max_evals=100000
-    # )
-    res = minimize(problem, algorithm, termination, seed=1,
-                   save_history=flag_convergence,
-                   verbose=False)
+        termination = get_termination("n_gen", 600)
+
+    res = minimize(problem,
+                   algorithm,
+                   termination,
+                   seed=1,
+                   save_history=flag_convergence_history,
+                   verbose=False,
+                   callback=MyCallback(),
+                   )
+
     return res
 
 
@@ -141,7 +157,7 @@ def mcdm(res, weights, fault_info):
     fl = res.F.min(axis=0)
     fu = res.F.max(axis=0)
     for _l, _u in zip(fl, fu):
-        print(f"\nPre-scale f: [{_l}, {_u}]\n")
+        print(f"Pre-scale f: [{_l}, {_u}]")
 
     approx_ideal = res.F.min(axis=0)
     approx_nadir = res.F.max(axis=0)
@@ -196,7 +212,20 @@ def _best_solutions(res, nF, weights, fault_info):
     return pd_best_sol, i_asf
 
 
-def convergence(hist, approx_ideal, approx_nadir):
+def convergence_callback(callback, l_obj_label):
+    """Plot convergence info using the results of the callback."""
+    fig = plt.figure(58)
+    ax = fig.add_subplot(111)
+    ax.set_title("Convergence")
+    ax.plot(callback.n_evals, callback.opt, "--", label=l_obj_label)
+    ax.set_xlabel('Number of evaluations')
+    ax.set_ylabel('res.F[0, :]')
+    ax.set_yscale("log")
+    ax.legend()
+    ax.grid(True)
+
+
+def convergence_history(hist, approx_ideal, approx_nadir):
     """Study the convergence of the algorithm."""
     # Convergence study
     n_evals = []      # Num of func evaluations
@@ -251,7 +280,7 @@ def convergence(hist, approx_ideal, approx_nadir):
 def _convergence_hypervolume(n_evals, hist_F, approx_ideal, approx_nadir):
     """Study convergence using hypervolume. Not adapted when too many dims."""
     metric = Hypervolume(
-        ref_point=np.array([1.1, 1.1]), #, 1.1, 1.1, 1.1, 1.1]),
+        ref_point=np.array([1.1, 1.1]),
         norm_ref_point=False,
         zero_to_one=True,
         ideal=approx_ideal,
@@ -286,6 +315,6 @@ def set_weights(objective_str):
                  'phase': np.array([1.]),
                  'energy_phase': np.array([.3, 8.]),
                  'transf_mat': np.array([1., 1., 1., 1.]),
-                  'all': np.array([2., 2., 1., 1., 1., 1.]),
+                 'all': np.array([2., 2., 1., 1., 1., 1.]),
                  }
     return d_weights[objective_str]

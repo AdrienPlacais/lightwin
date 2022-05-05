@@ -139,14 +139,15 @@ class Fault():
                                 bounds, wrapper_args, phi_s_limits)
         res = pso.perform_pso(problem)
 
-        # res.X[-1], res.F[-1], res.G[-1] = problem.cheat()
-
         weights = pso.set_weights(WHAT_TO_FIT['objective'])
         opti_sol, approx_ideal, approx_nadir = pso.mcdm(res, weights,
                                                         self.info)
 
-        if pso.flag_convergence:
-            pso.convergence(res.history, approx_ideal, approx_nadir)
+        if pso.flag_convergence_history:
+            pso.convergence_history(res.history, approx_ideal, approx_nadir)
+        if pso.flag_convergence_callback:
+            pso.convergence_callback(res.algorithm.callback,
+                                     self.info['l_obj_label'])
 
         return True, opti_sol
 
