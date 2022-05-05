@@ -14,7 +14,8 @@ from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.algorithms.moo.nsga3 import NSGA3
 from pymoo.factory import get_sampling, get_crossover, get_mutation, \
     get_termination, get_reference_directions
-from pymoo.util.termination.default import MultiObjectiveDefaultTermination
+from pymoo.util.termination.default import \
+    MultiObjectiveSpaceToleranceTermination
 from pymoo.optimize import minimize
 from pymoo.decomposition.asf import ASF
 from pymoo.mcdm.pseudo_weights import PseudoWeights
@@ -24,8 +25,8 @@ from pymoo.visualization.pcp import PCP
 from pymoo.core.callback import Callback
 
 
-# algorithm = "NSGA-II"
-str_algorithm = "NSGA-II"
+str_algorithm = "NSGA-III"
+flag_verbose = True
 flag_hypervolume = False
 flag_running = False
 flag_convergence_history = False  # Heavier in terms of memory usage
@@ -121,33 +122,58 @@ def perform_pso(problem):
     """Perform the PSO."""
     if str_algorithm == 'NSGA-II':
         algorithm = NSGA2(pop_size=100,
-                          n_offsprings=11,
+                          n_offsprings=10,
                           sampling=get_sampling("real_random"),
                           crossover=get_crossover("real_sbx", prob=.9, eta=10),
                           mutation=get_mutation("real_pm", eta=5),
                           # Ensure that offsprings are different from each
                           # other and from existing population:
                           eliminate_duplicates=True)
-        termination = get_termination("n_gen", 135)
 
     elif str_algorithm == 'NSGA-III':
         ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
-                                            n_partitions=10)
-        algorithm = NSGA3(pop_size=3005,
+                                            n_partitions=6)
+        algorithm = NSGA3(pop_size=500,
                           ref_dirs=ref_dirs,
                           )
-        termination = get_termination("n_gen", 600)
 
+    termination = _set_termination()
     res = minimize(problem,
                    algorithm,
                    termination,
                    seed=1,
                    save_history=flag_convergence_history,
-                   verbose=False,
+                   verbose=flag_verbose,
                    callback=MyCallback(),
                    )
 
     return res
+
+
+def _set_termination():
+    """Set a termination condition."""
+    d_termination = {
+        'NSGA-II': get_termination("n_gen", 1000),
+        'NSGA-III': get_termination("n_gen", 200),
+    }
+    termination = d_termination[str_algorithm]
+
+    termination = MultiObjectiveSpaceToleranceTermination(
+        # What is the tolerance in the objective space on average. If the value
+        # is below this bound, we terminate.
+        tol=1e-5,
+        # To make the criterion more robust, we consider the last n generations
+        # and take the maximum. This considers the worst case in a window.
+        n_last=10,
+        # As a fallback, the generation number can be used. For some problems,
+        # the termination criterion might not be reached; however, an upper
+        # bound for generations can be defined to stop in that case.
+        n_max_gen=1000,
+        # Defines whenever the termination criterion is calculated by default,
+        # every 10th generation.
+        nth_gen=10,
+    )
+    return termination
 
 
 def mcdm(res, weights, fault_info):
@@ -217,7 +243,7 @@ def convergence_callback(callback, l_obj_label):
     fig = plt.figure(58)
     ax = fig.add_subplot(111)
     ax.set_title("Convergence")
-    ax.plot(callback.n_evals, callback.opt, "--", label=l_obj_label)
+    ax.plot(callback.n_evals, callback.opt, label=l_obj_label)
     ax.set_xlabel('Number of evaluations')
     ax.set_ylabel('res.F[0, :]')
     ax.set_yscale("log")
