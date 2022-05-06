@@ -109,6 +109,8 @@ def load_field_map_file(elt):
     # Interpolation
     z_cavity_array = np.linspace(0., zmax, n_z + 1)
 
+    elt.z = z_cavity_array
+    elt.ez = f_z
     def e_spat(pos):
         return np.interp(x=pos, xp=z_cavity_array, fp=f_z, left=0., right=0.)
     return e_spat
