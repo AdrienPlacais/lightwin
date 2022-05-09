@@ -112,11 +112,14 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:, :] e_z_array,
 # =============================================================================
 cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
     cdef DTYPE_t gamma_in_min2, beta_in, delta_phi
+
+    # Arrays
     cdef np.ndarray[DTYPE_t, ndim=3] r_zz = np.empty([n_steps, 2, 2],
                                                      dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=2] w_phi = np.empty([n_steps, 2],
-                                                      dtype=DTYPE)
-    cdef np.int64_t i
+    w_phi_array = np.empty((n_steps, 2), dtype=DTYPE)
+
+    # Memory views
+    cdef DTYPE_t[:, :] w_phi = w_phi_array
 
     gamma_in_min2 = (1. + w_kin_in * inv_E_rest_MeV_cdef)**-2
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
@@ -126,43 +129,43 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
     delta_phi = OMEGA_0_BUNCH_cdef * delta_s / (beta_in * c_cdef)
     w_phi[:, 0] = w_kin_in
     w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
-    return r_zz, w_phi, None
+    return r_zz, w_phi_array, None
 
-# TODO cpdef, type e_spat
+
 def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                 DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                 np.int64_t section_idx):
 
+    # Variables
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
     cdef DTYPE_t half_d_z = .5 * d_z
-
-    cdef np.ndarray[DTYPE_t, ndim=3] r_zz = np.empty([n_steps, 2, 2],
-                                                     dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=2] w_phi = np.empty([n_steps + 1, 2],
-                                                      dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1] delta_w_phi = np.zeros([2], dtype=DTYPE)
-    cdef DTYPE_t[:, :] e_z_array
     cdef DTYPE_t gamma_next
     cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
     cdef DTYPE_t beta = sqrt(1. - gamma**-2)
     cdef np.int64_t i
     cdef DTYPE_t tmp
 
+    # Arrays
+    cdef np.ndarray[DTYPE_t, ndim=3] r_zz = np.empty([n_steps, 2, 2],
+                                                     dtype=DTYPE)
+    w_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
+    delta_w_phi_array = np.zeros((2), dtype=DTYPE)
+
+    # Memory views
+    cdef DTYPE_t[:, :] e_z_array
+    cdef DTYPE_t[:] delta_w_phi = delta_w_phi_array
+    cdef DTYPE_t[:, :] w_phi = w_phi_array
+
     w_phi[0, 0] = w_kin_in
     w_phi[0, 1] = 0.
 
     if section_idx == 0:
-        e_z_array = E_Z_SIMPLE_SPOKE.copy()
-        # e_z_array = E_Z_SIMPLE_SPOKE
+        e_z_array = E_Z_SIMPLE_SPOKE
     elif section_idx == 1:
-        e_z_array = E_Z_SPOKE_ESS.copy()
-        # e_z_array = E_Z_SPOKE_ESS
+        e_z_array = E_Z_SPOKE_ESS
     elif section_idx == 2:
-        e_z_array = E_Z_BETA065.copy()
-        # e_z_array = E_Z_BETA065
-    else:
-        raise IOError('bad lattice', section_idx)
+        e_z_array = E_Z_BETA065
 
     for i in range(n_steps):
         # Compute energy and phase changes
@@ -173,7 +176,9 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         itg_field += e_func(k_e, z_rel, e_z_array, w_phi[i, 1], phi_0_rel) \
             * (1. + 1j * tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
-        w_phi[i + 1, :] = w_phi[i, :] + delta_w_phi
+        # w_phi[i + 1, :] = w_phi[i, :] + delta_w_phi
+        w_phi[i + 1, 0] = w_phi[i, 0] + delta_w_phi[0]
+        w_phi[i + 1, 1] = w_phi[i, 1] + delta_w_phi[1]
         gamma_next = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
 
         gamma_middle = .5 * (gamma + gamma_next)
@@ -186,7 +191,7 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         z_rel += d_z
         gamma = gamma_next
 
-    return r_zz, w_phi[1:, :], itg_field
+    return r_zz, w_phi_array[1:, :], itg_field
 
 
 cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
