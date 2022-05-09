@@ -102,8 +102,8 @@ class _Element():
             r_zz, w_phi, itg_field = \
                 self.tmat['func'](d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
                                   kwargs['norm'], kwargs['phi_0_rel'],
-                                  self.idx['section'][0][0],
-                                  # kwargs['e_spat']   # FIXME
+                                    self.idx['section'][0][0],
+                                    # kwargs['e_spat']   # FIXME
                                   )
             w_phi[:, 1] *= OMEGA_0_BUNCH / kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])

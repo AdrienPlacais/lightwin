@@ -14,7 +14,9 @@ import numpy as np
 import accelerator as acc
 
 FILEPATH = os.path.abspath(
-    "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat")
+    "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+    # "../data/work_field_map/work_field_map.dat"
+)
 ref_linac = acc.Accelerator(FILEPATH, "Working")
 ref_linac.compute_transfer_matrices()
 ref_values = [2209.9866910478313, 601.1642457863487,
