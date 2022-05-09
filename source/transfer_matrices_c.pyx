@@ -43,7 +43,7 @@ cdef DTYPE_t L_CAV_BETA065 = 1.050
 cdef int N_POINTS_BETA065 = 525
 cdef DTYPE_t[:, :] E_Z_BETA065
 
-cdef init_arrays():
+cpdef init_arrays():
     """Useless to call it??"""
     global E_Z_SIMPLE_SPOKE
     global E_Z_SPOKE_ESS
@@ -139,7 +139,7 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 
     cdef np.int64_t i
     cdef DTYPE_t tmp
-    init_arrays()
+    #  init_arrays()
     w_phi[0, 0] = w_kin_in
     w_phi[0, 1] = 0.
 
