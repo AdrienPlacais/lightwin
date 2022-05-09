@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#cython: language_level=3
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep 22 16:04:34 2021.
@@ -17,9 +18,9 @@ np.import_array()
 
 # Must be changed to double if C float is replaced by double
 DTYPE = np.float64
-ctypedef np.float64_t DTYPE_t
+# ctypedef np.float64_t DTYPE_t
 # DTYPE = double
-# ctypedef double DTYPE_t
+ctypedef double DTYPE_t
 
 cdef DTYPE_t c_cdef = 2.99792458e8
 cdef DTYPE_t E_rest_MeV_cdef = 938.27203
@@ -190,8 +191,8 @@ def z_field_map(DTYPE_t d_z, DTYPE_t W_kin_in, np.int64_t n_steps,
 
 cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t W_kin_in,
                   DTYPE_t gamma_middle, DTYPE_t W_kin_out, DTYPE_t beta_middle,
-                  DTYPE_t z_rel, DTYPE_t phi_rel, DTYPE_t omega0_rf, DTYPE_t norm,
-                  DTYPE_t phi_0, DTYPE_t[:, :] e_z_array):
+                  DTYPE_t z_rel, DTYPE_t phi_rel, DTYPE_t omega0_rf,
+                  DTYPE_t norm, DTYPE_t phi_0, DTYPE_t[:, :] e_z_array):
     cdef DTYPE_t z_k, delta_phi_half_step, phi_k, k_0, k_1, k_2, k_3, factor
     cdef DTYPE_t e_func_k
     cdef np.ndarray[DTYPE_t, ndim=2] r_zz = np.zeros([2, 2], dtype = DTYPE)
