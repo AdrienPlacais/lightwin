@@ -98,7 +98,7 @@ cdef rk4(np.ndarray[DTYPE_t, ndim=1] u, du_dx, DTYPE_t x, DTYPE_t dx):
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-cpdef z_drift(DTYPE_t delta_s, DTYPE_t W_kin_in, np.int64_t n_steps=1):
+cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
     cdef DTYPE_t gamma_in_min2, beta_in, delta_phi
     cdef np.ndarray[DTYPE_t, ndim=3] r_zz = np.empty([n_steps, 2, 2],
                                                      dtype = DTYPE)
@@ -106,18 +106,18 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t W_kin_in, np.int64_t n_steps=1):
                                                       dtype = DTYPE)
     cdef np.int64_t i
 
-    gamma_in_min2 = (1. + W_kin_in * inv_E_rest_MeV_cdef)**-2
+    gamma_in_min2 = (1. + w_kin_in * inv_E_rest_MeV_cdef)**-2
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
                                               [0., 1.]]))
 
     beta_in = sqrt(1. - gamma_in_min2)
     delta_phi = OMEGA_0_BUNCH_cdef * delta_s / (beta_in * c_cdef)
-    w_phi[:, 0] = W_kin_in
+    w_phi[:, 0] = w_kin_in
     w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
     return r_zz, w_phi, None
 
 # TODO cpdef, type e_spat
-def z_field_map(DTYPE_t d_z, DTYPE_t W_kin_in, np.int64_t n_steps,
+def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                 DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                 np.int64_t section_idx):
 
@@ -129,16 +129,16 @@ def z_field_map(DTYPE_t d_z, DTYPE_t W_kin_in, np.int64_t n_steps,
                                                      dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=2] W_phi = np.empty([n_steps + 1, 2],
                                                       dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1] delta_W_phi = np.zeros([2], dtype=DTYPE)
+    cdef np.ndarray[DTYPE_t, ndim=1] delta_w_phi = np.zeros([2], dtype=DTYPE)
     cdef DTYPE_t[:, :] e_z_array
     cdef DTYPE_t gamma_next, beta_next
-    cdef DTYPE_t gamma = 1. + W_kin_in * inv_E_rest_MeV_cdef
+    cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
     cdef DTYPE_t beta = sqrt(1. - gamma**-2)
 
     cdef np.int64_t i
     cdef DTYPE_t tmp
     init_arrays()
-    W_phi[0, 0] = W_kin_in
+    W_phi[0, 0] = w_kin_in
     W_phi[0, 1] = 0.
 
     if section_idx == 0:
@@ -167,13 +167,13 @@ def z_field_map(DTYPE_t d_z, DTYPE_t W_kin_in, np.int64_t n_steps,
 
     for i in range(n_steps):
         # Compute energy and phase changes
-        delta_W_phi = rk4(W_phi[i, :], du_dz, z_rel, d_z)
+        delta_w_phi = rk4(W_phi[i, :], du_dz, z_rel, d_z)
 
         # Update
         itg_field += e_func(k_e, z_rel, e_z_array, W_phi[i, 1], phi_0_rel) \
             * (1. + 1j * tan(W_phi[i, 1] + phi_0_rel)) * d_z
 
-        W_phi[i + 1, :] = W_phi[i, :] + delta_W_phi
+        W_phi[i + 1, :] = W_phi[i, :] + delta_w_phi
         gamma_next = 1. + W_phi[i+1, 0] * inv_E_rest_MeV_cdef
         beta_next = sqrt(1. - gamma_next**-2)
 
@@ -189,8 +189,8 @@ def z_field_map(DTYPE_t d_z, DTYPE_t W_kin_in, np.int64_t n_steps,
     return r_zz, W_phi[1:, :], itg_field
 
 
-cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t W_kin_in,
-                  DTYPE_t gamma_middle, DTYPE_t W_kin_out, DTYPE_t beta_middle,
+cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
+                  DTYPE_t gamma_middle, DTYPE_t w_kin_out, DTYPE_t beta_middle,
                   DTYPE_t z_rel, DTYPE_t phi_rel, DTYPE_t omega0_rf,
                   DTYPE_t norm, DTYPE_t phi_0, DTYPE_t[:, :] e_z_array):
     cdef DTYPE_t z_k, delta_phi_half_step, phi_k, k_0, k_1, k_2, k_3, factor
@@ -198,7 +198,7 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t W_kin_in,
     cdef np.ndarray[DTYPE_t, ndim=2] r_zz = np.zeros([2, 2], dtype = DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=2] tmp = np.zeros([2, 2], dtype = DTYPE)
     # In
-    r_zz = z_drift(half_dz, W_kin_in)[0][0]
+    r_zz = z_drift(half_dz, w_kin_in)[0][0]
 
     # Middle
     z_k = z_rel + half_dz
@@ -218,7 +218,7 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t W_kin_in,
     r_zz = np.array(([k_3, 0.], [k_1, k_2])) @ r_zz
 
     # Out
-    tmp = z_drift(half_dz, W_kin_out)[0][0]
+    tmp = z_drift(half_dz, w_kin_out)[0][0]
     r_zz = tmp @ r_zz
 
     return r_zz
