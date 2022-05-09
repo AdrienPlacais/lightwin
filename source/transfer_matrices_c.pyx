@@ -131,7 +131,7 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                                                       dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] delta_w_phi = np.zeros([2], dtype=DTYPE)
     cdef DTYPE_t[:, :] e_z_array
-    cdef DTYPE_t gamma_next, beta_next
+    cdef DTYPE_t gamma_next
     cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
     cdef DTYPE_t beta = sqrt(1. - gamma**-2)
 
@@ -174,21 +174,25 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
             * (1. + 1j * tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
         w_phi[i + 1, :] = w_phi[i, :] + delta_w_phi
-        gamma_next = 1. + w_phi[i+1, 0] * inv_E_rest_MeV_cdef
-        beta_next = sqrt(1. - gamma_next**-2)
+        gamma_next = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
 
         gamma_middle = .5 * (gamma + gamma_next)
         beta_middle = sqrt(1. - gamma_middle**-2)
 
+        #  print('inputs', d_z, half_d_z, w_phi[i, 0], gamma_middle, w_phi[i + 1, 0])
+        #  print(beta_middle, z_rel, w_phi[i, 1])
+        #  print(omega0_rf, k_e, phi_0_rel)
+        #  print(' ')
         r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
                                      w_phi[i+1, 0], beta_middle, z_rel,
                                      w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
                                      e_z_array)
+        #  print(i, r_zz[i, 0, 0], r_zz[i, 0, 1], r_zz[i, 1, 0], r_zz[i, 1, 1])
+        #  if i > 6:
+            #  raise IOError('stop')
+
         z_rel += d_z
-    print(" ")
-    print(r_zz[-1, 0, 0], r_zz[-1, 0, 1], r_zz[-1, 1, 0], r_zz[-1, 1, 1])
-    print(w_phi[-1, 0], w_phi[-1, 1])
-    print(itg_field)
+        gamma = gamma_next
     return r_zz, w_phi[1:, :], itg_field
 
 

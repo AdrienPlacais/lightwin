@@ -112,17 +112,20 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
         beta_middle = np.sqrt(1. - gamma_middle**-2)
 
+        print('inputs', d_z, half_d_z, w_phi[i, 0], gamma_middle, w_phi[i + 1, 0])
+        print(beta_middle, z_rel, w_phi[i, 1])
+        print(omega0_rf, k_e, phi_0_rel)
+        print(' ')
         r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
                                      w_phi[i + 1, 0], beta_middle, z_rel,
                                      w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
                                      e_spat)
+        #  print(i, r_zz[i, 0, 0], r_zz[i, 0, 1], r_zz[i, 1, 0], r_zz[i, 1, 1])
+        if i > 6:
+            raise IOError('stop')
 
         z_rel += d_z
 
-    print(" ")
-    print(r_zz[-1, 0, 0], r_zz[-1, 0, 1], r_zz[-1, 1, 0], r_zz[-1, 1, 1])
-    print(w_phi[-1, 0], w_phi[-1, 1])
-    print(itg_field)
     return r_zz, w_phi[1:, :], itg_field
 
 
