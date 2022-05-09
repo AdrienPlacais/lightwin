@@ -18,7 +18,7 @@ np.import_array()
 
 # Must be changed to double if C float is replaced by double
 DTYPE = np.float64
-# ctypedef np.float64_t DTYPE_t
+#  ctypedef np.float64_t DTYPE_t
 # DTYPE = double
 ctypedef double DTYPE_t
 
@@ -28,14 +28,11 @@ cdef DTYPE_t inv_E_rest_MeV_cdef = 0.0010657889908537506
 cdef DTYPE_t OMEGA_0_BUNCH_cdef = 1106468932.594325
 cdef DTYPE_t q_adim_cdef = 1.
 
-# https://stackoverflow.com/questions/14124049/is-there-any-type-for-function-
-# in-cython
-# ctypedef DTYPE_t (*f_type)(DTYPE_t)
 cdef DTYPE_t L_CAV_SIMPLE_SPOKE = 0.415160
 cdef int N_POINTS_SIMPLE_SPOKE = 207
 cdef DTYPE_t[:, :] E_Z_SIMPLE_SPOKE
 
-cdef DTYPE_t L_CAV_SPOKE_ESS = 0.636  #6.36e-1
+cdef DTYPE_t L_CAV_SPOKE_ESS = 0.636
 cdef int N_POINTS_SPOKE_ESS = 255
 cdef DTYPE_t[:, :] E_Z_SPOKE_ESS
 
@@ -75,26 +72,39 @@ cdef DTYPE_t e_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:, :] e_z_array,
 
 
 cdef DTYPE_t de_dt_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:, :] e_z_array,
-                        DTYPE_t phi, DTYPE_t phi_0,
-                        DTYPE_t factor):
+                        DTYPE_t phi, DTYPE_t phi_0, DTYPE_t factor):
     return factor * k_e * interp(z, e_z_array) * sin(phi + phi_0)
 
 
 # TODO: types of u and du_dx
-#  cdef rk4(np.ndarray[DTYPE_t, ndim=1] u, du_dx, DTYPE_t x, DTYPE_t dx):
-cdef rk4(DTYPE_t[:] u, du_dx, DTYPE_t x, DTYPE_t dx):
+cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e,
+         DTYPE_t[:, :] e_z_array, DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
     cdef DTYPE_t half_dx = .5 * dx
     cdef np.ndarray[DTYPE_t, ndim=1] k_1 = np.zeros([2], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] k_2 = np.zeros([2], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] k_3 = np.zeros([2], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] k_4 = np.zeros([2], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] delta_u = np.zeros([2], dtype=DTYPE)
-    k_1 = du_dx(x, u)
-    k_2 = du_dx(x + half_dx, u + half_dx * k_1)
-    k_3 = du_dx(x + half_dx, u + half_dx * k_2)
-    k_4 = du_dx(x + dx, u + dx * k_3)
+    k_1 = du_dz(x, u, k_e, e_z_array, phi_0_rel, omega0_rf)
+    k_2 = du_dz(x + half_dx, u + half_dx * k_1, k_e, e_z_array, phi_0_rel,
+                omega0_rf)
+    k_3 = du_dz(x + half_dx, u + half_dx * k_2, k_e, e_z_array, phi_0_rel,
+                omega0_rf)
+    k_4 = du_dz(x + dx, u + dx * k_3, k_e, e_z_array, phi_0_rel, omega0_rf)
     delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) * dx / 6.
     return delta_u
+
+
+cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:, :] e_z_array,
+           DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
+    cdef DTYPE_t gamma, beta
+    cdef np.ndarray[DTYPE_t, ndim=1] v = np.empty([2], dtype=DTYPE)
+
+    v[0] = q_adim_cdef * e_func(k_e, z, e_z_array, u[1], phi_0_rel)
+    gamma = 1. + u[0] * inv_E_rest_MeV_cdef
+    beta = sqrt(1. - gamma**-2)
+    v[1] = omega0_rf / (beta * c_cdef)
+    return v
 
 
 # =============================================================================
@@ -136,10 +146,9 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     cdef DTYPE_t gamma_next
     cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
     cdef DTYPE_t beta = sqrt(1. - gamma**-2)
-
     cdef np.int64_t i
     cdef DTYPE_t tmp
-    #  init_arrays()
+
     w_phi[0, 0] = w_kin_in
     w_phi[0, 1] = 0.
 
@@ -155,21 +164,10 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     else:
         raise IOError('bad lattice', section_idx)
 
-    # u is defined as a MEMORYVIEW for more efficient access
-    def du_dz(DTYPE_t z, DTYPE_t[:] u):
-    # def du_dz(DTYPE_t z, np.ndarray[DTYPE_t, ndim=1] u):
-        cdef DTYPE_t other_gamma, other_beta
-        cdef np.ndarray[DTYPE_t, ndim=1] v = np.empty([2], dtype=DTYPE)
-
-        v[0] = q_adim_cdef * e_func(k_e, z, e_z_array, u[1], phi_0_rel)
-        other_gamma = 1. + u[0] * inv_E_rest_MeV_cdef
-        other_beta = sqrt(1. - other_gamma**-2)
-        v[1] = omega0_rf / (other_beta * c_cdef)
-        return v
-
     for i in range(n_steps):
         # Compute energy and phase changes
-        delta_w_phi = rk4(w_phi[i, :], du_dz, z_rel, d_z)
+        delta_w_phi = rk4(w_phi[i, :], z_rel, d_z, k_e, e_z_array, phi_0_rel,
+                          omega0_rf)
 
         # Update
         itg_field += e_func(k_e, z_rel, e_z_array, w_phi[i, 1], phi_0_rel) \
@@ -182,7 +180,7 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         beta_middle = sqrt(1. - gamma_middle**-2)
 
         r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
-                                     w_phi[i+1, 0], beta_middle, z_rel,
+                                     w_phi[i + 1, 0], beta_middle, z_rel,
                                      w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
                                      e_z_array)
         z_rel += d_z
@@ -194,11 +192,13 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                   DTYPE_t gamma_middle, DTYPE_t w_kin_out, DTYPE_t beta_middle,
                   DTYPE_t z_rel, DTYPE_t phi_rel, DTYPE_t omega0_rf,
-                  DTYPE_t norm, DTYPE_t phi_0, DTYPE_t[:, :] e_z_array):
+                  DTYPE_t norm, DTYPE_t phi_0,
+                  DTYPE_t[:, :] e_z_array):
     cdef DTYPE_t z_k, delta_phi_half_step, phi_k, k_0, k_1, k_2, k_3, factor
     cdef DTYPE_t e_func_k
     cdef np.ndarray[DTYPE_t, ndim=2] r_zz = np.zeros([2, 2], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=2] tmp = np.zeros([2, 2], dtype=DTYPE)
+
     # In
     r_zz = z_drift(half_dz, w_kin_in)[0][0]
 
