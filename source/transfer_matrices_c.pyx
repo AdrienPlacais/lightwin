@@ -62,56 +62,73 @@ cpdef init_arrays():
 # =============================================================================
 # Helpers
 # =============================================================================
-cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:, :] e_z_array):
-    return np.interp(z, e_z_array[:, 0], e_z_array[:, 1], left=0., right=0.)
+cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:, :] e_z):
+    return np.interp(z, e_z[:, 0], e_z[:, 1], left=0., right=0.)
 
 
-cdef DTYPE_t e_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:, :] e_z_array,
+cdef DTYPE_t e_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:, :] e_z,
                     DTYPE_t phi, DTYPE_t phi_0):
-    return k_e * interp(z, e_z_array) * cos(phi + phi_0)
+    return k_e * interp(z, e_z) * cos(phi + phi_0)
 
 
-cdef DTYPE_t de_dt_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:, :] e_z_array,
+cdef DTYPE_t de_dt_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:, :] e_z,
                         DTYPE_t phi, DTYPE_t phi_0, DTYPE_t factor):
-    return factor * k_e * interp(z, e_z_array) * sin(phi + phi_0)
+    return factor * k_e * interp(z, e_z) * sin(phi + phi_0)
 
 
 # TODO: types of u and du_dx
 cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e,
-         DTYPE_t[:, :] e_z_array, DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
+         DTYPE_t[:, :] e_z, DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
     cdef DTYPE_t half_dx = .5 * dx
-    cdef np.ndarray[DTYPE_t, ndim=1] k_1 = np.zeros([2], dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1] k_2 = np.zeros([2], dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1] k_3 = np.zeros([2], dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1] k_4 = np.zeros([2], dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1] delta_u = np.zeros([2], dtype=DTYPE)
-    # k_1_array = np.zeros(2, dtype=DTYPE)
-    # cdef DTYPE_t[:] k_1 = k_1_array
-    # k_2_array = np.zeros(2, dtype=DTYPE)
-    # cdef DTYPE_t[:] k_2 = k_2_array
-    # k_3_array = np.zeros(2, dtype=DTYPE)
-    # cdef DTYPE_t[:] k_3 = k_3_array
-    # k_4_array = np.zeros(2, dtype=DTYPE)
-    # cdef DTYPE_t[:] k_4 = k_4_array
 
-    k_1 = du_dz(x, u, k_e, e_z_array, phi_0_rel, omega0_rf)
-    k_2 = du_dz(x + half_dx, u + half_dx * k_1, k_e, e_z_array, phi_0_rel,
-                omega0_rf)
-    k_3 = du_dz(x + half_dx, u + half_dx * k_2, k_e, e_z_array, phi_0_rel,
-                omega0_rf)
-    k_4 = du_dz(x + dx, u + dx * k_3, k_e, e_z_array, phi_0_rel, omega0_rf)
-    delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) * dx / 6.
-    return delta_u
+    # Memory views:
+    delta_u_array = np.empty(2, dtype=DTYPE)
+    cdef DTYPE_t[:] delta_u = delta_u_array
+
+    k_i_array = np.zeros((4, 2), dtype=DTYPE)
+    cdef DTYPE_t[:, :] k_i = k_i_array
+
+    du_dz_i_array = np.zeros((2), dtype=DTYPE)
+    cdef DTYPE_t[:] du_dz_i = du_dz_i_array
+
+    tmp_array = np.zeros((2), dtype=DTYPE)
+    cdef DTYPE_t[:] tmp = tmp_array
+
+    du_dz_i = du_dz(x, u, k_e, e_z, phi_0_rel, omega0_rf)
+    k_i[0, 0] = du_dz_i[0]
+    k_i[0, 1] = du_dz_i[1]
+
+    tmp[0] = u[0] + half_dx * k_i[0, 0]
+    tmp[1] = u[1] + half_dx * k_i[0, 1]
+    du_dz_i = du_dz(x + half_dx, tmp, k_e, e_z, phi_0_rel, omega0_rf)
+    k_i[1, 0] = du_dz_i[0]
+    k_i[1, 1] = du_dz_i[1]
+
+    tmp[0] = u[0] + half_dx * k_i[1, 0]
+    tmp[1] = u[1] + half_dx * k_i[1, 1]
+    du_dz_i = du_dz(x + half_dx, tmp, k_e, e_z, phi_0_rel, omega0_rf)
+    k_i[2, 0] = du_dz_i[0]
+    k_i[2, 1] = du_dz_i[1]
+
+    tmp[0] = u[0] + dx * k_i[2, 0]
+    tmp[1] = u[1] + dx * k_i[2, 1]
+    du_dz_i = du_dz(x + dx, tmp, k_e, e_z, phi_0_rel, omega0_rf)
+    k_i[3, 0] = du_dz_i[0]
+    k_i[3, 1] = du_dz_i[1]
+
+    delta_u[0] = (k_i[0, 0] + 2. * k_i[1, 0] + 2. * k_i[2, 0] + k_i[3, 0]) * dx / 6.
+    delta_u[1] = (k_i[0, 1] + 2. * k_i[1, 1] + 2. * k_i[2, 1] + k_i[3, 1]) * dx / 6.
+    return delta_u_array
 
 
-cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:, :] e_z_array,
+cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:, :] e_z,
            DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
     cdef DTYPE_t gamma, beta
-    # cdef np.ndarray[DTYPE_t, ndim=1] v = np.empty([2], dtype=DTYPE)
+    # Memory views:
     v_array = np.empty(2, dtype=DTYPE)
     cdef DTYPE_t[:] v = v_array
 
-    v[0] = q_adim_cdef * e_func(k_e, z, e_z_array, u[1], phi_0_rel)
+    v[0] = q_adim_cdef * e_func(k_e, z, e_z, u[1], phi_0_rel)
     gamma = 1. + u[0] * inv_E_rest_MeV_cdef
     beta = sqrt(1. - gamma**-2)
     v[1] = omega0_rf / (beta * c_cdef)
@@ -164,7 +181,7 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     delta_w_phi_array = np.zeros((2), dtype=DTYPE)
 
     # Memory views
-    cdef DTYPE_t[:, :] e_z_array
+    cdef DTYPE_t[:, :] e_z
     cdef DTYPE_t[:] delta_w_phi = delta_w_phi_array
     cdef DTYPE_t[:, :] w_phi = w_phi_array
 
@@ -172,19 +189,19 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     w_phi[0, 1] = 0.
 
     if section_idx == 0:
-        e_z_array = E_Z_SIMPLE_SPOKE
+        e_z = E_Z_SIMPLE_SPOKE
     elif section_idx == 1:
-        e_z_array = E_Z_SPOKE_ESS
+        e_z = E_Z_SPOKE_ESS
     elif section_idx == 2:
-        e_z_array = E_Z_BETA065
+        e_z = E_Z_BETA065
 
     for i in range(n_steps):
         # Compute energy and phase changes
-        delta_w_phi = rk4(w_phi[i, :], z_rel, d_z, k_e, e_z_array, phi_0_rel,
+        delta_w_phi = rk4(w_phi[i, :], z_rel, d_z, k_e, e_z, phi_0_rel,
                           omega0_rf)
 
         # Update
-        itg_field += e_func(k_e, z_rel, e_z_array, w_phi[i, 1], phi_0_rel) \
+        itg_field += e_func(k_e, z_rel, e_z, w_phi[i, 1], phi_0_rel) \
             * (1. + 1j * tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
         w_phi[i + 1, 0] = w_phi[i, 0] + delta_w_phi[0]
@@ -197,7 +214,7 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
                                      w_phi[i + 1, 0], beta_middle, z_rel,
                                      w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
-                                     e_z_array)
+                                     e_z)
         z_rel += d_z
         gamma = gamma_next
 
@@ -208,7 +225,7 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                   DTYPE_t gamma_middle, DTYPE_t w_kin_out, DTYPE_t beta_middle,
                   DTYPE_t z_rel, DTYPE_t phi_rel, DTYPE_t omega0_rf,
                   DTYPE_t norm, DTYPE_t phi_0,
-                  DTYPE_t[:, :] e_z_array):
+                  DTYPE_t[:, :] e_z):
     cdef DTYPE_t z_k, delta_phi_half_step, phi_k, k_0, k_1, k_2, k_3, factor
     cdef DTYPE_t e_func_k
     cdef np.ndarray[DTYPE_t, ndim=2] r_zz = np.zeros([2, 2], dtype=DTYPE)
@@ -225,8 +242,8 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
     # Transfer matrix components
     k_0 = q_adim_cdef * d_z / (gamma_middle * beta_middle**2 * E_rest_MeV_cdef)
     factor = omega0_rf / (beta_middle * c_cdef)
-    k_1 = k_0 * de_dt_func(norm, z_k, e_z_array, phi_k, phi_0, factor)
-    e_func_k = e_func(norm, z_k, e_z_array, phi_k, phi_0)
+    k_1 = k_0 * de_dt_func(norm, z_k, e_z, phi_k, phi_0, factor)
+    e_func_k = e_func(norm, z_k, e_z, phi_k, phi_0)
     k_2 = 1. - (2. - beta_middle**2) * k_0 * e_func_k
 
     # Correction to ensure det < 1
