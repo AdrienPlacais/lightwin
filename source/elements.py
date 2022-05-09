@@ -7,7 +7,7 @@ Created on Wed Sep 22 10:26:19 2021.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-import transfer_matrices_c as tm
+import transfer_matrices_p as tm
 import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
@@ -104,8 +104,8 @@ class _Element():
             r_zz, w_phi, itg_field = \
                 self.tmat['func'](d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
                                   kwargs['norm'], kwargs['phi_0_rel'],
-                                    self.idx['section'][0][0],
-                                  #  kwargs['e_spat']   # FIXME
+                                  #  self.idx['section'][0][0],
+                                  kwargs['e_spat']   # FIXME
                                   )
             w_phi[:, 1] *= OMEGA_0_BUNCH / kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
@@ -116,7 +116,8 @@ class _Element():
 
         results = {'r_zz': r_zz, 'cav_params': cav_params,
                    'w_kin': w_phi[:, 0], 'phi_rel': w_phi[:, 1]}
-        #  if self.idx['element'] > 20:
+
+        #  if self.idx['element'] > 305:
             #  raise IOError('stop')
 
         return results
