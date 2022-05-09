@@ -85,6 +85,15 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e,
     cdef np.ndarray[DTYPE_t, ndim=1] k_3 = np.zeros([2], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] k_4 = np.zeros([2], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] delta_u = np.zeros([2], dtype=DTYPE)
+    # k_1_array = np.zeros(2, dtype=DTYPE)
+    # cdef DTYPE_t[:] k_1 = k_1_array
+    # k_2_array = np.zeros(2, dtype=DTYPE)
+    # cdef DTYPE_t[:] k_2 = k_2_array
+    # k_3_array = np.zeros(2, dtype=DTYPE)
+    # cdef DTYPE_t[:] k_3 = k_3_array
+    # k_4_array = np.zeros(2, dtype=DTYPE)
+    # cdef DTYPE_t[:] k_4 = k_4_array
+
     k_1 = du_dz(x, u, k_e, e_z_array, phi_0_rel, omega0_rf)
     k_2 = du_dz(x + half_dx, u + half_dx * k_1, k_e, e_z_array, phi_0_rel,
                 omega0_rf)
@@ -98,13 +107,15 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e,
 cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:, :] e_z_array,
            DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
     cdef DTYPE_t gamma, beta
-    cdef np.ndarray[DTYPE_t, ndim=1] v = np.empty([2], dtype=DTYPE)
+    # cdef np.ndarray[DTYPE_t, ndim=1] v = np.empty([2], dtype=DTYPE)
+    v_array = np.empty(2, dtype=DTYPE)
+    cdef DTYPE_t[:] v = v_array
 
     v[0] = q_adim_cdef * e_func(k_e, z, e_z_array, u[1], phi_0_rel)
     gamma = 1. + u[0] * inv_E_rest_MeV_cdef
     beta = sqrt(1. - gamma**-2)
     v[1] = omega0_rf / (beta * c_cdef)
-    return v
+    return v_array
 
 
 # =============================================================================
@@ -176,7 +187,6 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         itg_field += e_func(k_e, z_rel, e_z_array, w_phi[i, 1], phi_0_rel) \
             * (1. + 1j * tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
-        # w_phi[i + 1, :] = w_phi[i, :] + delta_w_phi
         w_phi[i + 1, 0] = w_phi[i, 0] + delta_w_phi[0]
         w_phi[i + 1, 1] = w_phi[i, 1] + delta_w_phi[1]
         gamma_next = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
