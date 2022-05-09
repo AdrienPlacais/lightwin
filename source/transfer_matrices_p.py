@@ -119,6 +119,10 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
 
         z_rel += d_z
 
+    print(" ")
+    print(r_zz[-1, 0, 0], r_zz[-1, 0, 1], r_zz[-1, 1, 0], r_zz[-1, 1, 1])
+    print(w_phi[-1, 0], w_phi[-1, 1])
+    print(itg_field)
     return r_zz, w_phi[1:, :], itg_field
 
 
