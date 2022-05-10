@@ -63,34 +63,36 @@ cpdef init_arrays():
 # Helpers
 # =============================================================================
 cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:, :] e_z):
+    """Interpolate the electric field at z position."""
     return np.interp(z, e_z[:, 0], e_z[:, 1], left=0., right=0.)
 
 
 cdef DTYPE_t e_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:, :] e_z,
                     DTYPE_t phi, DTYPE_t phi_0):
+    """Give the electric field at position z and phase phi."""
     return k_e * interp(z, e_z) * cos(phi + phi_0)
 
 
 cdef DTYPE_t de_dt_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:, :] e_z,
                         DTYPE_t phi, DTYPE_t phi_0, DTYPE_t factor):
+    """Give the first time derivative of the electric field at (z, phi)."""
     return factor * k_e * interp(z, e_z) * sin(phi + phi_0)
 
 
-# TODO: types of u and du_dx
 cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e,
          DTYPE_t[:, :] e_z, DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
+    """Integrate the motion over the space step dx."""
+    # Variables:
     cdef DTYPE_t half_dx = .5 * dx
+    cdef Py_ssize_t i
 
     # Memory views:
     delta_u_array = np.empty(2, dtype=DTYPE)
     cdef DTYPE_t[:] delta_u = delta_u_array
-
     k_i_array = np.zeros((4, 2), dtype=DTYPE)
     cdef DTYPE_t[:, :] k_i = k_i_array
-
     du_dz_i_array = np.zeros((2), dtype=DTYPE)
     cdef DTYPE_t[:] du_dz_i = du_dz_i_array
-
     tmp_array = np.zeros((2), dtype=DTYPE)
     cdef DTYPE_t[:] tmp = tmp_array
 
@@ -98,17 +100,12 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e,
     k_i[0, 0] = du_dz_i[0]
     k_i[0, 1] = du_dz_i[1]
 
-    tmp[0] = u[0] + half_dx * k_i[0, 0]
-    tmp[1] = u[1] + half_dx * k_i[0, 1]
-    du_dz_i = du_dz(x + half_dx, tmp, k_e, e_z, phi_0_rel, omega0_rf)
-    k_i[1, 0] = du_dz_i[0]
-    k_i[1, 1] = du_dz_i[1]
-
-    tmp[0] = u[0] + half_dx * k_i[1, 0]
-    tmp[1] = u[1] + half_dx * k_i[1, 1]
-    du_dz_i = du_dz(x + half_dx, tmp, k_e, e_z, phi_0_rel, omega0_rf)
-    k_i[2, 0] = du_dz_i[0]
-    k_i[2, 1] = du_dz_i[1]
+    for i in [1, 2]:
+        tmp[0] = u[0] + half_dx * k_i[i - 1, 0]
+        tmp[1] = u[1] + half_dx * k_i[i - 1, 1]
+        du_dz_i = du_dz(x + half_dx, tmp, k_e, e_z, phi_0_rel, omega0_rf)
+        k_i[i, 0] = du_dz_i[0]
+        k_i[i, 1] = du_dz_i[1]
 
     tmp[0] = u[0] + dx * k_i[2, 0]
     tmp[1] = u[1] + dx * k_i[2, 1]
@@ -123,7 +120,10 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e,
 
 cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:, :] e_z,
            DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
+    """First derivative of the motion."""
+    # Variables:
     cdef DTYPE_t gamma, beta
+
     # Memory views:
     v_array = np.empty(2, dtype=DTYPE)
     cdef DTYPE_t[:] v = v_array
@@ -139,32 +139,32 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:, :] e_z,
 # Transfer matrices
 # =============================================================================
 cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
+    # Variables:
     cdef DTYPE_t gamma_in_min2, beta_in, delta_phi
 
-    # Arrays
-    cdef np.ndarray[DTYPE_t, ndim=3] r_zz = np.empty([n_steps, 2, 2],
-                                                     dtype=DTYPE)
-    w_phi_array = np.empty((n_steps, 2), dtype=DTYPE)
-
-    # Memory views
+    # Memory views:
+    w_phi_array = np.empty([n_steps, 2], dtype=DTYPE)
     cdef DTYPE_t[:, :] w_phi = w_phi_array
 
     gamma_in_min2 = (1. + w_kin_in * inv_E_rest_MeV_cdef)**-2
-    r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
-                                              [0., 1.]]))
+
+    cdef np.ndarray[DTYPE_t, ndim=3] r_zz_array = np.full(
+        [n_steps, 2, 2],
+        np.array([[1., delta_s * gamma_in_min2],
+                  [0., 1.]], dtype=DTYPE),
+        dtype=DTYPE)
 
     beta_in = sqrt(1. - gamma_in_min2)
     delta_phi = OMEGA_0_BUNCH_cdef * delta_s / (beta_in * c_cdef)
     w_phi[:, 0] = w_kin_in
     w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
-    return r_zz, w_phi_array, None
+    return r_zz_array, w_phi_array, None
 
 
 def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                 DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                 np.int64_t section_idx):
-
-    # Variables
+    # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
     cdef DTYPE_t half_d_z = .5 * d_z
@@ -174,16 +174,16 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     cdef np.int64_t i
     cdef DTYPE_t tmp
 
-    # Arrays
-    cdef np.ndarray[DTYPE_t, ndim=3] r_zz = np.empty([n_steps, 2, 2],
-                                                     dtype=DTYPE)
+    # Arrays:
+    cdef np.ndarray[DTYPE_t, ndim=3] r_zz_array = np.empty([n_steps, 2, 2],
+                                                           dtype=DTYPE)
+
+    # Memory views:
     w_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
     delta_w_phi_array = np.zeros((2), dtype=DTYPE)
-
-    # Memory views
-    cdef DTYPE_t[:, :] e_z
-    cdef DTYPE_t[:] delta_w_phi = delta_w_phi_array
     cdef DTYPE_t[:, :] w_phi = w_phi_array
+    cdef DTYPE_t[:] delta_w_phi = delta_w_phi_array
+    cdef DTYPE_t[:, :] e_z
 
     w_phi[0, 0] = w_kin_in
     w_phi[0, 1] = 0.
@@ -211,14 +211,13 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         gamma_middle = .5 * (gamma + gamma_next)
         beta_middle = sqrt(1. - gamma_middle**-2)
 
-        r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
-                                     w_phi[i + 1, 0], beta_middle, z_rel,
-                                     w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
-                                     e_z)
+        r_zz_array[i, :, :] = z_thin_lense(
+            d_z, half_d_z, w_phi[i, 0], gamma_middle, w_phi[i + 1, 0],
+            beta_middle, z_rel, w_phi[i, 1], omega0_rf, k_e, phi_0_rel, e_z)
         z_rel += d_z
         gamma = gamma_next
 
-    return r_zz, w_phi_array[1:, :], itg_field
+    return r_zz_array, w_phi_array[1:, :], itg_field
 
 
 cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
@@ -226,33 +225,30 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                   DTYPE_t z_rel, DTYPE_t phi_rel, DTYPE_t omega0_rf,
                   DTYPE_t norm, DTYPE_t phi_0,
                   DTYPE_t[:, :] e_z):
-    cdef DTYPE_t z_k, delta_phi_half_step, phi_k, k_0, k_1, k_2, k_3, factor
+    # Variables:
+    cdef DTYPE_t z_k, phi_k, k_0, k_1, k_2, k_3
     cdef DTYPE_t e_func_k
-    cdef np.ndarray[DTYPE_t, ndim=2] r_zz = np.zeros([2, 2], dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=2] tmp = np.zeros([2, 2], dtype=DTYPE)
 
-    # In
-    r_zz = z_drift(half_dz, w_kin_in)[0][0]
+    # Arrays:
+    # cdef np.ndarray[DTYPE_t, ndim=2] r_zz = np.zeros([2, 2], dtype=DTYPE)
+    # Faster to not declare the type of r_zz, maybe because it is already
+    # given by z_drift function
 
-    # Middle
     z_k = z_rel + half_dz
-    delta_phi_half_step = half_dz * omega0_rf / (beta_middle * c_cdef)
-    phi_k = phi_rel + delta_phi_half_step
+    phi_k = phi_rel + half_dz * omega0_rf / (beta_middle * c_cdef)
 
-    # Transfer matrix components
-    k_0 = q_adim_cdef * d_z / (gamma_middle * beta_middle**2 * E_rest_MeV_cdef)
-    factor = omega0_rf / (beta_middle * c_cdef)
-    k_1 = k_0 * de_dt_func(norm, z_k, e_z, phi_k, phi_0, factor)
+    # Transfer matrix components of middle (accelerating part)
     e_func_k = e_func(norm, z_k, e_z, phi_k, phi_0)
-    k_2 = 1. - (2. - beta_middle**2) * k_0 * e_func_k
 
+    k_0 = q_adim_cdef * d_z / (gamma_middle * beta_middle**2 * E_rest_MeV_cdef)
+    k_1 = k_0 * de_dt_func(norm, z_k, e_z, phi_k, phi_0, omega0_rf / (beta_middle * c_cdef))
+    k_2 = 1. - (2. - beta_middle**2) * k_0 * e_func_k
     # Correction to ensure det < 1
     k_3 = (1. - k_0 * e_func_k) / (1. - k_0 * (2. - beta_middle**2) * e_func_k)
 
-    r_zz = np.array(([k_3, 0.], [k_1, k_2])) @ r_zz
+    # Matrix product: end @ (middle @ in)
+    r_zz_array = z_drift(half_dz, w_kin_out)[0][0] \
+                 @ (np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE) \
+                    @ z_drift(half_dz, w_kin_in)[0][0])
 
-    # Out
-    tmp = z_drift(half_dz, w_kin_out)[0][0]
-    r_zz = tmp @ r_zz
-
-    return r_zz
+    return r_zz_array
