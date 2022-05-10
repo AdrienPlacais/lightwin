@@ -19,8 +19,6 @@ import time
 from datetime import timedelta
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import cProfile
-import pstats
 import accelerator as acc
 import debug
 import helper
@@ -82,8 +80,6 @@ manual_list = [
 
 FLAG_FIX = True
 SAVE_FIX = True
-
-FLAG_PROFILE = False
 # =============================================================================
 # Outputs
 # =============================================================================
@@ -151,13 +147,7 @@ for lin in linacs:
 
     # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
     if FLAG_FIX and lin.name == "Broken":
-        if FLAG_PROFILE:
-            pr = cProfile.Profile()
-            pr.enable()
-            pr.runcall(fail.fix_all)
-            pr.disable()
-        else:
-            fail.fix_all()
+        fail.fix_all()
 
         if SAVE_FIX:
             tw.save_new_dat(broken_linac, FILEPATH)
@@ -173,10 +163,3 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 data_ref = tw.output_data_in_tw_fashion(ref_linac)
 data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 fault_info = fail.faults['l_obj'][0].info
-
-if FLAG_PROFILE:
-    ps = pstats.Stats(pr).sort_stats('tottime')
-    ps.print_stats(.05)
-
-    ps2 = pstats.Stats(pr).sort_stats('cumtime')
-    ps.print_stats(.05)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#cython: language_level=3
+#cython: language_level=3, profile=True
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep 22 16:04:34 2021.
@@ -10,7 +10,6 @@ File holding all the longitudinal transfer sub-matrices. Units are taken
 exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 import cython
-from libc.stdio cimport printf
 from libc.math cimport sin, cos, sqrt, tan
 import numpy as np
 cimport numpy as np
