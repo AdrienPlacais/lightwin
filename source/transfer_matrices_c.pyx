@@ -135,6 +135,16 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:, :] e_z,
     return v_array
 
 
+# Kept for legacy, but @ is faster than this
+# cdef matprod_22(DTYPE_t[:, :] m_1, DTYPE_t[:, :] m_2):
+    # out = np.array((
+        # [m_1[0, 0] * m_2[0, 0] + m_1[0, 1] * m_2[1, 0],
+         # m_1[0, 0] * m_2[0, 1] + m_1[0, 1] * m_2[1, 1]],
+        # [m_1[1, 0] * m_2[0, 0] + m_1[1, 1] * m_2[1, 0],
+         # m_1[1, 0] * m_2[0, 1] + m_1[1, 1] * m_2[1, 1]]), dtype=DTYPE)
+    # return out
+
+
 # =============================================================================
 # Transfer matrices
 # =============================================================================
@@ -247,6 +257,11 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
     k_3 = (1. - k_0 * e_func_k) / (1. - k_0 * (2. - beta_middle**2) * e_func_k)
 
     # Matrix product: end @ (middle @ in)
+    # r_zz_array = matprod_22(z_drift(half_dz, w_kin_out)[0][0],
+                            # matprod_22(np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE),
+                                       # z_drift(half_dz, w_kin_in)[0][0])
+                           # )
+    # Faster than matmul or matprod_22
     r_zz_array = z_drift(half_dz, w_kin_out)[0][0] \
                  @ (np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE) \
                     @ z_drift(half_dz, w_kin_in)[0][0])
