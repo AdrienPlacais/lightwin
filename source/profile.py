@@ -4,6 +4,9 @@
 Created on Tue May 10 11:26:25 2022.
 
 @author: placais
+
+Do not forget to activate the profiling in the cython routines!
+#cython: profile=True
 """
 import cProfile
 import pstats
