@@ -7,11 +7,15 @@ Created on Wed Sep 22 10:26:19 2021.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-import transfer_matrices_c as tm
 import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
-    OMEGA_0_BUNCH, FLAG_PHI_S_FIT
+    OMEGA_0_BUNCH, FLAG_PHI_S_FIT, FLAG_CYTHON
+if FLAG_CYTHON:
+    import transfer_matrices_c as tm
+else:
+    import transfer_matrices_p as tm
+
 import helper
 
 
@@ -99,16 +103,25 @@ class _Element():
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
 
+        # Initialisation of electric field arrays
+        # FIXME
+        if self.idx['element'] == 0 and FLAG_CYTHON:
+            tm.init_arrays()
+
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
-            if w_kin_in == 16.6:
-                tm.init_arrays()        # FIXME
+
+            # The field map functions from transfer_matrices_c and
+            # transfer_matrices_p do not take exactly the same argumemts
+            if FLAG_CYTHON:
+                last_arg = self.idx['section'][0][0]
+            else:
+                last_arg = kwargs['e_spat']
+
             r_zz, w_phi, itg_field = \
                 self.tmat['func'](d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
                                   kwargs['norm'], kwargs['phi_0_rel'],
-                                  self.idx['section'][0][0],
-                                  # kwargs['e_spat']   # FIXME
-                                  )
+                                  last_arg)
             w_phi[:, 1] *= OMEGA_0_BUNCH / kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 

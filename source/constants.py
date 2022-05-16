@@ -38,6 +38,8 @@ project_folder = ''
 FLAG_PHI_ABS = True
 # Fit performed over phi_s?
 FLAG_PHI_S_FIT = False
+# To determine if transfer_matrices_c should be used instead of _p
+FLAG_CYTHON = True
 
 E_MEV = 16.6
 F_BUNCH_MHZ = 176.1
