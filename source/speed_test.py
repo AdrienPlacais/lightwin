@@ -19,9 +19,15 @@ FILEPATH = os.path.abspath(
 )
 linac = acc.Accelerator(FILEPATH, "Working")
 linac.compute_transfer_matrices()
-ref_values = [2209.9866910478313, 601.1642457863487,
-              np.array(([-0.43830142903080804, 0.6169423012578288],
-                        [-0.08385571427531216, -0.21305364334117177]))]
+# Computed with _p
+# ref_values = [2209.9866910478313, 601.1642457863487,
+#               np.array(([-0.43830142903080804, 0.6169423012578288],
+#                         [-0.08385571427531216, -0.21305364334117177]))]
+# From TW
+ref_values = [np.deg2rad(126622.65), 601.16554,
+              np.array(([-0.43919173, 0.61552512],
+                        [-0.083619398, -0.21324773]))]
+
 print(
     f"delta_phi: {linac.synch.phi['abs_array'][-1]-ref_values[0]}\t",
     f"delta_W: {linac.synch.energy['kin_array_mev'][-1]-ref_values[1]}\t",

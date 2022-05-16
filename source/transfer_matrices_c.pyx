@@ -66,21 +66,21 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
     cdef DTYPE_t delta_e_z, slope, offset
     cdef out
 
-    out = np.interp(z, np.linspace(0., n_points / inv_dz, n_points + 1), e_z,
-                   left=0., right=0.)
-    # if z < 0. or z > n_points / inv_dz:
-        # out = 0.
+    # out = np.interp(z, np.linspace(0., n_points / inv_dz, n_points + 1), e_z,
+                   # left=0., right=0.)
+    if z < 0. or z > n_points / inv_dz:
+        out = 0.
 
-    # else:
-        # i =  int(floor(z * inv_dz))
-        # if i < n_points:
-            # # Faster with array of delta electric field?
-            # delta_e_z = e_z[i + 1] - e_z[i]
-            # slope = delta_e_z * inv_dz
-            # offset = e_z[i] - i * delta_e_z
-            # out = slope * z + offset
-        # else:
-            # out = e_z[n_points]
+    else:
+        i =  int(floor(z * inv_dz))
+        if i < n_points:
+            # Faster with array of delta electric field?
+            delta_e_z = e_z[i + 1] - e_z[i]
+            slope = delta_e_z * inv_dz
+            offset = e_z[i] - i * delta_e_z
+            out = slope * z + offset
+        else:
+            out = e_z[n_points]
 
     return out
 
