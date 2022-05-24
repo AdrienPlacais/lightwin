@@ -6,7 +6,6 @@ Created on Wed Sep 22 14:15:48 2021.
 @author: placais
 """
 
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as pat

@@ -11,22 +11,21 @@ import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
     OMEGA_0_BUNCH, FLAG_PHI_S_FIT, FLAG_CYTHON
-
-if FLAG_CYTHON:
-    import transfer_matrices_c as tm
-else:
-    import transfer_matrices_p as tm
+import transfer_matrices_c as tm_c
+import transfer_matrices_p as tm_p
 
 import helper
 
 
 d_fun_tm = {
-    'non_acc': {'RK': tm.z_drift,
-                'leapfrog': tm.z_drift,
+    'non_acc': {'RK_p': tm_p.z_drift,
+                'RK_c': tm_c.z_drift,
+                'leapfrog': tm_p.z_drift,
                 'transport': transport.transport_beam,
                 },
-    'accelerating': {'RK': tm.z_field_map,
-                     'leapfrog': tm.z_field_map,
+    'accelerating': {'RK_p': tm_p.z_field_map,
+                     'RK_c': tm_c.z_field_map,
+                     'leapfrog': tm_p.z_field_map,
                      'transport': transport.transport_beam,
                      }
 }
@@ -80,7 +79,7 @@ class _Element():
 
     def init_solvers(self):
         """Initialize solvers as well as general properties."""
-        assert METHOD == 'RK', 'leapfrog to reimplement. transport to update.'
+        assert 'RK' in METHOD, 'leapfrog to reimplement. transport to update.'
         if self.info['nature'] == 'FIELD_MAP':
             if self.info['status'] == 'failed':
                 key = 'non_acc'
@@ -107,7 +106,7 @@ class _Element():
         # Initialisation of electric field arrays
         # FIXME
         if self.idx['element'] == 0 and FLAG_CYTHON:
-            tm.init_arrays()
+            tm_c.init_arrays()
 
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':

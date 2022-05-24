@@ -9,7 +9,7 @@ import os.path
 import numpy as np
 import tracewin_interface as tw
 import particle
-from constants import FLAG_PHI_ABS, E_MEV
+from constants import E_MEV
 import elements
 
 
