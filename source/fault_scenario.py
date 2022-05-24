@@ -174,7 +174,7 @@ class FaultScenario():
 
         # At the end we recompute the full transfer matrix
         self.brok_lin.compute_transfer_matrices()
-        self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + '/' + \
+        self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + ' of ' +\
             str(len(successes)) + ')'
 
         for linac in [self.ref_lin, self.brok_lin]:

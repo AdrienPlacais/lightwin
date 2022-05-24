@@ -11,6 +11,7 @@ import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
     OMEGA_0_BUNCH, FLAG_PHI_S_FIT, FLAG_CYTHON
+
 if FLAG_CYTHON:
     import transfer_matrices_c as tm
 else:

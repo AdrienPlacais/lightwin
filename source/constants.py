@@ -37,9 +37,9 @@ project_folder = ''
 # are faulty (global compensation).
 FLAG_PHI_ABS = True
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = False
+FLAG_PHI_S_FIT = True
 # To determine if transfer_matrices_c should be used instead of _p
-FLAG_CYTHON = True
+FLAG_CYTHON = False
 
 E_MEV = 16.6
 F_BUNCH_MHZ = 176.1
@@ -47,7 +47,7 @@ OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 
 METHOD = 'RK'
 # classic or PSO
-OPTI_METHOD = 'PSO'
+OPTI_METHOD = 'classic'
 N_STEPS_PER_CELL = 20
 
 WHAT_TO_FIT = {

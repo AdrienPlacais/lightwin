@@ -59,8 +59,8 @@ if FILEPATH == "":
 # failed_cav = [25]
 manual_list = [7, 15, 17, 25, 27]
 failed_cav = [
-    # 35,
-    155#, 157,
+    35,
+    # 155#, 157,
     # 295, 307,
     # 355,
     # 395,
@@ -93,11 +93,9 @@ PHASE_SPACE = False
 TWISS = False
 
 SAVES = [
-    # "MT and energy",
+    "energy phase and mt",
     # "Vcav and phis",
 ]
-SAVE_MT_AND_ENERGY = False
-SAVE_VCAV_AND_PHIS = False
 
 start_time = time.monotonic()
 # =============================================================================
@@ -116,7 +114,7 @@ DICT_PLOTS_PRESETS = {
 }
 
 DICT_SAVES = {
-    "MT and energy": lambda lin: helper.save_full_mt_and_energy_evolution(lin),
+    "energy phase and mt": lambda lin: helper.save_energy_phase_tm(lin),
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
 }
 

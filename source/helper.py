@@ -6,6 +6,7 @@ Created on Wed Sep 22 14:15:48 2021.
 @author: placais
 """
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as pat
@@ -200,26 +201,30 @@ def plot_section(linac, ax, x_axis='s'):
 # =============================================================================
 # Files functions
 # =============================================================================
-def save_full_mt_and_energy_evolution(accelerator):
+def save_energy_phase_tm(lin):
     """
-    Output the energy and transfer matrice components as a function of z.
+    Save energy, phase, transfer matrix as a function of s.
 
-    z [m]   E[MeV]  M_11    M_12    M_21    M_22
+    s [m]   E[MeV]  phi[rad]  M_11    M_12    M_21    M_22
 
     Parameters
     ----------
-    accelerator: Accelerator object
+    lin : Accelerator object
         Object of corresponding to desired output.
     """
-    data = accelerator.full_MT_and_energy_evolution
-    n_z = data.shape[0]
-    filepath = '../data/full_energy_and_MT.txt'
-    out = np.full((n_z, 6), np.NaN)
+    n_z = lin.synch.z['abs_array'].shape[0]
+    data = np.column_stack((
+        lin.synch.z['abs_array'],
+        lin.synch.energy['kin_array_mev'],
+        lin.synch.phi['abs_array'],
+        np.reshape(lin.transf_mat['cumul'], (n_z, 4))
+    ))
+    filepath = lin.files['project_folder'] + '/energy_phase_tm_' \
+        + lin.name + '.txt'
+    filepath = filepath.replace(' ', '_')
 
-    for i in range(n_z):
-        out[i, :] = data[i, :, :].flatten()
-
-    np.savetxt(filepath, out)
+    np.savetxt(filepath, data)
+    print(f"Energy, phase and TM saved in {filepath}")
 
 
 def save_vcav_and_phis(accelerator):

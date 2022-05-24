@@ -55,19 +55,15 @@ cpdef init_arrays():
 # =============================================================================
 # Helpers
 # =============================================================================
-# cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:, :] e_z):
-    # """Interpolate the electric field at z position."""
-    # return np.interp(z, e_z[:, 0], e_z[:, 1], left=0., right=0.)
-
-
 cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
     """Faster interpolation?"""
     cdef int i
     cdef DTYPE_t delta_e_z, slope, offset
     cdef out
 
-    # out = np.interp(z, np.linspace(0., n_points / inv_dz, n_points + 1), e_z,
-                   # left=0., right=0.)
+    # out = np.interp(z,
+    #                 np.linspace(0., n_points / inv_dz, n_points + 1), e_z,
+    #                 left=0., right=0.)
     if z < 0. or z > n_points / inv_dz:
         out = 0.
 
@@ -81,6 +77,9 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
             out = slope * z + offset
         else:
             out = e_z[n_points]
+
+    if out == 0.:
+        print(f'Warning at {z}.')
 
     return out
 
