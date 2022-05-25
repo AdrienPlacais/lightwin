@@ -43,19 +43,3 @@ print(
     + f"delta_W: {ref_error[1]}\t"
     + f"delta_MT: {ref_error[2]}"
 )
-ref_error = [-0.650939551783722, 0.04050895811690225,
-             0.07919272601891883]
-print(
-    "Results with _c and np.interp:\n"
-    + f"delta_phi: {ref_error[0]}\t"
-    + f"delta_W: {ref_error[1]}\t"
-    + f"delta_MT: {ref_error[2]}"
-)
-ref_error = [-0.6509395517832672, 0.040508958117015936,
-             0.07919272601892956]
-print(
-    "Results with _c and  manual interp:\n"
-    + f"delta_phi: {ref_error[0]}\t"
-    + f"delta_W: {ref_error[1]}\t"
-    + f"delta_MT: {ref_error[2]}"
-)

@@ -38,11 +38,6 @@ def z_drift(delta_s, W_kin_in, n_steps=1):
 
 def e_func(k_e, z, e_spat, phi, phi_0):
     """Electric field."""
-    # print(f"electric field k_e = {k_e}, z = {z}, e_z?, inv_dz = blabla,  n_points = blabla, phi = {phi}, phi_0 = {phi_0}")
-    # out = k_e * e_spat(z) * np.cos(phi + phi_0)
-    # print(f"out: {out}")
-    # return out
-    print(f"interp z = {z}, e_z = {e_spat(z)}")
     return k_e * e_spat(z) * np.cos(phi + phi_0)
 
 
@@ -75,13 +70,9 @@ def rk4(u, du_dx, x, dx):
     """
     half_dx = .5 * dx
     k_1 = du_dx(x, u)
-    print(f"        k_1 = {k_1[0]} {k_1[1]}\n")
     k_2 = du_dx(x + half_dx, u + half_dx * k_1)
-    print(f"        k_2 = {k_2[0]} {k_2[1]}\n")
     k_3 = du_dx(x + half_dx, u + half_dx * k_2)
-    print(f"        k_3 = {k_3[0]} {k_3[1]}\n")
     k_4 = du_dx(x + dx, u + dx * k_3)
-    print(f"        k_4 = {k_4[0]} {k_4[1]}\n")
     delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) * dx / 6.
     return delta_u
 
@@ -100,22 +91,15 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     l_beta = [np.sqrt(1. - l_gamma[0]**-2)]
 
     def du_dz(z, u):
-        print(f"du_dz in: {z} {u[0]} {u[1]}")
         v0 = q_adim * e_func(k_e, z, e_spat, u[1], phi_0_rel)
         gamma_float = 1. + u[0] * inv_E_rest_MeV
         beta = np.sqrt(1. - gamma_float**-2)
         v1 = omega0_rf / (beta * c)
-        # print(f"electric field {e_func(k_e, z, e_spat, u[1], phi_0_rel)}")
-        print(f"du_dz returns {v0} {v1}")
         return np.array([v0, v1])
 
     for i in range(n_steps):
-        print('============================================================')
-        print(f"i = {i}")
         # Compute energy and phase changes
-        print(f"inputs w_phi = {w_phi[i, 0]} {w_phi[i, 1]}, z_rel = {z_rel}")
         delta_w_phi = rk4(w_phi[i, :], du_dz, z_rel, d_z)
-        print(f"delta_w_phi = {delta_w_phi[0]} {delta_w_phi[1]}")
 
         # Update
         itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
@@ -124,7 +108,6 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         w_phi[i + 1, :] = w_phi[i, :] + delta_w_phi
         l_gamma.append(1. + w_phi[i + 1, 0] * inv_E_rest_MeV)
         l_beta.append(np.sqrt(1. - l_gamma[-1]**-2))
-        print(f"gamma = {l_gamma[-1]}, beta = {l_beta[-1]}")
 
         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
         beta_middle = np.sqrt(1. - gamma_middle**-2)
@@ -135,8 +118,6 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
                                      e_spat)
 
         z_rel += d_z
-        if i == 0:
-            raise IOError('debug')
 
     return r_zz, w_phi[1:, :], itg_field
 
