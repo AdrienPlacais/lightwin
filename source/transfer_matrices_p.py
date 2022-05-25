@@ -38,11 +38,12 @@ def z_drift(delta_s, W_kin_in, n_steps=1):
 
 def e_func(k_e, z, e_spat, phi, phi_0):
     """Electric field."""
-    print(f"electric field k_e = {k_e}, z = {z}, e_z?, inv_dz = blabla,  n_points = blabla, phi = {phi}, phi_0 = {phi_0}")
-    # return k_e * e_spat(z) * np.cos(phi + phi_0)
-    out = k_e * e_spat(z) * np.cos(phi + phi_0)
-    print(f"out: {out}")
-    return out
+    # print(f"electric field k_e = {k_e}, z = {z}, e_z?, inv_dz = blabla,  n_points = blabla, phi = {phi}, phi_0 = {phi_0}")
+    # out = k_e * e_spat(z) * np.cos(phi + phi_0)
+    # print(f"out: {out}")
+    # return out
+    print(f"interp z = {z}, e_z = {e_spat(z)}")
+    return k_e * e_spat(z) * np.cos(phi + phi_0)
 
 
 def de_dt_func(k_e, z, e_spat, phi, phi_0, factor):
@@ -80,7 +81,7 @@ def rk4(u, du_dx, x, dx):
     k_3 = du_dx(x + half_dx, u + half_dx * k_2)
     print(f"        k_3 = {k_3[0]} {k_3[1]}\n")
     k_4 = du_dx(x + dx, u + dx * k_3)
-    print(f"        k_4 = {k_3[0]} {k_3[1]}\n")
+    print(f"        k_4 = {k_4[0]} {k_4[1]}\n")
     delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) * dx / 6.
     return delta_u
 

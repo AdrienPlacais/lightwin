@@ -28,7 +28,7 @@ cdef DTYPE_t OMEGA_0_BUNCH_cdef = 1106468932.594325
 cdef DTYPE_t q_adim_cdef = 1.
 
 cdef int N_POINTS_SIMPLE_SPOKE = 207
-cdef DTYPE_t INV_DZ_SIMPLE_SPOKE = N_POINTS_SIMPLE_SPOKE / 0.4155160
+cdef DTYPE_t INV_DZ_SIMPLE_SPOKE = N_POINTS_SIMPLE_SPOKE / 0.415160
 cdef DTYPE_t[:] E_Z_SIMPLE_SPOKE
 
 cdef int N_POINTS_SPOKE_ESS = 255
@@ -64,19 +64,23 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
     # out = np.interp(z,
     #                 np.linspace(0., n_points / inv_dz, n_points + 1), e_z,
     #                 left=0., right=0.)
-    if z < 0. or z > n_points / inv_dz:
+    if z < 0. or z > (n_points - 1) / inv_dz:
         out = 0.
 
     else:
         i =  int(floor(z * inv_dz))
-        if i < n_points:
+        if i < n_points - 1:
+            # print(f"a   i={i}, z={z}")
             # Faster with array of delta electric field?
             delta_e_z = e_z[i + 1] - e_z[i]
             slope = delta_e_z * inv_dz
             offset = e_z[i] - i * delta_e_z
             out = slope * z + offset
+            # print(f"slope={slope}, offset={offset}")
         else:
+            # print(f"b   i={i}, z={z}")
             out = e_z[n_points]
+    # print(f"e_z = {out}")
 
     return out
 
@@ -84,12 +88,12 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
 cdef DTYPE_t e_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
                     int n_points, DTYPE_t phi, DTYPE_t phi_0):
     """Give the electric field at position z and phase phi."""
-    cdef DTYPE_t out
-    print(f"electric field k_e = {k_e}, z = {z}, e_z?, inv_dz = {inv_dz}, n_points = {n_points}, phi = {phi}, phi_0 = {phi_0}")
-    # return k_e * interp(z, e_z, inv_dz, n_points) * cos(phi + phi_0)
-    out = k_e * interp(z, e_z, inv_dz, n_points) * cos(phi + phi_0)
-    print(f"out: {out}")
-    return out
+    # cdef DTYPE_t out
+    # print(f"electric field k_e = {k_e}, z = {z}, e_z?, inv_dz = {inv_dz}, n_points = {n_points}, phi = {phi}, phi_0 = {phi_0}")
+    # out = k_e * interp(z, e_z, inv_dz, n_points) * cos(phi + phi_0)
+    # print(f"out: {out}")
+    # return out
+    return k_e * interp(z, e_z, inv_dz, n_points) * cos(phi + phi_0)
 
 
 cdef DTYPE_t de_dt_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
@@ -123,7 +127,7 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
     du_dz_i = du_dz(x, u, k_e, e_z, inv_dz, n_points, phi_0_rel, omega0_rf)
     k_i[0, 0] = du_dz_i[0]
     k_i[0, 1] = du_dz_i[1]
-    print(f"        k_1 = {k_i[0, 0]} {k_i[0, 1]}\n")
+    # print(f"        k_1 = {k_i[0, 0]} {k_i[0, 1]}\n")
 
     # Equiv of
     # k_2 = du_dx(x + half_dx, u + half_dx * k_1)
@@ -136,10 +140,10 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
                         phi_0_rel, omega0_rf)
         k_i[i, 0] = du_dz_i[0]
         k_i[i, 1] = du_dz_i[1]
-        if i == 1:
-            print(f"        k_2 = {k_i[1, 0]} {k_i[1, 1]}\n")
-        elif i == 2:
-            print(f"        k_3 = {k_i[2, 0]} {k_i[2, 1]}\n")
+        # if i == 1:
+            # print(f"        k_2 = {k_i[1, 0]} {k_i[1, 1]}\n")
+        # elif i == 2:
+            # print(f"        k_3 = {k_i[2, 0]} {k_i[2, 1]}\n")
 
     # Compute u + dx * k_3
     tmp[0] = u[0] + dx * k_i[2, 0]
@@ -148,7 +152,7 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
     du_dz_i = du_dz(x + dx, tmp, k_e, e_z, inv_dz, n_points, phi_0_rel, omega0_rf)
     k_i[3, 0] = du_dz_i[0]
     k_i[3, 1] = du_dz_i[1]
-    print(f"        k_4 = {k_i[3, 0]} {k_i[3, 1]}\n")
+    # print(f"        k_4 = {k_i[3, 0]} {k_i[3, 1]}\n")
 
     # Equiv of delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) * dx / 6.
     delta_u[0] = (k_i[0, 0] + 2. * k_i[1, 0] + 2. * k_i[2, 0] + k_i[3, 0]) * dx / 6.
@@ -166,12 +170,12 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:] e_z, DTYPE_t inv_dz,
     v_array = np.empty(2, dtype=DTYPE)
     cdef DTYPE_t[:] v = v_array
 
-    print(f"du_dz in: {z} {u[0]} {u[1]}")
+    # print(f"du_dz in: {z} {u[0]} {u[1]}")
     v[0] = q_adim_cdef * e_func(k_e, z, e_z, inv_dz, n_points, u[1], phi_0_rel)
     gamma = 1. + u[0] * inv_E_rest_MeV_cdef
     beta = sqrt(1. - gamma**-2)
     v[1] = omega0_rf / (beta * c_cdef)
-    print(f"du_dz returns {v[0]} {v[1]}")
+    # print(f"du_dz returns {v[0]} {v[1]}")
     return v_array
 
 
@@ -254,16 +258,16 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         # n_points = N_POINTS_BETA065
     else:
         raise IOError('wrong section_idx in z_field_map')
-    n_points = e_z.shape[0] - 1
+    n_points = e_z.shape[0]
 
     for i in range(n_steps):
-        print('============================================================')
-        print(f"i = {i}")
+        # print('============================================================')
+        # print(f"i = {i}")
         # Compute energy and phase changes
-        print(f"inputs w_phi = {w_phi[i, 0]} {w_phi[i, 1]}, z_rel = {z_rel}")
+        # print(f"inputs w_phi = {w_phi[i, 0]} {w_phi[i, 1]}, z_rel = {z_rel}")
         delta_w_phi = rk4(w_phi[i, :], z_rel, d_z, k_e, e_z, inv_dz,
                           n_points, phi_0_rel, omega0_rf)
-        print(f"delta_w_phi = {delta_w_phi[0]} {delta_w_phi[1]}")
+        # print(f"delta_w_phi = {delta_w_phi[0]} {delta_w_phi[1]}")
 
         # Update
         itg_field += e_func(k_e, z_rel, e_z, inv_dz, n_points, w_phi[i, 1], phi_0_rel) \
@@ -272,7 +276,7 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         w_phi[i + 1, 0] = w_phi[i, 0] + delta_w_phi[0]
         w_phi[i + 1, 1] = w_phi[i, 1] + delta_w_phi[1]
         gamma_next = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
-        print(f"gamma = {gamma_next}")
+        # print(f"gamma = {gamma_next}")
 
         gamma_middle = .5 * (gamma + gamma_next)
         beta_middle = sqrt(1. - gamma_middle**-2)
@@ -284,8 +288,8 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         z_rel += d_z
         gamma = gamma_next
 
-        if i == 0:
-            raise IOError('debug')
+        # if i == 0:
+            # raise IOError('debug')
 
     return r_zz_array, w_phi_array[1:, :], itg_field
 
