@@ -19,10 +19,7 @@ FILEPATH = os.path.abspath(
 )
 linac = acc.Accelerator(FILEPATH, "Working")
 linac.compute_transfer_matrices()
-# Computed with _p
-# ref_values = [2209.9866910478313, 601.1642457863487,
-#               np.array(([-0.43830142903080804, 0.6169423012578288],
-#                         [-0.08385571427531216, -0.21305364334117177]))]
+
 # From TW
 ref_values = [np.deg2rad(126622.65), 601.16554,
               np.array(([-0.43919173, 0.61552512],
@@ -35,11 +32,11 @@ print(
 )
 
 
-ref_error = [0.004540947433270048, -0.0012942136512492652,
-             0.0022652526105367693]
-print(
-    "Results with _p:\n"
-    + f"delta_phi: {ref_error[0]}\t"
-    + f"delta_W: {ref_error[1]}\t"
-    + f"delta_MT: {ref_error[2]}"
-)
+# ref_error = [0.004540947433270048, -0.0012942136512492652,
+#              0.0022652526105367693]
+# print(
+#     "Results with _p:\n"
+#     + f"delta_phi: {ref_error[0]}\t"
+#     + f"delta_W: {ref_error[1]}\t"
+#     + f"delta_MT: {ref_error[2]}"
+# )

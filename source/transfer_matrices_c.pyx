@@ -307,3 +307,4 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                     @ z_drift(half_dz, w_kin_in)[0][0])
 
     return r_zz_array
+

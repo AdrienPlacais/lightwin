@@ -39,7 +39,7 @@ FLAG_PHI_ABS = True
 # Fit performed over phi_s?
 FLAG_PHI_S_FIT = True
 # To determine if transfer_matrices_c should be used instead of _p
-FLAG_CYTHON = False
+FLAG_CYTHON = True
 # Method to integrate the motion. leapfrog or RK (RK4)
 METHOD = 'RK'
 if FLAG_CYTHON:
