@@ -78,9 +78,6 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
         else:
             out = e_z[n_points]
 
-    if out == 0.:
-        print(f'Warning at {z}.')
-
     return out
 
 
