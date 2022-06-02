@@ -178,6 +178,7 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:] e_z, DTYPE_t inv_dz,
 cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
     # Variables:
     cdef DTYPE_t gamma_in_min2, beta_in, delta_phi
+    cdef Py_ssize_t i
 
     # Memory views:
     w_phi_array = np.empty([n_steps, 2], dtype=DTYPE)
@@ -193,8 +194,9 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
 
     beta_in = sqrt(1. - gamma_in_min2)
     delta_phi = OMEGA_0_BUNCH_cdef * delta_s / (beta_in * c_cdef)
-    w_phi[:, 0] = w_kin_in
-    w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
+    for i in range(n_steps):
+        w_phi[i, 0] = w_kin_in
+        w_phi[i, 1] = (i + 1) * delta_phi
     return r_zz_array, w_phi_array, None
 
 
@@ -307,4 +309,3 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                     @ z_drift(half_dz, w_kin_in)[0][0])
 
     return r_zz_array
-
