@@ -341,6 +341,9 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
                 and label in axx.get_legend_handles_labels()[1]):
             axx.plot(x_data, y_data, label=label, ls='-',
                      **dicts['plot'][y_d][1])
+        else:
+            axx.plot(x_data, y_data, label=label, ls='-',
+                     **dicts['plot'][y_d][1])
 
 
 def load_phase_space(accelerator):

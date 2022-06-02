@@ -183,6 +183,16 @@ def z_field_map_leapfrog(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
                                      e_spat)
         z_rel += d_z
 
+    # DEBUG
+    flag_correct_half_step = True
+    if flag_correct_half_step:
+        for i in range(n_steps):
+            delta_w = q_adim * e_func(k_e, i * d_z, e_spat, w_phi[i, 1],
+                                      phi_0_rel) * half_d_z
+            w_phi[i, 0] += delta_w
+        if W_kin_in == 16.6:
+            print('half step correction')
+
     return r_zz, w_phi[1:, :], itg_field
 
 
