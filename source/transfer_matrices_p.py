@@ -14,28 +14,8 @@ from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH
 
 
 # =============================================================================
-# Transfer matrices
+# Electric field functions
 # =============================================================================
-def z_drift(delta_s, W_kin_in, n_steps=1):
-    """Calculate the transfer matrix of a drift."""
-    gamma_in_min2 = (1. + W_kin_in * inv_E_rest_MeV)**-2
-    r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
-                                              [0., 1.]]))
-    beta_in = np.sqrt(1. - gamma_in_min2)
-    delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
-
-    # Two possibilites: second one is the best
-    # l_W_kin = [W_kin_in for i in range(n_steps)]
-    # l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
-    # w_phi = np.empty((n_steps, 2))
-    # w_phi[:, 0] = l_W_kin
-    # w_phi[:, 1] = l_phi_rel
-    w_phi = np.empty((n_steps, 2))
-    w_phi[:, 0] = W_kin_in
-    w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
-    return r_zz, w_phi, None
-
-
 def e_func(k_e, z, e_spat, phi, phi_0):
     """Electric field."""
     return k_e * e_spat(z) * np.cos(phi + phi_0)
@@ -46,6 +26,9 @@ def de_dt_func(k_e, z, e_spat, phi, phi_0, factor):
     return factor * k_e * e_spat(z) * np.sin(phi + phi_0)
 
 
+# =============================================================================
+# Motion integration functions
+# =============================================================================
 def rk4(u, du_dx, x, dx):
     """
     4-th order Runge-Kutta integration.
@@ -77,8 +60,31 @@ def rk4(u, du_dx, x, dx):
     return delta_u
 
 
-def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
-    """Calculate the transfer matrix of a FIELD_MAP."""
+# =============================================================================
+# Transfer matrices
+# =============================================================================
+def z_drift(delta_s, W_kin_in, n_steps=1):
+    """Calculate the transfer matrix of a drift."""
+    gamma_in_min2 = (1. + W_kin_in * inv_E_rest_MeV)**-2
+    r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
+                                              [0., 1.]]))
+    beta_in = np.sqrt(1. - gamma_in_min2)
+    delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
+
+    # Two possibilites: second one is the best
+    # l_W_kin = [W_kin_in for i in range(n_steps)]
+    # l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
+    # w_phi = np.empty((n_steps, 2))
+    # w_phi[:, 0] = l_W_kin
+    # w_phi[:, 1] = l_phi_rel
+    w_phi = np.empty((n_steps, 2))
+    w_phi[:, 0] = W_kin_in
+    w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
+    return r_zz, w_phi, None
+
+
+def z_field_map_rk4(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
+    """Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta."""
     z_rel = 0.
     itg_field = 0.
     half_d_z = .5 * d_z
@@ -117,6 +123,64 @@ def z_field_map(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
                                      w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
                                      e_spat)
 
+        z_rel += d_z
+
+    return r_zz, w_phi[1:, :], itg_field
+
+
+def z_field_map_leapfrog(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
+                         e_spat):
+    """
+    Calculate the transfer matrix of a FIELD_MAP using leapfrog.
+
+    This method is less precise than RK4. However, it is much faster.
+
+    Classic leapfrog method:
+        pos(i+1)     = pos(i)       + speed(i-0.5) * dt
+        speed(i+0.5) = speed(i-0.5) + accel(i) * dt
+
+    Here, dt is not fixed but dz.
+        z(i+1) += dz
+        t(i+1) = t(i) + dz / (c beta(i+1/2))
+    (time and space variables are on whole steps)
+        beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
+    (speed/energy is on half steps)
+    """
+    z_rel = 0.
+    itg_field = 0.
+    half_d_z = .5 * d_z
+
+    r_zz = np.empty((n_steps, 2, 2))
+    w_phi = np.empty((n_steps + 1, 2))
+    w_phi[0, 1] = 0.
+    # Rewind energy from i=0 to i=-0.5
+    w_phi[0, 0] = W_kin_in - q_adim * e_func(k_e, z_rel, e_spat, w_phi[0, 1],
+                                             phi_0_rel) * half_d_z
+    l_gamma = [1. + w_phi[0, 0] * inv_E_rest_MeV]
+    l_beta = [np.sqrt(1. - l_gamma[0]**-2)]
+
+    for i in range(n_steps):
+        # Compute energy and phase changes
+        delta_w = q_adim * e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
+            * d_z
+        w_phi[i + 1, 0] = w_phi[i, 0] + delta_w
+        l_gamma.append(1. + w_phi[i + 1, 0] * inv_E_rest_MeV)
+        l_beta.append(np.sqrt(1. - l_gamma[-1]**-2))
+
+        delta_phi = omega0_rf * d_z / (l_beta[-1] * c)
+        w_phi[i + 1, 1] = w_phi[i, 1] + delta_phi
+
+        # Update
+        itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
+            * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
+
+        gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
+        beta_middle = np.sqrt(1. - gamma_middle**-2)
+
+        r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
+                                     w_phi[i + 1, 0], beta_middle, z_rel,
+                                     w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
+                                     e_spat)
         z_rel += d_z
 
     return r_zz, w_phi[1:, :], itg_field

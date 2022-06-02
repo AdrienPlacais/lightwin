@@ -39,14 +39,15 @@ FLAG_PHI_ABS = True
 # Fit performed over phi_s?
 FLAG_PHI_S_FIT = True
 
+# Method to integrate the motion. leapfrog or RK (RK4)
+METHOD = 'leapfrog'
+# METHOD = 'RK'
+
 # To determine if transfer_matrices_c (Cython) should be used instead of _p
 # (pure Python). _c is ~2 to 4 times faster than _p.
 # Warning, you may have to relaod the kernel to force iPython to take the
 # change in FLAG_CYTHON into account.
-FLAG_CYTHON = True
-
-# Method to integrate the motion. leapfrog or RK (RK4)
-METHOD = 'RK'
+FLAG_CYTHON = False
 if FLAG_CYTHON:
     METHOD += '_c'
 else:
@@ -56,7 +57,7 @@ E_MEV = 16.6
 F_BUNCH_MHZ = 176.1
 OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 
-# least_squares or PSO
+# Optimisation method: least_squares or PSO
 OPTI_METHOD = 'least_squares'
 N_STEPS_PER_CELL = 20
 

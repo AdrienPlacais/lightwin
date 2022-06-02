@@ -35,7 +35,7 @@ if test == 'simple':
     print(
         f"delta_phi: {linac.synch.phi['abs_array'][-1]-ref_values[0]}\t"
         + f"delta_W: {linac.synch.energy['kin_array_mev'][-1]-ref_values[1]}\t"
-        + f"delta_MT: {np.sum(linac.transf_mat['cumul'][-1]-ref_values[2])}\n"
+        + f"delta_MT: {np.sum(linac.transf_mat['cumul'][-1]-ref_values[2])}"
     )
 
 elif test == 'compensation':
