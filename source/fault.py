@@ -68,10 +68,9 @@ class Fault():
         wrapper_args = (self, fun_residual, d_idx)
 
         self.count = 0
-        if OPTI_METHOD == 'classic':
-            sol_succ, opti_sol = self._proper_fix_classic_opt(initial_guesses,
-                                                              bounds,
-                                                              wrapper_args)
+        if OPTI_METHOD == 'least_squares':
+            sol_succ, opti_sol = self._proper_fix_lsq_opt(initial_guesses,
+                                                          bounds, wrapper_args)
 
         elif OPTI_METHOD == 'PSO':
             sol_succ, opti_sol = self._proper_fix_pso(
@@ -79,7 +78,7 @@ class Fault():
 
         return sol_succ, opti_sol
 
-    def _proper_fix_classic_opt(self, init_guess, bounds, wrapper_args):
+    def _proper_fix_lsq_opt(self, init_guess, bounds, wrapper_args):
         """
         Fix with classic least_squares optimisation.
 
