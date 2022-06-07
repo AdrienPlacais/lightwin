@@ -15,8 +15,8 @@ import transfer_matrices_p as tm_p
 import helper
 
 # Force reload of the module constants, as a modification of constants.METHOD
-# between is not taken into account
-# (alternative is to reload kernel each time)
+# between two executions is not taken into account
+# (alternative is to restart kernel each time)
 import importlib
 importlib.reload(constants)
 print(f"METHOD: {constants.METHOD}")

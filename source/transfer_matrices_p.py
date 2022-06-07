@@ -10,7 +10,8 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 """
 
 import numpy as np
-from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH
+from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH, \
+    E_MEV
 
 
 # =============================================================================
@@ -167,9 +168,12 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     r_zz = np.empty((n_steps, 2, 2))
     w_phi = np.empty((n_steps + 1, 2))
     w_phi[0, 1] = 0.
-    # Rewind energy from i=0 to i=-0.5
-    w_phi[0, 0] = w_kin_in - q_adim * e_func(k_e, z_rel, e_spat, w_phi[0, 1],
-                                             phi_0_rel) * half_d_z
+    # Rewind energy from i=0 to i=-0.5 if we are at the first cavity:
+    if w_kin_in == E_MEV:
+        w_phi[0, 0] = w_kin_in - q_adim * e_func(
+            k_e, z_rel, e_spat, w_phi[0, 1], phi_0_rel) * half_d_z
+    else:
+        w_phi[0, 0] = w_kin_in
 
     for i in range(n_steps):
         # Compute forces at step i
@@ -190,23 +194,13 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
 
         # We already are at the step i + 0.5, so gamma_middle and beta_middle
         # are the same as gamma and beta
-        r_zz[i, :, :] = z_thin_lense(
-            z_rel, d_z, half_d_z, w_phi[i:i + 2, :], gamma, beta, omega0_rf,
-            k_e, phi_0_rel, e_spat)
+        r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_d_z, w_phi[i:i + 2, :],
+                                     gamma, beta, omega0_rf, k_e, phi_0_rel,
+                                     e_spat)
+        # Strictly speaking, kinetic energy should be advanced of half a step
+        # However, this does not really change the results
 
         z_rel += d_z
-
-    # @FIXME
-    # Re-advance full energy array by a half step?
-    flag_correct_half_step = False
-    if flag_correct_half_step:
-        for i in range(n_steps):
-            delta_w = q_adim * e_func(k_e, i * d_z, e_spat, w_phi[i, 1],
-                                      phi_0_rel) * half_d_z
-            w_phi[i, 0] += delta_w
-
-        if w_kin_in == 16.6:
-            print('half step correction')
 
     return r_zz, w_phi[1:, :], itg_field
 
