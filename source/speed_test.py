@@ -7,21 +7,23 @@ Created on Thu May  5 15:37:16 2022.
 
 Run with
 %timeit run speed_test.py
+
+Warning! submodules are not always properly reloaded with this command. Hence,
+you may want to double check which functions, eg after modifying
+constants.METHOD.
 """
 
 import os
-# import importlib
 import numpy as np
+import constants
 import accelerator as acc
 import fault_scenario as mod_fs
-# importlib.reload(acc)
 
 test = 'simple'
 # test = 'compensation'
 
 FILEPATH = os.path.abspath(
     "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-    # "../data/work_field_map/work_field_map.dat"
 )
 
 if test == 'simple':
@@ -36,7 +38,8 @@ if test == 'simple':
     print(
         f"delta_phi: {linac.synch.phi['abs_array'][-1]-ref_values[0]}\t"
         + f"delta_W: {linac.synch.energy['kin_array_mev'][-1]-ref_values[1]}\t"
-        + f"delta_MT: {np.sum(linac.transf_mat['cumul'][-1]-ref_values[2])}"
+        + f"delta_MT: {np.sum(linac.transf_mat['cumul'][-1]-ref_values[2])}\t"
+        + f"METHOD: {constants.METHOD}"
     )
 
 elif test == 'compensation':

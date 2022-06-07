@@ -19,6 +19,7 @@ import helper
 # (alternative is to reload kernel each time)
 import importlib
 importlib.reload(constants)
+print(f"METHOD: {constants.METHOD}")
 
 
 d_fun_tm = {
