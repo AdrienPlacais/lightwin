@@ -10,7 +10,7 @@ import numpy as np
 from palettable.colorbrewer.qualitative import Set1_9
 import helper
 from constants import q_adim, E_rest_MeV, c
-import solver
+# import solver
 import particle
 import accelerator as acc
 
