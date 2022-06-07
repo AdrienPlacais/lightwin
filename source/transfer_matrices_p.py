@@ -37,18 +37,18 @@ def rk4(u, du_dx, x, dx):
 
     Parameters
     ----------
-    u: np.array
+    u : np.array
         Holds the value of the function to integrate in x.
-    df_dx: function
+    du_dx : function
         Gives the variation of u components with x.
-    x: real
+    x : real
         Where u is known.
-    dx: real
+    dx : real
         Integration step.
 
     Return
     ------
-    delta_u: real
+    delta_u : real
         Variation of u between x and x+dx.
     """
     half_dx = .5 * dx
@@ -63,27 +63,27 @@ def rk4(u, du_dx, x, dx):
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def z_drift(delta_s, W_kin_in, n_steps=1):
+def z_drift(delta_s, w_kin_in, n_steps=1):
     """Calculate the transfer matrix of a drift."""
-    gamma_in_min2 = (1. + W_kin_in * inv_E_rest_MeV)**-2
+    gamma_in_min2 = (1. + w_kin_in * inv_E_rest_MeV)**-2
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
                                               [0., 1.]]))
     beta_in = np.sqrt(1. - gamma_in_min2)
     delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
 
-    # Two possibilites: second one is the best
-    # l_W_kin = [W_kin_in for i in range(n_steps)]
+    # Two possibilites: second one is faster
+    # l_W_kin = [w_kin_in for i in range(n_steps)]
     # l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
     # w_phi = np.empty((n_steps, 2))
     # w_phi[:, 0] = l_W_kin
     # w_phi[:, 1] = l_phi_rel
     w_phi = np.empty((n_steps, 2))
-    w_phi[:, 0] = W_kin_in
+    w_phi[:, 0] = w_kin_in
     w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
     return r_zz, w_phi, None
 
 
-def z_field_map_rk4(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
+def z_field_map_rk4(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     """Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta."""
     z_rel = 0.
     itg_field = 0.
@@ -91,12 +91,28 @@ def z_field_map_rk4(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
 
     r_zz = np.empty((n_steps, 2, 2))
     w_phi = np.empty((n_steps + 1, 2))
-    w_phi[0, 0] = W_kin_in
+    w_phi[0, 0] = w_kin_in
     w_phi[0, 1] = 0.
-    l_gamma = [1. + W_kin_in * inv_E_rest_MeV]
-    l_beta = [np.sqrt(1. - l_gamma[0]**-2)]
+    l_gamma = [1. + w_kin_in * inv_E_rest_MeV]
 
+    # Define the motion function to integrate
     def du_dz(z, u):
+        """
+        Compute variation of energy and phase.
+
+        Parameters
+        ----------
+        z : real
+            Position where variation is calculated.
+        u : np.array
+            First component is energy in MeV. Second is phase in rad.
+
+        Return
+        ------
+        v : np.array
+            First component is delta energy in MeV. Second is delta phase in
+            rad.
+        """
         v0 = q_adim * e_func(k_e, z, e_spat, u[1], phi_0_rel)
         gamma_float = 1. + u[0] * inv_E_rest_MeV
         beta = np.sqrt(1. - gamma_float**-2)
@@ -107,28 +123,27 @@ def z_field_map_rk4(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         # Compute energy and phase changes
         delta_w_phi = rk4(w_phi[i, :], du_dz, z_rel, d_z)
 
-        # Update
+        # Update itg_field. Used to compute V_cav and phi_s.
         itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
             * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
         w_phi[i + 1, :] = w_phi[i, :] + delta_w_phi
         l_gamma.append(1. + w_phi[i + 1, 0] * inv_E_rest_MeV)
-        l_beta.append(np.sqrt(1. - l_gamma[-1]**-2))
 
         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
         beta_middle = np.sqrt(1. - gamma_middle**-2)
 
-        r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
-                                     w_phi[i + 1, 0], beta_middle, z_rel,
-                                     w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
-                                     e_spat)
+        r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_d_z, w_phi[i, 1],
+                                     w_phi[i, 0], w_phi[i + 1, 0],
+                                     gamma_middle, beta_middle, omega0_rf,
+                                     k_e, phi_0_rel, e_spat)
 
         z_rel += d_z
 
     return r_zz, w_phi[1:, :], itg_field
 
 
-def z_field_map_leapfrog(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
+def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
                          e_spat):
     """
     Calculate the transfer matrix of a FIELD_MAP using leapfrog.
@@ -154,7 +169,7 @@ def z_field_map_leapfrog(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     w_phi = np.empty((n_steps + 1, 2))
     w_phi[0, 1] = 0.
     # Rewind energy from i=0 to i=-0.5
-    w_phi[0, 0] = W_kin_in - q_adim * e_func(k_e, z_rel, e_spat, w_phi[0, 1],
+    w_phi[0, 0] = w_kin_in - q_adim * e_func(k_e, z_rel, e_spat, w_phi[0, 1],
                                              phi_0_rel) * half_d_z
     l_gamma = [1. + w_phi[0, 0] * inv_E_rest_MeV]
     l_beta = [np.sqrt(1. - l_gamma[0]**-2)]
@@ -179,51 +194,49 @@ def z_field_map_leapfrog(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
         beta_middle = np.sqrt(1. - gamma_middle**-2)
 
-        r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0], gamma_middle,
-                                     w_phi[i + 1, 0], beta_middle, z_rel,
-                                     w_phi[i, 1], omega0_rf, k_e, phi_0_rel,
-                                     e_spat)
+        r_zz[i, :, :] = z_thin_lense(
+            z_rel, d_z, half_d_z, w_phi[i, 1], w_phi[i, 0], w_phi[i + 1, 0],
+            gamma_middle, beta_middle, omega0_rf, k_e, phi_0_rel, e_spat)
+
         z_rel += d_z
 
-    # DEBUG
-    # flag_correct_half_step = True
-    # if flag_correct_half_step:
-    #     for i in range(n_steps):
-    #         delta_w = q_adim * e_func(k_e, i * d_z, e_spat, w_phi[i, 1],
-    #                                   phi_0_rel) * half_d_z
-    #         w_phi[i, 0] += delta_w
+    # Re-advance full energy array by a half step?
+    flag_correct_half_step = False
+    if flag_correct_half_step:
+        for i in range(n_steps):
+            delta_w = q_adim * e_func(k_e, i * d_z, e_spat, w_phi[i, 1],
+                                      phi_0_rel) * half_d_z
+            w_phi[i, 0] += delta_w
 
-    #         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
-    #         beta_middle = np.sqrt(1. - gamma_middle**-2)
+            gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
+            beta_middle = np.sqrt(1. - gamma_middle**-2)
 
-    #         r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0],
-    #                                      gamma_middle,
-    #                                      w_phi[i + 1, 0], beta_middle, z_rel,
-    #                                      w_phi[i, 1], omega0_rf, k_e,
-    #                                      phi_0_rel, e_spat)
-    #     if W_kin_in == 16.6:
-    #         print('half step correction')
+            r_zz[i, :, :] = z_thin_lense(
+                i * d_z, d_z, half_d_z, w_phi[i, 1], w_phi[i, 0],
+                w_phi[i + 1, 0], gamma_middle, beta_middle, omega0_rf, k_e,
+                phi_0_rel, e_spat)
+        if w_kin_in == 16.6:
+            print('half step correction')
 
     return r_zz, w_phi[1:, :], itg_field
 
 
-def z_thin_lense(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
-                 beta_middle, z_rel, phi_rel, omega0_rf, norm, phi_0,
-                 e_spat):
+def z_thin_lense(z_rel, d_z, half_d_z, phi_rel, w_kin_in, w_kin_out,
+                 gamma_middle, beta_middle, omega0_rf, k_e, phi_0, e_spat):
     """Thin lense approximation: drift-acceleration-drift."""
     # In
-    r_zz = z_drift(half_dz, W_kin_in)[0][0]
+    r_zz = z_drift(half_d_z, w_kin_in)[0][0]
 
     # Middle
-    z_k = z_rel + half_dz
-    delta_phi_half_step = half_dz * omega0_rf / (beta_middle * c)
+    z_k = z_rel + half_d_z
+    delta_phi_half_step = half_d_z * omega0_rf / (beta_middle * c)
     phi_k = phi_rel + delta_phi_half_step
 
     # Transfer matrix components
     k_0 = q_adim * d_z / (gamma_middle * beta_middle**2 * E_rest_MeV)
     factor = omega0_rf / (beta_middle * c)
-    k_1 = k_0 * de_dt_func(norm, z_k, e_spat, phi_k, phi_0, factor)
-    e_func_k = e_func(norm, z_k, e_spat, phi_k, phi_0)
+    k_1 = k_0 * de_dt_func(k_e, z_k, e_spat, phi_k, phi_0, factor)
+    e_func_k = e_func(k_e, z_k, e_spat, phi_k, phi_0)
     k_2 = 1. - (2. - beta_middle**2) * k_0 * e_func_k
 
     # Correction to ensure det < 1
@@ -232,7 +245,7 @@ def z_thin_lense(d_z, half_dz, W_kin_in, gamma_middle, W_kin_out,
     r_zz = np.array(([k_3, 0.], [k_1, k_2])) @ r_zz
 
     # Out
-    tmp = z_drift(half_dz, W_kin_out)[0][0]
+    tmp = z_drift(half_d_z, w_kin_out)[0][0]
     r_zz = tmp @ r_zz
 
     return r_zz
