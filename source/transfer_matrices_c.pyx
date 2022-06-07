@@ -61,9 +61,6 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
     cdef DTYPE_t delta_e_z, slope, offset
     cdef out
 
-    # out = np.interp(z,
-    #                 np.linspace(0., n_points / inv_dz, n_points + 1), e_z,
-    #                 left=0., right=0.)
     if z < 0. or z > (n_points - 1) / inv_dz:
         out = 0.
 
@@ -135,13 +132,16 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
     tmp[0] = u[0] + dx * k_i[2, 0]
     tmp[1] = u[1] + dx * k_i[2, 1]
     # Equiv of k_4 = du_dx(x + dx, u + dx * k_3)
-    du_dz_i = du_dz(x + dx, tmp, k_e, e_z, inv_dz, n_points, phi_0_rel, omega0_rf)
+    du_dz_i = du_dz(x + dx, tmp, k_e, e_z, inv_dz, n_points, phi_0_rel,
+                    omega0_rf)
     k_i[3, 0] = du_dz_i[0]
     k_i[3, 1] = du_dz_i[1]
 
     # Equiv of delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) * dx / 6.
-    delta_u[0] = (k_i[0, 0] + 2. * k_i[1, 0] + 2. * k_i[2, 0] + k_i[3, 0]) * dx / 6.
-    delta_u[1] = (k_i[0, 1] + 2. * k_i[1, 1] + 2. * k_i[2, 1] + k_i[3, 1]) * dx / 6.
+    delta_u[0] = (k_i[0, 0] + 2. * k_i[1, 0] + 2. * k_i[2, 0] + k_i[3, 0]) \
+            * dx / 6.
+    delta_u[1] = (k_i[0, 1] + 2. * k_i[1, 1] + 2. * k_i[2, 1] + k_i[3, 1]) \
+            * dx / 6.
     return delta_u_array
 
 
@@ -232,15 +232,12 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     if section_idx == 0:
         e_z = E_Z_SIMPLE_SPOKE
         inv_dz = INV_DZ_SIMPLE_SPOKE
-        # n_points = N_POINTS_SIMPLE_SPOKE
     elif section_idx == 1:
         e_z = E_Z_SPOKE_ESS
         inv_dz = INV_DZ_SPOKE_ESS
-        # n_points = N_POINTS_SPOKE_ESS
     elif section_idx == 2:
         e_z = E_Z_BETA065
         inv_dz = INV_DZ_BETA065
-        # n_points = N_POINTS_BETA065
     else:
         raise IOError('wrong section_idx in z_field_map')
     n_points = e_z.shape[0]
@@ -293,14 +290,16 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
     e_func_k = e_func(norm, z_k, e_z, inv_dz, n_points, phi_k, phi_0)
 
     k_0 = q_adim_cdef * d_z / (gamma_middle * beta_middle**2 * E_rest_MeV_cdef)
-    k_1 = k_0 * de_dt_func(norm, z_k, e_z, inv_dz, n_points, phi_k, phi_0, omega0_rf / (beta_middle * c_cdef))
+    k_1 = k_0 * de_dt_func(norm, z_k, e_z, inv_dz, n_points, phi_k, phi_0,
+                           omega0_rf / (beta_middle * c_cdef))
     k_2 = 1. - (2. - beta_middle**2) * k_0 * e_func_k
     # Correction to ensure det < 1
     k_3 = (1. - k_0 * e_func_k) / (1. - k_0 * (2. - beta_middle**2) * e_func_k)
 
     # Matrix product: end @ (middle @ in)
     # r_zz_array = matprod_22(z_drift(half_dz, w_kin_out)[0][0],
-                            # matprod_22(np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE),
+                            # matprod_22(np.array(([k_3, 0.], [k_1, k_2]),
+                            # dtype=DTYPE),
                                        # z_drift(half_dz, w_kin_in)[0][0])
                            # )
     # Faster than matmul or matprod_22

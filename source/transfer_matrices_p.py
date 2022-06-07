@@ -136,8 +136,8 @@ def z_field_map_leapfrog(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     This method is less precise than RK4. However, it is much faster.
 
     Classic leapfrog method:
-        pos(i+1)     = pos(i)       + speed(i-0.5) * dt
         speed(i+0.5) = speed(i-0.5) + accel(i) * dt
+        pos(i+1)     = pos(i)       + speed(i+0.5) * dt
 
     Here, dt is not fixed but dz.
         z(i+1) += dz
@@ -160,13 +160,15 @@ def z_field_map_leapfrog(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     l_beta = [np.sqrt(1. - l_gamma[0]**-2)]
 
     for i in range(n_steps):
-        # Compute energy and phase changes
+        # Compute forces at step i
         delta_w = q_adim * e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
             * d_z
+        # Compute energy at step i + 0.5
         w_phi[i + 1, 0] = w_phi[i, 0] + delta_w
         l_gamma.append(1. + w_phi[i + 1, 0] * inv_E_rest_MeV)
         l_beta.append(np.sqrt(1. - l_gamma[-1]**-2))
 
+        # Compute phase at step i + 1
         delta_phi = omega0_rf * d_z / (l_beta[-1] * c)
         w_phi[i + 1, 1] = w_phi[i, 1] + delta_phi
 
@@ -184,14 +186,23 @@ def z_field_map_leapfrog(d_z, W_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
         z_rel += d_z
 
     # DEBUG
-    flag_correct_half_step = True
-    if flag_correct_half_step:
-        for i in range(n_steps):
-            delta_w = q_adim * e_func(k_e, i * d_z, e_spat, w_phi[i, 1],
-                                      phi_0_rel) * half_d_z
-            w_phi[i, 0] += delta_w
-        if W_kin_in == 16.6:
-            print('half step correction')
+    # flag_correct_half_step = True
+    # if flag_correct_half_step:
+    #     for i in range(n_steps):
+    #         delta_w = q_adim * e_func(k_e, i * d_z, e_spat, w_phi[i, 1],
+    #                                   phi_0_rel) * half_d_z
+    #         w_phi[i, 0] += delta_w
+
+    #         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
+    #         beta_middle = np.sqrt(1. - gamma_middle**-2)
+
+    #         r_zz[i, :, :] = z_thin_lense(d_z, half_d_z, w_phi[i, 0],
+    #                                      gamma_middle,
+    #                                      w_phi[i + 1, 0], beta_middle, z_rel,
+    #                                      w_phi[i, 1], omega0_rf, k_e,
+    #                                      phi_0_rel, e_spat)
+    #     if W_kin_in == 16.6:
+    #         print('half step correction')
 
     return r_zz, w_phi[1:, :], itg_field
 
