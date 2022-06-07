@@ -200,9 +200,9 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
     return r_zz_array, w_phi_array, None
 
 
-def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
-                DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
-                np.int64_t section_idx):
+def z_field_map_rk4(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
+                    DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
+                    np.int64_t section_idx):
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
@@ -255,6 +255,82 @@ def z_field_map(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         w_phi[i + 1, 0] = w_phi[i, 0] + delta_w_phi[0]
         w_phi[i + 1, 1] = w_phi[i, 1] + delta_w_phi[1]
         gamma_next = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
+
+        gamma_middle = .5 * (gamma + gamma_next)
+        beta_middle = sqrt(1. - gamma_middle**-2)
+
+        r_zz_array[i, :, :] = z_thin_lense(
+            d_z, half_d_z, w_phi[i, 0], gamma_middle, w_phi[i + 1, 0],
+            beta_middle, z_rel, w_phi[i, 1], omega0_rf, k_e, phi_0_rel, e_z,
+            inv_dz, n_points)
+        z_rel += d_z
+        gamma = gamma_next
+
+    return r_zz_array, w_phi_array[1:, :], itg_field
+
+
+def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
+                         DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
+                         np.int64_t section_idx):
+    # Variables:
+    cdef DTYPE_t z_rel = 0.
+    cdef complex itg_field = 0.
+    cdef DTYPE_t half_d_z = .5 * d_z
+    cdef DTYPE_t gamma_next, beta_next
+    cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
+    cdef DTYPE_t beta = sqrt(1. - gamma**-2)
+    cdef np.int64_t i
+    cdef DTYPE_t tmp
+    cdef DTYPE_t delta_w, delta_phi
+
+    # Arrays:
+    cdef np.ndarray[DTYPE_t, ndim=3] r_zz_array = np.empty([n_steps, 2, 2],
+                                                           dtype=DTYPE)
+
+    # Memory views:
+    w_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
+    cdef DTYPE_t[:, :] w_phi = w_phi_array
+    cdef DTYPE_t[:] e_z
+    cdef DTYPE_t inv_dz
+    cdef int n_points
+
+    if section_idx == 0:
+        e_z = E_Z_SIMPLE_SPOKE
+        inv_dz = INV_DZ_SIMPLE_SPOKE
+    elif section_idx == 1:
+        e_z = E_Z_SPOKE_ESS
+        inv_dz = INV_DZ_SPOKE_ESS
+    elif section_idx == 2:
+        e_z = E_Z_BETA065
+        inv_dz = INV_DZ_BETA065
+    else:
+        raise IOError('wrong section_idx in z_field_map')
+    n_points = e_z.shape[0]
+
+    w_phi[0, 1] = 0.
+    # Rewind energy of half a step
+    w_phi[0, 0] = w_kin_in - q_adim_cdef * e_func(k_e, z_rel, e_z, inv_dz,
+                                                  n_points, w_phi[0, 1],
+                                                  phi_0_rel) * half_d_z
+
+    for i in range(n_steps):
+        # Compute energy change
+        delta_w = q_adim_cdef * e_func(k_e, z_rel, e_z, inv_dz, n_points,
+                                       w_phi[i, 1], phi_0_rel) * d_z
+        # New energy at i + 0.5
+        w_phi[i + 1, 0] = w_phi[i, 0] + delta_w
+        gamma_next = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
+        beta_next = sqrt(1. - gamma_next**-2)
+
+        # Compute phase change
+        delta_phi = omega0_rf * d_z / (beta_next * c_cdef)
+        # Phase at step i+1
+        w_phi[i + 1, 1] = w_phi[i, 1] + delta_phi
+
+        # Update
+        itg_field += e_func(k_e, z_rel, e_z, inv_dz, n_points, w_phi[i, 1],
+                            phi_0_rel) \
+            * (1. + 1j * tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
         gamma_middle = .5 * (gamma + gamma_next)
         beta_middle = sqrt(1. - gamma_middle**-2)

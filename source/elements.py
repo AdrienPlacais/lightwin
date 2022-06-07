@@ -21,11 +21,13 @@ d_fun_tm = {
     'non_acc': {'RK_p': tm_p.z_drift,
                 'RK_c': tm_c.z_drift,
                 'leapfrog_p': tm_p.z_drift,
+                'leapfrog_c': tm_c.z_drift,
                 'transport': transport.transport_beam,
                 },
     'accelerating': {'RK_p': tm_p.z_field_map_rk4,
-                     'RK_c': tm_c.z_field_map,
+                     'RK_c': tm_c.z_field_map_rk4,
                      'leapfrog_p': tm_p.z_field_map_leapfrog,
+                     'leapfrog_c': tm_c.z_field_map_leapfrog,
                      'transport': transport.transport_beam,
                      }
 }
