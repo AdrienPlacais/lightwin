@@ -41,7 +41,7 @@ FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
 METHOD = 'leapfrog'
-METHOD = 'RK'
+# METHOD = 'RK'
 
 # To determine if transfer_matrices_c (Cython) should be used instead of _p
 # (pure Python). _c is ~2 to 4 times faster than _p.

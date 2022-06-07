@@ -171,8 +171,8 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     # Rewind energy from i=0 to i=-0.5
     w_phi[0, 0] = w_kin_in - q_adim * e_func(k_e, z_rel, e_spat, w_phi[0, 1],
                                              phi_0_rel) * half_d_z
-    l_gamma = [1. + w_phi[0, 0] * inv_E_rest_MeV]
-    l_beta = [np.sqrt(1. - l_gamma[0]**-2)]
+    # l_gamma = [1. + w_phi[0, 0] * inv_E_rest_MeV]
+    # l_beta = [np.sqrt(1. - l_gamma[0]**-2)]
 
     for i in range(n_steps):
         # Compute forces at step i
@@ -180,26 +180,33 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
             * d_z
         # Compute energy at step i + 0.5
         w_phi[i + 1, 0] = w_phi[i, 0] + delta_w
-        l_gamma.append(1. + w_phi[i + 1, 0] * inv_E_rest_MeV)
-        l_beta.append(np.sqrt(1. - l_gamma[-1]**-2))
+        # l_gamma.append(1. + w_phi[i + 1, 0] * inv_E_rest_MeV)
+        # l_beta.append(np.sqrt(1. - l_gamma[-1]**-2))
+        gamma = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV
+        beta = np.sqrt(1. - gamma**-2)
 
         # Compute phase at step i + 1
-        delta_phi = omega0_rf * d_z / (l_beta[-1] * c)
+        delta_phi = omega0_rf * d_z / (beta * c)
         w_phi[i + 1, 1] = w_phi[i, 1] + delta_phi
 
         # Update
         itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
             * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
-        gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
-        beta_middle = np.sqrt(1. - gamma_middle**-2)
+        # gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
+        # beta_middle = np.sqrt(1. - gamma_middle**-2)
 
+        # We already are at the step i + 0.5, so gamma_middle and beta_middle
+        # are calculated directly:
+        gamma_middle = gamma
+        beta_middle = beta
         r_zz[i, :, :] = z_thin_lense(
             z_rel, d_z, half_d_z, w_phi[i, 1], w_phi[i, 0], w_phi[i + 1, 0],
             gamma_middle, beta_middle, omega0_rf, k_e, phi_0_rel, e_spat)
 
         z_rel += d_z
 
+    # @FIXME
     # Re-advance full energy array by a half step?
     flag_correct_half_step = False
     if flag_correct_half_step:
@@ -208,13 +215,13 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
                                       phi_0_rel) * half_d_z
             w_phi[i, 0] += delta_w
 
-            gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
-            beta_middle = np.sqrt(1. - gamma_middle**-2)
+            # gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
+            # beta_middle = np.sqrt(1. - gamma_middle**-2)
 
-            r_zz[i, :, :] = z_thin_lense(
-                i * d_z, d_z, half_d_z, w_phi[i, 1], w_phi[i, 0],
-                w_phi[i + 1, 0], gamma_middle, beta_middle, omega0_rf, k_e,
-                phi_0_rel, e_spat)
+            # r_zz[i, :, :] = z_thin_lense(
+            #     i * d_z, d_z, half_d_z, w_phi[i, 1], w_phi[i, 0],
+            #     w_phi[i + 1, 0], gamma_middle, beta_middle, omega0_rf, k_e,
+            #     phi_0_rel, e_spat)
         if w_kin_in == 16.6:
             print('half step correction')
 
@@ -223,7 +230,28 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
 
 def z_thin_lense(z_rel, d_z, half_d_z, phi_rel, w_kin_in, w_kin_out,
                  gamma_middle, beta_middle, omega0_rf, k_e, phi_0, e_spat):
-    """Thin lense approximation: drift-acceleration-drift."""
+    """
+    Thin lense approximation: drift-acceleration-drift.
+
+    Parameters
+    ----------
+    z_rel : float
+        Relative position in m.
+    d_z : float
+        Spatial step in m.
+    half_d_z : float
+        Half a spatial step in m.
+    phi_rel : float
+        Relative phase in rad.
+    w_phi : np.ndarray
+        First colum is w_kin (MeV) and second is phase (rad). Only two lines:
+        first is step i (entrance of first drift), second is step i + 1 (exit
+        of second drift).
+    gamma_middle : float
+        Lorentz mass factor at the middle of the accelerating gap.
+    beta_middle : float
+        Lorentz velocity factor at the middle of the accelerating gap.
+    """
     # In
     r_zz = z_drift(half_d_z, w_kin_in)[0][0]
 

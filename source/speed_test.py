@@ -10,10 +10,11 @@ Run with
 """
 
 import os
+# import importlib
 import numpy as np
 import accelerator as acc
 import fault_scenario as mod_fs
-
+# importlib.reload(acc)
 
 test = 'simple'
 # test = 'compensation'

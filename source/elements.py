@@ -9,12 +9,16 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
-from constants import N_STEPS_PER_CELL, FLAG_PHI_ABS, METHOD, STR_PHI_0_ABS, \
-    OMEGA_0_BUNCH, FLAG_PHI_S_FIT, FLAG_CYTHON
+import constants
 import transfer_matrices_c as tm_c
 import transfer_matrices_p as tm_p
-
 import helper
+
+# Force reload of the module constants, as a modification of constants.METHOD
+# between is not taken into account
+# (alternative is to reload kernel each time)
+import importlib
+importlib.reload(constants)
 
 
 d_fun_tm = {
@@ -86,7 +90,7 @@ class _Element():
                 key = 'non_acc'
             else:
                 key = 'accelerating'
-            n_steps = N_STEPS_PER_CELL * self.acc_field.n_cell
+            n_steps = constants.N_STEPS_PER_CELL * self.acc_field.n_cell
 
         else:
             key = 'non_acc'
@@ -95,7 +99,7 @@ class _Element():
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
 
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
-        self.tmat['func'] = d_fun_tm[key][METHOD]
+        self.tmat['func'] = d_fun_tm[key][constants.METHOD]
         self.tmat['solver_param'] = {'n_steps': n_steps,
                                      'd_z': self.length_m / n_steps,
                                      }
@@ -106,7 +110,7 @@ class _Element():
 
         # Initialisation of electric field arrays
         # FIXME
-        if self.idx['element'] == 0 and FLAG_CYTHON:
+        if self.idx['element'] == 0 and constants.FLAG_CYTHON:
             tm_c.init_arrays()
 
         if self.info['nature'] == 'FIELD_MAP' and \
@@ -114,7 +118,7 @@ class _Element():
 
             # The field map functions from transfer_matrices_c and
             # transfer_matrices_p do not take exactly the same argumemts
-            if FLAG_CYTHON:
+            if constants.FLAG_CYTHON:
                 last_arg = self.idx['section'][0][0]
             else:
                 last_arg = kwargs['e_spat']
@@ -123,7 +127,7 @@ class _Element():
                 self.tmat['func'](d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
                                   kwargs['norm'], kwargs['phi_0_rel'],
                                   last_arg)
-            w_phi[:, 1] *= OMEGA_0_BUNCH / kwargs['omega0_rf']
+            w_phi[:, 1] *= constants.OMEGA_0_BUNCH / kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
@@ -236,12 +240,12 @@ class FieldMap(_Element):
         acc_f = self.acc_field
 
         # FIXME Equiv of synch._set_omega_rf:
-        new_omega = 2. * OMEGA_0_BUNCH
+        new_omega = 2. * constants.OMEGA_0_BUNCH
         synch.omega0['rf'] = new_omega
         synch.omega0['ref'] = new_omega
-        synch.frac_omega['rf_to_bunch'] = OMEGA_0_BUNCH / new_omega
-        synch.frac_omega['bunch_to_rf'] = new_omega / OMEGA_0_BUNCH
-        phi_rf_abs = phi_abs_in * acc_f.omega0_rf / OMEGA_0_BUNCH
+        synch.frac_omega['rf_to_bunch'] = constants.OMEGA_0_BUNCH / new_omega
+        synch.frac_omega['bunch_to_rf'] = new_omega / constants.OMEGA_0_BUNCH
+        phi_rf_abs = phi_abs_in * acc_f.omega0_rf / constants.OMEGA_0_BUNCH
 
         kwargs = {
             'omega0_rf': acc_f.omega0_rf,
@@ -266,9 +270,9 @@ class FieldMap(_Element):
             if self.info['status'] == 'nominal':
                 # We already have the phi0's from the reference linac. We
                 # recompute the relative or absolute one according to
-                # FLAG_PHI_ABS
+                # constants.FLAG_PHI_ABS
                 acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
-                    phi_rf_abs, FLAG_PHI_ABS, acc_f.phi_0['rel'],
+                    phi_rf_abs, constants.FLAG_PHI_ABS, acc_f.phi_0['rel'],
                     acc_f.phi_0['abs'])
                 kwargs = self._import_from_acc_f(kwargs)
 
@@ -290,7 +294,7 @@ class FieldMap(_Element):
                 if d_fit['flag']:
                     kwargs['norm'] = d_fit['norm']
 
-                    if FLAG_PHI_S_FIT:
+                    if constants.FLAG_PHI_S_FIT:
                         kwargs['phi_s_objective'] = d_fit['phi']
                         kwargs['phi_0_rel'] = \
                             self.match_synch_phase(w_kin_in, **kwargs)
@@ -301,18 +305,18 @@ class FieldMap(_Element):
                                           kwargs['phi_0_abs'])
                     else:
                         # fit['phi'] is phi_0_rel or phi_0_abs according to
-                        # FLAG_PHI_ABS.
+                        # constants.FLAG_PHI_ABS.
                         # We set it and calculate the abs/rel phi_0 that is
                         # missing.
-                        kwargs[STR_PHI_0_ABS] = d_fit['phi']
+                        kwargs[constants.STR_PHI_0_ABS] = d_fit['phi']
                         kwargs['phi_0_rel'], kwargs['phi_0_abs'] = \
                             convert_phi_0(
-                            phi_rf_abs, FLAG_PHI_ABS, kwargs['phi_0_rel'],
+                            phi_rf_abs, constants.FLAG_PHI_ABS, kwargs['phi_0_rel'],
                             kwargs['phi_0_abs'])
 
                 else:
                     acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
-                        phi_rf_abs, FLAG_PHI_ABS, acc_f.phi_0['rel'],
+                        phi_rf_abs, constants.FLAG_PHI_ABS, acc_f.phi_0['rel'],
                         acc_f.phi_0['abs'])
                     kwargs = self._import_from_acc_f(kwargs)
 
