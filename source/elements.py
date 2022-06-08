@@ -10,7 +10,23 @@ from scipy.optimize import minimize_scalar
 import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
 import constants
-import transfer_matrices_c as tm_c
+
+try:
+    import transfer_matrices_c as tm_c
+
+except ModuleNotFoundError:
+    MESSAGE = ', Cython module not compilated. Check elements.py and setup.py'\
+        + ' for more information.'
+
+    # If Cython was asked, raise Error.
+    if constants.FLAG_CYTHON:
+        raise ModuleNotFoundError('Error' + MESSAGE)
+    # Else, only issue a Warning.
+    print('Warning' + MESSAGE)
+    # Load Python version as Cython to allow the execution of the code.
+    # It will not be used.
+    import transfer_matrices_p as tm_c
+
 import transfer_matrices_p as tm_p
 import helper
 
