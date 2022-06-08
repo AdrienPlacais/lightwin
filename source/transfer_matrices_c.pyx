@@ -6,8 +6,13 @@ Created on Wed Sep 22 16:04:34 2021.
 
 @author: placais
 
-File holding all the longitudinal transfer sub-matrices. Units are taken
-exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
+This file holds the same functions as transfer_matrices_p, but in Cython.
+
+Cython needs to be compiled to work. Check the instrutions in setup.py.
+
+Currently adapted to MYRRHA only:
+    electric fields are hard-coded;
+    energy at linac entrance is hard-coded.
 """
 import cython
 from libc.math cimport sin, cos, sqrt, tan, floor
@@ -26,6 +31,7 @@ cdef DTYPE_t E_rest_MeV_cdef = 938.27203
 cdef DTYPE_t inv_E_rest_MeV_cdef = 0.0010657889908537506
 cdef DTYPE_t OMEGA_0_BUNCH_cdef = 1106468932.594325
 cdef DTYPE_t q_adim_cdef = 1.
+cdef DTYPE_t E_MEV_cdef = 16.6
 
 cdef int N_POINTS_SIMPLE_SPOKE = 207
 cdef DTYPE_t INV_DZ_SIMPLE_SPOKE = N_POINTS_SIMPLE_SPOKE / 0.415160
@@ -40,7 +46,7 @@ cdef DTYPE_t INV_DZ_BETA065 = N_POINTS_BETA065 / 1.050
 cdef DTYPE_t[:] E_Z_BETA065
 
 cpdef init_arrays():
-    """Useless to call it??"""
+    """Initialize electric fields for efficiency."""
     global E_Z_SIMPLE_SPOKE
     global E_Z_SPOKE_ESS
     global E_Z_BETA065
@@ -56,7 +62,7 @@ cpdef init_arrays():
 # Helpers
 # =============================================================================
 cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
-    """Faster interpolation?"""
+    """Interpolation function."""
     cdef int i
     cdef DTYPE_t delta_e_z, slope, offset
     cdef out
@@ -176,6 +182,7 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:] e_z, DTYPE_t inv_dz,
 # Transfer matrices
 # =============================================================================
 cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
+    """Calculate the transfer matrix of a drift."""
     # Variables:
     cdef DTYPE_t gamma_in_min2, beta_in, delta_phi
     cdef Py_ssize_t i
@@ -203,6 +210,7 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
 def z_field_map_rk4(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                     DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                     np.int64_t section_idx):
+    """Calculate the transfer matrix of a field map using Runge-Kutta."""
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
@@ -272,6 +280,7 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                          DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                          np.int64_t section_idx):
+    """Calculate the transfer matrix of a field map using leapfrog."""
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
@@ -308,23 +317,25 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     n_points = e_z.shape[0]
 
     w_phi[0, 1] = 0.
-    # Rewind energy of half a step
-    w_phi[0, 0] = w_kin_in - q_adim_cdef * e_func(k_e, z_rel, e_z, inv_dz,
-                                                  n_points, w_phi[0, 1],
-                                                  phi_0_rel) * half_d_z
+    # Rewind energy from i=0 to i=-0.5 if we are at the first cavity:
+    if w_kin_in == E_MEV_cdef:
+        w_phi[0, 0] = w_kin_in - q_adim_cdef * e_func(
+            k_e, z_rel, e_z, inv_dz, n_points, w_phi[0, 1], phi_0_rel) \
+            * half_d_z
+    else:
+        w_phi[0, 0] = w_kin_in
 
     for i in range(n_steps):
-        # Compute energy change
+        # Compute forces at step i
         delta_w = q_adim_cdef * e_func(k_e, z_rel, e_z, inv_dz, n_points,
                                        w_phi[i, 1], phi_0_rel) * d_z
         # New energy at i + 0.5
         w_phi[i + 1, 0] = w_phi[i, 0] + delta_w
-        gamma_next = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
-        beta_next = sqrt(1. - gamma_next**-2)
+        gamma = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
+        beta = sqrt(1. - gamma**-2)
 
-        # Compute phase change
-        delta_phi = omega0_rf * d_z / (beta_next * c_cdef)
-        # Phase at step i+1
+        # Compute phase at steo i + 1
+        delta_phi = omega0_rf * d_z / (beta * c_cdef)
         w_phi[i + 1, 1] = w_phi[i, 1] + delta_phi
 
         # Update
@@ -332,15 +343,14 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                             phi_0_rel) \
             * (1. + 1j * tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
-        gamma_middle = .5 * (gamma + gamma_next)
-        beta_middle = sqrt(1. - gamma_middle**-2)
-
+        # We already are at the step i + 0.5, so gamma_middle and beta_middle
+        # are the same as gamma and beta
         r_zz_array[i, :, :] = z_thin_lense(
-            d_z, half_d_z, w_phi[i, 0], gamma_middle, w_phi[i + 1, 0],
-            beta_middle, z_rel, w_phi[i, 1], omega0_rf, k_e, phi_0_rel, e_z,
+            d_z, half_d_z, w_phi[i, 0], gamma, w_phi[i + 1, 0],
+            beta, z_rel, w_phi[i, 1], omega0_rf, k_e, phi_0_rel, e_z,
             inv_dz, n_points)
+
         z_rel += d_z
-        gamma = gamma_next
 
     return r_zz_array, w_phi_array[1:, :], itg_field
 
@@ -350,6 +360,7 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                   DTYPE_t z_rel, DTYPE_t phi_rel, DTYPE_t omega0_rf,
                   DTYPE_t norm, DTYPE_t phi_0,
                   DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
+    """Calculate the transfer matrix of a drift-gap-drift."""
     # Variables:
     cdef DTYPE_t z_k, phi_k, k_0, k_1, k_2, k_3
     cdef DTYPE_t e_func_k
