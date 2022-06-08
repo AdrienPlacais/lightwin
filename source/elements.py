@@ -17,9 +17,9 @@ import helper
 # Force reload of the module constants, as a modification of constants.METHOD
 # between two executions is not taken into account
 # (alternative is to restart kernel each time)
-import importlib
-importlib.reload(constants)
-print(f"METHOD: {constants.METHOD}")
+# import importlib
+# importlib.reload(constants)
+# print(f"METHOD: {constants.METHOD}")
 
 
 d_fun_tm = {
