@@ -205,8 +205,8 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     return r_zz, w_phi[1:, :], itg_field
 
 
-def z_thin_lense(z_rel, d_z, half_d_z, w_phi,
-                 gamma_middle, beta_middle, omega0_rf, k_e, phi_0, e_spat):
+def z_thin_lense(z_rel, d_z, half_d_z, w_phi, gamma_middle, beta_middle,
+                 omega0_rf, k_e, phi_0, e_spat):
     """
     Thin lense approximation: drift-acceleration-drift.
 
@@ -249,6 +249,7 @@ def z_thin_lense(z_rel, d_z, half_d_z, w_phi,
     # Correction to ensure det < 1
     k_3 = (1. - k_0 * e_func_k) / (1. - k_0 * (2. - beta_middle**2) * e_func_k)
 
+    # @ is matrix product
     r_zz = np.array(([k_3, 0.], [k_1, k_2])) @ r_zz
 
     # Out

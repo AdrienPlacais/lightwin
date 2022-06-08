@@ -43,6 +43,12 @@ FLAG_PHI_S_FIT = True
 METHOD = 'leapfrog'
 # METHOD = 'RK'
 
+# Number of spatial steps per RF cavity cell
+if 'leapfrog' in METHOD:
+    N_STEPS_PER_CELL = 30
+elif 'RK' in METHOD:
+    N_STEPS_PER_CELL = 20
+
 # To determine if transfer_matrices_c (Cython) should be used instead of _p
 # (pure Python). _c is ~2 to 4 times faster than _p.
 # Warning, you may have to relaod the kernel to force iPython to take the
@@ -59,12 +65,6 @@ OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 
 # Optimisation method: least_squares or PSO
 OPTI_METHOD = 'least_squares'
-
-# Number of spatial steps per RF cavity cell
-if 'leapfrog' in METHOD:
-    N_STEPS_PER_CELL = 30
-elif 'RK' in METHOD:
-    N_STEPS_PER_CELL = 20
 
 WHAT_TO_FIT = {
     # =========================================================================
