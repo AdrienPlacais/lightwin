@@ -47,8 +47,7 @@ BETA_W = 71.215849  # deg/pi.MeV
 
 # Select .dat file
 Tk().withdraw()
-# FILEPATH = ""
-# FILEPATH = "../data/work_field_map/work_field_map.dat"
+
 FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
@@ -77,7 +76,7 @@ manual_list = [
     # [579, 581, 591, 593, 595, 597]
 ]
 
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 # =============================================================================
 # Outputs
@@ -117,7 +116,7 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
 }
 
-linacs = [ref_linac]#, broken_linac]
+linacs = [ref_linac, broken_linac]
 for lin in linacs:
     lin.compute_transfer_matrices()
 
