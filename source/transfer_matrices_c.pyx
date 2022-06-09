@@ -356,7 +356,7 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 
 def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                    DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
-                   np.int64_t section_idx):
+                   np.int64_t section_idx, DTYPE_t phi_in):
     """Calculate the transfer matrix of a field map using Lagniel's algo."""
     # Particle energy
     cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
@@ -388,13 +388,16 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     cdef complex itg_field = 0.
     cdef DTYPE_t sum_sin, sum_cos
 
-    cdef DTYPE_t gamma_out, beta_out, w_kin_out, phi_out
+    # cdef DTYPE_t gamma_out, beta_out, w_kin_out, phi_out
+    cdef np.ndarray[DTYPE_t, ndim=2] w_phi
 
     # kk already calculated
 
     # Particle enter cavity at absolute phase=phi_0
     # (ie at relative phase=0)
-    phi_abs = phi_0_rel
+    # phi_abs = phi_0_rel
+    phi_abs = phi_in
+
     # To have phi particle = 0 at first integration step.
     phi_rel = -phi_cav / beta
 
@@ -412,7 +415,8 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         raise IOError('wrong section_idx in z_field_map')
     n_points = e_z.shape[0]
 
-    r_zz = np.empty([n_points + 1, 2, 2])
+    r_zz = np.empty([n_points, 2, 2])
+    w_phi = np.empty([n_points, 2])
     s1_11 = 1.
     s1_12 = 0.
     s1_21 = 0.
@@ -453,16 +457,16 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         sum_sin = sum_sin - s2_21
         sum_cos = sum_cos + delta_gamma
 
+        w_phi[i, 0] = (gamma - 1.) * E_rest_MeV_cdef
+        w_phi[i, 1] = phi_rel
+
         # Warning! beta not updated...
 
-    gamma_out = gamma
-    beta_out = beta_out
-    w_kin_out = (gamma - 1.) * E_rest_MeV_cdef
-    phi = phi + phi_cav / (2. * beta)   # half step end cav
-    phi_out = phi
+    phi_rel = phi_rel + phi_cav / (2. * beta)   # half step end cav
+    # phi_out = phi
     itg_field = sum_cos + 1j * sum_sin
 
-    return r_zz_array, w_phi_array[1:, :], itg_field
+    return r_zz, w_phi, itg_field
 
 cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                   DTYPE_t gamma_middle, DTYPE_t w_kin_out, DTYPE_t beta_middle,

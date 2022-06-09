@@ -7,7 +7,6 @@ Created on Wed Sep 22 10:26:19 2021.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-import transport
 from electric_field import RfField, compute_param_cav, convert_phi_0
 import constants
 
@@ -53,7 +52,7 @@ d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
 d_n_steps = {
     'RK': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
     'leapfrog': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
-    'jm': lambda elt: elt.acc_field.n_z,
+    'jm': lambda elt: elt.acc_field.n_z + 1,
     'drift': lambda elt: 1,
 }
 
@@ -89,8 +88,7 @@ class _Element():
         self.acc_field = RfField()
 
         self.pos_m = {'abs': None, 'rel': None}
-        self.idx = {'s_in': None,
-                    's_out': None,
+        self.idx = {'s_in': None, 's_out': None,
                     'element': None,
                     'lattice': [],
                     'section': []}
@@ -147,10 +145,21 @@ class _Element():
             else:
                 last_arg = kwargs['e_spat']
 
-            r_zz, w_phi, itg_field = \
-                self.tmat['func'](d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
-                                  kwargs['norm'], kwargs['phi_0_rel'],
-                                  last_arg)
+            if constants.METHOD == 'jm_c':
+                # FIXME: only valid for synch particle
+                phi_abs_in = kwargs['phi_0_rel']
+
+                r_zz, w_phi, itg_field = \
+                    self.tmat['func'](
+                        d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
+                        kwargs['norm'], kwargs['phi_0_rel'], last_arg,
+                        phi_abs_in)
+            else:
+                r_zz, w_phi, itg_field = \
+                    self.tmat['func'](
+                        d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
+                        kwargs['norm'], kwargs['phi_0_rel'], last_arg)
+
             w_phi[:, 1] *= constants.OMEGA_0_BUNCH / kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
