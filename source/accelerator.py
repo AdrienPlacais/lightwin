@@ -31,12 +31,10 @@ class Accelerator():
         dat_filecontent, l_elts = tw.load_dat_file(dat_filepath)
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
 
-        self.elements = {
-            'n': len(l_elts),
-            'list': l_elts,
-            'l_lattices': l_latts,
-            'l_sections': l_secs,
-        }
+        self.elements = {'n': len(l_elts),
+                         'list': l_elts,
+                         'l_lattices': l_latts,
+                         'l_sections': l_secs}
 
         tw.load_filemaps(dat_filepath, dat_filecontent,
                          self.elements['l_sections'], freqs)
@@ -61,7 +59,7 @@ class Accelerator():
         }
         self.transf_mat['indiv'][0, :, :] = np.eye(2)
 
-        # Check that LW and TW computes the phases in the same way
+        # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
     def _set_indexes_and_abs_positions(self):

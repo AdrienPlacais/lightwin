@@ -354,6 +354,115 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 
     return r_zz_array, w_phi_array[1:, :], itg_field
 
+def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
+                   DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
+                   np.int64_t section_idx):
+    """Calculate the transfer matrix of a field map using Lagniel's algo."""
+    # Particle energy
+    cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
+    cdef DTYPE_t gamma2 = gamma * gamma
+    cdef DTYPE_t beta = sqrt(1. - 1. / gamma2)
+
+    # Particle acceleration
+    cdef DTYPE_t delta_w, delta_phi, delta_gamma
+    cdef DTYPE_t[:] e_z
+
+    # Particle phase
+    cdef DTYPE_t phi_abs, phi_rel
+
+    # Constants to speed up calculation
+    cdef DTYPE_t phi_cav = omega0_rf * d_z / c_cdef
+    cdef DTYPE_t delta_gamma_cav = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
+    cdef DTYPE_t kk = delta_gamma_cav * k_e
+
+    # Integers
+    cdef int n_points
+    cdef np.int64_t i
+
+    # Transfer matrix
+    cdef DTYPE_t s1_11, s1_12, s1_21, s1_22
+    cdef DTYPE_t        s2_12, s2_21, s2_22
+    cdef np.ndarray[DTYPE_t, ndim=3] r_zz
+
+    # V_cav and phi_s
+    cdef complex itg_field = 0.
+    cdef DTYPE_t sum_sin, sum_cos
+
+    cdef DTYPE_t gamma_out, beta_out, w_kin_out, phi_out
+
+    # kk already calculated
+
+    # Particle enter cavity at absolute phase=phi_0
+    # (ie at relative phase=0)
+    phi_abs = phi_0_rel
+    # To have phi particle = 0 at first integration step.
+    phi_rel = -phi_cav / beta
+
+    # Define electric field
+    if section_idx == 0:
+        e_z = E_Z_SIMPLE_SPOKE
+        # inv_dz = INV_DZ_SIMPLE_SPOKE
+    elif section_idx == 1:
+        e_z = E_Z_SPOKE_ESS
+        # inv_dz = INV_DZ_SPOKE_ESS
+    elif section_idx == 2:
+        e_z = E_Z_BETA065
+        # inv_dz = INV_DZ_BETA065
+    else:
+        raise IOError('wrong section_idx in z_field_map')
+    n_points = e_z.shape[0]
+
+    r_zz = np.empty([n_points + 1, 2, 2])
+    s1_11 = 1.
+    s1_12 = 0.
+    s1_21 = 0.
+    s1_22 = 1.
+
+    sum_sin = 0.
+    sum_cos = 0.
+
+    for i in range(n_points):
+        # Update phi
+        delta_phi = phi_cav / beta
+        phi_rel = phi_rel + delta_phi
+
+        # Acceleration without the cos term
+        k_gam = kk * e_z[i]
+        # Update absolute phase
+        phi_abs = phi_0_rel + phi_rel
+
+        # N.B. dphi already divided by beta
+        s2_12 = -delta_phi / (beta * beta * gamma2 * gamma)
+        s2_21 = -k_gam * sin(phi_abs)
+        s2_22 = 1.0 + (s2_12 * s2_21)
+
+        r_zz[i, 0, 0] = s1_11 + (s1_21 * s2_12)            # no dim
+        r_zz[i, 0, 1] = s1_12 + (s1_22 * s2_12)            # d_rad/d_gamma
+        r_zz[i, 1, 0] = (s1_11 * s2_21) + (s1_21 * s2_22)  # d_gamma/d_rad
+        r_zz[i, 1, 1] = (s1_12 * s2_21) + (s1_22 * s2_22)  # no dim
+
+        s1_11 = r_zz[i, 0, 0]
+        s1_12 = r_zz[i, 0, 1]
+        s1_21 = r_zz[i, 1, 0]
+        s1_22 = r_zz[i, 1, 1]
+
+        delta_gamma = k_gam * cos(phi_abs)
+        gamma = gamma + delta_gamma
+        gamma2 = gamma * gamma
+
+        sum_sin = sum_sin - s2_21
+        sum_cos = sum_cos + delta_gamma
+
+        # Warning! beta not updated...
+
+    gamma_out = gamma
+    beta_out = beta_out
+    w_kin_out = (gamma - 1.) * E_rest_MeV_cdef
+    phi = phi + phi_cav / (2. * beta)   # half step end cav
+    phi_out = phi
+    itg_field = sum_cos + 1j * sum_sin
+
+    return r_zz_array, w_phi_array[1:, :], itg_field
 
 cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                   DTYPE_t gamma_middle, DTYPE_t w_kin_out, DTYPE_t beta_middle,

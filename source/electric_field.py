@@ -15,11 +15,9 @@ def compute_param_cav(integrated_field, status):
         polar_itg = np.array([np.NaN, np.NaN])
     else:
         polar_itg = cmath.polar(integrated_field)
-    cav_params = {
-        'v_cav_mv': polar_itg[0],
-        'phi_s_deg': np.rad2deg(polar_itg[1]),
-        'phi_s_rad': polar_itg[1],
-    }
+    cav_params = {'v_cav_mv': polar_itg[0],
+                  'phi_s_deg': np.rad2deg(polar_itg[1]),
+                  'phi_s_rad': polar_itg[1]}
     return cav_params
 
 
@@ -39,7 +37,10 @@ class RfField():
         self.e_spat = lambda x: 0.
 
         self.norm = norm
-        self.phi_0 = {'rel': None, 'abs': None, 'nominal_rel': None,
+
+        self.phi_0 = {'rel': None,
+                      'abs': None,
+                      'nominal_rel': None,
                       'abs_phase_flag': bool(absolute_phase_flag)}
         if self.phi_0['abs_phase_flag']:
             self.phi_0['abs'] = phi_0
@@ -47,15 +48,13 @@ class RfField():
             self.phi_0['rel'] = phi_0
             self.phi_0['nominal_rel'] = phi_0
 
-        self.cav_params = {
-            'v_cav_mv': np.NaN,
-            'phi_s_deg': np.NaN,
-            'phi_s_rad': np.NaN,
-        }
+        self.cav_params = {'v_cav_mv': np.NaN,
+                           'phi_s_deg': np.NaN,
+                           'phi_s_rad': np.NaN}
         self.phi_s_rad_objective = None
 
         # Initialized later as it depends on the Section the cavity is in
-        self.omega0_rf, self.n_cell = None, None
+        self.omega0_rf, self.n_cell, self.n_z = None, None, None
 
     def init_freq_ncell(self, f_mhz, n_cell):
         """Initialize the frequency and the number of cells."""
@@ -111,7 +110,7 @@ def load_field_map_file(elt):
 
     def e_spat(pos):
         return np.interp(x=pos, xp=z_cavity_array, fp=f_z, left=0., right=0.)
-    return e_spat
+    return e_spat, n_z
 
 
 def _check_geom(elt):

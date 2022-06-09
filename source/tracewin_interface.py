@@ -157,9 +157,10 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
             for elt in lattice:
                 if elt.info['nature'] == 'FIELD_MAP':
                     elt.field_map_file_name = field_map_folder + '/' \
-                        + elt.field_map_file_name
-                    elt.acc_field.e_spat = load_field_map_file(elt)
-                    elt.acc_field.init_freq_ncell(f_mhz, n_cell)
+                        + elt.field_map_file_name  # TODO with join
+                    a_f = elt.acc_field
+                    a_f.e_spat, a_f.n_z = load_field_map_file(elt)
+                    a_f.init_freq_ncell(f_mhz, n_cell)
 
 
 def save_new_dat(fixed_linac, filepath_old):

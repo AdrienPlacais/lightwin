@@ -37,20 +37,36 @@ import helper
 # importlib.reload(constants)
 # print(f"METHOD: {constants.METHOD}")
 
-
+# =============================================================================
+# Module dictionaries
+# =============================================================================
+# Dict to select the proper transfer matrix function
 d_fun_tm = {
     'non_acc': {'RK_p': tm_p.z_drift,
                 'RK_c': tm_c.z_drift,
                 'leapfrog_p': tm_p.z_drift,
                 'leapfrog_c': tm_c.z_drift,
+                'jm_p': tm_p.z_drift,
+                'jm_c': tm_c.z_drift,
                 'transport': transport.transport_beam,
                 },
     'accelerating': {'RK_p': tm_p.z_field_map_rk4,
                      'RK_c': tm_c.z_field_map_rk4,
                      'leapfrog_p': tm_p.z_field_map_leapfrog,
                      'leapfrog_c': tm_c.z_field_map_leapfrog,
+                     'jm_p': None,
+                     'jm_c': None,  # tm_c.z_field_map_jm,
                      'transport': transport.transport_beam,
                      }
+}
+
+# Dict to select the proper number of steps for the transfer matrix, the
+# energy, the phase, etc
+d_n_steps = {
+    'RK': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
+    'leapfrog': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
+    'jm': lambda elt: elt.acc_field.n_z,
+    'non_acc': lambda elt: 1,
 }
 
 
@@ -58,7 +74,7 @@ d_fun_tm = {
 # Element class
 # =============================================================================
 class _Element():
-    """Generic element. _ ensures that it is not called from another file."""
+    """Generic element. _ ensures that it is not called from another module."""
 
     def __init__(self, elem):
         """
@@ -89,8 +105,8 @@ class _Element():
                     's_out': None,
                     'element': None,
                     'lattice': [],
-                    'section': [],
-                    }
+                    'section': []}
+
         # tmat stands for 'transfer matrix'
         self.tmat = {
             'func': {'RK': lambda: None,
@@ -101,25 +117,26 @@ class _Element():
         }
 
     def init_solvers(self):
-        """Initialize solvers as well as general properties."""
+        """Initialize how transfer matrices will be calculated."""
         if self.info['nature'] == 'FIELD_MAP':
+            key_n_steps = constants.METHOD.split('_')[0]
+
             if self.info['status'] == 'failed':
-                key = 'non_acc'
+                key_func = 'non_acc'
             else:
-                key = 'accelerating'
-            n_steps = constants.N_STEPS_PER_CELL * self.acc_field.n_cell
+                key_func = 'accelerating'
 
         else:
-            key = 'non_acc'
-            n_steps = 1
+            key_n_steps = 'non_acc'
+            key_func = 'non_acc'
+
+        n_steps = d_n_steps[key_n_steps](self)
 
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
-
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
-        self.tmat['func'] = d_fun_tm[key][constants.METHOD]
+        self.tmat['func'] = d_fun_tm[key_func][constants.METHOD]
         self.tmat['solver_param'] = {'n_steps': n_steps,
-                                     'd_z': self.length_m / n_steps,
-                                     }
+                                     'd_z': self.length_m / n_steps}
 
     def calc_transf_mat(self, w_kin_in, **kwargs):
         """Compute longitudinal matrix."""
