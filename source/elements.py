@@ -41,24 +41,12 @@ import helper
 # Module dictionaries
 # =============================================================================
 # Dict to select the proper transfer matrix function
-d_fun_tm = {
-    'non_acc': {'RK_p': tm_p.z_drift,
-                'RK_c': tm_c.z_drift,
-                'leapfrog_p': tm_p.z_drift,
-                'leapfrog_c': tm_c.z_drift,
-                'jm_p': tm_p.z_drift,
-                'jm_c': tm_c.z_drift,
-                'transport': transport.transport_beam,
-                },
-    'accelerating': {'RK_p': tm_p.z_field_map_rk4,
-                     'RK_c': tm_c.z_field_map_rk4,
-                     'leapfrog_p': tm_p.z_field_map_leapfrog,
-                     'leapfrog_c': tm_c.z_field_map_leapfrog,
-                     'jm_p': None,
-                     'jm_c': None,  # tm_c.z_field_map_jm,
-                     'transport': transport.transport_beam,
-                     }
-}
+d_mod = {'p': tm_p,     # Pure Python
+         'c': tm_c}     # Cython
+d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
+             'leapfrog': lambda mod: mod.z_field_map_leapfrog,
+             'jm': lambda mod: mod.z_field_map_jm,
+             'non_acc': lambda mod: mod.z_drift}
 
 # Dict to select the proper number of steps for the transfer matrix, the
 # energy, the phase, etc
@@ -66,7 +54,7 @@ d_n_steps = {
     'RK': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
     'leapfrog': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
     'jm': lambda elt: elt.acc_field.n_z,
-    'non_acc': lambda elt: 1,
+    'drift': lambda elt: 1,
 }
 
 
@@ -118,25 +106,27 @@ class _Element():
 
     def init_solvers(self):
         """Initialize how transfer matrices will be calculated."""
-        if self.info['nature'] == 'FIELD_MAP':
-            key_n_steps = constants.METHOD.split('_')[0]
+        l_method = constants.METHOD.split('_')
 
-            if self.info['status'] == 'failed':
-                key_func = 'non_acc'
-            else:
-                key_func = 'accelerating'
+        # Select proper module (Python or Cython)
+        mod = d_mod[l_method[1]]
 
-        else:
-            key_n_steps = 'non_acc'
-            key_func = 'non_acc'
-
+        # Select proper number of steps
+        key_n_steps = l_method[0]
+        if self.info['nature'] != 'FIELD_MAP':
+            key_n_steps = 'drift'
         n_steps = d_n_steps[key_n_steps](self)
-
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
-        self.tmat['func'] = d_fun_tm[key_func][constants.METHOD]
-        self.tmat['solver_param'] = {'n_steps': n_steps,
-                                     'd_z': self.length_m / n_steps}
+        self.tmat['solver_param']['n_steps'] = n_steps
+        self.tmat['solver_param']['d_z'] = self.length_m / n_steps
+
+        # Select proper function to compute transfer matrix
+        key_fun = l_method[0]
+        if self.info['nature'] != 'FIELD_MAP' \
+                or self.info['status'] == 'failed':
+            key_fun = 'non_acc'
+        self.tmat['func'] = d_func_tm[key_fun](mod)
 
     def calc_transf_mat(self, w_kin_in, **kwargs):
         """Compute longitudinal matrix."""
