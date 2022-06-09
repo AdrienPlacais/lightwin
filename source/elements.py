@@ -52,7 +52,7 @@ d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
 d_n_steps = {
     'RK': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
     'leapfrog': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
-    'jm': lambda elt: elt.acc_field.n_z + 1,
+    'jm': lambda elt: elt.acc_field.n_z,
     'drift': lambda elt: 1,
 }
 

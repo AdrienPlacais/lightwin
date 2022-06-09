@@ -357,7 +357,20 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                    DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                    np.int64_t section_idx, DTYPE_t phi_in):
-    """Calculate the transfer matrix of a field map using Lagniel's algo."""
+    """
+    Calculate the transfer matrix of a field map using Lagniel's algo.
+
+    To put at electric field initialisation:
+        phi_cav = omega0 * delta_z / c
+        delta_gamma_cav = q * delta_z / E_rest      (not homog to gamma)
+
+    Other speeding up constants:
+        kk = k_e * delta_gamma_cav
+        k_gam = kk * e_z[z]
+        delta_gamma = k_gam * cos(phi + phi_0)
+
+        delta_phi = phi_cav / beta
+    """
     # Particle energy
     cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
     cdef DTYPE_t gamma2 = gamma * gamma
@@ -376,20 +389,19 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     cdef DTYPE_t kk = delta_gamma_cav * k_e
 
     # Integers
-    cdef int n_points
     cdef np.int64_t i
 
     # Transfer matrix
     cdef DTYPE_t s1_11, s1_12, s1_21, s1_22
     cdef DTYPE_t        s2_12, s2_21, s2_22
-    cdef np.ndarray[DTYPE_t, ndim=3] r_zz
+    cdef np.ndarray[DTYPE_t, ndim=3] r_zz = np.empty([n_steps, 2, 2])
 
     # V_cav and phi_s
     cdef complex itg_field = 0.
     cdef DTYPE_t sum_sin, sum_cos
 
     # cdef DTYPE_t gamma_out, beta_out, w_kin_out, phi_out
-    cdef np.ndarray[DTYPE_t, ndim=2] w_phi
+    cdef np.ndarray[DTYPE_t, ndim=2] w_phi = np.empty([n_steps, 2])
 
     # kk already calculated
 
@@ -404,19 +416,13 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     # Define electric field
     if section_idx == 0:
         e_z = E_Z_SIMPLE_SPOKE
-        # inv_dz = INV_DZ_SIMPLE_SPOKE
     elif section_idx == 1:
         e_z = E_Z_SPOKE_ESS
-        # inv_dz = INV_DZ_SPOKE_ESS
     elif section_idx == 2:
         e_z = E_Z_BETA065
-        # inv_dz = INV_DZ_BETA065
     else:
         raise IOError('wrong section_idx in z_field_map')
-    n_points = e_z.shape[0]
 
-    r_zz = np.empty([n_points, 2, 2])
-    w_phi = np.empty([n_points, 2])
     s1_11 = 1.
     s1_12 = 0.
     s1_21 = 0.
@@ -425,7 +431,7 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     sum_sin = 0.
     sum_cos = 0.
 
-    for i in range(n_points):
+    for i in range(n_steps):
         # Update phi
         delta_phi = phi_cav / beta
         phi_rel = phi_rel + delta_phi
@@ -453,6 +459,7 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         delta_gamma = k_gam * cos(phi_abs)
         gamma = gamma + delta_gamma
         gamma2 = gamma * gamma
+        beta = sqrt(1. - 1. / gamma2)
 
         sum_sin = sum_sin - s2_21
         sum_cos = sum_cos + delta_gamma
@@ -463,6 +470,7 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         # Warning! beta not updated...
 
     phi_rel = phi_rel + phi_cav / (2. * beta)   # half step end cav
+    w_phi[n_steps - 1, 1] = phi_rel
     # phi_out = phi
     itg_field = sum_cos + 1j * sum_sin
 
