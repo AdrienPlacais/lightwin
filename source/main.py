@@ -49,7 +49,8 @@ BETA_W = 71.215849  # deg/pi.MeV
 Tk().withdraw()
 # FILEPATH = ""
 # FILEPATH = "../data/work_field_map/work_field_map.dat"
-FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+FILEPATH = "../data/faultcomp22/local_method2/MYRRHA_Transi-100MeV_local2_without_sec1_cryo_fault_with_tw_settings_recopied.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -83,17 +84,17 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
+    # "energy",
+    # "phase",
+    # "cav",
 ]
-PLOT_TM = True
+PLOT_TM = False
 PHASE_SPACE = False
 TWISS = False
 
 SAVES = [
-    # "energy phase and mt",
-    # "Vcav and phis",
+    "energy phase and mt",
+    "Vcav and phis",
 ]
 
 start_time = time.monotonic()
