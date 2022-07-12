@@ -181,17 +181,17 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:] e_z, DTYPE_t inv_dz,
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
+cpdef z_drift(DTYPE_t delta_s, DTYPE_t gamma_in, np.int64_t n_steps=1):
     """Calculate the transfer matrix of a drift."""
     # Variables:
-    cdef DTYPE_t gamma_in_min2, beta_in, delta_phi
+    cdef DTYPE_t gamma_in_min2 = gamma_in**-2
+    cdef DTYPE_t beta_in = sqrt(1. - gamma_in_min2)
+    cdef DTYPE_t delta_phi = OMEGA_0_BUNCH_cdef * delta_s / (beta_in * c_cdef)
     cdef Py_ssize_t i
 
     # Memory views:
-    w_phi_array = np.empty([n_steps, 2], dtype=DTYPE)
-    cdef DTYPE_t[:, :] w_phi = w_phi_array
-
-    gamma_in_min2 = (1. + w_kin_in * inv_E_rest_MeV_cdef)**-2
+    gamma_phi_array = np.empty([n_steps, 2], dtype=DTYPE)
+    cdef DTYPE_t[:, :] gamma_phi = gamma_phi_array
 
     cdef np.ndarray[DTYPE_t, ndim=3] r_zz_array = np.full(
         [n_steps, 2, 2],
@@ -199,12 +199,10 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t w_kin_in, np.int64_t n_steps=1):
                   [0., 1.]], dtype=DTYPE),
         dtype=DTYPE)
 
-    beta_in = sqrt(1. - gamma_in_min2)
-    delta_phi = OMEGA_0_BUNCH_cdef * delta_s / (beta_in * c_cdef)
     for i in range(n_steps):
-        w_phi[i, 0] = w_kin_in
-        w_phi[i, 1] = (i + 1) * delta_phi
-    return r_zz_array, w_phi_array, None
+        gamma_phi[i, 0] = gamma_in
+        gamma_phi[i, 1] = (i + 1) * delta_phi
+    return r_zz_array, gamma_phi_array, None
 
 
 def z_field_map_rk4(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
