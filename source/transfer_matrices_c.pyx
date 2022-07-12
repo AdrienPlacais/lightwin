@@ -205,7 +205,7 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t gamma_in, np.int64_t n_steps=1):
     return r_zz_array, gamma_phi_array, None
 
 
-def z_field_map_rk4(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
+def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
                     DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                     np.int64_t section_idx):
     """Calculate the transfer matrix of a field map using Runge-Kutta."""
@@ -213,9 +213,7 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
     cdef DTYPE_t half_d_z = .5 * d_z
-    cdef DTYPE_t gamma_next
-    cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
-    cdef DTYPE_t beta = sqrt(1. - gamma**-2)
+    cdef DTYPE_t beta = sqrt(1. - gamma_in**-2)
     cdef np.int64_t i
     cdef DTYPE_t tmp
 
@@ -224,16 +222,16 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
                                                            dtype=DTYPE)
 
     # Memory views:
-    w_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
-    delta_w_phi_array = np.zeros((2), dtype=DTYPE)
-    cdef DTYPE_t[:, :] w_phi = w_phi_array
-    cdef DTYPE_t[:] delta_w_phi = delta_w_phi_array
+    gamma_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
+    delta_gamma_phi_array = np.zeros((2), dtype=DTYPE)
+    cdef DTYPE_t[:, :] gamma_phi = gamma_phi_array
+    cdef DTYPE_t[:] delta_gammma_phi = delta_gamma_phi_array
     cdef DTYPE_t[:] e_z
     cdef DTYPE_t inv_dz
     cdef int n_points
 
-    w_phi[0, 0] = w_kin_in
-    w_phi[0, 1] = 0.
+    gamma_phi[0, 0] = gamma_in
+    gamma_phi[0, 1] = 0.
 
     if section_idx == 0:
         e_z = E_Z_SIMPLE_SPOKE
@@ -250,29 +248,27 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 
     for i in range(n_steps):
         # Compute energy and phase changes
-        delta_w_phi = rk4(w_phi[i, :], z_rel, d_z, k_e, e_z, inv_dz,
-                          n_points, phi_0_rel, omega0_rf)
+        delta_gamma_phi = rk4(gamma_phi[i, :], z_rel, d_z, k_e, e_z, inv_dz,
+                              n_points, phi_0_rel, omega0_rf)
 
         # Update
-        itg_field += e_func(k_e, z_rel, e_z, inv_dz, n_points, w_phi[i, 1],
+        itg_field += e_func(k_e, z_rel, e_z, inv_dz, n_points, gamma_phi[i, 1],
                             phi_0_rel) \
-            * (1. + 1j * tan(w_phi[i, 1] + phi_0_rel)) * d_z
+            * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
-        w_phi[i + 1, 0] = w_phi[i, 0] + delta_w_phi[0]
-        w_phi[i + 1, 1] = w_phi[i, 1] + delta_w_phi[1]
-        gamma_next = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
+        gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma_phi[0]
+        gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_gamma_phi[1]
 
-        gamma_middle = .5 * (gamma + gamma_next)
+        gamma_middle = .5 * (gamma_phi[i, 0] + gamma_phi[i + 1, 0])
         beta_middle = sqrt(1. - gamma_middle**-2)
 
         r_zz_array[i, :, :] = z_thin_lense(
-            d_z, half_d_z, w_phi[i, 0], gamma_middle, w_phi[i + 1, 0],
-            beta_middle, z_rel, w_phi[i, 1], omega0_rf, k_e, phi_0_rel, e_z,
+            d_z, half_d_z, gamma_phi[i, 0], gamma_middle, gamma_phi[i + 1, 0],
+            beta_middle, z_rel, gamma_phi[i, 1], omega0_rf, k_e, phi_0_rel, e_z,
             inv_dz, n_points)
         z_rel += d_z
-        gamma = gamma_next
 
-    return r_zz_array, w_phi_array[1:, :], itg_field
+    return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
 def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
