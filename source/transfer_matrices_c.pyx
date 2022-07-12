@@ -84,10 +84,14 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
     return out
 
 
-cdef DTYPE_t e_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
+cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
                     int n_points, DTYPE_t phi, DTYPE_t phi_0):
-    """Give the electric field at position z and phase phi."""
-    return k_e * interp(z, e_z, inv_dz, n_points) * cos(phi + phi_0)
+    """
+    Give the electric field at position z and phase phi.
+
+    The field is NOT normalized and should be multiplied by k_e.
+    """
+    return interp(z, e_z, inv_dz, n_points) * cos(phi + phi_0)
 
 
 cdef DTYPE_t de_dt_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
@@ -151,19 +155,17 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
     return delta_u_array
 
 
-cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_e, DTYPE_t[:] e_z, DTYPE_t inv_dz,
+cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz,
            int n_points, DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
     """First derivative of the motion."""
     # Variables:
-    cdef DTYPE_t gamma, beta
+    cdef DTYPE_t beta = sqrt(1. - u[0]**-2)
 
     # Memory views:
     v_array = np.empty(2, dtype=DTYPE)
     cdef DTYPE_t[:] v = v_array
 
-    v[0] = q_adim_cdef * e_func(k_e, z, e_z, inv_dz, n_points, u[1], phi_0_rel)
-    gamma = 1. + u[0] * inv_E_rest_MeV_cdef
-    beta = sqrt(1. - gamma**-2)
+    v[0] = k_k * e_func(z, e_z, inv_dz, n_points, u[1], phi_0_rel)
     v[1] = omega0_rf / (beta * c_cdef)
     return v_array
 
@@ -229,6 +231,11 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
     cdef DTYPE_t[:] e_z
     cdef DTYPE_t inv_dz
     cdef int n_points
+
+    # Constants to speed up calculation
+    cdef DTYPE_t delta_phi_norm = omega0_rf * d_z / c_cdef
+    cdef DTYPE_t delta_gamma_norm = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
+    cdef DTYPE_t kk = delta_gamma_norm * k_e
 
     gamma_phi[0, 0] = gamma_in
     gamma_phi[0, 1] = 0.
