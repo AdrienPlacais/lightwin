@@ -32,6 +32,7 @@ cdef DTYPE_t inv_E_rest_MeV_cdef = 0.0010657889908537506
 cdef DTYPE_t OMEGA_0_BUNCH_cdef = 1106468932.594325
 cdef DTYPE_t q_adim_cdef = 1.
 cdef DTYPE_t E_MEV_cdef = 16.6
+cdef DTYPE_t GAMMA_cdef = 1. + E_MEV_cdef / E_rest_MeV_cdef
 
 cdef int N_POINTS_SIMPLE_SPOKE = 207
 cdef DTYPE_t INV_DZ_SIMPLE_SPOKE = N_POINTS_SIMPLE_SPOKE / 0.415160
@@ -94,15 +95,20 @@ cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
     return interp(z, e_z, inv_dz, n_points) * cos(phi + phi_0)
 
 
-cdef DTYPE_t de_dt_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
-                        int n_points, DTYPE_t phi, DTYPE_t phi_0,
-                        DTYPE_t factor):
-    """Give the first time derivative of the electric field at (z, phi)."""
-    return factor * k_e * interp(z, e_z, inv_dz, n_points) * sin(phi + phi_0)
+cdef DTYPE_t de_dt_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
+                        int n_points, DTYPE_t phi, DTYPE_t phi_0):
+    """
+    Give the first time derivative of the electric field at (z, phi).
+
+    The field is NOT normalized and should be multiplied by
+    k_e * omega0_rf * delta_z / c
+    """
+    return interp(z, e_z, inv_dz, n_points) * sin(phi + phi_0)
 
 
 cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_k, DTYPE_t[:] e_z,
-         DTYPE_t inv_dz, int n_points, DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
+         DTYPE_t inv_dz, int n_points, DTYPE_t phi_0_rel,
+         DTYPE_t delta_phi_norm):
     """Integrate the motion over the space step dx."""
     # Variables:
     cdef DTYPE_t half_dx = .5 * dx
@@ -122,7 +128,8 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_k, DTYPE_t[:] e_z,
     cdef DTYPE_t[:] tmp = tmp_array
 
     # Equiv of k_1 = du_dx(x, u):
-    du_dz_i = du_dz(x, u, k_k, e_z, inv_dz, n_points, phi_0_rel, omega0_rf)
+    du_dz_i = du_dz(x, u, k_k, e_z, inv_dz, n_points, phi_0_rel,
+                    delta_phi_norm)
     k_i[0, 0] = du_dz_i[0]
     k_i[0, 1] = du_dz_i[1]
 
@@ -134,7 +141,7 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_k, DTYPE_t[:] e_z,
         tmp[0] = u[0] + half_dx * k_i[i - 1, 0]
         tmp[1] = u[1] + half_dx * k_i[i - 1, 1]
         du_dz_i = du_dz(x + half_dx, tmp, k_k, e_z, inv_dz, n_points,
-                        phi_0_rel, omega0_rf)
+                        phi_0_rel, delta_phi_norm)
         k_i[i, 0] = du_dz_i[0]
         k_i[i, 1] = du_dz_i[1]
 
@@ -143,7 +150,7 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_k, DTYPE_t[:] e_z,
     tmp[1] = u[1] + dx * k_i[2, 1]
     # Equiv of k_4 = du_dx(x + dx, u + dx * k_3)
     du_dz_i = du_dz(x + dx, tmp, k_k, e_z, inv_dz, n_points, phi_0_rel,
-                    omega0_rf)
+                    delta_phi_norm)
     k_i[3, 0] = du_dz_i[0]
     k_i[3, 1] = du_dz_i[1]
 
@@ -156,7 +163,7 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_k, DTYPE_t[:] e_z,
 
 
 cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz,
-           int n_points, DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
+           int n_points, DTYPE_t phi_0_rel, DTYPE_t delta_phi_norm):
     """First derivative of the motion."""
     # Variables:
     cdef DTYPE_t beta = sqrt(1. - u[0]**-2)
@@ -166,7 +173,7 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz,
     cdef DTYPE_t[:] v = v_array
 
     v[0] = k_k * e_func(z, e_z, inv_dz, n_points, u[1], phi_0_rel)
-    v[1] = omega0_rf / (beta * c_cdef)
+    v[1] = delta_phi_norm / beta
     return v_array
 
 
@@ -214,7 +221,7 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
-    cdef DTYPE_t half_d_z = .5 * d_z
+    cdef DTYPE_t half_dz = .5 * d_z
     cdef DTYPE_t beta = sqrt(1. - gamma_in**-2)
     cdef np.int64_t i
     cdef DTYPE_t tmp
@@ -256,7 +263,7 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
     for i in range(n_steps):
         # Compute energy and phase changes
         delta_gamma_phi = rk4(gamma_phi[i, :], z_rel, d_z, k_k, e_z, inv_dz,
-                              n_points, phi_0_rel, omega0_rf)
+                              n_points, phi_0_rel, delta_phi_norm)
 
         # Update
         itg_field += k_e * e_func(z_rel, e_z, inv_dz, n_points, gamma_phi[i, 1],
@@ -270,39 +277,43 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
         beta_middle = sqrt(1. - gamma_middle**-2)
 
         r_zz_array[i, :, :] = z_thin_lense(
-            d_z, half_d_z, gamma_phi[i, 0], gamma_middle, gamma_phi[i + 1, 0],
-            beta_middle, z_rel, gamma_phi[i, 1], omega0_rf, k_e, phi_0_rel, e_z,
-            inv_dz, n_points)
+            half_dz, gamma_phi[i, 0], gamma_middle, gamma_phi[i + 1, 0],
+            delta_gamma_norm, beta_middle, z_rel, gamma_phi[i, 1],
+            delta_phi_norm, k_e, phi_0_rel, e_z, inv_dz, n_points)
         z_rel += d_z
 
     return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
-def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
+def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
                          DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                          np.int64_t section_idx):
     """Calculate the transfer matrix of a field map using leapfrog."""
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
-    cdef DTYPE_t half_d_z = .5 * d_z
-    cdef DTYPE_t gamma_next, beta_next
-    cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
-    cdef DTYPE_t beta = sqrt(1. - gamma**-2)
+    cdef DTYPE_t beta_next
+    cdef DTYPE_t beta = sqrt(1. - gamma_in**-2)
     cdef np.int64_t i
     cdef DTYPE_t tmp
-    cdef DTYPE_t delta_w, delta_phi
+    cdef DTYPE_t delta_gamma, delta_phi
+    cdef DTYPE_t half_dz = .5 * d_z
 
     # Arrays:
     cdef np.ndarray[DTYPE_t, ndim=3] r_zz_array = np.empty([n_steps, 2, 2],
                                                            dtype=DTYPE)
 
     # Memory views:
-    w_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
-    cdef DTYPE_t[:, :] w_phi = w_phi_array
+    gamma_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
+    cdef DTYPE_t[:, :] gamma_phi = gamma_phi_array
     cdef DTYPE_t[:] e_z
     cdef DTYPE_t inv_dz
     cdef int n_points
+
+    # Constants to speed up calculation
+    cdef DTYPE_t delta_phi_norm = omega0_rf * d_z / c_cdef
+    cdef DTYPE_t delta_gamma_norm = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
+    cdef DTYPE_t k_k = delta_gamma_norm * k_e
 
     if section_idx == 0:
         e_z = E_Z_SIMPLE_SPOKE
@@ -317,45 +328,43 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         raise IOError('wrong section_idx in z_field_map')
     n_points = e_z.shape[0]
 
-    w_phi[0, 1] = 0.
+    gamma_phi[0, 1] = 0.
     # Rewind energy from i=0 to i=-0.5 if we are at the first cavity:
-    if w_kin_in == E_MEV_cdef:
-        w_phi[0, 0] = w_kin_in - q_adim_cdef * e_func(
-            k_e, z_rel, e_z, inv_dz, n_points, w_phi[0, 1], phi_0_rel) \
-            * half_d_z
+    if gamma_in == GAMMA_cdef:
+        gamma_phi[0, 0] = gamma_in - 0.5 * k_k * e_func(
+            z_rel, e_z, inv_dz, n_points, gamma_phi[0, 1], phi_0_rel)
     else:
-        w_phi[0, 0] = w_kin_in
+        gamma_phi[0, 0] = gamma_in
 
     for i in range(n_steps):
         # Compute forces at step i
-        delta_w = q_adim_cdef * e_func(k_e, z_rel, e_z, inv_dz, n_points,
-                                       w_phi[i, 1], phi_0_rel) * d_z
+        delta_gamma = k_k * e_func(z_rel, e_z, inv_dz, n_points,
+                                   gamma_phi[i, 1], phi_0_rel)
         # New energy at i + 0.5
-        w_phi[i + 1, 0] = w_phi[i, 0] + delta_w
-        gamma = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV_cdef
-        beta = sqrt(1. - gamma**-2)
+        gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma
+        beta = sqrt(1. - gamma_phi[i + 1, 0]**-2)
 
-        # Compute phase at steo i + 1
-        delta_phi = omega0_rf * d_z / (beta * c_cdef)
-        w_phi[i + 1, 1] = w_phi[i, 1] + delta_phi
+        # Compute phase at step i + 1
+        delta_phi = delta_phi_norm / beta
+        gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_phi
 
         # Update
-        itg_field += e_func(k_e, z_rel, e_z, inv_dz, n_points, w_phi[i, 1],
+        itg_field += k_e * e_func(z_rel, e_z, inv_dz, n_points, gamma_phi[i, 1],
                             phi_0_rel) \
-            * (1. + 1j * tan(w_phi[i, 1] + phi_0_rel)) * d_z
+            * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         # We already are at the step i + 0.5, so gamma_middle and beta_middle
         # are the same as gamma and beta
         r_zz_array[i, :, :] = z_thin_lense(
-            d_z, half_d_z, w_phi[i, 0], gamma, w_phi[i + 1, 0],
-            beta, z_rel, w_phi[i, 1], omega0_rf, k_e, phi_0_rel, e_z,
-            inv_dz, n_points)
+            half_dz, gamma_phi[i, 0], gamma_phi[i, 0], gamma_phi[i + 1, 0],
+            delta_gamma_norm, beta, z_rel, gamma_phi[i, 1], delta_phi_norm,
+            k_e, phi_0_rel, e_z, inv_dz, n_points)
 
         z_rel += d_z
 
-    return r_zz_array, w_phi_array[1:, :], itg_field
+    return r_zz_array, gamma_phi_array[1:, :], itg_field
 
-def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
+def z_field_map_jm(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
                    DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                    np.int64_t section_idx, DTYPE_t phi_in):
     """
@@ -373,12 +382,11 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         delta_phi = delta_phi_norm / beta
     """
     # Particle energy
-    cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
-    cdef DTYPE_t gamma2 = gamma * gamma
+    cdef DTYPE_t gamma2 = gamma_in**2
     cdef DTYPE_t beta = sqrt(1. - 1. / gamma2)
 
     # Particle acceleration
-    cdef DTYPE_t delta_w, delta_gamma, delta_gam_max
+    cdef DTYPE_t delta_gamma, delta_gam_max
     cdef DTYPE_t[:] e_z
 
     # Particle phase
@@ -400,9 +408,8 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     # V_cav and phi_s
     cdef complex itg_field = 0.
     cdef DTYPE_t sum_sin, sum_cos
-
-    # cdef DTYPE_t gamma_out, beta_out, w_kin_out, phi_out
-    cdef np.ndarray[DTYPE_t, ndim=2] w_phi = np.empty([n_steps, 2])
+    cdef np.ndarray[DTYPE_t, ndim=2] gamma_phi = np.empty([n_steps + 1, 2])
+    gamma_phi[0, 0] = gamma_in
 
     # kk already calculated
 
@@ -413,6 +420,7 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 
     # To have phi particle = 0 at first integration step.
     phi_rel = -delta_phi_norm / beta
+    gamma_phi[0, 1] = phi_rel
 
     # Define electric field
     if section_idx == 0:
@@ -443,7 +451,7 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         phi_abs = phi_0_rel + phi_rel
 
         # N.B. dphi already divided by beta
-        s2_12 = -delta_phi / (beta * beta * gamma2 * gamma)
+        s2_12 = -delta_phi / (beta * beta * gamma2 * gamma_phi[i, 0])
         s2_21 = -delta_gam_max * sin(phi_abs)
         s2_22 = 1.0 + (s2_12 * s2_21)
 
@@ -458,52 +466,52 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         s1_22 = r_zz[i, 1, 1]
 
         delta_gamma = delta_gam_max * cos(phi_abs)
-        gamma = gamma + delta_gamma
-        gamma2 = gamma * gamma
+        gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma
+        gamma2 = gamma_phi[i + 1, 0]**2
         beta = sqrt(1. - 1. / gamma2)
 
         sum_sin = sum_sin - s2_21
         sum_cos = sum_cos + delta_gamma
 
-        w_phi[i, 0] = (gamma - 1.) * E_rest_MeV_cdef
-        w_phi[i, 1] = phi_rel
+        gamma_phi[i + 1, 1] = phi_rel
 
         # Warning! beta not updated...
 
     phi_rel = phi_rel + delta_phi_norm / (2. * beta)   # half step end cav
-    w_phi[n_steps - 1, 1] = phi_rel
+    gamma_phi[n_steps, 1] = phi_rel
     # phi_out = phi
     itg_field = sum_cos + 1j * sum_sin
 
-    return r_zz, w_phi, itg_field
+    return r_zz, gamma_phi[1:, :], itg_field
 
-cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
-                  DTYPE_t gamma_middle, DTYPE_t w_kin_out, DTYPE_t beta_middle,
-                  DTYPE_t z_rel, DTYPE_t phi_rel, DTYPE_t omega0_rf,
-                  DTYPE_t norm, DTYPE_t phi_0,
+cdef z_thin_lense(DTYPE_t half_dz, DTYPE_t gamma_in, DTYPE_t gamma_middle,
+                  DTYPE_t gamma_out, DTYPE_t delta_gamma_norm,
+                  DTYPE_t beta_middle, DTYPE_t z_rel, DTYPE_t phi_rel,
+                  DTYPE_t delta_phi_norm, DTYPE_t k_e, DTYPE_t phi_0,
                   DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
     """Calculate the transfer matrix of a drift-gap-drift."""
     # Variables:
     cdef DTYPE_t z_k, phi_k, k_0, k_1, k_2, k_3
-    cdef DTYPE_t e_func_k
-
+    cdef DTYPE_t norm_e_func_k
     # Arrays:
     # cdef np.ndarray[DTYPE_t, ndim=2] r_zz = np.zeros([2, 2], dtype=DTYPE)
     # Faster to not declare the type of r_zz, maybe because it is already
     # given by z_drift function
 
     z_k = z_rel + half_dz
-    phi_k = phi_rel + half_dz * omega0_rf / (beta_middle * c_cdef)
+    phi_k = phi_rel + .5 * delta_phi_norm / beta_middle
 
     # Transfer matrix components of middle (accelerating part)
-    e_func_k = e_func(norm, z_k, e_z, inv_dz, n_points, phi_k, phi_0)
+    k_0 = delta_gamma_norm / (gamma_middle * beta_middle**2)
+    norm_e_func_k = k_0 * k_e * e_func(z_k, e_z, inv_dz, n_points, phi_k, phi_0)
+    # @TODO gather k_0 and k_e?
 
-    k_0 = q_adim_cdef * d_z / (gamma_middle * beta_middle**2 * E_rest_MeV_cdef)
-    k_1 = k_0 * de_dt_func(norm, z_k, e_z, inv_dz, n_points, phi_k, phi_0,
-                           omega0_rf / (beta_middle * c_cdef))
-    k_2 = 1. - (2. - beta_middle**2) * k_0 * e_func_k
+
+    k_1 = k_0 * k_e * delta_phi_norm / beta_middle \
+            * de_dt_func(z_k, e_z, inv_dz, n_points, phi_k, phi_0)
+    k_2 = 1. - (2. - beta_middle**2) * norm_e_func_k
     # Correction to ensure det < 1
-    k_3 = (1. - k_0 * e_func_k) / (1. - k_0 * (2. - beta_middle**2) * e_func_k)
+    k_3 = (1. - norm_e_func_k) / (1. - (2. - beta_middle**2) * norm_e_func_k)
 
     # Matrix product: end @ (middle @ in)
     # r_zz_array = matprod_22(z_drift(half_dz, w_kin_out)[0][0],
@@ -512,8 +520,8 @@ cdef z_thin_lense(DTYPE_t d_z, DTYPE_t half_dz, DTYPE_t w_kin_in,
                                        # z_drift(half_dz, w_kin_in)[0][0])
                            # )
     # Faster than matmul or matprod_22
-    r_zz_array = z_drift(half_dz, w_kin_out)[0][0] \
+    r_zz_array = z_drift(half_dz, gamma_out)[0][0] \
                  @ (np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE) \
-                    @ z_drift(half_dz, w_kin_in)[0][0])
+                    @ z_drift(half_dz, gamma_in)[0][0])
 
     return r_zz_array
