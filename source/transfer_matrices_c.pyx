@@ -101,7 +101,7 @@ cdef DTYPE_t de_dt_func(DTYPE_t k_e, DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
     return factor * k_e * interp(z, e_z, inv_dz, n_points) * sin(phi + phi_0)
 
 
-cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
+cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_k, DTYPE_t[:] e_z,
          DTYPE_t inv_dz, int n_points, DTYPE_t phi_0_rel, DTYPE_t omega0_rf):
     """Integrate the motion over the space step dx."""
     # Variables:
@@ -122,7 +122,7 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
     cdef DTYPE_t[:] tmp = tmp_array
 
     # Equiv of k_1 = du_dx(x, u):
-    du_dz_i = du_dz(x, u, k_e, e_z, inv_dz, n_points, phi_0_rel, omega0_rf)
+    du_dz_i = du_dz(x, u, k_k, e_z, inv_dz, n_points, phi_0_rel, omega0_rf)
     k_i[0, 0] = du_dz_i[0]
     k_i[0, 1] = du_dz_i[1]
 
@@ -133,7 +133,7 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
         # Compute tmp = u + half_dx * k_1,2
         tmp[0] = u[0] + half_dx * k_i[i - 1, 0]
         tmp[1] = u[1] + half_dx * k_i[i - 1, 1]
-        du_dz_i = du_dz(x + half_dx, tmp, k_e, e_z, inv_dz, n_points,
+        du_dz_i = du_dz(x + half_dx, tmp, k_k, e_z, inv_dz, n_points,
                         phi_0_rel, omega0_rf)
         k_i[i, 0] = du_dz_i[0]
         k_i[i, 1] = du_dz_i[1]
@@ -142,7 +142,7 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_e, DTYPE_t[:] e_z,
     tmp[0] = u[0] + dx * k_i[2, 0]
     tmp[1] = u[1] + dx * k_i[2, 1]
     # Equiv of k_4 = du_dx(x + dx, u + dx * k_3)
-    du_dz_i = du_dz(x + dx, tmp, k_e, e_z, inv_dz, n_points, phi_0_rel,
+    du_dz_i = du_dz(x + dx, tmp, k_k, e_z, inv_dz, n_points, phi_0_rel,
                     omega0_rf)
     k_i[3, 0] = du_dz_i[0]
     k_i[3, 1] = du_dz_i[1]
