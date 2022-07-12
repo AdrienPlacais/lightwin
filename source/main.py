@@ -49,8 +49,8 @@ BETA_W = 71.215849  # deg/pi.MeV
 Tk().withdraw()
 # FILEPATH = ""
 # FILEPATH = "../data/work_field_map/work_field_map.dat"
-# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-FILEPATH = "../data/faultcomp22/local_method2/MYRRHA_Transi-100MeV_local2_without_sec1_cryo_fault_with_tw_settings_recopied.dat"
+FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+# FILEPATH = "../data/faultcomp22/local_method2/MYRRHA_Transi-100MeV_local2_without_sec1_cryo_fault_with_tw_settings_recopied.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -118,7 +118,11 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
 }
 
-linacs = [ref_linac]#, broken_linac]
+if FLAG_FIX:
+    linacs = [ref_linac, broken_linac]
+else:
+    linacs = [ref_linac]
+
 for lin in linacs:
     lin.compute_transfer_matrices()
 
@@ -161,3 +165,10 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 data_ref = tw.output_data_in_tw_fashion(ref_linac)
 data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 fault_info = fail.faults['l_obj'][0].info
+
+import matplotlib.pyplot as plt
+import numpy as np
+plt.plot(ref_linac.synch.z['abs_array'], ref_linac.synch.phi['abs_array'])
+lala = np.loadtxt("/home/placais/Documents/Conferences/LINAC2022/Papier/data/2_phase_fred_from_tw.txt", skiprows=1)
+plt.plot(lala[:, 0], np.deg2rad(lala[:, 2]))
+plt.grid(True)

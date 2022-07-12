@@ -361,15 +361,15 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     Calculate the transfer matrix of a field map using Lagniel's algo.
 
     To put at electric field initialisation:
-        phi_cav = omega0 * delta_z / c
-        delta_gamma_cav = q * delta_z / E_rest      (not homog to gamma)
+        delta_phi_norm = omega0 * delta_z / c
+        delta_gamma_norm = q * delta_z / E_rest      (not homog to gamma)
 
     Other speeding up constants:
-        kk = k_e * delta_gamma_cav
-        k_gam = kk * e_z[z]
-        delta_gamma = k_gam * cos(phi + phi_0)
+        kk = k_e * delta_gamma_norm
+        delta_gam_max = kk * e_z[z]
+        delta_gamma = delta_gam_max * cos(phi + phi_0)
 
-        delta_phi = phi_cav / beta
+        delta_phi = delta_phi_norm / beta
     """
     # Particle energy
     cdef DTYPE_t gamma = 1. + w_kin_in * inv_E_rest_MeV_cdef
@@ -377,16 +377,16 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     cdef DTYPE_t beta = sqrt(1. - 1. / gamma2)
 
     # Particle acceleration
-    cdef DTYPE_t delta_w, delta_phi, delta_gamma
+    cdef DTYPE_t delta_w, delta_gamma, delta_gam_max
     cdef DTYPE_t[:] e_z
 
     # Particle phase
     cdef DTYPE_t phi_abs, phi_rel
 
     # Constants to speed up calculation
-    cdef DTYPE_t phi_cav = omega0_rf * d_z / c_cdef
-    cdef DTYPE_t delta_gamma_cav = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
-    cdef DTYPE_t kk = delta_gamma_cav * k_e
+    cdef DTYPE_t delta_phi_norm = omega0_rf * d_z / c_cdef
+    cdef DTYPE_t delta_gamma_norm = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
+    cdef DTYPE_t kk = delta_gamma_norm * k_e
 
     # Integers
     cdef np.int64_t i
@@ -411,7 +411,7 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
     phi_abs = phi_in
 
     # To have phi particle = 0 at first integration step.
-    phi_rel = -phi_cav / beta
+    phi_rel = -delta_phi_norm / beta
 
     # Define electric field
     if section_idx == 0:
@@ -433,17 +433,17 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 
     for i in range(n_steps):
         # Update phi
-        delta_phi = phi_cav / beta
+        delta_phi = delta_phi_norm / beta
         phi_rel = phi_rel + delta_phi
 
         # Acceleration without the cos term
-        k_gam = kk * e_z[i]
+        delta_gam_max = kk * e_z[i]
         # Update absolute phase
         phi_abs = phi_0_rel + phi_rel
 
         # N.B. dphi already divided by beta
         s2_12 = -delta_phi / (beta * beta * gamma2 * gamma)
-        s2_21 = -k_gam * sin(phi_abs)
+        s2_21 = -delta_gam_max * sin(phi_abs)
         s2_22 = 1.0 + (s2_12 * s2_21)
 
         r_zz[i, 0, 0] = s1_11 + (s1_21 * s2_12)            # no dim
@@ -456,7 +456,7 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
         s1_21 = r_zz[i, 1, 0]
         s1_22 = r_zz[i, 1, 1]
 
-        delta_gamma = k_gam * cos(phi_abs)
+        delta_gamma = delta_gam_max * cos(phi_abs)
         gamma = gamma + delta_gamma
         gamma2 = gamma * gamma
         beta = sqrt(1. - 1. / gamma2)
@@ -469,7 +469,7 @@ def z_field_map_jm(DTYPE_t d_z, DTYPE_t w_kin_in, np.int64_t n_steps,
 
         # Warning! beta not updated...
 
-    phi_rel = phi_rel + phi_cav / (2. * beta)   # half step end cav
+    phi_rel = phi_rel + delta_phi_norm / (2. * beta)   # half step end cav
     w_phi[n_steps - 1, 1] = phi_rel
     # phi_out = phi
     itg_field = sum_cos + 1j * sum_sin

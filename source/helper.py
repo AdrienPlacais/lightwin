@@ -239,12 +239,12 @@ def save_vcav_and_phis(lin):
         Object of corresponding to desired output.
     """
     l_elts = lin.elements_of(nature='FIELD_MAP')
-    data = [[elt.pos_m['abs'][0],
+    data = [[elt.pos_m['abs'][-1],
              elt.acc_field.cav_params['v_cav_mv'],
              elt.acc_field.cav_params['phi_s_deg']]
             for elt in l_elts]
     filepath = lin.files['results_folder'] + lin.name + '_Vcav_and_phis.txt'
-
+    filepath = filepath.replace(' ', '_')
     header = 's [m] \t V_cav [MV] \t phi_s [deg]'
     np.savetxt(filepath, np.array(data), header=header)
     print(f"Cavities accelerating field and synch. phase saved in {filepath}")
