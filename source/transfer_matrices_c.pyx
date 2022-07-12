@@ -235,7 +235,7 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
     # Constants to speed up calculation
     cdef DTYPE_t delta_phi_norm = omega0_rf * d_z / c_cdef
     cdef DTYPE_t delta_gamma_norm = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
-    cdef DTYPE_t kk = delta_gamma_norm * k_e
+    cdef DTYPE_t k_k = delta_gamma_norm * k_e
 
     gamma_phi[0, 0] = gamma_in
     gamma_phi[0, 1] = 0.
@@ -255,12 +255,12 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
 
     for i in range(n_steps):
         # Compute energy and phase changes
-        delta_gamma_phi = rk4(gamma_phi[i, :], z_rel, d_z, k_e, e_z, inv_dz,
+        delta_gamma_phi = rk4(gamma_phi[i, :], z_rel, d_z, k_k, e_z, inv_dz,
                               n_points, phi_0_rel, omega0_rf)
 
         # Update
-        itg_field += e_func(k_e, z_rel, e_z, inv_dz, n_points, gamma_phi[i, 1],
-                            phi_0_rel) \
+        itg_field += k_e * e_func(z_rel, e_z, inv_dz, n_points, gamma_phi[i, 1],
+                                  phi_0_rel) \
             * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma_phi[0]
