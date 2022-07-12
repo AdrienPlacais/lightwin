@@ -130,6 +130,11 @@ class _Element():
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
 
+        if constants.FLAG_CYTHON:
+            energy_or_gamma = 1. + w_kin_in * constants.inv_E_rest_MeV
+        else:
+            energy_or_gamma = w_kin_in
+
         # Initialisation of electric field arrays
         # FIXME
         if self.idx['element'] == 0 and constants.FLAG_CYTHON:
@@ -151,22 +156,24 @@ class _Element():
 
                 r_zz, w_phi, itg_field = \
                     self.tmat['func'](
-                        d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
+                        d_z, energy_or_gamma, n_steps, kwargs['omega0_rf'],
                         kwargs['norm'], kwargs['phi_0_rel'], last_arg,
                         phi_abs_in)
             else:
                 r_zz, w_phi, itg_field = \
                     self.tmat['func'](
-                        d_z, w_kin_in, n_steps, kwargs['omega0_rf'],
+                        d_z, energy_or_gamma, n_steps, kwargs['omega0_rf'],
                         kwargs['norm'], kwargs['phi_0_rel'], last_arg)
 
             w_phi[:, 1] *= constants.OMEGA_0_BUNCH / kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
-            r_zz, w_phi, _ = self.tmat['func'](d_z, w_kin_in, n_steps)
+            r_zz, w_phi, _ = self.tmat['func'](d_z, energy_or_gamma, n_steps)
             cav_params = None
 
+        if constants.FLAG_CYTHON:
+            w_phi[:, 0] = (w_phi[:, 0] - 1.) * constants.E_rest_MeV
         results = {'r_zz': r_zz, 'cav_params': cav_params,
                    'w_kin': w_phi[:, 0], 'phi_rel': w_phi[:, 1]}
 
