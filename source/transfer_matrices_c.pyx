@@ -62,21 +62,21 @@ cpdef init_arrays():
 # =============================================================================
 # Helpers
 # =============================================================================
-cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
+cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e, int n_points):
     """Interpolation function."""
     cdef int i
     cdef DTYPE_t delta_e_z, slope, offset
     cdef out
 
-    if z < 0. or z > (n_points - 1) / inv_dz:
+    if z < 0. or z > (n_points - 1) / inv_dz_e:
         out = 0.
 
     else:
-        i =  int(floor(z * inv_dz))
+        i =  int(floor(z * inv_dz_e))
         if i < n_points - 1:
             # Faster with array of delta electric field?
             delta_e_z = e_z[i + 1] - e_z[i]
-            slope = delta_e_z * inv_dz
+            slope = delta_e_z * inv_dz_e
             offset = e_z[i] - i * delta_e_z
             out = slope * z + offset
         else:
@@ -85,17 +85,17 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
     return out
 
 
-cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
+cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
                     int n_points, DTYPE_t phi, DTYPE_t phi_0):
     """
     Give the electric field at position z and phase phi.
 
     The field is NOT normalized and should be multiplied by k_e.
     """
-    return interp(z, e_z, inv_dz, n_points) * cos(phi + phi_0)
+    return interp(z, e_z, inv_dz_e, n_points) * cos(phi + phi_0)
 
 
-cdef DTYPE_t de_dt_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
+cdef DTYPE_t de_dt_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
                         int n_points, DTYPE_t phi, DTYPE_t phi_0):
     """
     Give the first time derivative of the electric field at (z, phi).
@@ -103,15 +103,20 @@ cdef DTYPE_t de_dt_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz,
     The field is NOT normalized and should be multiplied by
     k_e * omega0_rf * delta_z / c
     """
-    return interp(z, e_z, inv_dz, n_points) * sin(phi + phi_0)
+    return interp(z, e_z, inv_dz_e, n_points) * sin(phi + phi_0)
 
 
-cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_k, DTYPE_t[:] e_z,
-         DTYPE_t inv_dz, int n_points, DTYPE_t phi_0_rel,
-         DTYPE_t delta_phi_norm):
-    """Integrate the motion over the space step dx."""
+cdef rk4(DTYPE_t z, DTYPE_t[:] u,
+         DTYPE_t step, DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
+         int n_points, DTYPE_t phi_0_rel, DTYPE_t delta_phi_norm):
+    """
+    Integrate the motion over the space step.
+
+    Warning: this is a slightly modified version of the RK. The k_i are
+    proportional to delta_u instead of du_dz.
+    """
     # Variables:
-    cdef DTYPE_t half_dx = .5 * dx
+    cdef DTYPE_t half_step = .5 * step
     cdef Py_ssize_t i
 
     # Memory views:
@@ -121,50 +126,49 @@ cdef rk4(DTYPE_t[:] u, DTYPE_t x, DTYPE_t dx, DTYPE_t k_k, DTYPE_t[:] e_z,
     k_i_array = np.zeros((4, 2), dtype=DTYPE)
     cdef DTYPE_t[:, :] k_i = k_i_array
 
-    du_dz_i_array = np.zeros((2), dtype=DTYPE)
-    cdef DTYPE_t[:] du_dz_i = du_dz_i_array
+    delta_u_i_array = np.zeros((2), dtype=DTYPE)
+    cdef DTYPE_t[:] delta_u_i = delta_u_i_array
 
     tmp_array = np.zeros((2), dtype=DTYPE)
     cdef DTYPE_t[:] tmp = tmp_array
 
     # Equiv of k_1 = du_dx(x, u):
-    du_dz_i = du_dz(x, u, k_k, e_z, inv_dz, n_points, phi_0_rel,
-                    delta_phi_norm)
-    k_i[0, 0] = du_dz_i[0]
-    k_i[0, 1] = du_dz_i[1]
+    delta_u_i = du(z, u,
+                    k_k, e_z, inv_dz_e, n_points, phi_0_rel, delta_phi_norm)
+    k_i[0, 0] = delta_u_i[0]
+    k_i[0, 1] = delta_u_i[1]
 
-    # Equiv of
-    # k_2 = du_dx(x + half_dx, u + half_dx * k_1)
-    # k_3 = du_dx(x + half_dx, u + half_dx * k_2)
+    # Compute tmp = u + half_dx * k_1
+    # Equiv of k_2 = du_dx(x + half_dx, u + half_dx * k_1)
+    # Compute tmp = u + half_dx * k_2
+    # Equiv of k_3 = du_dx(x + half_dx, u + half_dx * k_2)
     for i in [1, 2]:
-        # Compute tmp = u + half_dx * k_1,2
-        tmp[0] = u[0] + half_dx * k_i[i - 1, 0]
-        tmp[1] = u[1] + half_dx * k_i[i - 1, 1]
-        du_dz_i = du_dz(x + half_dx, tmp, k_k, e_z, inv_dz, n_points,
-                        phi_0_rel, delta_phi_norm)
-        k_i[i, 0] = du_dz_i[0]
-        k_i[i, 1] = du_dz_i[1]
+        tmp[0] = u[0] + half_step * k_i[i - 1, 0]
+        tmp[1] = u[1] + half_step * k_i[i - 1, 1]
+        delta_u_i = du(z + half_step, tmp,
+                        k_k, e_z, inv_dz_e, n_points, phi_0_rel, delta_phi_norm)
+        k_i[i, 0] = delta_u_i[0]
+        k_i[i, 1] = delta_u_i[1]
 
     # Compute u + dx * k_3
-    tmp[0] = u[0] + dx * k_i[2, 0]
-    tmp[1] = u[1] + dx * k_i[2, 1]
+    tmp[0] = u[0] + step * k_i[2, 0]
+    tmp[1] = u[1] + step * k_i[2, 1]
     # Equiv of k_4 = du_dx(x + dx, u + dx * k_3)
-    du_dz_i = du_dz(x + dx, tmp, k_k, e_z, inv_dz, n_points, phi_0_rel,
-                    delta_phi_norm)
-    k_i[3, 0] = du_dz_i[0]
-    k_i[3, 1] = du_dz_i[1]
+    delta_u_i = du(z + step, tmp,
+                    k_k, e_z, inv_dz_e, n_points, phi_0_rel, delta_phi_norm)
+    k_i[3, 0] = delta_u_i[0]
+    k_i[3, 1] = delta_u_i[1]
 
     # Equiv of delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) * dx / 6.
-    delta_u[0] = (k_i[0, 0] + 2. * k_i[1, 0] + 2. * k_i[2, 0] + k_i[3, 0]) \
-            * dx / 6.
-    delta_u[1] = (k_i[0, 1] + 2. * k_i[1, 1] + 2. * k_i[2, 1] + k_i[3, 1]) \
-            * dx / 6.
+    delta_u[0] = (k_i[0, 0] + 2. * k_i[1, 0] + 2. * k_i[2, 0] + k_i[3, 0]) / 6.
+    delta_u[1] = (k_i[0, 1] + 2. * k_i[1, 1] + 2. * k_i[2, 1] + k_i[3, 1]) / 6.
     return delta_u_array
 
 
-cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz,
-           int n_points, DTYPE_t phi_0_rel, DTYPE_t delta_phi_norm):
-    """First derivative of the motion."""
+cdef du(DTYPE_t z_rel, DTYPE_t[:] u,
+           DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz_e, int n_points,
+           DTYPE_t phi_0_rel, DTYPE_t delta_phi_norm):
+    """Variation of u during spatial step."""
     # Variables:
     cdef DTYPE_t beta = sqrt(1. - u[0]**-2)
 
@@ -172,20 +176,9 @@ cdef du_dz(DTYPE_t z, DTYPE_t[:] u, DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz,
     v_array = np.empty(2, dtype=DTYPE)
     cdef DTYPE_t[:] v = v_array
 
-    v[0] = k_k * e_func(z, e_z, inv_dz, n_points, u[1], phi_0_rel)
+    v[0] = k_k * e_func(z_rel, e_z, inv_dz_e, n_points, u[1], phi_0_rel)
     v[1] = delta_phi_norm / beta
     return v_array
-
-
-# Kept for legacy, but @ is faster than this
-# cdef matprod_22(DTYPE_t[:, :] m_1, DTYPE_t[:, :] m_2):
-    # out = np.array((
-        # [m_1[0, 0] * m_2[0, 0] + m_1[0, 1] * m_2[1, 0],
-         # m_1[0, 0] * m_2[0, 1] + m_1[0, 1] * m_2[1, 1]],
-        # [m_1[1, 0] * m_2[0, 0] + m_1[1, 1] * m_2[1, 0],
-         # m_1[1, 0] * m_2[0, 1] + m_1[1, 1] * m_2[1, 1]]), dtype=DTYPE)
-    # return out
-
 
 # =============================================================================
 # Transfer matrices
@@ -236,7 +229,7 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
     cdef DTYPE_t[:, :] gamma_phi = gamma_phi_array
     cdef DTYPE_t[:] delta_gammma_phi = delta_gamma_phi_array
     cdef DTYPE_t[:] e_z
-    cdef DTYPE_t inv_dz
+    cdef DTYPE_t inv_dz_e
     cdef int n_points
 
     # Constants to speed up calculation
@@ -244,42 +237,48 @@ def z_field_map_rk4(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
     cdef DTYPE_t delta_gamma_norm = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
     cdef DTYPE_t k_k = delta_gamma_norm * k_e
 
-    gamma_phi[0, 0] = gamma_in
-    gamma_phi[0, 1] = 0.
-
     if section_idx == 0:
         e_z = E_Z_SIMPLE_SPOKE
-        inv_dz = INV_DZ_SIMPLE_SPOKE
+        inv_dz_e = INV_DZ_SIMPLE_SPOKE
     elif section_idx == 1:
         e_z = E_Z_SPOKE_ESS
-        inv_dz = INV_DZ_SPOKE_ESS
+        inv_dz_e = INV_DZ_SPOKE_ESS
     elif section_idx == 2:
         e_z = E_Z_BETA065
-        inv_dz = INV_DZ_BETA065
+        inv_dz_e = INV_DZ_BETA065
     else:
         raise IOError('wrong section_idx in z_field_map')
     n_points = e_z.shape[0]
 
+    # Initial values for gamma and relative phase
+    gamma_phi[0, 0] = gamma_in
+    gamma_phi[0, 1] = 0.
+
     for i in range(n_steps):
         # Compute energy and phase changes
-        delta_gamma_phi = rk4(gamma_phi[i, :], z_rel, d_z, k_k, e_z, inv_dz,
-                              n_points, phi_0_rel, delta_phi_norm)
+        delta_gamma_phi = rk4(z_rel, gamma_phi[i, :],
+                              d_z, k_k, e_z, inv_dz_e, n_points, phi_0_rel,
+                              delta_phi_norm)
 
         # Update
-        itg_field += k_e * e_func(z_rel, e_z, inv_dz, n_points, gamma_phi[i, 1],
-                                  phi_0_rel) \
-            * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
-
         gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma_phi[0]
         gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_gamma_phi[1]
 
+        # For synchronous phase and accelerating potential
+        itg_field += k_e * e_func(z_rel, e_z, inv_dz_e, n_points, gamma_phi[i, 1],
+                                  phi_0_rel) \
+            * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
+
+        # Compute gamma and beta at the middle of the thin lense
         gamma_middle = .5 * (gamma_phi[i, 0] + gamma_phi[i + 1, 0])
         beta_middle = sqrt(1. - gamma_middle**-2)
 
+        # Compute thin lense transfer matrix
         r_zz_array[i, :, :] = z_thin_lense(
             half_dz, gamma_phi[i, 0], gamma_middle, gamma_phi[i + 1, 0],
             delta_gamma_norm, beta_middle, z_rel, gamma_phi[i, 1],
-            delta_phi_norm, k_e, phi_0_rel, e_z, inv_dz, n_points)
+            delta_phi_norm, k_e, phi_0_rel, e_z, inv_dz_e, n_points)
+
         z_rel += d_z
 
     return r_zz_array, gamma_phi_array[1:, :], itg_field
@@ -307,7 +306,7 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
     gamma_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
     cdef DTYPE_t[:, :] gamma_phi = gamma_phi_array
     cdef DTYPE_t[:] e_z
-    cdef DTYPE_t inv_dz
+    cdef DTYPE_t inv_dz_e
     cdef int n_points
 
     # Constants to speed up calculation
@@ -317,39 +316,42 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
 
     if section_idx == 0:
         e_z = E_Z_SIMPLE_SPOKE
-        inv_dz = INV_DZ_SIMPLE_SPOKE
+        inv_dz_e = INV_DZ_SIMPLE_SPOKE
     elif section_idx == 1:
         e_z = E_Z_SPOKE_ESS
-        inv_dz = INV_DZ_SPOKE_ESS
+        inv_dz_e = INV_DZ_SPOKE_ESS
     elif section_idx == 2:
         e_z = E_Z_BETA065
-        inv_dz = INV_DZ_BETA065
+        inv_dz_e = INV_DZ_BETA065
     else:
         raise IOError('wrong section_idx in z_field_map')
     n_points = e_z.shape[0]
 
+    # Initial values for gamma and relative phase
     gamma_phi[0, 1] = 0.
     # Rewind energy from i=0 to i=-0.5 if we are at the first cavity:
+    # FIXME must be cleaner
     if gamma_in == GAMMA_cdef:
         gamma_phi[0, 0] = gamma_in - 0.5 * k_k * e_func(
-            z_rel, e_z, inv_dz, n_points, gamma_phi[0, 1], phi_0_rel)
+            z_rel, e_z, inv_dz_e, n_points, gamma_phi[0, 1], phi_0_rel)
     else:
         gamma_phi[0, 0] = gamma_in
 
     for i in range(n_steps):
-        # Compute forces at step i
-        delta_gamma = k_k * e_func(z_rel, e_z, inv_dz, n_points,
+        # Compute energy change
+        delta_gamma = k_k * e_func(z_rel, e_z, inv_dz_e, n_points,
                                    gamma_phi[i, 1], phi_0_rel)
         # New energy at i + 0.5
         gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma
         beta = sqrt(1. - gamma_phi[i + 1, 0]**-2)
 
-        # Compute phase at step i + 1
+        # Compute phase change
         delta_phi = delta_phi_norm / beta
+        # Update
         gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_phi
 
-        # Update
-        itg_field += k_e * e_func(z_rel, e_z, inv_dz, n_points, gamma_phi[i, 1],
+        # For synchronous phase and accelerating potential
+        itg_field += k_e * e_func(z_rel, e_z, inv_dz_e, n_points, gamma_phi[i, 1],
                             phi_0_rel) \
             * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
@@ -358,7 +360,7 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
         r_zz_array[i, :, :] = z_thin_lense(
             half_dz, gamma_phi[i, 0], gamma_phi[i, 0], gamma_phi[i + 1, 0],
             delta_gamma_norm, beta, z_rel, gamma_phi[i, 1], delta_phi_norm,
-            k_e, phi_0_rel, e_z, inv_dz, n_points)
+            k_e, phi_0_rel, e_z, inv_dz_e, n_points)
 
         z_rel += d_z
 
@@ -488,7 +490,7 @@ cdef z_thin_lense(DTYPE_t half_dz, DTYPE_t gamma_in, DTYPE_t gamma_middle,
                   DTYPE_t gamma_out, DTYPE_t delta_gamma_norm,
                   DTYPE_t beta_middle, DTYPE_t z_rel, DTYPE_t phi_rel,
                   DTYPE_t delta_phi_norm, DTYPE_t k_e, DTYPE_t phi_0,
-                  DTYPE_t[:] e_z, DTYPE_t inv_dz, int n_points):
+                  DTYPE_t[:] e_z, DTYPE_t inv_dz_e, int n_points):
     """Calculate the transfer matrix of a drift-gap-drift."""
     # Variables:
     cdef DTYPE_t z_k, phi_k, k_0, k_1, k_2, k_3
@@ -503,12 +505,12 @@ cdef z_thin_lense(DTYPE_t half_dz, DTYPE_t gamma_in, DTYPE_t gamma_middle,
 
     # Transfer matrix components of middle (accelerating part)
     k_0 = delta_gamma_norm / (gamma_middle * beta_middle**2)
-    norm_e_func_k = k_0 * k_e * e_func(z_k, e_z, inv_dz, n_points, phi_k, phi_0)
+    norm_e_func_k = k_0 * k_e * e_func(z_k, e_z, inv_dz_e, n_points, phi_k, phi_0)
     # @TODO gather k_0 and k_e?
 
 
     k_1 = k_0 * k_e * delta_phi_norm / beta_middle \
-            * de_dt_func(z_k, e_z, inv_dz, n_points, phi_k, phi_0)
+            * de_dt_func(z_k, e_z, inv_dz_e, n_points, phi_k, phi_0)
     k_2 = 1. - (2. - beta_middle**2) * norm_e_func_k
     # Correction to ensure det < 1
     k_3 = (1. - norm_e_func_k) / (1. - (2. - beta_middle**2) * norm_e_func_k)

@@ -169,6 +169,6 @@ fault_info = fail.faults['l_obj'][0].info
 import matplotlib.pyplot as plt
 import numpy as np
 plt.plot(ref_linac.synch.z['abs_array'], ref_linac.synch.phi['abs_array'])
-lala = np.loadtxt("/home/placais/Documents/Conferences/LINAC2022/Papier/data/2_phase_fred_from_tw.txt", skiprows=1)
+lala = np.loadtxt("/home/placais/Documents/Conferences/LINAC2022/LaTeX/data/phase_TW.txt", skiprows=1)
 plt.plot(lala[:, 0], np.deg2rad(lala[:, 2]))
 plt.grid(True)

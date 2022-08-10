@@ -111,8 +111,8 @@ def z_field_map_rk4(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         Return
         ------
         v : np.array
-            First component is delta energy in MeV. Second is delta phase in
-            rad.
+            First component is delta energy / delta z in MeV / m.
+            Second is delta phase / delta_z in rad / m.
         """
         v0 = q_adim * e_func(k_e, z, e_spat, u[1], phi_0_rel)
         gamma_float = 1. + u[0] * inv_E_rest_MeV
@@ -123,7 +123,6 @@ def z_field_map_rk4(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     for i in range(n_steps):
         # Compute energy and phase changes
         delta_w_phi = rk4(w_phi[i, :], du_dz, z_rel, d_z)
-
         # Update itg_field. Used to compute V_cav and phi_s.
         itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
             * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
