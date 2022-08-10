@@ -88,7 +88,7 @@ def z_field_map_rk4(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     """Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta."""
     z_rel = 0.
     itg_field = 0.
-    half_d_z = .5 * d_z
+    half_dz = .5 * d_z
 
     r_zz = np.empty((n_steps, 2, 2))
     w_phi = np.empty((n_steps + 1, 2))
@@ -133,10 +133,9 @@ def z_field_map_rk4(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
         beta_middle = np.sqrt(1. - gamma_middle**-2)
 
-        r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_d_z, w_phi[i:i + 2, :],
+        r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_dz, w_phi[i:i + 2, :],
                                      gamma_middle, beta_middle, omega0_rf,
                                      k_e, phi_0_rel, e_spat)
-
         z_rel += d_z
 
     return r_zz, w_phi[1:, :], itg_field
@@ -162,7 +161,7 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     """
     z_rel = 0.
     itg_field = 0.
-    half_d_z = .5 * d_z
+    half_dz = .5 * d_z
 
     r_zz = np.empty((n_steps, 2, 2))
     w_phi = np.empty((n_steps + 1, 2))
@@ -170,7 +169,7 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     # Rewind energy from i=0 to i=-0.5 if we are at the first cavity:
     if w_kin_in == E_MEV:
         w_phi[0, 0] = w_kin_in - q_adim * e_func(
-            k_e, z_rel, e_spat, w_phi[0, 1], phi_0_rel) * half_d_z
+            k_e, z_rel, e_spat, w_phi[0, 1], phi_0_rel) * half_dz
     else:
         w_phi[0, 0] = w_kin_in
 
@@ -193,7 +192,7 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
 
         # We already are at the step i + 0.5, so gamma_middle and beta_middle
         # are the same as gamma and beta
-        r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_d_z, w_phi[i:i + 2, :],
+        r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_dz, w_phi[i:i + 2, :],
                                      gamma, beta, omega0_rf, k_e, phi_0_rel,
                                      e_spat)
         # Strictly speaking, kinetic energy should be advanced of half a step
@@ -204,7 +203,7 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     return r_zz, w_phi[1:, :], itg_field
 
 
-def z_thin_lense(z_rel, d_z, half_d_z, w_phi, gamma_middle, beta_middle,
+def z_thin_lense(z_rel, d_z, half_dz, w_phi, gamma_middle, beta_middle,
                  omega0_rf, k_e, phi_0, e_spat):
     """
     Thin lense approximation: drift-acceleration-drift.
@@ -215,7 +214,7 @@ def z_thin_lense(z_rel, d_z, half_d_z, w_phi, gamma_middle, beta_middle,
         Relative position in m.
     d_z : float
         Spatial step in m.
-    half_d_z : float
+    half_dz : float
         Half a spatial step in m.
     phi_rel : float
         Relative phase in rad.
@@ -231,11 +230,11 @@ def z_thin_lense(z_rel, d_z, half_d_z, w_phi, gamma_middle, beta_middle,
         Lorentz velocity factor at the middle of the accelerating gap.
     """
     # In
-    r_zz = z_drift(half_d_z, w_phi[0, 0])[0][0]
+    r_zz = z_drift(half_dz, w_phi[0, 0])[0][0]
 
     # Middle
-    z_k = z_rel + half_d_z
-    delta_phi_half_step = half_d_z * omega0_rf / (beta_middle * c)
+    z_k = z_rel + half_dz
+    delta_phi_half_step = half_dz * omega0_rf / (beta_middle * c)
     phi_k = w_phi[0, 1] + delta_phi_half_step
 
     # Transfer matrix components
@@ -252,7 +251,7 @@ def z_thin_lense(z_rel, d_z, half_d_z, w_phi, gamma_middle, beta_middle,
     r_zz = np.array(([k_3, 0.], [k_1, k_2])) @ r_zz
 
     # Out
-    tmp = z_drift(half_d_z, w_phi[1, 0])[0][0]
+    tmp = z_drift(half_dz, w_phi[1, 0])[0][0]
     r_zz = tmp @ r_zz
 
     return r_zz

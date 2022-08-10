@@ -90,7 +90,7 @@ cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
     """
     Give the electric field at position z and phase phi.
 
-    The field is NOT normalized and should be multiplied by k_e.
+    The field is normalized and should be multiplied by k_e.
     """
     return interp(z, e_z, inv_dz_e, n_points) * cos(phi + phi_0)
 
@@ -134,7 +134,7 @@ cdef rk4(DTYPE_t z, DTYPE_t[:] u,
 
     # Equiv of k_1 = du_dx(x, u):
     delta_u_i = du(z, u,
-                    k_k, e_z, inv_dz_e, n_points, phi_0_rel, delta_phi_norm)
+                   k_k, e_z, inv_dz_e, n_points, phi_0_rel, delta_phi_norm)
     k_i[0, 0] = delta_u_i[0]
     k_i[0, 1] = delta_u_i[1]
 
@@ -143,16 +143,16 @@ cdef rk4(DTYPE_t z, DTYPE_t[:] u,
     # Compute tmp = u + half_dx * k_2
     # Equiv of k_3 = du_dx(x + half_dx, u + half_dx * k_2)
     for i in [1, 2]:
-        tmp[0] = u[0] + half_step * k_i[i - 1, 0]
-        tmp[1] = u[1] + half_step * k_i[i - 1, 1]
+        tmp[0] = u[0] + .5 * k_i[i - 1, 0]
+        tmp[1] = u[1] + .5 * k_i[i - 1, 1]
         delta_u_i = du(z + half_step, tmp,
                         k_k, e_z, inv_dz_e, n_points, phi_0_rel, delta_phi_norm)
         k_i[i, 0] = delta_u_i[0]
         k_i[i, 1] = delta_u_i[1]
 
     # Compute u + dx * k_3
-    tmp[0] = u[0] + step * k_i[2, 0]
-    tmp[1] = u[1] + step * k_i[2, 1]
+    tmp[0] = u[0] + k_i[2, 0]
+    tmp[1] = u[1] + k_i[2, 1]
     # Equiv of k_4 = du_dx(x + dx, u + dx * k_3)
     delta_u_i = du(z + step, tmp,
                     k_k, e_z, inv_dz_e, n_points, phi_0_rel, delta_phi_norm)
@@ -351,8 +351,9 @@ def z_field_map_leapfrog(DTYPE_t d_z, DTYPE_t gamma_in, np.int64_t n_steps,
         gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_phi
 
         # For synchronous phase and accelerating potential
-        itg_field += k_e * e_func(z_rel, e_z, inv_dz_e, n_points, gamma_phi[i, 1],
-                            phi_0_rel) \
+        itg_field += k_e * e_func(z_rel, e_z,
+                                  inv_dz_e, n_points, gamma_phi[i, 1],
+                                  phi_0_rel) \
             * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         # We already are at the step i + 0.5, so gamma_middle and beta_middle
@@ -500,12 +501,14 @@ cdef z_thin_lense(DTYPE_t half_dz, DTYPE_t gamma_in, DTYPE_t gamma_middle,
     # Faster to not declare the type of r_zz, maybe because it is already
     # given by z_drift function
 
+    # Middle
     z_k = z_rel + half_dz
     phi_k = phi_rel + .5 * delta_phi_norm / beta_middle
 
     # Transfer matrix components of middle (accelerating part)
     k_0 = delta_gamma_norm / (gamma_middle * beta_middle**2)
-    norm_e_func_k = k_0 * k_e * e_func(z_k, e_z, inv_dz_e, n_points, phi_k, phi_0)
+    norm_e_func_k = k_0 * k_e * e_func(z_k, e_z,
+                                       inv_dz_e, n_points, phi_k, phi_0)
     # @TODO gather k_0 and k_e?
 
 
