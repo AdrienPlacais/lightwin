@@ -10,6 +10,7 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 
 TODO check du_dz outside of field_map function
 TODO reimplement itg_field
+TODO Remove omega0_rf from arguments.
 """
 
 import numpy as np
@@ -269,11 +270,6 @@ def z_thin_lense(gamma_in, gamma_out, gamma_phi_m, half_dz,
     k_speed2 = k_speed1 * np.cos(gamma_phi_m[1] + phi_0)
 
     # Thin lense transfer matrices components
-    k_1 = k_speed1 * omega0_rf / (beta_m * c) * np.sin(gamma_phi_m[1] + phi_0)
-    k_2 = 1. - (2. - beta_m**2) * k_speed2
-    k_3 = (1. - k_speed2) / k_2
-
-    # Middle transfer matrix components
     k_1 = k_speed1 * omega0_rf / (beta_m * c) * np.sin(gamma_phi_m[1] + phi_0)
     k_2 = 1. - (2. - beta_m**2) * k_speed2
     k_3 = (1. - k_speed2) / k_2

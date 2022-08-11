@@ -4,6 +4,8 @@
 Created on Wed Sep 22 10:26:19 2021.
 
 @author: placais
+
+TODO : simplify set_cavity_parameters
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
@@ -99,7 +101,12 @@ class _Element():
                      'leapfrog': lambda: None,
                      'transport': lambda: None},
             'matrix': None,
-            'solver_param': {'n_steps': None, 'd_z': None},
+            'solver_param': {
+                'n_steps': None,
+                'd_z': None,
+                # 'delta_phi_norm': None,
+                # 'delta_gamma_norm': None,
+            },
         }
 
     def init_solvers(self):
@@ -114,16 +121,24 @@ class _Element():
         if self.info['nature'] != 'FIELD_MAP':
             key_n_steps = 'drift'
         n_steps = d_n_steps[key_n_steps](self)
+
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
         self.tmat['solver_param']['n_steps'] = n_steps
-        self.tmat['solver_param']['d_z'] = self.length_m / n_steps
+        d_z = self.length_m / n_steps
+        self.tmat['solver_param']['d_z'] = d_z
 
         # Select proper function to compute transfer matrix
         key_fun = l_method[0]
         if self.info['nature'] != 'FIELD_MAP' \
                 or self.info['status'] == 'failed':
             key_fun = 'non_acc'
+        # else:
+            # # Precopute some constants to speed up calculation
+            # delta_phi_norm = self.acc_field.omega0_rf * d_z / constants.c
+            # delta_gamma_norm = constants.q_adim * d_z / constants.E_rest_MeV
+            # self.tmat['solver_param']['delta_phi_norm'] = delta_phi_norm
+            # self.tmat['solver_param']['delta_gamma_norm'] = delta_gamma_norm
         self.tmat['func'] = d_func_tm[key_fun](mod)
 
     def calc_transf_mat(self, w_kin_in, **kwargs):
@@ -267,7 +282,7 @@ class FieldMap(_Element):
         """
         Set the properties of the electric field.
 
-        If the cavity is in nominal workking condition, we use the properties
+        If the cavity is in nominal working condition, we use the properties
         (norm, phi_0) defined in the RfField object. If we are compensating
         a fault, we use the properties given by the optimisation algorithm.
         """
