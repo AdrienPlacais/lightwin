@@ -9,7 +9,7 @@ Run with
 %timeit run speed_test.py
 
 Warning! submodules are not always properly reloaded with this command. Hence,
-you may want to double check which functions, eg after modifying
+you may want to double check which functions are used, eg after modifying
 constants.METHOD.
 """
 
