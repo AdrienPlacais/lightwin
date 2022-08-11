@@ -14,7 +14,7 @@ TODO reimplement itg_field
 
 import numpy as np
 from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH, \
-    E_MEV
+    GAMMA_INIT
 
 
 # =============================================================================
@@ -104,15 +104,15 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     itg_field = 0.
     half_dz = .5 * d_z
 
-    r_zz = np.empty((n_steps, 2, 2))
-    gamma_phi = np.empty((n_steps + 1, 2))
-    gamma_phi[0, 0] = gamma_in
-    gamma_phi[0, 1] = 0.
-
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c
     delta_gamma_norm = q_adim * d_z * inv_E_rest_MeV
     k_k = delta_gamma_norm * k_e
+
+    r_zz = np.empty((n_steps, 2, 2))
+    gamma_phi = np.empty((n_steps + 1, 2))
+    gamma_phi[0, 0] = gamma_in
+    gamma_phi[0, 1] = 0.
 
     # Define the motion function to integrate
     def du(z, u):
@@ -146,8 +146,8 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         gamma_phi[i + 1, :] = gamma_phi[i, :] + delta_gamma_phi
 
         # Update itg_field. Used to compute V_cav and phi_s.
-        # itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
-            # * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
+        # itg_field += e_func(k_e, z_rel, e_spat, gamma_phi[i, 1], phi_0_rel) \
+            # * (1. + 1j * np.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         # Compute gamma and phi at the middle of the thin lense
         gamma_phi_middle = gamma_phi[i, :] + .5 * delta_gamma_phi
@@ -156,9 +156,6 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         # thin lense at cos(phi + phi_0) = 1
         delta_gamma_middle_max = k_k * e_spat(z_rel + half_dz)
 
-        # r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_dz, w_phi[i:i + 2, :],
-                                     # gamma_middle, beta_middle, omega0_rf,
-                                     # k_e, phi_0_rel, e_spat)
         # Compute thin lense transfer matrix
         r_zz[i, :, :] = z_thin_lense2(
             gamma_phi[i, 0], gamma_phi[i + 1, 0], gamma_phi_middle,
@@ -169,7 +166,7 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     return r_zz, gamma_phi[1:, :], itg_field
 
 
-def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
+def z_field_map_leapfrog(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel,
                          e_spat):
     """
     Calculate the transfer matrix of a FIELD_MAP using leapfrog.
@@ -191,44 +188,57 @@ def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
     itg_field = 0.
     half_dz = .5 * d_z
 
+    # Constants to speed up calculation
+    delta_phi_norm = omega0_rf * d_z / c
+    delta_gamma_norm = q_adim * d_z * inv_E_rest_MeV
+    k_k = delta_gamma_norm * k_e
+
     r_zz = np.empty((n_steps, 2, 2))
-    w_phi = np.empty((n_steps + 1, 2))
-    w_phi[0, 1] = 0.
+    gamma_phi = np.empty((n_steps + 1, 2))
+    gamma_phi[0, 1] = 0.
     # Rewind energy from i=0 to i=-0.5 if we are at the first cavity:
-    if w_kin_in == E_MEV:
-        w_phi[0, 0] = w_kin_in - q_adim * e_func(
-            k_e, z_rel, e_spat, w_phi[0, 1], phi_0_rel) * half_dz
+    # FIXME must be cleaner
+    if gamma_in == GAMMA_INIT:
+        gamma_phi[0, 0] = gamma_in - .5 * k_k * e_func(z_rel, e_spat,
+                                                       gamma_phi[0, 1],
+                                                       phi_0_rel)
     else:
-        w_phi[0, 0] = w_kin_in
+        gamma_phi[0, 0] = gamma_in
 
     for i in range(n_steps):
-        # Compute forces at step i
-        delta_w = q_adim * e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
-            * d_z
-        # Compute energy at step i + 0.5
-        w_phi[i + 1, 0] = w_phi[i, 0] + delta_w
-        gamma = 1. + w_phi[i + 1, 0] * inv_E_rest_MeV
-        beta = np.sqrt(1. - gamma**-2)
+        # Compute gamma change
+        delta_gamma = k_k * e_func(z_rel, e_spat, gamma_phi[i, 1], phi_0_rel)
+
+        # New gamma at i+0.5
+        gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma
+        beta = np.sqrt(1. - gamma_phi[i + 1, 0]**-2)
 
         # Compute phase at step i + 1
-        delta_phi = omega0_rf * d_z / (beta * c)
-        w_phi[i + 1, 1] = w_phi[i, 1] + delta_phi
+        delta_phi = delta_phi_norm / beta
+        gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_phi
 
         # Update
-        itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
-            * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
+        # itg_field += e_func(k_e, z_rel, e_spat, gamma_phi[i, 1], phi_0_rel) \
+            # * (1. + 1j * np.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
+        # Compute gamma and phi at the middle of the thin lense
+        gamma_phi_middle = np.array([gamma_phi[i, 0],
+                                     gamma_phi[i, 1] + .5 * delta_phi])
         # We already are at the step i + 0.5, so gamma_middle and beta_middle
         # are the same as gamma and beta
-        r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_dz, w_phi[i:i + 2, :],
-                                     gamma, beta, omega0_rf, k_e, phi_0_rel,
-                                     e_spat)
-        # Strictly speaking, kinetic energy should be advanced of half a step
-        # However, this does not really change the results
+
+        # To speed up (corresponds to the gamma_variation at the middle of the
+        # thin lense at cos(phi + phi_0) = 1
+        delta_gamma_middle_max = k_k * e_spat(z_rel + half_dz)
+
+        # Compute thin lense transfer matrix
+        r_zz[i, :, :] = z_thin_lense2(
+            gamma_phi[i, 0], gamma_phi[i + 1, 0], gamma_phi_middle,
+            half_dz, delta_gamma_middle_max, phi_0_rel, omega0_rf)
 
         z_rel += d_z
 
-    return r_zz, w_phi[1:, :], itg_field
+    return r_zz, gamma_phi[1:, :], itg_field
 
 
 def z_thin_lense(z_rel, d_z, half_dz, w_phi, gamma_middle, beta_middle,
@@ -250,8 +260,8 @@ def z_thin_lense(z_rel, d_z, half_dz, w_phi, gamma_middle, beta_middle,
         First colum is w_kin (MeV) and second is phase (rad). Only two lines:
         first is step i (entrance of first drift), second is step i + 1 (exit
         of second drift).
-        w_phi = [[w_kin_in,  phi_rel_in],
-                 [w_kin_out, dummy]]
+        w_phi = [[gamma_in,  phi_rel_in],
+                 [gamma_out, dummy]]
     gamma_middle : float
         Lorentz mass factor at the middle of the accelerating gap.
     beta_middle : float

@@ -40,8 +40,8 @@ FLAG_PHI_ABS = True
 FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
-# METHOD = 'leapfrog'
-METHOD = 'RK'
+METHOD = 'leapfrog'
+# METHOD = 'RK'
 # METHOD = 'jm'
 
 # Number of spatial steps per RF cavity cell
@@ -65,6 +65,7 @@ else:
     METHOD += '_p'
 
 E_MEV = 16.6
+GAMMA_INIT = 1. + E_MEV / E_rest_MeV
 F_BUNCH_MHZ = 176.1
 OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 

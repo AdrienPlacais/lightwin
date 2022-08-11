@@ -355,16 +355,15 @@ def z_field_map_leapfrog(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
         gamma_phi[0, 0] = gamma_in
 
     for i in range(n_steps):
-        # Compute energy change
+        # Compute gamma change
         delta_gamma = k_k * e_func(z_rel, e_z, inv_dz_e, n_points_e,
                                    gamma_phi[i, 1], phi_0_rel)
-        # New energy at i + 0.5
+        # New gamma at i + 0.5
         gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma
         beta = sqrt(1. - gamma_phi[i + 1, 0]**-2)
 
-        # Compute phase change
+        # Compute phase at step i + 1
         delta_phi = delta_phi_norm / beta
-        # Update
         gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_phi
 
         # For synchronous phase and accelerating potential

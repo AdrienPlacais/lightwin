@@ -129,11 +129,7 @@ class _Element():
     def calc_transf_mat(self, w_kin_in, **kwargs):
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
-
-        if constants.FLAG_CYTHON or constants.METHOD == 'RK_p':
-            energy_or_gamma = 1. + w_kin_in * constants.inv_E_rest_MeV
-        else:
-            energy_or_gamma = w_kin_in
+        energy_or_gamma = 1. + w_kin_in * constants.inv_E_rest_MeV
 
         # Initialisation of electric field arrays
         # FIXME
@@ -172,8 +168,7 @@ class _Element():
             r_zz, w_phi, _ = self.tmat['func'](d_z, energy_or_gamma, n_steps)
             cav_params = None
 
-        if constants.FLAG_CYTHON or constants.METHOD == 'RK_p':
-            w_phi[:, 0] = (w_phi[:, 0] - 1.) * constants.E_rest_MeV
+        w_phi[:, 0] = (w_phi[:, 0] - 1.) * constants.E_rest_MeV
 
         results = {'r_zz': r_zz, 'cav_params': cav_params,
                    'w_kin': w_phi[:, 0], 'phi_rel': w_phi[:, 1]}
