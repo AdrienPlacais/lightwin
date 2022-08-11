@@ -7,6 +7,9 @@ Created on Wed Sep 22 16:04:34 2021.
 
 File holding all the longitudinal transfer sub-matrices. Units are taken
 exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
+
+TODO check du_dz outside of field_map function
+TODO reimplement itg_field
 """
 
 import numpy as np
@@ -17,24 +20,35 @@ from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH, \
 # =============================================================================
 # Electric field functions
 # =============================================================================
-def e_func(k_e, z, e_spat, phi, phi_0):
-    """Electric field."""
-    return k_e * e_spat(z) * np.cos(phi + phi_0)
+def e_func(z, e_spat, phi, phi_0):
+    """
+    Give the electric field at position z and phase phi.
+
+    The field is normalized and should be multiplied by k_e.
+    """
+    return e_spat(z) * np.cos(phi + phi_0)
 
 
-def de_dt_func(k_e, z, e_spat, phi, phi_0, factor):
-    """Time-derivative of electric field."""
-    return factor * k_e * e_spat(z) * np.sin(phi + phi_0)
+def de_dt_func(z, e_spat, phi, phi_0):
+    """
+    Give the first time derivative of the electric field at (z, phi).
+
+    The field is normalized and should be multiplied by
+    k_e * omega0_rf * delta_z / c
+    """
+    return e_spat(z) * np.sin(phi + phi_0)
 
 
 # =============================================================================
 # Motion integration functions
 # =============================================================================
-def rk4(u, du_dx, x, dx):
+def rk4(u, du, x, dx):
     """
     4-th order Runge-Kutta integration.
 
     This function calculates the variation of u between x and x+dx.
+    Warning: this is a slightly modified version of the RK. The k_i are
+    proportional to delta_u instead of du_dz.
 
     Parameters
     ----------
@@ -53,11 +67,11 @@ def rk4(u, du_dx, x, dx):
         Variation of u between x and x+dx.
     """
     half_dx = .5 * dx
-    k_1 = du_dx(x, u)
-    k_2 = du_dx(x + half_dx, u + half_dx * k_1)
-    k_3 = du_dx(x + half_dx, u + half_dx * k_2)
-    k_4 = du_dx(x + dx, u + dx * k_3)
-    delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) * dx / 6.
+    k_1 = du(x, u)
+    k_2 = du(x + half_dx, u + .5 * k_1)
+    k_3 = du(x + half_dx, u + .5 * k_2)
+    k_4 = du(x + dx, u + k_3)
+    delta_u = (k_1 + 2. * k_2 + 2. * k_3 + k_4) / 6.
     return delta_u
 
 
@@ -84,20 +98,24 @@ def z_drift(delta_s, gamma_in, n_steps=1):
     return r_zz, gamma_phi, None
 
 
-def z_field_map_rk4(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
+def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     """Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta."""
     z_rel = 0.
     itg_field = 0.
     half_dz = .5 * d_z
 
     r_zz = np.empty((n_steps, 2, 2))
-    w_phi = np.empty((n_steps + 1, 2))
-    w_phi[0, 0] = w_kin_in
-    w_phi[0, 1] = 0.
-    l_gamma = [1. + w_kin_in * inv_E_rest_MeV]
+    gamma_phi = np.empty((n_steps + 1, 2))
+    gamma_phi[0, 0] = gamma_in
+    gamma_phi[0, 1] = 0.
+
+    # Constants to speed up calculation
+    delta_phi_norm = omega0_rf * d_z / c
+    delta_gamma_norm = q_adim * d_z * inv_E_rest_MeV
+    k_k = delta_gamma_norm * k_e
 
     # Define the motion function to integrate
-    def du_dz(z, u):
+    def du(z, u):
         """
         Compute variation of energy and phase.
 
@@ -106,39 +124,49 @@ def z_field_map_rk4(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         z : real
             Position where variation is calculated.
         u : np.array
-            First component is energy in MeV. Second is phase in rad.
+            First component is gamma. Second is phase in rad.
 
         Return
         ------
         v : np.array
-            First component is delta energy / delta z in MeV / m.
+            First component is delta gamma / delta z in MeV / m.
             Second is delta phase / delta_z in rad / m.
         """
-        v0 = q_adim * e_func(k_e, z, e_spat, u[1], phi_0_rel)
-        gamma_float = 1. + u[0] * inv_E_rest_MeV
-        beta = np.sqrt(1. - gamma_float**-2)
-        v1 = omega0_rf / (beta * c)
+        v0 = k_k * e_func(z, e_spat, u[1], phi_0_rel)
+        beta = np.sqrt(1. - u[0]**-2)
+        v1 = delta_phi_norm / beta
         return np.array([v0, v1])
 
     for i in range(n_steps):
-        # Compute energy and phase changes
-        delta_w_phi = rk4(w_phi[i, :], du_dz, z_rel, d_z)
+        # Compute gamma and phase changes
+        delta_gamma_phi = rk4(u=gamma_phi[i, :], du=du,
+                              x=z_rel, dx=d_z)
+
+        # Update
+        gamma_phi[i + 1, :] = gamma_phi[i, :] + delta_gamma_phi
+
         # Update itg_field. Used to compute V_cav and phi_s.
-        itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
-            * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
+        # itg_field += e_func(k_e, z_rel, e_spat, w_phi[i, 1], phi_0_rel) \
+            # * (1. + 1j * np.tan(w_phi[i, 1] + phi_0_rel)) * d_z
 
-        w_phi[i + 1, :] = w_phi[i, :] + delta_w_phi
-        l_gamma.append(1. + w_phi[i + 1, 0] * inv_E_rest_MeV)
+        # Compute gamma and phi at the middle of the thin lense
+        gamma_phi_middle = gamma_phi[i, :] + .5 * delta_gamma_phi
 
-        gamma_middle = .5 * (l_gamma[-1] + l_gamma[-2])
-        beta_middle = np.sqrt(1. - gamma_middle**-2)
+        # To speed up (corresponds to the gamma_variation at the middle of the
+        # thin lense at cos(phi + phi_0) = 1
+        delta_gamma_middle_max = k_k * e_spat(z_rel + half_dz)
 
-        r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_dz, w_phi[i:i + 2, :],
-                                     gamma_middle, beta_middle, omega0_rf,
-                                     k_e, phi_0_rel, e_spat)
+        # r_zz[i, :, :] = z_thin_lense(z_rel, d_z, half_dz, w_phi[i:i + 2, :],
+                                     # gamma_middle, beta_middle, omega0_rf,
+                                     # k_e, phi_0_rel, e_spat)
+        # Compute thin lense transfer matrix
+        r_zz[i, :, :] = z_thin_lense2(
+            gamma_phi[i, 0], gamma_phi[i + 1, 0], gamma_phi_middle,
+            half_dz, delta_gamma_middle_max, phi_0_rel, omega0_rf)
+
         z_rel += d_z
 
-    return r_zz, w_phi[1:, :], itg_field
+    return r_zz, gamma_phi[1:, :], itg_field
 
 
 def z_field_map_leapfrog(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel,
@@ -256,3 +284,26 @@ def z_thin_lense(z_rel, d_z, half_dz, w_phi, gamma_middle, beta_middle,
 
     return r_zz
 
+
+def z_thin_lense2(gamma_in, gamma_out, gamma_phi_m, half_dz,
+                  delta_gamma_m_max, phi_0, omega0_rf):
+    # Used for tm components
+    beta_m = np.sqrt(1. - gamma_phi_m[0]**-2)
+    k_speed1 = delta_gamma_m_max / (gamma_phi_m[0] * beta_m**2)
+    k_speed2 = k_speed1 * np.cos(gamma_phi_m[1] + phi_0)
+
+    # Thin lense transfer matrices components
+    k_1 = k_speed1 * omega0_rf / (beta_m * c) * np.sin(gamma_phi_m[1] + phi_0)
+    k_2 = 1. - (2. - beta_m**2) * k_speed2
+    k_3 = (1. - k_speed2) / k_2
+
+    # Middle transfer matrix components
+    k_1 = k_speed1 * omega0_rf / (beta_m * c) * np.sin(gamma_phi_m[1] + phi_0)
+    k_2 = 1. - (2. - beta_m**2) * k_speed2
+    k_3 = (1. - k_speed2) / k_2
+
+    # Faster than matmul or matprod_22
+    r_zz_array = z_drift(half_dz, gamma_out)[0][0] \
+                 @ (np.array(([k_3, 0.], [k_1, k_2])) \
+                    @ z_drift(half_dz, gamma_in)[0][0])
+    return r_zz_array

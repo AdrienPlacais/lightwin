@@ -106,7 +106,7 @@ cdef DTYPE_t de_dt_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
     """
     Give the first time derivative of the electric field at (z, phi).
 
-    The field is NOT normalized and should be multiplied by
+    The field is normalized and should be multiplied by
     k_e * omega0_rf * delta_z / c
     """
     return interp(z, e_z, inv_dz_e, n_points_e) * sin(phi + phi_0)
@@ -266,7 +266,7 @@ def z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
     gamma_phi[0, 1] = 0.
 
     for i in range(n_steps):
-        # Compute energy and phase changes
+        # Compute gamma and phase changes
         delta_gamma_phi = rk4(z_rel, gamma_phi[i, :],
                               dz_s, k_k, e_z, inv_dz_e, n_points_e, phi_0_rel,
                               delta_phi_norm)
@@ -283,6 +283,7 @@ def z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
         # Compute gamma and phi at the middle of the thin lense
         gamma_middle = .5 * (gamma_phi[i, 0] + gamma_phi[i + 1, 0])
         phi_middle = gamma_phi[i, 1] + .5 * delta_gamma_phi[1]
+
         # To speed up (corresponds to the gamma_variation at the middle of the
         # thin lense at cos(phi + phi_0) = 1
         delta_gamma_middle_max = k_k * interp(z_rel + half_dz_s, e_z,
