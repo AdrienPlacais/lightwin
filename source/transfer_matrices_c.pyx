@@ -503,52 +503,7 @@ def z_field_map_jm(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
 
     return r_zz, gamma_phi[1:, :], itg_field
 
-cdef old_z_thin_lense(DTYPE_t half_dz_s, DTYPE_t gamma_in, DTYPE_t gamma_middle,
-                  DTYPE_t gamma_out, DTYPE_t delta_gamma_norm,
-                  DTYPE_t beta_middle, DTYPE_t z_rel, DTYPE_t phi_rel,
-                  DTYPE_t delta_phi_norm, DTYPE_t k_e, DTYPE_t phi_0,
-                  DTYPE_t[:] e_z, DTYPE_t inv_dz_e, int n_points_e):
-    """Calculate the transfer matrix of a drift-gap-drift."""
-    # Variables:
-    cdef DTYPE_t z_k, phi_k, k_0, k_1, k_2, k_3
-    cdef DTYPE_t norm_e_func_k
-    # Arrays:
-    # cdef np.ndarray[DTYPE_t, ndim=2] r_zz = np.zeros([2, 2], dtype=DTYPE)
-    # Faster to not declare the type of r_zz, maybe because it is already
-    # given by z_drift function
 
-    # Middle
-    z_k = z_rel + half_dz_s
-    phi_k = phi_rel + .5 * delta_phi_norm / beta_middle
-
-    # Transfer matrix components of middle (accelerating part)
-    k_0 = delta_gamma_norm / (gamma_middle * beta_middle**2)
-    norm_e_func_k = k_0 * k_e * e_func(z_k, e_z,
-                                       inv_dz_e, n_points_e, phi_k, phi_0)
-    # @TODO gather k_0 and k_e?
-
-
-    k_1 = k_0 * k_e * delta_phi_norm / beta_middle \
-            * de_dt_func(z_k, e_z, inv_dz_e, n_points_e, phi_k, phi_0)
-    k_2 = 1. - (2. - beta_middle**2) * norm_e_func_k
-    # Correction to ensure det < 1
-    k_3 = (1. - norm_e_func_k) / (1. - (2. - beta_middle**2) * norm_e_func_k)
-
-    # Matrix product: end @ (middle @ in)
-    # r_zz_array = matprod_22(z_drift(half_dz_s, w_kin_out)[0][0],
-                            # matprod_22(np.array(([k_3, 0.], [k_1, k_2]),
-                            # dtype=DTYPE),
-                                       # z_drift(half_dz_s, w_kin_in)[0][0])
-                           # )
-    # Faster than matmul or matprod_22
-    r_zz_array = z_drift(half_dz_s, gamma_out)[0][0] \
-                 @ (np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE) \
-                    @ z_drift(half_dz_s, gamma_in)[0][0])
-
-    return r_zz_array
-
-
-    # cdef DTYPE_t gamma_m = .5 * (gamma_in + gamma_out)
 # TODO better to create the transfer matrix in one passage at the end?
 def z_thin_lense(gamma_in, gamma_m, gamma_out, phi_m, half_dz_s,
                   delta_gamma_m_max, phi_0, omega0_rf):
