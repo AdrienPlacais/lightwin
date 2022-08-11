@@ -64,24 +64,24 @@ def rk4(u, du_dx, x, dx):
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def z_drift(delta_s, w_kin_in, n_steps=1):
+def z_drift(delta_s, gamma_in, n_steps=1):
     """Calculate the transfer matrix of a drift."""
-    gamma_in_min2 = (1. + w_kin_in * inv_E_rest_MeV)**-2
+    gamma_in_min2 = gamma_in**-2
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
                                               [0., 1.]]))
     beta_in = np.sqrt(1. - gamma_in_min2)
     delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
 
     # Two possibilites: second one is faster
-    # l_W_kin = [w_kin_in for i in range(n_steps)]
+    # l_gamman = [gamma for i in range(n_steps)]
     # l_phi_rel = [(i+1)*delta_phi for i in range(n_steps)]
-    # w_phi = np.empty((n_steps, 2))
-    # w_phi[:, 0] = l_W_kin
-    # w_phi[:, 1] = l_phi_rel
-    w_phi = np.empty((n_steps, 2))
-    w_phi[:, 0] = w_kin_in
-    w_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
-    return r_zz, w_phi, None
+    # gamma_phi = np.empty((n_steps, 2))
+    # gamma_phi[:, 0] = l_W_kin
+    # gamma_phi[:, 1] = l_phi_rel
+    gamma_phi = np.empty((n_steps, 2))
+    gamma_phi[:, 0] = gamma_in
+    gamma_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
+    return r_zz, gamma_phi, None
 
 
 def z_field_map_rk4(d_z, w_kin_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):

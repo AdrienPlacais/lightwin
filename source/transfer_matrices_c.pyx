@@ -13,6 +13,9 @@ Cython needs to be compiled to work. Check the instrutions in setup.py.
 Currently adapted to MYRRHA only:
     electric fields are hard-coded;
     energy at linac entrance is hard-coded.
+
+# TODO field maps better to create the transfer matrix in one passage at the end?
+# TODO try to put more cdef functions
 """
 import cython
 from libc.math cimport sin, cos, sqrt, tan, floor
@@ -85,6 +88,9 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e, int n_points_e)
     return out
 
 
+# =============================================================================
+# Electric field functions
+# =============================================================================
 cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
                     int n_points_e, DTYPE_t phi, DTYPE_t phi_0):
     """
@@ -106,6 +112,9 @@ cdef DTYPE_t de_dt_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
     return interp(z, e_z, inv_dz_e, n_points_e) * sin(phi + phi_0)
 
 
+# =============================================================================
+# Motion integration functions
+# =============================================================================
 cdef rk4(DTYPE_t z, DTYPE_t[:] u,
          DTYPE_t dz_s, DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
          int n_points_e, DTYPE_t phi_0_rel, DTYPE_t delta_phi_norm):
@@ -504,7 +513,6 @@ def z_field_map_jm(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
     return r_zz, gamma_phi[1:, :], itg_field
 
 
-# TODO better to create the transfer matrix in one passage at the end?
 def z_thin_lense(gamma_in, gamma_m, gamma_out, phi_m, half_dz_s,
                   delta_gamma_m_max, phi_0, omega0_rf):
     # Used for tm components
