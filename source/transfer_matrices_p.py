@@ -157,7 +157,7 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         delta_gamma_middle_max = k_k * e_spat(z_rel + half_dz)
 
         # Compute thin lense transfer matrix
-        r_zz[i, :, :] = z_thin_lense2(
+        r_zz[i, :, :] = z_thin_lense(
             gamma_phi[i, 0], gamma_phi[i + 1, 0], gamma_phi_middle,
             half_dz, delta_gamma_middle_max, phi_0_rel, omega0_rf)
 
@@ -232,7 +232,7 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel,
         delta_gamma_middle_max = k_k * e_spat(z_rel + half_dz)
 
         # Compute thin lense transfer matrix
-        r_zz[i, :, :] = z_thin_lense2(
+        r_zz[i, :, :] = z_thin_lense(
             gamma_phi[i, 0], gamma_phi[i + 1, 0], gamma_phi_middle,
             half_dz, delta_gamma_middle_max, phi_0_rel, omega0_rf)
 
@@ -241,61 +241,7 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel,
     return r_zz, gamma_phi[1:, :], itg_field
 
 
-def z_thin_lense(z_rel, d_z, half_dz, w_phi, gamma_middle, beta_middle,
-                 omega0_rf, k_e, phi_0, e_spat):
-    """
-    Thin lense approximation: drift-acceleration-drift.
-
-    Parameters
-    ----------
-    z_rel : float
-        Relative position in m.
-    d_z : float
-        Spatial step in m.
-    half_dz : float
-        Half a spatial step in m.
-    phi_rel : float
-        Relative phase in rad.
-    w_phi : np.ndarray
-        First colum is w_kin (MeV) and second is phase (rad). Only two lines:
-        first is step i (entrance of first drift), second is step i + 1 (exit
-        of second drift).
-        w_phi = [[gamma_in,  phi_rel_in],
-                 [gamma_out, dummy]]
-    gamma_middle : float
-        Lorentz mass factor at the middle of the accelerating gap.
-    beta_middle : float
-        Lorentz velocity factor at the middle of the accelerating gap.
-    """
-    # In
-    r_zz = z_drift(half_dz, w_phi[0, 0])[0][0]
-
-    # Middle
-    z_k = z_rel + half_dz
-    delta_phi_half_step = half_dz * omega0_rf / (beta_middle * c)
-    phi_k = w_phi[0, 1] + delta_phi_half_step
-
-    # Transfer matrix components
-    k_0 = q_adim * d_z / (gamma_middle * beta_middle**2 * E_rest_MeV)
-    factor = omega0_rf / (beta_middle * c)
-    k_1 = k_0 * de_dt_func(k_e, z_k, e_spat, phi_k, phi_0, factor)
-    e_func_k = e_func(k_e, z_k, e_spat, phi_k, phi_0)
-    k_2 = 1. - (2. - beta_middle**2) * k_0 * e_func_k
-
-    # Correction to ensure det < 1
-    k_3 = (1. - k_0 * e_func_k) / (1. - k_0 * (2. - beta_middle**2) * e_func_k)
-
-    # @ is matrix product
-    r_zz = np.array(([k_3, 0.], [k_1, k_2])) @ r_zz
-
-    # Out
-    tmp = z_drift(half_dz, w_phi[1, 0])[0][0]
-    r_zz = tmp @ r_zz
-
-    return r_zz
-
-
-def z_thin_lense2(gamma_in, gamma_out, gamma_phi_m, half_dz,
+def z_thin_lense(gamma_in, gamma_out, gamma_phi_m, half_dz,
                   delta_gamma_m_max, phi_0, omega0_rf):
     """
     Thin lense approximation: drift-acceleration-drift.
