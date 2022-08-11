@@ -129,7 +129,7 @@ class _Element():
     def calc_transf_mat(self, w_kin_in, **kwargs):
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
-        energy_or_gamma = 1. + w_kin_in * constants.inv_E_rest_MeV
+        gamma = 1. + w_kin_in * constants.inv_E_rest_MeV
 
         # Initialisation of electric field arrays
         # FIXME
@@ -150,28 +150,28 @@ class _Element():
                 # FIXME: only valid for synch particle
                 phi_abs_in = kwargs['phi_0_rel']
 
-                r_zz, w_phi, itg_field = \
+                r_zz, gamma_phi, itg_field = \
                     self.tmat['func'](
-                        d_z, energy_or_gamma, n_steps, kwargs['omega0_rf'],
+                        d_z, gamma, n_steps, kwargs['omega0_rf'],
                         kwargs['norm'], kwargs['phi_0_rel'], last_arg,
                         phi_abs_in)
             else:
-                r_zz, w_phi, itg_field = \
+                r_zz, gamma_phi, itg_field = \
                     self.tmat['func'](
-                        d_z, energy_or_gamma, n_steps, kwargs['omega0_rf'],
+                        d_z, gamma, n_steps, kwargs['omega0_rf'],
                         kwargs['norm'], kwargs['phi_0_rel'], last_arg)
 
-            w_phi[:, 1] *= constants.OMEGA_0_BUNCH / kwargs['omega0_rf']
+            gamma_phi[:, 1] *= constants.OMEGA_0_BUNCH / kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
-            r_zz, w_phi, _ = self.tmat['func'](d_z, energy_or_gamma, n_steps)
+            r_zz, gamma_phi, _ = self.tmat['func'](d_z, gamma, n_steps)
             cav_params = None
 
-        w_phi[:, 0] = (w_phi[:, 0] - 1.) * constants.E_rest_MeV
+        w_kin = (gamma_phi[:, 0] - 1.) * constants.E_rest_MeV
 
         results = {'r_zz': r_zz, 'cav_params': cav_params,
-                   'w_kin': w_phi[:, 0], 'phi_rel': w_phi[:, 1]}
+                   'w_kin': w_kin, 'phi_rel': gamma_phi[:, 1]}
 
         return results
 

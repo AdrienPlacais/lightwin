@@ -297,6 +297,26 @@ def z_thin_lense(z_rel, d_z, half_dz, w_phi, gamma_middle, beta_middle,
 
 def z_thin_lense2(gamma_in, gamma_out, gamma_phi_m, half_dz,
                   delta_gamma_m_max, phi_0, omega0_rf):
+    """
+    Thin lense approximation: drift-acceleration-drift.
+
+    Parameters
+    ----------
+    gamma_in : float
+        gamma at entrance of first drift.
+    gamma_out : float
+        gamma at exit of first drift.
+    gamma_phi_m : array
+        gamma and phase at the thin acceleration drift.
+    half_dz : float
+        Half a spatial step in m.
+    delta_gamma_m_max : float
+        Max gamma increase if the cos(phi + phi_0) of the acc. field is 1.
+    phi_0 :
+        Input phase of the cavity.
+    omega0_rf :
+        Pulsation of the cavity.
+    """
     # Used for tm components
     beta_m = np.sqrt(1. - gamma_phi_m[0]**-2)
     k_speed1 = delta_gamma_m_max / (gamma_phi_m[0] * beta_m**2)
@@ -314,6 +334,6 @@ def z_thin_lense2(gamma_in, gamma_out, gamma_phi_m, half_dz,
 
     # Faster than matmul or matprod_22
     r_zz_array = z_drift(half_dz, gamma_out)[0][0] \
-                 @ (np.array(([k_3, 0.], [k_1, k_2])) \
-                    @ z_drift(half_dz, gamma_in)[0][0])
+        @ (np.array(([k_3, 0.], [k_1, k_2]))
+           @ z_drift(half_dz, gamma_in)[0][0])
     return r_zz_array
