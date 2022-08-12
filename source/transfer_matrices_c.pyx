@@ -276,8 +276,8 @@ def z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
         gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_gamma_phi[1]
 
         # For synchronous phase and accelerating potential
-        itg_field += k_e * e_func(z_rel, e_z, inv_dz_e, n_points_e, gamma_phi[i, 1],
-                                  phi_0_rel) \
+        itg_field += k_e * e_func(z_rel, e_z, inv_dz_e, n_points_e,
+                                  gamma_phi[i, 1], phi_0_rel) \
             * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * dz_s
 
         # Compute gamma and phi at the middle of the thin lense
@@ -535,4 +535,3 @@ def z_thin_lense(gamma_in, gamma_m, gamma_out, phi_m, half_dz_s,
                  @ (np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE) \
                     @ z_drift(half_dz_s, gamma_in)[0][0])
     return r_zz_array
-

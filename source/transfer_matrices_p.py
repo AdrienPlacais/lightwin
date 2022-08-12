@@ -9,7 +9,6 @@ File holding all the longitudinal transfer sub-matrices. Units are taken
 exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 
 TODO check du_dz outside of field_map function
-TODO reimplement itg_field
 TODO Remove omega0_rf from arguments.
 """
 
@@ -27,16 +26,6 @@ def e_func(z, e_spat, phi, phi_0):
     The field is normalized and should be multiplied by k_e.
     """
     return e_spat(z) * np.cos(phi + phi_0)
-
-
-def de_dt_func(z, e_spat, phi, phi_0):
-    """
-    Give the first time derivative of the electric field at (z, phi).
-
-    The field is normalized and should be multiplied by
-    k_e * omega0_rf * delta_z / c
-    """
-    return e_spat(z) * np.sin(phi + phi_0)
 
 
 # =============================================================================
@@ -146,8 +135,8 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
         gamma_phi[i + 1, :] = gamma_phi[i, :] + delta_gamma_phi
 
         # Update itg_field. Used to compute V_cav and phi_s.
-        # itg_field += e_func(k_e, z_rel, e_spat, gamma_phi[i, 1], phi_0_rel) \
-            # * (1. + 1j * np.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
+        itg_field += k_e * e_func(z_rel, e_spat, gamma_phi[i, 1], phi_0_rel) \
+            * (1. + 1j * np.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         # Compute gamma and phi at the middle of the thin lense
         gamma_phi_middle = gamma_phi[i, :] + .5 * delta_gamma_phi
@@ -217,9 +206,9 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel,
         delta_phi = delta_phi_norm / beta
         gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_phi
 
-        # Update
-        # itg_field += e_func(k_e, z_rel, e_spat, gamma_phi[i, 1], phi_0_rel) \
-            # * (1. + 1j * np.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
+        # Update itg_field. Used to compute V_cav and phi_s.
+        itg_field += k_e * e_func(z_rel, e_spat, gamma_phi[i, 1], phi_0_rel) \
+            * (1. + 1j * np.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         # Compute gamma and phi at the middle of the thin lense
         gamma_phi_middle = np.array([gamma_phi[i, 0],
@@ -242,7 +231,7 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel,
 
 
 def z_thin_lense(gamma_in, gamma_out, gamma_phi_m, half_dz,
-                  delta_gamma_m_max, phi_0, omega0_rf):
+                 delta_gamma_m_max, phi_0, omega0_rf):
     """
     Thin lense approximation: drift-acceleration-drift.
 

@@ -40,8 +40,8 @@ FLAG_PHI_ABS = True
 FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
-METHOD = 'leapfrog'
-# METHOD = 'RK'
+# METHOD = 'leapfrog'
+METHOD = 'RK'
 # METHOD = 'jm'
 
 # Number of spatial steps per RF cavity cell
@@ -58,7 +58,7 @@ elif 'jm' in METHOD:
 # (pure Python). _c is ~2 to 4 times faster than _p.
 # Warning, you may have to relaod the kernel to force iPython to take the
 # change in FLAG_CYTHON into account.
-FLAG_CYTHON = True
+FLAG_CYTHON = False
 if FLAG_CYTHON:
     METHOD += '_c'
 else:
