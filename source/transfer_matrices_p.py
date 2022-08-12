@@ -14,8 +14,7 @@ TODO Remove omega0_rf from arguments.
 """
 
 import numpy as np
-from constants import c, q_adim, E_rest_MeV, inv_E_rest_MeV, OMEGA_0_BUNCH, \
-    GAMMA_INIT
+from constants import c, q_adim, inv_E_rest_MeV, OMEGA_0_BUNCH, GAMMA_INIT
 
 
 # =============================================================================
