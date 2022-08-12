@@ -11,7 +11,6 @@ General TODO list:
     - Reprofile to check where could be speed up.
         Interpolation function could be replaced by pre-interpolated array?
     - Recheck non synch particles.
-    - Method should be in constants.
     - Replace flag phi_abs/phi_rel by a three positions switch: synch/abs/rel?
 """
 import os
@@ -49,6 +48,7 @@ BETA_W = 71.215849  # deg/pi.MeV
 Tk().withdraw()
 
 FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+# FILEPATH = "../data/faultcomp22/local_method2/MYRRHA_Transi-100MeV_local2_without_sec1_cryo_fault_with_tw_settings_recopied.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -82,17 +82,17 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
+    # "energy",
+    # "phase",
+    # "cav",
 ]
-PLOT_TM = True
+PLOT_TM = False
 PHASE_SPACE = False
 TWISS = False
 
 SAVES = [
-    # "energy phase and mt",
-    # "Vcav and phis",
+    "energy phase and mt",
+    "Vcav and phis",
 ]
 
 start_time = time.monotonic()
@@ -116,7 +116,6 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
 }
 
-linacs = [ref_linac, broken_linac]
 for lin in linacs:
     lin.compute_transfer_matrices()
 
@@ -159,3 +158,11 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 data_ref = tw.output_data_in_tw_fashion(ref_linac)
 data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 fault_info = fail.faults['l_obj'][0].info
+
+import matplotlib.pyplot as plt
+import numpy as np
+plt.plot(ref_linac.synch.z['abs_array'], ref_linac.synch.phi['abs_array'], label="calculated")
+lala = np.loadtxt("/home/placais/Documents/Conferences/LINAC2022/LaTeX/data/phase_TW.txt", skiprows=1)
+plt.plot(lala[:, 0], np.deg2rad(lala[:, 2]), label="reference")
+plt.grid(True)
+plt.legend()

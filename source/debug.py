@@ -46,6 +46,7 @@ def compute_error_transfer_matrix(transf_mat, transf_mat_ref,
                                 kind=kind, bounds_error=bounds_error,
                                 fill_value=fill_value)
             err[:, i] = f_interp(z_err) - transf_mat[:, i + 1]
+            # err[:, i] = np.log10(transf_mat[:, i + 1] / f_interp(z_err))
 
     else:
         z_err = transf_mat_ref[:, 0]
@@ -56,6 +57,7 @@ def compute_error_transfer_matrix(transf_mat, transf_mat_ref,
                                 kind=kind, bounds_error=bounds_error,
                                 fill_value=fill_value)
             err[:, i] = transf_mat_ref[:, i + 1] - f_interp(z_err)
+            # err[:, i] = np.log10(transf_mat_ref[:, i + 1] / f_interp(z_err))
 
     if flag_output:
         header = 'Errors on transfer matrix'
@@ -142,6 +144,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         axlist[i].plot(z_err, err[:, i], label=labels['LW'][i])
         axlist[i].set_xlabel(labels['x'][i])
         axlist[i].set_ylabel(r'$\varepsilon$' + labels['y'][i])
+        axlist[i].set_yscale('log')
         axlist[i].grid(True)
 
 

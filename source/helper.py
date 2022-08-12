@@ -218,36 +218,36 @@ def save_energy_phase_tm(lin):
         lin.synch.phi['abs_array'],
         np.reshape(lin.transf_mat['cumul'], (n_z, 4))
     ))
-    filepath = lin.files['project_folder'] + '/energy_phase_tm_' \
-        + lin.name + '.txt'
+    filepath = lin.files['results_folder'] + lin.name \
+        + '_energy_phase_tm.txt'
     filepath = filepath.replace(' ', '_')
-
-    np.savetxt(filepath, data)
+    header = 's [m] \t W_kin [MeV] \t phi_abs [rad]' \
+        + '\t M_11 \t M_12 \t M_21 \t M_22'
+    np.savetxt(filepath, data, header=header)
     print(f"Energy, phase and TM saved in {filepath}")
 
 
-def save_vcav_and_phis(accelerator):
+def save_vcav_and_phis(lin):
     """
     Output the Vcav and phi_s as a function of z.
 
-    z [m]   V_cav[MV]  phi_s[deg]
+    s [m]   V_cav [MV]  phi_s [deg]
 
     Parameters
     ----------
     accelerator: Accelerator object
         Object of corresponding to desired output.
     """
-    data_v = np.copy(accelerator.V_cav_MV)
-    valid_idx = np.where(~np.isnan(data_v))
-    data_v = data_v[valid_idx]
-    data_phi_s = np.copy(accelerator.phi_s_deg)[valid_idx]
-    data_z = np.copy(accelerator.absolute_entrance_position)[valid_idx] \
-        + np.copy(accelerator.L_m)[valid_idx]
-
-    out = np.transpose(np.vstack((data_z, data_v, data_phi_s)))
-    filepath = '../data/Vcav_and_phis.txt'
-
-    np.savetxt(filepath, out)
+    l_elts = lin.elements_of(nature='FIELD_MAP')
+    data = [[elt.pos_m['abs'][-1],
+             elt.acc_field.cav_params['v_cav_mv'],
+             elt.acc_field.cav_params['phi_s_deg']]
+            for elt in l_elts]
+    filepath = lin.files['results_folder'] + lin.name + '_Vcav_and_phis.txt'
+    filepath = filepath.replace(' ', '_')
+    header = 's [m] \t V_cav [MV] \t phi_s [deg]'
+    np.savetxt(filepath, np.array(data), header=header)
+    print(f"Cavities accelerating field and synch. phase saved in {filepath}")
 
 
 # =============================================================================

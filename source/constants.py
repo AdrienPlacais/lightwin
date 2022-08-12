@@ -40,14 +40,18 @@ FLAG_PHI_ABS = True
 FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
-METHOD = 'leapfrog'
-# METHOD = 'RK'
+# METHOD = 'leapfrog'
+METHOD = 'RK'
 
 # Number of spatial steps per RF cavity cell
 if 'leapfrog' in METHOD:
-    N_STEPS_PER_CELL = 30
+    N_STEPS_PER_CELL = 20
 elif 'RK' in METHOD:
     N_STEPS_PER_CELL = 20
+# With jm, the electric field are not interpolated. We evaluate electric field
+# at every position it is known
+elif 'jm' in METHOD:
+    N_STEPS_PER_CELL = None
 
 # To determine if transfer_matrices_c (Cython) should be used instead of _p
 # (pure Python). _c is ~2 to 4 times faster than _p.
@@ -60,6 +64,7 @@ else:
     METHOD += '_p'
 
 E_MEV = 16.6
+GAMMA_INIT = 1. + E_MEV / E_rest_MeV
 F_BUNCH_MHZ = 176.1
 OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 

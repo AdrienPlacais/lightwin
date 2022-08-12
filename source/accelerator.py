@@ -31,19 +31,19 @@ class Accelerator():
         dat_filecontent, l_elts = tw.load_dat_file(dat_filepath)
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
 
-        self.elements = {
-            'n': len(l_elts),
-            'list': l_elts,
-            'l_lattices': l_latts,
-            'l_sections': l_secs,
-        }
+        self.elements = {'n': len(l_elts),
+                         'list': l_elts,
+                         'l_lattices': l_latts,
+                         'l_sections': l_secs}
 
         tw.load_filemaps(dat_filepath, dat_filecontent,
                          self.elements['l_sections'], freqs)
         tw.give_name(self.elements['list'])
 
         self.files = {'project_folder': os.path.dirname(dat_filepath),
-                      'dat_filecontent': dat_filecontent}
+                      'dat_filecontent': dat_filecontent,
+                      'results_folder':
+                          os.path.dirname(dat_filepath) + '/results_lw/'}
 
         # Set indexes and absolute position of the different elements
         last_idx = self._set_indexes_and_abs_positions()
@@ -61,7 +61,7 @@ class Accelerator():
         }
         self.transf_mat['indiv'][0, :, :] = np.eye(2)
 
-        # Check that LW and TW computes the phases in the same way
+        # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
     def _set_indexes_and_abs_positions(self):
@@ -139,7 +139,7 @@ class Accelerator():
         if endpoints[0] == 0:
             arr_r_zz_cumul[0] = np.eye(2)
         else:
-            # Else we take the mt at the start of l_elts
+            # Else we take the tm at the start of l_elts
             # (should be already calculated)
             arr_r_zz_cumul[0] = self.transf_mat['cumul'][endpoints[0], :, :]
             assert ~np.isnan(arr_r_zz_cumul[0]).any(), \
