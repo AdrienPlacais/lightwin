@@ -205,7 +205,7 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t gamma_in, np.int64_t n_steps=1):
     return r_zz_array, gamma_phi_array, None
 
 
-def z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
+cpdef z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
                     DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                     np.int64_t section_idx):
     """Calculate the transfer matrix of a field map using Runge-Kutta."""
@@ -288,7 +288,7 @@ def z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
     return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
-def z_field_map_leapfrog(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
+cpdef z_field_map_leapfrog(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
                          DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
                          np.int64_t section_idx):
     """Calculate the transfer matrix of a field map using leapfrog."""
@@ -382,7 +382,7 @@ def z_field_map_leapfrog(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
     return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
-def z_thin_lense(gamma_in, gamma_m, gamma_out, phi_m, half_dz_s,
+cdef z_thin_lense(gamma_in, gamma_m, gamma_out, phi_m, half_dz_s,
                   delta_gamma_m_max, phi_0, omega0_rf):
     # Used for tm components
     cdef DTYPE_t beta_m = sqrt(1. - gamma_m**-2)
