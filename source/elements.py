@@ -161,20 +161,10 @@ class _Element():
             else:
                 last_arg = kwargs['e_spat']
 
-            if constants.METHOD == 'jm_c':
-                # FIXME: only valid for synch particle
-                phi_abs_in = kwargs['phi_0_rel']
-
-                r_zz, gamma_phi, itg_field = \
-                    self.tmat['func'](
-                        d_z, gamma, n_steps, kwargs['omega0_rf'],
-                        kwargs['norm'], kwargs['phi_0_rel'], last_arg,
-                        phi_abs_in)
-            else:
-                r_zz, gamma_phi, itg_field = \
-                    self.tmat['func'](
-                        d_z, gamma, n_steps, kwargs['omega0_rf'],
-                        kwargs['norm'], kwargs['phi_0_rel'], last_arg)
+            r_zz, gamma_phi, itg_field = \
+                self.tmat['func'](
+                    d_z, gamma, n_steps, kwargs['omega0_rf'],
+                    kwargs['norm'], kwargs['phi_0_rel'], last_arg)
 
             gamma_phi[:, 1] *= constants.OMEGA_0_BUNCH / kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])

@@ -11,7 +11,6 @@ General TODO list:
     - Reprofile to check where could be speed up.
         Interpolation function could be replaced by pre-interpolated array?
     - Recheck non synch particles.
-    - Method should be in constants.
     - Replace flag phi_abs/phi_rel by a three positions switch: synch/abs/rel?
 """
 import os
