@@ -206,9 +206,13 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t gamma_in, np.int64_t n_steps=1):
 
 
 cpdef z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
-                    DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
-                    np.int64_t section_idx):
+                      dict_rf_field):
     """Calculate the transfer matrix of a field map using Runge-Kutta."""
+    cdef DTYPE_t omega0_rf = dict_rf_field['omega0_rf']
+    cdef DTYPE_t k_e = dict_rf_field['k_e']
+    cdef DTYPE_t phi_0_rel = dict_rf_field['phi_0_rel']
+    cdef np.int64_t section_idx = dict_rf_field['section_idx']
+
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
@@ -289,9 +293,12 @@ cpdef z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
 
 
 cpdef z_field_map_leapfrog(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
-                         DTYPE_t omega0_rf, DTYPE_t k_e, DTYPE_t phi_0_rel,
-                         np.int64_t section_idx):
+                           dict_rf_field):
     """Calculate the transfer matrix of a field map using leapfrog."""
+    cdef DTYPE_t omega0_rf = dict_rf_field['omega0_rf']
+    cdef DTYPE_t k_e = dict_rf_field['k_e']
+    cdef DTYPE_t phi_0_rel = dict_rf_field['phi_0_rel']
+    cdef np.int64_t section_idx = dict_rf_field['section_idx']
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.

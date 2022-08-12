@@ -63,7 +63,7 @@ class RfField():
 
     def transfer_data(self, **kwargs):
         """Assign the norm, phi_0 after a fit."""
-        self.norm = kwargs['norm']
+        self.k_e = kwargs['k_e']
         self.phi_0['rel'] = kwargs['phi_0_rel']
         self.phi_0['abs'] = kwargs['phi_0_abs']
 

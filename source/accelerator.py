@@ -139,7 +139,7 @@ class Accelerator():
         if endpoints[0] == 0:
             arr_r_zz_cumul[0] = np.eye(2)
         else:
-            # Else we take the mt at the start of l_elts
+            # Else we take the tm at the start of l_elts
             # (should be already calculated)
             arr_r_zz_cumul[0] = self.transf_mat['cumul'][endpoints[0], :, :]
             assert ~np.isnan(arr_r_zz_cumul[0]).any(), \

@@ -141,7 +141,7 @@ class _Element():
             # self.tmat['solver_param']['delta_gamma_norm'] = delta_gamma_norm
         self.tmat['func'] = d_func_tm[key_fun](mod)
 
-    def calc_transf_mat(self, w_kin_in, **kwargs):
+    def calc_transf_mat(self, w_kin_in, **rf_field_kwargs):
         """Compute longitudinal matrix."""
         n_steps, d_z = self.tmat['solver_param'].values()
         gamma = 1. + w_kin_in * constants.inv_E_rest_MeV
@@ -154,19 +154,11 @@ class _Element():
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
 
-            # The field map functions from transfer_matrices_c and
-            # transfer_matrices_p do not take exactly the same argumemts
-            if constants.FLAG_CYTHON:
-                last_arg = self.idx['section'][0][0]
-            else:
-                last_arg = kwargs['e_spat']
-
             r_zz, gamma_phi, itg_field = \
-                self.tmat['func'](
-                    d_z, gamma, n_steps, kwargs['omega0_rf'],
-                    kwargs['norm'], kwargs['phi_0_rel'], last_arg)
+                self.tmat['func'](d_z, gamma, n_steps, rf_field_kwargs)
 
-            gamma_phi[:, 1] *= constants.OMEGA_0_BUNCH / kwargs['omega0_rf']
+            gamma_phi[:, 1] *= constants.OMEGA_0_BUNCH \
+                / rf_field_kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
@@ -263,7 +255,7 @@ class FieldMap(_Element):
 
     def _import_from_acc_f(self, kwargs):
         """Import norm and phi_0 from the accelerating field."""
-        kwargs['norm'] = self.acc_field.norm
+        kwargs['k_e'] = self.acc_field.norm
         kwargs['phi_0_rel'] = self.acc_field.phi_0['rel']
         kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
         return kwargs
@@ -288,13 +280,14 @@ class FieldMap(_Element):
         synch.frac_omega['bunch_to_rf'] = new_omega / constants.OMEGA_0_BUNCH
         phi_rf_abs = phi_abs_in * acc_f.omega0_rf / constants.OMEGA_0_BUNCH
 
-        kwargs = {
+        rf_field_args = {
             'omega0_rf': acc_f.omega0_rf,
-            'norm': np.NaN,
+            'k_e': np.NaN,
             'phi_0_rel': np.NaN,
             'phi_0_abs': np.NaN,
             'phi_s_objective': None,
             'e_spat': acc_f.e_spat,
+            'section_idx': self.idx['section'][0][0],
         }
 
         assert synch.info['synchronous'], 'Not sure what should happen here.'
@@ -304,7 +297,7 @@ class FieldMap(_Element):
                 phi_rf_abs, acc_f.phi_0['abs_phase_flag'], acc_f.phi_0['rel'],
                 acc_f.phi_0['abs'])
             # acc_f.convert_phi_0(phi_rf_abs, acc_f.phi_0['abs_phase_flag'])
-            kwargs = self._import_from_acc_f(kwargs)
+            rf_field_args = self._import_from_acc_f(rf_field_args)
 
         else:
             # Phases should have been imported from reference linac
@@ -315,7 +308,7 @@ class FieldMap(_Element):
                 acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
                     phi_rf_abs, constants.FLAG_PHI_ABS, acc_f.phi_0['rel'],
                     acc_f.phi_0['abs'])
-                kwargs = self._import_from_acc_f(kwargs)
+                rf_field_args = self._import_from_acc_f(rf_field_args)
 
             elif self.info['status'] == 'rephased':
                 # We must keep the relative phase equal to reference linac
@@ -333,35 +326,36 @@ class FieldMap(_Element):
                 # completeness, but it won't be used to calculate the
                 # matrix
                 if d_fit['flag']:
-                    kwargs['norm'] = d_fit['norm']
+                    rf_field_args['k_e'] = d_fit['norm']
 
                     if constants.FLAG_PHI_S_FIT:
-                        kwargs['phi_s_objective'] = d_fit['phi']
-                        kwargs['phi_0_rel'] = \
-                            self.match_synch_phase(w_kin_in, **kwargs)
+                        rf_field_args['phi_s_objective'] = d_fit['phi']
+                        rf_field_args['phi_0_rel'] = \
+                            self.match_synch_phase(w_kin_in, **rf_field_args)
 
-                        kwargs['phi_0_rel'], kwargs['phi_0_abs'] = \
-                            convert_phi_0(phi_rf_abs, False,
-                                          kwargs['phi_0_rel'],
-                                          kwargs['phi_0_abs'])
+                        rf_field_args['phi_0_rel'], \
+                            rf_field_args['phi_0_abs'] = \
+                                convert_phi_0(phi_rf_abs, False,
+                                              rf_field_args['phi_0_rel'],
+                                              rf_field_args['phi_0_abs'])
                     else:
                         # fit['phi'] is phi_0_rel or phi_0_abs according to
                         # constants.FLAG_PHI_ABS.
                         # We set it and calculate the abs/rel phi_0 that is
                         # missing.
-                        kwargs[constants.STR_PHI_0_ABS] = d_fit['phi']
-                        kwargs['phi_0_rel'], kwargs['phi_0_abs'] = \
+                        rf_field_args[constants.STR_PHI_0_ABS] = d_fit['phi']
+                        rf_field_args['phi_0_rel'], rf_field_args['phi_0_abs'] = \
                             convert_phi_0(
-                            phi_rf_abs, constants.FLAG_PHI_ABS, kwargs['phi_0_rel'],
-                            kwargs['phi_0_abs'])
+                            phi_rf_abs, constants.FLAG_PHI_ABS, rf_field_args['phi_0_rel'],
+                            rf_field_args['phi_0_abs'])
 
                 else:
                     acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
                         phi_rf_abs, constants.FLAG_PHI_ABS, acc_f.phi_0['rel'],
                         acc_f.phi_0['abs'])
-                    kwargs = self._import_from_acc_f(kwargs)
+                    rf_field_args = self._import_from_acc_f(rf_field_args)
 
-        return kwargs
+        return rf_field_args
 
     def match_synch_phase(self, w_kin_in, **kwargs):
         """Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad."""

@@ -87,11 +87,15 @@ def z_drift(delta_s, gamma_in, n_steps=1):
     return r_zz, gamma_phi, None
 
 
-def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
+def z_field_map_rk4(d_z, gamma_in, n_steps, dict_rf_field):
     """Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta."""
     z_rel = 0.
     itg_field = 0.
     half_dz = .5 * d_z
+
+    omega0_rf, k_e, phi_0_rel, e_spat = dict_rf_field['omega0_rf'], \
+        dict_rf_field['k_e'], dict_rf_field['phi_0_rel'], \
+        dict_rf_field['e_spat']
 
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c
@@ -155,8 +159,7 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel, e_spat):
     return r_zz, gamma_phi[1:, :], itg_field
 
 
-def z_field_map_leapfrog(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel,
-                         e_spat):
+def z_field_map_leapfrog(d_z, gamma_in, n_steps, dict_rf_field):
     """
     Calculate the transfer matrix of a FIELD_MAP using leapfrog.
 
@@ -176,6 +179,10 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, omega0_rf, k_e, phi_0_rel,
     z_rel = 0.
     itg_field = 0.
     half_dz = .5 * d_z
+
+    omega0_rf, k_e, phi_0_rel, e_spat = dict_rf_field['omega0_rf'], \
+        dict_rf_field['k_e'], dict_rf_field['phi_0_rel'], \
+        dict_rf_field['e_spat']
 
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c
