@@ -226,12 +226,28 @@ class Particle():
         self.phase_space['both_array'] = np.swapaxes(
             self.phase_space['both_array'], 0, 1)
 
-    def _set_omega_rf(self, new_omega):
-        """Define rf pulsation."""
+    def set_omega_rf(self, new_omega, phi_bunch_abs):
+        """
+        Define rf pulsation and convert absolute bunch phase into abs rf phase.
+
+        Parameters
+        ----------
+        new_omega : float
+            RF pulsation.
+        phi_bunch_abs : float
+            Particle phase as omega_bunch * t.
+
+        Return
+        ------
+        phi_rf_abs : float
+            Particle phase as omega_rf * t.
+        """
         self.omega0['rf'] = new_omega
         self.omega0['ref'] = new_omega
         self.frac_omega['rf_to_bunch'] = OMEGA_0_BUNCH / new_omega
         self.frac_omega['bunch_to_rf'] = new_omega / OMEGA_0_BUNCH
+        phi_rf_abs = phi_bunch_abs * self.frac_omega['bunch_to_rf']
+        return phi_rf_abs
 
     def enter_cavity(self, acc_field, cav_status='nominal', idx_in=np.NaN,
                      nominal_phi_0_rel=None):

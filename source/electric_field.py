@@ -200,7 +200,7 @@ def convert_phi_0(phi_rf_abs, abs_to_rel, phi_0_rel=None, phi_0_abs=None):
 
     By default, TW uses relative phases. In other words, it considers that
     particles always enter in the cavity at phi = 0 rad, and phi_0 is
-    defined accordingly. _phi_0_rel_to_abs recalculates phi_0 so that
+    defined accordingly. This routine recalculates phi_0 so that
     modulo(phi_abs + phi_0_abs, 2pi) = phi_rel + phi_0_rel = phi_0_rel
 
     All phases in this routine are defined by:
@@ -211,8 +211,8 @@ def convert_phi_0(phi_rf_abs, abs_to_rel, phi_0_rel=None, phi_0_abs=None):
     phi_rf_abs : float
         Absolute phase of the particle at the entrance of the cavity.
     abs_to_rel : bool
-        True if you want to convert absolute into relative.
-        False if you want to convert relative into absolute,
+        True if you want to convert absolute into relative,
+        False if you want to convert relative into absolute.
     """
     if abs_to_rel:
         assert phi_0_abs is not None

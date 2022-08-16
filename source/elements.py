@@ -260,7 +260,7 @@ class FieldMap(_Element):
         kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
         return kwargs
 
-    def set_cavity_parameters(self, synch, phi_abs_in, w_kin_in, d_fit=None):
+    def set_cavity_parameters(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
         """
         Set the properties of the electric field.
 
@@ -272,13 +272,10 @@ class FieldMap(_Element):
             d_fit = {'flag': False}
         acc_f = self.acc_field
 
-        # FIXME Equiv of synch._set_omega_rf:
+        # Set pulsation inside cavity, convert bunch phase into rf phase
         new_omega = 2. * constants.OMEGA_0_BUNCH
-        synch.omega0['rf'] = new_omega
-        synch.omega0['ref'] = new_omega
-        synch.frac_omega['rf_to_bunch'] = constants.OMEGA_0_BUNCH / new_omega
-        synch.frac_omega['bunch_to_rf'] = new_omega / constants.OMEGA_0_BUNCH
-        phi_rf_abs = phi_abs_in * acc_f.omega0_rf / constants.OMEGA_0_BUNCH
+        phi_rf_abs = synch.set_omega_rf(new_omega, phi_bunch_abs)
+        # FIXME new_omega not necessarily 2*omega_bunch
 
         rf_field_args = {
             'omega0_rf': acc_f.omega0_rf,
