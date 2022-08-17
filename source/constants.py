@@ -33,9 +33,11 @@ project_folder = ''
 # Simulation constants -- user interface
 # =============================================================================
 # To determine if the phases in the cavities are absolute or relative.
-# If they are relative, the linac is implicitely rephased when some cavities
-# are faulty (global compensation).
+# If True, cavities keep their absolute phi_0.
+# If False, cavities keep their relative phi_0; all cavities after the first
+# modified cavity change their status to 'rephased'.
 FLAG_PHI_ABS = True
+
 # Fit performed over phi_s?
 FLAG_PHI_S_FIT = True
 
