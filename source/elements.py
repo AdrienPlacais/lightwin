@@ -6,16 +6,12 @@ Created on Wed Sep 22 10:26:19 2021.
 @author: placais
 
 TODO : simplify set_cavity_parameters
-TODO : recheck this status thing... In particular these two cases:
-    - nominal linac, relative phase imported from .dat. I should import the
-      relative phase, and some time later I should save the absolute phi_0;
-    - other linac, FLAG_PHI_ABS is true. I should use the absolute phase and
-      compute the new relative phase.
+TODO : check FLAG_PHI_S_FIT
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
 from electric_field import RfField, compute_param_cav, convert_phi_0, \
-    phi_0_abs_to_rel
+    convert_phi_02
 import constants
 
 try:
@@ -315,71 +311,45 @@ class FieldMap(_Element):
 
         err_msg = 'Out of synch particle to be implemented.'
         assert synch.info['synchronous'], err_msg
+
         # By definition, the synchronous particle has a relative input phase of
         # 0.
         phi_rf_rel = 0.
 
-        # TODO may be easier with a dict and explicit function names:
-            # _take_properties_from_rf_field_object
-            # _find_new_absolute_entry_phase
-            # _match_the_synch_phase
-            # _try_the_properties_from_d_fit
-        l_nothing_to_do = ["nominal",
-                           "compensate (ok)",
-                           "compensate (not ok)",
-                           "rephased (ok)"]
-        if self.info['status'] in l_nothing_to_do:
-            k_e = a_f.k_e
-            phi_0_rel = a_f.phi_0['rel']
-            phi_0_abs = a_f.phi_0['abs']
-            flag_convert = a_f.phi_0['set_abs_phase_flag']
+        # Set norm and phi_0 of the cavity
+        d_cav_param_setter = {
+            "nominal": _take_parameters_from_rf_field_object,
+            "rephased (in progress)": _find_new_absolute_entry_phase,
+            "rephased (ok)": _take_parameters_from_rf_field_object,
+            "compensate (in progress)": _try_parameters_from_d_fit,
+            "compensate (ok)": _take_parameters_from_rf_field_object,
+            "compensate (not ok)": _take_parameters_from_rf_field_object,
+        }
+        # Argument for the functions in d_cav_param_setter
+        arg = a_f
+        if self.info['status'] == "compensate (in progress)":
+            arg = d_fit
 
-        elif self.info['status'] == 'rephased (in progress)':
-            k_e = a_f.k_e
-            phi_0_rel = a_f.phi_0['rel']
-            phi_0_abs = None
-            flag_convert = False
-            # TODO In theory, phi_0 are transfered from nominal linac
-            # at the end of the calculation, but I'd better check this...
+        # Apply
+        rf_field_kwargs, flag_abs_to_rel = \
+                d_cav_param_setter[self.info['status']](arg)
 
-        elif self.info['status'] == 'compensate (in progress)':
-            # Fit -> to rename 'trying to compensate'
-            if d_fit['flag']:
-                k_e = d_fit['norm']
-                phi_0_rel = d_fit['phi']
-                phi_0_abs = d_fit['phi']
-                raise IOError("Will not work, flag_convert is here poorly defined.")
-                flag_convert = (np.isnan(phi_0_rel)) or (phi_0_rel is None)
-                # TODO modify the fit process in order to always fit on the
-                # relative phase. Absolute phase can easily be calculated
-                # afterwards.
-                # TODO handle fit over phi_s
-
-        else:
-            raise IOError(f"elt.info['status'] == {self.info['status']} is",
-                         "invalid.")
-
-        phi_0_rel = _phi_0_abs_to_rel_if_needed(flag_convert, phi_rf_abs,
-                                                phi_0_rel, phi_0_abs)
-
-        # Check that the output is valid:
-        assert ~np.isnan(phi_0_rel) and (phi_0_rel is not None), \
-            "Error, phi_0_rel = {phi_0_rel} invalid."
-        assert ~np.isnan(phi_rf_rel) and (phi_rf_rel is not None), \
-            "Error, phi_rf_rel = {phi_rf_rel} invalid."
-
-        rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
-                           'k_e': k_e,
-                           'phi_0_rel': phi_0_rel,
-                           'e_spat': a_f.e_spat,
-                           'section_idx': self.idx['section'][0][0],
-                          }
+        # Add the parameters that are independent from the cavity status
+        rf_field_kwargs['omega0_rf'] = a_f.omega0_rf
+        rf_field_kwargs['e_spat'] = a_f.e_spat
+        rf_field_kwargs['section_idx'] = self.idx['section'][0][0]
 
         if constants.FLAG_PHI_S_FIT and d_fit['flag']:
             phi_0_rel = self.match_synch_phase2(w_kin_in,
                                                 d_fit['phi'],
                                                 **rf_field_kwargs)
             rf_field_kwargs['phi_0_rel'] = phi_0_rel
+
+        # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
+        # the cavity is rephased
+        rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
+                convert_phi_02(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
+
 
         return rf_field_kwargs
 
@@ -568,3 +538,54 @@ def _phi_0_abs_to_rel_if_needed(flag_convert, phi_rf_abs, phi_0_rel,
     else:
         out_phi_0_rel = phi_0_rel
     return out_phi_0_rel
+
+
+# TODO I am not sure at all that flag_convert is good. Should always convert
+# absolute into relative
+def _take_parameters_from_rf_field_object(a_f):
+    """Extract RfField object parameters."""
+    rf_field_kwargs = {'k_e': a_f.k_e,
+                       'phi_0_rel': None,
+                       'phi_0_abs': a_f.phi_0['abs'],
+                      }
+    flag_abs_to_rel = True
+
+    # If we are calculating the transfer matrices of the nominal linac and the
+    # initial phases are defined in the .dat as relative phases, phi_0_abs is
+    # not defined
+    if rf_field_kwargs['phi_0_abs'] is None:
+        print('_take_parameters_from_rf_field_object: just a test message')
+        rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
+        flag_abs_to_rel = False
+    return rf_field_kwargs, flag_abs_to_rel
+
+
+# TODO In theory, phi_0 are transfered from nominal linac
+# at the end of the calculation, but I'd better check this...
+def _find_new_absolute_entry_phase(a_f):
+    """Extract RfField parameters, except phi_0_abs that is recalculated."""
+    rf_field_kwargs = {'k_e': a_f.k_e,
+                       'phi_0_rel': a_f.phi_0['rel'],
+                       'phi_0_abs': None,
+                      }
+    flag_abs_to_rel = False
+    return rf_field_kwargs, flag_abs_to_rel
+
+
+def _try_parameters_from_d_fit(d_fit):
+    """Extract parameters from d_fit."""
+    assert d_fit['flag'], "Inconistenncy between cavity status and d_fit flag."
+    rf_field_kwargs = {
+        'k_e': d_fit['norm'],
+        'phi_0_rel': d_fit['phi'],
+        'phi_0_abs': d_fit['phi'],
+    }
+
+    flag_abs_to_rel = constants.FLAG_PHI_ABS
+    print('_try_parameters_from_d_fit: check')
+    # TODO modify the fit process in order to always fit on the
+    # relative phase. Absolute phase can easily be calculated
+    # afterwards.
+    # TODO handle fit over phi_s (there is already something in
+    # set_cavity_parameters2)
+    return rf_field_kwargs, flag_abs_to_rel
