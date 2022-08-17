@@ -350,7 +350,6 @@ class FieldMap(_Element):
         rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
                 convert_phi_02(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
 
-
         return rf_field_kwargs
 
     def set_cavity_parameters(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):

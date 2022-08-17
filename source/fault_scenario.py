@@ -52,18 +52,17 @@ class FaultScenario():
         broken linac, it comes down to rephasing the linac. This is what we
         want to avoid when FLAG_PHI_ABS = True.
         """
+        # Get CavitieS of REFerence and BROKen linacs
         ref_cs = self.ref_lin.elements_of('FIELD_MAP')
         brok_cs = self.brok_lin.elements_of('FIELD_MAP')
 
-        # TODO more compact formulation with zip?
-        # Transfer both relative and absolute phase flags
-        for i, ref_c in enumerate(ref_cs):
-            ref_acc_f = ref_c.acc_field
-            brok_acc_f = brok_cs[i].acc_field
+        for ref_c, brok_c in zip(ref_cs, brok_cs):
+            ref_a_f = ref_c.acc_f
+            brok_a_f = brok_c.acc_f
 
-            for str_phi_abs in ['rel', 'abs']:
-                brok_acc_f.phi_0[str_phi_abs] = ref_acc_f.phi_0[str_phi_abs]
-            brok_acc_f.phi_0['nominal_rel'] = ref_acc_f.phi_0['rel']
+            brok_a_f.phi_0['abs'] = ref_a_f.phi_0['abs']
+            brok_a_f.phi_0['rel'] = ref_a_f.phi_0['rel']
+            brok_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['rel']
 
     def fix_all(self):
         """
