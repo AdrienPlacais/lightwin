@@ -69,14 +69,14 @@ class Fault():
 
         self.count = 0
         if OPTI_METHOD == 'least_squares':
-            sol_succ, opti_sol = self._proper_fix_lsq_opt(initial_guesses,
-                                                          bounds, wrapper_args)
+            flag_success, opti_sol = self._proper_fix_lsq_opt(
+                initial_guesses, bounds, wrapper_args)
 
         elif OPTI_METHOD == 'PSO':
-            sol_succ, opti_sol = self._proper_fix_pso(
+            flag_success, opti_sol = self._proper_fix_pso(
                 initial_guesses, bounds, wrapper_args, phi_s_limits)
 
-        return sol_succ, opti_sol
+        return flag_success, opti_sol
 
     def _proper_fix_lsq_opt(self, init_guess, bounds, wrapper_args):
         """

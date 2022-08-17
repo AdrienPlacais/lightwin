@@ -11,9 +11,6 @@ smoothen the individual fixes. # TODO
 
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
-
-TODO re-update status of rephased cavities to "rephase (ok)" after the
-calculation
 """
 import itertools
 from constants import FLAG_PHI_ABS, WHAT_TO_FIT
@@ -42,9 +39,6 @@ class FaultScenario():
         self.info = {'fit': None}
 
         if not FLAG_PHI_ABS:
-            print("Warning, the phases in the broken linac are relative.",
-                  "It may be more relatable to use absolute phases, as",
-                  "it would avoid the rephasing of the linac at each cavity.")
             self._update_status_of_cavities_to_rephase()
 
     def transfer_phi0_from_ref_to_broken(self):
@@ -143,6 +137,50 @@ class FaultScenario():
 
         return l_faults_obj
 
+    def fix_all(self):
+        """
+        Fix the linac.
+
+        First, fix all the Faults independently. Then, recompute the linac
+        and make small adjustments.
+        """
+        # We fix all Faults individually
+        l_flags_success = []
+        for i, fault in enumerate(self.faults['l_obj']):
+            flag_success, opti_sol = fault.fix_single()
+            l_flags_success.append(flag_success)
+
+            # Recompute transfer matrix with proper solution
+            # The norms and phi_0 from sol.x will be transfered to the electric
+            # field objects thanks to transfer_data=True
+            d_fits = {'flag': True,
+                      'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
+                      'l_norm': opti_sol[fault.comp['n_cav']:].tolist(),
+                     }
+            self.brok_lin.compute_transfer_matrices(
+                fault.comp['l_recompute'], d_fits=d_fits,
+                flag_transfer_data=True)
+
+            self._compute_matrix_to_next_fault(fault, flag_success)
+            if not FLAG_PHI_ABS:
+                self._reupdate_status_of_rephased_cavities(fault)
+
+        # TODO plot interesting data before the second fit to see if it is
+        # useful
+        # TODO remake a small fit to be sure
+
+        # At the end we recompute the full transfer matrix
+        self.brok_lin.compute_transfer_matrices()
+        self.brok_lin.name = 'Fixed (' + str(l_flags_success.count(True)) \
+                + ' of ' + str(len(l_flags_success)) + ')'
+
+        for linac in [self.ref_lin, self.brok_lin]:
+            self.info[linac.name + ' cav'] = \
+                debug.output_cavities(linac, mod_f.debugs['cav'])
+
+        self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
+                                            mod_f.debugs['fit_compact'])
+
     def _update_status_of_cavities_to_rephase(self):
         """
         Change the status of some cavities to 'rephased'.
@@ -155,8 +193,12 @@ class FaultScenario():
         Even in the case of an absolute phase calculation, cavities in the
         HEBT are rephased.
         """
+        print("Warning, the phases in the broken linac are relative.",
+              "It may be more relatable to use absolute phases, as",
+              "it would avoid the rephasing of the linac at each cavity.")
+
         # We get first failed cav index
-        ffc_idx = min([self.faults['l_idx_fault'])
+        ffc_idx = min(self.faults['l_idx_fault'])
         after_ffc = self.brok_lin.elements['list'][ffc_idx:]
 
         cav_to_rephase = [
@@ -168,50 +210,7 @@ class FaultScenario():
         for cav in cav_to_rephase:
             cav.update_status('rephased (in progress)')
 
-    def fix_all(self):
-        """
-        Fix the linac.
-
-        First, fix all the Faults independently. Then, recompute the linac
-        and make small adjustments.
-        """
-        # FIXME
-        # self._select_cavities_to_rephase()
-
-        # We fix all Faults individually
-        successes = []
-        for i, f in enumerate(self.faults['l_obj']):
-            sol_succ, opti_sol = f.fix_single()
-            successes.append(sol_succ)
-
-            # Recompute transfer matrix with proper solution
-            # The norms and phi_0 from sol.x will be transfered to the electric
-            # field objects thanks to transfer_data=True
-            d_fits = {
-                'flag': True,
-                'l_phi': opti_sol[:f.comp['n_cav']].tolist(),
-                'l_norm': opti_sol[f.comp['n_cav']:].tolist(),
-            }
-            self.brok_lin.compute_transfer_matrices(
-                f.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=True)
-
-            self.compute_matrix_to_next_fault(f, sol_succ)
-        # TODO plot interesting data before the second fit to see if it is
-        # useful
-        # TODO remake a small fit to be sure
-
-        # At the end we recompute the full transfer matrix
-        self.brok_lin.compute_transfer_matrices()
-        self.brok_lin.name = 'Fixed (' + str(successes.count(True)) + ' of ' +\
-            str(len(successes)) + ')'
-
-        for linac in [self.ref_lin, self.brok_lin]:
-            self.info[linac.name + ' cav'] = \
-                debug.output_cavities(linac, mod_f.debugs['cav'])
-        self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
-                                            mod_f.debugs['fit_compact'])
-
-    def compute_matrix_to_next_fault(self, fault, success):
+    def _compute_matrix_to_next_fault(self, fault, success):
         """Recompute transfer matrices between this fault and the next."""
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elements['list']
@@ -228,3 +227,26 @@ class FaultScenario():
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2,
                                                 flag_transfer_data=True)
+
+    def _reupdate_status_of_rephased_cavities(self, fault):
+        """
+        Modify the status of the cavities that were already rephased.
+
+        Change the cavities with status "rephased (in progress)" to
+        "rephased (ok)" between this fault and the next one.
+        """
+        l_faults = self.faults['l_obj']
+        l_elts = self.brok_lin.elements['list']
+
+        idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
+        if fault is l_faults[-1]:
+            idx2 = len(l_elts)
+        else:
+            next_fault = l_faults[l_faults.index(fault) + 1]
+            idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+
+        l_cav_between_two_faults = [elt for elt in l_elts[idx1:idx2]
+                                    if elt.info['nature'] == 'FIELD_MAP']
+        for cav in l_cav_between_two_faults:
+            if cav.info['status'] == 'rephased (in progress)':
+                cav.update_status('rephased (ok)')
