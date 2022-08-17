@@ -221,3 +221,9 @@ def convert_phi_0(phi_rf_abs, abs_to_rel, phi_0_rel=None, phi_0_abs=None):
         assert phi_0_rel is not None
         phi_0_abs = np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
     return phi_0_rel, phi_0_abs
+
+
+def phi_0_abs_to_rel(phi_rf_abs, phi_0_abs):
+    phi_0_rel = np.mod(phi_0_abs + phi_rf_abs, 2. * np.pi)
+    return phi_0_rel
+

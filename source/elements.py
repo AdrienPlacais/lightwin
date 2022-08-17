@@ -9,7 +9,8 @@ TODO : simplify set_cavity_parameters
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-from electric_field import RfField, compute_param_cav, convert_phi_0
+from electric_field import RfField, compute_param_cav, convert_phi_0, \
+    phi_0_abs_to_rel
 import constants
 
 try:
@@ -142,7 +143,19 @@ class _Element():
         self.tmat['func'] = d_func_tm[key_fun](mod)
 
     def calc_transf_mat(self, w_kin_in, **rf_field_kwargs):
-        """Compute longitudinal matrix."""
+        """
+        Compute longitudinal matrix.
+
+        Parameters
+        ----------
+        w_kin_in : float
+            Kinetic energy at the entrance of the element in MeV.
+        rf_field_kwargs : dict
+            Holds all the rf field parameters. The mandatory keys are:
+                omega0_rf, k_e, phi_0_rel
+            For Python implementation, also need e_spat.
+            For Cython implementation, also need section_idx.
+        """
         n_steps, d_z = self.tmat['solver_param'].values()
         gamma = 1. + w_kin_in * constants.inv_E_rest_MeV
 
@@ -260,6 +273,100 @@ class FieldMap(_Element):
         kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
         return kwargs
 
+    def set_cavity_parameters2(self, synch, phi_bunch_abs, w_kin_in,
+                               d_fit=None):
+        """
+        Set the properties of the electric field.
+
+        In this routine, all phases are rf phases, i.e. defined as:
+            phi = omega0_rf * t
+        while phases are omega0_bunch * t in most of the program.
+
+        Return
+        ------
+        phi_rf_rel: float
+            Relative phase of the particle at the entry of the cavity.
+        """
+        a_f = self.acc_field
+
+        # Set pulsation inside cavity, convert bunch phase into rf phase
+        new_omega = 2. * constants.OMEGA_0_BUNCH
+        phi_rf_abs = synch.set_omega_rf(new_omega, phi_bunch_abs)
+        # FIXME new_omega not necessarily 2*omega_bunch
+
+        err_msg = 'Should not look for cavity parameters of a broken cavity.'
+        assert self.info['status'] != 'fault', err_msg
+
+        err_msg = 'Out of synch particle to be implemented.'
+        assert synch.info['synchronous'], err_msg
+        # By definition, the synchronous particle has a relative input phase of
+        # 0.
+        phi_rf_rel = 0.
+
+        if self.info['status'] == 'nominal':
+            k_e = a_f.k_e
+            phi_0_rel = a_f.phi_0['rel']
+            phi_0_abs = a_f.phi_0['abs']
+            flag_convert = a_f.phi_0['set_abs_phase_flag']
+
+        elif self.info['status'] == 'rephased':
+            k_e = a_f.k_e
+            phi_0_rel = a_f.phi_0['rel']
+            phi_0_abs = None
+            flag_convert = False
+            # TODO In theory, phi_0 are transfered from nominal linac
+            # at the end of the calculation, but I'd better check this...
+
+        elif self.info['status'] == 'compensate':
+            # Fit -> to rename 'trying to compensate'
+            if d_fit['flag']:
+                k_e = d_fit['norm']
+                phi_0_rel = d_fit['phi']
+                phi_0_abs = d_fit['phi']
+                raise IOError("Will not work, flag_convert is here poorly defined.")
+                flag_convert = (np.isnan(phi_0_rel)) or (phi_0_rel is None)
+                # TODO modify the fit process in order to always fit on the
+                # relative phase. Absolute phase can easily be calculated
+                # afterwards.
+                # TODO handle fit over phi_s
+
+            # No fit -> to rename 'compensate ok' or 'compensate nok'
+            # (this is the same as self.info['status'] nominal, new settings
+            # were found and are stored in self.acc_field)
+            else:
+                k_e = a_f.k_e
+                phi_0_rel = a_f.phi_0['rel']
+                phi_0_abs = a_f.phi_0['abs']
+                flag_convert = a_f.phi_0['set_abs_phase_flag']
+
+        else:
+            raise IOError(f"elt.info['status'] == {self.info['status']} is",
+                         "invalid.")
+
+        phi_0_rel = _phi_0_abs_to_rel_if_needed(flag_convert, phi_rf_abs,
+                                                phi_0_rel, phi_0_abs)
+
+        # Check that the output is valid:
+        assert ~np.isnan(phi_0_rel) and (phi_0_rel is not None), \
+            "Error, phi_0_rel = {phi_0_rel} invalid."
+        assert ~np.isnan(phi_rf_rel) and (phi_rf_rel is not None), \
+            "Error, phi_rf_rel = {phi_rf_rel} invalid."
+
+        rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
+                           'k_e': k_e,
+                           'phi_0_rel': phi_0_rel,
+                           'e_spat': a_f.e_spat,
+                           'section_idx': self.idx['section'][0][0],
+                          }
+
+        if constants.FLAG_PHI_S_FIT and d_fit['flag']:
+            phi_0_rel = self.match_synch_phase2(w_kin_in,
+                                                d_fit['phi'],
+                                                **rf_field_kwargs)
+            rf_field_kwargs['phi_0_rel'] = phi_0_rel
+
+        return rf_field_kwargs
+
     def set_cavity_parameters(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
         """
         Set the properties of the electric field.
@@ -354,23 +461,73 @@ class FieldMap(_Element):
 
         return rf_field_args
 
-    def match_synch_phase(self, w_kin_in, **kwargs):
-        """Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad."""
+    def match_synch_phase2(self, w_kin_in, phi_s_objective, **rf_field_kwargs):
+        """
+        Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad.
+
+        Parameters
+        ----------
+        w_kin_in : float
+            Kinetic energy at the cavity entrance in MeV.
+        rf_field_kwargs : dict
+            Holds all rf electric field parameters.
+
+        Return
+        ------
+        phi_0_rel : float
+            The relative cavity entrance phase that leads to a synchronous
+            phase of phi_s_objective.
+        """
         bounds = (0, 2. * np.pi)
 
-        def _wrapper_synch(phi_0_rad):
-            kwargs['phi_0_rel'] = phi_0_rad
-            results = self.calc_transf_mat(w_kin_in, **kwargs)
+        def _wrapper_synch(phi_0_rel):
+            rf_field_kwargs['phi_0_rel'] = phi_0_rel
+            results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
             diff = helper.diff_angle(
-                kwargs['phi_s_objective'],
+                phi_s_objective,
                 results['cav_params']['phi_s_rad'])
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)
         if not res.success:
             print('match synch phase not found')
+        phi_0_rel = res.x
 
-        return res.x
+        return phi_0_rel
+
+    def match_synch_phase(self, w_kin_in, **rf_field_kwargs):
+        """
+        Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad.
+
+        Parameters
+        ----------
+        w_kin_in : float
+            Kinetic energy at the cavity entrance in MeV.
+        rf_field_kwargs : dict
+            Holds all rf electric field parameters.
+
+        Return
+        ------
+        phi_0_rel : float
+            The relative cavity entrance phase that leads to a synchronous
+            phase of phi_s_objective.
+        """
+        bounds = (0, 2. * np.pi)
+
+        def _wrapper_synch(phi_0_rel):
+            rf_field_kwargs['phi_0_rel'] = phi_0_rel
+            results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
+            diff = helper.diff_angle(
+                rf_field_kwargs['phi_s_objective'],
+                results['cav_params']['phi_s_rad'])
+            return diff**2
+
+        res = minimize_scalar(_wrapper_synch, bounds=bounds)
+        if not res.success:
+            print('match synch phase not found')
+        phi_0_rel = res.x
+
+        return phi_0_rel
 
 
 class Lattice():
@@ -385,3 +542,13 @@ class Freq():
 
     def __init__(self, elem):
         self.f_rf_mhz = float(elem[1])
+
+
+def _phi_0_abs_to_rel_if_needed(flag_convert, phi_rf_abs, phi_0_rel,
+                                phi_0_abs):
+    """Give directly phi_0_rel or calculate it from phi_0_abs."""
+    if flag_convert:
+        out_phi_0_rel = np.mod(phi_rf_abs + phi_0_abs, 2. * np.pi)
+    else:
+        out_phi_0_rel = phi_0_rel
+    return out_phi_0_rel
