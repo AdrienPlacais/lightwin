@@ -57,8 +57,8 @@ class FaultScenario():
         brok_cs = self.brok_lin.elements_of('FIELD_MAP')
 
         for ref_c, brok_c in zip(ref_cs, brok_cs):
-            ref_a_f = ref_c.acc_f
-            brok_a_f = brok_c.acc_f
+            ref_a_f = ref_c.acc_field
+            brok_a_f = brok_c.acc_field
 
             brok_a_f.phi_0['abs'] = ref_a_f.phi_0['abs']
             brok_a_f.phi_0['rel'] = ref_a_f.phi_0['rel']
@@ -257,4 +257,3 @@ class FaultScenario():
             f.prepare_cavities(l_comp_cav)
 
         return l_faults_obj
-

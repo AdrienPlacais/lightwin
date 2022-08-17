@@ -7,6 +7,8 @@ Created on Wed Sep 22 10:26:19 2021.
 
 TODO : simplify set_cavity_parameters
 TODO : check FLAG_PHI_S_FIT
+TODO : set_cavity_parameters should also return phi_rf_rel. Will be necessary
+for non-synch particles.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
@@ -332,7 +334,7 @@ class FieldMap(_Element):
 
         # Apply
         rf_field_kwargs, flag_abs_to_rel = \
-                d_cav_param_setter[self.info['status']](arg)
+            d_cav_param_setter[self.info['status']](arg)
 
         # Add the parameters that are independent from the cavity status
         rf_field_kwargs['omega0_rf'] = a_f.omega0_rf
@@ -348,7 +350,7 @@ class FieldMap(_Element):
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
         rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
-                convert_phi_02(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
+            convert_phi_02(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
 
         return rf_field_kwargs
 
@@ -546,14 +548,14 @@ def _take_parameters_from_rf_field_object(a_f):
     rf_field_kwargs = {'k_e': a_f.k_e,
                        'phi_0_rel': None,
                        'phi_0_abs': a_f.phi_0['abs'],
-                      }
+                       }
     flag_abs_to_rel = True
 
     # If we are calculating the transfer matrices of the nominal linac and the
     # initial phases are defined in the .dat as relative phases, phi_0_abs is
     # not defined
     if rf_field_kwargs['phi_0_abs'] is None:
-        print('_take_parameters_from_rf_field_object: just a test message')
+        # print('_take_parameters_from_rf_field_object: just a test message')
         rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
         flag_abs_to_rel = False
     return rf_field_kwargs, flag_abs_to_rel
@@ -566,14 +568,15 @@ def _find_new_absolute_entry_phase(a_f):
     rf_field_kwargs = {'k_e': a_f.k_e,
                        'phi_0_rel': a_f.phi_0['rel'],
                        'phi_0_abs': None,
-                      }
+                       }
     flag_abs_to_rel = False
     return rf_field_kwargs, flag_abs_to_rel
 
 
 def _try_parameters_from_d_fit(d_fit):
     """Extract parameters from d_fit."""
-    assert d_fit['flag'], "Inconistenncy between cavity status and d_fit flag."
+    print(d_fit)
+    assert d_fit['flag'], "Inconsistency between cavity status and d_fit flag."
     rf_field_kwargs = {
         'k_e': d_fit['norm'],
         'phi_0_rel': d_fit['phi'],

@@ -168,7 +168,7 @@ class Accelerator():
                 else:
                     d_fit_elt = d_fits
 
-                kwargs = elt.set_cavity_parameters(self.synch, phi_abs,
+                kwargs = elt.set_cavity_parameters2(self.synch, phi_abs,
                                                    w_kin, d_fit_elt)
                 elt_results = elt.calc_transf_mat(w_kin, **kwargs)
                 phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
