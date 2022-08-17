@@ -33,7 +33,8 @@ project_folder = ''
 # Simulation constants -- user interface
 # =============================================================================
 # To determine if the phases in the cavities are absolute or relative.
-# If True, cavities keep their absolute phi_0.
+# If True, cavities keep their absolute phi_0 (!! relative phi_0 may be changed
+# though !!).
 # If False, cavities keep their relative phi_0; all cavities after the first
 # modified cavity change their status to 'rephased'.
 FLAG_PHI_ABS = True

@@ -261,7 +261,7 @@ class Particle():
         """
         if np.isnan(idx_in):
             idx_in = np.where(np.isnan(self.phi['abs_array']))[0][0] - 1
-        self._set_omega_rf(acc_field.omega0_rf)
+        bla = self.set_omega_rf(acc_field.omega0_rf)
 
         self.phi['abs'] = self.phi['abs_array'][idx_in]
         self.phi['abs_rf'] = self.phi['abs'] * self.frac_omega['bunch_to_rf']

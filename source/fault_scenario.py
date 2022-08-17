@@ -11,6 +11,9 @@ smoothen the individual fixes. # TODO
 
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
+
+TODO re-update status of rephased cavities to "rephase (ok)" after the
+calculation
 """
 import itertools
 from constants import FLAG_PHI_ABS, WHAT_TO_FIT
@@ -31,18 +34,18 @@ class FaultScenario():
         # Save faults as a list of Fault objects and as a list of cavity idx
         l_idx_fault = sorted(l_idx_fault)
         self.faults = {
-            'l_obj': self._distribute_and_create_fault_objects(
-                l_idx_fault, l_idx_comp),
+            'l_obj': self._distribute_and_create_fault_objects(l_idx_fault,
+                                                               l_idx_comp),
             'l_idx': l_idx_fault,
         }
 
         self.info = {'fit': None}
 
         if not FLAG_PHI_ABS:
-            print('Warning, the phases in the broken linac are relative.',
-                  'It may be more relatable to use absolute phases, as',
-                  'it would avoid the implicit rephasing of the linac at',
-                  'each cavity.\n')
+            print("Warning, the phases in the broken linac are relative.",
+                  "It may be more relatable to use absolute phases, as",
+                  "it would avoid the rephasing of the linac at each cavity.")
+            self._update_status_of_cavities_to_rephase()
 
     def transfer_phi0_from_ref_to_broken(self):
         """
@@ -139,6 +142,31 @@ class FaultScenario():
             f.prepare_cavities(l_comp_cav)
 
         return l_faults_obj
+
+    def _update_status_of_cavities_to_rephase(self):
+        """
+        Change the status of some cavities to 'rephased'.
+
+        If the calculation is in relative phase, all cavities that are after
+        the first failed one are rephased.
+        ---
+        Legacy, I do not know why I wrote this:
+        ---
+        Even in the case of an absolute phase calculation, cavities in the
+        HEBT are rephased.
+        """
+        # We get first failed cav index
+        ffc_idx = min([self.faults['l_idx_fault'])
+        after_ffc = self.brok_lin.elements['list'][ffc_idx:]
+
+        cav_to_rephase = [
+            cav for cav in after_ffc
+            if (cav.info['nature'] == 'FIELD_MAP'
+                and cav.info['status'] == 'nominal')
+            # and (cav.info['zone'] == 'HEBT' or not FLAG_PHI_ABS)
+        ]
+        for cav in cav_to_rephase:
+            cav.update_status('rephased (in progress)')
 
     def fix_all(self):
         """

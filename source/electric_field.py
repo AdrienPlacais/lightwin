@@ -4,6 +4,9 @@
 Created on Tue Nov 30 15:43:39 2021.
 
 @author: placais
+
+TODO : remove RfField.norm that should not be used anymore
+TODO : phi_s_rad_objective should not be used too
 """
 import cmath
 import numpy as np
@@ -37,6 +40,7 @@ class RfField():
         self.e_spat = lambda x: 0.
 
         self.norm = norm
+        self.k_e = norm
 
         self.phi_0 = {'rel': None,
                       'abs': None,

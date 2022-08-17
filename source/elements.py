@@ -6,6 +6,11 @@ Created on Wed Sep 22 10:26:19 2021.
 @author: placais
 
 TODO : simplify set_cavity_parameters
+TODO : recheck this status thing... In particular these two cases:
+    - nominal linac, relative phase imported from .dat. I should import the
+      relative phase, and some time later I should save the absolute phi_0;
+    - other linac, FLAG_PHI_ABS is true. I should use the absolute phase and
+      compute the new relative phase.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
@@ -196,10 +201,21 @@ class _Element():
             'element only makes sense for cavities.'
 
         authorized_values = [
-            'nominal',
-            'failed',
-            'compensate',
-            'rephased',
+            # Cavity settings not changed from .dat
+            "nominal",
+            # Cavity ABSOLUTE phase changed; relative phase unchanged
+            "rephased (in progress)",
+            "rephased (ok)",
+            # Cavity norm is 0
+            "failed",
+            # TODO remove in the future
+            "compensate",
+            # Trying to fit
+            "compensate (in progress)",
+            # Compensating, proper setting found
+            "compensate (ok)",
+            # Compensating, proper setting not found
+            "compensate (not ok)",
         ]
         assert new_status in authorized_values
 
@@ -303,13 +319,22 @@ class FieldMap(_Element):
         # 0.
         phi_rf_rel = 0.
 
-        if self.info['status'] == 'nominal':
+        # TODO may be easier with a dict and explicit function names:
+            # _take_properties_from_rf_field_object
+            # _find_new_absolute_entry_phase
+            # _match_the_synch_phase
+            # _try_the_properties_from_d_fit
+        l_nothing_to_do = ["nominal",
+                           "compensate (ok)",
+                           "compensate (not ok)",
+                           "rephased (ok)"]
+        if self.info['status'] in l_nothing_to_do:
             k_e = a_f.k_e
             phi_0_rel = a_f.phi_0['rel']
             phi_0_abs = a_f.phi_0['abs']
             flag_convert = a_f.phi_0['set_abs_phase_flag']
 
-        elif self.info['status'] == 'rephased':
+        elif self.info['status'] == 'rephased (in progress)':
             k_e = a_f.k_e
             phi_0_rel = a_f.phi_0['rel']
             phi_0_abs = None
@@ -317,7 +342,7 @@ class FieldMap(_Element):
             # TODO In theory, phi_0 are transfered from nominal linac
             # at the end of the calculation, but I'd better check this...
 
-        elif self.info['status'] == 'compensate':
+        elif self.info['status'] == 'compensate (in progress)':
             # Fit -> to rename 'trying to compensate'
             if d_fit['flag']:
                 k_e = d_fit['norm']
@@ -329,15 +354,6 @@ class FieldMap(_Element):
                 # relative phase. Absolute phase can easily be calculated
                 # afterwards.
                 # TODO handle fit over phi_s
-
-            # No fit -> to rename 'compensate ok' or 'compensate nok'
-            # (this is the same as self.info['status'] nominal, new settings
-            # were found and are stored in self.acc_field)
-            else:
-                k_e = a_f.k_e
-                phi_0_rel = a_f.phi_0['rel']
-                phi_0_abs = a_f.phi_0['abs']
-                flag_convert = a_f.phi_0['set_abs_phase_flag']
 
         else:
             raise IOError(f"elt.info['status'] == {self.info['status']} is",

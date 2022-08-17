@@ -211,8 +211,9 @@ class Fault():
         """
         Prepare the optimisation process.
 
-        In particular, give status 'compensate' and 'broken' to proper
-        cavities. Define the full lattices incorporating the compensating and
+        In particular, update the status of some cavities: 'failed',
+        'compensate (in progress)'...
+        Define the full lattices incorporating the compensating and
         faulty cavities.
         """
         # Break proper cavities
@@ -228,7 +229,7 @@ class Fault():
             if cav.info['status'] != 'nominal':
                 print('warning check fault.update_status_cavities: ',
                       'several faults want the same compensating cavity!')
-            cav.update_status('compensate')
+            cav.update_status('compensate (in progress)')
             self.comp['l_cav'].append(cav)
         self.comp['n_cav'] = len(self.comp['l_cav'])
 
@@ -244,30 +245,6 @@ class Fault():
                                    if any((cav in lattice
                                            for cav in self.comp['l_cav']))
                                    ]
-
-    def _select_cavities_to_rephase(self):
-        """
-        Change the status of some cavities to 'rephased'.
-
-        If the calculation is in relative phase, all cavities that are after
-        the the first failed one are rephased.
-        Even in the case of an absolute phase calculation, cavities in the
-        HEBT are rephased.
-        """
-        # We get first failed cav index
-        ffc_idx = min([fail_cav.idx['elements']
-                       for fail_cav in self.fail['l_cav']])
-        after_ffc = self.brok_lin.elements['list'][ffc_idx:]
-
-        cav_to_rephase = [
-            cav for cav in after_ffc
-            if (cav.info['nature'] == 'FIELD_MAP'
-                and cav.info['status'] == 'nominal')
-            and (cav.info['zone'] == 'HEBT'
-                 or not FLAG_PHI_ABS)
-        ]
-        for cav in cav_to_rephase:
-            cav.update_status('rephased')
 
     def _select_comp_modules(self, modules_with_fail):
         """Give failed modules and their neighbors."""
