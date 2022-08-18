@@ -131,7 +131,7 @@ for plot in PLOTS:
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
 # Broken linac but with proper cavities status
-# fail.set_cavities_status(manual_list)
+# fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()
 # linacs = [ref_linac, broken_linac]
 

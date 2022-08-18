@@ -37,12 +37,8 @@ class FaultScenario():
 
         self.info = {'fit': None}
 
-    def set_cavities_status(self, l_comp_idx):
-        self._update_status_of_cavities_that_compensate(l_comp_idx)
-        # If the calculation is made in relative phase, we change the status
-        # of all the cavities after the first fault to tell LightWin that it
-        # must conserve the cavities RELATIVE phi_0, not the absolute one.
-        # Set compensating cavities
+        # Change status of cavities after the first failed cavity to tell LW
+        # that they must keep their relative entry phases, not their absolute
         if not FLAG_PHI_ABS:
             self._update_status_of_cavities_to_rephase()
 
@@ -179,7 +175,7 @@ class FaultScenario():
             )
         return l_faults_obj
 
-    def _update_status_of_cavities_that_compensate(self, l_comp_idx):
+    def update_status_of_cavities_that_compensate(self, l_comp_idx):
         """Call set_compensating_cavities froms faults with proper args."""
         if WHAT_TO_FIT['strategy'] == 'manual':
             msg = "There should be a list of compensating cavities for" \
@@ -212,7 +208,7 @@ class FaultScenario():
               "it would avoid the rephasing of the linac at each cavity.")
 
         # We get first failed cav index
-        ffc_idx = min(self.faults['l_fault_idx'])
+        ffc_idx = min(self.faults['l_idx'])
         after_ffc = self.brok_lin.elements['list'][ffc_idx:]
 
         cav_to_rephase = [

@@ -168,10 +168,13 @@ def _plot_field_map(field_map, x0, width):
     height = 1.
     y0 = height * .5
     dict_colors = {
-        'failed': 'red',
-        'compensate': 'orange',
-        'rephased': 'yellow',
         'nominal': 'green',
+        'rephased (in progress)': 'yellow',
+        'rephased (ok)': 'yellow',
+        'failed': 'red',
+        'compensate (in progress)': 'orange',
+        'compensate (ok)': 'orange',
+        'compensate (not ok)': 'orange',
     }
     patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
                         lw=0.5, fc=dict_colors[field_map.info['status']],
