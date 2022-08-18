@@ -114,35 +114,6 @@ class FaultScenario():
         self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
                                             mod_f.debugs['fit_compact'])
 
-    def _update_status_of_cavities_to_rephase(self):
-        """
-        Change the status of some cavities to 'rephased'.
-
-        If the calculation is in relative phase, all cavities that are after
-        the first failed one are rephased.
-        ---
-        Legacy, I do not know why I wrote this:
-        ---
-        Even in the case of an absolute phase calculation, cavities in the
-        HEBT are rephased.
-        """
-        print("Warning, the phases in the broken linac are relative.",
-              "It may be more relatable to use absolute phases, as",
-              "it would avoid the rephasing of the linac at each cavity.")
-
-        # We get first failed cav index
-        ffc_idx = min(self.faults['l_fault_idx'])
-        after_ffc = self.brok_lin.elements['list'][ffc_idx:]
-
-        cav_to_rephase = [
-            cav for cav in after_ffc
-            if (cav.info['nature'] == 'FIELD_MAP'
-                and cav.info['status'] == 'nominal')
-            # and (cav.info['zone'] == 'HEBT' or not FLAG_PHI_ABS)
-        ]
-        for cav in cav_to_rephase:
-            cav.update_status('rephased (in progress)')
-
     def _compute_matrix_to_next_fault(self, fault, success):
         """Recompute transfer matrices between this fault and the next."""
         l_faults = self.faults['l_obj']
@@ -160,29 +131,6 @@ class FaultScenario():
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2,
                                                 flag_transfer_data=True)
-
-    def _reupdate_status_of_rephased_cavities(self, fault):
-        """
-        Modify the status of the cavities that were already rephased.
-
-        Change the cavities with status "rephased (in progress)" to
-        "rephased (ok)" between this fault and the next one.
-        """
-        l_faults = self.faults['l_obj']
-        l_elts = self.brok_lin.elements['list']
-
-        idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
-        if fault is l_faults[-1]:
-            idx2 = len(l_elts)
-        else:
-            next_fault = l_faults[l_faults.index(fault) + 1]
-            idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
-
-        l_cav_between_two_faults = [elt for elt in l_elts[idx1:idx2]
-                                    if elt.info['nature'] == 'FIELD_MAP']
-        for cav in l_cav_between_two_faults:
-            if cav.info['status'] == 'rephased (in progress)':
-                cav.update_status('rephased (ok)')
 
     def _gather_and_create_fault_objects(self, l_fault_idx):
         """
@@ -245,3 +193,55 @@ class FaultScenario():
 
             fault_obj.set_compensating_cavities(WHAT_TO_FIT['strategy'],
                                                 sub_l_comp_idx)
+
+    def _update_status_of_cavities_to_rephase(self):
+        """
+        Change the status of some cavities to 'rephased'.
+
+        If the calculation is in relative phase, all cavities that are after
+        the first failed one are rephased.
+        ---
+        Legacy, I do not know why I wrote this:
+        ---
+        Even in the case of an absolute phase calculation, cavities in the
+        HEBT are rephased.
+        """
+        print("Warning, the phases in the broken linac are relative.",
+              "It may be more relatable to use absolute phases, as",
+              "it would avoid the rephasing of the linac at each cavity.")
+
+        # We get first failed cav index
+        ffc_idx = min(self.faults['l_fault_idx'])
+        after_ffc = self.brok_lin.elements['list'][ffc_idx:]
+
+        cav_to_rephase = [
+            cav for cav in after_ffc
+            if (cav.info['nature'] == 'FIELD_MAP'
+                and cav.info['status'] == 'nominal')
+            # and (cav.info['zone'] == 'HEBT' or not FLAG_PHI_ABS)
+        ]
+        for cav in cav_to_rephase:
+            cav.update_status('rephased (in progress)')
+
+    def _reupdate_status_of_rephased_cavities(self, fault):
+        """
+        Modify the status of the cavities that were already rephased.
+
+        Change the cavities with status "rephased (in progress)" to
+        "rephased (ok)" between this fault and the next one.
+        """
+        l_faults = self.faults['l_obj']
+        l_elts = self.brok_lin.elements['list']
+
+        idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
+        if fault is l_faults[-1]:
+            idx2 = len(l_elts)
+        else:
+            next_fault = l_faults[l_faults.index(fault) + 1]
+            idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+
+        l_cav_between_two_faults = [elt for elt in l_elts[idx1:idx2]
+                                    if elt.info['nature'] == 'FIELD_MAP']
+        for cav in l_cav_between_two_faults:
+            if cav.info['status'] == 'rephased (in progress)':
+                cav.update_status('rephased (ok)')
