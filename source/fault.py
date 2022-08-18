@@ -11,6 +11,8 @@ are fixed together.
 
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
+
+FIXME: is _select_comp_modules still in use?
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
@@ -47,6 +49,9 @@ class Fault():
                      'jac': None, 'l_obj_label': [], 'l_prop_label': [],
                      'resume': None}
         self.count = None
+
+        # We directly break the proper cavities
+        self._set_broken_cavities()
 
     def fix_single(self):
         """Try to compensate the faulty cavities."""
@@ -207,31 +212,42 @@ class Fault():
                       ]
         return l_comp_cav
 
-    def set_broken_cavities(self, l_comp_cav):
+    def _set_broken_cavities(self):
         """Break the cavities to break."""
         # Break proper cavities
         for idx in self.fail['l_idx']:
             cav = self.brok_lin.elements['list'][idx]
             cav.update_status('failed')
-            # Also remove broken cavities from the list of compensating
-            # cavities
-            if cav in l_comp_cav:
-                l_comp_cav.remove(cav)
             self.fail['l_cav'].append(cav)
 
-    def set_compensating_cavities(self, l_comp_cav):
+    def set_compensating_cavities(self, strategy, l_comp_idx=None):
         """Define list of elts in compensating zone, update status of cav."""
-        # Assign compensating cavities
+        # Create a list of cavities that will compensate
+        if strategy == 'neighbors':
+            l_comp_cav = self.select_neighboring_cavities()
+        elif strategy == 'manual':
+            assert len(l_comp_idx) > 0, "A list of compensating cavities" \
+                    + "is required with WHAT_TO_FIT['strategy'] == 'manual'."
+            l_comp_cav = [self.brok_lin.elements['list'][idx]
+                          for idx in l_comp_idx]
+
+        # Remove broke cavities, check if some compensating cavities already
+        # compensate another fault, update status of comp cav
         for cav in l_comp_cav:
             if cav.info['status'] != 'nominal':
+                if cav.info['status'] == 'failed':
+                    l_comp_cav.remove(cav)
+                    continue
+
                 print("Warning fault.set_compensating_cavities:")
                 print("several faults want the same compensating cavity!")
+
             cav.update_status('compensate (in progress)')
             self.comp['l_cav'].append(cav)
 
         self.comp['n_cav'] = len(self.comp['l_cav'])
 
-        # List of all elements of the compensating zone
+        # Also create a list of all the elements in the compensating lattices
         l_lattices = [lattice
                       for section in self.brok_lin.elements['l_sections']
                       for lattice in section
