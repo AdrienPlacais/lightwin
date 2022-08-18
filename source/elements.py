@@ -11,7 +11,7 @@ for non-synch particles.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-from electric_field import RfField, compute_param_cav, convert_phi_02
+from electric_field import RfField, compute_param_cav, convert_phi_0
 import constants
 
 try:
@@ -215,7 +215,7 @@ class _Element():
 
         self.info['status'] = new_status
         if new_status == 'failed':
-            self.acc_field.norm = 0.
+            self.acc_field.k_e = 0.
             self.init_solvers()
 
 
@@ -271,14 +271,14 @@ class FieldMap(_Element):
             elem.append('0')
             absolute_phase_flag = int(elem[10])
 
-        self.acc_field = RfField(norm=float(elem[6]),
+        self.acc_field = RfField(k_e=float(elem[6]),
                                  absolute_phase_flag=absolute_phase_flag,
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
     def _import_from_acc_f(self, kwargs):
         """Import norm and phi_0 from the accelerating field."""
-        kwargs['k_e'] = self.acc_field.norm
+        kwargs['k_e'] = self.acc_field.k_e
         kwargs['phi_0_rel'] = self.acc_field.phi_0['rel']
         kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
         return kwargs
@@ -346,7 +346,7 @@ class FieldMap(_Element):
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
         rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
-            convert_phi_02(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
+            convert_phi_0(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
 
         return rf_field_kwargs
 
@@ -432,7 +432,7 @@ def _try_parameters_from_d_fit(d_fit):
     print(d_fit)
     assert d_fit['flag'], "Inconsistency between cavity status and d_fit flag."
     rf_field_kwargs = {
-        'k_e': d_fit['norm'],
+        'k_e': d_fit['k_e'],
         'phi_0_rel': d_fit['phi'],
         'phi_0_abs': d_fit['phi'],
     }

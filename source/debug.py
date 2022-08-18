@@ -222,7 +222,7 @@ def _create_plot_dicts():
         'phi_s_deg': lambda lin:
             lin.get_from_elements('acc_field', 'cav_params', 'phi_s_deg'),
         'field_map_factor': lambda lin:
-            lin.get_from_elements('acc_field', 'norm')
+            lin.get_from_elements('acc_field', 'k_e')
     }
 
     dict_err_factor = {
@@ -492,7 +492,7 @@ def output_cavities(linac, out=False):
 
     for i, cav in enumerate(full_list_of_cav):
         df_cav.loc[i] = [cav.info['name'], cav.info['status'],
-                         cav.acc_field.norm,
+                         cav.acc_field.k_e,
                          np.rad2deg(cav.acc_field.phi_0['abs']),
                          np.rad2deg(cav.acc_field.phi_0['rel']),
                          cav.acc_field.cav_params['v_cav_mv'],
@@ -526,7 +526,7 @@ def _create_output_fit_dicts():
     dict_attribute = {
         'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['rel']),
         'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['abs']),
-        'Norm': lambda cav: cav.acc_field.norm,
+        'Norm': lambda cav: cav.acc_field.k_e,
     }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities

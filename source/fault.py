@@ -294,26 +294,26 @@ class Fault():
             Used to define constraints in PSO.
         """
         # Useful dicts
-        d_getter = {'norm': lambda cav: cav.acc_field.norm,
+        d_getter = {'k_e': lambda cav: cav.acc_field.k_e,
                     'phi_0_rel': lambda cav: cav.acc_field.phi_0['rel'],
                     'phi_0_abs': lambda cav: cav.acc_field.phi_0['abs'],
                     'phi_s': lambda cav: cav.acc_field.cav_params['phi_s_rad']}
-        d_init_g = {'norm': lambda ref_value: ref_value,
+        d_init_g = {'k_e': lambda ref_value: ref_value,
                     'phi_0_rel': lambda ref_value: 0.,
                     'phi_0_abs': lambda ref_value: 0.,
                     'phi_s': lambda ref_value: ref_value}
         d_tech_n = {'low beta': 1.3 * 3.03726,
                     'medium beta': 1.3 * 4.45899,
                     'high beta': 1.3 * 6.67386}
-        d_bounds_abs = {'norm': [1., np.NaN],
+        d_bounds_abs = {'k_e': [1., np.NaN],
                         'phi_0_rel': [0., 4. * np.pi],
                         'phi_0_abs': [0., 4. * np.pi],
                         'phi_s': [-.5 * np.pi, 0.]}
-        d_bounds_rel = {'norm': [.5, np.NaN],
+        d_bounds_rel = {'k_e': [.5, np.NaN],
                         'phi_0_rel': [np.NaN, np.NaN],
                         'phi_0_abs': [np.NaN, np.NaN],
                         'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
-        d_prop_label = {'norm': r'$k_e$', 'phi_0_abs': r'$\phi_{0, abs}$',
+        d_prop_label = {'k_e': r'$k_e$', 'phi_0_abs': r'$\phi_{0, abs}$',
                         'phi_0_rel': r'$\phi_{0, rel}$',
                         'phi_s': r'$\varphi_s$'}
 
@@ -325,7 +325,7 @@ class Fault():
                 l_prop = ['phi_0_abs']
             else:
                 l_prop = ['phi_0_rel']
-        l_prop += ['norm', 'phi_s']
+        l_prop += ['k_e', 'phi_s']
         l_prop_label = []
 
         # Get initial guess and bounds for every property of l_prop and every
@@ -337,7 +337,7 @@ class Fault():
                 ref_value = d_getter[prop](equiv_cav)
                 b_down = np.nanmax((d_bounds_abs[prop][0],
                                     d_bounds_rel[prop][0] * ref_value))
-                if prop == 'norm':
+                if prop == 'k_e':
                     b_up = d_tech_n[cav.info['zone']]
                 else:
                     b_up = np.nanmin((d_bounds_abs[prop][1],
@@ -483,7 +483,7 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     """Unpack arguments and compute proper residues at proper spot."""
     d_fits = {'flag': True,
               'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
-              'l_norm': arr_cav_prop[fault.comp['n_cav']:].tolist()}
+              'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
     keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad')
 
     # Update transfer matrices
@@ -503,7 +503,7 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
     """Unpack arguments and compute proper residues at proper spot."""
     d_fits = {'flag': True,
               'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
-              'l_norm': arr_cav_prop[fault.comp['n_cav']:].tolist()}
+              'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
     keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad')
 
     # Update transfer matrices

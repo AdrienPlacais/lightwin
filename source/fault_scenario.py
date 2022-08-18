@@ -79,7 +79,7 @@ class FaultScenario():
             # field objects thanks to transfer_data=True
             d_fits = {'flag': True,
                       'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
-                      'l_norm': opti_sol[fault.comp['n_cav']:].tolist(),
+                      'l_k_e': opti_sol[fault.comp['n_cav']:].tolist(),
                      }
 
             # Recompute transfer matrix with proper solution

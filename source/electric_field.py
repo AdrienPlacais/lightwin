@@ -5,7 +5,6 @@ Created on Tue Nov 30 15:43:39 2021.
 
 @author: placais
 
-TODO : remove RfField.norm that should not be used anymore
 TODO : phi_s_rad_objective should not be used too
 """
 import cmath
@@ -35,12 +34,10 @@ class RfField():
         phi = omega_0_bunch * t
     """
 
-    def __init__(self, norm=np.NaN, absolute_phase_flag=0, phi_0=None):
+    def __init__(self, k_e=np.NaN, absolute_phase_flag=0, phi_0=None):
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
-
-        self.norm = norm
-        self.k_e = norm
+        self.k_e = k_e
 
         self.phi_0 = {'rel': None,
                       'abs': None,
@@ -104,9 +101,9 @@ def load_field_map_file(elt):
     elt.field_map_file_name = elt.field_map_file_name + extension
 
     # Load the field map
-    n_z, zmax, norm, f_z = import_function(elt.field_map_file_name)
+    n_z, zmax, k_e, f_z = import_function(elt.field_map_file_name)
     assert abs(zmax - elt.length_m) < 1e-6
-    assert abs(norm - 1.) < 1e-6, 'Warning, imported electric field ' \
+    assert abs(k_e - 1.) < 1e-6, 'Warning, imported electric field ' \
         + 'different from 1. Conflict with electric_field_factor?'
 
     # Interpolation
@@ -161,7 +158,7 @@ def _load_electric_field_1d(path):
         Array of electric field in MV/m.
     zmax: float
         z position of the filemap end.
-    norm: float
+    k_e: float
         norm of the electric field.
 
     Currently not returned
@@ -187,7 +184,7 @@ def _load_electric_field_1d(path):
                 f_z = np.full((n_z + 1), np.NaN)
 
             elif i == 1:
-                norm = float(line)
+                k_e = float(line)
 
             else:
                 f_z[k] = float(line)
@@ -195,39 +192,10 @@ def _load_electric_field_1d(path):
 
             i += 1
 
-    return n_z, zmax, norm, f_z
+    return n_z, zmax, k_e, f_z
 
 
-def convert_phi_0(phi_rf_abs, abs_to_rel, phi_0_rel=None, phi_0_abs=None):
-    """
-    Calculate the missing phi_0 (relative or absolute).
-
-    By default, TW uses relative phases. In other words, it considers that
-    particles always enter in the cavity at phi = 0 rad, and phi_0 is
-    defined accordingly. This routine recalculates phi_0 so that
-    modulo(phi_abs + phi_0_abs, 2pi) = phi_rel + phi_0_rel = phi_0_rel
-
-    All phases in this routine are defined by:
-        phi = omega_rf * t
-
-    Parameters
-    ----------
-    phi_rf_abs : float
-        Absolute phase of the particle at the entrance of the cavity.
-    abs_to_rel : bool
-        True if you want to convert absolute into relative,
-        False if you want to convert relative into absolute.
-    """
-    if abs_to_rel:
-        assert phi_0_abs is not None
-        phi_0_rel = np.mod(phi_0_abs + phi_rf_abs, 2. * np.pi)
-    else:
-        assert phi_0_rel is not None
-        phi_0_abs = np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
-    return phi_0_rel, phi_0_abs
-
-
-def convert_phi_02(phi_rf_abs, abs_to_rel, rf_field_dict):
+def convert_phi_0(phi_rf_abs, abs_to_rel, rf_field_dict):
     """
     Calculate the missing phi_0 (relative or absolute).
 

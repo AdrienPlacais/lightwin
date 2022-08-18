@@ -163,7 +163,7 @@ class Accelerator():
                 if d_fits['flag'] and elt.info['status'] == 'compensate':
                     d_fit_elt = {'flag': True,
                                  'phi': d_fits['l_phi'].pop(0),
-                                 'norm': d_fits['l_norm'].pop(0)}
+                                 'k_e': d_fits['l_k_e'].pop(0)}
                 else:
                     d_fit_elt = d_fits
 
