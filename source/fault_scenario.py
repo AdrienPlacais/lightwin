@@ -80,7 +80,7 @@ class FaultScenario():
             d_fits = {'flag': True,
                       'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
                       'l_k_e': opti_sol[fault.comp['n_cav']:].tolist(),
-                     }
+                      }
 
             # Recompute transfer matrix with proper solution
             self.brok_lin.compute_transfer_matrices(
@@ -102,7 +102,8 @@ class FaultScenario():
 
         # At the end we recompute the full transfer matrix
         self.brok_lin.compute_transfer_matrices()
-        self.brok_lin.name = f"Fixed ({str(l_flags_success.count(True))} of {str(len(l_flags_success))})"
+        self.brok_lin.name = f"Fixed ({str(l_flags_success.count(True))}" \
+            + f"of {str(len(l_flags_success))})"
 
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \
@@ -179,7 +180,7 @@ class FaultScenario():
         """Call set_compensating_cavities froms faults with proper args."""
         if WHAT_TO_FIT['strategy'] == 'manual':
             msg = "There should be a list of compensating cavities for" \
-                    + "every fault."
+                  + "every fault."
             assert len(l_comp_idx) == len(self.faults['l_obj']), msg
 
         for fault_idx, fault_obj in enumerate(self.faults['l_obj']):
