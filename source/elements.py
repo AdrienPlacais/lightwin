@@ -5,15 +5,13 @@ Created on Wed Sep 22 10:26:19 2021.
 
 @author: placais
 
-TODO : simplify set_cavity_parameters
 TODO : check FLAG_PHI_S_FIT
 TODO : set_cavity_parameters should also return phi_rf_rel. Will be necessary
 for non-synch particles.
 """
 import numpy as np
 from scipy.optimize import minimize_scalar
-from electric_field import RfField, compute_param_cav, convert_phi_0, \
-    convert_phi_02
+from electric_field import RfField, compute_param_cav, convert_phi_02
 import constants
 
 try:
@@ -206,8 +204,6 @@ class _Element():
             "rephased (ok)",
             # Cavity norm is 0
             "failed",
-            # TODO remove in the future
-            "compensate",
             # Trying to fit
             "compensate (in progress)",
             # Compensating, proper setting found
@@ -287,8 +283,8 @@ class FieldMap(_Element):
         kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
         return kwargs
 
-    def set_cavity_parameters2(self, synch, phi_bunch_abs, w_kin_in,
-                               d_fit=None):
+    def set_cavity_parameters(self, synch, phi_bunch_abs, w_kin_in,
+                              d_fit=None):
         """
         Set the properties of the electric field.
 
@@ -316,7 +312,8 @@ class FieldMap(_Element):
 
         # By definition, the synchronous particle has a relative input phase of
         # 0.
-        phi_rf_rel = 0.
+        # FIXME :
+        # phi_rf_rel = 0.
 
         # Set norm and phi_0 of the cavity
         d_cav_param_setter = {
@@ -342,9 +339,8 @@ class FieldMap(_Element):
         rf_field_kwargs['section_idx'] = self.idx['section'][0][0]
 
         if constants.FLAG_PHI_S_FIT and d_fit['flag']:
-            phi_0_rel = self.match_synch_phase2(w_kin_in,
-                                                d_fit['phi'],
-                                                **rf_field_kwargs)
+            phi_0_rel = self.match_synch_phase(w_kin_in, d_fit['phi'],
+                                               **rf_field_kwargs)
             rf_field_kwargs['phi_0_rel'] = phi_0_rel
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
@@ -354,101 +350,7 @@ class FieldMap(_Element):
 
         return rf_field_kwargs
 
-    def set_cavity_parameters(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
-        """
-        Set the properties of the electric field.
-
-        If the cavity is in nominal working condition, we use the properties
-        (norm, phi_0) defined in the RfField object. If we are compensating
-        a fault, we use the properties given by the optimisation algorithm.
-        """
-        if d_fit is None:
-            d_fit = {'flag': False}
-        acc_f = self.acc_field
-
-        # Set pulsation inside cavity, convert bunch phase into rf phase
-        new_omega = 2. * constants.OMEGA_0_BUNCH
-        phi_rf_abs = synch.set_omega_rf(new_omega, phi_bunch_abs)
-        # FIXME new_omega not necessarily 2*omega_bunch
-
-        rf_field_args = {
-            'omega0_rf': acc_f.omega0_rf,
-            'k_e': np.NaN,
-            'phi_0_rel': np.NaN,
-            'phi_0_abs': np.NaN,
-            'phi_s_objective': None,
-            'e_spat': acc_f.e_spat,
-            'section_idx': self.idx['section'][0][0],
-        }
-
-        assert synch.info['synchronous'], 'Not sure what should happen here.'
-        # Ref linac: we compute every missing phi_0
-        if synch.info['reference']:
-            acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
-                phi_rf_abs, acc_f.phi_0['abs_phase_flag'], acc_f.phi_0['rel'],
-                acc_f.phi_0['abs'])
-            # acc_f.convert_phi_0(phi_rf_abs, acc_f.phi_0['abs_phase_flag'])
-            rf_field_args = self._import_from_acc_f(rf_field_args)
-
-        else:
-            # Phases should have been imported from reference linac
-            if self.info['status'] == 'nominal':
-                # We already have the phi0's from the reference linac. We
-                # recompute the relative or absolute one according to
-                # constants.FLAG_PHI_ABS
-                acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
-                    phi_rf_abs, constants.FLAG_PHI_ABS, acc_f.phi_0['rel'],
-                    acc_f.phi_0['abs'])
-                rf_field_args = self._import_from_acc_f(rf_field_args)
-
-            elif self.info['status'] == 'rephased':
-                # We must keep the relative phase equal to reference linac
-                acc_f.rephase_cavity(phi_rf_abs)
-                print('set_proper_cavity_parameters: cav rephasing not',
-                      'reimplemented yet.')
-
-            elif self.info['status'] == 'fault':
-                # Useless, as we used drift functions when there is a fault
-                raise IOError('Faulty cavity should not have parameters.')
-
-            elif self.info['status'] == 'compensate':
-                # The phi0's are set by the fitting algorithm. We compute
-                # the missing (abs or rel) value of phi0 for the sake of
-                # completeness, but it won't be used to calculate the
-                # matrix
-                if d_fit['flag']:
-                    rf_field_args['k_e'] = d_fit['norm']
-
-                    if constants.FLAG_PHI_S_FIT:
-                        rf_field_args['phi_s_objective'] = d_fit['phi']
-                        rf_field_args['phi_0_rel'] = \
-                            self.match_synch_phase(w_kin_in, **rf_field_args)
-
-                        rf_field_args['phi_0_rel'], \
-                            rf_field_args['phi_0_abs'] = \
-                                convert_phi_0(phi_rf_abs, False,
-                                              rf_field_args['phi_0_rel'],
-                                              rf_field_args['phi_0_abs'])
-                    else:
-                        # fit['phi'] is phi_0_rel or phi_0_abs according to
-                        # constants.FLAG_PHI_ABS.
-                        # We set it and calculate the abs/rel phi_0 that is
-                        # missing.
-                        rf_field_args[constants.STR_PHI_0_ABS] = d_fit['phi']
-                        rf_field_args['phi_0_rel'], rf_field_args['phi_0_abs'] = \
-                            convert_phi_0(
-                            phi_rf_abs, constants.FLAG_PHI_ABS, rf_field_args['phi_0_rel'],
-                            rf_field_args['phi_0_abs'])
-
-                else:
-                    acc_f.phi_0['rel'], acc_f.phi_0['abs'] = convert_phi_0(
-                        phi_rf_abs, constants.FLAG_PHI_ABS, acc_f.phi_0['rel'],
-                        acc_f.phi_0['abs'])
-                    rf_field_args = self._import_from_acc_f(rf_field_args)
-
-        return rf_field_args
-
-    def match_synch_phase2(self, w_kin_in, phi_s_objective, **rf_field_kwargs):
+    def match_synch_phase(self, w_kin_in, phi_s_objective, **rf_field_kwargs):
         """
         Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad.
 
@@ -482,40 +384,6 @@ class FieldMap(_Element):
 
         return phi_0_rel
 
-    def match_synch_phase(self, w_kin_in, **rf_field_kwargs):
-        """
-        Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad.
-
-        Parameters
-        ----------
-        w_kin_in : float
-            Kinetic energy at the cavity entrance in MeV.
-        rf_field_kwargs : dict
-            Holds all rf electric field parameters.
-
-        Return
-        ------
-        phi_0_rel : float
-            The relative cavity entrance phase that leads to a synchronous
-            phase of phi_s_objective.
-        """
-        bounds = (0, 2. * np.pi)
-
-        def _wrapper_synch(phi_0_rel):
-            rf_field_kwargs['phi_0_rel'] = phi_0_rel
-            results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
-            diff = helper.diff_angle(
-                rf_field_kwargs['phi_s_objective'],
-                results['cav_params']['phi_s_rad'])
-            return diff**2
-
-        res = minimize_scalar(_wrapper_synch, bounds=bounds)
-        if not res.success:
-            print('match synch phase not found')
-        phi_0_rel = res.x
-
-        return phi_0_rel
-
 
 class Lattice():
     """Used to get the number of elements per lattice."""
@@ -531,18 +399,6 @@ class Freq():
         self.f_rf_mhz = float(elem[1])
 
 
-def _phi_0_abs_to_rel_if_needed(flag_convert, phi_rf_abs, phi_0_rel,
-                                phi_0_abs):
-    """Give directly phi_0_rel or calculate it from phi_0_abs."""
-    if flag_convert:
-        out_phi_0_rel = np.mod(phi_rf_abs + phi_0_abs, 2. * np.pi)
-    else:
-        out_phi_0_rel = phi_0_rel
-    return out_phi_0_rel
-
-
-# TODO I am not sure at all that flag_convert is good. Should always convert
-# absolute into relative
 def _take_parameters_from_rf_field_object(a_f):
     """Extract RfField object parameters."""
     rf_field_kwargs = {'k_e': a_f.k_e,
@@ -561,8 +417,6 @@ def _take_parameters_from_rf_field_object(a_f):
     return rf_field_kwargs, flag_abs_to_rel
 
 
-# TODO In theory, phi_0 are transfered from nominal linac
-# at the end of the calculation, but I'd better check this...
 def _find_new_absolute_entry_phase(a_f):
     """Extract RfField parameters, except phi_0_abs that is recalculated."""
     rf_field_kwargs = {'k_e': a_f.k_e,
@@ -589,5 +443,5 @@ def _try_parameters_from_d_fit(d_fit):
     # relative phase. Absolute phase can easily be calculated
     # afterwards.
     # TODO handle fit over phi_s (there is already something in
-    # set_cavity_parameters2)
+    # set_cavity_parameters)
     return rf_field_kwargs, flag_abs_to_rel

@@ -8,7 +8,6 @@ Created on Tue Sep 21 11:54:19 2021.
 TODO : Check if _check_consistency_phases message still relatable
 TODO : compute_transfer_matrices: simplify, add a calculation of missing phi_0
 at the end
-TODO : 
 """
 import os.path
 import numpy as np
@@ -168,7 +167,7 @@ class Accelerator():
                 else:
                     d_fit_elt = d_fits
 
-                kwargs = elt.set_cavity_parameters2(self.synch, phi_abs,
+                kwargs = elt.set_cavity_parameters(self.synch, phi_abs,
                                                    w_kin, d_fit_elt)
                 elt_results = elt.calc_transf_mat(w_kin, **kwargs)
                 phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
