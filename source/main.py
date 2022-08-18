@@ -95,16 +95,6 @@ SAVES = [
     "Vcav and phis",
 ]
 
-start_time = time.monotonic()
-# =============================================================================
-# Start
-# =============================================================================
-FILEPATH = os.path.abspath(FILEPATH)
-ref_linac = acc.Accelerator(FILEPATH, "Working")
-broken_linac = acc.Accelerator(FILEPATH, "Broken")
-
-fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav, manual_list)
-
 DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
     "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
@@ -115,40 +105,60 @@ DICT_SAVES = {
     "energy phase and mt": lambda lin: helper.save_energy_phase_tm(lin),
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
 }
-linacs = [ref_linac, broken_linac]
 
-for lin in linacs:
-    lin.compute_transfer_matrices()
+start_time = time.monotonic()
+# =============================================================================
+# Start
+# =============================================================================
+FILEPATH = os.path.abspath(FILEPATH)
 
-    # FIXME find a way to make this part cleaner
-    if lin.name == 'Working':
-        fail.transfer_phi0_from_ref_to_broken()
+# Reference linac
+ref_linac = acc.Accelerator(FILEPATH, "Working")
+ref_linac.compute_transfer_matrices()
+for plot in PLOTS:
+    debug.compare_with_tracewin(ref_linac, x_dat="s",
+                                y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                fignum=DICT_PLOTS_PRESETS[plot][1])
 
-    for plot in PLOTS:
-        debug.compare_with_tracewin(lin, x_dat="s",
-                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                    fignum=DICT_PLOTS_PRESETS[plot][1])
-    if PLOT_TM:
-        debug.plot_transfer_matrices(lin, lin.transf_mat["cumul"])
+# Broken linac
+broken_linac = acc.Accelerator(FILEPATH, "Broken")
+fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
+fail.transfer_phi0_from_ref_to_broken()
+broken_linac.compute_transfer_matrices()
+for plot in PLOTS:
+    debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                fignum=DICT_PLOTS_PRESETS[plot][1])
 
-    if PHASE_SPACE:
-        debug.compare_phase_space(lin)
+# Broken linac but with proper cavities status
+# fail.set_cavities_status(manual_list)
+# broken_linac.compute_transfer_matrices()
+# linacs = [ref_linac, broken_linac]
 
-    if TWISS:
-        twiss = emittance.transport_twiss_parameters(lin, ALPHA_Z, BETA_Z)
-        emittance.plot_twiss(lin, twiss)
+# for lin in linacs:
+#     lin.compute_transfer_matrices()
 
-    for save in SAVES:
-        DICT_SAVES[save](lin)
+#     if PLOT_TM:
+#         debug.plot_transfer_matrices(lin, lin.transf_mat["cumul"])
 
-    # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
-    if FLAG_FIX and lin.name == "Broken":
-        fail.fix_all()
+#     if PHASE_SPACE:
+#         debug.compare_phase_space(lin)
 
-        if SAVE_FIX:
-            tw.save_new_dat(broken_linac, FILEPATH)
-        # Redo this whole loop with a fixed linac
-        linacs.append(broken_linac)
+#     if TWISS:
+#         twiss = emittance.transport_twiss_parameters(lin, ALPHA_Z, BETA_Z)
+#         emittance.plot_twiss(lin, twiss)
+
+#     for save in SAVES:
+#         DICT_SAVES[save](lin)
+
+#     # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
+#     if FLAG_FIX and lin.name == "Broken":
+#         fail.fix_all()
+
+#         if SAVE_FIX:
+#             tw.save_new_dat(broken_linac, FILEPATH)
+#         # Redo this whole loop with a fixed linac
+#         linacs.append(broken_linac)
 
 # =============================================================================
 # End

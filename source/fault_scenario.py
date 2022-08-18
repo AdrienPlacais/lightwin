@@ -21,7 +21,7 @@ import fault as mod_f
 class FaultScenario():
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_linac, broken_linac, l_fault_idx, l_comp_idx):
+    def __init__(self, ref_linac, broken_linac, l_fault_idx):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
 
@@ -37,6 +37,7 @@ class FaultScenario():
 
         self.info = {'fit': None}
 
+    def set_cavities_status(self, l_comp_idx):
         self._update_status_of_cavities_that_compensate(l_comp_idx)
         # If the calculation is made in relative phase, we change the status
         # of all the cavities after the first fault to tell LightWin that it
