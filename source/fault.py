@@ -207,30 +207,28 @@ class Fault():
                       ]
         return l_comp_cav
 
-    def prepare_cavities(self, l_comp_cav):
-        """
-        Prepare the optimisation process.
-
-        In particular, update the status of some cavities: 'failed',
-        'compensate (in progress)'...
-        Define the full lattices incorporating the compensating and
-        faulty cavities.
-        """
+    def set_broken_cavities(self, l_comp_cav):
+        """Break the cavities to break."""
         # Break proper cavities
         for idx in self.fail['l_idx']:
             cav = self.brok_lin.elements['list'][idx]
             cav.update_status('failed')
+            # Also remove broken cavities from the list of compensating
+            # cavities
             if cav in l_comp_cav:
                 l_comp_cav.remove(cav)
             self.fail['l_cav'].append(cav)
 
+    def set_compensating_cavities(self, l_comp_cav):
+        """Define list of elts in compensating zone, update status of cav."""
         # Assign compensating cavities
         for cav in l_comp_cav:
             if cav.info['status'] != 'nominal':
-                print('warning check fault.update_status_cavities: ',
-                      'several faults want the same compensating cavity!')
+                print("Warning fault.set_compensating_cavities:")
+                print("several faults want the same compensating cavity!")
             cav.update_status('compensate (in progress)')
             self.comp['l_cav'].append(cav)
+
         self.comp['n_cav'] = len(self.comp['l_cav'])
 
         # List of all elements of the compensating zone

@@ -92,6 +92,7 @@ class FaultScenario():
             # Recompute transfer matrix between the end of this compensating
             # zone and the start of the next (or to the linac end)
             self._compute_matrix_to_next_fault(fault, flag_success)
+
             if not FLAG_PHI_ABS:
                 # Tell LW to keep the new phase of the rephased cavities
                 # between the two compensation zones
@@ -103,8 +104,7 @@ class FaultScenario():
 
         # At the end we recompute the full transfer matrix
         self.brok_lin.compute_transfer_matrices()
-        self.brok_lin.name = 'Fixed (' + str(l_flags_success.count(True)) \
-                + ' of ' + str(len(l_flags_success)) + ')'
+        self.brok_lin.name = f"Fixed ({str(l_flags_success.count(True))} of {str(len(l_flags_success))})"
 
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \
@@ -253,7 +253,8 @@ class FaultScenario():
         # Change status (failed, compensate) of the proper cavities, create the
         # fault.comp['l_all_elts'] list containing the full lattices in which
         # we have our compensating and faulty cavities
-        for (f, l_comp_cav) in zip(l_faults_obj, all_comp_cav):
-            f.prepare_cavities(l_comp_cav)
+        for (fault_object, l_comp_cav) in zip(l_faults_obj, all_comp_cav):
+            fault_object.set_broken_cavities(l_comp_cav)
+            fault_object.set_compensating_cavities(l_comp_cav)
 
         return l_faults_obj
