@@ -137,11 +137,12 @@ class Accelerator():
         for elt in l_elts:
             phi_abs = l_phi_abs[-1]
 
-            if elt.info['nature'] == 'FIELD_MAP' \
-                    and elt.info['status'] != 'failed':
+            if elt.info['nature'] != 'FIELD_MAP' \
+               or elt.info['status'] == 'failed':
+                kwargs = None
+                elt_results = elt.calc_transf_mat(l_w_kin[-1])
 
-                # Old:
-                # if d_fits['flag'] and elt.info['status'] == 'compensate':
+            else:
                 if d_fits['flag'] \
                    and elt.info['status'] == 'compensate (in progress)':
                     d_fit_elt = {'flag': True,
@@ -155,19 +156,12 @@ class Accelerator():
                 elt_results = elt.calc_transf_mat(l_w_kin[-1], **kwargs)
                 l_phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
 
-            else:
-                kwargs = None
-                elt_results = elt.calc_transf_mat(l_w_kin[-1])
-
-            # Extract TM...
             r_zz_elt = [elt_results['r_zz'][i, :, :]
                         for i in range(elt_results['r_zz'].shape[0])]
             l_r_zz_elt.extend(r_zz_elt)
-            # phase...
             l_phi_abs_elt = [phi_rel + phi_abs
                              for phi_rel in elt_results['phi_rel']]
             l_phi_abs.extend(l_phi_abs_elt)
-            # and energy of current element before we go on
             l_w_kin.extend(elt_results['w_kin'].tolist())
 
             # FIXME
