@@ -123,38 +123,18 @@ class Accelerator():
         if l_elts is None:
             l_elts = self.elements['list']
 
-        n_steps = 1 + sum([elt.tmat['solver_param']['n_steps']
-                           for elt in l_elts])
-
         # Index of entry of first element, index of exit of last one
         idx_in = l_elts[0].idx['s_in']
         idx_out = l_elts[-1].idx['s_out'] + 1
 
-        # Create arrays
-        arr_r_zz_elt = np.full((n_steps - 1, 2, 2), np.NaN)
-        arr_r_zz_cumul = np.full((n_steps, 2, 2), np.NaN)
-
-        # Initial values
-        phi_s_rad = []
+        # To store results
+        l_phi_s_rad = []
         l_w_kin = [self.synch.energy['kin_array_mev'][idx_in]]
         l_phi_abs = [self.synch.phi['abs_array'][idx_in]]
-
-        # If we are at the start of the linac, initial transf mat is unity
-        if idx_in == 0:
-            arr_r_zz_cumul[0] = np.eye(2)
-        else:
-            # Else we take the tm at the start of l_elts
-            # (should be already calculated)
-            arr_r_zz_cumul[0] = self.transf_mat['cumul'][idx_in, :, :]
-            assert ~np.isnan(arr_r_zz_cumul[0]).any(), \
-                "Previous transfer matrix was not calculated."
+        l_r_zz_elt = []     # List of numpy arrays
 
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
-            # TODO create full array of indexes before the loop
-            tmp = [elt.idx['s_in'] - idx_in,
-                   elt.idx['s_out'] - idx_in]
-
             phi_abs = l_phi_abs[-1]
 
             if elt.info['nature'] == 'FIELD_MAP' \
@@ -173,18 +153,22 @@ class Accelerator():
                 kwargs = elt.set_cavity_parameters(self.synch, phi_abs,
                                                    l_w_kin[-1], d_fit_elt)
                 elt_results = elt.calc_transf_mat(l_w_kin[-1], **kwargs)
-                phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
+                l_phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
 
             else:
                 kwargs = None
                 elt_results = elt.calc_transf_mat(l_w_kin[-1])
 
-            # Extract TM, phase, energy of current element before we go on
-            arr_r_zz_elt[tmp[0]:tmp[1]] = elt_results['r_zz']
-            l_w_kin.extend(elt_results['w_kin'].tolist())
+            # Extract TM...
+            r_zz_elt = [elt_results['r_zz'][i, :, :]
+                        for i in range(elt_results['r_zz'].shape[0])]
+            l_r_zz_elt.extend(r_zz_elt)
+            # phase...
             l_phi_abs_elt = [phi_rel + phi_abs
                              for phi_rel in elt_results['phi_rel']]
             l_phi_abs.extend(l_phi_abs_elt)
+            # and energy of current element before we go on
+            l_w_kin.extend(elt_results['w_kin'].tolist())
 
             # FIXME
             if flag_transfer_data:
@@ -192,13 +176,25 @@ class Accelerator():
                                    kwargs)
 
         # Compute transfer matrix of l_elts
+        n_steps = len(l_w_kin)
+        arr_r_zz_cumul = np.full((n_steps, 2, 2), np.NaN)
+
+        # If we are at the start of the linac, initial transf mat is unity
+        if idx_in == 0:
+            arr_r_zz_cumul[0] = np.eye(2)
+        else:
+            # Else we take the tm at the start of l_elts
+            arr_r_zz_cumul[0] = self.transf_mat['cumul'][idx_in]
+            assert ~np.isnan(arr_r_zz_cumul[0]).any(), \
+                "Previous transfer matrix was not calculated."
+
         for i in range(1, n_steps):
-            arr_r_zz_cumul[i] = arr_r_zz_elt[i - 1] @ arr_r_zz_cumul[i - 1]
+            arr_r_zz_cumul[i] = l_r_zz_elt[i - 1] @ arr_r_zz_cumul[i - 1]
 
         if flag_transfer_data:
             self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
 
-        return arr_r_zz_cumul, l_w_kin, l_phi_abs, phi_s_rad
+        return arr_r_zz_cumul, l_w_kin, l_phi_abs, l_phi_s_rad
 
     def transfer_data(self, elt, elt_results, phi_abs_elt, kwargs):
         """
