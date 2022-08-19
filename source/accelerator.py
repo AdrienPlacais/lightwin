@@ -127,7 +127,8 @@ class Accelerator():
                            for elt in l_elts])
 
         # Index of entry of first element, index of exit of last one
-        endpoints = (l_elts[0].idx['s_in'], l_elts[-1].idx['s_out'] + 1)
+        idx_in = l_elts[0].idx['s_in']
+        idx_out = l_elts[-1].idx['s_out'] + 1
 
         # Create arrays
         arr_r_zz_elt = np.full((n_steps - 1, 2, 2), np.NaN)
@@ -135,24 +136,24 @@ class Accelerator():
 
         # Initial values
         phi_s_rad = []
-        l_w_kin = [self.synch.energy['kin_array_mev'][endpoints[0]]]
-        l_phi_abs = [self.synch.phi['abs_array'][endpoints[0]]]
+        l_w_kin = [self.synch.energy['kin_array_mev'][idx_in]]
+        l_phi_abs = [self.synch.phi['abs_array'][idx_in]]
 
         # If we are at the start of the linac, initial transf mat is unity
-        if endpoints[0] == 0:
+        if idx_in == 0:
             arr_r_zz_cumul[0] = np.eye(2)
         else:
             # Else we take the tm at the start of l_elts
             # (should be already calculated)
-            arr_r_zz_cumul[0] = self.transf_mat['cumul'][endpoints[0], :, :]
+            arr_r_zz_cumul[0] = self.transf_mat['cumul'][idx_in, :, :]
             assert ~np.isnan(arr_r_zz_cumul[0]).any(), \
                 "Previous transfer matrix was not calculated."
 
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
             # TODO create full array of indexes before the loop
-            tmp = [elt.idx['s_in'] - endpoints[0],
-                   elt.idx['s_out'] - endpoints[0]]
+            tmp = [elt.idx['s_in'] - idx_in,
+                   elt.idx['s_out'] - idx_in]
 
             phi_abs = l_phi_abs[-1]
 
@@ -195,8 +196,7 @@ class Accelerator():
             arr_r_zz_cumul[i] = arr_r_zz_elt[i - 1] @ arr_r_zz_cumul[i - 1]
 
         if flag_transfer_data:
-            self.transf_mat['cumul'][endpoints[0]:endpoints[1]] \
-                = arr_r_zz_cumul
+            self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
 
         return arr_r_zz_cumul, l_w_kin, l_phi_abs, phi_s_rad
 
