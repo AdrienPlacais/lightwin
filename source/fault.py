@@ -14,6 +14,12 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 
 FIXME: is _select_comp_modules still in use?
 TODO : try to fit gamma instead of W_kin
+TODO : at init of Fault, say self.brok_lin = brok_lin.deepcopy() (or copy)
+       Return self.brok_lin at the end of fix_all()
+       It could also be called fix_linac...
+       AH no in fact, maybe plutôt self.fixed_linac = brok_lin after it is
+       broken, end of __init__. And then fix only fixed?
+       Or can the breakage be done at the init of the Accelerator?
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
