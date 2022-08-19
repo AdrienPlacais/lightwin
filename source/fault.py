@@ -13,6 +13,7 @@ brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 
 FIXME: is _select_comp_modules still in use?
+TODO : try to fit gamma instead of W_kin
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
@@ -120,9 +121,9 @@ class Fault():
         if debugs['fit_progression']:
             debug.output_fit_progress(self.count, sol.fun, final=True)
 
-        print('\nmessage:', sol.message, '\nnfev:', sol.nfev, '\tnjev:',
-              sol.njev, '\noptimality:', sol.optimality, '\nstatus:',
-              sol.status, '\tsuccess:', sol.success, '\nx:', sol.x, '\n\n')
+        print(f"""\nmessage: {sol.message}\nnfev: {sol.nfev}\tnjev: {sol.njev}
+              \noptimality: {sol.optimality}\nstatus: {sol.status}\t
+              success: {sol.success}\nx: {sol.x}\n\n""")
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
 
@@ -497,6 +498,14 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     fault.count += 1
 
     return obj
+
+def fun(x, *args, **kwargs):
+    """Try something."""
+    # x = input = [k_e_1, k_e_2, ..., phi_0_1, phi_0_2, ...]
+    # ok n_cav could be in *args
+    n_cav = x.shape[0] // 2
+    l_k_e = x[:n_cav]
+    l_phi_0 = x[n_cav:]
 
 
 def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):

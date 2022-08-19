@@ -10,6 +10,10 @@ exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
 
 TODO check du_dz outside of field_map function
 TODO Remove omega0_rf from arguments.
+
+Possible to use only lists here. Not prioritary.
+May speed up the code, especially in _c.
+But numpy is fast, no?
 """
 
 import numpy as np

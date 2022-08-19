@@ -125,19 +125,18 @@ class Accelerator():
 
         n_steps = 1 + sum([elt.tmat['solver_param']['n_steps']
                            for elt in l_elts])
+
         # Index of entry of first element, index of exit of last one
         endpoints = (l_elts[0].idx['s_in'], l_elts[-1].idx['s_out'] + 1)
 
         # Create arrays
         arr_r_zz_elt = np.full((n_steps - 1, 2, 2), np.NaN)
         arr_r_zz_cumul = np.full((n_steps, 2, 2), np.NaN)
-        arr_w_kin = np.full(n_steps, np.NaN)
-        arr_phi_abs = np.full(n_steps, np.NaN)
 
         # Initial values
-        w_kin = self.synch.energy['kin_array_mev'][endpoints[0]]
-        phi_abs = self.synch.phi['abs_array'][endpoints[0]]
         phi_s_rad = []
+        l_w_kin = [self.synch.energy['kin_array_mev'][endpoints[0]]]
+        l_phi_abs = [self.synch.phi['abs_array'][endpoints[0]]]
 
         # If we are at the start of the linac, initial transf mat is unity
         if endpoints[0] == 0:
@@ -147,20 +146,23 @@ class Accelerator():
             # (should be already calculated)
             arr_r_zz_cumul[0] = self.transf_mat['cumul'][endpoints[0], :, :]
             assert ~np.isnan(arr_r_zz_cumul[0]).any(), \
-                'Previous transfer matrix was not calculated.'
-
-        arr_w_kin[0] = w_kin
-        arr_phi_abs[0] = phi_abs
+                "Previous transfer matrix was not calculated."
 
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
+            # TODO create full array of indexes before the loop
             tmp = [elt.idx['s_in'] - endpoints[0],
                    elt.idx['s_out'] - endpoints[0]]
+
+            phi_abs = l_phi_abs[-1]
 
             if elt.info['nature'] == 'FIELD_MAP' \
                     and elt.info['status'] != 'failed':
 
-                if d_fits['flag'] and elt.info['status'] == 'compensate':
+                # Old:
+                # if d_fits['flag'] and elt.info['status'] == 'compensate':
+                if d_fits['flag'] \
+                   and elt.info['status'] == 'compensate (in progress)':
                     d_fit_elt = {'flag': True,
                                  'phi': d_fits['l_phi'].pop(0),
                                  'k_e': d_fits['l_k_e'].pop(0)}
@@ -168,28 +170,25 @@ class Accelerator():
                     d_fit_elt = d_fits
 
                 kwargs = elt.set_cavity_parameters(self.synch, phi_abs,
-                                                   w_kin, d_fit_elt)
-                elt_results = elt.calc_transf_mat(w_kin, **kwargs)
+                                                   l_w_kin[-1], d_fit_elt)
+                elt_results = elt.calc_transf_mat(l_w_kin[-1], **kwargs)
                 phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
 
             else:
                 kwargs = None
-                elt_results = elt.calc_transf_mat(w_kin)
+                elt_results = elt.calc_transf_mat(l_w_kin[-1])
 
             # Extract TM, phase, energy of current element before we go on
             arr_r_zz_elt[tmp[0]:tmp[1]] = elt_results['r_zz']
-            arr_w_kin[tmp[0] + 1:tmp[1] + 1] = elt_results['w_kin']
-            arr_phi_abs[tmp[0] + 1:tmp[1] + 1] =\
-                phi_abs + elt_results['phi_rel']
+            l_w_kin.extend(elt_results['w_kin'].tolist())
+            l_phi_abs_elt = [phi_rel + phi_abs
+                             for phi_rel in elt_results['phi_rel']]
+            l_phi_abs.extend(l_phi_abs_elt)
 
             # FIXME
             if flag_transfer_data:
-                self.transfer_data(elt, elt_results,
-                                   phi_abs + elt_results['phi_rel'], kwargs)
-
-            # Update
-            w_kin = elt_results['w_kin'][-1]
-            phi_abs += elt_results['phi_rel'][-1]
+                self.transfer_data(elt, elt_results, np.array(l_phi_abs_elt),
+                                   kwargs)
 
         # Compute transfer matrix of l_elts
         for i in range(1, n_steps):
@@ -199,8 +198,7 @@ class Accelerator():
             self.transf_mat['cumul'][endpoints[0]:endpoints[1]] \
                 = arr_r_zz_cumul
 
-        return arr_r_zz_cumul, arr_w_kin.tolist(), arr_phi_abs.tolist(), \
-            phi_s_rad
+        return arr_r_zz_cumul, l_w_kin, l_phi_abs, phi_s_rad
 
     def transfer_data(self, elt, elt_results, phi_abs_elt, kwargs):
         """
