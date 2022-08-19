@@ -130,6 +130,14 @@ for plot in PLOTS:
                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
+if FLAG_FIX:
+    fail.fix_all()
+    broken_linac.compute_transfer_matrices()
+    for plot in PLOTS:
+        debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                    fignum=DICT_PLOTS_PRESETS[plot][1])
+
 # Broken linac but with proper cavities status
 # fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()

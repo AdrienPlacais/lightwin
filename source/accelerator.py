@@ -102,8 +102,9 @@ class Accelerator():
                   "the .dat file used by TW. Results won't match if there",
                   "are faulty cavities.\n")
 
+    # TODO Is flag_transfer_data=False equivalent to d_fits['flag']=True?
     def compute_transfer_matrices(self, l_elts=None, flag_transfer_data=True,
-                                  d_fits={'flag': False}):
+                                  d_fits=None):
         """
         Compute the transfer matrices of Accelerator's elements.
 
@@ -123,6 +124,9 @@ class Accelerator():
         if l_elts is None:
             l_elts = self.elements['list']
 
+        if d_fits is None:
+            d_fits = {'flag': False}
+
         # Index of entry of first element, index of exit of last one
         idx_in = l_elts[0].idx['s_in']
         idx_out = l_elts[-1].idx['s_out'] + 1
@@ -139,7 +143,7 @@ class Accelerator():
 
             if elt.info['nature'] != 'FIELD_MAP' \
                or elt.info['status'] == 'failed':
-                kwargs = None
+                rf_field = None
                 elt_results = elt.calc_transf_mat(l_w_kin[-1])
 
             else:
@@ -151,9 +155,9 @@ class Accelerator():
                 else:
                     d_fit_elt = d_fits
 
-                kwargs = elt.set_cavity_parameters(self.synch, phi_abs,
-                                                   l_w_kin[-1], d_fit_elt)
-                elt_results = elt.calc_transf_mat(l_w_kin[-1], **kwargs)
+                rf_field = elt.set_cavity_parameters(self.synch, phi_abs,
+                                                     l_w_kin[-1], d_fit_elt)
+                elt_results = elt.calc_transf_mat(l_w_kin[-1], **rf_field)
                 l_phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
 
             r_zz_elt = [elt_results['r_zz'][i, :, :]
@@ -167,7 +171,7 @@ class Accelerator():
             # FIXME
             if flag_transfer_data:
                 self.transfer_data(elt, elt_results, np.array(l_phi_abs_elt),
-                                   kwargs)
+                                   rf_field)
 
         # Compute transfer matrix of l_elts
         n_steps = len(l_w_kin)
