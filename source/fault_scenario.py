@@ -110,7 +110,7 @@ class FaultScenario():
         # At the end we recompute the full transfer matrix
         self.brok_lin.compute_transfer_matrices()
         self.brok_lin.name = f"Fixed ({str(l_flags_success.count(True))}" \
-            + f"of {str(len(l_flags_success))})"
+            + f" of {str(len(l_flags_success))})"
 
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \
