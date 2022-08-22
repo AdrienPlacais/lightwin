@@ -254,7 +254,7 @@ class Fault():
 
             # If the cavity is broken, we do not want to change it's status
             if current_status == 'failed':
-                l_comp_cav.remove(cav)
+                # l_comp_cav.remove(cav)
                 continue
 
             if current_status in ["compensate (ok)", "compensate (not ok)"]:

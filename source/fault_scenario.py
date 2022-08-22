@@ -11,6 +11,10 @@ smoothen the individual fixes. # TODO
 
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
+
+TODO remake a small fit after the first one?
+TODO plot interesting data before the second fit to see if it is
+useful
 """
 import itertools
 from constants import FLAG_PHI_ABS, WHAT_TO_FIT
@@ -75,6 +79,7 @@ class FaultScenario():
             flag_success, opti_sol = fault.fix_single()
             l_flags_success.append(flag_success)
 
+            # We update the status of the compensating cavities
             if flag_success:
                 new_status = "compensate (ok)"
             else:
@@ -102,10 +107,6 @@ class FaultScenario():
                 # Tell LW to keep the new phase of the rephased cavities
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
-
-        # TODO plot interesting data before the second fit to see if it is
-        # useful
-        # TODO remake a small fit to be sure
 
         # At the end we recompute the full transfer matrix
         self.brok_lin.compute_transfer_matrices()
@@ -191,6 +192,10 @@ class FaultScenario():
                   + "every fault."
             assert len(l_comp_idx) == len(self.faults['l_obj']), msg
 
+        # l_comp_idx is a list containing the list of faulty cavities indexes
+        # for every Fault.
+        # We extract sub_l_comp_idx, the list of faulty cavities indexes for
+        # the current Fault
         for fault_idx, fault_obj in enumerate(self.faults['l_obj']):
             try:
                 sub_l_comp_idx = l_comp_idx[fault_idx]
