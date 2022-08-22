@@ -62,7 +62,7 @@ class FaultScenario():
             brok_a_f.phi_0['rel'] = ref_a_f.phi_0['rel']
             brok_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['rel']
 
-    def fix_all(self):
+    def fix_all(self, l_comp_idx):
         """
         Fix the linac.
 
@@ -74,6 +74,13 @@ class FaultScenario():
         for fault in self.faults['l_obj']:
             flag_success, opti_sol = fault.fix_single()
             l_flags_success.append(flag_success)
+
+            if flag_success:
+                new_status = "compensate (ok)"
+            else:
+                new_status = "compensate (not ok)"
+            fault.set_compensating_cavities(WHAT_TO_FIT['strategy'],
+                                            l_comp_idx, new_status)
 
             # The norms and phi_0 from sol.x will be transfered to the electric
             # field objects thanks to transfer_data=True
@@ -176,7 +183,8 @@ class FaultScenario():
             )
         return l_faults_obj
 
-    def update_status_of_cavities_that_compensate(self, l_comp_idx):
+    def update_status_of_cavities_that_compensate(
+        self, l_comp_idx, new_status="compensate (in progress)"):
         """Call set_compensating_cavities froms faults with proper args."""
         if WHAT_TO_FIT['strategy'] == 'manual':
             msg = "There should be a list of compensating cavities for" \
@@ -190,7 +198,7 @@ class FaultScenario():
                 sub_l_comp_idx = None
 
             fault_obj.set_compensating_cavities(WHAT_TO_FIT['strategy'],
-                                                sub_l_comp_idx)
+                                                sub_l_comp_idx, new_status)
 
     def _update_status_of_cavities_to_rephase(self):
         """

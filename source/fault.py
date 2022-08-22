@@ -227,8 +227,15 @@ class Fault():
             cav.update_status('failed')
             self.fail['l_cav'].append(cav)
 
-    def set_compensating_cavities(self, strategy, l_comp_idx=None):
-        """Define list of elts in compensating zone, update status of cav."""
+    def set_compensating_cavities(self, strategy, l_comp_idx=None,
+                                  new_status="compensate (in progress)"):
+        """
+        Update the status of the compensating cavities.
+
+        If it is the first call of this function, it means that the list of
+        compensating cavities is not set yet and the new_status == 'compensate
+        (in progress)'. Then, the list of compensating cavities is set up.
+        """
         # Create a list of cavities that will compensate
         if strategy == 'neighbors':
             l_comp_cav = self.select_neighboring_cavities()
@@ -241,31 +248,42 @@ class Fault():
         # Remove broke cavities, check if some compensating cavities already
         # compensate another fault, update status of comp cav
         for cav in l_comp_cav:
-            if cav.info['status'] != 'nominal':
-                if cav.info['status'] == 'failed':
-                    l_comp_cav.remove(cav)
-                    continue
+            current_status = cav.info['status']
+            assert current_status != new_status, """Cavity already has the
+            status that you ask for. Check fault.set_compensating_cavities."""
 
-                print("Warning fault.set_compensating_cavities:")
-                print("several faults want the same compensating cavity!")
+            # If the cavity is broken, we do not want to change it's status
+            if current_status == 'failed':
+                l_comp_cav.remove(cav)
+                continue
 
-            cav.update_status('compensate (in progress)')
-            self.comp['l_cav'].append(cav)
+            if current_status in ["compensate (ok)", "compensate (not ok)"]:
+                print("""Warning! You want to update the status of a cavity
+                      that is already used for compensation. Check
+                      fault.set_compensating_cavities. Maybe two faults
+                      want to use the same cavity for compensation?""")
 
-        self.comp['n_cav'] = len(self.comp['l_cav'])
+            cav.update_status(new_status)
 
-        # Also create a list of all the elements in the compensating lattices
-        l_lattices = [lattice
-                      for section in self.brok_lin.elements['l_sections']
-                      for lattice in section
-                      ]
+            if new_status == "compensate (in progress)":
+                self.comp['l_cav'].append(cav)
 
-        self.comp['l_all_elts'] = [elt
-                                   for lattice in l_lattices
-                                   for elt in lattice
-                                   if any((cav in lattice
-                                           for cav in self.comp['l_cav']))
-                                   ]
+        if new_status == "compensate (in progress)":
+            self.comp['n_cav'] = len(self.comp['l_cav'])
+
+            # Also create a list of all the elements in the compensating
+            # lattices
+            l_lattices = [lattice
+                          for section in self.brok_lin.elements['l_sections']
+                          for lattice in section
+                          ]
+
+            self.comp['l_all_elts'] = [elt
+                                       for lattice in l_lattices
+                                       for elt in lattice
+                                       if any((cav in lattice
+                                               for cav in self.comp['l_cav']))
+                                       ]
 
     def _select_comp_modules(self, modules_with_fail):
         """Give failed modules and their neighbors."""

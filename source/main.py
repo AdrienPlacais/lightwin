@@ -132,7 +132,7 @@ for plot in PLOTS:
 
 if FLAG_FIX:
     fail.update_status_of_cavities_that_compensate(manual_list)
-    fail.fix_all()
+    fail.fix_all(manual_list)
     broken_linac.compute_transfer_matrices()
     for plot in PLOTS:
         debug.compare_with_tracewin(broken_linac, x_dat="s",

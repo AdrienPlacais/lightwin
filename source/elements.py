@@ -429,7 +429,7 @@ def _find_new_absolute_entry_phase(a_f):
 
 def _try_parameters_from_d_fit(d_fit):
     """Extract parameters from d_fit."""
-    print(d_fit)
+    # print(d_fit)
     assert d_fit['flag'], "Inconsistency between cavity status and d_fit flag."
     rf_field_kwargs = {
         'k_e': d_fit['k_e'],
@@ -438,7 +438,7 @@ def _try_parameters_from_d_fit(d_fit):
     }
 
     flag_abs_to_rel = constants.FLAG_PHI_ABS
-    print('_try_parameters_from_d_fit: check')
+    # print('_try_parameters_from_d_fit: check')
     # TODO modify the fit process in order to always fit on the
     # relative phase. Absolute phase can easily be calculated
     # afterwards.
