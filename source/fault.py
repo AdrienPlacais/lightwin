@@ -227,15 +227,16 @@ class Fault():
             cav.update_status('failed')
             self.fail['l_cav'].append(cav)
 
-    def set_compensating_cavities(self, strategy, l_comp_idx=None,
-                                  new_status="compensate (in progress)"):
+    def prepare_cavities_for_compensation(self, strategy, l_comp_idx=None):
         """
-        Update the status of the compensating cavities.
+        Prepare the compensating cavities for the upcoming optimisation.
 
-        If it is the first call of this function, it means that the list of
-        compensating cavities is not set yet and the new_status == 'compensate
-        (in progress)'. Then, the list of compensating cavities is set up.
+        In particular, update the status of the compensating cavities to
+        'compensate (in progress)', create list of compensating cavities,
+        create list of all elements in the compensating zone.
         """
+        new_status = "compensate (in progress)"
+
         # Create a list of cavities that will compensate
         if strategy == 'neighbors':
             l_comp_cav = self.select_neighboring_cavities()
@@ -249,12 +250,12 @@ class Fault():
         # compensate another fault, update status of comp cav
         for cav in l_comp_cav:
             current_status = cav.info['status']
-            assert current_status != new_status, """Cavity already has the
-            status that you ask for. Check fault.set_compensating_cavities."""
+            assert current_status != new_status, """Current cavity already has
+            the status that you asked for. Maybe two faults want the same
+            cavity for their compensation?"""
 
             # If the cavity is broken, we do not want to change it's status
             if current_status == 'failed':
-                # l_comp_cav.remove(cav)
                 continue
 
             if current_status in ["compensate (ok)", "compensate (not ok)"]:
@@ -264,26 +265,47 @@ class Fault():
                       want to use the same cavity for compensation?""")
 
             cav.update_status(new_status)
+            self.comp['l_cav'].append(cav)
 
-            if new_status == "compensate (in progress)":
-                self.comp['l_cav'].append(cav)
+        self.comp['n_cav'] = len(self.comp['l_cav'])
 
-        if new_status == "compensate (in progress)":
-            self.comp['n_cav'] = len(self.comp['l_cav'])
+        # Also create a list of all the elements in the compensating
+        # lattices
+        l_lattices = [lattice
+                      for section in self.brok_lin.elements['l_sections']
+                      for lattice in section
+                      ]
 
-            # Also create a list of all the elements in the compensating
-            # lattices
-            l_lattices = [lattice
-                          for section in self.brok_lin.elements['l_sections']
-                          for lattice in section
-                          ]
+        self.comp['l_all_elts'] = [elt
+                                   for lattice in l_lattices
+                                   for elt in lattice
+                                   if any((cav in lattice
+                                           for cav in self.comp['l_cav']))
+                                   ]
 
-            self.comp['l_all_elts'] = [elt
-                                       for lattice in l_lattices
-                                       for elt in lattice
-                                       if any((cav in lattice
-                                               for cav in self.comp['l_cav']))
-                                       ]
+    def update_status_and_cav_parameters(self, flag_success, d_fits):
+        """
+        Update status of the compensating cavities, save new rf field param.
+        """
+        if flag_success:
+            new_status = "compensate (ok)"
+        else:
+            new_status = "compensate (not ok)"
+
+        # Remove broke cavities, check if some compensating cavities already
+        # compensate another fault, update status of comp cav
+        for cav in self.comp['l_cav']:
+            phi_0 = d_fits['l_phi'].pop(0)
+            rf_field = {'k_e': d_fits['l_k_e'].pop(0),
+                        'phi_0_rel': phi_0,
+                        'phi_0_abs': phi_0,
+                       }
+            # FIXME I think that I can safely ignore the difference between
+            # phi_0_rel and _abs, the good one will be used and the other one
+            # erased.
+            # I """think"""...
+            cav.update_status(new_status)
+            cav.acc_field.save_parameters_found_by_optimisation(**rf_field)
 
     def _select_comp_modules(self, modules_with_fail):
         """Give failed modules and their neighbors."""
@@ -522,14 +544,6 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     fault.count += 1
 
     return obj
-
-def fun(x, *args, **kwargs):
-    """Try something."""
-    # x = input = [k_e_1, k_e_2, ..., phi_0_1, phi_0_2, ...]
-    # ok n_cav could be in *args
-    n_cav = x.shape[0] // 2
-    l_k_e = x[:n_cav]
-    l_phi_0 = x[n_cav:]
 
 
 def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):

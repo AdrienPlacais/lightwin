@@ -194,7 +194,7 @@ class Accelerator():
 
         return arr_r_zz_cumul, l_w_kin, l_phi_abs, l_phi_s_rad
 
-    def transfer_data(self, elt, elt_results, phi_abs_elt, kwargs):
+    def transfer_data(self, elt, elt_results, phi_abs_elt, rf_field):
         """
         Transfer calculated energies, phases, MTs, etc to proper Objects.
 
@@ -205,9 +205,12 @@ class Accelerator():
         elt.tmat['matrix'] = elt_results['r_zz']
         self.transf_mat['indiv'][idx] = elt_results['r_zz']
 
-        if kwargs is not None:
-            elt.acc_field.transfer_data(**kwargs)
+        # if elt.info['nature'] == 'FIELD_MAP':
+        if elt_results['cav_params'] is not None:
+            # print(elt_results['cav_params'])
             elt.acc_field.cav_params = elt_results['cav_params']
+            elt.acc_field.phi_0['abs'] = rf_field['phi_0_abs']
+            elt.acc_field.phi_0['rel'] = rf_field['phi_0_rel']
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """

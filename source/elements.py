@@ -411,7 +411,6 @@ def _take_parameters_from_rf_field_object(a_f):
     # initial phases are defined in the .dat as relative phases, phi_0_abs is
     # not defined
     if rf_field_kwargs['phi_0_abs'] is None:
-        # print('_take_parameters_from_rf_field_object: just a test message')
         rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
         flag_abs_to_rel = False
     return rf_field_kwargs, flag_abs_to_rel

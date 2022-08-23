@@ -131,7 +131,7 @@ for plot in PLOTS:
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
 if FLAG_FIX:
-    fail.update_status_of_cavities_that_compensate(manual_list)
+    fail.prepare_compensating_cavities_of_all_faults(manual_list)
     fail.fix_all(manual_list)
     broken_linac.compute_transfer_matrices()
     for plot in PLOTS:

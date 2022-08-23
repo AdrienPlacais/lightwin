@@ -79,20 +79,14 @@ class FaultScenario():
             flag_success, opti_sol = fault.fix_single()
             l_flags_success.append(flag_success)
 
-            # We update the status of the compensating cavities
-            if flag_success:
-                new_status = "compensate (ok)"
-            else:
-                new_status = "compensate (not ok)"
-            fault.set_compensating_cavities(WHAT_TO_FIT['strategy'],
-                                            l_comp_idx, new_status)
-
-            # The norms and phi_0 from sol.x will be transfered to the electric
-            # field objects thanks to transfer_data=True
+            # Update status of the compensating cavities according to the
+            # success or not of the fit.
+            # Give each compensating cavity the new optimum norm and entry
+            # phase.
             d_fits = {'flag': True,
                       'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
-                      'l_k_e': opti_sol[fault.comp['n_cav']:].tolist(),
-                      }
+                      'l_k_e': opti_sol[fault.comp['n_cav']:].tolist()}
+            fault.update_status_and_cav_parameters(flag_success, d_fits)
 
             # Recompute transfer matrix with proper solution
             self.brok_lin.compute_transfer_matrices(
@@ -184,9 +178,8 @@ class FaultScenario():
             )
         return l_faults_obj
 
-    def update_status_of_cavities_that_compensate(
-        self, l_comp_idx, new_status="compensate (in progress)"):
-        """Call set_compensating_cavities froms faults with proper args."""
+    def prepare_compensating_cavities_of_all_faults(self, l_comp_idx):
+        """Call fault.prepare_cavities_for_compensation."""
         if WHAT_TO_FIT['strategy'] == 'manual':
             msg = "There should be a list of compensating cavities for" \
                   + "every fault."
@@ -202,8 +195,8 @@ class FaultScenario():
             except IndexError:
                 sub_l_comp_idx = None
 
-            fault_obj.set_compensating_cavities(WHAT_TO_FIT['strategy'],
-                                                sub_l_comp_idx, new_status)
+            fault_obj.prepare_cavities_for_compensation(
+                WHAT_TO_FIT['strategy'], sub_l_comp_idx)
 
     def _update_status_of_cavities_to_rephase(self):
         """
