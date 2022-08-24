@@ -12,7 +12,6 @@ are fixed together.
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 
-FIXME: is _select_comp_modules still in use?
 TODO : try to fit gamma instead of W_kin
 TODO : at init of Fault, say self.brok_lin = brok_lin.deepcopy() (or copy)
        Return self.brok_lin at the end of fix_all()
@@ -87,10 +86,6 @@ class Fault():
         elif OPTI_METHOD == 'PSO':
             flag_success, opti_sol = self._proper_fix_pso(
                 initial_guesses, bounds, wrapper_args, phi_s_limits)
-
-        print("""fix_single should give k_e, phi_0_rel, phi_0_abs instead of
-              this opti_sol which does not always contain the same
-              quantities.""")
 
         return flag_success, opti_sol
 
@@ -310,20 +305,6 @@ class Fault():
             # I """think"""...
             cav.update_status(new_status)
             cav.acc_field.save_parameters_found_by_optimisation(**rf_field)
-
-    def _select_comp_modules(self, modules_with_fail):
-        """Give failed modules and their neighbors."""
-        modules = self.brok_lin.elements['l_lattices']
-        neighbor_modules = []
-        for module in modules_with_fail:
-            idx = modules.index(module)
-            if idx > 0:
-                neighbor_modules.append(modules[idx - 1])
-            if idx < len(modules) - 1:
-                neighbor_modules.append(modules[idx + 1])
-        # We return all modules that could help to compensation, ie neighbors
-        # as well as faulty modules
-        return neighbor_modules + modules_with_fail
 
     def _set_fit_parameters(self):
         """

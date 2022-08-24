@@ -276,14 +276,6 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    # FIXME: still in use??
-    def _import_from_acc_f(self, kwargs):
-        """Import norm and phi_0 from the accelerating field."""
-        kwargs['k_e'] = self.acc_field.k_e
-        kwargs['phi_0_rel'] = self.acc_field.phi_0['rel']
-        kwargs['phi_0_abs'] = self.acc_field.phi_0['abs']
-        return kwargs
-
     def set_cavity_parameters(self, synch, phi_bunch_abs, w_kin_in,
                               d_fit=None):
         """
