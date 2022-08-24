@@ -66,7 +66,7 @@ class FaultScenario():
             brok_a_f.phi_0['rel'] = ref_a_f.phi_0['rel']
             brok_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['rel']
 
-    def fix_all(self, l_comp_idx):
+    def fix_all(self):
         """
         Fix the linac.
 
@@ -83,24 +83,21 @@ class FaultScenario():
             d_fits = {'flag': True,
                       'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
                       'l_k_e': opti_sol[fault.comp['n_cav']:].tolist()}
-            # Recompute transfer matrices just to have the proper rf_field
-            # dicts (in particular: if FLAG_PHI_S_FIT, we know phi_s_optimum
-            # but we do not know the corresponding phi_0)
+            # Recompute transfer matrices with solution
+            # Two objectives:-to have the proper rf_field dicts (in particular:
+            #                 if FLAG_PHI_S_FIT, we know phi_s_optimum but we
+            #                 do not know the corresponding phi_0)
+            #                -to transfer transfer matrices, energies, phase
+            #                 evolution along the linac to synch.
             _, _, _, _, l_rf_fields = fault.brok_lin.compute_transfer_matrices(
                 fault.comp['l_recompute'], d_fits=d_fits,
-                flag_transfer_data=False)
+                flag_transfer_data=True)
 
             # Update status of the compensating cavities according to the
             # success or not of the fit.
             # Give each compensating cavity the new optimum norm and entry
             # phase.
             fault.update_status_and_cav_parameters(flag_success, l_rf_fields)
-
-            # Recompute transfer matrix with proper solution
-            self.brok_lin.compute_transfer_matrices(
-                fault.comp['l_recompute'], d_fits=d_fits,
-                flag_transfer_data=True)
-            # TODO is this second computing still necessary???
 
             # Recompute transfer matrix between the end of this compensating
             # zone and the start of the next (or to the linac end)
