@@ -37,14 +37,14 @@ project_folder = ''
 # though !!).
 # If False, cavities keep their relative phi_0; all cavities after the first
 # modified cavity change their status to 'rephased'.
-FLAG_PHI_ABS = True
+FLAG_PHI_ABS = False
 
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = False
+FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
-# METHOD = 'leapfrog'
-METHOD = 'RK'
+METHOD = 'leapfrog'
+# METHOD = 'RK'
 
 # Number of spatial steps per RF cavity cell
 if 'leapfrog' in METHOD:
@@ -60,7 +60,7 @@ elif 'jm' in METHOD:
 # (pure Python). _c is ~2 to 4 times faster than _p.
 # Warning, you may have to relaod the kernel to force iPython to take the
 # change in FLAG_CYTHON into account.
-FLAG_CYTHON = False
+FLAG_CYTHON = True
 if FLAG_CYTHON:
     METHOD += '_c'
 else:

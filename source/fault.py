@@ -527,23 +527,45 @@ def _set_labels(str_objective):
 
 
 def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
-    """Unpack arguments and compute proper residues at proper spot."""
+    """
+    Unpack arguments and compute proper residues at proper spot.
+
+    Parameters
+    ----------
+    arr_cav_prop : np.array
+        Holds the norms (first half) and phases (second half) of cavities
+    fault : Fault object
+        The Fault under study.
+    fun_residual : function
+        Function returning the residues of the objective function at the proper
+        location.
+    d_idx : dict
+        Dict holding the lists of indexes (ref and broken) to evaluate the
+        objectives at the right spot.
+
+    Return
+    ------
+    arr_objective : np.array
+        Array of residues on the objectives.
+    """
+    # Convert phases and norms into a dict for compute_transfer_matrices
     d_fits = {'flag': True,
               'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
               'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
-    keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad')
 
     # Update transfer matrices
-    values = fault.brok_lin.compute_transfer_matrices(
+    brok_keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad')
+    brok_values = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    brok_calc = dict(zip(keys, values))
-    obj = fun_residual(fault.ref_lin, brok_calc, d_idx)
+    d_brok_calc = dict(zip(brok_keys, brok_values))
+
+    arr_objective = fun_residual(fault.ref_lin, d_brok_calc, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, obj)
+        debug.output_fit_progress(fault.count, arr_objective)
     fault.count += 1
 
-    return obj
+    return arr_objective
 
 
 def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):

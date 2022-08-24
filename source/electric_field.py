@@ -215,7 +215,10 @@ def convert_phi_0(phi_rf_abs, abs_to_rel, rf_field_dict):
         True if you want to convert absolute into relative,
         False if you want to convert relative into absolute.
     """
-    phi_0_abs = rf_field_dict['phi_0_abs']
+    try:
+        phi_0_abs = rf_field_dict['phi_0_abs']
+    except KeyError:
+        print(rf_field_dict)
     phi_0_rel = rf_field_dict['phi_0_rel']
     if abs_to_rel:
         assert phi_0_abs is not None

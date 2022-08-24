@@ -506,7 +506,7 @@ def output_cavities(linac, out=False):
             'phis'))
         i = 0
         for c in full_list_of_cav:
-            if c.info['status'] != 'nominal':
+            if 'compensate' in c.info['status']:
                 i += 1
                 df_out.loc[i] = df_cav.loc[full_list_of_cav.index(c)]
         if out:

@@ -315,6 +315,12 @@ class FieldMap(_Element):
         # FIXME :
         # phi_rf_rel = 0.
 
+        # Add the parameters that are independent from the cavity status
+        rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
+                           'e_spat': a_f.e_spat,
+                           'section_idx': self.idx['section'][0][0]
+                          }
+
         # Set norm and phi_0 of the cavity
         d_cav_param_setter = {
             "nominal": _take_parameters_from_rf_field_object,
@@ -325,23 +331,13 @@ class FieldMap(_Element):
             "compensate (not ok)": _take_parameters_from_rf_field_object,
         }
         # Argument for the functions in d_cav_param_setter
-        arg = a_f
+        arg = (a_f,)
         if self.info['status'] == "compensate (in progress)":
-            arg = d_fit
+            arg = (d_fit, w_kin_in, self)
 
         # Apply
         rf_field_kwargs, flag_abs_to_rel = \
-            d_cav_param_setter[self.info['status']](arg)
-
-        # Add the parameters that are independent from the cavity status
-        rf_field_kwargs['omega0_rf'] = a_f.omega0_rf
-        rf_field_kwargs['e_spat'] = a_f.e_spat
-        rf_field_kwargs['section_idx'] = self.idx['section'][0][0]
-
-        if constants.FLAG_PHI_S_FIT and d_fit['flag']:
-            phi_0_rel = self.match_synch_phase(w_kin_in, d_fit['phi'],
-                                               **rf_field_kwargs)
-            rf_field_kwargs['phi_0_rel'] = phi_0_rel
+            d_cav_param_setter[self.info['status']](*arg, **rf_field_kwargs)
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
@@ -371,6 +367,7 @@ class FieldMap(_Element):
 
         def _wrapper_synch(phi_0_rel):
             rf_field_kwargs['phi_0_rel'] = phi_0_rel
+            rf_field_kwargs['phi_0_abs'] = None
             results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
             diff = helper.diff_angle(
                 phi_s_objective,
@@ -399,12 +396,11 @@ class Freq():
         self.f_rf_mhz = float(elem[1])
 
 
-def _take_parameters_from_rf_field_object(a_f):
+def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
     """Extract RfField object parameters."""
-    rf_field_kwargs = {'k_e': a_f.k_e,
-                       'phi_0_rel': None,
-                       'phi_0_abs': a_f.phi_0['abs'],
-                       }
+    rf_field_kwargs['k_e'] = a_f.k_e
+    rf_field_kwargs['phi_0_rel'] = None
+    rf_field_kwargs['phi_0_abs'] = a_f.phi_0['abs']
     flag_abs_to_rel = True
 
     # If we are calculating the transfer matrices of the nominal linac and the
@@ -416,31 +412,32 @@ def _take_parameters_from_rf_field_object(a_f):
     return rf_field_kwargs, flag_abs_to_rel
 
 
-def _find_new_absolute_entry_phase(a_f):
+def _find_new_absolute_entry_phase(a_f, **rf_field_kwargs):
     """Extract RfField parameters, except phi_0_abs that is recalculated."""
-    rf_field_kwargs = {'k_e': a_f.k_e,
-                       'phi_0_rel': a_f.phi_0['rel'],
-                       'phi_0_abs': None,
-                       }
+    rf_field_kwargs['k_e'] = a_f.k_e
+    rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
+    rf_field_kwargs['phi_0_abs'] = None
     flag_abs_to_rel = False
     return rf_field_kwargs, flag_abs_to_rel
 
 
-def _try_parameters_from_d_fit(d_fit):
+def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
     """Extract parameters from d_fit."""
-    # print(d_fit)
     assert d_fit['flag'], "Inconsistency between cavity status and d_fit flag."
-    rf_field_kwargs = {
-        'k_e': d_fit['k_e'],
-        'phi_0_rel': d_fit['phi'],
-        'phi_0_abs': d_fit['phi'],
-    }
+    rf_field_kwargs['k_e'] = d_fit['k_e']
+    rf_field_kwargs['phi_0_rel'] = d_fit['phi']
+    rf_field_kwargs['phi_0_abs'] = d_fit['phi']
 
     flag_abs_to_rel = constants.FLAG_PHI_ABS
-    # print('_try_parameters_from_d_fit: check')
+
+    if constants.FLAG_PHI_S_FIT:
+        phi_0 = obj_cavity.match_synch_phase(
+            w_kin, phi_s_objective=d_fit['phi'], **rf_field_kwargs)
+        rf_field_kwargs['phi_0_rel'] = phi_0
+        rf_field_kwargs['phi_0_abs'] = None
+        flag_abs_to_rel = False
+
     # TODO modify the fit process in order to always fit on the
     # relative phase. Absolute phase can easily be calculated
     # afterwards.
-    # TODO handle fit over phi_s (there is already something in
-    # set_cavity_parameters)
     return rf_field_kwargs, flag_abs_to_rel
