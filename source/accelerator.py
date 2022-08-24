@@ -136,6 +136,7 @@ class Accelerator():
         l_w_kin = [self.synch.energy['kin_array_mev'][idx_in]]
         l_phi_abs = [self.synch.phi['abs_array'][idx_in]]
         l_r_zz_elt = []     # List of numpy arrays
+        l_rf_fields = []    # List of dicts
 
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
@@ -157,6 +158,7 @@ class Accelerator():
 
                 rf_field = elt.set_cavity_parameters(self.synch, phi_abs,
                                                      l_w_kin[-1], d_fit_elt)
+                l_rf_fields.append(rf_field)
                 elt_results = elt.calc_transf_mat(l_w_kin[-1], **rf_field)
                 l_phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
 
@@ -168,8 +170,8 @@ class Accelerator():
             l_phi_abs.extend(l_phi_abs_elt)
             l_w_kin.extend(elt_results['w_kin'].tolist())
 
-            # FIXME
             if flag_transfer_data:
+                # FIXME ok with new way of dealing phi_s?
                 self.transfer_data(elt, elt_results, np.array(l_phi_abs_elt),
                                    rf_field)
 
@@ -192,7 +194,7 @@ class Accelerator():
         if flag_transfer_data:
             self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
 
-        return arr_r_zz_cumul, l_w_kin, l_phi_abs, l_phi_s_rad
+        return arr_r_zz_cumul, l_w_kin, l_phi_abs, l_phi_s_rad, l_rf_fields
 
     def transfer_data(self, elt, elt_results, phi_abs_elt, rf_field):
         """

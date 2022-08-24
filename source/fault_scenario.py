@@ -17,7 +17,7 @@ TODO plot interesting data before the second fit to see if it is
 useful
 """
 import itertools
-from constants import FLAG_PHI_ABS, WHAT_TO_FIT
+from constants import FLAG_PHI_ABS, WHAT_TO_FIT, FLAG_PHI_S_FIT
 import debug
 import fault as mod_f
 
@@ -74,24 +74,33 @@ class FaultScenario():
         and make small adjustments.
         """
         l_flags_success = []
+
         # We fix all Faults individually
         for fault in self.faults['l_obj']:
             flag_success, opti_sol = fault.fix_single()
             l_flags_success.append(flag_success)
 
+            d_fits = {'flag': True,
+                      'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
+                      'l_k_e': opti_sol[fault.comp['n_cav']:].tolist()}
+            # Recompute transfer matrices just to have the proper rf_field
+            # dicts (in particular: if FLAG_PHI_S_FIT, we know phi_s_optimum
+            # but we do not know the corresponding phi_0)
+            _, _, _, _, l_rf_fields = fault.brok_lin.compute_transfer_matrices(
+                fault.comp['l_recompute'], d_fits=d_fits,
+                flag_transfer_data=False)
+
             # Update status of the compensating cavities according to the
             # success or not of the fit.
             # Give each compensating cavity the new optimum norm and entry
             # phase.
-            d_fits = {'flag': True,
-                      'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
-                      'l_k_e': opti_sol[fault.comp['n_cav']:].tolist()}
-            fault.update_status_and_cav_parameters(flag_success, d_fits)
+            fault.update_status_and_cav_parameters(flag_success, l_rf_fields)
 
             # Recompute transfer matrix with proper solution
             self.brok_lin.compute_transfer_matrices(
                 fault.comp['l_recompute'], d_fits=d_fits,
                 flag_transfer_data=True)
+            # TODO is this second computing still necessary???
 
             # Recompute transfer matrix between the end of this compensating
             # zone and the start of the next (or to the linac end)

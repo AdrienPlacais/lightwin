@@ -88,6 +88,10 @@ class Fault():
             flag_success, opti_sol = self._proper_fix_pso(
                 initial_guesses, bounds, wrapper_args, phi_s_limits)
 
+        print("""fix_single should give k_e, phi_0_rel, phi_0_abs instead of
+              this opti_sol which does not always contain the same
+              quantities.""")
+
         return flag_success, opti_sol
 
     def _proper_fix_lsq_opt(self, init_guess, bounds, wrapper_args):
@@ -100,9 +104,9 @@ class Fault():
         (OPTI_METHOD == 'PSO').
         """
         if init_guess.shape[0] == 1:
-            solver = minimize
+            kwargs = minimize
             # TODO: recheck
-            kwargs = {}
+            solver = {}
         else:
             solver = least_squares
             bounds = (bounds[:, 0], bounds[:, 1])
@@ -283,7 +287,7 @@ class Fault():
                                            for cav in self.comp['l_cav']))
                                    ]
 
-    def update_status_and_cav_parameters(self, flag_success, d_fits):
+    def update_status_and_cav_parameters(self, flag_success, l_rf_fields):
         """
         Update status of the compensating cavities, save new rf field param.
         """
@@ -294,12 +298,12 @@ class Fault():
 
         # Remove broke cavities, check if some compensating cavities already
         # compensate another fault, update status of comp cav
-        for cav in self.comp['l_cav']:
-            phi_0 = d_fits['l_phi'].pop(0)
-            rf_field = {'k_e': d_fits['l_k_e'].pop(0),
-                        'phi_0_rel': phi_0,
-                        'phi_0_abs': phi_0,
-                       }
+        for (cav, rf_field) in zip(self.comp['l_cav'], l_rf_fields):
+            # phi_0 = d_fits['l_phi'].pop(0)
+            # rf_field = {'k_e': d_fits['l_k_e'].pop(0),
+                        # 'phi_0_rel': phi_0,
+                        # 'phi_0_abs': phi_0,
+                       # }
             # FIXME I think that I can safely ignore the difference between
             # phi_0_rel and _abs, the good one will be used and the other one
             # erased.
@@ -554,7 +558,7 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
               'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
 
     # Update transfer matrices
-    brok_keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad')
+    brok_keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad', 'rf_field')
     brok_values = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
     d_brok_calc = dict(zip(brok_keys, brok_values))
@@ -573,16 +577,16 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
     d_fits = {'flag': True,
               'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
               'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
-    keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad')
 
     # Update transfer matrices
-    values = fault.brok_lin.compute_transfer_matrices(
+    brok_keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad', 'rf_field')
+    brok_values = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    brok_calc = dict(zip(keys, values))
-    obj = fun_residual(fault.ref_lin, brok_calc, d_idx)
+    d_brok_calc = dict(zip(brok_keys, brok_values))
+    arr_objective = fun_residual(fault.ref_lin, d_brok_calc, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, obj)
+        debug.output_fit_progress(fault.count, arr_objective)
     fault.count += 1
 
-    return obj, brok_calc
+    return arr_objective, d_brok_calc

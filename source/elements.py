@@ -276,6 +276,7 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
+    # FIXME: still in use??
     def _import_from_acc_f(self, kwargs):
         """Import norm and phi_0 from the accelerating field."""
         kwargs['k_e'] = self.acc_field.k_e
@@ -409,6 +410,7 @@ def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
     if rf_field_kwargs['phi_0_abs'] is None:
         rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
         flag_abs_to_rel = False
+
     return rf_field_kwargs, flag_abs_to_rel
 
 
