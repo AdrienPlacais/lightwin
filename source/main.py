@@ -189,10 +189,8 @@ import numpy as np
 
 # OK now let's try some trucs.
 # sigma matrix at the entry of the linac
-sigma = np.array(([2.9511603e-06, -1.9823111e-07],
-                  [-1.9823111e-07, 7.0530641e-07]))
+sigma_zdelta = np.array(([2.9511603e-06, -1.9823111e-07],
+                         [-1.9823111e-07, 7.0530641e-07]))
 
 # Total transfer matrix
 mts = ref_linac.transf_mat['cumul']
-
-

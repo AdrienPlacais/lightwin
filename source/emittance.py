@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Dec 13 14:42:41 2021
+Created on Mon Dec 13 14:42:41 2021.
 
 @author: placais
 
 beta, gamma are Lorentz factors.
-beta_z is beta Twiss parameter in [Z-Z'] [mm/pi.mrad]
+beta_z is beta Twiss parameter in [z-z'] [mm/pi.mrad]
 beta_w is beta Twiss parameter in [Delta phi-Delta W] [deg/pi.MeV]
-beta_zdelta is beta Twiss parameter in [Z-delta] [mm/pi.%]
+beta_zdelta is beta Twiss parameter in [z-delta] [mm/pi.%]
 (same for gamma_z, gamma_z, gamma_zdelta)
 
 Conversions for alpha are easier:
@@ -18,12 +18,17 @@ Conversions for alpha are easier:
 import numpy as np
 import helper
 import accelerator
-from constants import E_rest_MeV, c, LAMBDA_BUNCH
+from constants import E_rest_MeV, LAMBDA_BUNCH
 
 
 def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
-    """Compute the sigma beam matrices between linac entry and idx_out."""
-    l_sigma= [sigma_in]
+    """
+    Compute the sigma beam matrices between linac entry and idx_out.
+
+    sigma_in and transfer matrices should be in the same ref. By default,
+    LW calculates transfer matrices in [z - delta].
+    """
+    l_sigma = [sigma_in]
     n_points = linac.transf_mat['cumul'][0:idx_out].shape[0] + 1
 
     for i in range(n_points):
@@ -32,16 +37,15 @@ def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
     return l_sigma
 
 
-def mm_mrad_to_deg_mev(emit_z_z_prime, f_mhz):
-    """
-    Convert emittance.
+def non_norm_emittance_zdelta(linac, sigma_in, idx_out=-1):
+    """Compute longitudinal emittance, unnormalized, in pi.m.rad."""
+    l_sigma = sigma_beam_matrices(linac, sigma_in, idx_out)
+    l_epsilon_zdelta = [np.sqrt(np.linalg.det(sigma))
+                        for sigma in l_sigma]
+    return l_epsilon_zdelta
 
-    Convert z_z_prime emittance (pi.mm.mrad) to longitudinal PW emittance
-    (pi.deg.MeV).
-    """
-    lambda_um = c / f_mhz
-    emit_pw = 360. * E_rest_MeV / lambda_um * emit_z_z_prime
-    return emit_pw
+def emittance_zdelta(linac, sigma_in, idx_out=-1):
+    l_nonnorm = non_norm_emittance_zdelta(linac, sigma_in, idx_out)
 
 
 def _transform_mt(transfer_matrix, n_points):
@@ -76,6 +80,151 @@ def transport_twiss_parameters(linac, alpha_z0, beta_z0):
     return twiss
 
 
+# =============================================================================
+# Emittances conversions
+# =============================================================================
+def eps_z_to_w(eps_z, gamma, beta=None, lam=LAMBDA_BUNCH, e_0=E_rest_MeV):
+    """Convert emittance from [z-z'] to [Delta phi-Delta W]."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+    eps_w = (360. * e_0 * beta * gamma**3) / lam * eps_z
+    return eps_w
+
+
+def eps_w_to_z(eps_w, gamma, beta=None, lam=LAMBDA_BUNCH, e_0=E_rest_MeV):
+    """Convert emittance from [Delta phi-Delta W] to [z-z']."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+    eps_z = lam / (360. * e_0 * beta * gamma**3) * eps_w
+    return eps_z
+
+
+def eps_zdelta_to_w(eps_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
+                    e_0=E_rest_MeV):
+    """Convert emittance from [z-delta] to [Delta phi-Delta W]. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+    eps_w = (360. * e_0 * beta * gamma) / lam * eps_zdelta * 1e6
+    return eps_w
+
+
+def eps_w_to_zdelta(eps_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                    e_0=E_rest_MeV):
+    """Convert emittance from [Delta phi-Delta W] to [z-delta]."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+    eps_zdelta = lam / (360. * e_0 * beta * gamma) * eps_w * 1e-6
+    return eps_zdelta
+
+
+# =============================================================================
+# Twiss beta conversions
+# =============================================================================
+def beta_z_to_w(beta_z, gamma, beta=None, lam=LAMBDA_BUNCH,
+                e_0=E_rest_MeV):
+    """Convert Twiss beta from [z-z'] to [Delta phi-Delta W]. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+
+    beta_w = 360. / (e_0 * (gamma * beta)**3 * lam) * beta_z * 1e6
+    return beta_w
+
+
+def beta_w_to_z(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                e_0=E_rest_MeV):
+    """Convert Twiss beta from [Delta phi-Delta W] to [z-z']. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+    beta_z = (e_0 * (gamma * beta)**3 * lam) / 360. * beta_w * 1e-6
+    return beta_z
+
+
+def beta_zdelta_to_w(beta_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
+                     e_0=E_rest_MeV):
+    """Convert Twiss beta from [z-delta] to [Delta phi-Delta W]. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+
+    beta_w = 360. / (e_0 * gamma * beta**3 * lam) * beta_zdelta * 1e5
+    return beta_w
+
+
+def beta_w_to_zdelta(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                     e_0=E_rest_MeV):
+    """Convert Twiss beta [Delta phi-Delta W] from to [z-delta]. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+
+    beta_zdelta = (e_0 * gamma * beta**3 * lam) / 360. * beta_w * 1e-5
+    return beta_zdelta
+
+
+def beta_z_to_zdelta(beta_z, gamma):
+    """Convert Twiss beta [z-z'] from to [z-delta]. Validated."""
+    beta_zdelta = beta_z * gamma**-2 * 1e1
+    return beta_zdelta
+
+
+def beta_zdelta_to_z(beta_zdelta, gamma):
+    """Convert Twiss beta [z-delta] from to [z-z']. Validated."""
+    beta_z = beta_zdelta * gamma**2 * 1e-1
+    return beta_z
+
+
+# =============================================================================
+# Twiss gamma functions (inverse functions of Twiss beta functions!)
+# =============================================================================
+def gamma_z_to_w(gamma_z, gamma, beta=None, lam=LAMBDA_BUNCH,
+                 e_0=E_rest_MeV):
+    """Convert Twiss gamma from [z-z'] to [Delta phi-Delta W]."""
+    gamma_w = beta_w_to_z(gamma_z, gamma, beta, lam, e_0)
+    return gamma_w
+
+
+def gamma_w_to_z(gamma_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                 e_0=E_rest_MeV):
+    """Convert Twiss gamma from [Delta phi-Delta W] to [z-z']."""
+    gamma_z = beta_z_to_w(gamma_w, gamma, beta, lam, e_0)
+    return gamma_z
+
+
+def gamma_zdelta_to_w(gamma_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
+                      e_0=E_rest_MeV):
+    """Convert Twiss gamma from [z-delta] to [Delta phi-Delta W]."""
+    gamma_w = beta_w_to_zdelta(gamma_zdelta, gamma, beta, lam, e_0)
+    return gamma_w
+
+
+def gamma_w_to_zdelta(gamma_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                      e_0=E_rest_MeV):
+    """Convert Twiss gamma [Delta phi-Delta W] from to [z-delta]."""
+    gamma_zdelta = beta_zdelta_to_w(gamma_w, gamma, beta, lam, e_0)
+    return gamma_zdelta
+
+
+def gamma_z_to_zdelta(gamma_z, gamma):
+    """Convert Twiss gamma [z-z'] from to [z-delta]."""
+    gamma_zdelta = gamma_z * gamma**-2 * 1e1
+    return gamma_zdelta
+
+
+def gamma_zdelta_to_z(gamma_zdelta, gamma):
+    """Convert Twiss beta [z-delta] from to [z-z']."""
+    gamma_z = gamma_zdelta * gamma**2 * 1e-1
+    return gamma_z
+
+
+# =============================================================================
+# Old junk
+# =============================================================================
 def plot_twiss(linac, twiss):
     """Plot Twiss parameters."""
     fig, ax = helper.create_fig_if_not_exist(33, [111])
@@ -95,7 +244,6 @@ def plot_phase_spaces(linac, twiss):
     fig, ax = helper.create_fig_if_not_exist(34, [111])
     ax = ax[0]
     z_pos = linac.get_from_elements('pos_m', 'abs')
-
 
     ax.set_xlabel('z [m]')
     ax.set_ylabel("z' [m]")
@@ -137,104 +285,3 @@ def _beam_rms_size(w):
 def _beam_rms_correlation(w, v):
     """Compute the beam rms correlation bar(wv)."""
     return _compute_mean((w - _compute_mean(w)) * (v - _compute_mean(v)))
-
-# =============================================================================
-# Twiss beta conversions
-# =============================================================================
-def beta_z_to_w(beta_z, gamma, beta=None, lam=LAMBDA_BUNCH,
-                e_0=E_rest_MeV):
-    """Convert Twiss beta from [Z-Z'] to [Delta phi-Delta W]. Validated."""
-    # beta is Lorentz factor
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-
-    beta_w = 360. / (e_0 * (gamma * beta)**3 * lam) * beta_z * 1e6
-    return beta_w
-
-
-def beta_w_to_z(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
-                e_0=E_rest_MeV):
-    """Convert Twiss beta from [Delta phi-Delta W] to [Z-Z']. Validated."""
-    # beta is Lorentz factor
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-    beta_z = (e_0 * (gamma * beta)**3 * lam) / 360. * beta_w * 1e-6
-    return beta_z
-
-
-def beta_zdelta_to_w(beta_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
-                     e_0=E_rest_MeV):
-    """Convert Twiss beta from [Z-delta] to [Delta phi-Delta W]. Validated."""
-    # beta is Lorentz factor
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-
-    beta_w = 360. / (e_0 * gamma * beta**3 * lam) * beta_zdelta * 1e5
-    return beta_w
-
-
-def beta_w_to_zdelta(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
-                     e_0=E_rest_MeV):
-    """Convert Twiss beta [Delta phi-Delta W] from to [Z-delta]. Validated."""
-    # beta is Lorentz factor
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-
-    beta_zdelta = (e_0 * gamma * beta**3 * lam) / 360. * beta_w * 1e-5
-    return beta_zdelta
-
-
-def beta_z_to_zdelta(beta_z, gamma):
-    """Convert Twiss beta [Z-Z'] from to [Z-delta]. Validated."""
-    beta_zdelta = beta_z * gamma**-2 * 1e1
-    return beta_zdelta
-
-
-def beta_zdelta_to_z(beta_zdelta, gamma):
-    """Convert Twiss beta [Z-delta] from to [Z-Z']. Validated."""
-    beta_z = beta_zdelta * gamma**2 * 1e-1
-    return beta_z
-
-
-# =============================================================================
-# Twiss gamma functions (inverse functions of Twiss beta functions!)
-# =============================================================================
-def gamma_z_to_w(gamma_z, gamma, beta=None, lam=LAMBDA_BUNCH,
-                 e_0=E_rest_MeV):
-    """Convert Twiss gamma from [Z-Z'] to [Delta phi-Delta W]."""
-    gamma_w = beta_w_to_z(gamma_z, gamma, beta, lam, e_0)
-    return gamma_w
-
-
-def gamma_w_to_z(gamma_w, gamma, beta=None, lam=LAMBDA_BUNCH,
-                 e_0=E_rest_MeV):
-    """Convert Twiss gamma from [Delta phi-Delta W] to [Z-Z']."""
-    gamma_z = beta_z_to_w(gamma_w, gamma, beta, lam, e_0)
-    return gamma_z
-
-
-def gamma_zdelta_to_w(gamma_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
-                      e_0=E_rest_MeV):
-    """Convert Twiss gamma from [Z-delta] to [Delta phi-Delta W]."""
-    gamma_w = beta_w_to_zdelta(gamma_zdelta, gamma, beta, lam, e_0)
-    return gamma_w
-
-
-def gamma_w_to_zdelta(gamma_w, gamma, beta=None, lam=LAMBDA_BUNCH,
-                      e_0=E_rest_MeV):
-    """Convert Twiss gamma [Delta phi-Delta W] from to [Z-delta]."""
-    gamma_zdelta = beta_zdelta_to_w(gamma_w, gamma, beta, lam, e_0)
-    return gamma_zdelta
-
-
-def gamma_z_to_zdelta(gamma_z, gamma):
-    """Convert Twiss gamma [Z-Z'] from to [Z-delta]."""
-    gamma_zdelta = gamma_z * gamma**-2 * 1e1
-    return gamma_zdelta
-
-
-def gamma_zdelta_to_z(gamma_zdelta, gamma):
-    """Convert Twiss beta [Z-delta] from to [Z-Z']."""
-    gamma_z = gamma_zdelta * gamma**2 * 1e-1
-    return gamma_z
-
