@@ -37,7 +37,7 @@ project_folder = ''
 # though !!).
 # If False, cavities keep their relative phi_0; all cavities after the first
 # modified cavity change their status to 'rephased'.
-FLAG_PHI_ABS = True
+FLAG_PHI_ABS = False
 
 # Fit performed over phi_s?
 FLAG_PHI_S_FIT = True
@@ -70,6 +70,7 @@ E_MEV = 16.6
 GAMMA_INIT = 1. + E_MEV / E_rest_MeV
 F_BUNCH_MHZ = 176.1
 OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
+LAMBDA_BUNCH = c / F_BUNCH_MHZ
 
 # Optimisation method: least_squares or PSO
 OPTI_METHOD = 'least_squares'

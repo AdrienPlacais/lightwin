@@ -41,8 +41,8 @@ EMIT_Z_Z_PRIME = 0.27
 
 # Input Twiss parameters. Not modified by EMIT_Z_Z_PRIME
 ALPHA_Z = 0.1389194
-BETA_Z = 2.1311577  # mm/pi.mrad
-BETA_W = 71.215849  # deg/pi.MeV
+BETA_Z = 2.1388432  # mm/pi.mrad
+BETA_W = 71.472671  # deg/pi.MeV
 
 # Select .dat file
 Tk().withdraw()
@@ -76,7 +76,7 @@ manual_list = [
     # [579, 581, 591, 593, 595, 597]
 ]
 
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 # =============================================================================
 # Outputs
@@ -175,14 +175,24 @@ if FLAG_FIX:
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
-data_ref = tw.output_data_in_tw_fashion(ref_linac)
-data_fixed = tw.output_data_in_tw_fashion(broken_linac)
-fault_info = fail.faults['l_obj'][0].info
+# data_ref = tw.output_data_in_tw_fashion(ref_linac)
+# data_fixed = tw.output_data_in_tw_fashion(broken_linac)
+# fault_info = fail.faults['l_obj'][0].info
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
-plt.plot(ref_linac.synch.z['abs_array'], ref_linac.synch.phi['abs_array'], label="calculated")
-lala = np.loadtxt("/home/placais/Documents/Conferences/LINAC2022/LaTeX/data/phase_TW.txt", skiprows=1)
-plt.plot(lala[:, 0], np.deg2rad(lala[:, 2]), label="reference")
-plt.grid(True)
-plt.legend()
+# plt.plot(ref_linac.synch.z['abs_array'], ref_linac.synch.phi['abs_array'], label="calculated")
+# lala = np.loadtxt("/home/placais/Documents/Conferences/LINAC2022/LaTeX/data/phase_TW.txt", skiprows=1)
+# plt.plot(lala[:, 0], np.deg2rad(lala[:, 2]), label="reference")
+# plt.grid(True)
+# plt.legend()
+
+# OK now let's try some trucs.
+# sigma matrix at the entry of the linac
+sigma = np.array(([2.9511603e-06, -1.9823111e-07],
+                  [-1.9823111e-07, 7.0530641e-07]))
+
+# Total transfer matrix
+mts = ref_linac.transf_mat['cumul']
+
+

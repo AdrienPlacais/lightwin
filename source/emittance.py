@@ -4,12 +4,32 @@
 Created on Mon Dec 13 14:42:41 2021
 
 @author: placais
+
+beta, gamma are Lorentz factors.
+beta_z is beta Twiss parameter in [Z-Z'] [mm/pi.mrad]
+beta_w is beta Twiss parameter in [Delta phi-Delta W] [deg/pi.MeV]
+beta_zdelta is beta Twiss parameter in [Z-delta] [mm/pi.%]
+(same for gamma_z, gamma_z, gamma_zdelta)
+
+Conversions for alpha are easier:
+    alpha_w = -alpha_z = -alpha_zdelta
 """
 
 import numpy as np
 import helper
 import accelerator
-from constants import E_rest_MeV, c
+from constants import E_rest_MeV, c, LAMBDA_BUNCH
+
+
+def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
+    """Compute the sigma beam matrices between linac entry and idx_out."""
+    l_sigma= [sigma_in]
+    n_points = linac.transf_mat['cumul'][0:idx_out].shape[0] + 1
+
+    for i in range(n_points):
+        r_zz = linac.transf_mat['cumul'][i]
+        l_sigma.append(r_zz @ sigma_in @ r_zz.transpose())
+    return l_sigma
 
 
 def mm_mrad_to_deg_mev(emit_z_z_prime, f_mhz):
@@ -24,7 +44,7 @@ def mm_mrad_to_deg_mev(emit_z_z_prime, f_mhz):
     return emit_pw
 
 
-def transform_mt(transfer_matrix, n_points):
+def _transform_mt(transfer_matrix, n_points):
     """Change form of the transfer matrix."""
     transformed = np.full((n_points, 3, 3), np.NaN)
     for i in range(n_points):
@@ -33,20 +53,20 @@ def transform_mt(transfer_matrix, n_points):
         S = transfer_matrix[i, 0, 1]
         S_prime = transfer_matrix[i, 1, 1]
 
-        transformed[i, :, :] =  np.array((
-            [C**2,      -2.*C*S,                S**2],
-            [-C*C_prime, C_prime*S + C*S_prime, -S*S_prime],
-            [C_prime**2, -2.*C_prime*S_prime,   S_prime**2]))
+        transformed[i, :, :] = np.array((
+            [C**2, -2. * C * S, S**2],
+            [-C * C_prime, C_prime * S + C * S_prime, -S * S_prime],
+            [C_prime**2, -2. * C_prime * S_prime, S_prime**2]))
     return transformed
 
 
 def transport_twiss_parameters(linac, alpha_z0, beta_z0):
     """Transport Twiss parameters."""
     assert isinstance(linac, accelerator.Accelerator)
-    transfer_matrix = linac.transfer_matrix_cumul
-    n_points = transfer_matrix.shape[0]
+    t_m = linac.transf_mat['cumul']
+    n_points = t_m.shape[0]
 
-    transformed = transform_mt(transfer_matrix, n_points)
+    transformed = _transform_mt(t_m, n_points)
 
     twiss = np.full((n_points, 3), np.NaN)
     twiss[0, :] = np.array(([beta_z0, alpha_z0, (1. + alpha_z0**2) / beta_z0]))
@@ -82,38 +102,139 @@ def plot_phase_spaces(linac, twiss):
     ax.grid(True)
 
 
-def beam_unnormalized_beam_emittance(w, w_prime):
+def _beam_unnormalized_beam_emittance(w, w_prime):
     """Compute the beam rms unnormalized emittance (pi.m.rad)."""
-    emitt_w = beam_rms_size(w)**2 * beam_rms_size(w_prime)**2
-    emitt_w -= compute_mean(w * w_prime)**2
+    emitt_w = _beam_rms_size(w)**2 * _beam_rms_size(w_prime)**2
+    emitt_w -= _compute_mean(w * w_prime)**2
     emitt_w = np.sqrt(emitt_w)
     return emitt_w
 
 
 def beam_unnormalized_effective_emittance(w, w_prime):
     """Compute the beam rms effective emittance (?)."""
-    return 5. * beam_unnormalized_beam_emittance(w, w_prime)
+    return 5. * _beam_unnormalized_beam_emittance(w, w_prime)
 
 
 def twiss_parameters(w, w_prime):
     """Compute the Twiss parameters."""
-    emitt_w = beam_unnormalized_beam_emittance(w, w_prime)
-    alpha_w = -beam_rms_correlation(w, w_prime) / emitt_w
-    beta_w = beam_rms_size(w)**2 / emitt_w
-    gamma_w = beam_rms_size(w_prime)**2 / emitt_w
+    emitt_w = _beam_unnormalized_beam_emittance(w, w_prime)
+    alpha_w = -_beam_rms_correlation(w, w_prime) / emitt_w
+    beta_w = _beam_rms_size(w)**2 / emitt_w
+    gamma_w = _beam_rms_size(w_prime)**2 / emitt_w
     return alpha_w, beta_w, gamma_w
 
 
-def compute_mean(w):
+def _compute_mean(w):
     """Compute the mean value of a property over the beam at location s <w>."""
     return np.NaN
 
 
-def beam_rms_size(w):
+def _beam_rms_size(w):
     """Compute the beam rms size ~w."""
-    return np.sqrt(compute_mean((w - compute_mean(w))**2))
+    return np.sqrt(_compute_mean((w - _compute_mean(w))**2))
 
 
-def beam_rms_correlation(w, v):
+def _beam_rms_correlation(w, v):
     """Compute the beam rms correlation bar(wv)."""
-    return compute_mean((w - compute_mean(w)) * (v - compute_mean(v)))
+    return _compute_mean((w - _compute_mean(w)) * (v - _compute_mean(v)))
+
+# =============================================================================
+# Twiss beta conversions
+# =============================================================================
+def beta_z_to_w(beta_z, gamma, beta=None, lam=LAMBDA_BUNCH,
+                e_0=E_rest_MeV):
+    """Convert Twiss beta from [Z-Z'] to [Delta phi-Delta W]. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+
+    beta_w = 360. / (e_0 * (gamma * beta)**3 * lam) * beta_z * 1e6
+    return beta_w
+
+
+def beta_w_to_z(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                e_0=E_rest_MeV):
+    """Convert Twiss beta from [Delta phi-Delta W] to [Z-Z']. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+    beta_z = (e_0 * (gamma * beta)**3 * lam) / 360. * beta_w * 1e-6
+    return beta_z
+
+
+def beta_zdelta_to_w(beta_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
+                     e_0=E_rest_MeV):
+    """Convert Twiss beta from [Z-delta] to [Delta phi-Delta W]. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+
+    beta_w = 360. / (e_0 * gamma * beta**3 * lam) * beta_zdelta * 1e5
+    return beta_w
+
+
+def beta_w_to_zdelta(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                     e_0=E_rest_MeV):
+    """Convert Twiss beta [Delta phi-Delta W] from to [Z-delta]. Validated."""
+    # beta is Lorentz factor
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+
+    beta_zdelta = (e_0 * gamma * beta**3 * lam) / 360. * beta_w * 1e-5
+    return beta_zdelta
+
+
+def beta_z_to_zdelta(beta_z, gamma):
+    """Convert Twiss beta [Z-Z'] from to [Z-delta]. Validated."""
+    beta_zdelta = beta_z * gamma**-2 * 1e1
+    return beta_zdelta
+
+
+def beta_zdelta_to_z(beta_zdelta, gamma):
+    """Convert Twiss beta [Z-delta] from to [Z-Z']. Validated."""
+    beta_z = beta_zdelta * gamma**2 * 1e-1
+    return beta_z
+
+
+# =============================================================================
+# Twiss gamma functions (inverse functions of Twiss beta functions!)
+# =============================================================================
+def gamma_z_to_w(gamma_z, gamma, beta=None, lam=LAMBDA_BUNCH,
+                 e_0=E_rest_MeV):
+    """Convert Twiss gamma from [Z-Z'] to [Delta phi-Delta W]."""
+    gamma_w = beta_w_to_z(gamma_z, gamma, beta, lam, e_0)
+    return gamma_w
+
+
+def gamma_w_to_z(gamma_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                 e_0=E_rest_MeV):
+    """Convert Twiss gamma from [Delta phi-Delta W] to [Z-Z']."""
+    gamma_z = beta_z_to_w(gamma_w, gamma, beta, lam, e_0)
+    return gamma_z
+
+
+def gamma_zdelta_to_w(gamma_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
+                      e_0=E_rest_MeV):
+    """Convert Twiss gamma from [Z-delta] to [Delta phi-Delta W]."""
+    gamma_w = beta_w_to_zdelta(gamma_zdelta, gamma, beta, lam, e_0)
+    return gamma_w
+
+
+def gamma_w_to_zdelta(gamma_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                      e_0=E_rest_MeV):
+    """Convert Twiss gamma [Delta phi-Delta W] from to [Z-delta]."""
+    gamma_zdelta = beta_zdelta_to_w(gamma_w, gamma, beta, lam, e_0)
+    return gamma_zdelta
+
+
+def gamma_z_to_zdelta(gamma_z, gamma):
+    """Convert Twiss gamma [Z-Z'] from to [Z-delta]."""
+    gamma_zdelta = gamma_z * gamma**-2 * 1e1
+    return gamma_zdelta
+
+
+def gamma_zdelta_to_z(gamma_zdelta, gamma):
+    """Convert Twiss beta [Z-delta] from to [Z-Z']."""
+    gamma_z = gamma_zdelta * gamma**2 * 1e-1
+    return gamma_z
+
