@@ -43,12 +43,12 @@ FLAG_PHI_ABS = False
 FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
-METHOD = 'leapfrog'
-# METHOD = 'RK'
+# METHOD = 'leapfrog'
+METHOD = 'RK'
 
 # Number of spatial steps per RF cavity cell
 if 'leapfrog' in METHOD:
-    N_STEPS_PER_CELL = 20
+    N_STEPS_PER_CELL = 40
 elif 'RK' in METHOD:
     N_STEPS_PER_CELL = 20
 # With jm, the electric field are not interpolated. We evaluate electric field

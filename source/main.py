@@ -178,19 +178,22 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 # data_ref = tw.output_data_in_tw_fashion(ref_linac)
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 # fault_info = fail.faults['l_obj'][0].info
+DEBUG_EMITT = False
 
-# import matplotlib.pyplot as plt
-import numpy as np
-# plt.plot(ref_linac.synch.z['abs_array'], ref_linac.synch.phi['abs_array'], label="calculated")
-# lala = np.loadtxt("/home/placais/Documents/Conferences/LINAC2022/LaTeX/data/phase_TW.txt", skiprows=1)
-# plt.plot(lala[:, 0], np.deg2rad(lala[:, 2]), label="reference")
-# plt.grid(True)
-# plt.legend()
+if DEBUG_EMITT:
+    import numpy as np
 
-# OK now let's try some trucs.
-# sigma matrix at the entry of the linac
-sigma_zdelta = np.array(([2.9511603e-06, -1.9823111e-07],
-                         [-1.9823111e-07, 7.0530641e-07]))
+    # OK now let's try some trucs.
+    # sigma matrix at the entry of the linac
+    sigma_zdelta = np.array(([2.9511603e-06, -1.9823111e-07],
+                             [-1.9823111e-07, 7.0530641e-07]))
 
-# Total transfer matrix
-mts = ref_linac.transf_mat['cumul']
+    # Total transfer matrix
+    emittance.plot_longitudinal_emittance(ref_linac, sigma_zdelta)
+    # emittance.plot_longitudinal_emittance(broken_linac, sigma_zdelta)
+
+    ref = np.loadtxt("/home/placais/LightWin/data/faultcomp22/working/results/Longitudinalemittance(πdegMeV).txt")
+    fig, ax = helper.create_fig_if_not_exist(13, [111])
+    ax = ax[0]
+    ax.plot(ref[:, 0], ref[:, 1], label='Ref')
+    ax.legend()

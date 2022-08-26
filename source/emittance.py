@@ -5,14 +5,22 @@ Created on Mon Dec 13 14:42:41 2021.
 
 @author: placais
 
-beta, gamma are Lorentz factors.
-beta_z is beta Twiss parameter in [z-z'] [mm/pi.mrad]
-beta_w is beta Twiss parameter in [Delta phi-Delta W] [deg/pi.MeV]
-beta_zdelta is beta Twiss parameter in [z-delta] [mm/pi.%]
-(same for gamma_z, gamma_z, gamma_zdelta)
+Emittances:
+    eps_z is emittance in [z-z'] in [pi.mm.mrad]
+    eps_w is emittance in [Delta phi-Delta W] in [pi.deg.MeV]
+    eps_zdelta is emittance in [z-delta]
+longitudinal in [pi.deg.MeV]
 
-Conversions for alpha are easier:
-    alpha_w = -alpha_z = -alpha_zdelta
+
+Twiss:
+    beta, gamma are Lorentz factors.
+    beta_z is beta Twiss parameter in [z-z'] [mm/pi.mrad]
+    beta_w is beta Twiss parameter in [Delta phi-Delta W] [deg/pi.MeV]
+    beta_zdelta is beta Twiss parameter in [z-delta] [mm/pi.%]
+    (same for gamma_z, gamma_z, gamma_zdelta)
+
+    Conversions for alpha are easier:
+        alpha_w = -alpha_z = -alpha_zdelta
 """
 
 import numpy as np
@@ -34,19 +42,38 @@ def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
     for i in range(n_points):
         r_zz = linac.transf_mat['cumul'][i]
         l_sigma.append(r_zz @ sigma_in @ r_zz.transpose())
-    return l_sigma
+    return np.array(l_sigma)
 
 
 def non_norm_emittance_zdelta(linac, sigma_in, idx_out=-1):
     """Compute longitudinal emittance, unnormalized, in pi.m.rad."""
-    l_sigma = sigma_beam_matrices(linac, sigma_in, idx_out)
-    l_epsilon_zdelta = [np.sqrt(np.linalg.det(sigma))
-                        for sigma in l_sigma]
-    return l_epsilon_zdelta
+    arr_sigma = sigma_beam_matrices(linac, sigma_in, idx_out)
 
-def emittance_zdelta(linac, sigma_in, idx_out=-1):
-    l_nonnorm = non_norm_emittance_zdelta(linac, sigma_in, idx_out)
+    l_epsilon_zdelta = [np.sqrt(np.linalg.det(arr_sigma[i]))
+                        for i in range(arr_sigma.shape[0])]
+    return np.array(l_epsilon_zdelta)
 
+
+# def emittance_zdelta(linac, sigma_in, idx_out=-1):
+    # l_nonnorm = non_norm_emittance_zdelta(linac, sigma_in, idx_out)
+
+
+def plot_longitudinal_emittance(linac, sigma_in):
+    # Array of non normalized emittance in [z-delta]
+    gamma = linac.synch.energy['gamma_array']
+    beta = linac.synch.energy['beta_array']
+
+    arr_eps_zdelta = non_norm_emittance_zdelta(linac, sigma_in, idx_out=-1)[:-1]
+    arr_eps_w = eps_zdelta_to_w(arr_eps_zdelta, gamma)
+
+    fig, ax = helper.create_fig_if_not_exist(13, [111])
+    ax = ax[0]
+    ax.plot(linac.synch.z['abs_array'], arr_eps_w, label=linac.name)
+    ax.grid(True)
+    ax.set_xlabel("Position [m]")
+    ax.set_ylabel(r"Longitudinal emittance [$\pi$.deg.MeV]")
+    ax.legend()
+    print("plot_longitudinal_emittance: bug somewhere? Does not match TW.")
 
 def _transform_mt(transfer_matrix, n_points):
     """Change form of the transfer matrix."""
