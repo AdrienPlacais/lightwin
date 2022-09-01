@@ -82,9 +82,9 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
+    # "energy",
+    # "phase",
+    # "cav",
 ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -129,6 +129,7 @@ for plot in PLOTS:
     debug.compare_with_tracewin(broken_linac, x_dat="s",
                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
+# debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat['cumul'])
 
 if FLAG_FIX:
     fail.prepare_compensating_cavities_of_all_faults(manual_list)
@@ -138,7 +139,6 @@ if FLAG_FIX:
         debug.compare_with_tracewin(broken_linac, x_dat="s",
                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
-
 # Broken linac but with proper cavities status
 # fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()
@@ -178,7 +178,7 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 # data_ref = tw.output_data_in_tw_fashion(ref_linac)
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 # fault_info = fail.faults['l_obj'][0].info
-DEBUG_EMITT = False
+DEBUG_EMITT = True
 
 if DEBUG_EMITT:
     import numpy as np
@@ -191,9 +191,11 @@ if DEBUG_EMITT:
     # Total transfer matrix
     emittance.plot_longitudinal_emittance(ref_linac, sigma_zdelta)
     # emittance.plot_longitudinal_emittance(broken_linac, sigma_zdelta)
-
+    # emittance.other_emittance_from_sigma(ref_linac, sigma_zdelta)
     ref = np.loadtxt("/home/placais/LightWin/data/faultcomp22/working/results/Longitudinalemittance(πdegMeV).txt")
     fig, ax = helper.create_fig_if_not_exist(13, [111])
     ax = ax[0]
     ax.plot(ref[:, 0], ref[:, 1], label='Ref')
     ax.legend()
+
+    emittance.calc_emittance_from_tw_transf_mat(ref_linac, sigma_zdelta)

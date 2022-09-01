@@ -5,18 +5,17 @@ Created on Mon Dec 13 14:42:41 2021.
 
 @author: placais
 
-Emittances:
-    eps_z is emittance in [z-z'] in [pi.mm.mrad]
-    eps_w is emittance in [Delta phi-Delta W] in [pi.deg.MeV]
-    eps_zdelta is emittance in [z-delta]
-longitudinal in [pi.deg.MeV]
+Longitudinal emittances:
+    eps_z is emittance in [z-z'] in [pi.mm.mrad], non normalized
+    eps_zdelta is emittance in [z-delta] in [pi.m.rad], non normalized
+    eps_w is emittance in [Delta phi-Delta W] in [pi.deg.MeV], normalized
 
 
 Twiss:
     beta, gamma are Lorentz factors.
     beta_z is beta Twiss parameter in [z-z'] [mm/pi.mrad]
-    beta_w is beta Twiss parameter in [Delta phi-Delta W] [deg/pi.MeV]
     beta_zdelta is beta Twiss parameter in [z-delta] [mm/pi.%]
+    beta_w is beta Twiss parameter in [Delta phi-Delta W] [deg/pi.MeV]
     (same for gamma_z, gamma_z, gamma_zdelta)
 
     Conversions for alpha are easier:
@@ -27,6 +26,7 @@ import numpy as np
 import helper
 import accelerator
 from constants import E_rest_MeV, LAMBDA_BUNCH
+import tracewin_interface as tw
 
 
 def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
@@ -42,10 +42,13 @@ def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
     for i in range(n_points):
         r_zz = linac.transf_mat['cumul'][i]
         l_sigma.append(r_zz @ sigma_in @ r_zz.transpose())
+        if i in [45]:
+            print(f"i={i},\n sigma={l_sigma[-1]}\n")
+            print(f"det={np.linalg.det(l_sigma[-1])}")
     return np.array(l_sigma)
 
 
-def non_norm_emittance_zdelta(linac, sigma_in, idx_out=-1):
+def emittance_zdelta(linac, sigma_in, idx_out=-1):
     """Compute longitudinal emittance, unnormalized, in pi.m.rad."""
     arr_sigma = sigma_beam_matrices(linac, sigma_in, idx_out)
 
@@ -54,26 +57,25 @@ def non_norm_emittance_zdelta(linac, sigma_in, idx_out=-1):
     return np.array(l_epsilon_zdelta)
 
 
-# def emittance_zdelta(linac, sigma_in, idx_out=-1):
-    # l_nonnorm = non_norm_emittance_zdelta(linac, sigma_in, idx_out)
-
-
 def plot_longitudinal_emittance(linac, sigma_in):
+    """Compute and plot longitudinal emittance."""
     # Array of non normalized emittance in [z-delta]
     gamma = linac.synch.energy['gamma_array']
-    beta = linac.synch.energy['beta_array']
 
-    arr_eps_zdelta = non_norm_emittance_zdelta(linac, sigma_in, idx_out=-1)[:-1]
+    arr_eps_zdelta = emittance_zdelta(linac, sigma_in, idx_out=-1)[1:]
+
     arr_eps_w = eps_zdelta_to_w(arr_eps_zdelta, gamma)
 
-    fig, ax = helper.create_fig_if_not_exist(13, [111])
-    ax = ax[0]
-    ax.plot(linac.synch.z['abs_array'], arr_eps_w, label=linac.name)
-    ax.grid(True)
-    ax.set_xlabel("Position [m]")
-    ax.set_ylabel(r"Longitudinal emittance [$\pi$.deg.MeV]")
-    ax.legend()
-    print("plot_longitudinal_emittance: bug somewhere? Does not match TW.")
+    fig, axx = helper.create_fig_if_not_exist(13, [111])
+    axx = axx[0]
+    axx.plot(linac.synch.z['abs_array'], arr_eps_w, label=linac.name)
+    axx.grid(True)
+    axx.set_xlabel("Position [m]")
+    axx.set_ylabel(r"Longitudinal emittance [$\pi$.deg.MeV]")
+    axx.legend()
+    print("plot_longitudinal_emittance: normalized or not?",
+          "Should increase slowly.")
+
 
 def _transform_mt(transfer_matrix, n_points):
     """Change form of the transfer matrix."""
@@ -312,3 +314,39 @@ def _beam_rms_size(w):
 def _beam_rms_correlation(w, v):
     """Compute the beam rms correlation bar(wv)."""
     return _compute_mean((w - _compute_mean(w)) * (v - _compute_mean(v)))
+
+
+def calc_emittance_from_tw_transf_mat(linac, sigma_in):
+    """Compute emittance with TW's transfer matrices."""
+    l_sigma = [sigma_in]
+    fold = linac.files['project_folder']
+    filepath_ref = [fold + '/results/M_55_ref.txt',
+                    fold + '/results/M_56_ref.txt',
+                    fold + '/results/M_65_ref.txt',
+                    fold + '/results/M_66_ref.txt']
+    r_zz_tmp = tw.load_transfer_matrices(filepath_ref)
+    z = r_zz_tmp[:, 0]
+    n_z = z.shape[0]
+    r_zz_ref = np.empty([n_z, 2, 2])
+    for i in range(n_z):
+        r_zz_ref[i, 0, 0] = r_zz_tmp[i, 1]
+        r_zz_ref[i, 0, 1] = r_zz_tmp[i, 2]
+        r_zz_ref[i, 1, 0] = r_zz_tmp[i, 3]
+        r_zz_ref[i, 1, 1] = r_zz_tmp[i, 4]
+        l_sigma.append(r_zz_ref[i] @ sigma_in @ r_zz_ref[i].transpose())
+    arr_sigma = np.array(l_sigma)
+
+    l_epsilon_zdelta = [np.sqrt(np.linalg.det(arr_sigma[i]))
+                        for i in range(n_z)]
+    arr_eps_zdelta = np.array(l_epsilon_zdelta)
+
+    filepath = linac.files['project_folder'] + '/results/Chart_Energy(MeV).txt'
+    w_kin = np.loadtxt(filepath, skiprows=1)
+    w_kin = np.interp(x=z, xp=w_kin[:, 0], fp=w_kin[:, 1])
+    gamma = helper.kin_to_gamma(w_kin)
+    arr_eps_w = eps_zdelta_to_w(arr_eps_zdelta, gamma)
+
+    fig, ax = helper.create_fig_if_not_exist(13, [111])
+    ax = ax[0]
+    ax.plot(z, arr_eps_w, label="Calc with TW transf mat")
+    ax.legend()
