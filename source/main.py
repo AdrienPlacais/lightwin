@@ -39,11 +39,6 @@ EMIT_Z_Z_PRIME = 0.27
 # Longitudinal rms emittance (pi.deg.MeV)
 # emit_pw = emittance.mm_mrad_to_deg_mev(EMIT_Z_Z_PRIME, F_MHZ)
 
-# Input Twiss parameters. Not modified by EMIT_Z_Z_PRIME
-ALPHA_Z = 0.1389194
-BETA_Z = 2.1388432  # mm/pi.mrad
-BETA_W = 71.472671  # deg/pi.MeV
-
 # Select .dat file
 Tk().withdraw()
 

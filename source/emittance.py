@@ -27,7 +27,7 @@ Twiss:
 import numpy as np
 import helper
 import accelerator
-from constants import E_rest_MeV, LAMBDA_BUNCH
+from constants import E_rest_MeV, LAMBDA_BUNCH, ALPHA_Z, BETA_Z
 import tracewin_interface as tw
 
 
@@ -116,7 +116,7 @@ def _transform_mt(transfer_matrix):
     return transformed
 
 
-def transport_twiss_parameters2(r_zz, alpha_z0, beta_z0):
+def transport_twiss_parameters2(r_zz, alpha_z0=ALPHA_Z, beta_z0=BETA_Z):
     """Transport Twiss parameters along element(s) described by r_zz."""
     n_points = r_zz.shape[0]
     transformed = _transform_mt(r_zz)
@@ -185,6 +185,26 @@ def eps_w_to_zdelta(eps_w, gamma, beta=None, lam=LAMBDA_BUNCH,
         beta = np.sqrt(1. - gamma**-2)
     eps_zdelta = lam / (360. * e_0 * beta * gamma) * eps_w * 1e-6
     return eps_zdelta
+
+
+def plot_twiss(linac, twiss):
+    """Plot Twiss parameters."""
+    _, axs = helper.create_fig_if_not_exist(33, [311, 312, 313])
+    z_pos = linac.synch.z['abs_array']
+
+    axs[0].plot(z_pos, twiss[:, 1], label=linac.name)
+    axs[0].set_ylabel(r'$\alpha_z$ [1]')
+    axs[0].legend()
+
+    axs[1].plot(z_pos, twiss[:, 0])
+    axs[1].set_ylabel(r'$\beta_z$ [mm/$\pi$mrad]')
+
+    axs[2].plot(z_pos, twiss[:, 2])
+    axs[2].set_ylabel(r'$\gamma_z$ [$\pi$/mm/mrad]')
+    axs[2].set_xlabel('s [m]')
+
+    for ax_ in axs:
+        ax_.grid(True)
 
 
 # =============================================================================
@@ -291,20 +311,6 @@ def gamma_zdelta_to_z(gamma_zdelta, gamma):
 # =============================================================================
 # Old junk
 # =============================================================================
-def plot_twiss(linac, twiss):
-    """Plot Twiss parameters."""
-    fig, ax = helper.create_fig_if_not_exist(33, [111])
-    ax = ax[0]
-    z_pos = linac.get_from_elements('pos_m', 'abs')
-    ax.plot(z_pos, twiss[:, 1], label=r'$\alpha_z$')
-    ax.plot(z_pos, twiss[:, 0], label=r'$\beta_z$')
-    ax.plot(z_pos, twiss[:, 2], label=r'$\gamma_z$')
-    ax.set_xlabel('s [m]')
-    ax.set_ylabel('Twiss parameters')
-    ax.grid(True)
-    ax.legend()
-
-
 def plot_phase_spaces(linac, twiss):
     """Plot ellipsoid."""
     fig, ax = helper.create_fig_if_not_exist(34, [111])
