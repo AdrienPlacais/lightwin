@@ -5,6 +5,8 @@ Created on Mon Dec 13 14:42:41 2021.
 
 @author: placais
 
+TODO : check transport of [sigma] and Twiss. Not sure about initial vector
+
 Longitudinal emittances:
     eps_z is emittance in [z-z'] in [pi.mm.mrad], non normalized
     eps_zdelta is emittance in [z-delta] in [pi.m.rad], non normalized
@@ -29,6 +31,29 @@ from constants import E_rest_MeV, LAMBDA_BUNCH
 import tracewin_interface as tw
 
 
+def sigma_beam_matrices2(arr_r_zz, sigma_in):
+    """
+    Compute the sigma beam matrices corresponding to provided transfer matrix.
+
+    Parameters
+    ----------
+    arr_r_zz : numpy array
+        (n, 2, 2) array of total longitudinal transfer matrices.
+    sigma_in : numpy array
+        (2, 2) sigma beam matrix at the entry of the linac.
+
+    Return
+    ------
+    arr_sigma : numpy array
+        (n, 2, 2) sigma beam matrices.
+    """
+    n_points = arr_r_zz.shape[0]
+    arr_sigma = np.empty((n_points))
+    for i in range(n_points):
+        arr_sigma[i] = arr_r_zz[i] @ sigma_in @ arr_r_zz[i].transpose()
+    return arr_sigma
+
+
 def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
     """
     Compute the sigma beam matrices between linac entry and idx_out.
@@ -42,9 +67,6 @@ def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
     for i in range(n_points):
         r_zz = linac.transf_mat['cumul'][i]
         l_sigma.append(r_zz @ sigma_in @ r_zz.transpose())
-        if i in [45]:
-            print(f"i={i},\n sigma={l_sigma[-1]}\n")
-            print(f"det={np.linalg.det(l_sigma[-1])}")
     return np.array(l_sigma)
 
 
@@ -77,8 +99,9 @@ def plot_longitudinal_emittance(linac, sigma_in):
           "Should increase slowly.")
 
 
-def _transform_mt(transfer_matrix, n_points):
+def _transform_mt(transfer_matrix):
     """Change form of the transfer matrix."""
+    n_points = transfer_matrix.shape[0]
     transformed = np.full((n_points, 3, 3), np.NaN)
     for i in range(n_points):
         C = transfer_matrix[i, 0, 0]
@@ -91,6 +114,20 @@ def _transform_mt(transfer_matrix, n_points):
             [-C * C_prime, C_prime * S + C * S_prime, -S * S_prime],
             [C_prime**2, -2. * C_prime * S_prime, S_prime**2]))
     return transformed
+
+
+def transport_twiss_parameters2(r_zz, alpha_z0, beta_z0):
+    """Transport Twiss parameters along element(s) described by r_zz."""
+    n_points = r_zz.shape[0]
+    transformed = _transform_mt(r_zz)
+    arr_twiss = np.full((n_points, 3), np.NaN)
+    arr_twiss[0, :] = np.array(([beta_z0,
+                                 alpha_z0,
+                                 (1. + alpha_z0**2) / beta_z0]))
+
+    for i in range(1, n_points):
+        arr_twiss[i, :] = transformed[i, :, :] @ arr_twiss[0, :]
+    return arr_twiss
 
 
 def transport_twiss_parameters(linac, alpha_z0, beta_z0):

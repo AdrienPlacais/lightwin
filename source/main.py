@@ -178,7 +178,7 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 # data_ref = tw.output_data_in_tw_fashion(ref_linac)
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 # fault_info = fail.faults['l_obj'][0].info
-DEBUG_EMITT = True
+DEBUG_EMITT = False
 
 if DEBUG_EMITT:
     import numpy as np
