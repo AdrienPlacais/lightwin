@@ -194,6 +194,7 @@ class Accelerator():
 
         arr_twiss = transport_twiss_parameters2(arr_r_zz_cumul)
         plot_twiss(self, arr_twiss)
+
         if flag_transfer_data:
             self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
 

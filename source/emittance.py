@@ -99,21 +99,77 @@ def plot_longitudinal_emittance(linac, sigma_in):
           "Should increase slowly.")
 
 
-def _transform_mt(transfer_matrix):
-    """Change form of the transfer matrix."""
-    n_points = transfer_matrix.shape[0]
-    transformed = np.full((n_points, 3, 3), np.NaN)
-    for i in range(n_points):
-        C = transfer_matrix[i, 0, 0]
-        C_prime = transfer_matrix[i, 1, 0]
-        S = transfer_matrix[i, 0, 1]
-        S_prime = transfer_matrix[i, 1, 1]
+def _transform_mt(r_zz):
+    """
+    Transform transfer matrix to calculate transport with less operations.
 
-        transformed[i, :, :] = np.array((
-            [C**2, -2. * C * S, S**2],
-            [-C * C_prime, C_prime * S + C * S_prime, -S * S_prime],
-            [C_prime**2, -2. * C_prime * S_prime, S_prime**2]))
-    return transformed
+    With R the transfer matrix, we have:
+        X_2 = R * X_1 * R^T
+    This can be reformulated:
+        X_2 = M * X_1,
+    where:
+            |  R_11**2   -2R_11*R_12      R_12**2   |
+        M = | -R_11*R_21 1 + 1+R_12*R_21 -R_12*R_22 |
+            |  R_21**2   -2R_21*R_22     R_21**2    |
+
+    Letchford, Alan, in Proceedings of the CAS-CERN Accelerator School: High
+    Power Hadron Machines, Bilbao, Spain, 24 May - 2 June 2011, edited by R.
+    Bailey, CERN-2013-001, pp. 6-8.
+    """
+    n_points = r_zz.shape[0]
+    m_zz = np.full((n_points, 3, 3), np.NaN)
+    for i in range(n_points):
+        r_11 = r_zz[i, 0, 0]
+        r_12 = r_zz[i, 1, 0]
+        r_21 = r_zz[i, 0, 1]
+        r_22 = r_zz[i, 1, 1]
+
+        m_zz[i, :, :] = np.array((
+            [r_11**2, -2. * r_11 * r_21, r_21**2],
+            [-r_11 * r_12, 1. + r_12 * r_21, -r_21 * r_22],
+            [r_12**2, -2. * r_12 * r_22, r_22**2]))
+    return m_zz
+
+
+# TODO can be greatly compacted!!
+def transport_twiss_parameters3(r_zz, w_kin, sigma_in, alpha_z0=ALPHA_Z,
+                                beta_z0=BETA_Z):
+    """
+    Transport Twiss parameters using sigma beam matrix.
+
+    Parameters
+    ----------
+    r_zz : numpy array
+        (n, 2, 2) total transfer matrices of elements/slices.
+    w_kin : numpy array
+        (n+1, 2, 2) array of kinetic energy at in/out of elements/slices.
+    """
+    n_slices = r_zz.shape[0]
+    assert n_slices == w_kin.shape[0] - 1
+
+    sigma = sigma_beam_matrices2(r_zz, sigma_in)
+
+    # All beta * gamma
+    beta_gamma = helper.kin_to_gamma(w_kin) * helper.kin_to_beta(w_kin)
+
+    # Array of input beta_gamma
+    beta_gamma_i = np.zeros((n_slices, 2, 2))
+    beta_gamma_i[:, 0, 0] = 1.
+    beta_gamma_i[:, 1, 1] = 1. / beta_gamma[:-1]
+
+    # Array of output beta_gamma
+    beta_gamma_o = np.zeros((n_slices, 2, 2))
+    beta_gamma_o[:, 0, 0] = 1.
+    beta_gamma_o[:, 1, 1] = beta_gamma[1:]
+
+    r_zz_p = np.empty((n_slices, 2, 2))
+    for i in range(n_slices):
+        r_zz_p[i] = beta_gamma_o[i] @ r_zz[i] @ beta_gamma_i[i]
+
+    # Compute phase advance
+    sigma_z0 = np.arccos(.5 * (r_zz_p[:, 0, 0] + r_zz_p[:, 1, 1]))
+    # Now Twiss time
+    alpha_z0 = (r_zz_p[:, 0, 0] - r_zz_p[:, 1, 1]) / (2. * np.sin(sigma_z0))
 
 
 def transport_twiss_parameters2(r_zz, alpha_z0=ALPHA_Z, beta_z0=BETA_Z):
@@ -197,10 +253,10 @@ def plot_twiss(linac, twiss):
     axs[0].legend()
 
     axs[1].plot(z_pos, twiss[:, 0])
-    axs[1].set_ylabel(r'$\beta_z$ [mm/$\pi$mrad]')
+    axs[1].set_ylabel(r'$\beta_z$ [mm/$\pi$%]')
 
     axs[2].plot(z_pos, twiss[:, 2])
-    axs[2].set_ylabel(r'$\gamma_z$ [$\pi$/mm/mrad]')
+    axs[2].set_ylabel(r'$\gamma_z$ [$\pi$/mm/%]')
     axs[2].set_xlabel('s [m]')
 
     for ax_ in axs:

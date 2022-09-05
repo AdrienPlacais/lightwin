@@ -30,8 +30,9 @@ m_over_q = m_kg / q_C
 project_folder = ''
 
 # Input Twiss parameters
-ALPHA_Z = 0.1389194
+ALPHA_Z = 0.1387
 BETA_Z = 2.1388432  # mm/pi.mrad
+BETA_Z = 20.6512    # mm/pi%
 BETA_W = 71.472671  # deg/pi.MeV
 
 # =============================================================================
