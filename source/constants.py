@@ -31,9 +31,8 @@ project_folder = ''
 
 # Input Twiss parameters
 ALPHA_Z = 0.1387
-BETA_Z = 2.1388432  # mm/pi.mrad
-BETA_Z = 20.6512    # mm/pi%
-BETA_W = 71.472671  # deg/pi.MeV
+BETA_Z = 20.6512404  # mm/pi%
+BETA_W = 71.472671   # deg/pi.MeV
 
 # =============================================================================
 # Simulation constants -- user interface

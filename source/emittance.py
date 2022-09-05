@@ -8,16 +8,19 @@ Created on Mon Dec 13 14:42:41 2021.
 TODO : check transport of [sigma] and Twiss. Not sure about initial vector
 
 Longitudinal emittances:
-    eps_z is emittance in [z-z'] in [pi.mm.mrad], non normalized
-    eps_zdelta is emittance in [z-delta] in [pi.m.rad], non normalized
-    eps_w is emittance in [Delta phi-Delta W] in [pi.deg.MeV], normalized
+    eps_z      in [z-z']              [pi.mm.mrad]  non normalized
+    eps_zdelta in [z-delta]           [pi.m.rad]    non normalized
+    eps_w      in [Delta phi-Delta W] [pi.deg.MeV]  normalized
 
 
 Twiss:
     beta, gamma are Lorentz factors.
-    beta_z is beta Twiss parameter in [z-z'] [mm/pi.mrad]
-    beta_zdelta is beta Twiss parameter in [z-delta] [mm/pi.%]
-    beta_w is beta Twiss parameter in [Delta phi-Delta W] [deg/pi.MeV]
+    beta_blabla, gamma_blabla are Twiss parameters.
+
+    beta_z      in [z-z']               [mm/pi.mrad]
+    beta_zdelta in [z-delta]            [mm/pi.%]
+    beta_w is   in [Delta phi-Delta W]  [deg/pi.MeV]
+
     (same for gamma_z, gamma_z, gamma_zdelta)
 
     Conversions for alpha are easier:
@@ -25,6 +28,7 @@ Twiss:
 """
 
 import numpy as np
+import pandas as pd
 import helper
 import accelerator
 from constants import E_rest_MeV, LAMBDA_BUNCH, ALPHA_Z, BETA_Z
@@ -177,13 +181,107 @@ def transport_twiss_parameters2(r_zz, alpha_z0=ALPHA_Z, beta_z0=BETA_Z):
     n_points = r_zz.shape[0]
     transformed = _transform_mt(r_zz)
     arr_twiss = np.full((n_points, 3), np.NaN)
-    arr_twiss[0, :] = np.array(([beta_z0,
-                                 alpha_z0,
+    arr_twiss[0, :] = np.array(([alpha_z0,
+                                 beta_z0,
                                  (1. + alpha_z0**2) / beta_z0]))
 
     for i in range(1, n_points):
         arr_twiss[i, :] = transformed[i, :, :] @ arr_twiss[0, :]
+
     return arr_twiss
+
+
+def plot_twiss(linac, twiss):
+    """Plot Twiss parameters."""
+    _, axs = helper.create_fig_if_not_exist(33, [311, 312, 313])
+    z_pos = linac.synch.z['abs_array']
+
+    axs[0].plot(z_pos, twiss[:, 0], label=linac.name)
+    axs[0].set_ylabel(r'$\alpha_z$ [1]')
+    axs[0].legend()
+
+    axs[1].plot(z_pos, twiss[:, 1])
+    axs[1].set_ylabel(r'$\beta_z$ [mm/$\pi$%]')
+
+    axs[2].plot(z_pos, twiss[:, 2])
+    axs[2].set_ylabel(r'$\gamma_z$ [$\pi$/mm/%]')
+    axs[2].set_xlabel('s [m]')
+
+    for ax_ in axs:
+        ax_.grid(True)
+
+    _output_twiss(twiss, linac.synch.energy['gamma_array'])
+
+
+def _output_twiss(arr_twiss, gamma, index_out=0):
+    """
+    Output twiss parameters in different units.
+
+    Twiss parameters should be given in the z-delta plane (mm/pi.%).
+    """
+    if gamma.shape[0] > 1:
+        gamma = gamma[index_out]
+    d_alpha = {'zdelta': [arr_twiss[index_out, 0], "[1]"],
+               'phiw': [-arr_twiss[index_out, 0], "[1]"],
+               'z': [arr_twiss[index_out, 0], "[1]"]}
+    d_beta = {'zdelta': [arr_twiss[index_out, 1], "[mm/pi%]"],
+              'phiw': [beta_zdelta_to_w(arr_twiss[index_out, 1], gamma),
+                       "[deg/pi.MeV]"],
+              'z': [beta_zdelta_to_z(arr_twiss[index_out, 1], gamma),
+                    "[mm/pi.mrad]"]}
+    d_gamma = {'zdelta': [arr_twiss[index_out, 2], "[pi/mm%]"],
+               'phiw': [gamma_zdelta_to_w(arr_twiss[index_out, 2], gamma),
+                        "[pi/deg.MeV]"],
+               'z': [gamma_zdelta_to_z(arr_twiss[index_out, 2], gamma),
+                     "[pi/mm.mrad]"]}
+
+    d_names = ["alpha", "beta", "gamma"]
+    d_phase_spaces = ["zdelta", "phiw", "z"]
+    d_d = [d_alpha, d_beta, d_gamma]
+
+    df_twiss = pd.DataFrame(columns=(
+        'Twiss', '[phi - W]', 'Unit', "[z - z']", 'Unit', '[z -delta]',
+        'Unit'))
+    for i in range(3):
+        current_twiss = d_names[i]
+        current_d = d_d[i]
+        line = [current_twiss]
+
+        for j in range(3):
+            current_space = d_phase_spaces[j]
+
+            for k in range(2):
+                line.append(current_d[current_space][k])
+
+        df_twiss.loc[i] = line
+
+    df_twiss.round(decimals=5)
+    pd.options.display.max_columns = 8
+    pd.options.display.width = 120
+    helper.printd(df_twiss, header=f"Twiss parameters at index {index_out}:")
+
+    # for i, cav in enumerate(full_list_of_cav):
+    #     df_cav.loc[i] = [cav.info['name'], cav.info['status'],
+    #                      cav.acc_field.k_e,
+    #                      np.rad2deg(cav.acc_field.phi_0['abs']),
+    #                      np.rad2deg(cav.acc_field.phi_0['rel']),
+    #                      cav.acc_field.cav_params['v_cav_mv'],
+    #                      cav.acc_field.cav_params['phi_s_deg']]
+    # df_cav.round(decimals=3)
+
+    # # Output only the cavities that have changed
+    # if 'Fixed' in linac.name:
+    #     df_out = pd.DataFrame(columns=(
+    #         'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
+    #         'phis'))
+    #     i = 0
+    #     for c in full_list_of_cav:
+    #         if 'compensate' in c.info['status']:
+    #             i += 1
+    #             df_out.loc[i] = df_cav.loc[full_list_of_cav.index(c)]
+    #     if out:
+    #         helper.printd(df_out, header=linac.name)
+    # return df_cav
 
 
 def transport_twiss_parameters(linac, alpha_z0, beta_z0):
@@ -243,33 +341,12 @@ def eps_w_to_zdelta(eps_w, gamma, beta=None, lam=LAMBDA_BUNCH,
     return eps_zdelta
 
 
-def plot_twiss(linac, twiss):
-    """Plot Twiss parameters."""
-    _, axs = helper.create_fig_if_not_exist(33, [311, 312, 313])
-    z_pos = linac.synch.z['abs_array']
-
-    axs[0].plot(z_pos, twiss[:, 1], label=linac.name)
-    axs[0].set_ylabel(r'$\alpha_z$ [1]')
-    axs[0].legend()
-
-    axs[1].plot(z_pos, twiss[:, 0])
-    axs[1].set_ylabel(r'$\beta_z$ [mm/$\pi$%]')
-
-    axs[2].plot(z_pos, twiss[:, 2])
-    axs[2].set_ylabel(r'$\gamma_z$ [$\pi$/mm/%]')
-    axs[2].set_xlabel('s [m]')
-
-    for ax_ in axs:
-        ax_.grid(True)
-
-
 # =============================================================================
 # Twiss beta conversions
 # =============================================================================
 def beta_z_to_w(beta_z, gamma, beta=None, lam=LAMBDA_BUNCH,
                 e_0=E_rest_MeV):
     """Convert Twiss beta from [z-z'] to [Delta phi-Delta W]. Validated."""
-    # beta is Lorentz factor
     if beta is None:
         beta = np.sqrt(1. - gamma**-2)
 
@@ -280,7 +357,6 @@ def beta_z_to_w(beta_z, gamma, beta=None, lam=LAMBDA_BUNCH,
 def beta_w_to_z(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
                 e_0=E_rest_MeV):
     """Convert Twiss beta from [Delta phi-Delta W] to [z-z']. Validated."""
-    # beta is Lorentz factor
     if beta is None:
         beta = np.sqrt(1. - gamma**-2)
     beta_z = (e_0 * (gamma * beta)**3 * lam) / 360. * beta_w * 1e-6
@@ -290,7 +366,6 @@ def beta_w_to_z(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
 def beta_zdelta_to_w(beta_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
                      e_0=E_rest_MeV):
     """Convert Twiss beta from [z-delta] to [Delta phi-Delta W]. Validated."""
-    # beta is Lorentz factor
     if beta is None:
         beta = np.sqrt(1. - gamma**-2)
 
@@ -301,7 +376,6 @@ def beta_zdelta_to_w(beta_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
 def beta_w_to_zdelta(beta_w, gamma, beta=None, lam=LAMBDA_BUNCH,
                      e_0=E_rest_MeV):
     """Convert Twiss beta [Delta phi-Delta W] from to [z-delta]. Validated."""
-    # beta is Lorentz factor
     if beta is None:
         beta = np.sqrt(1. - gamma**-2)
 
