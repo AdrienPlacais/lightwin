@@ -124,14 +124,14 @@ def _transform_mt(r_zz):
     m_zz = np.full((n_points, 3, 3), np.NaN)
     for i in range(n_points):
         r_11 = r_zz[i, 0, 0]
-        r_12 = r_zz[i, 1, 0]
-        r_21 = r_zz[i, 0, 1]
+        r_12 = r_zz[i, 0, 1]
+        r_21 = r_zz[i, 1, 0]
         r_22 = r_zz[i, 1, 1]
 
         m_zz[i, :, :] = np.array((
-            [r_11**2, -2. * r_11 * r_21, r_21**2],
-            [-r_11 * r_12, 1. + r_12 * r_21, -r_21 * r_22],
-            [r_12**2, -2. * r_12 * r_22, r_22**2]))
+            [r_11**2, -2. * r_11 * r_12, r_12**2],
+            [-r_11 * r_21, 1. + r_12 * r_21, -r_12 * r_22],
+            [r_21**2, -2. * r_21 * r_22, r_21**2]))
     return m_zz
 
 
@@ -179,14 +179,27 @@ def transport_twiss_parameters3(r_zz, w_kin, sigma_in, alpha_z0=ALPHA_Z,
 def transport_twiss_parameters2(r_zz, alpha_z0=ALPHA_Z, beta_z0=BETA_Z):
     """Transport Twiss parameters along element(s) described by r_zz."""
     n_points = r_zz.shape[0]
-    transformed = _transform_mt(r_zz)
+    # transformed = _transform_mt(r_zz)
     arr_twiss = np.full((n_points, 3), np.NaN)
-    arr_twiss[0, :] = np.array(([alpha_z0,
-                                 beta_z0,
-                                 (1. + alpha_z0**2) / beta_z0]))
+    # arr_twiss[0, :] = np.array(([
+    #     alpha_z0,
+    #     beta_z0,
+    #     (1. + alpha_z0**2) / beta_z0,
+    # ]))
 
-    for i in range(1, n_points):
-        arr_twiss[i, :] = transformed[i, :, :] @ arr_twiss[0, :]
+    # for i in range(1, n_points):
+        # arr_twiss[i, :] = transformed[i, :, :] @ arr_twiss[0, :]
+    sigma_in = np.array(([2.9511603e-06, -1.9823111e-07],
+                         [-1.9823111e-07, 7.0530641e-07]))
+    for i in range(n_points):
+        sigma_zdelta = r_zz[i] @ sigma_in @ r_zz[i].transpose()
+        eps_zdelta = np.sqrt(np.linalg.det(sigma_zdelta))
+
+        arr_twiss[i, :] = np.array([-sigma_zdelta[1, 0],
+                                    sigma_zdelta[0, 0] * 10.,
+                                    sigma_zdelta[1, 1] / 10.]) / eps_zdelta
+        # beta multiplied by 10 to match TW
+        # gamma divided by 10 to keep beta * gamma - alpha**2 = 1
 
     return arr_twiss
 
@@ -210,9 +223,11 @@ def plot_twiss(linac, twiss):
     for ax_ in axs:
         ax_.grid(True)
 
-    _output_twiss(twiss, linac.synch.energy['gamma_array'])
+    _output_twiss(twiss, linac.synch.energy['gamma_array'], index_out=5)
+    _output_twiss(twiss, linac.synch.energy['gamma_array'], index_out=9372)
 
 
+# TODO can be greatly compacted
 def _output_twiss(arr_twiss, gamma, index_out=0):
     """
     Output twiss parameters in different units.
@@ -221,14 +236,17 @@ def _output_twiss(arr_twiss, gamma, index_out=0):
     """
     if gamma.shape[0] > 1:
         gamma = gamma[index_out]
+
     d_alpha = {'zdelta': [arr_twiss[index_out, 0], "[1]"],
                'phiw': [-arr_twiss[index_out, 0], "[1]"],
                'z': [arr_twiss[index_out, 0], "[1]"]}
+
     d_beta = {'zdelta': [arr_twiss[index_out, 1], "[mm/pi%]"],
               'phiw': [beta_zdelta_to_w(arr_twiss[index_out, 1], gamma),
                        "[deg/pi.MeV]"],
               'z': [beta_zdelta_to_z(arr_twiss[index_out, 1], gamma),
                     "[mm/pi.mrad]"]}
+
     d_gamma = {'zdelta': [arr_twiss[index_out, 2], "[pi/mm%]"],
                'phiw': [gamma_zdelta_to_w(arr_twiss[index_out, 2], gamma),
                         "[pi/deg.MeV]"],
@@ -240,8 +258,10 @@ def _output_twiss(arr_twiss, gamma, index_out=0):
     d_d = [d_alpha, d_beta, d_gamma]
 
     df_twiss = pd.DataFrame(columns=(
-        'Twiss', '[phi - W]', 'Unit', "[z - z']", 'Unit', '[z -delta]',
-        'Unit'))
+        'Twiss',
+        '[z - delta]', 'Unit',
+        '[phi - W]', 'Unit',
+        "[z - z']", 'Unit'))
     for i in range(3):
         current_twiss = d_names[i]
         current_d = d_d[i]
@@ -255,7 +275,7 @@ def _output_twiss(arr_twiss, gamma, index_out=0):
 
         df_twiss.loc[i] = line
 
-    df_twiss.round(decimals=5)
+    df_twiss = df_twiss.round(decimals=4)
     pd.options.display.max_columns = 8
     pd.options.display.width = 120
     helper.printd(df_twiss, header=f"Twiss parameters at index {index_out}:")
