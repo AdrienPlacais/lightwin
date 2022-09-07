@@ -152,34 +152,15 @@ class Accelerator():
             "phi_s_rad": [],
             "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
             "phi_abs": [self.synch.phi['abs_array'][idx_in]],
-            "r_zz_elt": [],     # List of numpy arrays
-            "rf_fields": [],    # List of dicts
+            "r_zz_elt": [],         # List of numpy arrays
+            "r_zz_cumul": None,     # (n, 2, 2) numpy array
+            "rf_fields": [],        # List of dicts
         }
 
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
             elt_results, rf_field, = self._proper_transf_mat(
                 elt, results["phi_abs"][-1], results["w_kin"][-1], d_fits)
-            # phi_abs = results["phi_abs"][-1]
-
-            # if elt.info['nature'] != 'FIELD_MAP' \
-               # or elt.info['status'] == 'failed':
-                # rf_field = None
-                # elt_results = elt.calc_transf_mat(results["w_kin"][-1])
-
-            # else:
-                # if d_fits['flag'] \
-                   # and elt.info['status'] == 'compensate (in progress)':
-                    # d_fit_elt = {'flag': True,
-                                 # 'phi': d_fits['l_phi'].pop(0),
-                                 # 'k_e': d_fits['l_k_e'].pop(0)}
-                # else:
-                    # d_fit_elt = d_fits
-
-                # rf_field = elt.set_cavity_parameters(
-                    # self.synch, phi_abs, results["w_kin"][-1], d_fit_elt)
-                # elt_results = elt.calc_transf_mat(results["w_kin"][-1],
-                                                  # **rf_field)
             if rf_field is not None:
                 results["rf_fields"].append(rf_field)
                 results["phi_s_rad"].append(
@@ -198,12 +179,13 @@ class Accelerator():
                 self.transfer_data(elt, elt_results, np.array(l_phi_abs_elt),
                                    rf_field)
 
-        arr_r_zz_cumul = self._indiv_to_cumul_transf_mat(
+        results["r_zz_cumul"] = self._indiv_to_cumul_transf_mat(
             results["r_zz_elt"], idx_in, len(results["w_kin"]))
-        eps_zdelta, twiss_zdelta = beam_parameters_zdelta(arr_r_zz_cumul)
+        eps_zdelta, twiss_zdelta = beam_parameters_zdelta(
+            results["r_zz_cumul"])
 
         if flag_transfer_data:
-            self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
+            self.transf_mat['cumul'][idx_in:idx_out] = results["r_zz_cumul"]
             gamma = kin_to_gamma(np.array(results["w_kin"]))
             d_eps, d_twiss = beam_parameters_all(eps_zdelta, twiss_zdelta,
                                                  gamma)
@@ -211,7 +193,7 @@ class Accelerator():
                 self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
                 self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
 
-        return arr_r_zz_cumul, results["w_kin"], results["phi_abs"], \
+        return results["r_zz_cumul"], results["w_kin"], results["phi_abs"], \
             results["phi_s_rad"], results["rf_fields"]
 
     def _proper_transf_mat(self, elt, phi_abs, w_kin, d_fits):
@@ -262,17 +244,11 @@ class Accelerator():
 
         This function is to be used when NO optimisation is performed.
         """
+        elt.keep_mt_and_rf_field(elt_results, rf_field)
+
         idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
         self.synch.transfer_data(elt, elt_results['w_kin'], phi_abs_elt)
-        elt.tmat['matrix'] = elt_results['r_zz']
         self.transf_mat['indiv'][idx] = elt_results['r_zz']
-
-        # if elt.info['nature'] == 'FIELD_MAP':
-        if elt_results['cav_params'] is not None:
-            # print(elt_results['cav_params'])
-            elt.acc_field.cav_params = elt_results['cav_params']
-            elt.acc_field.phi_0['abs'] = rf_field['phi_0_abs']
-            elt.acc_field.phi_0['rel'] = rf_field['phi_0_rel']
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """
