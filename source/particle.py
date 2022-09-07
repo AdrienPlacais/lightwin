@@ -79,6 +79,20 @@ class Particle():
             'phi_array_rad': np.full((n_steps + 1), np.NaN),
         }
 
+    def init_abs_z(self, list_of_elements):
+        """Create the array of absolute positions."""
+        assert self.info["synchronous"], """This routine only works for the
+        synch particle I think."""
+        # Get all positions
+        z_abs = [elt.pos_m["abs"]
+                 for elt in list_of_elements]
+        # Concatenate list of arrays into unique array
+        z_abs = np.concatenate(z_abs)
+        # Remove duplicates (last pos_m["abs"] of an element == first of
+        # following element)
+        z_abs = np.unique(z_abs)
+        self.z["abs_array"] = z_abs
+
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
         Update the energy dict.
@@ -301,27 +315,43 @@ class Particle():
             print('Warning enter_cavity! Not sure what will happen with a',
                   'non synchronous particle.')
 
+    # TODO still used?
     def exit_cavity(self):
         """Reset frac_omega."""
-        self._set_omega_rf(OMEGA_0_BUNCH)
+        self.set_omega_rf(OMEGA_0_BUNCH)
         self.phi['abs_rf'] = None
 
-    def transfer_data(self, elt, w_kin, phi_abs):
+    def keep_energy_and_phase2(self, results, idx_range):
+        """Assign the energy and phase data to synch after MT calculation."""
+        w_kin = np.array(results["w_kin"])
+        self.energy['kin_array_mev'][idx_range] = w_kin
+        self.energy['gamma_array'][idx_range] = \
+            helper.kin_to_gamma(w_kin)
+        self.energy['beta_array'][idx_range] = \
+            helper.kin_to_beta(w_kin)
+
+        # self.z['abs_array'][idx_range] = \
+            # self.z['abs_array'][idx_elt_prec] + elt.pos_m['rel'][1:]
+
+        self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])
+
+
+    def keep_energy_and_phase(self, elt, w_kin, phi_abs):
         """Assign the energy and phase data to synch after MT calculation."""
         r_idx_elt = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
         idx_elt_prec = r_idx_elt[0] - 1
 
-        ene = self.energy
-        ene['kin_array_mev'][r_idx_elt] = w_kin
-        ene['gamma_array'][r_idx_elt] = \
-            helper.kin_to_gamma(w_kin, E_rest_MeV)
-        ene['beta_array'][r_idx_elt] = \
-            helper.gamma_to_beta(ene['gamma_array'][r_idx_elt])
+        # ene = self.energy
+        # ene['kin_array_mev'][r_idx_elt] = w_kin
+        # ene['gamma_array'][r_idx_elt] = \
+            # helper.kin_to_gamma(w_kin, E_rest_MeV)
+        # ene['beta_array'][r_idx_elt] = \
+            # helper.gamma_to_beta(ene['gamma_array'][r_idx_elt])
 
         self.z['abs_array'][r_idx_elt] = \
             self.z['abs_array'][idx_elt_prec] + elt.pos_m['rel'][1:]
 
-        self.phi['abs_array'][r_idx_elt] = phi_abs
+        # self.phi['abs_array'][r_idx_elt] = phi_abs
 
 
 def convert_phi_0_p(phi_in, phi_rf_abs, abs_to_rel):
