@@ -28,7 +28,7 @@ Twiss:
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_rest_MeV, LAMBDA_BUNCH
+from constants import E_rest_MeV, LAMBDA_BUNCH, SIGMA_ZDELTA
 import tracewin_interface as tw
 
 
@@ -41,30 +41,43 @@ import tracewin_interface as tw
 # =============================================================================
 # Public
 # =============================================================================
-def calc_beam_properties(linac, arr_r_zz, sigma_in):
-    """Compute sigma beam matrix, emittance, Twiss parameters."""
-    arr_sigma = _sigma_beam_matrices(arr_r_zz, sigma_in)
-    arr_eps_zdelta = _emittance_zdelta(arr_sigma)
-    arr_twiss_zdelta = _twiss_zdelta(arr_sigma, arr_eps_zdelta)
+def beam_parameters_zdelta(r_zz, sigma_in=SIGMA_ZDELTA):
+    """
+    Compute sigma beam matrix, emittance, Twiss parameters.
 
-    flag_plot_eps = True
-    flag_plot_twiss = True
-    flag_output_twiss = True
+    Parameters
+    ----------
+    r_zz : numpy array
+        (n, 2, 2) cumulated transfer matrices.
+    sigma_in : numpy array
+        (2, 2) sigma beam matrix at entry of linac.
+    """
+    # Compute sigma beam matrices
+    sigma = _sigma_beam_matrices(r_zz, sigma_in)
 
-    arr_gamma = linac.synch.energy['gamma_array']
-    if flag_plot_eps:
-        d_eps = _emittances_all(arr_eps_zdelta, arr_gamma)
-        _plot_longitudinal_emittance(linac, d_eps["z"])
+    # Compute emittance and Twiss parameters in the z-delta plane.
+    eps_zdelta = _emittance_zdelta(sigma)
+    twiss_zdelta = _twiss_zdelta(sigma, eps_zdelta)
 
-    if flag_plot_twiss:
-        _plot_twiss(linac, arr_twiss_zdelta)
+    # if flag_plot_eps:
+        # d_eps = _emittances_all(eps_zdelta, gamma)
+        # _plot_longitudinal_emittance(linac, d_eps["z"])
 
-    if flag_output_twiss:
-        d_twiss = _twiss_all(arr_twiss_zdelta, arr_gamma)
-        for idx in [0, 1]:
-            _output_twiss(d_twiss, idx=idx)
+    # if flag_plot_twiss:
+        # _plot_twiss(linac, twiss_zdelta)
 
-    return arr_eps_zdelta, arr_twiss_zdelta
+    # if flag_output_twiss:
+        # d_twiss = _twiss_all(twiss_zdelta, gamma)
+        # for idx in [0, 1]:
+            # _output_twiss(d_twiss, idx=idx)
+
+    return eps_zdelta, twiss_zdelta
+
+def beam_parameters_all(eps_zdelta, twiss_zdelta, gamma):
+    """Convert the [z - delta] beam parameters in [phi - W] and [z - z']."""
+    d_eps = _emittances_all(eps_zdelta, gamma)
+    d_twiss = _twiss_all(twiss_zdelta, gamma)
+    return d_eps, d_twiss
 
 
 # =============================================================================

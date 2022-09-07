@@ -15,7 +15,8 @@ import tracewin_interface as tw
 import particle
 from constants import E_MEV, FLAG_PHI_ABS
 import elements
-from emittance import calc_beam_properties
+from emittance import beam_parameters_zdelta, beam_parameters_all
+from helper import kin_to_gamma
 
 
 class Accelerator():
@@ -65,6 +66,20 @@ class Accelerator():
             'first_calc?': True,
         }
         self.transf_mat['indiv'][0, :, :] = np.eye(2)
+
+        # Beam parameters: emittance, Twiss
+        self.beam_param = {
+            "twiss": {
+                "zdelta": np.full((last_idx + 1, 3), np.NaN),
+                "z": np.full((last_idx + 1, 3), np.NaN),
+                "w": np.full((last_idx + 1, 3), np.NaN),
+            },
+            "eps": {
+                "zdelta": np.full((last_idx + 1), np.NaN),
+                "z": np.full((last_idx + 1), np.NaN),
+                "w": np.full((last_idx + 1), np.NaN),
+            }
+        }
 
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
@@ -176,8 +191,24 @@ class Accelerator():
                 self.transfer_data(elt, elt_results, np.array(l_phi_abs_elt),
                                    rf_field)
 
+        arr_r_zz_cumul = self._indiv_to_cumul_transf_mat(l_r_zz_elt, idx_in,
+                                                         len(l_w_kin))
+        eps_zdelta, twiss_zdelta = beam_parameters_zdelta(arr_r_zz_cumul)
+
+        if flag_transfer_data:
+            self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
+            gamma = kin_to_gamma(np.array(l_w_kin))
+            d_eps, d_twiss = beam_parameters_all(eps_zdelta, twiss_zdelta,
+                                                 gamma)
+            for key in d_eps.keys():
+                self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
+                self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
+
+        return arr_r_zz_cumul, l_w_kin, l_phi_abs, l_phi_s_rad, l_rf_fields
+
+    def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, idx_in, n_steps):
+        """Compute cumulated transfer matrix."""
         # Compute transfer matrix of l_elts
-        n_steps = len(l_w_kin)
         arr_r_zz_cumul = np.full((n_steps, 2, 2), np.NaN)
 
         # If we are at the start of the linac, initial transf mat is unity
@@ -192,18 +223,7 @@ class Accelerator():
         for i in range(1, n_steps):
             arr_r_zz_cumul[i] = l_r_zz_elt[i - 1] @ arr_r_zz_cumul[i - 1]
 
-        if self.name == 'Working':
-            # arr_twiss = transport_twiss_parameters(arr_r_zz_cumul)
-            # plot_twiss(self, arr_twiss)
-
-            _, _ = calc_beam_properties(self, arr_r_zz_cumul, np.array((
-                [2.9511603e-06, -1.9823111e-07],
-                [-1.9823111e-07, 7.0530641e-07])))
-
-        if flag_transfer_data:
-            self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
-
-        return arr_r_zz_cumul, l_w_kin, l_phi_abs, l_phi_s_rad, l_rf_fields
+        return arr_r_zz_cumul
 
     def transfer_data(self, elt, elt_results, phi_abs_elt, rf_field):
         """
