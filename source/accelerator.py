@@ -148,20 +148,22 @@ class Accelerator():
         idx_out = l_elts[-1].idx['s_out'] + 1
 
         # To store results
-        l_phi_s_rad = []
-        l_w_kin = [self.synch.energy['kin_array_mev'][idx_in]]
-        l_phi_abs = [self.synch.phi['abs_array'][idx_in]]
-        l_r_zz_elt = []     # List of numpy arrays
-        l_rf_fields = []    # List of dicts
+        results = {
+            "phi_s_rad": [],
+            "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
+            "phi_abs": [self.synch.phi['abs_array'][idx_in]],
+            "r_zz_elt": [],     # List of numpy arrays
+            "rf_fields": [],    # List of dicts
+        }
 
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
-            phi_abs = l_phi_abs[-1]
+            phi_abs = results["phi_abs"][-1]
 
             if elt.info['nature'] != 'FIELD_MAP' \
                or elt.info['status'] == 'failed':
                 rf_field = None
-                elt_results = elt.calc_transf_mat(l_w_kin[-1])
+                elt_results = elt.calc_transf_mat(results["w_kin"][-1])
 
             else:
                 if d_fits['flag'] \
@@ -172,39 +174,42 @@ class Accelerator():
                 else:
                     d_fit_elt = d_fits
 
-                rf_field = elt.set_cavity_parameters(self.synch, phi_abs,
-                                                     l_w_kin[-1], d_fit_elt)
-                l_rf_fields.append(rf_field)
-                elt_results = elt.calc_transf_mat(l_w_kin[-1], **rf_field)
-                l_phi_s_rad.append(elt_results['cav_params']['phi_s_rad'])
+                rf_field = elt.set_cavity_parameters(
+                    self.synch, phi_abs, results["w_kin"][-1], d_fit_elt)
+                elt_results = elt.calc_transf_mat(results["w_kin"][-1],
+                                                  **rf_field)
+                results["rf_fields"].append(rf_field)
+                results["phi_s_rad"].append(
+                    elt_results['cav_params']['phi_s_rad'])
 
             r_zz_elt = [elt_results['r_zz'][i, :, :]
                         for i in range(elt_results['r_zz'].shape[0])]
-            l_r_zz_elt.extend(r_zz_elt)
             l_phi_abs_elt = [phi_rel + phi_abs
                              for phi_rel in elt_results['phi_rel']]
-            l_phi_abs.extend(l_phi_abs_elt)
-            l_w_kin.extend(elt_results['w_kin'].tolist())
+            results["r_zz_elt"].extend(r_zz_elt)
+            results["phi_abs"].extend(l_phi_abs_elt)
+            results["w_kin"].extend(elt_results['w_kin'].tolist())
 
             if flag_transfer_data:
                 # FIXME ok with new way of dealing phi_s?
                 self.transfer_data(elt, elt_results, np.array(l_phi_abs_elt),
                                    rf_field)
 
-        arr_r_zz_cumul = self._indiv_to_cumul_transf_mat(l_r_zz_elt, idx_in,
-                                                         len(l_w_kin))
+        arr_r_zz_cumul = self._indiv_to_cumul_transf_mat(
+            results["r_zz_elt"], idx_in, len(results["w_kin"]))
         eps_zdelta, twiss_zdelta = beam_parameters_zdelta(arr_r_zz_cumul)
 
         if flag_transfer_data:
             self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
-            gamma = kin_to_gamma(np.array(l_w_kin))
+            gamma = kin_to_gamma(np.array(results["w_kin"]))
             d_eps, d_twiss = beam_parameters_all(eps_zdelta, twiss_zdelta,
                                                  gamma)
             for key in d_eps.keys():
                 self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
                 self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
 
-        return arr_r_zz_cumul, l_w_kin, l_phi_abs, l_phi_s_rad, l_rf_fields
+        return arr_r_zz_cumul, results["w_kin"], results["phi_abs"], \
+            results["phi_s_rad"], results["rf_fields"]
 
     def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, idx_in, n_steps):
         """Compute cumulated transfer matrix."""

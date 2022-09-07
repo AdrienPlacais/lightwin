@@ -73,6 +73,7 @@ def beam_parameters_zdelta(r_zz, sigma_in=SIGMA_ZDELTA):
 
     return eps_zdelta, twiss_zdelta
 
+
 def beam_parameters_all(eps_zdelta, twiss_zdelta, gamma):
     """Convert the [z - delta] beam parameters in [phi - W] and [z - z']."""
     d_eps = _emittances_all(eps_zdelta, gamma)
