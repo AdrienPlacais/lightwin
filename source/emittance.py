@@ -5,11 +5,9 @@ Created on Mon Dec 13 14:42:41 2021.
 
 @author: placais
 
-TODO : check transport of [sigma] and Twiss. Not sure about initial vector
-
 Longitudinal emittances:
-    eps_z      in [z-z']              [pi.mm.mrad]  non normalized
     eps_zdelta in [z-delta]           [pi.m.rad]    non normalized
+    eps_z      in [z-z']              [pi.mm.mrad]  non normalized
     eps_w      in [Delta phi-Delta W] [pi.deg.MeV]  normalized
 
 
@@ -17,8 +15,8 @@ Twiss:
     beta, gamma are Lorentz factors.
     beta_blabla, gamma_blabla are Twiss parameters.
 
-    beta_z      in [z-z']               [mm/pi.mrad]
     beta_zdelta in [z-delta]            [mm/pi.%]
+    beta_z      in [z-z']               [mm/pi.mrad]
     beta_w is   in [Delta phi-Delta W]  [deg/pi.MeV]
 
     (same for gamma_z, gamma_z, gamma_zdelta)
@@ -30,71 +28,100 @@ Twiss:
 import numpy as np
 import pandas as pd
 import helper
-import accelerator
-from constants import E_rest_MeV, LAMBDA_BUNCH, ALPHA_Z, BETA_Z
+from constants import E_rest_MeV, LAMBDA_BUNCH
 import tracewin_interface as tw
 
 
-def sigma_beam_matrices2(arr_r_zz, sigma_in):
-    """
-    Compute the sigma beam matrices corresponding to provided transfer matrix.
+# FIXME handle portions of linac for fit process
+# FIXME r_zz should be an argument instead of taking the linac attribute. Also
+# valid for gamma; maybe use d_results?
+# TODO sigma_in in constants
+def calc_beam_properties(linac, arr_r_zz, sigma_in):
+    """Compute sigma beam matrix, emittance, Twiss parameters."""
+    arr_sigma = _sigma_beam_matrices(arr_r_zz, sigma_in)
+    arr_eps_zdelta = _emittance_zdelta(arr_sigma)
+    arr_twiss_zdelta = _twiss_zdelta(arr_sigma, arr_eps_zdelta)
 
-    Parameters
-    ----------
-    arr_r_zz : numpy array
-        (n, 2, 2) array of total longitudinal transfer matrices.
-    sigma_in : numpy array
-        (2, 2) sigma beam matrix at the entry of the linac.
+    FLAG_PLOT_EPS = True
+    FLAG_PLOT_TWISS = True
+    FLAG_OUTPUT_TWISS = True
 
-    Return
-    ------
-    arr_sigma : numpy array
-        (n, 2, 2) sigma beam matrices.
-    """
-    n_points = arr_r_zz.shape[0]
-    arr_sigma = np.empty((n_points))
-    for i in range(n_points):
-        arr_sigma[i] = arr_r_zz[i] @ sigma_in @ arr_r_zz[i].transpose()
-    return arr_sigma
+    arr_gamma = linac.synch.energy['gamma_array']
+    if FLAG_PLOT_EPS:
+        d_eps = _emittances_all(arr_eps_zdelta, arr_gamma)
+        _plot_longitudinal_emittance(linac, d_eps["z"])
+
+    if FLAG_PLOT_TWISS:
+        _plot_twiss(linac, arr_twiss_zdelta)
+
+    if FLAG_OUTPUT_TWISS:
+        d_twiss = _twiss_all(arr_twiss_zdelta, arr_gamma)
+        for idx in [0, 1]:
+            _output_twiss(d_twiss, idx=idx)
+
+    return arr_eps_zdelta, arr_twiss_zdelta
 
 
-def sigma_beam_matrices(linac, sigma_in, idx_out=-1):
+def _sigma_beam_matrices(arr_r_zz, sigma_in):
     """
     Compute the sigma beam matrices between linac entry and idx_out.
 
     sigma_in and transfer matrices should be in the same ref. By default,
     LW calculates transfer matrices in [z - delta].
     """
-    l_sigma = [sigma_in]
-    n_points = linac.transf_mat['cumul'][0:idx_out].shape[0] + 1
+    l_sigma = []
+    n_points = arr_r_zz.shape[0]
 
     for i in range(n_points):
-        r_zz = linac.transf_mat['cumul'][i]
-        l_sigma.append(r_zz @ sigma_in @ r_zz.transpose())
+        l_sigma.append(arr_r_zz[i] @ sigma_in @ arr_r_zz[i].transpose())
     return np.array(l_sigma)
 
 
-def emittance_zdelta(linac, sigma_in, idx_out=-1):
+def _emittance_zdelta(arr_sigma):
     """Compute longitudinal emittance, unnormalized, in pi.m.rad."""
-    arr_sigma = sigma_beam_matrices(linac, sigma_in, idx_out)
-
     l_epsilon_zdelta = [np.sqrt(np.linalg.det(arr_sigma[i]))
                         for i in range(arr_sigma.shape[0])]
     return np.array(l_epsilon_zdelta)
 
 
-def plot_longitudinal_emittance(linac, sigma_in):
+def _emittances_all(eps_zdelta, gamma):
+    """Compute emittances in [phi-W] and [z-z']."""
+    d_eps = {"zdelta": eps_zdelta,
+             "w": eps_zdelta_to_w(eps_zdelta, gamma),
+             "z": eps_zdelta_to_z(eps_zdelta, gamma)}
+    return d_eps
+
+
+def _twiss_zdelta(arr_sigma, arr_eps_zdelta):
+    """Transport Twiss parameters along element(s) described by r_zz."""
+    n_points = arr_sigma.shape[0]
+    arr_twiss = np.full((n_points, 3), np.NaN)
+
+    for i in range(n_points):
+        sigma = arr_sigma[i]
+        arr_twiss[i, :] = np.array([-sigma[1, 0],
+                                    sigma[0, 0] * 10.,
+                                    sigma[1, 1] / 10.]) / arr_eps_zdelta[i]
+        # beta multiplied by 10 to match TW
+        # gamma divided by 10 to keep beta * gamma - alpha**2 = 1
+    return arr_twiss
+
+
+def _twiss_all(twiss_zdelta, gamma):
+    """Compute Twiss parameters in [phi-W] and [z-z']."""
+    d_twiss = {"zdelta": twiss_zdelta,
+               "w": _convert_twiss(twiss_zdelta, "zdelta to w", gamma),
+               "z": _convert_twiss(twiss_zdelta, "zdelta to z", gamma)}
+    return d_twiss
+
+
+# TODO emittance should become part of Accelerator, plot_longitudinal_emittance
+# should go to debug
+def _plot_longitudinal_emittance(linac, eps_w):
     """Compute and plot longitudinal emittance."""
-    # Array of non normalized emittance in [z-delta]
-    gamma = linac.synch.energy['gamma_array']
-
-    arr_eps_zdelta = emittance_zdelta(linac, sigma_in, idx_out=-1)[1:]
-
-    arr_eps_w = eps_zdelta_to_w(arr_eps_zdelta, gamma)
-
     fig, axx = helper.create_fig_if_not_exist(13, [111])
     axx = axx[0]
-    axx.plot(linac.synch.z['abs_array'], arr_eps_w, label=linac.name)
+    axx.plot(linac.synch.z['abs_array'], eps_w, label=linac.name)
     axx.grid(True)
     axx.set_xlabel("Position [m]")
     axx.set_ylabel(r"Longitudinal emittance [$\pi$.deg.MeV]")
@@ -103,221 +130,84 @@ def plot_longitudinal_emittance(linac, sigma_in):
           "Should increase slowly.")
 
 
-def _transform_mt(r_zz):
-    """
-    Transform transfer matrix to calculate transport with less operations.
-
-    With R the transfer matrix, we have:
-        X_2 = R * X_1 * R^T
-    This can be reformulated:
-        X_2 = M * X_1,
-    where:
-            |  R_11**2   -2R_11*R_12      R_12**2   |
-        M = | -R_11*R_21 1 + 1+R_12*R_21 -R_12*R_22 |
-            |  R_21**2   -2R_21*R_22     R_21**2    |
-
-    Letchford, Alan, in Proceedings of the CAS-CERN Accelerator School: High
-    Power Hadron Machines, Bilbao, Spain, 24 May - 2 June 2011, edited by R.
-    Bailey, CERN-2013-001, pp. 6-8.
-    """
-    n_points = r_zz.shape[0]
-    m_zz = np.full((n_points, 3, 3), np.NaN)
-    for i in range(n_points):
-        r_11 = r_zz[i, 0, 0]
-        r_12 = r_zz[i, 0, 1]
-        r_21 = r_zz[i, 1, 0]
-        r_22 = r_zz[i, 1, 1]
-
-        m_zz[i, :, :] = np.array((
-            [r_11**2, -2. * r_11 * r_12, r_12**2],
-            [-r_11 * r_21, 1. + r_12 * r_21, -r_12 * r_22],
-            [r_21**2, -2. * r_21 * r_22, r_21**2]))
-    return m_zz
-
-
-# TODO can be greatly compacted!!
-def transport_twiss_parameters3(r_zz, w_kin, sigma_in, alpha_z0=ALPHA_Z,
-                                beta_z0=BETA_Z):
-    """
-    Transport Twiss parameters using sigma beam matrix.
-
-    Parameters
-    ----------
-    r_zz : numpy array
-        (n, 2, 2) total transfer matrices of elements/slices.
-    w_kin : numpy array
-        (n+1, 2, 2) array of kinetic energy at in/out of elements/slices.
-    """
-    n_slices = r_zz.shape[0]
-    assert n_slices == w_kin.shape[0] - 1
-
-    sigma = sigma_beam_matrices2(r_zz, sigma_in)
-
-    # All beta * gamma
-    beta_gamma = helper.kin_to_gamma(w_kin) * helper.kin_to_beta(w_kin)
-
-    # Array of input beta_gamma
-    beta_gamma_i = np.zeros((n_slices, 2, 2))
-    beta_gamma_i[:, 0, 0] = 1.
-    beta_gamma_i[:, 1, 1] = 1. / beta_gamma[:-1]
-
-    # Array of output beta_gamma
-    beta_gamma_o = np.zeros((n_slices, 2, 2))
-    beta_gamma_o[:, 0, 0] = 1.
-    beta_gamma_o[:, 1, 1] = beta_gamma[1:]
-
-    r_zz_p = np.empty((n_slices, 2, 2))
-    for i in range(n_slices):
-        r_zz_p[i] = beta_gamma_o[i] @ r_zz[i] @ beta_gamma_i[i]
-
-    # Compute phase advance
-    sigma_z0 = np.arccos(.5 * (r_zz_p[:, 0, 0] + r_zz_p[:, 1, 1]))
-    # Now Twiss time
-    alpha_z0 = (r_zz_p[:, 0, 0] - r_zz_p[:, 1, 1]) / (2. * np.sin(sigma_z0))
-
-
-def transport_twiss_parameters2(r_zz, alpha_z0=ALPHA_Z, beta_z0=BETA_Z):
-    """Transport Twiss parameters along element(s) described by r_zz."""
-    n_points = r_zz.shape[0]
-    # transformed = _transform_mt(r_zz)
-    arr_twiss = np.full((n_points, 3), np.NaN)
-    # arr_twiss[0, :] = np.array(([
-    #     alpha_z0,
-    #     beta_z0,
-    #     (1. + alpha_z0**2) / beta_z0,
-    # ]))
-
-    # for i in range(1, n_points):
-        # arr_twiss[i, :] = transformed[i, :, :] @ arr_twiss[0, :]
-    sigma_in = np.array(([2.9511603e-06, -1.9823111e-07],
-                         [-1.9823111e-07, 7.0530641e-07]))
-    for i in range(n_points):
-        sigma_zdelta = r_zz[i] @ sigma_in @ r_zz[i].transpose()
-        eps_zdelta = np.sqrt(np.linalg.det(sigma_zdelta))
-
-        arr_twiss[i, :] = np.array([-sigma_zdelta[1, 0],
-                                    sigma_zdelta[0, 0] * 10.,
-                                    sigma_zdelta[1, 1] / 10.]) / eps_zdelta
-        # beta multiplied by 10 to match TW
-        # gamma divided by 10 to keep beta * gamma - alpha**2 = 1
-
-    return arr_twiss
-
-
-def plot_twiss(linac, twiss):
+# TODO Twiss should become Accelerator attribute, and plot_twiss should go in
+# debug
+def _plot_twiss(linac, twiss_zdelta):
     """Plot Twiss parameters."""
     _, axs = helper.create_fig_if_not_exist(33, [311, 312, 313])
     z_pos = linac.synch.z['abs_array']
 
-    axs[0].plot(z_pos, twiss[:, 0], label=linac.name)
+    axs[0].plot(z_pos, twiss_zdelta[:, 0], label=linac.name)
     axs[0].set_ylabel(r'$\alpha_z$ [1]')
     axs[0].legend()
 
-    axs[1].plot(z_pos, twiss[:, 1])
+    axs[1].plot(z_pos, twiss_zdelta[:, 1])
     axs[1].set_ylabel(r'$\beta_z$ [mm/$\pi$%]')
 
-    axs[2].plot(z_pos, twiss[:, 2])
+    axs[2].plot(z_pos, twiss_zdelta[:, 2])
     axs[2].set_ylabel(r'$\gamma_z$ [$\pi$/mm/%]')
     axs[2].set_xlabel('s [m]')
 
     for ax_ in axs:
         ax_.grid(True)
 
-    _output_twiss(twiss, linac.synch.energy['gamma_array'], index_out=5)
-    _output_twiss(twiss, linac.synch.energy['gamma_array'], index_out=9372)
 
-
-# TODO can be greatly compacted
-def _output_twiss(arr_twiss, gamma, index_out=0):
-    """
-    Output twiss parameters in different units.
-
-    Twiss parameters should be given in the z-delta plane (mm/pi.%).
-    """
-    if gamma.shape[0] > 1:
-        gamma = gamma[index_out]
-
-    d_alpha = {'zdelta': [arr_twiss[index_out, 0], "[1]"],
-               'phiw': [-arr_twiss[index_out, 0], "[1]"],
-               'z': [arr_twiss[index_out, 0], "[1]"]}
-
-    d_beta = {'zdelta': [arr_twiss[index_out, 1], "[mm/pi%]"],
-              'phiw': [beta_zdelta_to_w(arr_twiss[index_out, 1], gamma),
-                       "[deg/pi.MeV]"],
-              'z': [beta_zdelta_to_z(arr_twiss[index_out, 1], gamma),
-                    "[mm/pi.mrad]"]}
-
-    d_gamma = {'zdelta': [arr_twiss[index_out, 2], "[pi/mm%]"],
-               'phiw': [gamma_zdelta_to_w(arr_twiss[index_out, 2], gamma),
-                        "[pi/deg.MeV]"],
-               'z': [gamma_zdelta_to_z(arr_twiss[index_out, 2], gamma),
-                     "[pi/mm.mrad]"]}
-
-    d_names = ["alpha", "beta", "gamma"]
-    d_phase_spaces = ["zdelta", "phiw", "z"]
-    d_d = [d_alpha, d_beta, d_gamma]
+# TODO Should also go in debug
+def _output_twiss(d_twiss, idx=0):
+    """Output Twiss parameters in three phase spaces at index idx."""
+    d_units = {"zdelta": ["[1]", "[mm/pi.%]", "[pi/mm.%]"],
+               "w": ["[1]", "[deg/pi.MeV]", "[pi/deg.MeV]"],
+               "z": ["[1]", "[mm/pi.mrad]", "[pi/mm.mrad]"]}
 
     df_twiss = pd.DataFrame(columns=(
         'Twiss',
         '[z - delta]', 'Unit',
         '[phi - W]', 'Unit',
         "[z - z']", 'Unit'))
-    for i in range(3):
-        current_twiss = d_names[i]
-        current_d = d_d[i]
-        line = [current_twiss]
 
-        for j in range(3):
-            current_space = d_phase_spaces[j]
+    for i, name in enumerate(["alpha", "beta", "gamma"]):
+        line = [name]
 
-            for k in range(2):
-                line.append(current_d[current_space][k])
-
+        for phase_space in ["zdelta", "w", "z"]:
+            line.append(d_twiss[phase_space][idx, i])
+            line.append(d_units[phase_space][i])
         df_twiss.loc[i] = line
 
     df_twiss = df_twiss.round(decimals=4)
     pd.options.display.max_columns = 8
     pd.options.display.width = 120
-    helper.printd(df_twiss, header=f"Twiss parameters at index {index_out}:")
-
-    # for i, cav in enumerate(full_list_of_cav):
-    #     df_cav.loc[i] = [cav.info['name'], cav.info['status'],
-    #                      cav.acc_field.k_e,
-    #                      np.rad2deg(cav.acc_field.phi_0['abs']),
-    #                      np.rad2deg(cav.acc_field.phi_0['rel']),
-    #                      cav.acc_field.cav_params['v_cav_mv'],
-    #                      cav.acc_field.cav_params['phi_s_deg']]
-    # df_cav.round(decimals=3)
-
-    # # Output only the cavities that have changed
-    # if 'Fixed' in linac.name:
-    #     df_out = pd.DataFrame(columns=(
-    #         'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
-    #         'phis'))
-    #     i = 0
-    #     for c in full_list_of_cav:
-    #         if 'compensate' in c.info['status']:
-    #             i += 1
-    #             df_out.loc[i] = df_cav.loc[full_list_of_cav.index(c)]
-    #     if out:
-    #         helper.printd(df_out, header=linac.name)
-    # return df_cav
+    helper.printd(df_twiss, header=f"Twiss parameters at index {idx}:")
 
 
-def transport_twiss_parameters(linac, alpha_z0, beta_z0):
-    """Transport Twiss parameters."""
-    assert isinstance(linac, accelerator.Accelerator)
-    t_m = linac.transf_mat['cumul']
-    n_points = t_m.shape[0]
+# TODO mmay be possible to save some operations by using lambda func?
+def _convert_twiss(twiss_orig, str_convert, gamma, beta=None, lam=LAMBDA_BUNCH,
+                   e_0=E_rest_MeV):
+    """Convert Twiss array from a phase space to another."""
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
 
-    transformed = _transform_mt(t_m, n_points)
+    # Lighten the dict
+    k_1 = e_0 * (gamma * beta) * lam / 360.
+    k_2 = k_1 * beta**2
+    k_3 = k_2 * gamma**2
 
-    twiss = np.full((n_points, 3), np.NaN)
-    twiss[0, :] = np.array(([beta_z0, alpha_z0, (1. + alpha_z0**2) / beta_z0]))
+    # Dict of emittances conversion constants
+    d_convert = {
+        "w to z": [-1., 1e-6 * k_3],
+        "z to w": [-1., 1e6 / k_3],
+        "w to zdelta": [-1., 1e-5 * k_2],
+        "zdelta to w": [-1., 1e5 / k_2],
+        "z to zdelta": [1., 1e1 * gamma**-2],
+        "zdelta to z": [1., 1e-1 * gamma**2],
+    }
+    factors = d_convert[str_convert]
 
-    for i in range(1, n_points):
-        twiss[i, :] = transformed[i, :, :] @ twiss[0, :]
-    return twiss
+    # New array of Twiss parameters in the desired phase space
+    twiss_new = np.empty(twiss_orig.shape)
+    twiss_new[:, 0] = twiss_orig[:, 0] * factors[0]
+    twiss_new[:, 1] = twiss_orig[:, 1] * factors[1]
+    twiss_new[:, 2] = twiss_orig[:, 2] / factors[1]
+    return twiss_new
 
 
 # =============================================================================
@@ -359,6 +249,65 @@ def eps_w_to_zdelta(eps_w, gamma, beta=None, lam=LAMBDA_BUNCH,
         beta = np.sqrt(1. - gamma**-2)
     eps_zdelta = lam / (360. * e_0 * beta * gamma) * eps_w * 1e-6
     return eps_zdelta
+
+
+def eps_zdelta_to_z(eps_zdelta, gamma):
+    """Convert emittance from [z-delta] to [z-z']."""
+    eps_z = gamma**-2 * eps_zdelta * 1e6
+    return eps_z
+
+
+def eps_z_to_zelta(eps_z, gamma):
+    """Convert emittance from [z-z'] to [z-delta]."""
+    eps_zdelta = gamma**2 * eps_z * 1e-6
+    return eps_zdelta
+
+
+# =============================================================================
+# Twiss conversions
+# =============================================================================
+def twiss_z_to_w(twiss_z, gamma, beta=None, lam=LAMBDA_BUNCH,
+                e_0=E_rest_MeV):
+    """Convert Twiss array from [z-z'] to [Delta phi-Delta W]."""
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+    factor = 360. / (e_0 * (gamma * beta)**3 * lam) * 1e6
+
+    twiss_w = np.empty(twiss_z.shape)
+    twiss_w[:, 0] = -twiss_z[:, 0]
+    twiss_w[:, 1] = twiss_z[:, 1] * factor
+    twiss_w[:, 2] = twiss_z[:, 2] / factor
+    return twiss_w
+
+
+def twiss_w_to_z(twiss_w, gamma, beta=None, lam=LAMBDA_BUNCH,
+                e_0=E_rest_MeV):
+    """Convert Twiss array from [Delta phi-Delta W] to [z-z']."""
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+    factor = e_0 * (gamma * beta)**3 * lam / 360. * 1e-6
+
+    twiss_z = np.empty(twiss_w.shape)
+    twiss_z[:, 0] = -twiss_w[:, 0]
+    twiss_z[:, 1] = twiss_w[:, 1] * factor
+    twiss_z[:, 2] = twiss_w[:, 2] / factor
+    return twiss_w
+
+
+def twiss_zdelta_to_w(twiss_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
+                     e_0=E_rest_MeV):
+    """Convert Twiss array from [z-delta] to [Delta phi-Delta W]."""
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+
+    factor = 360. / (e_0 * gamma * beta**3 * lam) * 1e5
+
+    twiss_w = np.empty(twiss_zdelta.shape)
+    twiss_w[:, 0] = -twiss_zdelta[:, 0]
+    twiss_w[:, 1] = twiss_zdelta[:, 1] * factor
+    twiss_w[:, 2] = twiss_zdelta[:, 2] / factor
+
+    return twiss_w
 
 
 # =============================================================================

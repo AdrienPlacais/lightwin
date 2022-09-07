@@ -13,9 +13,9 @@ import os.path
 import numpy as np
 import tracewin_interface as tw
 import particle
-from constants import E_MEV, FLAG_PHI_ABS, ALPHA_Z, BETA_Z
+from constants import E_MEV, FLAG_PHI_ABS
 import elements
-from emittance import transport_twiss_parameters2, plot_twiss
+from emittance import calc_beam_properties
 
 
 class Accelerator():
@@ -193,8 +193,12 @@ class Accelerator():
             arr_r_zz_cumul[i] = l_r_zz_elt[i - 1] @ arr_r_zz_cumul[i - 1]
 
         if self.name == 'Working':
-            arr_twiss = transport_twiss_parameters2(arr_r_zz_cumul)
-            plot_twiss(self, arr_twiss)
+            # arr_twiss = transport_twiss_parameters(arr_r_zz_cumul)
+            # plot_twiss(self, arr_twiss)
+
+            _, _ = calc_beam_properties(self, arr_r_zz_cumul, np.array((
+                [2.9511603e-06, -1.9823111e-07],
+                [-1.9823111e-07, 7.0530641e-07])))
 
         if flag_transfer_data:
             self.transf_mat['cumul'][idx_in:idx_out] = arr_r_zz_cumul
