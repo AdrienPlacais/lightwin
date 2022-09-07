@@ -78,6 +78,9 @@ class Particle():
             'both_array': np.full((n_steps + 1), np.NaN),
             'phi_array_rad': np.full((n_steps + 1), np.NaN),
         }
+        if not self.info["synchronous"]:
+            print("__init__ non-synch Particle: the absolute position of",
+                  "a non synch particle is not initialized.")
 
     def init_abs_z(self, list_of_elements):
         """Create the array of absolute positions."""
@@ -321,7 +324,7 @@ class Particle():
         self.set_omega_rf(OMEGA_0_BUNCH)
         self.phi['abs_rf'] = None
 
-    def keep_energy_and_phase2(self, results, idx_range):
+    def keep_energy_and_phase(self, results, idx_range):
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
         self.energy['kin_array_mev'][idx_range] = w_kin
@@ -334,24 +337,6 @@ class Particle():
             # self.z['abs_array'][idx_elt_prec] + elt.pos_m['rel'][1:]
 
         self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])
-
-
-    def keep_energy_and_phase(self, elt, w_kin, phi_abs):
-        """Assign the energy and phase data to synch after MT calculation."""
-        r_idx_elt = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
-        idx_elt_prec = r_idx_elt[0] - 1
-
-        # ene = self.energy
-        # ene['kin_array_mev'][r_idx_elt] = w_kin
-        # ene['gamma_array'][r_idx_elt] = \
-            # helper.kin_to_gamma(w_kin, E_rest_MeV)
-        # ene['beta_array'][r_idx_elt] = \
-            # helper.gamma_to_beta(ene['gamma_array'][r_idx_elt])
-
-        self.z['abs_array'][r_idx_elt] = \
-            self.z['abs_array'][idx_elt_prec] + elt.pos_m['rel'][1:]
-
-        # self.phi['abs_array'][r_idx_elt] = phi_abs
 
 
 def convert_phi_0_p(phi_in, phi_rf_abs, abs_to_rel):

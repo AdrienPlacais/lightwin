@@ -184,7 +184,7 @@ class Accelerator():
         if flag_transfer_data:
             self.transf_mat['cumul'][idx_in:idx_out] = results["r_zz_cumul"]
 
-            self.synch.keep_energy_and_phase2(results, range(idx_in, idx_out))
+            self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))
 
             gamma = kin_to_gamma(np.array(results["w_kin"]))
             d_eps, d_twiss = beam_parameters_all(eps_zdelta, twiss_zdelta,
@@ -246,12 +246,6 @@ class Accelerator():
         finished and the new parameters should be kept.
         """
         idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
-
-        # This is called at each element. Shouldn't it be called once at the
-        # end ?
-        # self.synch.keep_energy_and_phase(elt, elt_results['w_kin'], phi_abs_elt)
-
-        # Is this necessary/useful ? This data is already in Element.
         self.transf_mat['indiv'][idx] = elt_results['r_zz']
 
     def get_from_elements(self, attribute, key=None, other_key=None):
