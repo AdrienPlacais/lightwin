@@ -158,33 +158,36 @@ class Accelerator():
 
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
-            phi_abs = results["phi_abs"][-1]
+            elt_results, rf_field, = self._proper_transf_mat(
+                elt, results["phi_abs"][-1], results["w_kin"][-1], d_fits)
+            # phi_abs = results["phi_abs"][-1]
 
-            if elt.info['nature'] != 'FIELD_MAP' \
-               or elt.info['status'] == 'failed':
-                rf_field = None
-                elt_results = elt.calc_transf_mat(results["w_kin"][-1])
+            # if elt.info['nature'] != 'FIELD_MAP' \
+               # or elt.info['status'] == 'failed':
+                # rf_field = None
+                # elt_results = elt.calc_transf_mat(results["w_kin"][-1])
 
-            else:
-                if d_fits['flag'] \
-                   and elt.info['status'] == 'compensate (in progress)':
-                    d_fit_elt = {'flag': True,
-                                 'phi': d_fits['l_phi'].pop(0),
-                                 'k_e': d_fits['l_k_e'].pop(0)}
-                else:
-                    d_fit_elt = d_fits
+            # else:
+                # if d_fits['flag'] \
+                   # and elt.info['status'] == 'compensate (in progress)':
+                    # d_fit_elt = {'flag': True,
+                                 # 'phi': d_fits['l_phi'].pop(0),
+                                 # 'k_e': d_fits['l_k_e'].pop(0)}
+                # else:
+                    # d_fit_elt = d_fits
 
-                rf_field = elt.set_cavity_parameters(
-                    self.synch, phi_abs, results["w_kin"][-1], d_fit_elt)
-                elt_results = elt.calc_transf_mat(results["w_kin"][-1],
-                                                  **rf_field)
+                # rf_field = elt.set_cavity_parameters(
+                    # self.synch, phi_abs, results["w_kin"][-1], d_fit_elt)
+                # elt_results = elt.calc_transf_mat(results["w_kin"][-1],
+                                                  # **rf_field)
+            if rf_field is not None:
                 results["rf_fields"].append(rf_field)
                 results["phi_s_rad"].append(
                     elt_results['cav_params']['phi_s_rad'])
 
             r_zz_elt = [elt_results['r_zz'][i, :, :]
                         for i in range(elt_results['r_zz'].shape[0])]
-            l_phi_abs_elt = [phi_rel + phi_abs
+            l_phi_abs_elt = [phi_rel + results["phi_abs"][-1]
                              for phi_rel in elt_results['phi_rel']]
             results["r_zz_elt"].extend(r_zz_elt)
             results["phi_abs"].extend(l_phi_abs_elt)
@@ -210,6 +213,29 @@ class Accelerator():
 
         return arr_r_zz_cumul, results["w_kin"], results["phi_abs"], \
             results["phi_s_rad"], results["rf_fields"]
+
+    def _proper_transf_mat(self, elt, phi_abs, w_kin, d_fits):
+        """Get the proper arguments and call the elt.calc_transf_mat."""
+        if elt.info['nature'] != 'FIELD_MAP' or elt.info['status'] == 'failed':
+            rf_field = None
+            elt_results = elt.calc_transf_mat(w_kin)
+
+        else:
+            # Here we determine if we take the rf field parameters from an
+            # optimisation algorithm or from the Element.Rf_Field object
+            if d_fits['flag'] \
+               and elt.info['status'] == 'compensate (in progress)':
+                d_fit_elt = {'flag': True,
+                             'phi': d_fits['l_phi'].pop(0),
+                             'k_e': d_fits['l_k_e'].pop(0)}
+            else:
+                d_fit_elt = d_fits
+
+            rf_field = elt.set_cavity_parameters(self.synch, phi_abs, w_kin,
+                                                 d_fit_elt)
+            elt_results = elt.calc_transf_mat(w_kin, **rf_field)
+
+        return elt_results, rf_field
 
     def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, idx_in, n_steps):
         """Compute cumulated transfer matrix."""
