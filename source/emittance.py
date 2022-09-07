@@ -47,19 +47,19 @@ def calc_beam_properties(linac, arr_r_zz, sigma_in):
     arr_eps_zdelta = _emittance_zdelta(arr_sigma)
     arr_twiss_zdelta = _twiss_zdelta(arr_sigma, arr_eps_zdelta)
 
-    FLAG_PLOT_EPS = True
-    FLAG_PLOT_TWISS = True
-    FLAG_OUTPUT_TWISS = True
+    flag_plot_eps = True
+    flag_plot_twiss = True
+    flag_output_twiss = True
 
     arr_gamma = linac.synch.energy['gamma_array']
-    if FLAG_PLOT_EPS:
+    if flag_plot_eps:
         d_eps = _emittances_all(arr_eps_zdelta, arr_gamma)
         _plot_longitudinal_emittance(linac, d_eps["z"])
 
-    if FLAG_PLOT_TWISS:
+    if flag_plot_twiss:
         _plot_twiss(linac, arr_twiss_zdelta)
 
-    if FLAG_OUTPUT_TWISS:
+    if flag_output_twiss:
         d_twiss = _twiss_all(arr_twiss_zdelta, arr_gamma)
         for idx in [0, 1]:
             _output_twiss(d_twiss, idx=idx)
@@ -98,9 +98,34 @@ def _emittance_zdelta(arr_sigma):
 def _emittances_all(eps_zdelta, gamma):
     """Compute emittances in [phi-W] and [z-z']."""
     d_eps = {"zdelta": eps_zdelta,
-             "w": eps_zdelta_to_w(eps_zdelta, gamma),
-             "z": eps_zdelta_to_z(eps_zdelta, gamma)}
+             "w": _convert_emittance(eps_zdelta, "zdelta to w", gamma),
+             "z": _convert_emittance(eps_zdelta, "zdelta to z", gamma)}
     return d_eps
+
+
+# TODO may be possible to save some operations by using lambda func?
+def _convert_emittance(eps_orig, str_convert, gamma, beta=None,
+                       lam=LAMBDA_BUNCH, e_0=E_rest_MeV):
+    """Convert emittance from a phase space to another."""
+    if beta is None:
+        beta = np.sqrt(1. - gamma**-2)
+
+    # Lighten the dict
+    gamma2 = gamma**2
+    k_1 = 360. * e_0 * (gamma * beta) / lam
+    k_2 = k_1 * gamma2
+
+    # Dict of emittances conversion constants
+    d_convert = {
+        "w to z": 1. / k_2,
+        "z to w": k_2,
+        "w to zdelta": 1e-6 / k_1,
+        "zdelta to w": 1e6 * k_1,
+        "z to zdelta": 1e-6 * gamma2,
+        "zdelta to z": 1e6 / gamma2,
+    }
+    eps_new = eps_orig * d_convert[str_convert]
+    return eps_new
 
 
 # =============================================================================
@@ -228,59 +253,6 @@ def _output_twiss(d_twiss, idx=0):
 
 
 # =============================================================================
-# Emittances conversions
-# =============================================================================
-def eps_z_to_w(eps_z, gamma, beta=None, lam=LAMBDA_BUNCH, e_0=E_rest_MeV):
-    """Convert emittance from [z-z'] to [Delta phi-Delta W]."""
-    # beta is Lorentz factor
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-    eps_w = (360. * e_0 * beta * gamma**3) / lam * eps_z
-    return eps_w
-
-
-def eps_w_to_z(eps_w, gamma, beta=None, lam=LAMBDA_BUNCH, e_0=E_rest_MeV):
-    """Convert emittance from [Delta phi-Delta W] to [z-z']."""
-    # beta is Lorentz factor
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-    eps_z = lam / (360. * e_0 * beta * gamma**3) * eps_w
-    return eps_z
-
-
-def eps_zdelta_to_w(eps_zdelta, gamma, beta=None, lam=LAMBDA_BUNCH,
-                    e_0=E_rest_MeV):
-    """Convert emittance from [z-delta] to [Delta phi-Delta W]. Validated."""
-    # beta is Lorentz factor
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-    eps_w = (360. * e_0 * beta * gamma) / lam * eps_zdelta * 1e6
-    return eps_w
-
-
-def eps_w_to_zdelta(eps_w, gamma, beta=None, lam=LAMBDA_BUNCH,
-                    e_0=E_rest_MeV):
-    """Convert emittance from [Delta phi-Delta W] to [z-delta]."""
-    # beta is Lorentz factor
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-    eps_zdelta = lam / (360. * e_0 * beta * gamma) * eps_w * 1e-6
-    return eps_zdelta
-
-
-def eps_zdelta_to_z(eps_zdelta, gamma):
-    """Convert emittance from [z-delta] to [z-z']."""
-    eps_z = gamma**-2 * eps_zdelta * 1e6
-    return eps_z
-
-
-def eps_z_to_zelta(eps_z, gamma):
-    """Convert emittance from [z-z'] to [z-delta]."""
-    eps_zdelta = gamma**2 * eps_z * 1e-6
-    return eps_zdelta
-
-
-# =============================================================================
 # Old junk
 # =============================================================================
 def plot_phase_spaces(linac, twiss):
@@ -359,7 +331,7 @@ def calc_emittance_from_tw_transf_mat(linac, sigma_in):
     w_kin = np.loadtxt(filepath, skiprows=1)
     w_kin = np.interp(x=z, xp=w_kin[:, 0], fp=w_kin[:, 1])
     gamma = helper.kin_to_gamma(w_kin)
-    arr_eps_w = eps_zdelta_to_w(arr_eps_zdelta, gamma)
+    arr_eps_w = _convert_emittance(arr_eps_zdelta, "zdelta to w", gamma)
 
     fig, ax = helper.create_fig_if_not_exist(13, [111])
     ax = ax[0]
