@@ -207,10 +207,21 @@ def _create_plot_dicts():
                              {'marker': 'o'}],
         "eps_zdelta": [r"$\epsilon_{z\delta}$ [$\pi$.m.rad]",
                        {"marker": None}],
-        "eps_z": [r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]",
-                       {"marker": None}],
-        "eps_w": [r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]",
-                       {"marker": None}],
+        "eps_z": [r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
+        "eps_w": [r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]", {"marker": None}],
+        "alpha_zdelta": [r"$\alpha_{z\delta}$ [1]", {"marker": None}],
+        "alpha_z":      [r"$\alpha_{zz'}$ [1]", {"marker": None}],
+        "alpha_w":      [r"$\alpha_{\phi W}$ [1]", {"marker": None}],
+        "beta_zdelta":  [r"$\beta_{z\delta}$ [mm/$\pi$.%]", {"marker": None}],
+        "beta_z":       [r"$\beta_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
+        "beta_w":       [r"$\beta_{\phi W}$ [deg/$\pi$.MeV]",
+                         {"marker": None}],
+        "gamma_zdelta": [r"$\gamma_{z\delta}$ [$\pi$/mm.rad]",
+                         {"marker": None}],
+        "gamma_z":      [r"$\gamma_{zz'}$ [$\pi$/mm.mrad]",
+                         {"marker": None}],
+        "gamma_w":      [r"$\gamma_{\phi W}$ [$\pi$/deg.MeV]",
+                         {"marker": None}],
     }
 
     dict_x_data = {
@@ -229,9 +240,18 @@ def _create_plot_dicts():
             lin.get_from_elements('acc_field', 'cav_params', 'phi_s_deg'),
         'field_map_factor': lambda lin:
             lin.get_from_elements('acc_field', 'k_e'),
-        'eps_zdelta': lambda lin: lin.beam_param["eps"]["zdelta"],
-        'eps_z': lambda lin: lin.beam_param["eps"]["z"],
-        'eps_w': lambda lin: lin.beam_param["eps"]["w"],
+        "eps_zdelta": lambda lin: lin.beam_param["eps"]["zdelta"],
+        "eps_z": lambda lin: lin.beam_param["eps"]["z"],
+        "eps_w": lambda lin: lin.beam_param["eps"]["w"],
+        "alpha_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 0],
+        "alpha_z": lambda lin: lin.beam_param["twiss"]["z"][:, 0],
+        "alpha_w": lambda lin: lin.beam_param["twiss"]["w"][:, 0],
+        "beta_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 1],
+        "beta_z": lambda lin: lin.beam_param["twiss"]["z"][:, 1],
+        "beta_w": lambda lin: lin.beam_param["twiss"]["w"][:, 1],
+        "gamma_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 2],
+        "gamma_z": lambda lin: lin.beam_param["twiss"]["z"][:, 2],
+        "gamma_w": lambda lin: lin.beam_param["twiss"]["w"][:, 2],
     }
 
     dict_err_factor = {
