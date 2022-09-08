@@ -71,15 +71,16 @@ manual_list = [
     # [579, 581, 591, 593, 595, 597]
 ]
 
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 # =============================================================================
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
+    # "energy",
+    # "phase",
+    # "cav",
+    "emittance",
 ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -94,6 +95,7 @@ DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
     "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
     "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
+    "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
 }
 
 DICT_SAVES = {

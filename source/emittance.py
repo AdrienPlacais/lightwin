@@ -59,18 +59,6 @@ def beam_parameters_zdelta(r_zz, sigma_in=SIGMA_ZDELTA):
     eps_zdelta = _emittance_zdelta(sigma)
     twiss_zdelta = _twiss_zdelta(sigma, eps_zdelta)
 
-    # if flag_plot_eps:
-        # d_eps = _emittances_all(eps_zdelta, gamma)
-        # _plot_longitudinal_emittance(linac, d_eps["z"])
-
-    # if flag_plot_twiss:
-        # _plot_twiss(linac, twiss_zdelta)
-
-    # if flag_output_twiss:
-        # d_twiss = _twiss_all(twiss_zdelta, gamma)
-        # for idx in [0, 1]:
-            # _output_twiss(d_twiss, idx=idx)
-
     return eps_zdelta, twiss_zdelta
 
 
@@ -202,21 +190,6 @@ def _convert_twiss(twiss_orig, str_convert, gamma, beta=None, lam=LAMBDA_BUNCH,
 # =============================================================================
 # Private - to be moved to debug
 # =============================================================================
-# TODO emittance should become part of Accelerator, plot_longitudinal_emittance
-# should go to debug
-def _plot_longitudinal_emittance(linac, eps_w):
-    """Compute and plot longitudinal emittance."""
-    fig, axx = helper.create_fig_if_not_exist(13, [111])
-    axx = axx[0]
-    axx.plot(linac.synch.z['abs_array'], eps_w, label=linac.name)
-    axx.grid(True)
-    axx.set_xlabel("Position [m]")
-    axx.set_ylabel(r"Longitudinal emittance [$\pi$.deg.MeV]")
-    axx.legend()
-    print("plot_longitudinal_emittance: normalized or not?",
-          "Should increase slowly.")
-
-
 # TODO Twiss should become Accelerator attribute, and plot_twiss should go in
 # debug
 def _plot_twiss(linac, twiss_zdelta):

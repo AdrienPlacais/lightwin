@@ -205,6 +205,12 @@ def _create_plot_dicts():
                       {'marker': 'o'}],
         'field_map_factor': [r'$k_e$ [1]',
                              {'marker': 'o'}],
+        "eps_zdelta": [r"$\epsilon_{z\delta}$ [$\pi$.m.rad]",
+                       {"marker": None}],
+        "eps_z": [r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]",
+                       {"marker": None}],
+        "eps_w": [r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]",
+                       {"marker": None}],
     }
 
     dict_x_data = {
@@ -222,7 +228,10 @@ def _create_plot_dicts():
         'phi_s_deg': lambda lin:
             lin.get_from_elements('acc_field', 'cav_params', 'phi_s_deg'),
         'field_map_factor': lambda lin:
-            lin.get_from_elements('acc_field', 'k_e')
+            lin.get_from_elements('acc_field', 'k_e'),
+        'eps_zdelta': lambda lin: lin.beam_param["eps"]["zdelta"],
+        'eps_z': lambda lin: lin.beam_param["eps"]["z"],
+        'eps_w': lambda lin: lin.beam_param["eps"]["w"],
     }
 
     dict_err_factor = {
