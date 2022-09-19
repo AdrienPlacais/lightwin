@@ -176,11 +176,11 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
 import matplotlib.pyplot as plt
 
-ellipse_twiss = ref_linac.beam_param["twiss"]["w"][0]
-ellipse_eps = 1.92886
-fig = plt.figure(3)
-axx = fig.add_subplot(111)
-debug.plot_ellipse_emittance(axx, ellipse_twiss, ellipse_eps)
+fig, axx = helper.create_fig_if_not_exist(3, [221, 222])
+for i in [0, -1]:
+    ellipse_twiss = ref_linac.beam_param["twiss"]["w"][i]
+    ellipse_eps = ref_linac.beam_param["eps"]["w"][i]
+    debug.plot_ellipse_emittance(axx[i], ellipse_twiss, ellipse_eps)
 
 # data_ref = tw.output_data_in_tw_fashion(ref_linac)
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)
