@@ -80,8 +80,8 @@ PLOTS = [
     # "energy",
     # "phase",
     # "cav",
-    "emittance",
-    "twiss",
+    # "emittance",
+    # "twiss",
 ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -173,6 +173,14 @@ if FLAG_FIX:
 # =============================================================================
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
+
+import matplotlib.pyplot as plt
+
+ellipse_twiss = ref_linac.beam_param["twiss"]["w"][0]
+ellipse_eps = 1.92886
+fig = plt.figure(3)
+axx = fig.add_subplot(111)
+debug.plot_ellipse_emittance(axx, ellipse_twiss, ellipse_eps)
 
 # data_ref = tw.output_data_in_tw_fashion(ref_linac)
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)

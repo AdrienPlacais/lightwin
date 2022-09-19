@@ -6,6 +6,7 @@ Created on Tue Oct 12 13:50:44 2021.
 @author: placais
 """
 from os import listdir
+from matplotlib.patches import Ellipse as Ell
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
@@ -378,6 +379,29 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
         else:
             axx.plot(x_data, y_data, label=label, ls='-',
                      **dicts['plot'][y_d][1])
+
+
+def plot_ellipse_emittance(axx, t, eps):
+    """Plot the ellipse emittance in the [phi-W] plane."""
+    width = 2. * np.sqrt(eps / t[2])
+    height = 2. * np.sqrt(eps / t[1])
+    angle = 180. - np.rad2deg(t[0] / t[1])
+    ell = Ell(xy=[0, 0], width=width, height=height, angle=angle,
+              facecolor="white", edgecolor="k")
+    axx.add_patch(ell)
+    axx.autoscale()
+    axx.grid(True)
+
+    axx.set_xlabel(r"Phase $\phi$ [deg]")
+    axx.set_ylabel(r"Energy $W$ [MeV]")
+
+    maxi_phi = np.round(np.sqrt(eps * t[1]), 2)
+    maxi_w = np.round(np.sqrt(eps * t[2]), 4)
+    axx.axvline(maxi_phi, 0., 10.)
+    axx.axhline(maxi_w, 0., 10.)
+    axx.set_title(f"Phi max = {maxi_phi} deg  W max = {maxi_w} MeV")
+
+    plt.show()
 
 
 def load_phase_space(accelerator):

@@ -5,7 +5,7 @@ Created on Mon Dec 13 14:42:41 2021.
 
 @author: placais
 
-Longitudinal emittances:
+Longitudinal RMS emittances:
     eps_zdelta in [z-delta]           [pi.m.rad]    non normalized
     eps_z      in [z-z']              [pi.mm.mrad]  non normalized
     eps_w      in [Delta phi-Delta W] [pi.deg.MeV]  normalized
@@ -15,9 +15,9 @@ Twiss:
     beta, gamma are Lorentz factors.
     beta_blabla, gamma_blabla are Twiss parameters.
 
-    beta_zdelta in [z-delta]            [mm/pi.%]
-    beta_z      in [z-z']               [mm/pi.mrad]
-    beta_w is   in [Delta phi-Delta W]  [deg/pi.MeV]
+    beta_zdelta in [z-delta]            [mm/(pi.%)]
+    beta_z      in [z-z']               [mm/(pi.mrad)]
+    beta_w is   in [Delta phi-Delta W]  [deg/(pi.MeV)]
 
     (same for gamma_z, gamma_z, gamma_zdelta)
 
