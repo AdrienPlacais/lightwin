@@ -333,16 +333,6 @@ class Particle():
         self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])
 
 
-def convert_phi_0_p(phi_in, phi_rf_abs, abs_to_rel):
-    """Calculate the missing phi_0 (relative or absolute)."""
-    if abs_to_rel:
-        phi_out = np.mod(phi_in + phi_rf_abs, 2. * np.pi)
-    else:
-        phi_out = np.mod(phi_in - phi_rf_abs, 2. * np.pi)
-    return phi_out
-
-
-
 def create_rand_particles(e_0_mev):
     """Create two random particles."""
     delta_z = 1e-4
