@@ -318,12 +318,6 @@ class Particle():
             print('Warning enter_cavity! Not sure what will happen with a',
                   'non synchronous particle.')
 
-    # TODO still used?
-    def exit_cavity(self):
-        """Reset frac_omega."""
-        self.set_omega_rf(OMEGA_0_BUNCH)
-        self.phi['abs_rf'] = None
-
     def keep_energy_and_phase(self, results, idx_range):
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
