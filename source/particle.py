@@ -175,32 +175,6 @@ class Particle():
         self.phi['abs_array'][idx] = self.phi['abs_array'][idx - 1] + delta_phi
 
 
-    def compute_phase_space_tot(self, synch):
-        """
-        Compute phase-space array.
-
-        synch_particle is an instance of Particle corresponding to the
-        synchronous particle.
-        """
-        self.phase_space['phi_array_rad'] = self.phi['abs_array'] \
-            - synch.phi['abs_array']
-        # Warning, according to doc lambda is RF wavelength... which does not
-        # make any sense outside of cavities.
-        self.phase_space['z_array'] = helper.phi_to_z(
-            self.phase_space['phi_array_rad'],
-            self.energy['beta_array'], OMEGA_0_BUNCH)
-
-        self.phase_space['delta_array'] = \
-            (self.energy['p_array_mev'] - synch.energy['p_array_mev']) / \
-            synch.energy['p_array_mev']
-
-        self.phase_space['both_array'] = np.vstack(
-            (self.phase_space['z_array'],
-             self.phase_space['delta_array'])
-        )
-        self.phase_space['both_array'] = np.swapaxes(
-            self.phase_space['both_array'], 0, 1)
-
     def set_omega_rf(self, new_omega, phi_bunch_abs):
         """
         Define rf pulsation and convert absolute bunch phase into abs rf phase.
