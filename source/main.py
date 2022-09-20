@@ -185,26 +185,5 @@ for (i, j) in zip(range(2), [0, ref_linac.synch.z["abs_array"].shape[0] - 1]):
 # data_ref = tw.output_data_in_tw_fashion(ref_linac)
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 # fault_info = fail.faults['l_obj'][0].info
-DEBUG_EMITT = False
-
-if DEBUG_EMITT:
-    import numpy as np
-
-    # OK now let's try some trucs.
-    # sigma matrix at the entry of the linac
-    sigma_zdelta = np.array(([2.9511603e-06, -1.9823111e-07],
-                             [-1.9823111e-07, 7.0530641e-07]))
-
-    # Total transfer matrix
-    emittance.plot_longitudinal_emittance(ref_linac, sigma_zdelta)
-    # emittance.plot_longitudinal_emittance(broken_linac, sigma_zdelta)
-    # emittance.other_emittance_from_sigma(ref_linac, sigma_zdelta)
-    ref = np.loadtxt("/home/placais/LightWin/data/faultcomp22/working/results/Longitudinalemittance(πdegMeV).txt")
-    fig, ax = helper.create_fig_if_not_exist(13, [111])
-    ax = ax[0]
-    ax.plot(ref[:, 0], ref[:, 1], label='Ref')
-    ax.legend()
-
-    emittance.calc_emittance_from_tw_transf_mat(ref_linac, sigma_zdelta)
 
 plt.show()
