@@ -8,7 +8,7 @@ Created on Thu Dec  2 13:44:00 2021.
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_rest_MeV, c, FLAG_PHI_ABS, OMEGA_0_BUNCH
+from constants import E_rest_MeV, c, OMEGA_0_BUNCH
 
 
 class Particle():
@@ -129,23 +129,6 @@ class Particle():
         self.energy['beta_array'][idx] = beta
         self.energy['p_array_mev'][idx] = p_mev
         self.omega0['lambda_array'][idx] = 2. * np.pi * c / self.omega0['ref']
-
-    def advance_position(self, delta_pos, idx=np.NaN):
-        """
-        Advance particle by delta_pos.
-
-        Parameters
-        ----------
-        delta_pos: float
-            Difference of position in m.
-        idx: int, opt
-            Index of the the energy concerned. If NaN, the new position is at
-            the first NaN element of abs_array.
-        """
-        if np.isnan(idx):
-            idx = np.where(np.isnan(self.z['abs_array']))[0][0]
-        self.z['rel'] += delta_pos
-        self.z['abs_array'][idx] = self.z['abs_array'][idx - 1] + delta_pos
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
