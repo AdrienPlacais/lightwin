@@ -200,6 +200,64 @@ def plot_section(linac, ax, x_axis='s'):
                        alpha=.1, fc='k')
 
 
+def _compute_ellipse_parameters(d_eq):
+    """
+    Compute the ellipse parameters so as to plot the ellipse.
+
+    Parameters
+    ----------
+    d_eq : dict
+        Holds ellipe equations parameters, defined as:
+            Ax**2 + Bxy + Cy**2 + Dx + Ey + F = 0
+
+    Return
+    ------
+    d_plot : dict
+        Holds semi axis, center of ellipse, angle.
+    """
+    delta = d_eq["B"]**2 - 4. * d_eq["A"] * d_eq["C"]
+    tmp1 = d_eq["A"] * d_eq["E"]**2 - d_eq["C"] * d_eq["D"]**2 \
+        - d_eq["B"] * d_eq["D"] * d_eq["E"] + delta * d_eq["F"]
+    tmp2 = np.sqrt((d_eq["A"] - d_eq["C"])**2 + d_eq["B"]**2)
+
+    if np.abs(d_eq["B"]) < 1e-8:
+        if d_eq["A"] < d_eq["C"]:
+            theta = 0.
+        else:
+            theta = np.pi/2.
+    else:
+        theta = np.arctan((d_eq["C"] - d_eq["A"] - tmp2) / d_eq["B"])
+
+    d_plot = {
+        "a": -np.sqrt(2. * tmp1 * (d_eq["A"] + d_eq["C"] + tmp2)) / delta,
+        "b": -np.sqrt(2. * tmp1 * (d_eq["A"] + d_eq["C"] - tmp2)) / delta,
+        "x0": (2. * d_eq["C"] * d_eq["D"] - d_eq["B"] * d_eq["E"]) / delta,
+        "y0": (2. * d_eq["A"] * d_eq["E"] - d_eq["B"] * d_eq["D"]) / delta,
+        "theta": theta,
+    }
+    return d_plot
+
+
+def plot_ellipse(axx, d_eq, **plot_kwargs):
+    """The proper ellipse plotting."""
+    d_plot = _compute_ellipse_parameters(d_eq)
+    n_points = 10001
+    var = np.linspace(0., 2. * np.pi, n_points)
+    ellipse = np.array([d_plot["a"] * np.cos(var), d_plot["b"] * np.sin(var)])
+    rotation = np.array([[np.cos(d_plot["theta"]), -np.sin(d_plot["theta"])],
+                         [np.sin(d_plot["theta"]),  np.cos(d_plot["theta"])]])
+    ellipse_rot = np.empty((2, n_points))
+
+    for i in range(n_points):
+        ellipse_rot[:, i] = np.dot(rotation, ellipse[:, i])
+
+    axx.plot(d_plot["x0"] + ellipse_rot[0, :],
+             d_plot["y0"] + ellipse_rot[1, :],
+             lw=0., marker='o', ms=.5, **plot_kwargs)
+
+
+
+
 # =============================================================================
 # Files functions
 # =============================================================================

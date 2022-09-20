@@ -6,7 +6,6 @@ Created on Tue Oct 12 13:50:44 2021.
 @author: placais
 """
 from os import listdir
-from matplotlib.patches import Ellipse as Ell
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
@@ -14,9 +13,7 @@ import pandas as pd
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
 import helper
-import particle as particle_mod
-import transport
-from constants import E_rest_MeV, WHAT_TO_FIT
+from constants import WHAT_TO_FIT
 import tracewin_interface as tw
 
 font = {'family': 'serif',
@@ -381,37 +378,59 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
                      **dicts['plot'][y_d][1])
 
 
-def plot_ellipse_emittance(axx, twi, eps):
-    """Plot the ellipse emittance in the [phi-W] plane."""
-    width = 2. * np.sqrt(eps / twi[2])
-    height = 2. * np.sqrt(eps / twi[1])
-    angle = 180. - np.rad2deg(twi[0] / twi[1])
-    ell = Ell(xy=[0, 0], width=width, height=height, angle=angle,
-              facecolor="white", edgecolor="k")
-    axx.add_patch(ell)
-    axx.autoscale()
-    axx.grid(True)
+# FIXME: labels of max x and max y are poorly handled (esp. rounding)
+# TODO: move dicts into the function dedicated to dicts creation
+def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
+    """Plot the emittance ellipse and highlight interesting data."""
+    # Extract Twiss and emittance at the index idx
+    twi = accelerator.beam_param["twiss"][phase_space][idx]
+    eps = accelerator.beam_param["eps"][phase_space][idx]
 
-    axx.set_xlabel(r"Phase $\phi$ [deg]")
-    axx.set_ylabel(r"Energy $W$ [MeV]")
+    # Compute ellipse dimensions
+    d_eq = {"A": twi[2], "B": .5 * twi[0], "C": twi[1], "D": 0., "E": 0.,
+            "F": -eps}
 
+    # Plot ellipse
+    d_colors = {"Working": "k",
+                "Broken": "r",
+                "Fixed (1 of 1)": "g"}
+    color = d_colors[accelerator.name]
+    plot_kwargs = {"c": color}
+    helper.plot_ellipse(axx, d_eq, **plot_kwargs)
+
+    # Set proper labels
+    d_xlabel = {"z": r"Position $z$ [mm]",
+                "zdelta": r"Position $z$ [mm]",
+                "w": r"Phase $\phi$ [deg]"}
+    axx.set_xlabel(d_xlabel[phase_space])
+
+    d_ylabel = {"z": r"Speed $z'$ [%]",
+                "zdelta": r"Speed $\delta p/p$ [mrad]",
+                "w": r"Energy $W$ [MeV]"}
+    axx.set_ylabel(d_ylabel[phase_space])
+
+    form = "{:.3g}"
     # Max phase
     maxi_phi = np.sqrt(eps * twi[1])
-    line = axx.axvline(maxi_phi)
-    maxi_phi = np.round(maxi_phi, 2)
+    line = axx.axvline(maxi_phi, c='b')
+    axx.axhline(-twi[0] * np.sqrt(eps / twi[1]), c=line.get_color())
     axx.get_xticklabels().append(
-        plt.text(1.005*maxi_phi, .05, str(maxi_phi), va="bottom", rotation=90.,
+        plt.text(1.005*maxi_phi, .05, form.format(maxi_phi),
+                 va="bottom", rotation=90.,
                  transform=axx.get_xaxis_transform(), c=line.get_color())
     )
 
     # Max energy
     maxi_w = np.sqrt(eps * twi[2])
     line = axx.axhline(maxi_w)
-    maxi_w = np.round(maxi_w, 4)
+    axx.axvline(-twi[0] * np.sqrt(eps / twi[2]), c=line.get_color())
     axx.get_yticklabels().append(
-        plt.text(.005, .95*maxi_w, str(maxi_w), va="top", rotation=0.,
+        plt.text(.005, .95*maxi_w, form.format(maxi_w), va="top",
+                 rotation=0.,
                  transform=axx.get_yaxis_transform(), c=line.get_color())
     )
+
+    axx.grid(True)
 
 
 def load_phase_space(accelerator):
