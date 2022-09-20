@@ -384,6 +384,8 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
     # Extract Twiss and emittance at the index idx
     twi = accelerator.beam_param["twiss"][phase_space][idx]
     eps = accelerator.beam_param["eps"][phase_space][idx]
+    eps = 1.9286
+    print("Warning, emittance manually modified.")
 
     # Compute ellipse dimensions; ellipse equation:
     # Ax**2 + Bxy + Cy**2 + Dx + Ey + F = 0
