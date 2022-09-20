@@ -378,7 +378,6 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
                      **dicts['plot'][y_d][1])
 
 
-# FIXME: labels of max x and max y are poorly handled (esp. rounding)
 # TODO: move dicts into the function dedicated to dicts creation
 def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
     """Plot the emittance ellipse and highlight interesting data."""
@@ -386,15 +385,16 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
     twi = accelerator.beam_param["twiss"][phase_space][idx]
     eps = accelerator.beam_param["eps"][phase_space][idx]
 
-    # Compute ellipse dimensions
+    # Compute ellipse dimensions; ellipse equation:
+    # Ax**2 + Bxy + Cy**2 + Dx + Ey + F = 0
     d_eq = {"A": twi[2], "B": .5 * twi[0], "C": twi[1], "D": 0., "E": 0.,
             "F": -eps}
 
     # Plot ellipse
     d_colors = {"Working": "k",
                 "Broken": "r",
-                "Fixed (1 of 1)": "g"}
-    color = d_colors[accelerator.name]
+                "Fixed": "g"}
+    color = d_colors[accelerator.name.split(" ")[0]]
     plot_kwargs = {"c": color}
     helper.plot_ellipse(axx, d_eq, **plot_kwargs)
 
