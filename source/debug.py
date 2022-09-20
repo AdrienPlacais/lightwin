@@ -381,11 +381,11 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
                      **dicts['plot'][y_d][1])
 
 
-def plot_ellipse_emittance(axx, t, eps):
+def plot_ellipse_emittance(axx, twi, eps):
     """Plot the ellipse emittance in the [phi-W] plane."""
-    width = 2. * np.sqrt(eps / t[2])
-    height = 2. * np.sqrt(eps / t[1])
-    angle = 180. - np.rad2deg(t[0] / t[1])
+    width = 2. * np.sqrt(eps / twi[2])
+    height = 2. * np.sqrt(eps / twi[1])
+    angle = 180. - np.rad2deg(twi[0] / twi[1])
     ell = Ell(xy=[0, 0], width=width, height=height, angle=angle,
               facecolor="white", edgecolor="k")
     axx.add_patch(ell)
@@ -395,13 +395,23 @@ def plot_ellipse_emittance(axx, t, eps):
     axx.set_xlabel(r"Phase $\phi$ [deg]")
     axx.set_ylabel(r"Energy $W$ [MeV]")
 
-    maxi_phi = np.round(np.sqrt(eps * t[1]), 2)
-    maxi_w = np.round(np.sqrt(eps * t[2]), 4)
-    axx.axvline(maxi_phi, 0., 10.)
-    axx.axhline(maxi_w, 0., 10.)
-    axx.set_title(f"Phi max = {maxi_phi} deg  W max = {maxi_w} MeV")
+    # Max phase
+    maxi_phi = np.sqrt(eps * twi[1])
+    line = axx.axvline(maxi_phi)
+    maxi_phi = np.round(maxi_phi, 2)
+    axx.get_xticklabels().append(
+        plt.text(1.005*maxi_phi, .05, str(maxi_phi), va="bottom", rotation=90.,
+                 transform=axx.get_xaxis_transform(), c=line.get_color())
+    )
 
-    plt.show()
+    # Max energy
+    maxi_w = np.sqrt(eps * twi[2])
+    line = axx.axhline(maxi_w)
+    maxi_w = np.round(maxi_w, 4)
+    axx.get_yticklabels().append(
+        plt.text(.005, .95*maxi_w, str(maxi_w), va="top", rotation=0.,
+                 transform=axx.get_yaxis_transform(), c=line.get_color())
+    )
 
 
 def load_phase_space(accelerator):

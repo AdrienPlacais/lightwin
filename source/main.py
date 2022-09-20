@@ -77,7 +77,7 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    # "energy",
+    "energy",
     # "phase",
     # "cav",
     # "emittance",
@@ -177,9 +177,9 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 import matplotlib.pyplot as plt
 
 fig, axx = helper.create_fig_if_not_exist(3, [221, 222])
-for i in [0, -1]:
-    ellipse_twiss = ref_linac.beam_param["twiss"]["w"][i]
-    ellipse_eps = ref_linac.beam_param["eps"]["w"][i]
+for (i, j) in zip(range(2), [0, ref_linac.synch.z["abs_array"].shape[0] - 1]):
+    ellipse_twiss = ref_linac.beam_param["twiss"]["w"][j]
+    ellipse_eps = ref_linac.beam_param["eps"]["w"][j]
     debug.plot_ellipse_emittance(axx[i], ellipse_twiss, ellipse_eps)
 
 # data_ref = tw.output_data_in_tw_fashion(ref_linac)
@@ -206,3 +206,5 @@ if DEBUG_EMITT:
     ax.legend()
 
     emittance.calc_emittance_from_tw_transf_mat(ref_linac, sigma_zdelta)
+
+plt.show()
