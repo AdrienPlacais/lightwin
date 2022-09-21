@@ -67,7 +67,7 @@ manual_list = [
     # [345, 347, 357, 365, 367],
     # [385, 387, 397, 399, 401],
     # [493, 495, 497, 499, 507, 509, 511, 513,
-     # 535, 537, 539, 541, 549, 551, 553, 555],
+    # 535, 537, 539, 541, 549, 551, 553, 555],
     # [579, 581, 591, 593, 595, 597]
 ]
 
@@ -81,7 +81,7 @@ PLOTS = [
     # "phase",
     # "cav",
     "emittance",
-    # "twiss",
+    "twiss",
 ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -120,24 +120,23 @@ for plot in PLOTS:
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
 # Broken linac
-broken_linac = acc.Accelerator(FILEPATH, "Broken")
-fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
-fail.transfer_phi0_from_ref_to_broken()
-broken_linac.compute_transfer_matrices()
-for plot in PLOTS:
-    debug.compare_with_tracewin(broken_linac, x_dat="s",
-                                y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                fignum=DICT_PLOTS_PRESETS[plot][1])
-# debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat['cumul'])
+# broken_linac = acc.Accelerator(FILEPATH, "Broken")
+# fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
+# fail.transfer_phi0_from_ref_to_broken()
+# broken_linac.compute_transfer_matrices()
+# for plot in PLOTS:
+#     debug.compare_with_tracewin(broken_linac, x_dat="s",
+#                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
+#                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
-if FLAG_FIX:
-    fail.prepare_compensating_cavities_of_all_faults(manual_list)
-    fail.fix_all()
-    broken_linac.compute_transfer_matrices()
-    for plot in PLOTS:
-        debug.compare_with_tracewin(broken_linac, x_dat="s",
-                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                    fignum=DICT_PLOTS_PRESETS[plot][1])
+# if FLAG_FIX:
+#     fail.prepare_compensating_cavities_of_all_faults(manual_list)
+#     fail.fix_all()
+#     broken_linac.compute_transfer_matrices()
+#     for plot in PLOTS:
+#         debug.compare_with_tracewin(broken_linac, x_dat="s",
+#                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
+#                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 # Broken linac but with proper cavities status
 # fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()
@@ -186,4 +185,22 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 # fault_info = fail.faults['l_obj'][0].info
 
-plt.show()
+DEBUG_EMITT = True
+import matplotlib.pyplot as plt
+if DEBUG_EMITT:
+    import numpy as np
+
+    # OK now let's try some trucs.
+    # sigma matrix at the entry of the linac
+    sigma_zdelta = np.array(([2.9511603e-06, -1.9823111e-07],
+                             [-1.9823111e-07, 7.0530641e-07]))
+
+    # Total transfer matrix
+    ref = np.loadtxt("/home/placais/LightWin/data/faultcomp22/working/results/Longitudinalemittance(πdegMeV).txt")
+    fig, ax = helper.create_fig_if_not_exist(13, [111])
+    ax = ax[0]
+    ax.plot(ref[:, 0], ref[:, 1], label='Ref')
+    ax.legend()
+
+    emittance.calc_emittance_from_tw_transf_mat(ref_linac, sigma_zdelta)
+    plt.show()

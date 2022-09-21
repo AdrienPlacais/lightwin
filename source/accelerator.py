@@ -15,7 +15,8 @@ import tracewin_interface as tw
 import particle
 from constants import E_MEV, FLAG_PHI_ABS
 import elements
-from emittance import beam_parameters_zdelta, beam_parameters_all
+from emittance import beam_parameters_zdelta, beam_parameters_all, \
+    emittance_and_twiss_zdelta_acceleration
 from helper import kin_to_gamma
 
 
@@ -180,6 +181,31 @@ class Accelerator():
             results["r_zz_elt"], idx_in, len(results["w_kin"]))
         eps_zdelta, twiss_zdelta = beam_parameters_zdelta(
             results["r_zz_cumul"])
+
+# =============================================================================
+        # New try
+# =============================================================================
+        new_twiss = emittance_and_twiss_zdelta_acceleration(
+            results["r_zz_cumul"], kin_to_gamma(np.array(results["w_kin"])))
+        elmt = self.elements["list"][35]
+        idx = elmt.idx["s_in"]
+        print(f"idx: {idx}")
+        import matplotlib.pyplot as plt
+        fig = plt.figure(25)
+        ax = fig.get_axes()
+        s = self.synch.z["abs_array"]
+        for i in [1, 2]:
+            ax[i].plot(s, new_twiss[:, i])
+        twiss_TW = np.array([[0.1387, 20.6512, np.NaN],
+                             [-0.6747, 19.5972, np.NaN]])
+        for (i, j) in zip([0, idx], [0, 1]):
+            print(f"\nClassic:  {twiss_zdelta[i]}")
+            print(f"New:      {new_twiss[i]}")
+            print(f"TraceWin: {twiss_TW[j]}\n")
+
+# =============================================================================
+        # End of new try
+# =============================================================================
 
         if flag_transfer_data:
             self.transf_mat['cumul'][idx_in:idx_out] = results["r_zz_cumul"]

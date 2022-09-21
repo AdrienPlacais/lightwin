@@ -105,6 +105,25 @@ def _emittances_all(eps_zdelta, gamma):
     return d_eps
 
 
+def emittance_and_twiss_zdelta_acceleration(r_zz, gamma):
+    """Compute Twiss parameters, taking into account the acceleration."""
+    beta = helper.gamma_to_beta(gamma)
+
+    n_points = r_zz.shape[0]
+    r_zz_acc = np.full((n_points, 2, 2), np.NaN)
+
+    r_zz_acc[0] = r_zz[0]
+    print("Output from emittance_and_twiss_zdelta_acceleration:")
+    for i in range(1, n_points):
+        pre = np.array([[1., 0.], [0., (gamma[i - 1] * beta[i - 1])**-1]])
+        post = np.array([[1., 0.], [0., gamma[i] * beta[i]]])
+        r_zz_acc[i] = post @ r_zz[i] @ pre
+
+    twiss = _twiss_from_transf_mat(r_zz_acc, gamma)
+
+    return twiss
+
+
 # TODO may be possible to save some operations by using lambda func?
 def _convert_emittance(eps_orig, str_convert, gamma, beta=None,
                        lam=LAMBDA_BUNCH, e_0=E_rest_MeV):
@@ -186,6 +205,46 @@ def _convert_twiss(twiss_orig, str_convert, gamma, beta=None, lam=LAMBDA_BUNCH,
     twiss_new[:, 2] = twiss_orig[:, 2] / factors[1]
     return twiss_new
 
+
+def _twiss_from_transf_mat(r_zz_acc, gamma, beta=None):
+    """
+    Calculate Twiss parameters from the transfer matrices.
+
+    Parameters
+    ----------
+    r_zz_acc : numpy array
+        (n_points, 2, 2) array of transfer matrices. Determinant must be 1,
+        i.e. acceleration must be taken into account.
+    gamma : numpy array
+        (n_points) array of Lorentz gamma.
+    beta : numpy array, opt
+        (n_points) array of Lorentz beta.
+
+    Return
+    ------
+    twiss : numpy array
+        (n_points, 3) array of Twiss parameters [alpha, beta, gamma].
+    """
+    if beta is None:
+        beta = helper.gamma_to_beta(gamma)
+
+    n_points = r_zz_acc.shape[0]
+    twiss = np.full((n_points, 3), np.NaN)
+
+    for i in range(n_points):
+        sigma = np.arccos(.5 * (r_zz_acc[i, 0, 0] + r_zz_acc[i, 1, 1]))
+
+        # Pre-compute
+        norm = beta[i] * gamma[i]**3
+        inv_sin_sigma = 1. / np.sin(sigma)
+
+        # Twiss
+        twiss[i] = np.array([
+            (r_zz_acc[i, 0, 0] - r_zz_acc[i, 1, 1]) * inv_sin_sigma,    # alpha
+            norm * r_zz_acc[i, 0, 1] * inv_sin_sigma,                   # beta
+            -r_zz_acc[i, 1, 0] * inv_sin_sigma / norm                   # gamma
+        ])
+    return twiss
 
 # =============================================================================
 # Private - to be moved to debug
