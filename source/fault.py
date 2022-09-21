@@ -456,7 +456,7 @@ def _select_objective(str_objective):
     fun_multi_objective : function
         Return the residuals for each objective at the proper position.
     """
-    # Data getters
+    # Get data from reference linac
     d_obj_ref = {
         'energy': lambda ref_lin: ref_lin.synch.energy['kin_array_mev'],
         'phase': lambda ref_lin: ref_lin.synch.phi['abs_array'],
@@ -464,37 +464,32 @@ def _select_objective(str_objective):
             ref_lin.transf_mat['cumul'],
             (ref_lin.transf_mat['cumul'].shape[0], 4))
     }
-    d_obj_brok = {'energy': lambda calc: calc['W_kin'],
-                  'phase': lambda calc: calc['phi_abs'],
-                  'transf_mat': lambda calc: np.resize(
-                      calc['r_zz'], (calc['r_zz'].shape[0], 4))}
-
+    # We add the getters for objectives composed of several quantities
+    # FIXME: would be better to have ['energy', 'phase'] than ['energy_phase']
     d_obj_ref['energy_phase'] = lambda var: np.column_stack(
         (d_obj_ref['energy'](var), d_obj_ref['phase'](var)))
-    d_obj_brok['energy_phase'] = lambda var: np.column_stack(
-        (d_obj_brok['energy'](var), d_obj_brok['phase'](var)))
-
     d_obj_ref['all'] = lambda var: np.hstack(
         (d_obj_ref['energy_phase'](var), d_obj_ref['transf_mat'](var)))
+
+    # Get data from results dictionary
+    d_obj_brok = {'energy': lambda calc: calc['w_kin'],
+                  'phase': lambda calc: calc['phi_abs'],
+                  'transf_mat': lambda calc: np.resize(
+                      calc['r_zz_cumul'], (calc['r_zz_cumul'].shape[0], 4))}
+    # We add the getters for objectives composed of several quantities
+    d_obj_brok['energy_phase'] = lambda var: np.column_stack(
+        (d_obj_brok['energy'](var), d_obj_brok['phase'](var)))
     d_obj_brok['all'] = lambda var: np.hstack(
         (d_obj_brok['energy_phase'](var), d_obj_brok['transf_mat'](var)))
-
-    # @FIXME: with this syntax the arguments aimed to go to
-    # d_obj_ref are sent to d_obj_brok (ie: Accelerator sent instead of calc)
-    # for dic in [d_obj_ref, d_obj_brok]:
-    #     dic['energy_phase'] = lambda var: np.column_stack(
-    #         (dic['energy'](var), dic['phase'](var)))
-    #     dic['all'] = lambda var: np.hstack(
-    #         (dic['energy_phase'](var), dic['transf_mat'](var)))
 
     # Functions returning np.array's filled with desired quantities
     fun_ref = d_obj_ref[str_objective]
     fun_brok = d_obj_brok[str_objective]
 
-    def fun_residual(ref_lin, brok_calc, d_idx):
+    def fun_residual(ref_lin, d_results, d_idx):
         """Compute difference between ref_linac and current optimis. param."""
         obj = np.abs(fun_ref(ref_lin)[d_idx['l_ref'], :]
-                     - fun_brok(brok_calc)[d_idx['l_brok'], :])
+                     - fun_brok(d_results)[d_idx['l_brok'], :])
         return obj.flatten()
     return fun_residual
 
@@ -539,12 +534,9 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
               'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
 
     # Update transfer matrices
-    brok_keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad', 'rf_field')
-    brok_values = fault.brok_lin.compute_transfer_matrices(
+    d_results = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    d_brok_calc = dict(zip(brok_keys, brok_values))
-
-    arr_objective = fun_residual(fault.ref_lin, d_brok_calc, d_idx)
+    arr_objective = fun_residual(fault.ref_lin, d_results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
         debug.output_fit_progress(fault.count, arr_objective)
@@ -560,14 +552,12 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
               'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
 
     # Update transfer matrices
-    brok_keys = ('r_zz', 'W_kin', 'phi_abs', 'phi_s_rad', 'rf_field')
-    brok_values = fault.brok_lin.compute_transfer_matrices(
+    d_results = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    d_brok_calc = dict(zip(brok_keys, brok_values))
-    arr_objective = fun_residual(fault.ref_lin, d_brok_calc, d_idx)
+    arr_objective = fun_residual(fault.ref_lin, d_results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
         debug.output_fit_progress(fault.count, arr_objective)
     fault.count += 1
 
-    return arr_objective, d_brok_calc
+    return arr_objective, d_results

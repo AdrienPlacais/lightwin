@@ -71,7 +71,7 @@ manual_list = [
     # [579, 581, 591, 593, 595, 597]
 ]
 
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 # =============================================================================
 # Outputs
@@ -120,23 +120,23 @@ for plot in PLOTS:
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
 # Broken linac
-# broken_linac = acc.Accelerator(FILEPATH, "Broken")
-# fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
-# fail.transfer_phi0_from_ref_to_broken()
-# broken_linac.compute_transfer_matrices()
-# for plot in PLOTS:
-#     debug.compare_with_tracewin(broken_linac, x_dat="s",
-#                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
-#                                 fignum=DICT_PLOTS_PRESETS[plot][1])
+broken_linac = acc.Accelerator(FILEPATH, "Broken")
+fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
+fail.transfer_phi0_from_ref_to_broken()
+broken_linac.compute_transfer_matrices()
+for plot in PLOTS:
+    debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                fignum=DICT_PLOTS_PRESETS[plot][1])
 
-# if FLAG_FIX:
-#     fail.prepare_compensating_cavities_of_all_faults(manual_list)
-#     fail.fix_all()
-#     broken_linac.compute_transfer_matrices()
-#     for plot in PLOTS:
-#         debug.compare_with_tracewin(broken_linac, x_dat="s",
-#                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
-#                                     fignum=DICT_PLOTS_PRESETS[plot][1])
+if FLAG_FIX:
+    fail.prepare_compensating_cavities_of_all_faults(manual_list)
+    fail.fix_all()
+    broken_linac.compute_transfer_matrices()
+    for plot in PLOTS:
+        debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                    fignum=DICT_PLOTS_PRESETS[plot][1])
 # Broken linac but with proper cavities status
 # fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()

@@ -185,23 +185,23 @@ class Accelerator():
 # =============================================================================
         # New try
 # =============================================================================
-        new_twiss = emittance_and_twiss_zdelta_acceleration(
-            results["r_zz_cumul"], kin_to_gamma(np.array(results["w_kin"])))
-        elmt = self.elements["list"][35]
-        idx = elmt.idx["s_in"]
-        print(f"idx: {idx}")
-        import matplotlib.pyplot as plt
-        fig = plt.figure(25)
-        ax = fig.get_axes()
-        s = self.synch.z["abs_array"]
-        for i in [1, 2]:
-            ax[i].plot(s, new_twiss[:, i])
-        twiss_TW = np.array([[0.1387, 20.6512, np.NaN],
-                             [-0.6747, 19.5972, np.NaN]])
-        for (i, j) in zip([0, idx], [0, 1]):
-            print(f"\nClassic:  {twiss_zdelta[i]}")
-            print(f"New:      {new_twiss[i]}")
-            print(f"TraceWin: {twiss_TW[j]}\n")
+        # new_twiss = emittance_and_twiss_zdelta_acceleration(
+        #     results["r_zz_cumul"], kin_to_gamma(np.array(results["w_kin"])))
+        # elmt = self.elements["list"][35]
+        # idx = elmt.idx["s_in"]
+        # print(f"idx: {idx}")
+        # import matplotlib.pyplot as plt
+        # fig = plt.figure(25)
+        # ax = fig.get_axes()
+        # s = self.synch.z["abs_array"]
+        # for i in [1, 2]:
+        #     ax[i].plot(s, new_twiss[:, i])
+        # twiss_TW = np.array([[0.1387, 20.6512, np.NaN],
+        #                      [-0.6747, 19.5972, np.NaN]])
+        # for (i, j) in zip([0, idx], [0, 1]):
+        #     print(f"\nClassic:  {twiss_zdelta[i]}")
+        #     print(f"New:      {new_twiss[i]}")
+        #     print(f"TraceWin: {twiss_TW[j]}\n")
 
 # =============================================================================
         # End of new try
@@ -219,8 +219,9 @@ class Accelerator():
                 self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
                 self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
 
-        return results["r_zz_cumul"], results["w_kin"], results["phi_abs"], \
-            results["phi_s_rad"], results["rf_fields"]
+        # return results["r_zz_cumul"], results["w_kin"], results["phi_abs"], \
+            # results["phi_s_rad"], results["rf_fields"]
+        return results
 
     def _proper_transf_mat(self, elt, phi_abs, w_kin, d_fits):
         """Get the proper arguments and call the elt.calc_transf_mat."""
