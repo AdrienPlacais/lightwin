@@ -117,9 +117,76 @@ class Accelerator():
                   "the .dat file used by TW. Results won't match if there",
                   "are faulty cavities.\n")
 
-    # TODO Is flag_transfer_data=False equivalent to d_fits['flag']=True?
-    def compute_transfer_matrices(self, l_elts=None, flag_transfer_data=True,
-                                  d_fits=None):
+    def compute_transfer_matrices(self, l_elts=None, d_fits=None,
+                                      flag_transfer_data=True):
+        """
+        Compute the transfer matrices of Accelerator's elements.
+
+        Parameters
+        ----------
+        l_elts : list of Elements, optional
+            List of elements from which you want the transfer matrices. Default
+            is None. In this case, MT calculated for the whole linac.
+        d_fits: dict, optional
+            Dict to where norms and phases of compensating cavities are stored.
+            If the dict is None, it means that we are not fitting anything. In
+            this case, norms and phases are taken from Element objects and the
+            data that is calculated is saved (energy, phase, transfer
+            matrices...)
+        """
+        if l_elts is None:
+            l_elts = self.elements['list']
+
+        # Index of entry of first element, index of exit of last one
+        idx_in = l_elts[0].idx['s_in']
+        idx_out = l_elts[-1].idx['s_out'] + 1
+
+        # To store results
+        results = {
+            "phi_s_rad": [],
+            "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
+            "phi_abs": [self.synch.phi['abs_array'][idx_in]],
+            "r_zz_elt": [],         # List of numpy arrays
+            "r_zz_cumul": None,     # (n, 2, 2) numpy array
+            "rf_fields": [],        # List of dicts
+        }
+
+        # Prepare lists to store each element's results
+        l_elt_results = []
+        l_rf_fields = []
+
+        # Initial phase and energy values:
+        w_kin = results["w_kin"][0]
+        phi_abs = results["phi_abs"][0]
+
+        # Compute transfer matrix and acceleration in each element
+        for elt in l_elts:
+            elt_results, rf_field = \
+                    self._proper_transf_mat(elt, phi_abs, w_kin, d_fits)
+
+            # Store this element's results
+            l_elt_results.append(elt_results)
+            l_rf_fields.append(rf_field)
+
+            # Update energy and phase
+            phi_abs += elt_results["phi_rel"][-1]
+            w_kin = elt_results["w_kin"][-1]
+
+        # FIXME: create results dict directly into this method?
+        self._tmp_store_into_results_dict(results, l_elt_results, l_rf_fields,
+                                         idx_in)
+        eps_zdelta, twiss_zdelta = \
+                beam_parameters_zdelta( results["r_zz_cumul"])
+
+        if flag_transfer_data:
+            self._definitive_save_into_accelerator_element_and_synch_objects(
+                results, eps_zdelta, twiss_zdelta, idx_in, idx_out,
+                l_rf_fields, l_elt_results, l_elts)
+
+        return results
+
+    def compute_transfer_matrices_old(self, l_elts=None, d_fits=None,
+                                  flag_transfer_data=True):
         """
         Compute the transfer matrices of Accelerator's elements.
 
@@ -138,9 +205,6 @@ class Accelerator():
         """
         if l_elts is None:
             l_elts = self.elements['list']
-
-        if d_fits is None:
-            d_fits = {'flag': False}
 
         # Index of entry of first element, index of exit of last one
         idx_in = l_elts[0].idx['s_in']
@@ -175,7 +239,7 @@ class Accelerator():
 
             if flag_transfer_data:
                 elt.keep_mt_and_rf_field(elt_results, rf_field)
-                self.transfer_data(elt, elt_results, np.array(l_phi_abs_elt))
+                self._keep_mt(elt, elt_results)
 
         results["r_zz_cumul"] = self._indiv_to_cumul_transf_mat(
             results["r_zz_elt"], idx_in, len(results["w_kin"]))
@@ -232,7 +296,7 @@ class Accelerator():
         else:
             # Here we determine if we take the rf field parameters from an
             # optimisation algorithm or from the Element.Rf_Field object
-            if d_fits['flag'] \
+            if d_fits is not None \
                and elt.info['status'] == 'compensate (in progress)':
                 d_fit_elt = {'flag': True,
                              'phi': d_fits['l_phi'].pop(0),
@@ -246,6 +310,7 @@ class Accelerator():
 
         return elt_results, rf_field
 
+    # Could be function instead of method
     def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, idx_in, n_steps):
         """Compute cumulated transfer matrix."""
         # Compute transfer matrix of l_elts
@@ -265,7 +330,54 @@ class Accelerator():
 
         return arr_r_zz_cumul
 
-    def transfer_data(self, elt, elt_results, phi_abs_elt):
+    # Could be function instead of method
+    def _tmp_store_into_results_dict(self, results, l_elt_results, l_rf_fields,
+                                     idx_in):
+        """
+        We store energy, transfer matrices, phase, etc into the results dict.
+
+        This dict is used in the fitting process.
+        """
+        for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
+            _add_to_results(results, elt_results, rf_field)
+
+        results["r_zz_cumul"] = self._indiv_to_cumul_transf_mat(
+            results["r_zz_elt"], idx_in, len(results["w_kin"]))
+
+    def _definitive_save_into_accelerator_element_and_synch_objects(
+        self, results, eps_zdelta, twiss_zdelta, idx_in, idx_out, l_rf_fields,
+        l_elt_results, l_elts):
+        """
+        We save data into the appropriate objects.
+
+        In particular:
+            energy and phase into accelerator.synch
+            rf field parameters, element transfer matrices into Elements
+            global transfer matrices into Accelerator
+
+        This function is called when the fitting is not required/is already
+        finished.
+        """
+        # Go across elements
+        for (elt, elt_res, rf_field) in zip(l_elts, l_elt_results, l_rf_fields):
+            elt.keep_mt_and_rf_field(elt_res, rf_field)
+            self._keep_mt(elt, elt_res)
+
+        # Save into Accelerator
+        self.transf_mat['cumul'][idx_in:idx_out] = results["r_zz_cumul"]
+
+        # Save into Particle
+        self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))
+
+        # Save into Accelerator
+        gamma = kin_to_gamma(np.array(results["w_kin"]))
+        d_eps, d_twiss = beam_parameters_all(eps_zdelta, twiss_zdelta,
+                                             gamma)
+        for key in d_eps.keys():
+            self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
+            self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
+
+    def _keep_mt(self, elt, elt_results):
         """
         Transfer calculated energies, phases, MTs, etc to proper Objects.
 
@@ -274,6 +386,7 @@ class Accelerator():
         """
         idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
         self.transf_mat['indiv'][idx] = elt_results['r_zz']
+        # FIXME what about phase, energy, etc?
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """
@@ -456,3 +569,21 @@ def _sections_lattices(l_elts):
     for sec in sections:
         lattices += sec
     return l_elts, sections, lattices, dict_struct['frequencies']
+
+
+def _add_to_results(results, elt_results, rf_field):
+    """Store the last calculated data to the results dict."""
+    if rf_field is not None:
+        results["rf_fields"].append(rf_field)
+        results["phi_s_rad"].append(elt_results['cav_params']['phi_s_rad'])
+
+    r_zz_elt = [elt_results['r_zz'][i, :, :]
+                for i in range(elt_results['r_zz'].shape[0])]
+    results["r_zz_elt"].extend(r_zz_elt)
+
+    l_phi_abs = [phi_rel + results["phi_abs"][-1]
+                 for phi_rel in elt_results['phi_rel']]
+    results["phi_abs"].extend(l_phi_abs)
+
+    results["w_kin"].extend(elt_results['w_kin'].tolist())
+

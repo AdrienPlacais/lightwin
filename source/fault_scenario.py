@@ -136,8 +136,7 @@ class FaultScenario():
             print('fault_scenario: recompute until end')
 
         elt1_to_elt2 = l_elts[idx1:idx2]
-        self.brok_lin.compute_transfer_matrices(elt1_to_elt2,
-                                                flag_transfer_data=True)
+        self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
 
     def _gather_and_create_fault_objects(self, l_fault_idx):
         """

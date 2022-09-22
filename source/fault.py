@@ -529,8 +529,7 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
         Array of residues on the objectives.
     """
     # Convert phases and norms into a dict for compute_transfer_matrices
-    d_fits = {'flag': True,
-              'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
+    d_fits = {'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
               'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
 
     # Update transfer matrices
@@ -547,8 +546,7 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
 
 def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
     """Unpack arguments and compute proper residues at proper spot."""
-    d_fits = {'flag': True,
-              'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
+    d_fits = {'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
               'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
 
     # Update transfer matrices
