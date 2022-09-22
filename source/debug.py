@@ -389,7 +389,7 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
 
     # Compute ellipse dimensions; ellipse equation:
     # Ax**2 + Bxy + Cy**2 + Dx + Ey + F = 0
-    d_eq = {"A": twi[2], "B": .5 * twi[0], "C": twi[1], "D": 0., "E": 0.,
+    d_eq = {"A": twi[2], "B": 2. * twi[0], "C": twi[1], "D": 0., "E": 0.,
             "F": -eps}
 
     # Plot ellipse
