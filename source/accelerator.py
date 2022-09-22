@@ -129,10 +129,10 @@ class Accelerator():
             is None. In this case, MT calculated for the whole linac.
         d_fits: dict, optional
             Dict to where norms and phases of compensating cavities are stored.
-            If the dict is None, it means that we are not fitting anything. In
-            this case, norms and phases are taken from Element objects and the
-            data that is calculated is saved (energy, phase, transfer
-            matrices...)
+            If the dict is None, we take norms and phases from cavity objects.
+        flag_transfer_data : boolean, optional
+            If True, we save the energies, transfer matrices, etc that are
+            calculated in the routine.
         """
         if l_elts is None:
             l_elts = self.elements['list']
@@ -141,23 +141,13 @@ class Accelerator():
         idx_in = l_elts[0].idx['s_in']
         idx_out = l_elts[-1].idx['s_out'] + 1
 
-        # To store results
-        results = {
-            "phi_s_rad": [],
-            "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
-            "phi_abs": [self.synch.phi['abs_array'][idx_in]],
-            "r_zz_elt": [],         # List of numpy arrays
-            "r_zz_cumul": None,     # (n, 2, 2) numpy array
-            "rf_fields": [],        # List of dicts
-        }
-
         # Prepare lists to store each element's results
         l_elt_results = []
         l_rf_fields = []
 
         # Initial phase and energy values:
-        w_kin = results["w_kin"][0]
-        phi_abs = results["phi_abs"][0]
+        w_kin = self.synch.energy['kin_array_mev'][idx_in]
+        phi_abs = self.synch.phi['abs_array'][idx_in]
 
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
@@ -172,119 +162,18 @@ class Accelerator():
             phi_abs += elt_results["phi_rel"][-1]
             w_kin = elt_results["w_kin"][-1]
 
-        # FIXME: create results dict directly into this method?
-        self._tmp_store_into_results_dict(results, l_elt_results, l_rf_fields,
-                                         idx_in)
+        # We store all relevant data in results: evolution of energy, phase,
+        # transfer matrices, emittances, etc
+        results = self._pack_into_single_dict(l_elt_results, l_rf_fields,
+                                              idx_in)
         eps_zdelta, twiss_zdelta = \
-                beam_parameters_zdelta( results["r_zz_cumul"])
+                beam_parameters_zdelta(results["r_zz_cumul"])
 
         if flag_transfer_data:
             self._definitive_save_into_accelerator_element_and_synch_objects(
                 results, eps_zdelta, twiss_zdelta, idx_in, idx_out,
                 l_rf_fields, l_elt_results, l_elts)
 
-        return results
-
-    def compute_transfer_matrices_old(self, l_elts=None, d_fits=None,
-                                  flag_transfer_data=True):
-        """
-        Compute the transfer matrices of Accelerator's elements.
-
-        Parameters
-        ----------
-        l_elts : list of Elements, optional
-            List of elements from which you want the transfer matrices. Default
-            is None. In this case, MT calculated for the whole linac.
-        flag_transfer_data: bool, optional
-            To determine if calculated energies, phases, MTs should be saved.
-            Default is True.
-        d_fits: dict, optional
-            Dict to determine if an optimization is performed. If Yes, the
-            accelering fields data is taken from this dict instead of from
-            the acc_field objects. Default is {'flag': False}.
-        """
-        if l_elts is None:
-            l_elts = self.elements['list']
-
-        # Index of entry of first element, index of exit of last one
-        idx_in = l_elts[0].idx['s_in']
-        idx_out = l_elts[-1].idx['s_out'] + 1
-
-        # To store results
-        results = {
-            "phi_s_rad": [],
-            "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
-            "phi_abs": [self.synch.phi['abs_array'][idx_in]],
-            "r_zz_elt": [],         # List of numpy arrays
-            "r_zz_cumul": None,     # (n, 2, 2) numpy array
-            "rf_fields": [],        # List of dicts
-        }
-
-        # Compute transfer matrix and acceleration in each element
-        for elt in l_elts:
-            elt_results, rf_field, = self._proper_transf_mat(
-                elt, results["phi_abs"][-1], results["w_kin"][-1], d_fits)
-            if rf_field is not None:
-                results["rf_fields"].append(rf_field)
-                results["phi_s_rad"].append(
-                    elt_results['cav_params']['phi_s_rad'])
-
-            r_zz_elt = [elt_results['r_zz'][i, :, :]
-                        for i in range(elt_results['r_zz'].shape[0])]
-            l_phi_abs_elt = [phi_rel + results["phi_abs"][-1]
-                             for phi_rel in elt_results['phi_rel']]
-            results["r_zz_elt"].extend(r_zz_elt)
-            results["phi_abs"].extend(l_phi_abs_elt)
-            results["w_kin"].extend(elt_results['w_kin'].tolist())
-
-            if flag_transfer_data:
-                elt.keep_mt_and_rf_field(elt_results, rf_field)
-                self._keep_mt(elt, elt_results)
-
-        results["r_zz_cumul"] = self._indiv_to_cumul_transf_mat(
-            results["r_zz_elt"], idx_in, len(results["w_kin"]))
-        eps_zdelta, twiss_zdelta = beam_parameters_zdelta(
-            results["r_zz_cumul"])
-
-# =============================================================================
-        # New try
-# =============================================================================
-        # new_twiss = emittance_and_twiss_zdelta_acceleration(
-        #     results["r_zz_cumul"], kin_to_gamma(np.array(results["w_kin"])))
-        # elmt = self.elements["list"][35]
-        # idx = elmt.idx["s_in"]
-        # print(f"idx: {idx}")
-        # import matplotlib.pyplot as plt
-        # fig = plt.figure(25)
-        # ax = fig.get_axes()
-        # s = self.synch.z["abs_array"]
-        # for i in [1, 2]:
-        #     ax[i].plot(s, new_twiss[:, i])
-        # twiss_TW = np.array([[0.1387, 20.6512, np.NaN],
-        #                      [-0.6747, 19.5972, np.NaN]])
-        # for (i, j) in zip([0, idx], [0, 1]):
-        #     print(f"\nClassic:  {twiss_zdelta[i]}")
-        #     print(f"New:      {new_twiss[i]}")
-        #     print(f"TraceWin: {twiss_TW[j]}\n")
-
-# =============================================================================
-        # End of new try
-# =============================================================================
-
-        if flag_transfer_data:
-            self.transf_mat['cumul'][idx_in:idx_out] = results["r_zz_cumul"]
-
-            self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))
-
-            gamma = kin_to_gamma(np.array(results["w_kin"]))
-            d_eps, d_twiss = beam_parameters_all(eps_zdelta, twiss_zdelta,
-                                                 gamma)
-            for key in d_eps.keys():
-                self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
-                self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
-
-        # return results["r_zz_cumul"], results["w_kin"], results["phi_abs"], \
-            # results["phi_s_rad"], results["rf_fields"]
         return results
 
     def _proper_transf_mat(self, elt, phi_abs, w_kin, d_fits):
@@ -331,18 +220,41 @@ class Accelerator():
         return arr_r_zz_cumul
 
     # Could be function instead of method
-    def _tmp_store_into_results_dict(self, results, l_elt_results, l_rf_fields,
-                                     idx_in):
+    # FIXME could be simpler
+    def _pack_into_single_dict(self, l_elt_results, l_rf_fields, idx_in):
         """
         We store energy, transfer matrices, phase, etc into the results dict.
 
         This dict is used in the fitting process.
         """
+        # To store results
+        results = {
+            "phi_s_rad": [],
+            "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
+            "phi_abs": [self.synch.phi['abs_array'][idx_in]],
+            "r_zz_elt": [],         # List of numpy arrays
+            "r_zz_cumul": None,     # (n, 2, 2) numpy array
+            "rf_fields": [],        # List of dicts
+        }
+
         for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
-            _add_to_results(results, elt_results, rf_field)
+            if rf_field is not None:
+                results["rf_fields"].append(rf_field)
+                results["phi_s_rad"].append(elt_results['cav_params']['phi_s_rad'])
+
+            r_zz_elt = [elt_results['r_zz'][i, :, :]
+                        for i in range(elt_results['r_zz'].shape[0])]
+            results["r_zz_elt"].extend(r_zz_elt)
+
+            l_phi_abs = [phi_rel + results["phi_abs"][-1]
+                         for phi_rel in elt_results['phi_rel']]
+            results["phi_abs"].extend(l_phi_abs)
+
+            results["w_kin"].extend(elt_results['w_kin'].tolist())
 
         results["r_zz_cumul"] = self._indiv_to_cumul_transf_mat(
             results["r_zz_elt"], idx_in, len(results["w_kin"]))
+        return results
 
     def _definitive_save_into_accelerator_element_and_synch_objects(
         self, results, eps_zdelta, twiss_zdelta, idx_in, idx_out, l_rf_fields,
@@ -361,7 +273,9 @@ class Accelerator():
         # Go across elements
         for (elt, elt_res, rf_field) in zip(l_elts, l_elt_results, l_rf_fields):
             elt.keep_mt_and_rf_field(elt_res, rf_field)
-            self._keep_mt(elt, elt_res)
+
+            idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
+            self.transf_mat['indiv'][idx] = elt_res['r_zz']
 
         # Save into Accelerator
         self.transf_mat['cumul'][idx_in:idx_out] = results["r_zz_cumul"]
@@ -376,17 +290,6 @@ class Accelerator():
         for key in d_eps.keys():
             self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
             self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
-
-    def _keep_mt(self, elt, elt_results):
-        """
-        Transfer calculated energies, phases, MTs, etc to proper Objects.
-
-        This function is called when there is no optimisation, or when it is
-        finished and the new parameters should be kept.
-        """
-        idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
-        self.transf_mat['indiv'][idx] = elt_results['r_zz']
-        # FIXME what about phase, energy, etc?
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """
@@ -569,21 +472,3 @@ def _sections_lattices(l_elts):
     for sec in sections:
         lattices += sec
     return l_elts, sections, lattices, dict_struct['frequencies']
-
-
-def _add_to_results(results, elt_results, rf_field):
-    """Store the last calculated data to the results dict."""
-    if rf_field is not None:
-        results["rf_fields"].append(rf_field)
-        results["phi_s_rad"].append(elt_results['cav_params']['phi_s_rad'])
-
-    r_zz_elt = [elt_results['r_zz'][i, :, :]
-                for i in range(elt_results['r_zz'].shape[0])]
-    results["r_zz_elt"].extend(r_zz_elt)
-
-    l_phi_abs = [phi_rel + results["phi_abs"][-1]
-                 for phi_rel in elt_results['phi_rel']]
-    results["phi_abs"].extend(l_phi_abs)
-
-    results["w_kin"].extend(elt_results['w_kin'].tolist())
-
