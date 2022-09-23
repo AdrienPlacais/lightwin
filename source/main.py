@@ -187,7 +187,7 @@ for (i, j) in zip(range(2), [0, lala]):#ref_linac.synch.z["abs_array"].shape[0] 
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 # fault_info = fail.faults['l_obj'][0].info
 
-DEBUG_EMITT = True
+DEBUG_EMITT = False
 import matplotlib.pyplot as plt
 if DEBUG_EMITT:
     import numpy as np
