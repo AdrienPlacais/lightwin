@@ -15,8 +15,7 @@ import tracewin_interface as tw
 import particle
 from constants import E_MEV, FLAG_PHI_ABS
 import elements
-from emittance import beam_parameters_zdelta, beam_parameters_all, \
-    emittance_and_twiss_zdelta_acceleration
+from emittance import beam_parameters_zdelta, beam_parameters_all
 from helper import kin_to_gamma
 
 
@@ -76,7 +75,10 @@ class Accelerator():
                       "w": np.full((last_idx + 1, 3), np.NaN)},
             "eps": {"zdelta": np.full((last_idx + 1), np.NaN),
                     "z": np.full((last_idx + 1), np.NaN),
-                    "w": np.full((last_idx + 1), np.NaN)}
+                    "w": np.full((last_idx + 1), np.NaN)},
+            "enveloppe": {"zdelta": np.full((last_idx + 1, 2), np.NaN),
+                          "z": np.full((last_idx + 1, 2), np.NaN),
+                          "w": np.full((last_idx + 1, 2), np.NaN)}
         }
 
         # Check that LW and TW computes the phases in the same way (abs or rel)
@@ -166,7 +168,7 @@ class Accelerator():
         # transfer matrices, emittances, etc
         results = self._pack_into_single_dict(l_elt_results, l_rf_fields,
                                               idx_in)
-        eps_zdelta, twiss_zdelta = \
+        eps_zdelta, twiss_zdelta, enveloppes_zdelta = \
                 beam_parameters_zdelta(results["r_zz_cumul"])
 
         if flag_transfer_data:
@@ -285,11 +287,12 @@ class Accelerator():
 
         # Save into Accelerator
         gamma = kin_to_gamma(np.array(results["w_kin"]))
-        d_eps, d_twiss = beam_parameters_all(eps_zdelta, twiss_zdelta,
+        d_eps, d_twiss, d_enveloppe = beam_parameters_all(eps_zdelta, twiss_zdelta,
                                              gamma)
         for key in d_eps.keys():
             self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
             self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
+            self.beam_param["enveloppe"][key][idx_in:idx_out] = d_enveloppe[key]
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """
