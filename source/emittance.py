@@ -32,10 +32,10 @@ from constants import E_rest_MeV, LAMBDA_BUNCH, SIGMA_ZDELTA
 import tracewin_interface as tw
 
 
+# TODO: handle error on eps_zdelta
 # FIXME handle portions of linac for fit process
 # FIXME r_zz should be an argument instead of taking the linac attribute. Also
 # valid for gamma; maybe use d_results?
-# TODO sigma_in in constants
 
 
 # =============================================================================

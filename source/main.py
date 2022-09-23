@@ -80,7 +80,7 @@ PLOTS = [
     # "energy",
     # "phase",
     # "cav",
-    # "emittance",
+    "emittance",
     # "twiss",
     "enveloppes",
 ]
@@ -98,8 +98,8 @@ DICT_PLOTS_PRESETS = {
     "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
     "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
     "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
-    "twiss": [["alpha_zdelta", "beta_zdelta", "gamma_zdelta"], 25],
-    "enveloppes": [["envel_pos_z", "envel_ener_z", "struct"], 26],
+    "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
+    "enveloppes": [["envel_pos_w", "envel_ener_w", "struct"], 26],
 }
 
 DICT_SAVES = {

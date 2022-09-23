@@ -5,6 +5,7 @@ Created on Tue Oct 12 13:50:44 2021.
 
 @author: placais
 """
+# TODO merge dict entries for phase space, ie alpha['z'] instead of 'alpha_z'
 from os import listdir
 import matplotlib.pyplot as plt
 import numpy as np
