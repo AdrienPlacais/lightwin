@@ -77,13 +77,14 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
+    # "energy",
     # "phase",
     # "cav",
-    "emittance",
-    "twiss",
+    # "emittance",
+    # "twiss",
+    "enveloppes",
 ]
-PLOT_TM = True
+PLOT_TM = False
 PHASE_SPACE = False
 TWISS = False
 
@@ -98,6 +99,7 @@ DICT_PLOTS_PRESETS = {
     "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
     "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
     "twiss": [["alpha_zdelta", "beta_zdelta", "gamma_zdelta"], 25],
+    "enveloppes": [["envel_pos_z", "envel_ener_z", "struct"], 26],
 }
 
 DICT_SAVES = {

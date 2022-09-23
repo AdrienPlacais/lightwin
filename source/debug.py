@@ -220,6 +220,12 @@ def _create_plot_dicts():
                     {"marker": None}],
         "gamma_w": [r"$\gamma_{\phi W}$ [$\pi$/deg.MeV]",
                     {"marker": None}],
+        "envel_pos_zdelta": [r"$\sigma_z$ [m]", {"marker": None}],
+        "envel_pos_z": [r"$\sigma_z$ [mm]", {"marker": None}],
+        "envel_pos_w": [r"$\sigma_\phi$ [deg]", {"marker": None}],
+        "envel_ener_zdelta": [r"$\sigma_\delta$ [rad]", {"marker": None}],
+        "envel_ener_z": [r"$\sigma_{z'}$ [mrad]", {"marker": None}],
+        "envel_ener_w": [r"$\sigma_\phi$ [MeV]", {"marker": None}],
     }
 
     dict_x_data = {
@@ -250,6 +256,14 @@ def _create_plot_dicts():
         "gamma_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 2],
         "gamma_z": lambda lin: lin.beam_param["twiss"]["z"][:, 2],
         "gamma_w": lambda lin: lin.beam_param["twiss"]["w"][:, 2],
+        "envel_pos_zdelta": lambda lin:
+            lin.beam_param["enveloppe"]["zdelta"][:, 0],
+        "envel_pos_z": lambda lin: lin.beam_param["enveloppe"]["z"][:, 0],
+        "envel_pos_w": lambda lin: lin.beam_param["enveloppe"]["w"][:, 0],
+        "envel_ener_zdelta": lambda lin:
+            lin.beam_param["enveloppe"]["zdelta"][:, 1],
+        "envel_ener_z": lambda lin: lin.beam_param["enveloppe"]["z"][:, 1],
+        "envel_ener_w": lambda lin: lin.beam_param["enveloppe"]["w"][:, 1],
     }
 
     dict_err_factor = {
