@@ -120,7 +120,7 @@ class Accelerator():
                   "are faulty cavities.\n")
 
     def compute_transfer_matrices(self, l_elts=None, d_fits=None,
-                                      flag_transfer_data=True):
+                                  flag_transfer_data=True):
         """
         Compute the transfer matrices of Accelerator's elements.
 
