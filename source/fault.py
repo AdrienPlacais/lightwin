@@ -66,8 +66,8 @@ class Fault():
             = self._set_fit_parameters()
         l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
 
-        fun_residual = _select_objective(WHAT_TO_FIT['objective'])
-        l_obj_label = _set_labels(WHAT_TO_FIT['objective'])
+        fun_residual, l_obj_label = _select_objective(WHAT_TO_FIT['objective'])
+        # l_obj_label = _set_labels(WHAT_TO_FIT['objective'])
 
         # Save some data for debug and output purposes
         self.info['initial_guesses'] = initial_guesses
@@ -487,17 +487,13 @@ def _select_objective(l_str_objectives):
         obj = np.abs(np.array(ref) - np.array(brok)).flatten()
         return obj
 
-    return fun_residual
-
-
-def _set_labels(l_str_objectives):
-    """Set strings for better visualisation of the optimisation."""
     d_obj_str = {'energy': [r'$W_{kin}$'],
                  'phase': [r'$\phi$'],
                  'transf_mat': [r'$M_{11}$', r'$M_{12}$',
                                 r'$M_{21}$', r'$M_{22}$']}
     l_obj_label = [d_obj_str[str_obj] for str_obj in l_str_objectives]
-    return l_obj_label
+
+    return fun_residual, l_obj_label
 
 
 def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
