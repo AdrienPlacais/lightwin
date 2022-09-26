@@ -17,7 +17,7 @@ TODO plot interesting data before the second fit to see if it is
 useful
 """
 import itertools
-from constants import FLAG_PHI_ABS, WHAT_TO_FIT, FLAG_PHI_S_FIT
+from constants import FLAG_PHI_ABS, WHAT_TO_FIT
 import debug
 import fault as mod_f
 
@@ -80,15 +80,15 @@ class FaultScenario():
             flag_success, opti_sol = fault.fix_single()
             l_flags_success.append(flag_success)
 
-            d_fits = {'flag': True,
-                      'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
-                      'l_k_e': opti_sol[fault.comp['n_cav']:].tolist()}
             # Recompute transfer matrices with solution
-            # Two objectives:-to have the proper rf_field dicts (in particular:
-            #                 if FLAG_PHI_S_FIT, we know phi_s_optimum but we
-            #                 do not know the corresponding phi_0)
-            #                -to transfer transfer matrices, energies, phase
-            #                 evolution along the linac to synch.
+            d_fits = {'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
+                      'l_k_e': opti_sol[fault.comp['n_cav']:].tolist()}
+            # Two objectives:
+            #   - to have the proper rf_field dicts (in particular: if
+            #     FLAG_PHI_S_FIT, we know phi_s_optimum but we do not know the
+            #     corresponding phi_0)
+            #  - to transfer transfer matrices, energies, phase evolution along
+            #    the linac to synch.
             d_results = fault.brok_lin.compute_transfer_matrices(
                 fault.comp['l_recompute'], d_fits=d_fits,
                 flag_transfer_data=True)

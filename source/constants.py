@@ -93,7 +93,7 @@ WHAT_TO_FIT = {
     # =========================================================================
     # 'objective': ['energy'],
     # 'objective': ['phase'],
-    'objective': ['energy_phase'],
+    'objective': 'energy_phase',
     # 'objective': ['transf_mat'],
     # 'objective': ['all'],
     # =========================================================================
