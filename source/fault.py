@@ -457,53 +457,86 @@ def _select_objective(l_str_objectives):
         Return the residuals for each objective at the proper position.
     """
     # Get data from reference linac
-    d_obj_ref = {
-        'energy': lambda ref_lin, idx:
-            [ref_lin.synch.energy['kin_array_mev'][idx]],
-        'phase': lambda ref_lin, idx:
-            [ref_lin.synch.phi['abs_array'][idx]],
-        'transf_mat': lambda ref_lin, idx:
-            [ref_lin.transf_mat['cumul'][idx][0, 0],
-             ref_lin.transf_mat['cumul'][idx][0, 1],
-             ref_lin.transf_mat['cumul'][idx][1, 1]],
-        'eps': lambda ref_lin, idx:
-            [ref_lin.beam_param["eps"]["zdelta"][idx]],
-        'twiss': lambda ref_lin, idx:
-            list(ref_lin.beam_param["twiss"]["zdelta"][idx, 1:].flatten()),
+    # d_obj_ref = {
+        # 'energy': lambda ref_lin, idx:
+            # [ref_lin.synch.energy['kin_array_mev'][idx]],
+        # 'phase': lambda ref_lin, idx:
+            # [ref_lin.synch.phi['abs_array'][idx]],
+        # 'transf_mat': lambda ref_lin, idx:
+            # [ref_lin.transf_mat['cumul'][idx][0, 0],
+             # ref_lin.transf_mat['cumul'][idx][0, 1],
+             # ref_lin.transf_mat['cumul'][idx][1, 1]],
+        # 'eps': lambda ref_lin, idx:
+            # [ref_lin.beam_param["eps"]["zdelta"][idx]],
+        # 'twiss': lambda ref_lin, idx:
+            # list(ref_lin.beam_param["twiss"]["zdelta"][idx, 1:].flatten()),
+    # }
+
+    # # Get data from results dictionary
+    # d_obj_brok = {
+        # 'energy': lambda calc, idx: [calc['w_kin'][idx]],
+        # 'phase': lambda calc, idx: [calc['phi_abs'][idx]],
+        # 'transf_mat': lambda calc, idx:
+            # [calc['r_zz_cumul'][idx][0, 0],
+             # calc['r_zz_cumul'][idx][0, 1],
+             # calc['r_zz_cumul'][idx][1, 1]],
+        # 'eps': lambda calc, idx: [calc["d_zdelta"]["eps"][idx]],
+        # 'twiss': lambda calc, idx:
+            # list(calc["d_zdelta"]["twiss"][idx, 1:].flatten()),
+    # }
+    def mismatch(ref_lin, calc, i_r, i_b):
+        """Compute mismatch between ellipses."""
+        r_t = ref_lin.beam_param["twiss"]["zdelta"][i_r]
+        b_t = calc["d_zdelta"]["twiss"][i_b]
+        r_tmp = r_t[1] * b_t[2] + r_t[2] * b_t[1] - 2. * r_t[0] * b_t[0]
+        mism = np.sqrt(.5 * (r_tmp + np.sqrt(r_tmp**2 - 4.))) - 1.
+        return mism
+
+    d_obj = {
+        'energy': lambda ref, calc, i_r, i_b:
+            ref.synch.energy['kin_array_mev'][i_r] - calc['w_kin'][i_b],
+        'phase': lambda ref, calc, i_r, i_b:
+            ref.synch.phi['abs_array'][i_r] - calc['phi_abs'][i_b],
+        'M_11': lambda ref, calc, i_r, i_b:
+            ref.transf_mat['cumul'][i_r][0, 0] - calc['r_zz_cumul'][i_b][0, 0],
+        'M_12': lambda ref, calc, i_r, i_b:
+            ref.transf_mat['cumul'][i_r][0, 1] - calc['r_zz_cumul'][i_b][0, 1],
+        'M_21': lambda ref, calc, i_r, i_b:
+            ref.transf_mat['cumul'][i_r][1, 0] - calc['r_zz_cumul'][i_b][1, 0],
+        'M_22': lambda ref, calc, i_r, i_b:
+            ref.transf_mat['cumul'][i_r][1, 1] - calc['r_zz_cumul'][i_b][1, 1],
+        'eps': lambda ref, calc, i_r, i_b:
+            ref.beam_param["eps"]["zdelta"][i_r] - calc["d_zdelta"]["eps"][i_b],
+        'twiss_alpha': lambda ref, calc, i_r, i_b:
+            ref.beam_param["twiss"]["zdelta"][i_r, 0] - calc["d_zdelta"]["twiss"][i_b, 0],
+        'twiss_beta': lambda ref, calc, i_r, i_b:
+            ref.beam_param["twiss"]["zdelta"][i_r, 1] - calc["d_zdelta"]["twiss"][i_b, 1],
+        'twiss_gamma': lambda ref, calc, i_r, i_b:
+            ref.beam_param["twiss"]["zdelta"][i_r, 2] - calc["d_zdelta"]["twiss"][i_b, 2],
+        'mismatch_factor': mismatch,
     }
 
-    # Get data from results dictionary
-    d_obj_brok = {
-        'energy': lambda calc, idx: [calc['w_kin'][idx]],
-        'phase': lambda calc, idx: [calc['phi_abs'][idx]],
-        'transf_mat': lambda calc, idx:
-            [calc['r_zz_cumul'][idx][0, 0],
-             calc['r_zz_cumul'][idx][0, 1],
-             calc['r_zz_cumul'][idx][1, 1]],
-        'eps': lambda calc, idx: [calc["d_zdelta"]["eps"][idx]],
-        'twiss': lambda calc, idx:
-            list(calc["d_zdelta"]["twiss"][idx, 1:].flatten()),
-    }
 
     def fun_residual(ref_lin, d_results, d_idx):
         """Compute difference between ref_linac and current optimis. param."""
-        l_fun_ref = [d_obj_ref[str_obj] for str_obj in l_str_objectives]
-        l_fun_brok = [d_obj_brok[str_obj] for str_obj in l_str_objectives]
-
-        ref, brok = [], []
-        for fun_r, fun_b in zip(l_fun_ref, l_fun_brok):
+        l_obj = []
+        for str_obj in l_str_objectives:
             for i_r, i_b in zip(d_idx['l_ref'], d_idx['l_brok']):
-                ref += fun_r(ref_lin, i_r)
-                brok += fun_b(d_results, i_b)
-        obj = np.abs(np.array(ref) - np.array(brok)).flatten()
+                l_obj.append(d_obj[str_obj](ref_lin, d_results, i_r, i_b))
+        obj = np.abs(np.array(l_obj))
         return obj
 
-    d_obj_str = {'energy': [r'$W_{kin}$'],
-                 'phase': [r'$\phi$'],
-                 'transf_mat': [r'$M_{11}$', r'$M_{12}$',
-                                r'$M_{22}$'],#, r'$M_{21}$'],
-                 'eps': [r'$\epsilon_{z\delta}$'],
-                 'twiss': [r'$\beta_{z\delta}$', r'$\gamma_{z\delta}$']
+    d_obj_str = {'energy': r'$W_{kin}$',
+                 'phase': r'$\phi$',
+                 'M_11': r'$M_{11}$',
+                 'M_12': r'$M_{12}$',
+                 'M_21': r'$M_{21}$',
+                 'M_22': r'$M_{22}$',
+                 'eps': r'$\epsilon_{z\delta}$',
+                 'twiss_alpha': r'$\alpha_{z\delta}$',
+                 'twiss_beta': r'$\beta_{z\delta}$',
+                 'twiss_gamma': r'$\gamma_{z\delta}$',
+                 'mismatch_factor': r'$M$',
                 }
     l_obj_label = [d_obj_str[str_obj] for str_obj in l_str_objectives]
 
