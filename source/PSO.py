@@ -4,6 +4,8 @@
 Created on Tue Apr 26 16:44:53 2022.
 
 @author: placais
+
+FIXME : removed pymoo.util.termination in import and _set_termination
 """
 
 import numpy as np
@@ -14,8 +16,8 @@ from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.algorithms.moo.nsga3 import NSGA3
 from pymoo.factory import get_sampling, get_crossover, get_mutation, \
     get_termination, get_reference_directions
-from pymoo.util.termination.default import \
-    MultiObjectiveSpaceToleranceTermination
+# from pymoo.util.termination.default import \
+#     MultiObjectiveSpaceToleranceTermination
 from pymoo.optimize import minimize
 from pymoo.decomposition.asf import ASF
 from pymoo.mcdm.pseudo_weights import PseudoWeights
@@ -158,21 +160,21 @@ def _set_termination():
     }
     termination = d_termination[str_algorithm]
 
-    termination = MultiObjectiveSpaceToleranceTermination(
-        # What is the tolerance in the objective space on average. If the value
-        # is below this bound, we terminate.
-        tol=1e-5,
-        # To make the criterion more robust, we consider the last n generations
-        # and take the maximum. This considers the worst case in a window.
-        n_last=10,
-        # As a fallback, the generation number can be used. For some problems,
-        # the termination criterion might not be reached; however, an upper
-        # bound for generations can be defined to stop in that case.
-        n_max_gen=1000,
-        # Defines whenever the termination criterion is calculated by default,
-        # every 10th generation.
-        nth_gen=10,
-    )
+    # termination = MultiObjectiveSpaceToleranceTermination(
+    #     # What is the tolerance in the objective space on average. If the value
+    #     # is below this bound, we terminate.
+    #     tol=1e-5,
+    #     # To make the criterion more robust, we consider the last n generations
+    #     # and take the maximum. This considers the worst case in a window.
+    #     n_last=10,
+    #     # As a fallback, the generation number can be used. For some problems,
+    #     # the termination criterion might not be reached; however, an upper
+    #     # bound for generations can be defined to stop in that case.
+    #     n_max_gen=1000,
+    #     # Defines whenever the termination criterion is calculated by default,
+    #     # every 10th generation.
+    #     nth_gen=10,
+    # )
     return termination
 
 

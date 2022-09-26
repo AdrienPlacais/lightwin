@@ -71,7 +71,7 @@ manual_list = [
     # [579, 581, 591, 593, 595, 597]
 ]
 
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 # =============================================================================
 # Outputs
@@ -122,23 +122,23 @@ for plot in PLOTS:
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
 # Broken linac
-# broken_linac = acc.Accelerator(FILEPATH, "Broken")
-# fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
-# fail.transfer_phi0_from_ref_to_broken()
-# broken_linac.compute_transfer_matrices()
-# for plot in PLOTS:
-#     debug.compare_with_tracewin(broken_linac, x_dat="s",
-#                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
-#                                 fignum=DICT_PLOTS_PRESETS[plot][1])
+broken_linac = acc.Accelerator(FILEPATH, "Broken")
+fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
+fail.transfer_phi0_from_ref_to_broken()
+broken_linac.compute_transfer_matrices()
+for plot in PLOTS:
+    debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                fignum=DICT_PLOTS_PRESETS[plot][1])
 
-# if FLAG_FIX:
-#     fail.prepare_compensating_cavities_of_all_faults(manual_list)
-#     fail.fix_all()
-#     broken_linac.compute_transfer_matrices()
-#     for plot in PLOTS:
-#         debug.compare_with_tracewin(broken_linac, x_dat="s",
-#                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
-#                                     fignum=DICT_PLOTS_PRESETS[plot][1])
+if FLAG_FIX:
+    fail.prepare_compensating_cavities_of_all_faults(manual_list)
+    fail.fix_all()
+    broken_linac.compute_transfer_matrices()
+    for plot in PLOTS:
+        debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                    fignum=DICT_PLOTS_PRESETS[plot][1])
 # Broken linac but with proper cavities status
 # fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()
@@ -175,13 +175,13 @@ if PLOT_TM:
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 
-# import matplotlib.pyplot as plt
-
-fig, axx = helper.create_fig_if_not_exist(3, [221, 222])
-lala = ref_linac.elements["list"][35].idx["s_in"]
-for (i, j) in zip(range(2), [0, lala]):#ref_linac.synch.z["abs_array"].shape[0] - 1]):
-    for lin in [ref_linac]:#, broken_linac]:
-        debug.plot_ellipse_emittance(axx[i], lin, j)
+DEBUT_ELLIPSE = False
+if DEBUT_ELLIPSE:
+    fig, axx = helper.create_fig_if_not_exist(3, [221, 222])
+    lala = ref_linac.elements["list"][35].idx["s_in"]
+    for (i, j) in zip(range(2), [0, lala]):#ref_linac.synch.z["abs_array"].shape[0] - 1]):
+        for lin in [ref_linac]:#, broken_linac]:
+            debug.plot_ellipse_emittance(axx[i], lin, j)
 
 # data_ref = tw.output_data_in_tw_fashion(ref_linac)
 # data_fixed = tw.output_data_in_tw_fashion(broken_linac)

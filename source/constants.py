@@ -91,11 +91,11 @@ WHAT_TO_FIT = {
     # =========================================================================
     #     What should we fit?
     # =========================================================================
-    # 'objective': 'energy',
-    # 'objective': 'phase',
-    # 'objective': 'energy_phase',
-    # 'objective': 'transf_mat',
-    'objective': 'all',
+    # 'objective': ['energy'],
+    # 'objective': ['phase'],
+    'objective': ['energy_phase'],
+    # 'objective': ['transf_mat'],
+    # 'objective': ['all'],
     # =========================================================================
     #     Where should we evaluate objective?
     # =========================================================================
