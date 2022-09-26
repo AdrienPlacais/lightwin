@@ -94,9 +94,9 @@ WHAT_TO_FIT = {
     'objective': [
         'energy',
         'phase',
-        'eps',
-        'twiss',
-        # 'transf_mat',
+        # 'eps',
+        # 'twiss',
+        'transf_mat',
     ],
     # =========================================================================
     #     Where should we evaluate objective?

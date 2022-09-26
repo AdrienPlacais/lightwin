@@ -463,7 +463,9 @@ def _select_objective(l_str_objectives):
         'phase': lambda ref_lin, idx:
             [ref_lin.synch.phi['abs_array'][idx]],
         'transf_mat': lambda ref_lin, idx:
-            list(ref_lin.transf_mat['cumul'][idx].flatten()),
+            [ref_lin.transf_mat['cumul'][idx][0, 0],
+             ref_lin.transf_mat['cumul'][idx][0, 1],
+             ref_lin.transf_mat['cumul'][idx][1, 1]],
         'eps': lambda ref_lin, idx:
             [ref_lin.beam_param["eps"]["zdelta"][idx]],
         'twiss': lambda ref_lin, idx:
@@ -475,7 +477,9 @@ def _select_objective(l_str_objectives):
         'energy': lambda calc, idx: [calc['w_kin'][idx]],
         'phase': lambda calc, idx: [calc['phi_abs'][idx]],
         'transf_mat': lambda calc, idx:
-            list(calc['r_zz_cumul'][idx].flatten()),
+            [calc['r_zz_cumul'][idx][0, 0],
+             calc['r_zz_cumul'][idx][0, 1],
+             calc['r_zz_cumul'][idx][1, 1]],
         'eps': lambda calc, idx: [calc["d_zdelta"]["eps"][idx]],
         'twiss': lambda calc, idx:
             list(calc["d_zdelta"]["twiss"][idx, 1:].flatten()),
@@ -497,7 +501,7 @@ def _select_objective(l_str_objectives):
     d_obj_str = {'energy': [r'$W_{kin}$'],
                  'phase': [r'$\phi$'],
                  'transf_mat': [r'$M_{11}$', r'$M_{12}$',
-                                r'$M_{21}$', r'$M_{22}$'],
+                                r'$M_{22}$'],#, r'$M_{21}$'],
                  'eps': [r'$\epsilon_{z\delta}$'],
                  'twiss': [r'$\beta_{z\delta}$', r'$\gamma_{z\delta}$']
                 }
