@@ -58,16 +58,22 @@ def beam_parameters_zdelta(r_zz, sigma_in=SIGMA_ZDELTA):
     eps_zdelta = _emittance_zdelta(sigma)
     twiss_zdelta = _twiss_zdelta(sigma, eps_zdelta)
     enveloppes_zdelta = _enveloppes(twiss_zdelta, eps_zdelta)
+    d_zdelta = {'twiss': twiss_zdelta,
+                'eps': eps_zdelta,
+                'enveloppes': enveloppes_zdelta}
 
-    return eps_zdelta, twiss_zdelta, enveloppes_zdelta
+    return d_zdelta
 
 
-def beam_parameters_all(eps_zdelta, twiss_zdelta, gamma):
+def beam_parameters_all(d_zdelta, gamma):
     """Convert the [z - delta] beam parameters in [phi - W] and [z - z']."""
-    d_eps = _emittances_all(eps_zdelta, gamma)
-    d_twiss = _twiss_all(twiss_zdelta, gamma)
+    d_eps = _emittances_all(d_zdelta["eps"], gamma)
+    d_twiss = _twiss_all(d_zdelta["twiss"], gamma)
     d_enveloppes = _enveloppes_all(d_twiss, d_eps)
-    return d_eps, d_twiss, d_enveloppes
+    d_beam_parameters = {"twiss": d_twiss,
+                         "eps": d_eps,
+                         "enveloppes": d_enveloppes}
+    return d_beam_parameters
 
 
 # =============================================================================

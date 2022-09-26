@@ -47,7 +47,7 @@ SIGMA_ZDELTA = np.array(([2.9511603e-06, -1.9823111e-07],
 FLAG_PHI_ABS = True
 
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = False
+FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
 # METHOD = 'leapfrog'
@@ -93,7 +93,9 @@ WHAT_TO_FIT = {
     # =========================================================================
     'objective': [
         'energy',
-        # 'phase',
+        'phase',
+        'eps',
+        'twiss',
         # 'transf_mat',
     ],
     # =========================================================================

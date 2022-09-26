@@ -462,8 +462,12 @@ def _select_objective(l_str_objectives):
             [ref_lin.synch.energy['kin_array_mev'][idx]],
         'phase': lambda ref_lin, idx:
             [ref_lin.synch.phi['abs_array'][idx]],
-        'transf_mat' : lambda ref_lin, idx:
+        'transf_mat': lambda ref_lin, idx:
             list(ref_lin.transf_mat['cumul'][idx].flatten()),
+        'eps': lambda ref_lin, idx:
+            [ref_lin.beam_param["eps"]["zdelta"][idx]],
+        'twiss': lambda ref_lin, idx:
+            list(ref_lin.beam_param["twiss"]["zdelta"][idx, 1:].flatten()),
     }
 
     # Get data from results dictionary
@@ -472,6 +476,9 @@ def _select_objective(l_str_objectives):
         'phase': lambda calc, idx: [calc['phi_abs'][idx]],
         'transf_mat': lambda calc, idx:
             list(calc['r_zz_cumul'][idx].flatten()),
+        'eps': lambda calc, idx: [calc["d_zdelta"]["eps"][idx]],
+        'twiss': lambda calc, idx:
+            list(calc["d_zdelta"]["twiss"][idx, 1:].flatten()),
     }
 
     def fun_residual(ref_lin, d_results, d_idx):
@@ -490,7 +497,10 @@ def _select_objective(l_str_objectives):
     d_obj_str = {'energy': [r'$W_{kin}$'],
                  'phase': [r'$\phi$'],
                  'transf_mat': [r'$M_{11}$', r'$M_{12}$',
-                                r'$M_{21}$', r'$M_{22}$']}
+                                r'$M_{21}$', r'$M_{22}$'],
+                 'eps': [r'$\epsilon_{z\delta}$'],
+                 'twiss': [r'$\beta_{z\delta}$', r'$\gamma_{z\delta}$']
+                }
     l_obj_label = [d_obj_str[str_obj] for str_obj in l_str_objectives]
 
     return fun_residual, l_obj_label

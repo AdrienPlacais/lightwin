@@ -80,7 +80,7 @@ PLOTS = [
     "energy",
     "phase",
     "cav",
-    # "emittance",
+    "emittance",
     # "twiss",
     # "enveloppes",
 ]

@@ -76,9 +76,9 @@ class Accelerator():
             "eps": {"zdelta": np.full((last_idx + 1), np.NaN),
                     "z": np.full((last_idx + 1), np.NaN),
                     "w": np.full((last_idx + 1), np.NaN)},
-            "enveloppe": {"zdelta": np.full((last_idx + 1, 2), np.NaN),
-                          "z": np.full((last_idx + 1, 2), np.NaN),
-                          "w": np.full((last_idx + 1, 2), np.NaN)}
+            "enveloppes": {"zdelta": np.full((last_idx + 1, 2), np.NaN),
+                           "z": np.full((last_idx + 1, 2), np.NaN),
+                           "w": np.full((last_idx + 1, 2), np.NaN)}
         }
 
         # Check that LW and TW computes the phases in the same way (abs or rel)
@@ -168,13 +168,10 @@ class Accelerator():
         # transfer matrices, emittances, etc
         results = self._pack_into_single_dict(l_elt_results, l_rf_fields,
                                               idx_in)
-        eps_zdelta, twiss_zdelta, enveloppes_zdelta = \
-                beam_parameters_zdelta(results["r_zz_cumul"])
 
         if flag_transfer_data:
             self._definitive_save_into_accelerator_element_and_synch_objects(
-                results, eps_zdelta, twiss_zdelta, idx_in, idx_out,
-                l_rf_fields, l_elt_results, l_elts)
+                results, idx_in, idx_out, l_rf_fields, l_elt_results, l_elts)
 
         return results
 
@@ -237,6 +234,7 @@ class Accelerator():
             "r_zz_elt": [],         # List of numpy arrays
             "r_zz_cumul": None,     # (n, 2, 2) numpy array
             "rf_fields": [],        # List of dicts
+            "d_zdelta": None,
         }
 
         for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
@@ -256,11 +254,12 @@ class Accelerator():
 
         results["r_zz_cumul"] = self._indiv_to_cumul_transf_mat(
             results["r_zz_elt"], idx_in, len(results["w_kin"]))
+
+        results["d_zdelta"] = beam_parameters_zdelta(results["r_zz_cumul"])
         return results
 
     def _definitive_save_into_accelerator_element_and_synch_objects(
-        self, results, eps_zdelta, twiss_zdelta, idx_in, idx_out, l_rf_fields,
-        l_elt_results, l_elts):
+        self, results, idx_in, idx_out, l_rf_fields, l_elt_results, l_elts):
         """
         We save data into the appropriate objects.
 
@@ -287,12 +286,13 @@ class Accelerator():
 
         # Save into Accelerator
         gamma = kin_to_gamma(np.array(results["w_kin"]))
-        d_eps, d_twiss, d_enveloppe = beam_parameters_all(eps_zdelta, twiss_zdelta,
-                                             gamma)
-        for key in d_eps.keys():
-            self.beam_param["eps"][key][idx_in:idx_out] = d_eps[key]
-            self.beam_param["twiss"][key][idx_in:idx_out] = d_twiss[key]
-            self.beam_param["enveloppe"][key][idx_in:idx_out] = d_enveloppe[key]
+        d_beam_param = beam_parameters_all(results["d_zdelta"], gamma)
+
+        # Go across beam parameters (Twiss, emittance, long. enveloppes)
+        for item1 in self.beam_param.items():
+            # Go across phase spaces (z-z', z-delta, w-phi)
+            for item2 in item1[1].items():
+                item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
 
     def get_from_elements(self, attribute, key=None, other_key=None):
         """
