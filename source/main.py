@@ -77,12 +77,12 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    # "energy",
-    # "phase",
-    # "cav",
-    "emittance",
+    "energy",
+    "phase",
+    "cav",
+    # "emittance",
     # "twiss",
-    "enveloppes",
+    # "enveloppes",
 ]
 PLOT_TM = False
 PHASE_SPACE = False

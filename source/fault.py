@@ -442,6 +442,7 @@ class Fault():
         return l_elts, d_idx
 
 
+# str_objective to rename l_str_objectives
 def _select_objective(str_objective):
     """
     Select the objective to fit.
@@ -458,39 +459,73 @@ def _select_objective(str_objective):
     """
     # Get data from reference linac
     d_obj_ref = {
-        'energy': lambda ref_lin: ref_lin.synch.energy['kin_array_mev'],
-        'phase': lambda ref_lin: ref_lin.synch.phi['abs_array'],
-        'transf_mat': lambda ref_lin: np.resize(
-            ref_lin.transf_mat['cumul'],
-            (ref_lin.transf_mat['cumul'].shape[0], 4))
+        'energy': lambda ref_lin, idx:
+            [ref_lin.synch.energy['kin_array_mev'][idx]],
+        'phase': lambda ref_lin, idx:
+            [ref_lin.synch.phi['abs_array'][idx]],
+        'transf_mat' : lambda ref_lin, idx:
+            list(ref_lin.transf_mat['cumul'][idx].flatten()),
     }
+        # 'transf_mat': lambda ref_lin: np.resize(
+            # ref_lin.transf_mat['cumul'],
+            # (ref_lin.transf_mat['cumul'].shape[0], 4))
     # We add the getters for objectives composed of several quantities
     # FIXME: would be better to have ['energy', 'phase'] than ['energy_phase']
-    d_obj_ref['energy_phase'] = lambda var: np.column_stack(
-        (d_obj_ref['energy'](var), d_obj_ref['phase'](var)))
-    d_obj_ref['all'] = lambda var: np.hstack(
-        (d_obj_ref['energy_phase'](var), d_obj_ref['transf_mat'](var)))
+    # d_obj_ref['energy_phase'] = lambda var: np.column_stack(
+        # (d_obj_ref['energy'](var), d_obj_ref['phase'](var)))
+    # d_obj_ref['all'] = lambda var: np.hstack(
+        # (d_obj_ref['energy_phase'](var), d_obj_ref['transf_mat'](var)))
 
     # Get data from results dictionary
-    d_obj_brok = {'energy': lambda calc: calc['w_kin'],
-                  'phase': lambda calc: calc['phi_abs'],
-                  'transf_mat': lambda calc: np.resize(
-                      calc['r_zz_cumul'], (calc['r_zz_cumul'].shape[0], 4))}
+    d_obj_brok = {
+        'energy': lambda calc, idx: [calc['w_kin'][idx]],
+        'phase': lambda calc, idx: [calc['phi_abs'][idx]],
+        'transf_mat': lambda calc, idx:
+            list(calc['r_zz_cumul'][idx].flatten()),
+    }
+                  # 'transf_mat': lambda calc: np.resize(
+                      # calc['r_zz_cumul'], (calc['r_zz_cumul'].shape[0], 4))
     # We add the getters for objectives composed of several quantities
-    d_obj_brok['energy_phase'] = lambda var: np.column_stack(
-        (d_obj_brok['energy'](var), d_obj_brok['phase'](var)))
-    d_obj_brok['all'] = lambda var: np.hstack(
-        (d_obj_brok['energy_phase'](var), d_obj_brok['transf_mat'](var)))
+    # d_obj_brok['energy_phase'] = lambda var: np.column_stack(
+        # (d_obj_brok['energy'](var), d_obj_brok['phase'](var)))
+    # d_obj_brok['all'] = lambda var: np.hstack(
+        # (d_obj_brok['energy_phase'](var), d_obj_brok['transf_mat'](var)))
 
     # Functions returning np.array's filled with desired quantities
-    fun_ref = d_obj_ref[str_objective]
-    fun_brok = d_obj_brok[str_objective]
+    # fun_ref = d_obj_ref[str_objective]
+    # fun_brok = d_obj_brok[str_objective]
+
+    # def fun_residual(ref_lin, d_results, d_idx):
+        # """Compute difference between ref_linac and current optimis. param."""
+        # obj = np.abs(fun_ref(ref_lin)[d_idx['l_ref'], :]
+                     # - fun_brok(d_results)[d_idx['l_brok'], :])
+        # return obj.flatten()
 
     def fun_residual(ref_lin, d_results, d_idx):
         """Compute difference between ref_linac and current optimis. param."""
-        obj = np.abs(fun_ref(ref_lin)[d_idx['l_ref'], :]
-                     - fun_brok(d_results)[d_idx['l_brok'], :])
-        return obj.flatten()
+        l_fun_ref = [d_obj_ref[str_obj] for str_obj in str_objective]
+        l_fun_brok = [d_obj_brok[str_obj] for str_obj in str_objective]
+
+        ref, brok = [], []
+        for i in range(len(l_fun_ref)):
+            for idx in d_idx['l_ref']:
+                ref += l_fun_ref[i](ref_lin, idx)
+            for idx in d_idx['l_brok']:
+                brok += l_fun_brok[i](d_results, idx)
+
+        # ref = [fun(ref_lin, idx)
+        #        for idx in d_idx['l_ref']
+        #        for fun in l_fun_ref]
+        # brok = [fun(d_results, idx)
+        #         for idx in d_idx['l_brok']
+        #         for fun in l_fun_brok]
+        # ref = [d_obj_ref[str_obj](ref_lin)[d_idx['l_ref'], :]
+               # for str_obj in str_objective]
+        # brok = [d_obj_brok[str_obj](d_results)[d_idx['l_brok'], :]
+                # for str_obj in str_objective]
+        obj = np.abs(np.array(ref) - np.array(brok)).flatten()
+        return obj
+
     return fun_residual
 
 
@@ -500,9 +535,10 @@ def _set_labels(str_objective):
                  'phase': [r'$\phi$'],
                  'transf_mat': [r'$M_{11}$', r'$M_{12}$',
                                 r'$M_{21}$', r'$M_{22}$']}
-    d_obj_str['energy_phase'] = d_obj_str['energy'] + d_obj_str['phase']
-    d_obj_str['all'] = d_obj_str['energy_phase'] + d_obj_str['transf_mat']
-    l_obj_label = d_obj_str[str_objective]
+    # d_obj_str['energy_phase'] = d_obj_str['energy'] + d_obj_str['phase']
+    # d_obj_str['all'] = d_obj_str['energy_phase'] + d_obj_str['transf_mat']
+    # l_obj_label = d_obj_str[str_objective]
+    l_obj_label = [d_obj_str[str_obj] for str_obj in str_objective]
     return l_obj_label
 
 
