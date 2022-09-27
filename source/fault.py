@@ -470,11 +470,12 @@ def _select_objective(l_str_objectives):
         'phase': lambda calc, i_b: calc['phi_abs'][i_b],
         'M_ij': lambda calc, i_b: calc['r_zz_cumul'][i_b],
         'eps': lambda calc, i_b: calc["d_zdelta"]["eps"][i_b],
-        'twiss': lambda calc, i_b: calc["d_zdelta"]["twiss"][idx],
+        'twiss': lambda calc, i_b: calc["d_zdelta"]["twiss"][i_b],
     }
+
     # Def objective functions that are more complex than just a difference
     # between two quantities
-    def mismatch(ref, calc, i_r, i_b):
+    def mismatch(ref, i_r, calc, i_b):
         """Compute mismatch between ellipses."""
         r_t = d_ref["twiss"](ref, i_r)
         b_t = d_brok["twiss"](calc, i_b)
@@ -484,36 +485,36 @@ def _select_objective(l_str_objectives):
 
     # Dictionary to return objective functions
     d_obj = {
-        'energy': lambda ref, calc, i_r, i_b:
+        'energy': lambda ref, i_r, calc, i_b:
             d_ref["energy"](ref, i_r) - d_brok['energy'](calc, i_b),
-        'phase': lambda ref, calc, i_r, i_b:
+        'phase': lambda ref, i_r, calc, i_b:
             d_ref["phase"](ref, i_r) - d_brok['phase'](calc, i_b),
-        'M_11': lambda ref, calc, i_r, i_b:
+        'M_11': lambda ref, i_r, calc, i_b:
             d_ref["M_ij"](ref, i_r)[0, 0] - d_brok['M_ij'](calc, i_b)[0, 0],
-        'M_12': lambda ref, calc, i_r, i_b:
+        'M_12': lambda ref, i_r, calc, i_b:
             d_ref["M_ij"](ref, i_r)[0, 1] - d_brok['M_ij'](calc, i_b)[0, 1],
-        'M_21': lambda ref, calc, i_r, i_b:
+        'M_21': lambda ref, i_r, calc, i_b:
             d_ref["M_ij"](ref, i_r)[1, 0] - d_brok['M_ij'](calc, i_b)[1, 0],
-        'M_22': lambda ref, calc, i_r, i_b:
+        'M_22': lambda ref, i_r, calc, i_b:
             d_ref["M_ij"](ref, i_r)[1, 1] - d_brok['M_ij'](calc, i_b)[1, 1],
-        'eps': lambda ref, calc, i_r, i_b:
+        'eps': lambda ref, i_r, calc, i_b:
             d_ref["eps"](ref, i_r) - d_brok["eps"](calc, i_b),
-        'twiss_alpha': lambda ref, calc, i_r, i_b:
+        'twiss_alpha': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[0] - d_brok["twiss"](calc, i_b)[0],
-        'twiss_beta': lambda ref, calc, i_r, i_b:
+        'twiss_beta': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[1] - d_brok["twiss"](calc, i_b)[1],
-        'twiss_gamma': lambda ref, calc, i_r, i_b:
+        'twiss_gamma': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[2] - d_brok["twiss"](calc, i_b)[2],
         'mismatch_factor': mismatch,
     }
-
 
     def fun_residual(ref_lin, d_results, d_idx):
         """Compute difference between ref_linac and current optimis. param."""
         l_obj = []
         for str_obj in l_str_objectives:
             for i_r, i_b in zip(d_idx['l_ref'], d_idx['l_brok']):
-                l_obj.append(d_obj[str_obj](ref_lin, d_results, i_r, i_b))
+                args = (ref_lin, i_r, d_results, i_b)
+                l_obj.append(d_obj[str_obj](*args))
         obj = np.abs(np.array(l_obj))
         return obj
 
@@ -528,7 +529,7 @@ def _select_objective(l_str_objectives):
                  'twiss_beta': r'$\beta_{z\delta}$',
                  'twiss_gamma': r'$\gamma_{z\delta}$',
                  'mismatch_factor': r'$M$',
-                }
+                 }
     l_obj_label = [d_obj_str[str_obj] for str_obj in l_str_objectives]
 
     return fun_residual, l_obj_label
