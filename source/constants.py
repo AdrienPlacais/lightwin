@@ -21,21 +21,38 @@ inv_E_rest_MeV = 1. / E_rest_MeV
 m_kg = 1.672649e-27
 q_adim = 1.
 q_C = 1.602176565e-19
-q_over_m = q_C / m_kg
-m_over_q = m_kg / q_C
+
+LINAC = "MYRRHA"
+# LINAC = "JAEA"
 
 # =============================================================================
-# Project constants
+# MYRRHA
 # =============================================================================
-project_folder = ''
+if LINAC == "MYRRHA":
+    E_MEV = 16.6
+    F_BUNCH_MHZ = 176.1
+    I_MILLI_A = 0.0
 
-# Input Twiss parameters
-ALPHA_Z = 0.1387
-BETA_Z = 20.6512404  # mm/pi%
-BETA_W = 71.472671   # deg/pi.MeV
+    # Input sigma beam matrix in [z-z'] plane
+    SIGMA_ZDELTA = np.array(([2.9511603e-06, -1.9823111e-07],
+                             [-1.9823111e-07, 7.0530641e-07]))
 
-SIGMA_ZDELTA = np.array(([2.9511603e-06, -1.9823111e-07],
-                         [-1.9823111e-07, 7.0530641e-07]))
+
+# =============================================================================
+# JAEA
+# =============================================================================
+elif LINAC == "JAEA":
+    E_MEV = 939.45813
+    F_BUNCH_MHZ = 162.
+    I_MILLI_A = 19.955719
+    # Input sigma beam matrix in [z-z'] plane
+    SIGMA_ZDELTA = np.array(([1.6062234e-06, -2.7681764e-08],
+                             [-2.7681764e-08, 3.8462377e-08]))
+
+if abs(I_MILLI_A) > 1e-10:
+    print("""constants.py warning: I_MILLI_A is not zero, but LW does not take
+          space charge forces into account.""")
+
 # =============================================================================
 # Simulation constants -- user interface
 # =============================================================================
@@ -73,11 +90,6 @@ if FLAG_CYTHON:
 else:
     METHOD += '_p'
 
-E_MEV = 16.6
-GAMMA_INIT = 1. + E_MEV / E_rest_MeV
-F_BUNCH_MHZ = 176.1
-OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
-LAMBDA_BUNCH = c / F_BUNCH_MHZ
 
 # Optimisation method: least_squares or PSO
 OPTI_METHOD = 'least_squares'
@@ -95,7 +107,7 @@ WHAT_TO_FIT = {
         'energy',
         'phase',
         # 'eps', 'twiss_beta', 'twiss_gamma', # 'twiss_alpha',
-        'M_11', 'M_12', 'M_22', # 'M_21',
+        'M_11', 'M_12', 'M_22',  # 'M_21',
         # 'mismatch_factor',
     ],
     # =========================================================================
@@ -109,6 +121,10 @@ WHAT_TO_FIT = {
 # =============================================================================
 # Simulation constants -- end of user interface
 # =============================================================================
+GAMMA_INIT = 1. + E_MEV / E_rest_MeV
+OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
+LAMBDA_BUNCH = c / F_BUNCH_MHZ
+
 DICT_STR_PHI = {True: 'abs', False: 'rel'}
 DICT_STR_PHI_RF = {True: 'abs_rf', False: 'rel'}
 DICT_STR_PHI_0 = {True: 'phi_0_abs', False: 'phi_0_rel'}

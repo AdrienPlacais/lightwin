@@ -25,25 +25,10 @@ import emittance
 import tracewin_interface as tw
 import fault_scenario as mod_fs
 
-
-# =============================================================================
-# User inputs
-# =============================================================================
-# TODO: direct import of this parameters from the .ini file
-# TODO: handle different particles
-# Current in mA
-I_MILLI_A = 0.0
-
-# Input normalized rms emittance (pi.mm.mrad)
-EMIT_Z_Z_PRIME = 0.27
-# Longitudinal rms emittance (pi.deg.MeV)
-# emit_pw = emittance.mm_mrad_to_deg_mev(EMIT_Z_Z_PRIME, F_MHZ)
-
 # Select .dat file
 Tk().withdraw()
 
 FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-# FILEPATH = "../data/faultcomp22/local_method2/MYRRHA_Transi-100MeV_local2_without_sec1_cryo_fault_with_tw_settings_recopied.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -73,14 +58,15 @@ manual_list = [
 
 FLAG_FIX = True
 SAVE_FIX = False
+
 # =============================================================================
 # Outputs
 # =============================================================================
 PLOTS = [
     "energy",
     "phase",
-    "cav",
-    "emittance",
+    # "cav",
+    # "emittance",
     # "twiss",
     # "enveloppes",
 ]
@@ -107,10 +93,10 @@ DICT_SAVES = {
     "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
 }
 
-start_time = time.monotonic()
 # =============================================================================
 # Start
 # =============================================================================
+start_time = time.monotonic()
 FILEPATH = os.path.abspath(FILEPATH)
 
 # Reference linac
@@ -150,19 +136,8 @@ if FLAG_FIX:
 if PLOT_TM:
     debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])
 
-#     if PHASE_SPACE:
-#         debug.compare_phase_space(lin)
-
-#     if TWISS:
-#         twiss = emittance.transport_twiss_parameters(lin, ALPHA_Z, BETA_Z)
-#         emittance.plot_twiss(lin, twiss)
-
 #     for save in SAVES:
 #         DICT_SAVES[save](lin)
-
-#     # broken_linac.name is changed to "Fixed" or "Poorly fixed" in fix
-#     if FLAG_FIX and lin.name == "Broken":
-#         fail.fix_all()
 
 #         if SAVE_FIX:
 #             tw.save_new_dat(broken_linac, FILEPATH)

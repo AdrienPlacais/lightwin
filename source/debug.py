@@ -260,12 +260,12 @@ def _create_plot_dicts():
         "gamma_w": lambda lin: lin.beam_param["twiss"]["w"][:, 2],
         "envel_pos_zdelta": lambda lin:
             lin.beam_param["enveloppe"]["zdelta"][:, 0],
-        "envel_pos_z": lambda lin: lin.beam_param["enveloppe"]["z"][:, 0],
-        "envel_pos_w": lambda lin: lin.beam_param["enveloppe"]["w"][:, 0],
+        "envel_pos_z": lambda lin: lin.beam_param["enveloppes"]["z"][:, 0],
+        "envel_pos_w": lambda lin: lin.beam_param["enveloppes"]["w"][:, 0],
         "envel_ener_zdelta": lambda lin:
             lin.beam_param["enveloppe"]["zdelta"][:, 1],
-        "envel_ener_z": lambda lin: lin.beam_param["enveloppe"]["z"][:, 1],
-        "envel_ener_w": lambda lin: lin.beam_param["enveloppe"]["w"][:, 1],
+        "envel_ener_z": lambda lin: lin.beam_param["enveloppes"]["z"][:, 1],
+        "envel_ener_w": lambda lin: lin.beam_param["enveloppes"]["w"][:, 1],
     }
 
     dict_err_factor = {
