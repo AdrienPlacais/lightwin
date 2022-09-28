@@ -40,14 +40,6 @@ class Particle():
             'abs_array': np.full((n_steps + 1), np.NaN),
         }
         self.z['abs_array'][0] = z
-
-        self.omega0 = {
-            'ref': OMEGA_0_BUNCH,        # The one we use
-            # FIXME: default set f_rf = 2*f_bunch is dirty
-            'rf': 2. * OMEGA_0_BUNCH,    # Should match 'ref' inside cavities
-            'lambda_array': np.full((n_steps + 1), np.NaN),
-        }
-
         self.energy = {
             'kin_array_mev': np.full((n_steps + 1), np.NaN),
             'gamma_array': np.full((n_steps + 1), np.NaN),
@@ -128,7 +120,6 @@ class Particle():
         self.energy['gamma_array'][idx] = gamma
         self.energy['beta_array'][idx] = beta
         self.energy['p_array_mev'][idx] = p_mev
-        self.omega0['lambda_array'][idx] = 2. * np.pi * c / self.omega0['ref']
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
@@ -174,43 +165,12 @@ class Particle():
         self.phi['abs'] += delta_phi
         self.phi['abs_array'][idx] = self.phi['abs_array'][idx - 1] + delta_phi
 
-
-    def set_omega_rf(self, new_omega, phi_bunch_abs):
-        """
-        Define rf pulsation and convert absolute bunch phase into abs rf phase.
-
-        Parameters
-        ----------
-        new_omega : float
-            RF pulsation.
-        phi_bunch_abs : float
-            Particle phase as omega_bunch * t.
-
-        Return
-        ------
-        phi_rf_abs : float
-            Particle phase as omega_rf * t.
-        """
-        self.omega0['rf'] = new_omega
-        self.omega0['ref'] = new_omega
-        self.frac_omega['rf_to_bunch'] = OMEGA_0_BUNCH / new_omega
-        self.frac_omega['bunch_to_rf'] = new_omega / OMEGA_0_BUNCH
-        phi_rf_abs = phi_bunch_abs * self.frac_omega['bunch_to_rf']
-        return phi_rf_abs
-
-
     def keep_energy_and_phase(self, results, idx_range):
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
         self.energy['kin_array_mev'][idx_range] = w_kin
-        self.energy['gamma_array'][idx_range] = \
-            helper.kin_to_gamma(w_kin)
-        self.energy['beta_array'][idx_range] = \
-            helper.kin_to_beta(w_kin)
-
-        # self.z['abs_array'][idx_range] = \
-            # self.z['abs_array'][idx_elt_prec] + elt.pos_m['rel'][1:]
-
+        self.energy['gamma_array'][idx_range] = helper.kin_to_gamma(w_kin)
+        self.energy['beta_array'][idx_range] = helper.kin_to_beta(w_kin)
         self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])
 
 

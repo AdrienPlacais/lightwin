@@ -161,7 +161,6 @@ class _Element():
             r_zz, gamma_phi, itg_field = \
                 self.tmat['func'](d_z, gamma, n_steps, rf_field_kwargs)
 
-            print(itg_field)
             gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
@@ -293,14 +292,14 @@ class FieldMap(_Element):
 
         # Set pulsation inside cavity, convert bunch phase into rf phase
         new_omega = 2. * OMEGA_0_BUNCH
-        phi_rf_abs = synch.set_omega_rf(new_omega, phi_bunch_abs)
+        phi_rf_abs = phi_bunch_abs * new_omega / OMEGA_0_BUNCH
         # FIXME new_omega not necessarily 2*omega_bunch
 
-        err_msg = 'Should not look for cavity parameters of a broken cavity.'
-        assert self.info['status'] != 'fault', err_msg
+        assert self.info['status'] != 'fault', "Should not look for cavity" \
+                + "parameters of a broken cavity."
 
-        err_msg = 'Out of synch particle to be implemented.'
-        assert synch.info['synchronous'], err_msg
+        assert synch.info['synchronous'], "Out of synch particle to be" \
+                + "implemented."
 
         # By definition, the synchronous particle has a relative input phase of
         # 0.
