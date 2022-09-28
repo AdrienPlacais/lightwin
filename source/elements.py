@@ -288,29 +288,16 @@ class FieldMap(_Element):
         phi_rf_rel: float
             Relative phase of the particle at the entry of the cavity.
         """
-        a_f = self.acc_field
-
-        # Set pulsation inside cavity, convert bunch phase into rf phase
-        new_omega = 2. * OMEGA_0_BUNCH
-        phi_rf_abs = phi_bunch_abs * new_omega / OMEGA_0_BUNCH
-        # FIXME new_omega not necessarily 2*omega_bunch
-
         assert self.info['status'] != 'fault', "Should not look for cavity" \
                 + "parameters of a broken cavity."
-
         assert synch.info['synchronous'], "Out of synch particle to be" \
                 + "implemented."
 
-        # By definition, the synchronous particle has a relative input phase of
-        # 0.
-        # FIXME :
-        # phi_rf_rel = 0.
-
         # Add the parameters that are independent from the cavity status
+        a_f = self.acc_field
         rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
                            'e_spat': a_f.e_spat,
-                           'section_idx': self.idx['section'][0][0]
-                           }
+                           'section_idx': self.idx['section'][0][0]}
 
         # Set norm and phi_0 of the cavity
         d_cav_param_setter = {
@@ -332,9 +319,12 @@ class FieldMap(_Element):
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
+        phi_rf_abs = phi_bunch_abs * a_f.omega0_rf / OMEGA_0_BUNCH
         rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
             convert_phi_0(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
 
+        # By definition, the synchronous particle has a relative input phase of
+        # 0. FIXME : phi_rf_rel = 0.
         return rf_field_kwargs
 
     def match_synch_phase(self, w_kin_in, phi_s_objective, **rf_field_kwargs):

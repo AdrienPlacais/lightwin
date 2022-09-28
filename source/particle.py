@@ -8,7 +8,7 @@ Created on Thu Dec  2 13:44:00 2021.
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_REST_MEV, c, OMEGA_0_BUNCH
+from constants import E_REST_MEV, OMEGA_0_BUNCH
 
 
 class Particle():
@@ -48,17 +48,9 @@ class Particle():
         }
         self.set_energy(e_mev, idx=0, delta_e=False)
 
-        # Dict used to navigate between phi_rf = omega_rf * t and
-        # phi = omega_bunch * t (which is the default in absence of any other
-        # precision)
-        self.frac_omega = {
-            'rf_to_bunch': 1.,
-            'bunch_to_rf': 1.,
-        }
         self.phi = {
             'rel': None,
             'abs': None,
-            'abs_rf': None,
             'abs_array': np.full((n_steps + 1), np.NaN),
         }
         self._init_phi(idx=0)
@@ -127,13 +119,11 @@ class Particle():
                                   self.energy['beta_array'][idx],
                                   OMEGA_0_BUNCH)
         self.phi['abs'] = phi_abs
-        self.phi['abs_rf'] = phi_abs * self.frac_omega['bunch_to_rf']
         self.phi['abs_array'][idx] = phi_abs
         self.phi['rel'] = phi_abs
         self.df = pd.DataFrame({
             'phi_abs_array': [self.phi['abs_array'][idx]],
             'phi_abs': [self.phi['abs']],
-            'phi_abs_rf': [self.phi['abs_rf']],
             'phi_rel': [self.phi['rel']],
         })
 
