@@ -6,7 +6,7 @@ Created on Wed Sep 22 10:26:19 2021.
 @author: placais
 
 TODO : check FLAG_PHI_S_FIT
-TODO : set_cavity_parameters should also return phi_rf_rel. Will be necessary
+TODO : rf_param should also return phi_rf_rel. Will be necessary
 for non-synch particles.
 """
 import numpy as np
@@ -274,20 +274,8 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def set_cavity_parameters(self, synch, phi_bunch_abs, w_kin_in,
-                              d_fit=None):
-        """
-        Set the properties of the electric field.
-
-        In this routine, all phases are rf phases, i.e. defined as:
-            phi = omega0_rf * t
-        while phases are omega0_bunch * t in most of the program.
-
-        Return
-        ------
-        phi_rf_rel: float
-            Relative phase of the particle at the entry of the cavity.
-        """
+    def rf_param(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
+        """Set the properties of the electric field. """
         assert self.info['status'] != 'fault', "Should not look for cavity" \
                 + "parameters of a broken cavity."
         assert synch.info['synchronous'], "Out of synch particle to be" \
@@ -317,14 +305,14 @@ class FieldMap(_Element):
         rf_field_kwargs, flag_abs_to_rel = \
             d_cav_param_setter[self.info['status']](*arg, **rf_field_kwargs)
 
+        # By definition, the synchronous particle has a relative input phase of
+        # 0. FIXME : phi_rf_rel = 0.
+
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
         phi_rf_abs = phi_bunch_abs * a_f.omega0_rf / OMEGA_0_BUNCH
         rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
             convert_phi_0(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
-
-        # By definition, the synchronous particle has a relative input phase of
-        # 0. FIXME : phi_rf_rel = 0.
         return rf_field_kwargs
 
     def match_synch_phase(self, w_kin_in, phi_s_objective, **rf_field_kwargs):

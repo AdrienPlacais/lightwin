@@ -192,8 +192,7 @@ class Accelerator():
             else:
                 d_fit_elt = d_fits
 
-            rf_field = elt.set_cavity_parameters(self.synch, phi_abs, w_kin,
-                                                 d_fit_elt)
+            rf_field = elt.rf_param(self.synch, phi_abs, w_kin, d_fit_elt)
             elt_results = elt.calc_transf_mat(w_kin, **rf_field)
 
         return elt_results, rf_field
