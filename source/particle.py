@@ -8,7 +8,7 @@ Created on Thu Dec  2 13:44:00 2021.
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_rest_MeV, c, OMEGA_0_BUNCH
+from constants import E_REST_MEV, c, OMEGA_0_BUNCH
 
 
 class Particle():
@@ -121,9 +121,9 @@ class Particle():
             self.energy['kin_array_mev'][idx] = e_mev
 
         gamma = helper.kin_to_gamma(self.energy['kin_array_mev'][idx],
-                                    E_rest_MeV)
+                                    E_REST_MEV)
         beta = helper.gamma_to_beta(gamma)
-        p_mev = helper.gamma_and_beta_to_p(gamma, beta, E_rest_MeV)
+        p_mev = helper.gamma_and_beta_to_p(gamma, beta, E_REST_MEV)
 
         self.energy['gamma_array'][idx] = gamma
         self.energy['beta_array'][idx] = beta

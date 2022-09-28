@@ -17,7 +17,7 @@ But numpy is fast, no?
 """
 
 import numpy as np
-from constants import c, q_adim, inv_E_rest_MeV, OMEGA_0_BUNCH, GAMMA_INIT
+from constants import c, Q_ADIM, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT
 
 
 # =============================================================================
@@ -103,7 +103,7 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, dict_rf_field):
 
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c
-    delta_gamma_norm = q_adim * d_z * inv_E_rest_MeV
+    delta_gamma_norm = Q_ADIM * d_z * INV_E_REST_MEV
     k_k = delta_gamma_norm * k_e
 
     r_zz = np.empty((n_steps, 2, 2))
@@ -190,7 +190,7 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, dict_rf_field):
 
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c
-    delta_gamma_norm = q_adim * d_z * inv_E_rest_MeV
+    delta_gamma_norm = Q_ADIM * d_z * INV_E_REST_MEV
     k_k = delta_gamma_norm * k_e
 
     r_zz = np.empty((n_steps, 2, 2))

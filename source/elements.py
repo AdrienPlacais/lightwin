@@ -12,7 +12,8 @@ for non-synch particles.
 import numpy as np
 from scipy.optimize import minimize_scalar
 from electric_field import RfField, compute_param_cav, convert_phi_0
-import constants
+from constants import OMEGA_0_BUNCH, E_REST_MEV, INV_E_REST_MEV,\
+    N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS, FLAG_PHI_S_FIT
 
 try:
     import transfer_matrices_c as tm_c
@@ -22,7 +23,7 @@ except ModuleNotFoundError:
         + ' for more information.'
 
     # If Cython was asked, raise Error.
-    if constants.FLAG_CYTHON:
+    if FLAG_CYTHON:
         raise ModuleNotFoundError('Error' + MESSAGE)
     # Else, only issue a Warning.
     print('Warning' + MESSAGE)
@@ -33,12 +34,12 @@ except ModuleNotFoundError:
 import transfer_matrices_p as tm_p
 import helper
 
-# Force reload of the module constants, as a modification of constants.METHOD
+# Force reload of the module constants, as a modification of METHOD
 # between two executions is not taken into account
 # (alternative is to restart kernel each time)
 # import importlib
 # importlib.reload(constants)
-# print(f"METHOD: {constants.METHOD}")
+# print(f"METHOD: {METHOD}")
 
 # =============================================================================
 # Module dictionaries
@@ -53,12 +54,11 @@ d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
 
 # Dict to select the proper number of steps for the transfer matrix, the
 # energy, the phase, etc
-d_n_steps = {
-    'RK': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
-    'leapfrog': lambda elt: constants.N_STEPS_PER_CELL * elt.acc_field.n_cell,
-    'jm': lambda elt: elt.acc_field.n_z,
-    'drift': lambda elt: 1,
-}
+d_n_steps = {'RK': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
+             'leapfrog': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
+             'jm': lambda elt: elt.acc_field.n_z,
+             'drift': lambda elt: 1,
+            }
 
 
 # =============================================================================
@@ -113,7 +113,7 @@ class _Element():
 
     def init_solvers(self):
         """Initialize how transfer matrices will be calculated."""
-        l_method = constants.METHOD.split('_')
+        l_method = METHOD.split('_')
 
         # Select proper module (Python or Cython)
         mod = d_mod[l_method[1]]
@@ -137,8 +137,8 @@ class _Element():
             key_fun = 'non_acc'
         # else:
             # # Precopute some constants to speed up calculation
-            # delta_phi_norm = self.acc_field.omega0_rf * d_z / constants.c
-            # delta_gamma_norm = constants.q_adim * d_z / constants.E_rest_MeV
+            # delta_phi_norm = self.acc_field.omega0_rf * d_z / c
+            # delta_gamma_norm = Q_ADIM * d_z / E_REST_MEV
             # self.tmat['solver_param']['delta_phi_norm'] = delta_phi_norm
             # self.tmat['solver_param']['delta_gamma_norm'] = delta_gamma_norm
         self.tmat['func'] = d_func_tm[key_fun](mod)
@@ -158,11 +158,11 @@ class _Element():
             For Cython implementation, also need section_idx.
         """
         n_steps, d_z = self.tmat['solver_param'].values()
-        gamma = 1. + w_kin_in * constants.inv_E_rest_MeV
+        gamma = 1. + w_kin_in * INV_E_REST_MEV
 
         # Initialisation of electric field arrays
         # FIXME
-        if self.idx['element'] == 0 and constants.FLAG_CYTHON:
+        if self.idx['element'] == 0 and FLAG_CYTHON:
             tm_c.init_arrays()
 
         if self.info['nature'] == 'FIELD_MAP' and \
@@ -171,15 +171,14 @@ class _Element():
             r_zz, gamma_phi, itg_field = \
                 self.tmat['func'](d_z, gamma, n_steps, rf_field_kwargs)
 
-            gamma_phi[:, 1] *= constants.OMEGA_0_BUNCH \
-                / rf_field_kwargs['omega0_rf']
+            gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
         else:
             r_zz, gamma_phi, _ = self.tmat['func'](d_z, gamma, n_steps)
             cav_params = None
 
-        w_kin = (gamma_phi[:, 0] - 1.) * constants.E_rest_MeV
+        w_kin = (gamma_phi[:, 0] - 1.) * E_REST_MEV
 
         results = {'r_zz': r_zz, 'cav_params': cav_params,
                    'w_kin': w_kin, 'phi_rel': gamma_phi[:, 1]}
@@ -304,7 +303,7 @@ class FieldMap(_Element):
         a_f = self.acc_field
 
         # Set pulsation inside cavity, convert bunch phase into rf phase
-        new_omega = 2. * constants.OMEGA_0_BUNCH
+        new_omega = 2. * OMEGA_0_BUNCH
         phi_rf_abs = synch.set_omega_rf(new_omega, phi_bunch_abs)
         # FIXME new_omega not necessarily 2*omega_bunch
 
@@ -373,9 +372,8 @@ class FieldMap(_Element):
             rf_field_kwargs['phi_0_rel'] = phi_0_rel
             rf_field_kwargs['phi_0_abs'] = None
             results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
-            diff = helper.diff_angle(
-                phi_s_objective,
-                results['cav_params']['phi_s_rad'])
+            diff = helper.diff_angle(phi_s_objective,
+                                     results['cav_params']['phi_s_rad'])
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)
@@ -433,9 +431,9 @@ def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
     rf_field_kwargs['phi_0_rel'] = d_fit['phi']
     rf_field_kwargs['phi_0_abs'] = d_fit['phi']
 
-    flag_abs_to_rel = constants.FLAG_PHI_ABS
+    flag_abs_to_rel = FLAG_PHI_ABS
 
-    if constants.FLAG_PHI_S_FIT:
+    if FLAG_PHI_S_FIT:
         phi_0 = obj_cavity.match_synch_phase(
             w_kin, phi_s_objective=d_fit['phi'], **rf_field_kwargs)
         rf_field_kwargs['phi_0_rel'] = phi_0

@@ -16,11 +16,9 @@ c = 2.99792458e8
 # =============================================================================
 # Proton
 # =============================================================================
-E_rest_MeV = 938.27203
-inv_E_rest_MeV = 1. / E_rest_MeV
-m_kg = 1.672649e-27
-q_adim = 1.
-q_C = 1.602176565e-19
+E_REST_MEV = 938.27203
+INV_E_REST_MEV = 1. / E_REST_MEV
+Q_ADIM = 1.
 
 LINAC = "MYRRHA"
 # LINAC = "JAEA"
@@ -121,7 +119,7 @@ WHAT_TO_FIT = {
 # =============================================================================
 # Simulation constants -- end of user interface
 # =============================================================================
-GAMMA_INIT = 1. + E_MEV / E_rest_MeV
+GAMMA_INIT = 1. + E_MEV / E_REST_MEV
 OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 LAMBDA_BUNCH = c / F_BUNCH_MHZ
 

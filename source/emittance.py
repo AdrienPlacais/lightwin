@@ -33,7 +33,7 @@ FIXME r_zz should be an argument instead of taking the linac attribute. Also
 import numpy as np
 import pandas as pd
 import helper
-from constants import E_rest_MeV, LAMBDA_BUNCH, SIGMA_ZDELTA
+from constants import E_REST_MEV, LAMBDA_BUNCH, SIGMA_ZDELTA
 import tracewin_interface as tw
 
 
@@ -114,7 +114,7 @@ def _emittances_all(eps_zdelta, gamma):
 
 # TODO may be possible to save some operations by using lambda func?
 def _convert_emittance(eps_orig, str_convert, gamma, beta=None,
-                       lam=LAMBDA_BUNCH, e_0=E_rest_MeV):
+                       lam=LAMBDA_BUNCH, e_0=E_REST_MEV):
     """Convert emittance from a phase space to another."""
     if beta is None:
         beta = np.sqrt(1. - gamma**-2)
@@ -165,7 +165,7 @@ def _twiss_all(twiss_zdelta, gamma):
 
 # TODO may be possible to save some operations by using lambda func?
 def _convert_twiss(twiss_orig, str_convert, gamma, beta=None, lam=LAMBDA_BUNCH,
-                   e_0=E_rest_MeV):
+                   e_0=E_REST_MEV):
     """Convert Twiss array from a phase space to another."""
     if beta is None:
         beta = np.sqrt(1. - gamma**-2)

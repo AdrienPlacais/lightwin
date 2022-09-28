@@ -9,7 +9,7 @@ Created on Tue Nov 9 14:26:45 2021.
 import numpy as np
 from palettable.colorbrewer.qualitative import Set1_9
 import helper
-from constants import q_adim, E_rest_MeV, c
+from constants import Q_ADIM, E_REST_MEV, c
 # import solver
 import particle
 import accelerator as acc
@@ -67,9 +67,9 @@ def transport_particle(accelerator, part):
                 First component is (e_mev(i+1) - e_mev(i)) / dz.
                 Second component is (phi(i+1) - phi(i)) / dz.
             """
-            beta = helper.kin_to_beta(u[0], E_rest_MeV)
+            beta = helper.kin_to_beta(u[0], E_REST_MEV)
 
-            v0 = q_adim * elt.acc_field.e_func(z, u[1])
+            v0 = Q_ADIM * elt.acc_field.e_func(z, u[1])
             v1 = omega0 / (beta * c)
             return np.array(([v0, v1]))
 
