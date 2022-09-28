@@ -460,13 +460,11 @@ def _sections_lattices(l_elts):
             j += n_lattice
         sections.append(lattices)
 
-    zones = ['low beta', 'medium beta', 'high beta']
     shift_lattice = 0
     for i, sec in enumerate(sections):
         for j, lattice in enumerate(sec):
             for k, elt in enumerate(lattice):
-                elt.info['zone'] = zones[i]
-                elt.idx['section'] = [(i, j, k)]
+                elt.idx['section'] = (i, j, k)
                 elt.idx['lattice'] = (j + shift_lattice, k)
                 elt.idx['element'] = l_elts.index(elt)
         shift_lattice += j + 1

@@ -170,7 +170,7 @@ class Fault():
 
         As for now, N_COMP_LATT_PER_FAULT is the number of compensating
         lattices per faulty cavity. This number is however too high for
-        MYRRHA's high beta section.
+        MYRRHA's third section.
 
         # TODO: get this function out of the Class?
         Would be better for consistency w/ manual list
@@ -334,9 +334,9 @@ class Fault():
                     'phi_0_rel': lambda ref_value: 0.,
                     'phi_0_abs': lambda ref_value: 0.,
                     'phi_s': lambda ref_value: ref_value}
-        d_tech_n = {'low beta': 1.3 * 3.03726,
-                    'medium beta': 1.3 * 4.45899,
-                    'high beta': 1.3 * 6.67386}
+        d_tech_n = {0: 1.3 * 3.03726,
+                    1: 1.3 * 4.45899,
+                    2: 1.3 * 6.67386}
         d_bounds_abs = {'k_e': [1., np.NaN],
                         'phi_0_rel': [0., 4. * np.pi],
                         'phi_0_abs': [0., 4. * np.pi],
@@ -370,7 +370,7 @@ class Fault():
                 b_down = np.nanmax((d_bounds_abs[prop][0],
                                     d_bounds_rel[prop][0] * ref_value))
                 if prop == 'k_e':
-                    b_up = d_tech_n[cav.info['zone']]
+                    b_up = d_tech_n[cav.idx['section'][0]]
                 else:
                     b_up = np.nanmin((d_bounds_abs[prop][1],
                                       d_bounds_rel[prop][1] * ref_value))

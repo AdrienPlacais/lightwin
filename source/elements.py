@@ -285,7 +285,7 @@ class FieldMap(_Element):
         a_f = self.acc_field
         rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
                            'e_spat': a_f.e_spat,
-                           'section_idx': self.idx['section'][0][0],
+                           'section_idx': self.idx['section'][0],
                            'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
 
         # FIXME By definition, the synchronous particle has a relative input
