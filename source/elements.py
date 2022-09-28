@@ -275,11 +275,11 @@ class FieldMap(_Element):
         self.update_status('nominal')
 
     def rf_param(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
-        """Set the properties of the electric field. """
+        """Set the properties of the electric field."""
         assert self.info['status'] != 'fault', "Should not look for cavity" \
-                + "parameters of a broken cavity."
+            + "parameters of a broken cavity."
         assert synch.info['synchronous'], "Out of synch particle to be" \
-                + "implemented."
+            + "implemented."
 
         # Add the parameters that are independent from the cavity status
         a_f = self.acc_field
@@ -305,8 +305,8 @@ class FieldMap(_Element):
         rf_field_kwargs, flag_abs_to_rel = \
             d_cav_param_setter[self.info['status']](*arg, **rf_field_kwargs)
 
-        # By definition, the synchronous particle has a relative input phase of
-        # 0. FIXME : phi_rf_rel = 0.
+        # FIXME By definition, the synchronous particle has a relative input
+        # phase of 0. phi_rf_rel = 0.
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
