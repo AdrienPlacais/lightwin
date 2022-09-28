@@ -19,11 +19,13 @@ TODO : at init of Fault, say self.brok_lin = brok_lin.deepcopy() (or copy)
        AH no in fact, maybe plutôt self.fixed_linac = brok_lin after it is
        broken, end of __init__. And then fix only fixed?
        Or can the breakage be done at the init of the Accelerator?
+TODO : _set_fit_parameters could be cleaner
 """
 import numpy as np
 from scipy.optimize import minimize, least_squares
 import PSO as pso
-from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT
+from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT,\
+        LINAC
 import debug
 
 
@@ -272,15 +274,13 @@ class Fault():
         # lattices
         l_lattices = [lattice
                       for section in self.brok_lin.elements['l_sections']
-                      for lattice in section
-                      ]
+                      for lattice in section]
 
         self.comp['l_all_elts'] = [elt
                                    for lattice in l_lattices
                                    for elt in lattice
                                    if any((cav in lattice
-                                           for cav in self.comp['l_cav']))
-                                   ]
+                                           for cav in self.comp['l_cav']))]
 
     def update_status_and_cav_parameters(self, flag_success, l_rf_fields):
         """
@@ -325,6 +325,8 @@ class Fault():
             Contains upper and lower synchronous phase limits for each cavity.
             Used to define constraints in PSO.
         """
+        # FIXME find a cleaner way to set these limits, esp. when working with
+        # different linacs.
         # Useful dicts
         d_getter = {'k_e': lambda cav: cav.acc_field.k_e,
                     'phi_0_rel': lambda cav: cav.acc_field.phi_0['rel'],
@@ -348,6 +350,9 @@ class Fault():
         d_prop_label = {'k_e': r'$k_e$', 'phi_0_abs': r'$\phi_{0, abs}$',
                         'phi_0_rel': r'$\phi_{0, rel}$',
                         'phi_s': r'$\varphi_s$'}
+
+        if LINAC == 'JAEA':
+            d_tech_n = {0: 1.2 * 0.775356}
 
         # Set a list of properties that will be fitted
         if FLAG_PHI_S_FIT:
