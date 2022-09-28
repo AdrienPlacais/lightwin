@@ -58,7 +58,7 @@ d_n_steps = {'RK': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
              'leapfrog': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
              'jm': lambda elt: elt.acc_field.n_z,
              'drift': lambda elt: 1,
-            }
+             }
 
 
 # =============================================================================
@@ -99,16 +99,12 @@ class _Element():
 
         # tmat stands for 'transfer matrix'
         self.tmat = {
-            'func': {'RK': lambda: None,
-                     'leapfrog': lambda: None,
-                     'transport': lambda: None},
-            'matrix': None,
-            'solver_param': {
-                'n_steps': None,
-                'd_z': None,
-                # 'delta_phi_norm': None,
-                # 'delta_gamma_norm': None,
-            },
+            'func': lambda d_z, gamma, n_steps, rf_field=None:
+                (np.empty([10, 2, 2]), np.empty([10, 2]), None),
+            'matrix': np.empty([10, 2, 2]),
+            'solver_param': {'n_steps': None,
+                             'd_z': None,
+                             },
         }
 
     def init_solvers(self):
@@ -127,20 +123,14 @@ class _Element():
         self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
         self.tmat['solver_param']['n_steps'] = n_steps
-        d_z = self.length_m / n_steps
-        self.tmat['solver_param']['d_z'] = d_z
+        self.tmat['solver_param']['d_z'] = self.length_m / n_steps
 
         # Select proper function to compute transfer matrix
         key_fun = l_method[0]
-        if self.info['nature'] != 'FIELD_MAP' \
-                or self.info['status'] == 'failed':
+        if (self.info['nature'] != 'FIELD_MAP'
+                or self.info['status'] == 'failed'):
             key_fun = 'non_acc'
-        # else:
-            # # Precopute some constants to speed up calculation
-            # delta_phi_norm = self.acc_field.omega0_rf * d_z / c
-            # delta_gamma_norm = Q_ADIM * d_z / E_REST_MEV
-            # self.tmat['solver_param']['delta_phi_norm'] = delta_phi_norm
-            # self.tmat['solver_param']['delta_gamma_norm'] = delta_gamma_norm
+
         self.tmat['func'] = d_func_tm[key_fun](mod)
 
     def calc_transf_mat(self, w_kin_in, **rf_field_kwargs):
@@ -171,6 +161,7 @@ class _Element():
             r_zz, gamma_phi, itg_field = \
                 self.tmat['func'](d_z, gamma, n_steps, rf_field_kwargs)
 
+            print(itg_field)
             gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.info['status'])
 
@@ -218,9 +209,7 @@ class _Element():
             self.init_solvers()
 
     def keep_mt_and_rf_field(self, elt_results, rf_field):
-        """
-        Save some data calculated by Accelerator.compute_transfer_matrices.
-        """
+        """Save data calculated by Accelerator.compute_transfer_matrices."""
         self.tmat["matrix"] = elt_results["r_zz"]
 
         if elt_results['cav_params'] is not None:
@@ -322,7 +311,7 @@ class FieldMap(_Element):
         rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
                            'e_spat': a_f.e_spat,
                            'section_idx': self.idx['section'][0][0]
-                          }
+                           }
 
         # Set norm and phi_0 of the cavity
         d_cav_param_setter = {
