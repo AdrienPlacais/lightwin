@@ -28,7 +28,8 @@ import fault_scenario as mod_fs
 # Select .dat file
 Tk().withdraw()
 
-FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -56,7 +57,7 @@ manual_list = [
     # [579, 581, 591, 593, 595, 597]
 ]
 
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 # =============================================================================
@@ -65,10 +66,10 @@ SAVE_FIX = False
 PLOTS = [
     "energy",
     "phase",
-    # "cav",
-    # "emittance",
-    # "twiss",
-    # "enveloppes",
+    "cav",
+    "emittance",
+    "twiss",
+    "enveloppes",
 ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -107,24 +108,24 @@ for plot in PLOTS:
                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
-# Broken linac
-broken_linac = acc.Accelerator(FILEPATH, "Broken")
-fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
-fail.transfer_phi0_from_ref_to_broken()
-broken_linac.compute_transfer_matrices()
-for plot in PLOTS:
-    debug.compare_with_tracewin(broken_linac, x_dat="s",
-                                y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                fignum=DICT_PLOTS_PRESETS[plot][1])
+# # Broken linac
+# broken_linac = acc.Accelerator(FILEPATH, "Broken")
+# fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
+# fail.transfer_phi0_from_ref_to_broken()
+# broken_linac.compute_transfer_matrices()
+# for plot in PLOTS:
+#     debug.compare_with_tracewin(broken_linac, x_dat="s",
+#                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
+#                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
-if FLAG_FIX:
-    fail.prepare_compensating_cavities_of_all_faults(manual_list)
-    fail.fix_all()
-    broken_linac.compute_transfer_matrices()
-    for plot in PLOTS:
-        debug.compare_with_tracewin(broken_linac, x_dat="s",
-                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                    fignum=DICT_PLOTS_PRESETS[plot][1])
+# if FLAG_FIX:
+#     fail.prepare_compensating_cavities_of_all_faults(manual_list)
+#     fail.fix_all()
+#     broken_linac.compute_transfer_matrices()
+#     for plot in PLOTS:
+#         debug.compare_with_tracewin(broken_linac, x_dat="s",
+#                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
+#                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 # Broken linac but with proper cavities status
 # fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()

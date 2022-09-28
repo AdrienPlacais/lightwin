@@ -15,11 +15,15 @@ from electric_field import load_field_map_file
 import elements
 
 
-to_be_implemented = ['SPACE_CHARGE_COMP', 'FIELD_MAP_PATH',
-                     'SET_SYNC_PHASE', 'ADJUST',
-                     'DIAG_DSIZE3', 'DIAG_ENERGY', 'DIAG_TWISS',
-                     'END']
+to_be_implemented = [
+    'SPACE_CHARGE_COMP', 'FIELD_MAP_PATH', 'SET_SYNC_PHASE', 'STEERER',
+    'ADJUST', 'ADJUST_STEERER',
+    'DIAG_DSIZE3', 'DIAG_ENERGY', 'DIAG_TWISS', 'DIAG_POSITION', 'DIAG_DPHASE',
+    'DIAG_DENERGY',
+    'ERROR_CAV_NCPL_STAT',
+    'END']
 not_an_element = ['LATTICE', 'FREQ']
+
 # Dict of data that can be imported from TW's "Data" table.
 # More info in load_tw_results
 dict_tw_data_table = {
@@ -143,12 +147,22 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
     """
     assert len(sections) == len(freqs)
 
-    field_map_folder = [
-        line[1]
-        for line in dat_filecontent
-        if line[0] == 'FIELD_MAP_PATH'
-    ][0]
-    field_map_folder = os.path.dirname(dat_filepath) + field_map_folder[1:]
+    field_map_folder = [line[1]
+                        for line in dat_filecontent
+                        if line[0] == 'FIELD_MAP_PATH']
+
+    if len(field_map_folder) == 0:
+        print("tracewin_interface warning: No field map folder specified. "
+              "Assuming that field maps are in the same folder as the .dat")
+        field_map_folder = os.path.dirname(dat_filepath)
+
+    elif len(field_map_folder) > 1:
+        raise IOError("Several field map folders are specified, which is ",
+                      "currently not supported.")
+
+    else:
+        field_map_folder = os.path.dirname(dat_filepath) \
+            + field_map_folder[0][1:]
 
     for i, section in enumerate(sections):
         f_mhz = freqs[i].f_rf_mhz

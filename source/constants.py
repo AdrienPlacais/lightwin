@@ -20,8 +20,10 @@ E_REST_MEV = 938.27203
 INV_E_REST_MEV = 1. / E_REST_MEV
 Q_ADIM = 1.
 
-LINAC = "MYRRHA"
-# LINAC = "JAEA"
+# Warning, fit parameters that can change between the two linacs are also set
+# in fault._set_fit_parameters
+# LINAC = "MYRRHA"
+LINAC = "JAEA"
 
 # =============================================================================
 # MYRRHA
@@ -48,8 +50,8 @@ elif LINAC == "JAEA":
                              [-2.7681764e-08, 3.8462377e-08]))
 
 if abs(I_MILLI_A) > 1e-10:
-    print("""constants.py warning: I_MILLI_A is not zero, but LW does not take
-          space charge forces into account.""")
+    print("constants.py warning: I_MILLI_A is not zero, but LW does not take",
+          "space charge forces into account.")
 
 # =============================================================================
 # Simulation constants -- user interface
@@ -82,9 +84,10 @@ elif 'jm' in METHOD:
 # (pure Python). _c is ~2 to 4 times faster than _p.
 # Warning, you may have to relaod the kernel to force iPython to take the
 # change in FLAG_CYTHON into account.
-FLAG_CYTHON = True
+FLAG_CYTHON = False
 if FLAG_CYTHON:
     METHOD += '_c'
+    assert LINAC == 'MYRRHA'
 else:
     METHOD += '_p'
 
