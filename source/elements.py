@@ -34,9 +34,9 @@ except ModuleNotFoundError:
 import transfer_matrices_p as tm_p
 import helper
 
-# Force reload of the module constants, as a modification of METHOD
-# between two executions is not taken into account
-# (alternative is to restart kernel each time)
+# Force reload of the module constants, as a modification of METHOD between
+# two executions is not taken into account (alternative is to restart kernel
+# each time):
 # import importlib
 # importlib.reload(constants)
 # print(f"METHOD: {METHOD}")
@@ -285,7 +285,11 @@ class FieldMap(_Element):
         a_f = self.acc_field
         rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
                            'e_spat': a_f.e_spat,
-                           'section_idx': self.idx['section'][0][0]}
+                           'section_idx': self.idx['section'][0][0],
+                           'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
+
+        # FIXME By definition, the synchronous particle has a relative input
+        # phase of 0. phi_rf_rel = 0.
 
         # Set norm and phi_0 of the cavity
         d_cav_param_setter = {
@@ -304,9 +308,6 @@ class FieldMap(_Element):
         # Apply
         rf_field_kwargs, flag_abs_to_rel = \
             d_cav_param_setter[self.info['status']](*arg, **rf_field_kwargs)
-
-        # FIXME By definition, the synchronous particle has a relative input
-        # phase of 0. phi_rf_rel = 0.
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
@@ -374,7 +375,7 @@ def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
     # If we are calculating the transfer matrices of the nominal linac and the
     # initial phases are defined in the .dat as relative phases, phi_0_abs is
     # not defined
-    if rf_field_kwargs['phi_0_abs'] is None:
+    if a_f.phi_0['abs'] is None:
         rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
         flag_abs_to_rel = False
 
@@ -406,7 +407,6 @@ def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
         rf_field_kwargs['phi_0_abs'] = None
         flag_abs_to_rel = False
 
-    # TODO modify the fit process in order to always fit on the
-    # relative phase. Absolute phase can easily be calculated
-    # afterwards.
+    # TODO modify the fit process in order to always fit on the relative phase.
+    # Absolute phase can easily be calculated afterwards.
     return rf_field_kwargs, flag_abs_to_rel
