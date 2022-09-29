@@ -28,15 +28,14 @@ import fault_scenario as mod_fs
 # Select .dat file
 Tk().withdraw()
 
-# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
+FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+# FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
 # =============================================================================
 # Fault compensation
 # =============================================================================
-manual_list = [7, 15, 17, 25, 27]
 failed_cav = [
     # 35,
     # 155, 157,
@@ -64,12 +63,12 @@ SAVE_FIX = False
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
-    "emittance",
-    "twiss",
-    "enveloppes",
+    # "energy",
+    # "phase",
+    # "cav",
+    # "emittance",
+    # "twiss",
+    # "enveloppes",
 ]
 PLOT_TM = False
 PHASE_SPACE = False

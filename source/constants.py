@@ -22,8 +22,8 @@ Q_ADIM = 1.
 
 # Warning, fit parameters that can change between the two linacs are also set
 # in fault._set_fit_parameters
-# LINAC = "MYRRHA"
-LINAC = "JAEA"
+LINAC = "MYRRHA"
+# LINAC = "JAEA"
 
 # =============================================================================
 # MYRRHA
@@ -84,7 +84,7 @@ elif 'jm' in METHOD:
 # (pure Python). _c is ~2 to 4 times faster than _p.
 # Warning, you may have to relaod the kernel to force iPython to take the
 # change in FLAG_CYTHON into account.
-FLAG_CYTHON = False
+FLAG_CYTHON = True
 if FLAG_CYTHON:
     METHOD += '_c'
     assert LINAC == 'MYRRHA'

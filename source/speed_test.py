@@ -47,11 +47,12 @@ elif test == 'compensation':
     broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
     failed_cav = [35]
-    fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav, [0])
+    fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
 
     ref_linac.compute_transfer_matrices()
     fail.transfer_phi0_from_ref_to_broken()
-
     broken_linac.compute_transfer_matrices()
 
+    fail.prepare_compensating_cavities_of_all_faults([0])
     fail.fix_all()
+    broken_linac.compute_transfer_matrices()
