@@ -150,11 +150,6 @@ class _Element():
         n_steps, d_z = self.tmat['solver_param'].values()
         gamma = 1. + w_kin_in * INV_E_REST_MEV
 
-        # Initialisation of electric field arrays
-        # FIXME
-        if self.idx['element'] == 0 and FLAG_CYTHON:
-            tm_c.init_arrays()
-
         if self.info['nature'] == 'FIELD_MAP' and \
                 self.info['status'] != 'failed':
 

@@ -10,9 +10,20 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import pandas as pd
 import numpy as np
-from constants import FLAG_PHI_ABS, F_BUNCH_MHZ
+from constants import FLAG_PHI_ABS, FLAG_CYTHON, F_BUNCH_MHZ
 from electric_field import load_field_map_file
 import elements
+
+try:
+    import transfer_matrices_c as tm_c
+except ModuleNotFoundError:
+    MESSAGE = ', Cython module not compilated. Check elements.py and setup.py'\
+        + ' for more information.'
+    if FLAG_CYTHON:
+        raise ModuleNotFoundError('Error' + MESSAGE)
+    print('Warning' + MESSAGE)
+    # Load Python version as Cython to allow the execution of the code.
+    import transfer_matrices_p as tm_c
 
 
 to_be_implemented = [
@@ -130,6 +141,7 @@ def give_name(l_elts):
             elt.info['name'] = value + str(i)
 
 
+# TODO is it necessary to load all the electric fields when _p?
 def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
     """
     Load all the filemaps.
@@ -164,6 +176,7 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
         field_map_folder = os.path.dirname(dat_filepath) \
             + field_map_folder[0][1:]
 
+    l_filepaths = []
     for i, section in enumerate(sections):
         f_mhz = freqs[i].f_rf_mhz
         n_cell = int(f_mhz / F_BUNCH_MHZ)   # FIXME
@@ -175,6 +188,13 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
                     a_f = elt.acc_field
                     a_f.e_spat, a_f.n_z = load_field_map_file(elt)
                     a_f.init_freq_ncell(f_mhz, n_cell)
+
+                    # For Cython, we need one filepath per section
+                    if FLAG_CYTHON and len(l_filepaths) == i:
+                        l_filepaths.append(elt.field_map_file_name)
+    # Init arrays
+    if FLAG_CYTHON:
+        tm_c.init_arrays(l_filepaths)
 
 
 def save_new_dat(fixed_linac, filepath_old):
