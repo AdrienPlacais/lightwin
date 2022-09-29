@@ -19,8 +19,8 @@ import constants
 import accelerator as acc
 import fault_scenario as mod_fs
 
-test = 'simple'
-# test = 'compensation'
+# test = 'simple'
+test = 'compensation'
 
 FILEPATH = os.path.abspath(
     "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"

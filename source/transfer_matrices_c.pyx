@@ -22,6 +22,8 @@ from libc.math cimport sin, cos, sqrt, tan, floor
 import numpy as np
 cimport numpy as np
 np.import_array()
+from constants import c, E_REST_MEV, INV_E_REST_MEV, Q_ADIM, OMEGA_0_BUNCH, \
+    GAMMA_INIT
 
 # Must be changed to double if C float is replaced by double
 DTYPE = np.float64
@@ -29,18 +31,25 @@ DTYPE = np.float64
 # DTYPE = double
 ctypedef double DTYPE_t
 
-cdef DTYPE_t c_cdef = 2.99792458e8
-cdef DTYPE_t E_rest_MeV_cdef = 938.27203
-cdef DTYPE_t inv_E_rest_MeV_cdef = 0.0010657889908537506
-cdef DTYPE_t OMEGA_0_BUNCH_cdef = 1106468932.594325
-cdef DTYPE_t q_adim_cdef = 1.
-cdef DTYPE_t E_MEV_cdef = 16.6
-cdef DTYPE_t GAMMA_cdef = 1. + E_MEV_cdef / E_rest_MeV_cdef
+cdef DTYPE_t c_cdef = c
+cdef DTYPE_t E_rest_MeV_cdef = E_REST_MEV
+cdef DTYPE_t inv_E_rest_MeV_cdef = INV_E_REST_MEV
+cdef DTYPE_t OMEGA_0_BUNCH_cdef = OMEGA_0_BUNCH
+cdef DTYPE_t q_adim_cdef = Q_ADIM
+cdef DTYPE_t GAMMA_cdef = GAMMA_INIT
+# cdef DTYPE_t c_cdef = 2.99792458e8
+# cdef DTYPE_t E_rest_MeV_cdef = 938.27203
+# cdef DTYPE_t inv_E_rest_MeV_cdef = 0.0010657889908537506
+# cdef DTYPE_t OMEGA_0_BUNCH_cdef = 1106468932.594325
+# cdef DTYPE_t q_adim_cdef = 1.
+# cdef DTYPE_t E_MEV_cdef = 16.6
+# cdef DTYPE_t GAMMA_cdef = 1. + E_MEV_cdef / E_rest_MeV_cdef
 
 
-cpdef init_arrays(l_filepaths):
+cpdef init_arrays(list l_filepaths):
     """Initialize electric fields for efficiency."""
     cdef int n_points = 0
+    cdef Py_ssize_t i
     cdef DTYPE_t inv_dz = 0.
     cdef DTYPE_t[:] e_z
     global l_d_ez
@@ -63,7 +72,7 @@ cpdef init_arrays(l_filepaths):
 # =============================================================================
 cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e, int n_points_e):
     """Interpolation function."""
-    cdef int i
+    cdef Py_ssize_t i
     cdef DTYPE_t delta_e_z, slope, offset
     cdef out
 
@@ -314,20 +323,9 @@ cpdef z_field_map_leapfrog(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
     cdef DTYPE_t delta_gamma_middle_max
     cdef DTYPE_t gamma_middle, phi_middle
 
-    inv_dz_e = l_d_ez[section_idx]["n_points"]
+    inv_dz_e = l_d_ez[section_idx]["inv_dz"]
     e_z = l_d_ez[section_idx]["e_z"]
-    # if section_idx == 0:
-        # e_z = E_Z_SIMPLE_SPOKE
-        # inv_dz_e = INV_DZ_SIMPLE_SPOKE
-    # elif section_idx == 1:
-        # e_z = E_Z_SPOKE_ESS
-        # inv_dz_e = INV_DZ_SPOKE_ESS
-    # elif section_idx == 2:
-        # e_z = E_Z_BETA065
-        # inv_dz_e = INV_DZ_BETA065
-    # else:
-        # raise IOError('wrong section_idx in z_field_map')
-    n_points_e = e_z.shape[0]
+    n_points_e = l_d_ez[section_idx]["n_points"]
 
     # Initial values for gamma and relative phase
     gamma_phi[0, 1] = 0.
