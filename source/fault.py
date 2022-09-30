@@ -132,7 +132,7 @@ class Fault():
 
         print(f"""\nmessage: {sol.message}\nnfev: {sol.nfev}\tnjev: {sol.njev}
               \noptimality: {sol.optimality}\nstatus: {sol.status}\t
-              success: {sol.success}\nx: {sol.x}\n\n""")
+              success: {sol.success}\nsolution: {sol.x}\n\n""")
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
 

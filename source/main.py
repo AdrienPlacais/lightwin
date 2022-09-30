@@ -28,8 +28,8 @@ import fault_scenario as mod_fs
 # Select .dat file
 Tk().withdraw()
 
-# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
+FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+# FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -37,8 +37,8 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 failed_cav = [
-    14,
-    # 35,
+    # 14,
+    35,
     # 155, 157,
     # 295, 307,
     # 355,
@@ -127,7 +127,6 @@ if FLAG_FIX:
                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 # Broken linac but with proper cavities status
-# fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()
 # linacs = [ref_linac, broken_linac]
 

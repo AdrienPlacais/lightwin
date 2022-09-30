@@ -154,7 +154,7 @@ class Accelerator():
         # Compute transfer matrix and acceleration in each element
         for elt in l_elts:
             elt_results, rf_field = \
-                    self._proper_transf_mat(elt, phi_abs, w_kin, d_fits)
+                self._proper_transf_mat(elt, phi_abs, w_kin, d_fits)
 
             # Store this element's results
             l_elt_results.append(elt_results)
@@ -166,6 +166,9 @@ class Accelerator():
 
         # We store all relevant data in results: evolution of energy, phase,
         # transfer matrices, emittances, etc
+        # TODO here l_rf_fields holds all the rf_field calculated by proper_transf_mat
+        # TODO in l_elt_results, we do not have norms, but synch phase and accelerating voltage
+        # TODO we also have rf_fiels in results
         results = self._pack_into_single_dict(l_elt_results, l_rf_fields,
                                               idx_in)
 
@@ -239,7 +242,8 @@ class Accelerator():
         for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
             if rf_field is not None:
                 results["rf_fields"].append(rf_field)
-                results["phi_s_rad"].append(elt_results['cav_params']['phi_s_rad'])
+                results["phi_s_rad"].append(
+                    elt_results['cav_params']['phi_s_rad'])
 
             r_zz_elt = [elt_results['r_zz'][i, :, :]
                         for i in range(elt_results['r_zz'].shape[0])]
@@ -258,7 +262,8 @@ class Accelerator():
         return results
 
     def _definitive_save_into_accelerator_element_and_synch_objects(
-        self, results, idx_in, idx_out, l_rf_fields, l_elt_results, l_elts):
+            self, results, idx_in, idx_out, l_rf_fields, l_elt_results,
+            l_elts):
         """
         We save data into the appropriate objects.
 

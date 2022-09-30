@@ -57,8 +57,7 @@ d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
 d_n_steps = {'RK': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
              'leapfrog': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
              'jm': lambda elt: elt.acc_field.n_z,
-             'drift': lambda elt: 1,
-             }
+             'drift': lambda elt: 1}
 
 
 # =============================================================================
@@ -83,7 +82,6 @@ class _Element():
             'name': None,
             'nature': elem[0],
             'status': None,    # Only make sense for cavities
-            'zone': None,
         }
         self.length_m = 1e-3 * float(elem[1])
 
@@ -103,8 +101,7 @@ class _Element():
                 (np.empty([10, 2, 2]), np.empty([10, 2]), None),
             'matrix': np.empty([10, 2, 2]),
             'solver_param': {'n_steps': None,
-                             'd_z': None,
-                             },
+                             'd_z': None},
         }
 
     def init_solvers(self):
