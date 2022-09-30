@@ -139,15 +139,12 @@ class Accelerator():
         if l_elts is None:
             l_elts = self.elements['list']
 
-        # Index of entry of first element, index of exit of last one
-        idx_in = l_elts[0].idx['s_in']
-        idx_out = l_elts[-1].idx['s_out'] + 1
-
         # Prepare lists to store each element's results
         l_elt_results = []
         l_rf_fields = []
 
         # Initial phase and energy values:
+        idx_in = l_elts[0].idx['s_in']
         w_kin = self.synch.energy['kin_array_mev'][idx_in]
         phi_abs = self.synch.phi['abs_array'][idx_in]
 
@@ -166,15 +163,12 @@ class Accelerator():
 
         # We store all relevant data in results: evolution of energy, phase,
         # transfer matrices, emittances, etc
-        # TODO here l_rf_fields holds all the rf_field calculated by proper_transf_mat
-        # TODO in l_elt_results, we do not have norms, but synch phase and accelerating voltage
-        # TODO we also have rf_fiels in results
         results = self._pack_into_single_dict(l_elt_results, l_rf_fields,
                                               idx_in)
 
         if flag_transfer_data:
             self._definitive_save_into_accelerator_element_and_synch_objects(
-                results, idx_in, idx_out, l_elt_results, l_elts)
+                results, l_elts)
 
         return results
 
@@ -264,7 +258,7 @@ class Accelerator():
         return results
 
     def _definitive_save_into_accelerator_element_and_synch_objects(
-            self, results, idx_in, idx_out, l_elt_results, l_elts):
+            self, results, l_elts):
         """
         We save data into the appropriate objects.
 
@@ -276,12 +270,16 @@ class Accelerator():
         This function is called when the fitting is not required/is already
         finished.
         """
+        idx_in = l_elts[0].idx['s_in']
+        idx_out = l_elts[-1].idx['s_out'] + 1
+
         # Go across elements
-        for elt, rf_field, cav_params in zip(
-                l_elts, results['rf_fields'], results["cav_params"]):
+        for elt, rf_field, cav_params in zip(l_elts, results['rf_fields'],
+                                             results["cav_params"]):
             idx_abs = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
-            idx_start_from_zero = range(0, elt.idx['s_out'] - elt.idx['s_in'])
-            transf_mat_elt = results["r_zz_cumul"][idx_start_from_zero]
+            idx_rel = range(elt.idx['s_in'] + 1 - idx_in,
+                            elt.idx['s_out'] + 1 - idx_in)
+            transf_mat_elt = results["r_zz_cumul"][idx_rel]
 
             self.transf_mat["indiv"][idx_abs] = transf_mat_elt
             elt.keep_mt_and_rf_field(transf_mat_elt, rf_field, cav_params)
