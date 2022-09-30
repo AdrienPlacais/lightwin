@@ -199,14 +199,15 @@ class _Element():
             self.acc_field.k_e = 0.
             self.init_solvers()
 
-    def keep_mt_and_rf_field(self, elt_results, rf_field):
+    def keep_mt_and_rf_field(self, transf_mat_elt, rf_field, cav_params):
         """Save data calculated by Accelerator.compute_transfer_matrices."""
-        self.tmat["matrix"] = elt_results["r_zz"]
+        self.tmat["matrix"] = transf_mat_elt
 
-        if elt_results['cav_params'] is not None:
-            self.acc_field.cav_params = elt_results['cav_params']
+        if rf_field is not None:
+            self.acc_field.cav_params = cav_params
             self.acc_field.phi_0['abs'] = rf_field['phi_0_abs']
             self.acc_field.phi_0['rel'] = rf_field['phi_0_rel']
+            self.acc_field.k_e = rf_field['k_e']
 
 
 # =============================================================================

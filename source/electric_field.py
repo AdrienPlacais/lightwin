@@ -62,12 +62,6 @@ class RfField():
         self.omega0_rf = 2e6 * np.pi * f_mhz
         self.n_cell = n_cell
 
-    def save_parameters_found_by_optimisation(self, **rf_field):
-        """Assign the norm, phi_0 after a fit."""
-        self.k_e = rf_field['k_e']
-        self.phi_0['rel'] = rf_field['phi_0_rel']
-        self.phi_0['abs'] = rf_field['phi_0_abs']
-
     def rephase_cavity(self, phi_rf_abs):
         """
         Rephase the cavity.

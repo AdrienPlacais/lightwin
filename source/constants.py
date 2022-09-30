@@ -61,7 +61,7 @@ if abs(I_MILLI_A) > 1e-10:
 # though !!).
 # If False, cavities keep their relative phi_0; all cavities after the first
 # modified cavity change their status to 'rephased'.
-FLAG_PHI_ABS = True
+FLAG_PHI_ABS = False
 
 # Fit performed over phi_s?
 FLAG_PHI_S_FIT = True

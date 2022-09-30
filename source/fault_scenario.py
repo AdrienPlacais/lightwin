@@ -89,16 +89,15 @@ class FaultScenario():
             #     corresponding phi_0)
             #  - to transfer transfer matrices, energies, phase evolution along
             #    the linac to synch.
+            # Give each compensating cavity the new optimum norm and entry
+            # phase.
             d_results = fault.brok_lin.compute_transfer_matrices(
                 fault.comp['l_recompute'], d_fits=d_fits,
                 flag_transfer_data=True)
 
             # Update status of the compensating cavities according to the
             # success or not of the fit.
-            # Give each compensating cavity the new optimum norm and entry
-            # phase.
-            fault.update_status_and_cav_parameters(flag_success,
-                                                   d_results["rf_fields"])
+            fault.update_status(flag_success)
 
             # Recompute transfer matrix between the end of this compensating
             # zone and the start of the next (or to the linac end)

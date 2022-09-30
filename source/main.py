@@ -38,10 +38,10 @@ if FILEPATH == "":
 # =============================================================================
 failed_cav = [
     # 14,
-    35,
+    # 35,
     # 155, 157,
     # 295, 307,
-    # 355,
+    355,
     # 395,
     # 521, 523, 525, 527,
     # 583
@@ -57,7 +57,7 @@ manual_list = [
     # [579, 581, 591, 593, 595, 597]
 ]
 
-FLAG_FIX = True
+FLAG_FIX = False
 SAVE_FIX = False
 
 # =============================================================================
@@ -66,12 +66,12 @@ SAVE_FIX = False
 PLOTS = [
     "energy",
     "phase",
-    # "cav",
+    "cav",
     # "emittance",
     # "twiss",
     # "enveloppes",
 ]
-PLOT_TM = False
+PLOT_TM = True
 PHASE_SPACE = False
 TWISS = False
 

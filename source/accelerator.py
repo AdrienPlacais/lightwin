@@ -174,7 +174,7 @@ class Accelerator():
 
         if flag_transfer_data:
             self._definitive_save_into_accelerator_element_and_synch_objects(
-                results, idx_in, idx_out, l_rf_fields, l_elt_results, l_elts)
+                results, idx_in, idx_out, l_elt_results, l_elts)
 
         return results
 
@@ -231,6 +231,7 @@ class Accelerator():
         # To store results
         results = {
             "phi_s_rad": [],
+            "cav_params": [],
             "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
             "phi_abs": [self.synch.phi['abs_array'][idx_in]],
             "r_zz_elt": [],         # List of numpy arrays
@@ -240,8 +241,9 @@ class Accelerator():
         }
 
         for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
+            results["rf_fields"].append(rf_field)
+            results["cav_params"].append(elt_results["cav_params"])
             if rf_field is not None:
-                results["rf_fields"].append(rf_field)
                 results["phi_s_rad"].append(
                     elt_results['cav_params']['phi_s_rad'])
 
@@ -262,8 +264,7 @@ class Accelerator():
         return results
 
     def _definitive_save_into_accelerator_element_and_synch_objects(
-            self, results, idx_in, idx_out, l_rf_fields, l_elt_results,
-            l_elts):
+            self, results, idx_in, idx_out, l_elt_results, l_elts):
         """
         We save data into the appropriate objects.
 
@@ -276,11 +277,14 @@ class Accelerator():
         finished.
         """
         # Go across elements
-        for (elt, elt_res, rf_field) in zip(l_elts, l_elt_results, l_rf_fields):
-            elt.keep_mt_and_rf_field(elt_res, rf_field)
+        for elt, rf_field, cav_params in zip(
+                l_elts, results['rf_fields'], results["cav_params"]):
+            idx_abs = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
+            idx_start_from_zero = range(0, elt.idx['s_out'] - elt.idx['s_in'])
+            transf_mat_elt = results["r_zz_cumul"][idx_start_from_zero]
 
-            idx = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
-            self.transf_mat['indiv'][idx] = elt_res['r_zz']
+            self.transf_mat["indiv"][idx_abs] = transf_mat_elt
+            elt.keep_mt_and_rf_field(transf_mat_elt, rf_field, cav_params)
 
         # Save into Accelerator
         self.transf_mat['cumul'][idx_in:idx_out] = results["r_zz_cumul"]

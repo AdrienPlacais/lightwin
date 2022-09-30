@@ -284,10 +284,8 @@ class Fault():
                                    if any((cav in lattice
                                            for cav in self.comp['l_cav']))]
 
-    def update_status_and_cav_parameters(self, flag_success, l_rf_fields):
-        """
-        Update status of the compensating cavities, save new rf field param.
-        """
+    def update_status(self, flag_success):
+        """Update status of the compensating cavities."""
         if flag_success:
             new_status = "compensate (ok)"
         else:
@@ -295,18 +293,8 @@ class Fault():
 
         # Remove broke cavities, check if some compensating cavities already
         # compensate another fault, update status of comp cav
-        for (cav, rf_field) in zip(self.comp['l_cav'], l_rf_fields):
-            # phi_0 = d_fits['l_phi'].pop(0)
-            # rf_field = {'k_e': d_fits['l_k_e'].pop(0),
-                        # 'phi_0_rel': phi_0,
-                        # 'phi_0_abs': phi_0,
-                       # }
-            # FIXME I think that I can safely ignore the difference between
-            # phi_0_rel and _abs, the good one will be used and the other one
-            # erased.
-            # I """think"""...
+        for cav in self.comp['l_cav']:
             cav.update_status(new_status)
-            cav.acc_field.save_parameters_found_by_optimisation(**rf_field)
 
     def _set_fit_parameters(self):
         """
