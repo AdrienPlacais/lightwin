@@ -127,6 +127,8 @@ class Fault():
         if debugs['fit_progression']:
             debug.output_fit_progress(self.count, sol.fun,
                                       self.info["l_obj_label"], final=True)
+        if debugs['plot_progression']:
+            self.info["l_obj_evaluations"].append(sol.fun)
 
         print(f"""\nmessage: {sol.message}\nnfev: {sol.nfev}\tnjev: {sol.njev}
               \noptimality: {sol.optimality}\nstatus: {sol.status}\t
