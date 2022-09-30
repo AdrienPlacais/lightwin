@@ -29,16 +29,11 @@ from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT,\
 import debug
 
 
-dict_phase = {
-    True: lambda elt: elt.acc_field.phi_0['abs'],
-    False: lambda elt: elt.acc_field.phi_0['rel']
-}
-
 N_COMP_LATT_PER_FAULT = 2
 debugs = {
     'fit_complete': False,
     'fit_compact': False,
-    'fit_progression': False,
+    'fit_progression': True,
     'cav': True,
     'verbose': 1,
 }
@@ -339,7 +334,7 @@ class Fault():
         d_tech_n = {0: 1.3 * 3.03726,
                     1: 1.3 * 4.45899,
                     2: 1.3 * 6.67386}
-        d_bounds_abs = {'k_e': [1., np.NaN],
+        d_bounds_abs = {'k_e': [0., np.NaN],
                         'phi_0_rel': [0., 4. * np.pi],
                         'phi_0_abs': [0., 4. * np.pi],
                         'phi_s': [-.5 * np.pi, 0.]}
@@ -353,6 +348,7 @@ class Fault():
 
         if LINAC == 'JAEA':
             d_tech_n = {0: 1.2 * 0.775356}
+            d_bounds_rel['phi_s'] = [np.NaN, 1. - .5]
 
         # Set a list of properties that will be fitted
         if FLAG_PHI_S_FIT:

@@ -37,16 +37,17 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 failed_cav = [
+    14,
     # 35,
     # 155, 157,
     # 295, 307,
-    355,
+    # 355,
     # 395,
     # 521, 523, 525, 527,
     # 583
 ]
 manual_list = [
-    [25, 27, 37, 45, 47],
+    [8, 10, 12, 23, 25, 27],
     # [145, 147, 165, 167, 175, 177, 185, 187],
     # [285, 287, 297, 305, 315, 317, 325, 327],
     # [345, 347, 357, 365, 367],
@@ -56,7 +57,7 @@ manual_list = [
     # [579, 581, 591, 593, 595, 597]
 ]
 
-FLAG_FIX = False
+FLAG_FIX = True
 SAVE_FIX = False
 
 # =============================================================================
@@ -65,7 +66,7 @@ SAVE_FIX = False
 PLOTS = [
     "energy",
     "phase",
-    # "cav",
+    "cav",
     # "emittance",
     # "twiss",
     # "enveloppes",
@@ -107,24 +108,24 @@ for plot in PLOTS:
                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
-# # Broken linac
-# broken_linac = acc.Accelerator(FILEPATH, "Broken")
-# fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
-# fail.transfer_phi0_from_ref_to_broken()
-# broken_linac.compute_transfer_matrices()
-# for plot in PLOTS:
-#     debug.compare_with_tracewin(broken_linac, x_dat="s",
-#                                 y_dat=DICT_PLOTS_PRESETS[plot][0],
-#                                 fignum=DICT_PLOTS_PRESETS[plot][1])
+# Broken linac
+broken_linac = acc.Accelerator(FILEPATH, "Broken")
+fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
+fail.transfer_phi0_from_ref_to_broken()
+broken_linac.compute_transfer_matrices()
+for plot in PLOTS:
+    debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                fignum=DICT_PLOTS_PRESETS[plot][1])
 
-# if FLAG_FIX:
-#     fail.prepare_compensating_cavities_of_all_faults(manual_list)
-#     fail.fix_all()
-#     broken_linac.compute_transfer_matrices()
-#     for plot in PLOTS:
-#         debug.compare_with_tracewin(broken_linac, x_dat="s",
-#                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
-#                                     fignum=DICT_PLOTS_PRESETS[plot][1])
+if FLAG_FIX:
+    fail.prepare_compensating_cavities_of_all_faults(manual_list)
+    fail.fix_all()
+    broken_linac.compute_transfer_matrices()
+    for plot in PLOTS:
+        debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                    fignum=DICT_PLOTS_PRESETS[plot][1])
 # Broken linac but with proper cavities status
 # fail.update_status_of_cavities_that_compensate(manual_list)
 # broken_linac.compute_transfer_matrices()
