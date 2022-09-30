@@ -180,7 +180,7 @@ def _reformat(x_data, y_data, elts_indexes):
 
 def _create_plot_dicts():
     # [label, marker]
-    dict_plot = {
+    d_plot = {
         's': ['Synch. position [m]',
               {'marker': None}],
         'elt': ['Element number',
@@ -230,13 +230,13 @@ def _create_plot_dicts():
         "envel_ener_w": [r"$\sigma_\phi$ [MeV]", {"marker": None}],
     }
 
-    dict_x_data = {
+    d_x_data = {
         's': lambda lin: lin.synch.z['abs_array'],
         'elt': lambda lin: np.array(range(lin.elements['n'])),
     }
 
     # LW y data
-    dict_y_data_lw = {
+    d_y_data_lw = {
         'energy': lambda lin: lin.synch.energy['kin_array_mev'],
         'abs_phase': lambda lin: np.rad2deg(lin.synch.phi['abs_array']),
         'beta_synch': lambda lin: lin.synch.energy['beta_array'],
@@ -268,18 +268,18 @@ def _create_plot_dicts():
         "envel_ener_w": lambda lin: lin.beam_param["enveloppes"]["w"][:, 1],
     }
 
-    dict_err_factor = {
+    d_err_factor = {
         'energy': 1,
         'abs_phase': 1.,
         'beta_synch': 1.,
     }
 
     all_dicts = {
-        'plot': dict_plot,
-        'x_data': dict_x_data,
-        'y_data_lw': dict_y_data_lw,
-        'err_factor': dict_err_factor,
-        # 'errors': dict_errors,
+        'plot': d_plot,
+        'x_data': d_x_data,
+        'y_data_lw': d_y_data_lw,
+        'err_factor': d_err_factor,
+        # 'errors': d_errors,
     }
 
     return all_dicts
@@ -302,7 +302,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
         a function of the position and 'elt' for a plot a function of the
         number of elements.
     y_dat : list of string
-        Data in y axis for each subplot. It should be in dict_y_data_lw.
+        Data in y axis for each subplot. It should be in d_y_data_lw.
     filepath_ref : string
         Path to the TW results. They should be saved in TraceWin: Data > Save
         table to file (loaded by tracewin_interface.load_tw_results).
@@ -320,7 +320,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
     elts_indexes = linac.get_from_elements('idx', 's_out')
 
     def _err(y_d, diff):
-        assert y_d in tw.dict_tw_data_table
+        assert y_d in tw.d_tw_data_table
         y_data_ref = tw.load_tw_results(filepath_ref, y_d)
         y_data = dicts['y_data_lw'][y_d](linac)[elts_indexes]
         if diff == 'abs':
@@ -331,13 +331,13 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
             err_data = dicts['err_factor'][y_d] * np.log10(y_data / y_data_ref)
         return err_data
     # Add it to the dict of y data
-    dict_errors = {
+    d_errors = {
         'energy_err': lambda lin: _err('energy', diff='log'),
         'abs_phase_err': lambda lin: _err('abs_phase', diff='log'),
         'beta_synch_err': lambda lin: _err('beta_synch', diff='abs'),
     }
-    dicts['errors'] = dict_errors
-    dicts['y_data_lw'].update(dict_errors)
+    dicts['errors'] = d_errors
+    dicts['y_data_lw'].update(d_errors)
 
     # Plot
     first_axnum = len(y_dat) * 100 + 11
@@ -365,7 +365,7 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
     else:
         # Plot TW data if it was not already done and if it is not an error
         # plot
-        if (y_d not in dicts['errors']) and (y_d in tw.dict_tw_data_table
+        if (y_d not in dicts['errors']) and (y_d in tw.d_tw_data_table
                                              ) and (
                 'TW' not in axx.get_legend_handles_labels()[1]):
             x_data_ref = dicts['x_data'][x_dat](linac)
@@ -511,7 +511,7 @@ def output_cavities(linac, out=False):
 
 
 def _create_output_fit_dicts():
-    dict_param = {
+    d_param = {
         'phi_0_rel': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                            'Fixed', 'Orig.', '(var %)')),
         'phi_0_abs': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
@@ -519,14 +519,14 @@ def _create_output_fit_dicts():
         'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                       'Fixed', 'Orig.', '(var %)')),
     }
-    dict_attribute = {
+    d_attribute = {
         'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['rel']),
         'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['abs']),
         'Norm': lambda cav: cav.acc_field.k_e,
     }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
-    dict_guess_bnds = {
+    d_guess_bnds = {
         'phi_0_rel':
             lambda f, i:
                 [np.rad2deg(f.info['bounds'][0][i]),
@@ -543,9 +543,9 @@ def _create_output_fit_dicts():
     }
 
     all_dicts = {
-        'param': dict_param,
-        'attribute': dict_attribute,
-        'guess_bnds': dict_guess_bnds,
+        'param': d_param,
+        'attribute': d_attribute,
+        'guess_bnds': d_guess_bnds,
     }
 
     return all_dicts
@@ -609,7 +609,7 @@ def output_fit_progress(count, obj, final=False):
     precision = 3
     total_width = len(obj + 1) * (single_width + precision)
 
-    dict_header = {
+    d_header = {
         'energy': ['energy'],
         'phase': ['phi'],
         'energy_phase': ['phi', 'energy'],
@@ -618,12 +618,12 @@ def output_fit_progress(count, obj, final=False):
     }
 
     if count == 0:
-        n_different_param = len(dict_header[WHAT_TO_FIT['objective']])
+        n_different_param = len(d_header[WHAT_TO_FIT['objective']])
         n_different_cavities = len(obj) // n_different_param
         print(''.center(total_width, '='))
         print(" iteration", end=' ')
         for i in range(n_different_cavities):
-            for header in dict_header[WHAT_TO_FIT['objective']]:
+            for header in d_header[WHAT_TO_FIT['objective']]:
                 print(f"{header: >{single_width}}", end=' ')
         print('\n' + ''.center(total_width, '='))
 
