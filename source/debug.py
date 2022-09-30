@@ -108,7 +108,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
                                                flag_output=False)
 
     axnumlist = range(221, 225)
-    _, axlist = helper.create_fig_if_not_exist(26, axnumlist)
+    _, axlist = helper.create_fig_if_not_exist(31, axnumlist)
     labels = {
         'TW': ['TW', '', '', ''],
         'LW': [accelerator.name, '', '', ''],
@@ -138,7 +138,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     axlist[0].legend()
 
     axlist = []
-    _, axlist = helper.create_fig_if_not_exist(260, axnumlist)
+    _, axlist = helper.create_fig_if_not_exist(310, axnumlist)
 
     for i in range(4):
         axlist[i].plot(z_err, err[:, i], label=labels['LW'][i])
@@ -604,7 +604,7 @@ def output_fit_progress(count, obj, l_label, final=False):
     """Output the evolution of the objective, etc."""
     single_width = 10
     precision = 3
-    total_width = len(obj + 1) * (single_width + precision)
+    total_width = (len(obj) + 1) * (single_width + precision)
 
     if count == 0:
         n_param = len(l_label)
@@ -622,3 +622,25 @@ def output_fit_progress(count, obj, l_label, final=False):
     print(' ')
     if final:
         print(''.center(total_width, '='))
+
+
+def plot_fit_progress(l_obj_eval, l_label):
+    """Plot the evolution of the objective functions w/ each iteration."""
+    _, axx = helper.create_fig_if_not_exist(32, [111])
+    axx = axx[0]
+
+    n_prop = len(l_label)
+    n_iter = len(l_obj_eval)
+    iteration = np.linspace(0, n_iter - 1, n_iter)
+
+    obj = np.empty([n_prop, n_iter])
+    for i in range(n_iter):
+        obj[:, i] = np.abs(l_obj_eval[i] / l_obj_eval[0])
+
+    for j, label in enumerate(l_label):
+        axx.plot(iteration, obj[j], label=label)
+    axx.grid(True)
+    axx.legend()
+    axx.set_xlabel("Iteration #")
+    axx.set_ylabel("Relative variation of error")
+    axx.set_yscale('log')

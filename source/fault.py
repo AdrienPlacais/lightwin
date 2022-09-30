@@ -33,9 +33,10 @@ N_COMP_LATT_PER_FAULT = 2
 debugs = {
     'fit_complete': False,
     'fit_compact': False,
-    'fit_progression': True,
+    'fit_progression': True,    # Print evolution of error on objectives
+    'plot_progression': True,   # Plot evolution of error on objectives
     'cav': True,
-    'verbose': 1,
+    'verbose': 0,
 }
 
 
@@ -50,7 +51,7 @@ class Fault():
                      'n_cav': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
                      'jac': None, 'l_obj_label': [], 'l_prop_label': [],
-                     'resume': None}
+                     'resume': None, 'l_obj_evaluations': []}
         self.count = None
 
         # We directly break the proper cavities
@@ -82,6 +83,10 @@ class Fault():
         elif OPTI_METHOD == 'PSO':
             flag_success, opti_sol = self._proper_fix_pso(
                 initial_guesses, bounds, wrapper_args, phi_s_limits)
+
+        if debugs['plot_progression']:
+            debug.plot_fit_progress(self.info['l_obj_evaluations'],
+                                    l_obj_label)
 
         return flag_success, opti_sol
 
@@ -570,6 +575,8 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     if debugs['fit_progression'] and fault.count % 20 == 0:
         debug.output_fit_progress(fault.count, arr_objective,
                                   fault.info["l_obj_label"])
+    if debugs['plot_progression']:
+        fault.info['l_obj_evaluations'].append(arr_objective)
     fault.count += 1
 
     return arr_objective
@@ -587,7 +594,9 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
         debug.output_fit_progress(fault.count, arr_objective,
-                                 fault.info["l_obj_label"])
+                                  fault.info["l_obj_label"])
+    if debugs['plot_progression']:
+        fault.info['l_obj_evaluations'].append(arr_objective)
     fault.count += 1
 
     return arr_objective, d_results
