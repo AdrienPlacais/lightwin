@@ -64,7 +64,6 @@ class Fault():
         l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
 
         fun_residual, l_obj_label = _select_objective(WHAT_TO_FIT['objective'])
-        # l_obj_label = _set_labels(WHAT_TO_FIT['objective'])
 
         # Save some data for debug and output purposes
         self.info['initial_guesses'] = initial_guesses
@@ -121,7 +120,8 @@ class Fault():
                      args=wrapper_args, **kwargs)
 
         if debugs['fit_progression']:
-            debug.output_fit_progress(self.count, sol.fun, final=True)
+            debug.output_fit_progress(self.count, sol.fun,
+                                      self.info["l_obj_label"], final=True)
 
         print(f"""\nmessage: {sol.message}\nnfev: {sol.nfev}\tnjev: {sol.njev}
               \noptimality: {sol.optimality}\nstatus: {sol.status}\t
@@ -568,7 +568,8 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     arr_objective = fun_residual(fault.ref_lin, d_results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, arr_objective)
+        debug.output_fit_progress(fault.count, arr_objective,
+                                  fault.info["l_obj_label"])
     fault.count += 1
 
     return arr_objective
@@ -585,7 +586,8 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
     arr_objective = fun_residual(fault.ref_lin, d_results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, arr_objective)
+        debug.output_fit_progress(fault.count, arr_objective,
+                                 fault.info["l_obj_label"])
     fault.count += 1
 
     return arr_objective, d_results

@@ -37,7 +37,7 @@ not_an_element = ['LATTICE', 'FREQ']
 
 # Dict of data that can be imported from TW's "Data" table.
 # More info in load_tw_results
-dict_tw_data_table = {
+d_tw_data_table = {
     'v_cav_mv': 6,
     'input_phase': 7,
     'synch_phase': 8,
@@ -213,7 +213,7 @@ def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
     """Create a new dat containing the new linac settings."""
     idx_elt = 0
 
-    dict_phi = {
+    d_phi = {
         True: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['abs'])), '1'],
         False: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['rel'])), '0']
     }
@@ -224,9 +224,9 @@ def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
 
         if line[0] == 'FIELD_MAP':
             elt = l_elts[idx_elt]
-            line[3] = dict_phi[FLAG_PHI_ABS](elt)[0]
+            line[3] = d_phi[FLAG_PHI_ABS](elt)[0]
             line[6] = str(elt.acc_field.norm)
-            line[10] = dict_phi[FLAG_PHI_ABS](elt)[1]
+            line[10] = d_phi[FLAG_PHI_ABS](elt)[1]
 
         idx_elt += 1
 
@@ -241,7 +241,7 @@ def load_tw_results(filepath, prop):
         Path to results file. It must be saved from TraceWin:
             Data > Save table to file.
     prop: string
-        Name of the desired property. Must be in dict_property.
+        Name of the desired property. Must be in d_property.
 
     Return
     ------
@@ -256,7 +256,7 @@ def load_tw_results(filepath, prop):
         filepath = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
 
-    idx = dict_tw_data_table[prop]
+    idx = d_tw_data_table[prop]
 
     data_ref = []
     with open(filepath) as file:

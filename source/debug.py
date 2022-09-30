@@ -519,6 +519,7 @@ def _create_output_fit_dicts():
         'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                       'Fixed', 'Orig.', '(var %)')),
     }
+    # TODO : no entry for phi_s?
     d_attribute = {
         'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['rel']),
         'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['abs']),
@@ -528,18 +529,14 @@ def _create_output_fit_dicts():
     # reference cavities
     d_guess_bnds = {
         'phi_0_rel':
-            lambda f, i:
-                [np.rad2deg(f.info['bounds'][0][i]),
-                 np.rad2deg(f.info['bounds'][1][i])
-                 ],
+            lambda f, i: [np.rad2deg(f.info['bounds'][0][i]),
+                          np.rad2deg(f.info['bounds'][1][i])],
         'phi_0_abs':
-            lambda f, i:
-                [np.rad2deg(f.info['bounds'][0][i]),
-                 np.rad2deg(f.info['bounds'][1][i])],
+            lambda f, i: [np.rad2deg(f.info['bounds'][0][i]),
+                          np.rad2deg(f.info['bounds'][1][i])],
         'Norm':
-            lambda f, i:
-                [f.info['bounds'][0][i + len(f.comp['l_cav'])],
-                 f.info['bounds'][1][i + len(f.comp['l_cav'])]]
+            lambda f, i: [f.info['bounds'][0][i + len(f.comp['l_cav'])],
+                          f.info['bounds'][1][i + len(f.comp['l_cav'])]]
     }
 
     all_dicts = {
@@ -603,27 +600,19 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
     return dicts['param']
 
 
-def output_fit_progress(count, obj, final=False):
+def output_fit_progress(count, obj, l_label, final=False):
     """Output the evolution of the objective, etc."""
     single_width = 10
     precision = 3
     total_width = len(obj + 1) * (single_width + precision)
 
-    d_header = {
-        'energy': ['energy'],
-        'phase': ['phi'],
-        'energy_phase': ['phi', 'energy'],
-        'transfer_matrix': ['M_11', 'M_12', 'M_21', 'M_22'],
-        'all': ['phi', 'energy', 'M_11', 'M_12', 'M_21', 'M_22']
-    }
-
     if count == 0:
-        n_different_param = len(d_header[WHAT_TO_FIT['objective']])
-        n_different_cavities = len(obj) // n_different_param
+        n_param = len(l_label)
+        n_cav = len(obj) // n_param
         print(''.center(total_width, '='))
         print(" iteration", end=' ')
-        for i in range(n_different_cavities):
-            for header in d_header[WHAT_TO_FIT['objective']]:
+        for i in range(n_cav):
+            for header in l_label:
                 print(f"{header: >{single_width}}", end=' ')
         print('\n' + ''.center(total_width, '='))
 

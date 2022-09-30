@@ -83,10 +83,10 @@ SAVES = [
 DICT_PLOTS_PRESETS = {
     "energy": [["energy", "energy_err", "struct"], 21],
     "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
-    "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
-    "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
-    "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
-    "enveloppes": [["envel_pos_w", "envel_ener_w", "struct"], 26],
+    # "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
+    # "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
+    # "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
+    # "enveloppes": [["envel_pos_w", "envel_ener_w", "struct"], 26],
 }
 
 DICT_SAVES = {
