@@ -9,6 +9,7 @@ TODO ellipse plot could be better
 """
 from os import listdir
 import matplotlib.pyplot as plt
+import matplotlib.transforms as mtransforms
 import numpy as np
 from scipy.interpolate import interp1d
 import pandas as pd
@@ -386,21 +387,33 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
         # We do not replot Working and Broken linac every time, unless this
         # flag is set to True
         flag_replot = False
-        # We do not allow the broken linac plot to change the axis limits
-        scaley = True
-        if linac.name == 'Broken':
-            scaley = False
 
         if flag_replot \
            or linac.name not in ['Working', 'Broken'] \
            or label not in axx.get_legend_handles_labels()[1]:
-            axx.plot(x_data, y_data, label=label, ls='-', scaley=scaley,
+            axx.plot(x_data, y_data, label=label, ls='-',
                      **dicts['plot'][y_d][1])
-                # (not (linac.name in ['Working', 'Broken']
-                      # and label in axx.get_legend_handles_labels()[1])):
 
-        axx.autoscale_view(scaley=scaley)
-        plt.show()
+        # If there is at least one 'Fixed' plot, we set the ylims ignoring
+        # the 'Broken' plot
+        if 'Fixed' in linac.name:
+            lines_labels = axx.get_legend_handles_labels()
+            try:
+                idx_to_ignore = lines_labels[1].index('LW Broken')
+                lines_labels[0].pop(idx_to_ignore)
+            except ValueError:
+                pass
+            _autoscale_based_on(axx, lines_labels[0])
+
+    plt.show()
+
+
+def _autoscale_based_on(axx, lines):
+    axx.dataLim = mtransforms.Bbox.unit()
+    for line in lines:
+        datxy = np.vstack(line.get_data()).T
+        axx.dataLim.update_from_data_xy(datxy, ignore=False)
+    axx.autoscale_view()
 
 
 # TODO: move dicts into the function dedicated to dicts creation
