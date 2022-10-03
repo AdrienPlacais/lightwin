@@ -404,8 +404,7 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
             except ValueError:
                 pass
             _autoscale_based_on(axx, lines_labels[0])
-
-    plt.show()
+        # FIXME does not work on plots without legend...
 
 
 def _autoscale_based_on(axx, lines):

@@ -49,10 +49,6 @@ elif LINAC == "JAEA":
     SIGMA_ZDELTA = np.array(([1.6062234e-06, -2.7681764e-08],
                              [-2.7681764e-08, 3.8462377e-08]))
 
-if abs(I_MILLI_A) > 1e-10:
-    print("constants.py warning: I_MILLI_A is not zero, but LW does not take",
-          "space charge forces into account.")
-
 # =============================================================================
 # Simulation constants -- user interface
 # =============================================================================
@@ -98,8 +94,11 @@ WHAT_TO_FIT = {
     # =========================================================================
     #     How compensating cavities are chosen?
     # =========================================================================
-    'strategy': 'manual',
-    # 'strategy': 'neighbors',
+    # 'strategy': 'manual',
+    'strategy': 'k out of n',
+    'k': 6,
+    # 'strategy': 'l neighboring lattices',
+    'l': 2,
     # =========================================================================
     #     What should we fit?
     # =========================================================================

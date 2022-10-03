@@ -27,6 +27,7 @@ import PSO as pso
 from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT,\
     LINAC
 import debug
+from helper import printc
 
 
 N_COMP_LATT_PER_FAULT = 2
@@ -165,35 +166,36 @@ class Fault():
 
         return True, opti_sol
 
-    def select_neighboring_cavities(self):
-        """
-        Select the cavities neighboring the failed one(s).
+    def _select_neighboring_cavities(self, n_comp_per_fault):
+        """Select the cavities neighboring the failed one(s). """
+        assert n_comp_per_fault % 2 == 0, "Need an even number of" \
+            + " compensating cavities per fault."
 
-        More precisely:
-        Select the lattices with comp cav, extract cavities from it.
+        l_all_cav = self.brok_lin.elements_of(nature='FIELD_MAP')
+        l_idx_faults = [l_all_cav.index(faulty_cav)
+                        for faulty_cav in self.fail['l_cav']]
 
-        As for now, N_COMP_LATT_PER_FAULT is the number of compensating
-        lattices per faulty cavity. This number is however too high for
-        MYRRHA's third section.
+        n_faults = len(self.fail['l_cav'])
+        half_n_comp = int(n_faults * n_comp_per_fault / 2)
+        l_comp_cav = l_all_cav[l_idx_faults[0] - half_n_comp:
+                               l_idx_faults[-1] + half_n_comp + 1]
 
-        # TODO: get this function out of the Class?
-        Would be better for consistency w/ manual list
-        Required arguments:
-            l_lattices from brok_lin.elements['l_sections'] list of lattices
-            list of elements of brok_lin
-            index in lattice reference
-            self.fail['l_idx'] indexes of failed cavities
+        if len(l_comp_cav) > n_faults * (n_comp_per_fault + 1):
+            printc("fault._select_neighboring_cavities warning: ",
+                   opt_message="the faults are probably not contiguous."
+                   + " Cavities between faulty cavities will be used for"
+                   + " compensation, thus increasing the number of"
+                   + " compensating cavites per fault.")
+        return l_comp_cav
 
-        Return
-        ------
-        l_comp_cav : list
-            List of the cavities (_Element object) used for compensation.
-        """
+    def _select_neighboring_lattices(self, n_lattices_per_fault):
+        """Select full lattices neighboring the failed cavities."""
+        assert n_lattices_per_fault % 2 == 0, "Need an even number of" \
+            + " compensating lattices per fault."
         comp_lattices_idx = []
         l_lattices = [lattice
                       for section in self.brok_lin.elements['l_sections']
-                      for lattice in section
-                      ]
+                      for lattice in section]
         # Get lattices neighboring each faulty cavity
         # FIXME: too many lattices for faults in Section 3
         for idx in self.fail['l_idx']:
@@ -241,10 +243,12 @@ class Fault():
         new_status = "compensate (in progress)"
 
         # Create a list of cavities that will compensate
-        if strategy == 'neighbors':
-            l_comp_cav = self.select_neighboring_cavities()
+        if strategy == 'k out of n':
+            l_comp_cav = self._select_neighboring_cavities(WHAT_TO_FIT['k'])
+        elif strategy == 'l neighboring lattices':
+            l_comp_cav = self._select_neighboring_lattices(WHAT_TO_FIT['l'])
         elif strategy == 'manual':
-            assert len(l_comp_idx) > 0, "A list of compensating cavities" \
+            assert len(l_comp_idx) > 0, "A list of compensating cavities " \
                 + "is required with WHAT_TO_FIT['strategy'] == 'manual'."
             l_comp_cav = [self.brok_lin.elements['list'][idx]
                           for idx in l_comp_idx]
@@ -596,3 +600,55 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
     fault.count += 1
 
     return arr_objective, d_results
+
+
+def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
+    """Select the cavities neighboring the failed one(s). """
+    assert n_comp_per_fault % 2 == 0, "Need an even number of compensating" \
+            + " cavities per fault."
+    l_all_cav = lin.elements_of(nature='FIELD_MAP')
+    l_idx_faults = [l_all_cav.index(faulty_cav)
+                    for faulty_cav in l_faulty_cav]
+
+    n_faults = len(l_faulty_cav)
+    half_n_comp = int(n_faults * n_comp_per_fault / 2)
+    l_comp_cav = l_all_cav[l_idx_faults[0] - half_n_comp:
+                           l_idx_faults[-1] + half_n_comp + 1]
+
+    if len(l_comp_cav) > n_faults * (n_comp_per_fault + 1):
+        printc("fault._select_neighboring_cavities warning: ",
+               opt_message="the faults are probably not contiguous."
+               + " Cavities between faulty cavities will be used for"
+               + " compensation, thus increasing the number of"
+               + " compensating cavites per fault.")
+    return l_comp_cav
+
+
+def neighboring_lattices(lin, l_faulty_cav, n_lattices_per_fault):
+    """Select full lattices neighboring the failed cavities."""
+    assert n_lattices_per_fault % 2 == 0, "Need an even number of" \
+        + " compensating lattices per fault."
+    # List of all lattices
+    l_all_latt = [lattice
+                  for section in lin.elements['l_sections']
+                  for lattice in section]
+    # List of lattices with a fault
+    l_faulty_latt = [lattice
+                     for faulty_cav in l_faulty_cav
+                     for lattice in l_all_latt
+                     if faulty_cav in lattice]
+    # Index of these faulty lattices
+    l_idx_faulty_latt = [l_all_latt.index(faulty_lattice)
+                         for faulty_lattice in l_faulty_latt]
+
+    half_n_latt = int(len(l_faulty_cav) * n_lattices_per_fault / 2)
+    # List of compensating lattices
+    l_comp_latt = l_all_latt[l_idx_faulty_latt[0] - half_n_latt:
+                             l_idx_faulty_latt[-1] + half_n_latt + 1]
+
+    # List of cavities in the compensating lattices
+    l_comp_cav = [element
+                  for lattice in l_comp_latt
+                  for element in lattice
+                  if element.info['nature'] == 'FIELD_MAP']
+    return l_comp_cav

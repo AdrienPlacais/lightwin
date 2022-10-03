@@ -18,6 +18,7 @@ import time
 from datetime import timedelta
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from constants import I_MILLI_A
 import accelerator as acc
 import debug
 import helper
@@ -37,7 +38,7 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 failed_cav = [
-    14,
+    108,
     # 35,
     # 155, 157,
     # 295, 307,
@@ -65,15 +66,13 @@ SAVE_FIX = False
 # =============================================================================
 PLOTS = [
     "energy",
-    "phase",
-    "cav",
+    # "phase",
+    # "cav",
     # "emittance",
     # "twiss",
-    "enveloppes",
+    # "enveloppes",
 ]
 PLOT_TM = False
-PHASE_SPACE = False
-TWISS = False
 
 SAVES = [
     "energy phase and mt",
@@ -90,9 +89,14 @@ DICT_PLOTS_PRESETS = {
 }
 
 DICT_SAVES = {
-    "energy phase and mt": lambda lin: helper.save_energy_phase_tm(lin),
-    "Vcav and phis": lambda lin: helper.save_vcav_and_phis(lin),
+    "energy phase and mt": helper.save_energy_phase_tm,
+    "Vcav and phis": helper.save_vcav_and_phis,
 }
+
+if abs(I_MILLI_A) > 1e-10:
+    helper.printc("main.py warning: ", opt_message="I_MILLI_A is not zero," +
+                  "but LW does not take space charge forces into account.")
+
 
 # =============================================================================
 # Start

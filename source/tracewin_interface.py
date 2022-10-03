@@ -13,6 +13,7 @@ import numpy as np
 from constants import FLAG_PHI_ABS, FLAG_CYTHON, F_BUNCH_MHZ
 from electric_field import load_field_map_file
 import elements
+from helper import printc
 
 try:
     import transfer_matrices_c as tm_c
@@ -164,8 +165,9 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
                         if line[0] == 'FIELD_MAP_PATH']
 
     if len(field_map_folder) == 0:
-        print("tracewin_interface warning: No field map folder specified. "
-              "Assuming that field maps are in the same folder as the .dat")
+        printc("tracewin_interface warning: ", opt_message="No field map" +
+               " folder specified. Assuming that field maps are in the same" +
+               " folder as the .dat")
         field_map_folder = os.path.dirname(dat_filepath)
 
     elif len(field_map_folder) > 1:
