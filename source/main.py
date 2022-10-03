@@ -28,8 +28,8 @@ import fault_scenario as mod_fs
 # Select .dat file
 Tk().withdraw()
 
-FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-# FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
+# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -37,11 +37,11 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 failed_cav = [
-    # 14,
+    14,
     # 35,
     # 155, 157,
     # 295, 307,
-    355,
+    # 355,
     # 395,
     # 521, 523, 525, 527,
     # 583
@@ -58,7 +58,7 @@ manual_list = [
 ]
 
 FLAG_FIX = True
-SAVE_FIX = False
+SAVE_FIX = True
 
 # =============================================================================
 # Outputs
@@ -69,7 +69,7 @@ PLOTS = [
     "cav",
     # "emittance",
     # "twiss",
-    # "enveloppes",
+    "enveloppes",
 ]
 PLOT_TM = False
 PHASE_SPACE = False
@@ -139,8 +139,8 @@ if PLOT_TM:
 #     for save in SAVES:
 #         DICT_SAVES[save](lin)
 
-#         if SAVE_FIX:
-#             tw.save_new_dat(broken_linac, FILEPATH)
+if SAVE_FIX:
+    tw.save_new_dat(broken_linac, FILEPATH)
 #         # Redo this whole loop with a fixed linac
 #         linacs.append(broken_linac)
 
@@ -158,8 +158,8 @@ if DEBUT_ELLIPSE:
         for lin in [ref_linac]:#, broken_linac]:
             debug.plot_ellipse_emittance(axx[i], lin, j)
 
-# data_ref = tw.output_data_in_tw_fashion(ref_linac)
-# data_fixed = tw.output_data_in_tw_fashion(broken_linac)
+data_ref = tw.output_data_in_tw_fashion(ref_linac)
+data_fixed = tw.output_data_in_tw_fashion(broken_linac)
 # fault_info = fail.faults['l_obj'][0].info
 
 DEBUG_EMITT = False

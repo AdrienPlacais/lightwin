@@ -25,7 +25,7 @@ import numpy as np
 from scipy.optimize import minimize, least_squares
 import PSO as pso
 from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT,\
-        LINAC
+    LINAC
 import debug
 
 
@@ -245,7 +245,7 @@ class Fault():
             l_comp_cav = self.select_neighboring_cavities()
         elif strategy == 'manual':
             assert len(l_comp_idx) > 0, "A list of compensating cavities" \
-                    + "is required with WHAT_TO_FIT['strategy'] == 'manual'."
+                + "is required with WHAT_TO_FIT['strategy'] == 'manual'."
             l_comp_cav = [self.brok_lin.elements['list'][idx]
                           for idx in l_comp_idx]
 
@@ -253,27 +253,26 @@ class Fault():
         # compensate another fault, update status of comp cav
         for cav in l_comp_cav:
             current_status = cav.info['status']
-            assert current_status != new_status, """Current cavity already has
-            the status that you asked for. Maybe two faults want the same
-            cavity for their compensation?"""
+            assert current_status != new_status, "Current cavity already has" \
+                + " the status that you asked for. Maybe two faults want the" \
+                + " same cavity for their compensation?"
 
             # If the cavity is broken, we do not want to change it's status
             if current_status == 'failed':
                 continue
 
             if current_status in ["compensate (ok)", "compensate (not ok)"]:
-                print("""Warning! You want to update the status of a cavity
-                      that is already used for compensation. Check
-                      fault.set_compensating_cavities. Maybe two faults
-                      want to use the same cavity for compensation?""")
+                print("Warning! You want to update the status of a cavity",
+                      "that is already used for compensation. Check",
+                      "fault.set_compensating_cavities. Maybe two faults",
+                      "want to use the same cavity for compensation?")
 
             cav.update_status(new_status)
             self.comp['l_cav'].append(cav)
 
         self.comp['n_cav'] = len(self.comp['l_cav'])
 
-        # Also create a list of all the elements in the compensating
-        # lattices
+        # Also create a list of all the elements in the compensating lattices
         l_lattices = [lattice
                       for section in self.brok_lin.elements['l_sections']
                       for lattice in section]
@@ -326,6 +325,8 @@ class Fault():
                     'phi_0_rel': lambda ref_value: 0.,
                     'phi_0_abs': lambda ref_value: 0.,
                     'phi_s': lambda ref_value: ref_value}
+        # Maximum electric field, set as 30% above the section's max electric
+        # field
         d_tech_n = {0: 1.3 * 3.03726,
                     1: 1.3 * 4.45899,
                     2: 1.3 * 6.67386}
@@ -342,7 +343,11 @@ class Fault():
                         'phi_s': r'$\varphi_s$'}
 
         if LINAC == 'JAEA':
-            d_tech_n = {0: 1.2 * 0.775356}
+            # In Bruce's paper, the maximum electric field is 20% above the
+            # nominal electric field (not a single limit for each section as in
+            # MYRRHA)
+            d_tech_n = {0: np.NaN}
+            d_bounds_rel['k_e'] = [.5, 1.2]
             d_bounds_rel['phi_s'] = [np.NaN, 1. - .5]
 
         # Set a list of properties that will be fitted
@@ -366,7 +371,8 @@ class Fault():
                 b_down = np.nanmax((d_bounds_abs[prop][0],
                                     d_bounds_rel[prop][0] * ref_value))
                 if prop == 'k_e':
-                    b_up = d_tech_n[cav.idx['section'][0]]
+                    b_up = np.nanmin((d_tech_n[cav.idx['section'][0]],
+                                      d_bounds_rel[prop][1] * ref_value))
                 else:
                     b_up = np.nanmin((d_bounds_abs[prop][1],
                                       d_bounds_rel[prop][1] * ref_value))

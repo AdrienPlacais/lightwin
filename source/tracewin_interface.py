@@ -225,7 +225,7 @@ def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
         if line[0] == 'FIELD_MAP':
             elt = l_elts[idx_elt]
             line[3] = d_phi[FLAG_PHI_ABS](elt)[0]
-            line[6] = str(elt.acc_field.norm)
+            line[6] = str(elt.acc_field.k_e)
             line[10] = d_phi[FLAG_PHI_ABS](elt)[1]
 
         idx_elt += 1

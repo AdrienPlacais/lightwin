@@ -22,8 +22,8 @@ Q_ADIM = 1.
 
 # Warning, fit parameters that can change between the two linacs are also set
 # in fault._set_fit_parameters
-LINAC = "MYRRHA"
-# LINAC = "JAEA"
+# LINAC = "MYRRHA"
+LINAC = "JAEA"
 
 # =============================================================================
 # MYRRHA
@@ -61,7 +61,7 @@ if abs(I_MILLI_A) > 1e-10:
 # though !!).
 # If False, cavities keep their relative phi_0; all cavities after the first
 # modified cavity change their status to 'rephased'.
-FLAG_PHI_ABS = False
+FLAG_PHI_ABS = True
 
 # Fit performed over phi_s?
 FLAG_PHI_S_FIT = True
@@ -98,17 +98,17 @@ WHAT_TO_FIT = {
     # =========================================================================
     #     How compensating cavities are chosen?
     # =========================================================================
-    # 'strategy': 'manual',
-    'strategy': 'neighbors',
+    'strategy': 'manual',
+    # 'strategy': 'neighbors',
     # =========================================================================
     #     What should we fit?
     # =========================================================================
     'objective': [
         'energy',
         'phase',
-        # 'eps', 'twiss_beta', 'twiss_gamma', # 'twiss_alpha',
-        'M_11', 'M_12', 'M_22',  # 'M_21',
-        # 'mismatch_factor',
+        # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
+        # 'M_11', 'M_12', 'M_22',  # 'M_21',
+        'mismatch_factor',
     ],
     # =========================================================================
     #     Where should we evaluate objective?
