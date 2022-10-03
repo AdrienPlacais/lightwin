@@ -15,7 +15,6 @@ import pandas as pd
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
 import helper
-from constants import WHAT_TO_FIT
 import tracewin_interface as tw
 
 font = {'family': 'serif',
@@ -383,15 +382,25 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
         # ** (**kwargs) unpacks it to:
         # marker='+', linewidth=5
         label = 'LW ' + linac.name
-        if not (linac.name in ['Working', 'Broken']
-                and label in axx.get_legend_handles_labels()[1]):
-            axx.plot(x_data, y_data, label=label, ls='-',
+
+        # We do not replot Working and Broken linac every time, unless this
+        # flag is set to True
+        flag_replot = False
+        # We do not allow the broken linac plot to change the axis limits
+        scaley = True
+        if linac.name == 'Broken':
+            scaley = False
+
+        if flag_replot \
+           or linac.name not in ['Working', 'Broken'] \
+           or label not in axx.get_legend_handles_labels()[1]:
+            axx.plot(x_data, y_data, label=label, ls='-', scaley=scaley,
                      **dicts['plot'][y_d][1])
-        # To plot data even if one plot called 'Working' or 'Broken' already
-        # exist:
-        else:
-            axx.plot(x_data, y_data, label=label, ls='-',
-                     **dicts['plot'][y_d][1])
+                # (not (linac.name in ['Working', 'Broken']
+                      # and label in axx.get_legend_handles_labels()[1])):
+
+        axx.autoscale_view(scaley=scaley)
+        plt.show()
 
 
 # TODO: move dicts into the function dedicated to dicts creation

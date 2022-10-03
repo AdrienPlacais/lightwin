@@ -58,7 +58,7 @@ manual_list = [
 ]
 
 FLAG_FIX = True
-SAVE_FIX = True
+SAVE_FIX = False
 
 # =============================================================================
 # Outputs
