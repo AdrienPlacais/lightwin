@@ -138,7 +138,7 @@ class FaultScenario():
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
 
-    def _gather_and_create_fault_objects(self, l_fault_idx):
+    def _gather_and_create_fault_objects_old(self, l_fault_idx):
         """
         Gather faults in the same or neighboring lattices, create Faults.
 
@@ -184,31 +184,31 @@ class FaultScenario():
             )
         return l_faults_obj
 
-    def gatherbis(self, l_fault_idx):
+    def _gather_and_create_fault_objects(self, l_fault_idx):
         """Gather faults that are close to each other, create Faults."""
         lin = self.brok_lin
         l_faulty_cav = [lin.elements['list'][idx]
                         for idx in l_fault_idx]
-        assert all([elem.info['nature'] == 'FIELD_MAP'
-                    for elem in l_faulty_cav
-                   ]), 'Not all failed cavities that you asked are cavities.'
+        assert all(elem.info['nature'] == 'FIELD_MAP'
+                   for elem in l_faulty_cav), \
+            'Not all failed cavities that you asked are cavities.'
 
         d_comp_cav = {
-            'k out of n': lambda l_cav: mod_f.neighboring_cavities(
-                lin, l_cav, WHAT_TO_FIT['k']),
-            'l neighboring lattices': lambda l_cav: mod_f.neighboring_lattices(
-                lin, l_cav, WHAT_TO_FIT['l']),
+            'k out of n': lambda l_cav:
+                mod_f.neighboring_cavities(lin, l_cav, WHAT_TO_FIT['k']),
+            'l neighboring lattices': lambda l_cav:
+                mod_f.neighboring_lattices(lin, l_cav, WHAT_TO_FIT['l']),
         }
 
         # List of list of faults indexes
         l_to_be_gathered_idx_faults = [[idx] for idx in l_fault_idx]
+        print(l_to_be_gathered_idx_faults)
         # List of list of corresp. faulty cavities
         l_gathered_faults = [[lin.elements['list'][idx]
                               for idx in l_idx]
                              for l_idx in l_to_be_gathered_idx_faults]
         flag_gathered = False
         r_comb = 2
-        print(l_to_be_gathered_idx_faults)
 
         while not flag_gathered:
             # List of list of corresp. compensating cavities
@@ -218,21 +218,22 @@ class FaultScenario():
             # Set a counter to exit the 'for' loop when all faults are gathered
             i = 0
             n_comb = len(l_gathered_comp)
-            i_max = math.factorial(n_comb) / (math.factorial(r_comb)
-                                              * math.factorial(n_comb -
-                                                               r_comb))
+            if n_comb <= 1:
+                flag_gathered = True
 
-            # Now we look every list of required compensating cavities, and look
-            # for faults that require the same compensating cavities
-            for l_comp1, l_comp2 in itertools.combinations(l_gathered_comp,
-                                                           r_comb):
+            i_max = int(math.factorial(n_comb) / (
+                math.factorial(r_comb) * math.factorial(n_comb - r_comb)))
+
+            # Now we look every list of required compensating cavities, and
+            # look for faults that require the same compensating cavities
+            for ((idx1, l_comp1), (idx2, l_comp2)) \
+                in itertools.combinations(enumerate(l_gathered_comp),
+                                          r_comb):
                 i += 1
                 common_cav = list(set(l_comp1) & set(l_comp2))
                 # If at least one cavity on common, gather the two
                 # corresponding fault and restart the whole process
                 if len(common_cav) > 0:
-                    idx1 = l_gathered_comp.index(l_comp1)
-                    idx2 = l_gathered_comp.index(l_comp2)
                     l_to_be_gathered_idx_faults[idx1].extend(
                         l_to_be_gathered_idx_faults.pop(idx2))
                     l_gathered_faults[idx1].extend(
@@ -250,8 +251,13 @@ class FaultScenario():
         # l_gathered_faults, l_comp_cav.
         # Here I will return the list of indexes for now, but it is useless I
         # think, I could do everything without it.
+        l_faults_obj = []
         print(l_to_be_gathered_idx_faults)
-
+        for f_idx in l_to_be_gathered_idx_faults:
+            l_faults_obj.append(
+                mod_f.Fault(self.ref_lin, self.brok_lin, f_idx)
+            )
+        return l_faults_obj
 
     def prepare_compensating_cavities_of_all_faults(self, l_comp_idx):
         """Call fault.prepare_cavities_for_compensation."""
