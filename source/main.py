@@ -47,16 +47,6 @@ failed_cav = [
     # 521, 523, 525, 527,
     # 583
 ]
-manual_list = [
-    [8, 10, 12, 23, 25, 27],
-    # [145, 147, 165, 167, 175, 177, 185, 187],
-    # [285, 287, 297, 305, 315, 317, 325, 327],
-    # [345, 347, 357, 365, 367],
-    # [385, 387, 397, 399, 401],
-    # [493, 495, 497, 499, 507, 509, 511, 513,
-    # 535, 537, 539, 541, 549, 551, 553, 555],
-    # [579, 581, 591, 593, 595, 597]
-]
 
 FLAG_FIX = True
 SAVE_FIX = False
@@ -123,7 +113,7 @@ for plot in PLOTS:
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
 if FLAG_FIX:
-    fail.prepare_compensating_cavities_of_all_faults(manual_list)
+    fail.prepare_compensating_cavities_of_all_faults()
     fail.fix_all()
     broken_linac.compute_transfer_matrices()
     for plot in PLOTS:

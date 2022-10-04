@@ -35,9 +35,11 @@ class FaultScenario():
 
         # Save faults as a list of Fault objects and as a list of cavity idx
         l_fault_idx = sorted(l_fault_idx)
+        l_obj, l_comp_cav = self._gather_and_create_fault_objects(l_fault_idx)
         self.faults = {
-            'l_obj': self._gather_and_create_fault_objects(l_fault_idx),
-            'l_idx': l_fault_idx
+            'l_obj': l_obj,
+            'l_idx': l_fault_idx,
+            'l_comp': l_comp_cav,
         }
 
         self.info = {'fit': None}
@@ -251,31 +253,29 @@ class FaultScenario():
         # Here I will return the list of indexes for now, but it is useless I
         # think, I could do everything without it.
         l_faults_obj = []
-        for f_idx in l_to_be_gathered_idx_faults:
+        for f_cav in l_gathered_faults:
             l_faults_obj.append(
-                mod_f.Fault(self.ref_lin, self.brok_lin, f_idx)
+                mod_f.Fault(self.ref_lin, self.brok_lin, f_cav)
             )
-        return l_faults_obj
+        return l_faults_obj, l_gathered_comp
 
-    def prepare_compensating_cavities_of_all_faults(self, l_comp_idx):
+    def prepare_compensating_cavities_of_all_faults(self):
         """Call fault.prepare_cavities_for_compensation."""
+        # FIXME should be moved into the function that regroups the faults
         if WHAT_TO_FIT['strategy'] == 'manual':
-            msg = "There should be a list of compensating cavities for" \
-                  + "every fault."
-            assert len(l_comp_idx) == len(self.faults['l_obj']), msg
+            l_comp_idx = WHAT_TO_FIT['manual list']
+            assert len(l_comp_idx) == len(self.faults['l_obj']), "There" \
+                    + " should be a list of compensating cavities for every" \
+                    + " fault."
+            l_comp_cav = [[self.brok_lin.elements['list'][idx]
+                           for idx in l_idx]
+                          for l_idx in l_comp_idx]
+        else:
+            l_comp_cav = self.faults['l_comp']
 
-        # l_comp_idx is a list containing the list of faulty cavities indexes
-        # for every Fault.
-        # We extract sub_l_comp_idx, the list of faulty cavities indexes for
-        # the current Fault
-        for fault_idx, fault_obj in enumerate(self.faults['l_obj']):
-            try:
-                sub_l_comp_idx = l_comp_idx[fault_idx]
-            except IndexError:
-                sub_l_comp_idx = None
-
-            fault_obj.prepare_cavities_for_compensation(
-                WHAT_TO_FIT['strategy'], sub_l_comp_idx)
+        for fault, comp_cav in zip(self.faults['l_obj'], l_comp_cav):
+            fault.prepare_cavities_for_compensation(WHAT_TO_FIT['strategy'],
+                                                    comp_cav)
 
     def _update_status_of_cavities_to_rephase(self):
         """

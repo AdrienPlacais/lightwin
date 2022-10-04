@@ -44,10 +44,10 @@ debugs = {
 class Fault():
     """A class to hold one or several close Faults."""
 
-    def __init__(self, ref_lin, brok_lin, fail_idx):
+    def __init__(self, ref_lin, brok_lin, fail_cav):
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
-        self.fail = {'l_cav': [], 'l_idx': fail_idx}
+        self.fail = {'l_cav': fail_cav, 'l_idx': None}
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
@@ -227,12 +227,13 @@ class Fault():
     def _set_broken_cavities(self):
         """Break the cavities to break."""
         # Break proper cavities
-        for idx in self.fail['l_idx']:
-            cav = self.brok_lin.elements['list'][idx]
+        # for idx in self.fail['l_idx']:
+            # cav = self.brok_lin.elements['list'][idx]
+        for cav in self.fail['l_cav']:
             cav.update_status('failed')
-            self.fail['l_cav'].append(cav)
+            # self.fail['l_cav'].append(cav)
 
-    def prepare_cavities_for_compensation(self, strategy, l_comp_idx=None):
+    def prepare_cavities_for_compensation(self, strategy, l_comp_cav):
         """
         Prepare the compensating cavities for the upcoming optimisation.
 
@@ -243,15 +244,15 @@ class Fault():
         new_status = "compensate (in progress)"
 
         # Create a list of cavities that will compensate
-        if strategy == 'k out of n':
-            l_comp_cav = self._select_neighboring_cavities(WHAT_TO_FIT['k'])
-        elif strategy == 'l neighboring lattices':
-            l_comp_cav = self._select_neighboring_lattices(WHAT_TO_FIT['l'])
-        elif strategy == 'manual':
-            assert len(l_comp_idx) > 0, "A list of compensating cavities " \
-                + "is required with WHAT_TO_FIT['strategy'] == 'manual'."
-            l_comp_cav = [self.brok_lin.elements['list'][idx]
-                          for idx in l_comp_idx]
+        # if strategy == 'k out of n':
+            # l_comp_cav = self._select_neighboring_cavities(WHAT_TO_FIT['k'])
+        # elif strategy == 'l neighboring lattices':
+            # l_comp_cav = self._select_neighboring_lattices(WHAT_TO_FIT['l'])
+        # elif strategy == 'manual':
+            # assert len(l_comp_idx) > 0, "A list of compensating cavities " \
+                # + "is required with WHAT_TO_FIT['strategy'] == 'manual'."
+            # l_comp_cav = [self.brok_lin.elements['list'][idx]
+                          # for idx in l_comp_idx]
 
         # Remove broke cavities, check if some compensating cavities already
         # compensate another fault, update status of comp cav

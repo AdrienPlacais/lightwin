@@ -95,6 +95,9 @@ WHAT_TO_FIT = {
     #     How compensating cavities are chosen?
     # =========================================================================
     # 'strategy': 'manual',
+    'manual list': [
+        [8, 10, 12, 23, 25, 27],
+    ],
     # 'strategy': 'k out of n',
     'k': 2,
     'strategy': 'l neighboring lattices',
