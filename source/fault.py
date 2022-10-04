@@ -47,7 +47,7 @@ class Fault():
     def __init__(self, ref_lin, brok_lin, fail_cav):
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
-        self.fail = {'l_cav': fail_cav, 'l_idx': None}
+        self.fail = {'l_cav': fail_cav}
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
         self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
@@ -56,7 +56,8 @@ class Fault():
         self.count = None
 
         # We directly break the proper cavities
-        self._set_broken_cavities()
+        for cav in self.fail['l_cav']:
+            cav.update_status('failed')
 
     def fix_single(self):
         """Try to compensate the faulty cavities."""
@@ -188,71 +189,15 @@ class Fault():
                    + " compensating cavites per fault.")
         return l_comp_cav
 
-    def _select_neighboring_lattices(self, n_lattices_per_fault):
-        """Select full lattices neighboring the failed cavities."""
-        assert n_lattices_per_fault % 2 == 0, "Need an even number of" \
-            + " compensating lattices per fault."
-        comp_lattices_idx = []
-        l_lattices = [lattice
-                      for section in self.brok_lin.elements['l_sections']
-                      for lattice in section]
-        # Get lattices neighboring each faulty cavity
-        # FIXME: too many lattices for faults in Section 3
-        for idx in self.fail['l_idx']:
-            failed_cav = self.brok_lin.elements['list'][idx]
-            idx_lattice = failed_cav.idx['lattice'][0]
-            for shift in [-1, +1]:
-                idx = idx_lattice + shift
-                while ((idx in comp_lattices_idx)
-                       and (idx in range(0, len(l_lattices)))):
-                    idx += shift
-                # FIXME: dirty hack
-                if abs(idx - idx_lattice) < 3:
-                    comp_lattices_idx.append(idx)
-
-                # Also add the lattice with the fault
-                if idx_lattice not in comp_lattices_idx:
-                    comp_lattices_idx.append(idx_lattice)
-
-        comp_lattices_idx.sort()
-
-        # List of compensating (+ broken) cavitites
-        l_comp_cav = [cav
-                      for idx in comp_lattices_idx
-                      for cav in l_lattices[idx]
-                      if cav.info['nature'] == 'FIELD_MAP'
-                      ]
-        return l_comp_cav
-
-    def _set_broken_cavities(self):
-        """Break the cavities to break."""
-        # Break proper cavities
-        # for idx in self.fail['l_idx']:
-            # cav = self.brok_lin.elements['list'][idx]
-        for cav in self.fail['l_cav']:
-            cav.update_status('failed')
-            # self.fail['l_cav'].append(cav)
-
-    def prepare_cavities_for_compensation(self, strategy, l_comp_cav):
+    def prepare_cavities_for_compensation(self, l_comp_cav):
         """
         Prepare the compensating cavities for the upcoming optimisation.
 
         In particular, update the status of the compensating cavities to
-        'compensate (in progress)', create list of compensating cavities,
-        create list of all elements in the compensating zone.
+        'compensate (in progress)', create list of all elements in the
+        compensating zone.
         """
         new_status = "compensate (in progress)"
-
-        # Create a list of cavities that will compensate
-        # if strategy == 'k out of n':
-            # l_comp_cav = self._select_neighboring_cavities(WHAT_TO_FIT['k'])
-        # elif strategy == 'l neighboring lattices':
-            # l_comp_cav = self._select_neighboring_lattices(WHAT_TO_FIT['l'])
-        # elif strategy == 'manual':
-            # assert len(l_comp_idx) > 0, "A list of compensating cavities " \
-                # + "is required with WHAT_TO_FIT['strategy'] == 'manual'."
-            # l_comp_cav = [self.brok_lin.elements['list'][idx]
-                          # for idx in l_comp_idx]
 
         # Remove broke cavities, check if some compensating cavities already
         # compensate another fault, update status of comp cav
@@ -267,10 +212,13 @@ class Fault():
                 continue
 
             if current_status in ["compensate (ok)", "compensate (not ok)"]:
-                print("Warning! You want to update the status of a cavity",
-                      "that is already used for compensation. Check",
-                      "fault.set_compensating_cavities. Maybe two faults",
-                      "want to use the same cavity for compensation?")
+                printc("fault.prepare_cavities_for_compensation warning: ",
+                       opt_message="you want to update the status of a" \
+                       + " cavity that is already used for compensation." \
+                       + " Check" \
+                       + "fault_scenario._gather_and_create_fault_objects." \
+                       + " Maybe two faults want to use the same cavity for" \
+                       + " compensation?")
 
             cav.update_status(new_status)
             self.comp['l_cav'].append(cav)

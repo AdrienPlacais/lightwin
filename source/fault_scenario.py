@@ -36,10 +36,9 @@ class FaultScenario():
         # Save faults as a list of Fault objects and as a list of cavity idx
         l_fault_idx = sorted(l_fault_idx)
         l_obj, l_comp_cav = self._gather_and_create_fault_objects(l_fault_idx)
-        self.faults = {
-            'l_obj': l_obj,
-            'l_idx': l_fault_idx,
-            'l_comp': l_comp_cav,
+        self.faults = {'l_obj': l_obj,
+                       'l_idx': l_fault_idx,
+                       'l_comp': l_comp_cav,
         }
 
         self.info = {'fit': None}
@@ -48,6 +47,9 @@ class FaultScenario():
         # that they must keep their relative entry phases, not their absolute
         if not FLAG_PHI_ABS:
             self._update_status_of_cavities_to_rephase()
+
+        self._prepare_compensating_cavities_of_all_faults()
+
 
     def transfer_phi0_from_ref_to_broken(self):
         """
@@ -140,51 +142,51 @@ class FaultScenario():
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
 
-    def _gather_and_create_fault_objects_old(self, l_fault_idx):
-        """
-        Gather faults in the same or neighboring lattices, create Faults.
+    # def _gather_and_create_fault_objects_old(self, l_fault_idx):
+        # """
+        # Gather faults in the same or neighboring lattices, create Faults.
 
-        Parameters
-        ----------
-        l_fault_idx : list
-            List of the indices (in linac.elements['list']) of the faulty
-            linacs.
+        # Parameters
+        # ----------
+        # l_fault_idx : list
+            # List of the indices (in linac.elements['list']) of the faulty
+            # linacs.
 
-        Return
-        ------
-        l_faults_obj : list of Faults
-            List of the Fault objects.
-        """
-        assert mod_f.N_COMP_LATT_PER_FAULT % 2 == 0, \
-            'You need an even number of compensating lattices per faulty '\
-            + 'cav to distribute them equally.'
-        assert all([
-            self.brok_lin.elements['list'][idx].info['nature'] == 'FIELD_MAP'
-            for idx in l_fault_idx
-        ]), 'Not all failed cavities that you asked are cavities.'
+        # Return
+        # ------
+        # l_faults_obj : list of Faults
+            # List of the Fault objects.
+        # """
+        # assert mod_f.N_COMP_LATT_PER_FAULT % 2 == 0, \
+            # 'You need an even number of compensating lattices per faulty '\
+            # + 'cav to distribute them equally.'
+        # assert all([
+            # self.brok_lin.elements['list'][idx].info['nature'] == 'FIELD_MAP'
+            # for idx in l_fault_idx
+        # ]), 'Not all failed cavities that you asked are cavities.'
 
-        def are_close(idx1, idx2):
-            latt1 = self.brok_lin.elements['list'][idx1].idx['lattice'][0]
-            latt2 = self.brok_lin.elements['list'][idx2].idx['lattice'][0]
-            return abs(latt1 - latt2) <= mod_f.N_COMP_LATT_PER_FAULT / 2
-        # Regroup faults that are too close to each other as they will be fixed
-        # at the same moment
-        grouped_faults_idx = [[idx1
-                               for idx1 in l_fault_idx
-                               if are_close(idx1, idx2)]
-                              for idx2 in l_fault_idx]
-        # Remove doublons
-        grouped_faults_idx = list(grouped_faults_idx
-                                  for grouped_faults_idx, _
-                                  in itertools.groupby(grouped_faults_idx))
+        # def are_close(idx1, idx2):
+            # latt1 = self.brok_lin.elements['list'][idx1].idx['lattice'][0]
+            # latt2 = self.brok_lin.elements['list'][idx2].idx['lattice'][0]
+            # return abs(latt1 - latt2) <= mod_f.N_COMP_LATT_PER_FAULT / 2
+        # # Regroup faults that are too close to each other as they will be fixed
+        # # at the same moment
+        # grouped_faults_idx = [[idx1
+                               # for idx1 in l_fault_idx
+                               # if are_close(idx1, idx2)]
+                              # for idx2 in l_fault_idx]
+        # # Remove doublons
+        # grouped_faults_idx = list(grouped_faults_idx
+                                  # for grouped_faults_idx, _
+                                  # in itertools.groupby(grouped_faults_idx))
 
-        # Create Fault objects
-        l_faults_obj = []
-        for f_idx in grouped_faults_idx:
-            l_faults_obj.append(
-                mod_f.Fault(self.ref_lin, self.brok_lin, f_idx)
-            )
-        return l_faults_obj
+        # # Create Fault objects
+        # l_faults_obj = []
+        # for f_idx in grouped_faults_idx:
+            # l_faults_obj.append(
+                # mod_f.Fault(self.ref_lin, self.brok_lin, f_idx)
+            # )
+        # return l_faults_obj
 
     def _gather_and_create_fault_objects(self, l_fault_idx):
         """Gather faults that are close to each other, create Faults."""
@@ -235,8 +237,6 @@ class FaultScenario():
                 # If at least one cavity on common, gather the two
                 # corresponding fault and restart the whole process
                 if len(common_cav) > 0:
-                    l_to_be_gathered_idx_faults[idx1].extend(
-                        l_to_be_gathered_idx_faults.pop(idx2))
                     l_gathered_faults[idx1].extend(
                         l_gathered_faults.pop(idx2))
                     break
@@ -245,13 +245,7 @@ class FaultScenario():
                 # faults that share compensating cavities.
                 if i == i_max:
                     flag_gathered = True
-        # Now we have a good l_gathered_faults!
-        # We also already have our l_gathered_comp. No need to redo it and call
-        # the mod_f.neighboring.blabla routines again.
-        # In fact, the routines should be moved here instead. And return
-        # l_gathered_faults, l_comp_cav.
-        # Here I will return the list of indexes for now, but it is useless I
-        # think, I could do everything without it.
+
         l_faults_obj = []
         for f_cav in l_gathered_faults:
             l_faults_obj.append(
@@ -259,7 +253,7 @@ class FaultScenario():
             )
         return l_faults_obj, l_gathered_comp
 
-    def prepare_compensating_cavities_of_all_faults(self):
+    def _prepare_compensating_cavities_of_all_faults(self):
         """Call fault.prepare_cavities_for_compensation."""
         # FIXME should be moved into the function that regroups the faults
         if WHAT_TO_FIT['strategy'] == 'manual':
@@ -274,8 +268,7 @@ class FaultScenario():
             l_comp_cav = self.faults['l_comp']
 
         for fault, comp_cav in zip(self.faults['l_obj'], l_comp_cav):
-            fault.prepare_cavities_for_compensation(WHAT_TO_FIT['strategy'],
-                                                    comp_cav)
+            fault.prepare_cavities_for_compensation(comp_cav)
 
     def _update_status_of_cavities_to_rephase(self):
         """
