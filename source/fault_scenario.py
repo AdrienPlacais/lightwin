@@ -34,21 +34,22 @@ class FaultScenario():
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
 
-        # Save faults as a list of Fault objects and as a list of cavity idx
         l_fault_idx = sorted(l_fault_idx)
-        l_obj, l_comp_cav = self._gather_and_create_fault_objects(l_fault_idx)
+        l_obj, l_comp_cav, l_fault_idx = \
+            self._gather_and_create_fault_objects(l_fault_idx)
+
         self.faults = {'l_obj': l_obj,          # List of Fault objects
-                       'l_idx': l_fault_idx,    # List of failed cav index
+                       # List of list of index of failed cavities, grouped by
+                       # Fault
+                       'l_idx': l_fault_idx,
                        # List of list of compensating + failed cavities,
                        # grouped by Fault
                        'l_comp': l_comp_cav,
         }
         # FIXME move elsewhere
         # Ensure that the cavities are sorted from linac entrance to linac exit
-        idx_cavs = [cav.idx['s_in']
-                    for l_cav in l_comp_cav
-                    for cav in l_cav]
-        assert idx_cavs == sorted(idx_cavs)
+        flattened_l_fault_idx = [idx for l_idx in l_fault_idx for idx in l_idx]
+        assert flattened_l_fault_idx == sorted(flattened_l_fault_idx)
 
         self.info = {'fit': None}
 
@@ -157,11 +158,11 @@ class FaultScenario():
         }
 
         # List of list of faults indexes
-        l_to_be_gathered_idx_faults = [[idx] for idx in l_fault_idx]
+        l_gathered_idx_faults = [[idx] for idx in l_fault_idx]
         # List of list of corresp. faulty cavities
         l_gathered_faults = [[lin.elements['list'][idx]
                               for idx in l_idx]
-                             for l_idx in l_to_be_gathered_idx_faults]
+                             for l_idx in l_gathered_idx_faults]
         flag_gathered = False
         r_comb = 2
 
@@ -191,6 +192,8 @@ class FaultScenario():
                 if len(common_cav) > 0:
                     l_gathered_faults[idx1].extend(
                         l_gathered_faults.pop(idx2))
+                    l_gathered_idx_faults[idx1].extend(
+                        l_gathered_idx_faults.pop(idx2))
                     break
 
                 # If we reached this point, it means that there is no list of
@@ -203,7 +206,7 @@ class FaultScenario():
             l_faults_obj.append(
                 mod_f.Fault(self.ref_lin, self.brok_lin, f_cav)
             )
-        return l_faults_obj, l_gathered_comp
+        return l_faults_obj, l_gathered_comp, l_gathered_idx_faults
 
     def _prepare_compensating_cavities_of_all_faults(self):
         """Call fault.prepare_cavities_for_compensation."""
@@ -228,27 +231,18 @@ class FaultScenario():
 
         If the calculation is in relative phase, all cavities that are after
         the first failed one are rephased.
-        ---
-        Legacy, I do not know why I wrote this:
-        ---
-        Even in the case of an absolute phase calculation, cavities in the
-        HEBT are rephased.
         """
         printc("fault_scenario._update_status_of_cavities_to_rephase warning:",
                opt_message = " the phases in the broken linac are relative." \
                + " It may be more relatable to use absolute phases, as" \
                + " it would avoid the rephasing of the linac at each cavity.")
+        all_elements = self.brok_lin.elements['list']
+        idx_first_failed = self.faults['l_idx'][0][0]
 
-        # We get first failed cav index
-        ffc_idx = min(self.faults['l_idx'])
-        after_ffc = self.brok_lin.elements['list'][ffc_idx:]
-
-        cav_to_rephase = [
-            cav for cav in after_ffc
-            if (cav.info['nature'] == 'FIELD_MAP'
-                and cav.info['status'] == 'nominal')
-        ]
-        for cav in cav_to_rephase:
+        to_rephase_cavities = [cav for cav in all_elements[idx_first_failed:]
+                               if cav.info['status'] == 'nominal']
+        # The status of non-cavities is None, so they are implicitely excluded
+        for cav in to_rephase_cavities:
             cav.update_status('rephased (in progress)')
 
     def _reupdate_status_of_rephased_cavities(self, fault):
