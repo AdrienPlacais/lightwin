@@ -19,6 +19,7 @@ useful
 import itertools
 import math
 from constants import FLAG_PHI_ABS, WHAT_TO_FIT
+from helper import printc
 import debug
 import fault as mod_f
 
@@ -36,10 +37,18 @@ class FaultScenario():
         # Save faults as a list of Fault objects and as a list of cavity idx
         l_fault_idx = sorted(l_fault_idx)
         l_obj, l_comp_cav = self._gather_and_create_fault_objects(l_fault_idx)
-        self.faults = {'l_obj': l_obj,
-                       'l_idx': l_fault_idx,
+        self.faults = {'l_obj': l_obj,          # List of Fault objects
+                       'l_idx': l_fault_idx,    # List of failed cav index
+                       # List of list of compensating + failed cavities,
+                       # grouped by Fault
                        'l_comp': l_comp_cav,
         }
+        # FIXME move elsewhere
+        # Ensure that the cavities are sorted from linac entrance to linac exit
+        idx_cavs = [cav.idx['s_in']
+                    for l_cav in l_comp_cav
+                    for cav in l_cav]
+        assert idx_cavs == sorted(idx_cavs)
 
         self.info = {'fit': None}
 
@@ -225,9 +234,10 @@ class FaultScenario():
         Even in the case of an absolute phase calculation, cavities in the
         HEBT are rephased.
         """
-        print("Warning, the phases in the broken linac are relative.",
-              "It may be more relatable to use absolute phases, as",
-              "it would avoid the rephasing of the linac at each cavity.")
+        printc("fault_scenario._update_status_of_cavities_to_rephase warning:",
+               opt_message = " the phases in the broken linac are relative." \
+               + " It may be more relatable to use absolute phases, as" \
+               + " it would avoid the rephasing of the linac at each cavity.")
 
         # We get first failed cav index
         ffc_idx = min(self.faults['l_idx'])
@@ -237,7 +247,6 @@ class FaultScenario():
             cav for cav in after_ffc
             if (cav.info['nature'] == 'FIELD_MAP'
                 and cav.info['status'] == 'nominal')
-            # and (cav.info['zone'] == 'HEBT' or not FLAG_PHI_ABS)
         ]
         for cav in cav_to_rephase:
             cav.update_status('rephased (in progress)')
