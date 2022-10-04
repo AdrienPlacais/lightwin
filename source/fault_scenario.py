@@ -195,14 +195,13 @@ class FaultScenario():
 
         d_comp_cav = {
             'k out of n': lambda l_cav:
-                mod_f.neighboring_cavities(lin, l_cav, WHAT_TO_FIT['k']),
+                neighboring_cavities(lin, l_cav, WHAT_TO_FIT['k']),
             'l neighboring lattices': lambda l_cav:
-                mod_f.neighboring_lattices(lin, l_cav, WHAT_TO_FIT['l']),
+                neighboring_lattices(lin, l_cav, WHAT_TO_FIT['l']),
         }
 
         # List of list of faults indexes
         l_to_be_gathered_idx_faults = [[idx] for idx in l_fault_idx]
-        print(l_to_be_gathered_idx_faults)
         # List of list of corresp. faulty cavities
         l_gathered_faults = [[lin.elements['list'][idx]
                               for idx in l_idx]
@@ -252,7 +251,6 @@ class FaultScenario():
         # Here I will return the list of indexes for now, but it is useless I
         # think, I could do everything without it.
         l_faults_obj = []
-        print(l_to_be_gathered_idx_faults)
         for f_idx in l_to_be_gathered_idx_faults:
             l_faults_obj.append(
                 mod_f.Fault(self.ref_lin, self.brok_lin, f_idx)
@@ -330,3 +328,55 @@ class FaultScenario():
         for cav in l_cav_between_two_faults:
             if cav.info['status'] == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
+
+
+def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
+    """Select the cavities neighboring the failed one(s). """
+    assert n_comp_per_fault % 2 == 0, "Need an even number of compensating" \
+            + " cavities per fault."
+    l_all_cav = lin.elements_of(nature='FIELD_MAP')
+    l_idx_faults = [l_all_cav.index(faulty_cav)
+                    for faulty_cav in l_faulty_cav]
+
+    n_faults = len(l_faulty_cav)
+    half_n_comp = int(n_faults * n_comp_per_fault / 2)
+    l_comp_cav = l_all_cav[l_idx_faults[0] - half_n_comp:
+                           l_idx_faults[-1] + half_n_comp + 1]
+
+    if len(l_comp_cav) > n_faults * (n_comp_per_fault + 1):
+        printc("fault._select_neighboring_cavities warning: ",
+               opt_message="the faults are probably not contiguous."
+               + " Cavities between faulty cavities will be used for"
+               + " compensation, thus increasing the number of"
+               + " compensating cavites per fault.")
+    return l_comp_cav
+
+
+def neighboring_lattices(lin, l_faulty_cav, n_lattices_per_fault):
+    """Select full lattices neighboring the failed cavities."""
+    assert n_lattices_per_fault % 2 == 0, "Need an even number of" \
+        + " compensating lattices per fault."
+    # List of all lattices
+    l_all_latt = [lattice
+                  for section in lin.elements['l_sections']
+                  for lattice in section]
+    # List of lattices with a fault
+    l_faulty_latt = [lattice
+                     for faulty_cav in l_faulty_cav
+                     for lattice in l_all_latt
+                     if faulty_cav in lattice]
+    # Index of these faulty lattices
+    l_idx_faulty_latt = [l_all_latt.index(faulty_lattice)
+                         for faulty_lattice in l_faulty_latt]
+
+    half_n_latt = int(len(l_faulty_cav) * n_lattices_per_fault / 2)
+    # List of compensating lattices
+    l_comp_latt = l_all_latt[l_idx_faulty_latt[0] - half_n_latt:
+                             l_idx_faulty_latt[-1] + half_n_latt + 1]
+
+    # List of cavities in the compensating lattices
+    l_comp_cav = [element
+                  for lattice in l_comp_latt
+                  for element in lattice
+                  if element.info['nature'] == 'FIELD_MAP']
+    return l_comp_cav
