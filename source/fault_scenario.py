@@ -48,9 +48,6 @@ class FaultScenario():
         if not FLAG_PHI_ABS:
             self._update_status_of_cavities_to_rephase()
 
-        self._prepare_compensating_cavities_of_all_faults()
-
-
     def transfer_phi0_from_ref_to_broken(self):
         """
         Transfer the entry phases from ref linac to broken.
@@ -78,34 +75,26 @@ class FaultScenario():
         First, fix all the Faults independently. Then, recompute the linac
         and make small adjustments.
         """
+        self._prepare_compensating_cavities_of_all_faults()
+
         l_flags_success = []
 
         # We fix all Faults individually
         for fault in self.faults['l_obj']:
             flag_success, opti_sol = fault.fix_single()
-            l_flags_success.append(flag_success)
 
-            # Recompute transfer matrices with solution
+            # Recompute transfer matrices to transfer proper rf_field, transfer
+            # matrix, etc to _Elements, _Particles and _Accelerators.
             d_fits = {'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
                       'l_k_e': opti_sol[fault.comp['n_cav']:].tolist()}
-            # Two objectives:
-            #   - to have the proper rf_field dicts (in particular: if
-            #     FLAG_PHI_S_FIT, we know phi_s_optimum but we do not know the
-            #     corresponding phi_0)
-            #  - to transfer transfer matrices, energies, phase evolution along
-            #    the linac to synch.
-            # Give each compensating cavity the new optimum norm and entry
-            # phase.
-            d_results = fault.brok_lin.compute_transfer_matrices(
-                fault.comp['l_recompute'], d_fits=d_fits,
-                flag_transfer_data=True)
+            fault.brok_lin.compute_transfer_matrices(fault.comp['l_recompute'],
+                                                     d_fits=d_fits,
+                                                     flag_transfer_data=True)
 
             # Update status of the compensating cavities according to the
             # success or not of the fit.
             fault.update_status(flag_success)
-
-            # Recompute transfer matrix between the end of this compensating
-            # zone and the start of the next (or to the linac end)
+            l_flags_success.append(flag_success)
             self._compute_matrix_to_next_fault(fault, flag_success)
 
             if not FLAG_PHI_ABS:
@@ -141,52 +130,6 @@ class FaultScenario():
 
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
-
-    # def _gather_and_create_fault_objects_old(self, l_fault_idx):
-        # """
-        # Gather faults in the same or neighboring lattices, create Faults.
-
-        # Parameters
-        # ----------
-        # l_fault_idx : list
-            # List of the indices (in linac.elements['list']) of the faulty
-            # linacs.
-
-        # Return
-        # ------
-        # l_faults_obj : list of Faults
-            # List of the Fault objects.
-        # """
-        # assert mod_f.N_COMP_LATT_PER_FAULT % 2 == 0, \
-            # 'You need an even number of compensating lattices per faulty '\
-            # + 'cav to distribute them equally.'
-        # assert all([
-            # self.brok_lin.elements['list'][idx].info['nature'] == 'FIELD_MAP'
-            # for idx in l_fault_idx
-        # ]), 'Not all failed cavities that you asked are cavities.'
-
-        # def are_close(idx1, idx2):
-            # latt1 = self.brok_lin.elements['list'][idx1].idx['lattice'][0]
-            # latt2 = self.brok_lin.elements['list'][idx2].idx['lattice'][0]
-            # return abs(latt1 - latt2) <= mod_f.N_COMP_LATT_PER_FAULT / 2
-        # # Regroup faults that are too close to each other as they will be fixed
-        # # at the same moment
-        # grouped_faults_idx = [[idx1
-                               # for idx1 in l_fault_idx
-                               # if are_close(idx1, idx2)]
-                              # for idx2 in l_fault_idx]
-        # # Remove doublons
-        # grouped_faults_idx = list(grouped_faults_idx
-                                  # for grouped_faults_idx, _
-                                  # in itertools.groupby(grouped_faults_idx))
-
-        # # Create Fault objects
-        # l_faults_obj = []
-        # for f_idx in grouped_faults_idx:
-            # l_faults_obj.append(
-                # mod_f.Fault(self.ref_lin, self.brok_lin, f_idx)
-            # )
-        # return l_faults_obj
 
     def _gather_and_create_fault_objects(self, l_fault_idx):
         """Gather faults that are close to each other, create Faults."""
