@@ -57,7 +57,7 @@ elif LINAC == "JAEA":
 # though !!).
 # If False, cavities keep their relative phi_0; all cavities after the first
 # modified cavity change their status to 'rephased'.
-FLAG_PHI_ABS = False
+FLAG_PHI_ABS = True
 
 # Fit performed over phi_s?
 FLAG_PHI_S_FIT = True
@@ -100,7 +100,8 @@ WHAT_TO_FIT = {
     # =========================================================================
     # 'strategy': 'manual',
     'manual list': [
-        [8, 10, 12, 23, 25, 27],
+        [25, 37],
+        [145, 147, 165, 175, 177]
     ],
     # =========================================================================
     # strategy: k out of n

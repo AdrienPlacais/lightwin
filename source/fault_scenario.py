@@ -34,20 +34,22 @@ class FaultScenario():
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
 
-        l_comp_cav, l_fault_idx = self._gather_faults(l_fault_idx)
-        l_obj = self._create_fault_objects(l_fault_idx)
+        ll_comp_cav, ll_fault_idx = self._sort_faults(l_fault_idx)
+        l_obj = self._create_fault_objects(ll_fault_idx)
 
         self.faults = {'l_obj': l_obj,          # List of Fault objects
                        # List of list of index of failed cavities, grouped by
                        # Fault
-                       'l_idx': l_fault_idx,
+                       'l_idx': ll_fault_idx,
                        # List of list of compensating + failed cavities,
                        # grouped by Fault
-                       'l_comp': l_comp_cav,
-        }
+                       'l_comp': ll_comp_cav,
+                       }
         # FIXME move elsewhere
         # Ensure that the cavities are sorted from linac entrance to linac exit
-        flattened_l_fault_idx = [idx for l_idx in l_fault_idx for idx in l_idx]
+        flattened_l_fault_idx = [idx
+                                 for l_idx in ll_fault_idx
+                                 for idx in l_idx]
         assert flattened_l_fault_idx == sorted(flattened_l_fault_idx)
 
         self.info = {'fit': None}
@@ -84,7 +86,9 @@ class FaultScenario():
         First, fix all the Faults independently. Then, recompute the linac
         and make small adjustments.
         """
-        self._prepare_compensating_cavities_of_all_faults()
+        for fault, comp_cav in zip(self.faults['l_obj'],
+                                   self.faults['l_comp']):
+            fault.prepare_cavities_for_compensation(comp_cav)
 
         l_flags_success = []
 
@@ -140,48 +144,59 @@ class FaultScenario():
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
 
-    def _gather_faults(self, l_fault_idx):
-        """Gather faults that are close to each other, create Faults."""
+    def _sort_faults(self, l_fault_idx):
+        """Gather faults that are close to each other."""
         lin = self.brok_lin
 
+        # If in manual mode, faults should be already gathered
         if WHAT_TO_FIT['strategy'] == 'manual':
-            l_l_comp = manually_set_cavities(lin, l_fault_idx,
-                                             WHAT_TO_FIT['manual list'])
             l_faulty_cav = [[lin.elements['list'][idx]
                              for idx in l_idx]
                             for l_idx in l_fault_idx]
-            return l_l_comp, l_fault_idx
+            ll_idx_faults = l_fault_idx
+            ll_comp = manually_set_cavities(lin, l_fault_idx,
+                                            WHAT_TO_FIT['manual list'])
 
-        l_faulty_cav = [lin.elements['list'][idx]
-                        for idx in sorted(l_fault_idx)]
-        assert all(elem.info['nature'] == 'FIELD_MAP'
-                   for elem in l_faulty_cav), \
-            'Not all failed cavities that you asked are cavities.'
+        else:
+            l_faulty_cav = [lin.elements['list'][idx]
+                            for idx in sorted(l_fault_idx)]
+            natures = {elem.info['nature'] for elem in l_faulty_cav}
+            assert natures == {'FIELD_MAP'}, "Not all failed cavities that" \
+                + " you asked are cavities."
 
+            # Initialize list of list of faults indexes
+            ll_idx_faults = [[idx] for idx in sorted(l_fault_idx)]
+            # Initialize list of list of corresp. faulty cavities
+            ll_faults = [[lin.elements['list'][idx]
+                          for idx in l_idx]
+                         for l_idx in ll_idx_faults]
+
+            # We go across all faults and determine the compensating cavities
+            # they need. If two failed cavities need at least one compensating
+            # cavity in common, we group them together.
+            # In particular, it is the case when a full cryomodule fails.
+            ll_comp, ll_idx_faults = self._gather(ll_faults, ll_idx_faults)
+
+        return ll_comp, ll_idx_faults
+
+    def _gather(self, ll_faults, ll_idx_faults):
+        """Proper method that gathers faults requiring the same compens cav."""
         d_comp_cav = {
             'k out of n': lambda l_cav:
-                neighboring_cavities(lin, l_cav, WHAT_TO_FIT['k']),
+                neighboring_cavities(self.brok_lin, l_cav, WHAT_TO_FIT['k']),
             'l neighboring lattices': lambda l_cav:
-                neighboring_lattices(lin, l_cav, WHAT_TO_FIT['l']),
-        }
-
-        # List of list of faults indexes
-        l_l_idx_faults = [[idx] for idx in sorted(l_fault_idx)]
-        # List of list of corresp. faulty cavities
-        l_l_faults = [[lin.elements['list'][idx]
-                       for idx in l_idx]
-                      for l_idx in l_l_idx_faults]
+                neighboring_lattices(self.brok_lin, l_cav, WHAT_TO_FIT['l'])}
         flag_gathered = False
         r_comb = 2
 
         while not flag_gathered:
             # List of list of corresp. compensating cavities
-            l_l_comp = [d_comp_cav[WHAT_TO_FIT['strategy']](l_cav)
-                        for l_cav in l_l_faults]
+            ll_comp = [d_comp_cav[WHAT_TO_FIT['strategy']](l_cav)
+                       for l_cav in ll_faults]
 
             # Set a counter to exit the 'for' loop when all faults are gathered
             i = 0
-            n_comb = len(l_l_comp)
+            n_comb = len(ll_comp)
             if n_comb <= 1:
                 flag_gathered = True
 
@@ -191,15 +206,15 @@ class FaultScenario():
             # Now we look every list of required compensating cavities, and
             # look for faults that require the same compensating cavities
             for ((idx1, l_comp1), (idx2, l_comp2)) \
-                in itertools.combinations(enumerate(l_l_comp),
+                in itertools.combinations(enumerate(ll_comp),
                                           r_comb):
                 i += 1
                 common_cav = list(set(l_comp1) & set(l_comp2))
                 # If at least one cavity on common, gather the two
                 # corresponding fault and restart the whole process
                 if len(common_cav) > 0:
-                    l_l_faults[idx1].extend(l_l_faults.pop(idx2))
-                    l_l_idx_faults[idx1].extend(l_l_idx_faults.pop(idx2))
+                    ll_faults[idx1].extend(ll_faults.pop(idx2))
+                    ll_idx_faults[idx1].extend(ll_idx_faults.pop(idx2))
                     break
 
                 # If we reached this point, it means that there is no list of
@@ -207,7 +222,7 @@ class FaultScenario():
                 if i == i_max:
                     flag_gathered = True
 
-        return l_l_comp, l_l_idx_faults
+        return ll_comp, ll_idx_faults
 
     def _create_fault_objects(self, l_l_idx_faults):
         """Create the Faults."""
@@ -222,22 +237,6 @@ class FaultScenario():
                 mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav)
             )
         return l_faults_obj
-
-    def _prepare_compensating_cavities_of_all_faults(self):
-        """Call fault.prepare_cavities_for_compensation."""
-        # FIXME should be moved into the function that regroups the faults
-        if WHAT_TO_FIT['strategy'] == 'manual':
-            l_comp_idx = WHAT_TO_FIT['manual list']
-            assert len(l_comp_idx) == len(self.faults['l_obj']), "There" \
-                + " should be a list of compensating cavities for every fault."
-            l_comp_cav = [[self.brok_lin.elements['list'][idx]
-                           for idx in l_idx]
-                          for l_idx in l_comp_idx]
-        else:
-            l_comp_cav = self.faults['l_comp']
-
-        for fault, comp_cav in zip(self.faults['l_obj'], l_comp_cav):
-            fault.prepare_cavities_for_compensation(comp_cav)
 
     def _update_status_of_cavities_to_rephase(self):
         """
@@ -336,15 +335,20 @@ def neighboring_lattices(lin, l_faulty_cav, n_lattices_per_fault):
 
 
 def manually_set_cavities(lin, l_faulty_idx, l_comp_idx):
-    """Select cavities lattices neighboring the failed cavities."""
-    types = set([type(x) for x in l_faulty_idx])
+    """Select cavities that were manually defined."""
+    types = {type(x) for x in l_faulty_idx + l_comp_idx}
     assert types == {list}, "Need a list of lists of indexes."
-    types = set([type(x) for x in l_comp_idx])
-    assert types == {list}, "Need a list of lists of indexes."
+
     assert len(l_faulty_idx) == len(l_comp_idx), "Need a list of compensating"\
         + " cavities index for each list of faults."
 
     all_elements = lin.elements['list']
+    natures = {all_elements[idx].info['nature']
+               for l_idx in l_faulty_idx + l_comp_idx
+               for idx in l_idx}
+    assert natures == {'FIELD_MAP'}, "All faulty and compensating elements" \
+        + " must be 'FIELD_MAP's."
+
     l_comp_cav = [[all_elements[idx]
                    for idx in l_idx]
                   for l_idx in l_comp_idx]
