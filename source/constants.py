@@ -60,7 +60,7 @@ elif LINAC == "JAEA":
 FLAG_PHI_ABS = True
 
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = True
+FLAG_PHI_S_FIT = False
 
 # Method to integrate the motion. leapfrog or RK (RK4)
 # METHOD = 'leapfrog'
@@ -88,8 +88,8 @@ else:
 
 
 # Optimisation method: least_squares or PSO
-OPTI_METHOD = 'least_squares'
-# OPTI_METHOD = 'PSO'
+# OPTI_METHOD = 'least_squares'
+OPTI_METHOD = 'PSO'
 
 WHAT_TO_FIT = {
     # =========================================================================

@@ -21,6 +21,7 @@ useful
 """
 import itertools
 import math
+import numpy as np
 from constants import FLAG_PHI_ABS, WHAT_TO_FIT
 from helper import printc
 import debug
@@ -282,6 +283,24 @@ class FaultScenario():
         for cav in l_cav_between_two_faults:
             if cav.info['status'] == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
+
+    def evaluate_fit_quality(self):
+        """Compute some quantities on the whole linac to see if fit is good."""
+        d_get = {
+            'W_kin': lambda lin: lin.synch.energy['kin_array_mev'],
+            'phi': lambda lin: lin.synch.phi['abs_array'],
+            'sigma_phi': lambda lin: lin.beam_param['enveloppes']['w'][:, 0],
+            'sigma_w': lambda lin: lin.beam_param['enveloppes']['w'][:, 1],
+        }
+
+        criterions = d_get.keys()
+
+        for crit in criterions:
+            ref = d_get[crit](self.ref_lin)
+            fix = d_get[crit](self.brok_lin)
+            delta = np.abs((ref - fix) / ref)
+            delta_sum = np.nansum(delta)
+            print(f"Error on {crit}: {delta_sum}")
 
 
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
