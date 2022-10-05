@@ -117,8 +117,6 @@ class Fault():
                       # termination condition, while settings are clearly not
                       #  optimized
                       'xtol': 1e-8,
-                      # TODO: check these args
-                      'x_scale': 'jac', 'loss': 'linear', 'f_scale': 1.0,
                       'diff_step': None, 'tr_solver': None, 'tr_options': {},
                       'jac_sparsity': None,
                       'verbose': debugs['verbose']
@@ -133,7 +131,7 @@ class Fault():
             self.info["l_obj_evaluations"].append(sol.fun)
 
         print(f"""\nmessage: {sol.message}\nnfev: {sol.nfev}\tnjev: {sol.njev}
-              \noptimality: {sol.optimality}\nstatus: {sol.status}\t
+              \noptimality: {sol.optimality}\nstatus: {sol.status}\n
               success: {sol.success}\nsolution: {sol.x}\n\n""")
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
@@ -167,28 +165,6 @@ class Fault():
 
         return True, opti_sol
 
-    def _select_neighboring_cavities(self, n_comp_per_fault):
-        """Select the cavities neighboring the failed one(s). """
-        assert n_comp_per_fault % 2 == 0, "Need an even number of" \
-            + " compensating cavities per fault."
-
-        l_all_cav = self.brok_lin.elements_of(nature='FIELD_MAP')
-        l_idx_faults = [l_all_cav.index(faulty_cav)
-                        for faulty_cav in self.fail['l_cav']]
-
-        n_faults = len(self.fail['l_cav'])
-        half_n_comp = int(n_faults * n_comp_per_fault / 2)
-        l_comp_cav = l_all_cav[l_idx_faults[0] - half_n_comp:
-                               l_idx_faults[-1] + half_n_comp + 1]
-
-        if len(l_comp_cav) > n_faults * (n_comp_per_fault + 1):
-            printc("fault._select_neighboring_cavities warning: ",
-                   opt_message="the faults are probably not contiguous."
-                   + " Cavities between faulty cavities will be used for"
-                   + " compensation, thus increasing the number of"
-                   + " compensating cavites per fault.")
-        return l_comp_cav
-
     def prepare_cavities_for_compensation(self, l_comp_cav):
         """
         Prepare the compensating cavities for the upcoming optimisation.
@@ -213,11 +189,11 @@ class Fault():
 
             if current_status in ["compensate (ok)", "compensate (not ok)"]:
                 printc("fault.prepare_cavities_for_compensation warning: ",
-                       opt_message="you want to update the status of a" \
-                       + " cavity that is already used for compensation." \
-                       + " Check" \
-                       + "fault_scenario._gather_and_create_fault_objects." \
-                       + " Maybe two faults want to use the same cavity for" \
+                       opt_message="you want to update the status of a"
+                       + " cavity that is already used for compensation."
+                       + " Check"
+                       + "fault_scenario._gather_and_create_fault_objects."
+                       + " Maybe two faults want to use the same cavity for"
                        + " compensation?")
 
             cav.update_status(new_status)
@@ -549,4 +525,3 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
     fault.count += 1
 
     return arr_objective, d_results
-
