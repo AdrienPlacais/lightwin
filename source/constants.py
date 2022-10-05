@@ -60,7 +60,7 @@ elif LINAC == "JAEA":
 FLAG_PHI_ABS = True
 
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = False
+FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
 # METHOD = 'leapfrog'
@@ -127,8 +127,8 @@ WHAT_TO_FIT = {
         'energy',
         'phase',
         # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
-        # 'M_11', 'M_12', 'M_22',  # 'M_21',
-        # 'mismatch_factor',
+        'M_11', 'M_12', 'M_22',  # 'M_21',
+        'mismatch_factor',
     ],
     # =========================================================================
     #     Where should we evaluate objective?
