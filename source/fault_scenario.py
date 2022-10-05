@@ -45,7 +45,6 @@ class FaultScenario():
                        # grouped by Fault
                        'l_comp': ll_comp_cav,
                        }
-        # FIXME move elsewhere
         # Ensure that the cavities are sorted from linac entrance to linac exit
         flattened_l_fault_idx = [idx
                                  for l_idx in ll_fault_idx
@@ -230,8 +229,7 @@ class FaultScenario():
         for l_idx in l_l_idx_faults:
             l_faulty_cav = [self.brok_lin.elements['list'][idx]
                             for idx in l_idx]
-            nature = set([cav.info['nature']
-                          for cav in l_faulty_cav])
+            nature = {cav.info['nature'] for cav in l_faulty_cav}
             assert nature == {"FIELD_MAP"}
             l_faults_obj.append(
                 mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav)
