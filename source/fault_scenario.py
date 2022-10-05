@@ -293,13 +293,22 @@ class FaultScenario():
             'sigma_w': lambda lin: lin.beam_param['enveloppes']['w'][:, 1],
         }
 
-        criterions = d_get.keys()
-
-        for crit in criterions:
-            ref = d_get[crit](self.ref_lin)
-            fix = d_get[crit](self.brok_lin)
-            delta = np.abs((ref - fix) / ref)
+        def rel_sq_diff(ref, fix):
+            delta = np.sqrt(((ref - fix) / ref)**2)
             delta_sum = np.nansum(delta)
+            return delta_sum
+
+        d_delta = {
+            'W_kin': rel_sq_diff,
+            'phi': rel_sq_diff,
+            'sigma_phi': rel_sq_diff,
+            'sigma_w': rel_sq_diff,
+        }
+
+        criterions = d_get.keys()
+        for crit in criterions:
+            args = (d_get[crit](self.ref_lin), d_get[crit](self.brok_lin))
+            delta_sum = d_delta[crit](*args)
             print(f"Error on {crit}: {delta_sum}")
 
 
