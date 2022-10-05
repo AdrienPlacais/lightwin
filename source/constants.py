@@ -92,14 +92,30 @@ OPTI_METHOD = 'least_squares'
 
 WHAT_TO_FIT = {
     # =========================================================================
-    #     How compensating cavities are chosen?
+    # strategy: manual
+    # You must provide a list of lists of broken cavities, and the
+    # corresponding list of lists of compensating cavities. Broken cavities in
+    # a sublist are fixed together with the provided sublist of compensating
+    # cavities.
     # =========================================================================
     # 'strategy': 'manual',
     'manual list': [
         [8, 10, 12, 23, 25, 27],
     ],
+    # =========================================================================
+    # strategy: k out of n
+    # You must provide a list of broken cavities, and the number of
+    # compensating cavities per faulty cavity. Close broken cavities are
+    # gathered and fixed together.
+    # =========================================================================
     # 'strategy': 'k out of n',
     'k': 2,
+    # =========================================================================
+    # strategy: l neighboring lattices
+    # You must provide a list of broken cavities, and the number of
+    # compensating lattices per faulty cavity. Close broken cavities are
+    # gathered and fixed together.
+    # =========================================================================
     'strategy': 'l neighboring lattices',
     'l': 2,
     # =========================================================================

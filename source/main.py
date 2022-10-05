@@ -119,12 +119,6 @@ if FLAG_FIX:
         debug.compare_with_tracewin(broken_linac, x_dat="s",
                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
-# Broken linac but with proper cavities status
-# broken_linac.compute_transfer_matrices()
-# linacs = [ref_linac, broken_linac]
-
-# for lin in linacs:
-#     lin.compute_transfer_matrices()
 
 if PLOT_TM:
     debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])
@@ -134,8 +128,6 @@ if PLOT_TM:
 
 if SAVE_FIX:
     tw.save_new_dat(broken_linac, FILEPATH)
-#         # Redo this whole loop with a fixed linac
-#         linacs.append(broken_linac)
 
 # =============================================================================
 # End

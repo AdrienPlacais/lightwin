@@ -34,9 +34,8 @@ class FaultScenario():
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
 
-        l_fault_idx = sorted(l_fault_idx)
-        l_obj, l_comp_cav, l_fault_idx = \
-            self._gather_and_create_fault_objects(l_fault_idx)
+        l_comp_cav, l_fault_idx = self._gather_faults(l_fault_idx)
+        l_obj = self._create_fault_objects(l_fault_idx)
 
         self.faults = {'l_obj': l_obj,          # List of Fault objects
                        # List of list of index of failed cavities, grouped by
@@ -141,11 +140,20 @@ class FaultScenario():
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
 
-    def _gather_and_create_fault_objects(self, l_fault_idx):
+    def _gather_faults(self, l_fault_idx):
         """Gather faults that are close to each other, create Faults."""
         lin = self.brok_lin
+
+        if WHAT_TO_FIT['strategy'] == 'manual':
+            l_l_comp = manually_set_cavities(lin, l_fault_idx,
+                                             WHAT_TO_FIT['manual list'])
+            l_faulty_cav = [[lin.elements['list'][idx]
+                             for idx in l_idx]
+                            for l_idx in l_fault_idx]
+            return l_l_comp, l_fault_idx
+
         l_faulty_cav = [lin.elements['list'][idx]
-                        for idx in l_fault_idx]
+                        for idx in sorted(l_fault_idx)]
         assert all(elem.info['nature'] == 'FIELD_MAP'
                    for elem in l_faulty_cav), \
             'Not all failed cavities that you asked are cavities.'
@@ -158,22 +166,22 @@ class FaultScenario():
         }
 
         # List of list of faults indexes
-        l_gathered_idx_faults = [[idx] for idx in l_fault_idx]
+        l_l_idx_faults = [[idx] for idx in sorted(l_fault_idx)]
         # List of list of corresp. faulty cavities
-        l_gathered_faults = [[lin.elements['list'][idx]
-                              for idx in l_idx]
-                             for l_idx in l_gathered_idx_faults]
+        l_l_faults = [[lin.elements['list'][idx]
+                       for idx in l_idx]
+                      for l_idx in l_l_idx_faults]
         flag_gathered = False
         r_comb = 2
 
         while not flag_gathered:
             # List of list of corresp. compensating cavities
-            l_gathered_comp = [d_comp_cav[WHAT_TO_FIT['strategy']](l_cav)
-                               for l_cav in l_gathered_faults]
+            l_l_comp = [d_comp_cav[WHAT_TO_FIT['strategy']](l_cav)
+                        for l_cav in l_l_faults]
 
             # Set a counter to exit the 'for' loop when all faults are gathered
             i = 0
-            n_comb = len(l_gathered_comp)
+            n_comb = len(l_l_comp)
             if n_comb <= 1:
                 flag_gathered = True
 
@@ -183,17 +191,15 @@ class FaultScenario():
             # Now we look every list of required compensating cavities, and
             # look for faults that require the same compensating cavities
             for ((idx1, l_comp1), (idx2, l_comp2)) \
-                in itertools.combinations(enumerate(l_gathered_comp),
+                in itertools.combinations(enumerate(l_l_comp),
                                           r_comb):
                 i += 1
                 common_cav = list(set(l_comp1) & set(l_comp2))
                 # If at least one cavity on common, gather the two
                 # corresponding fault and restart the whole process
                 if len(common_cav) > 0:
-                    l_gathered_faults[idx1].extend(
-                        l_gathered_faults.pop(idx2))
-                    l_gathered_idx_faults[idx1].extend(
-                        l_gathered_idx_faults.pop(idx2))
+                    l_l_faults[idx1].extend(l_l_faults.pop(idx2))
+                    l_l_idx_faults[idx1].extend(l_l_idx_faults.pop(idx2))
                     break
 
                 # If we reached this point, it means that there is no list of
@@ -201,12 +207,21 @@ class FaultScenario():
                 if i == i_max:
                     flag_gathered = True
 
+        return l_l_comp, l_l_idx_faults
+
+    def _create_fault_objects(self, l_l_idx_faults):
+        """Create the Faults."""
         l_faults_obj = []
-        for f_cav in l_gathered_faults:
+        for l_idx in l_l_idx_faults:
+            l_faulty_cav = [self.brok_lin.elements['list'][idx]
+                            for idx in l_idx]
+            nature = set([cav.info['nature']
+                          for cav in l_faulty_cav])
+            assert nature == {"FIELD_MAP"}
             l_faults_obj.append(
-                mod_f.Fault(self.ref_lin, self.brok_lin, f_cav)
+                mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav)
             )
-        return l_faults_obj, l_gathered_comp, l_gathered_idx_faults
+        return l_faults_obj
 
     def _prepare_compensating_cavities_of_all_faults(self):
         """Call fault.prepare_cavities_for_compensation."""
@@ -214,8 +229,7 @@ class FaultScenario():
         if WHAT_TO_FIT['strategy'] == 'manual':
             l_comp_idx = WHAT_TO_FIT['manual list']
             assert len(l_comp_idx) == len(self.faults['l_obj']), "There" \
-                    + " should be a list of compensating cavities for every" \
-                    + " fault."
+                + " should be a list of compensating cavities for every fault."
             l_comp_cav = [[self.brok_lin.elements['list'][idx]
                            for idx in l_idx]
                           for l_idx in l_comp_idx]
@@ -233,8 +247,8 @@ class FaultScenario():
         the first failed one are rephased.
         """
         printc("fault_scenario._update_status_of_cavities_to_rephase warning:",
-               opt_message = " the phases in the broken linac are relative." \
-               + " It may be more relatable to use absolute phases, as" \
+               opt_message=" the phases in the broken linac are relative."
+               + " It may be more relatable to use absolute phases, as"
                + " it would avoid the rephasing of the linac at each cavity.")
         all_elements = self.brok_lin.elements['list']
         idx_first_failed = self.faults['l_idx'][0][0]
@@ -270,9 +284,9 @@ class FaultScenario():
 
 
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
-    """Select the cavities neighboring the failed one(s). """
+    """Select the cavities neighboring the failed one(s)."""
     assert n_comp_per_fault % 2 == 0, "Need an even number of compensating" \
-            + " cavities per fault."
+        + " cavities per fault."
     l_all_cav = lin.elements_of(nature='FIELD_MAP')
     l_idx_faults = [l_all_cav.index(faulty_cav)
                     for faulty_cav in l_faulty_cav]
@@ -318,4 +332,20 @@ def neighboring_lattices(lin, l_faulty_cav, n_lattices_per_fault):
                   for lattice in l_comp_latt
                   for element in lattice
                   if element.info['nature'] == 'FIELD_MAP']
+    return l_comp_cav
+
+
+def manually_set_cavities(lin, l_faulty_idx, l_comp_idx):
+    """Select cavities lattices neighboring the failed cavities."""
+    types = set([type(x) for x in l_faulty_idx])
+    assert types == {list}, "Need a list of lists of indexes."
+    types = set([type(x) for x in l_comp_idx])
+    assert types == {list}, "Need a list of lists of indexes."
+    assert len(l_faulty_idx) == len(l_comp_idx), "Need a list of compensating"\
+        + " cavities index for each list of faults."
+
+    all_elements = lin.elements['list']
+    l_comp_cav = [[all_elements[idx]
+                   for idx in l_idx]
+                  for l_idx in l_comp_idx]
     return l_comp_cav
