@@ -60,7 +60,7 @@ elif LINAC == "JAEA":
 FLAG_PHI_ABS = True
 
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = True
+FLAG_PHI_S_FIT = False
 
 # Method to integrate the motion. leapfrog or RK (RK4)
 # METHOD = 'leapfrog'
@@ -89,6 +89,7 @@ else:
 
 # Optimisation method: least_squares or PSO
 OPTI_METHOD = 'least_squares'
+# OPTI_METHOD = 'PSO'
 
 WHAT_TO_FIT = {
     # =========================================================================
@@ -109,7 +110,7 @@ WHAT_TO_FIT = {
     # compensating cavities per faulty cavity. Close broken cavities are
     # gathered and fixed together.
     # =========================================================================
-    # 'strategy': 'k out of n',
+    'strategy': 'k out of n',
     'k': 2,
     # =========================================================================
     # strategy: l neighboring lattices
@@ -117,7 +118,7 @@ WHAT_TO_FIT = {
     # compensating lattices per faulty cavity. Close broken cavities are
     # gathered and fixed together.
     # =========================================================================
-    'strategy': 'l neighboring lattices',
+    # 'strategy': 'l neighboring lattices',
     'l': 2,
     # =========================================================================
     #     What should we fit?

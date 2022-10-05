@@ -30,11 +30,10 @@ import debug
 from helper import printc
 
 
-N_COMP_LATT_PER_FAULT = 2
 debugs = {
     'fit_complete': False,
     'fit_compact': False,
-    'fit_progression': True,    # Print evolution of error on objectives
+    'fit_progression': False,    # Print evolution of error on objectives
     'plot_progression': True,   # Plot evolution of error on objectives
     'cav': True,
     'verbose': 0,
@@ -102,9 +101,8 @@ class Fault():
         (OPTI_METHOD == 'PSO').
         """
         if init_guess.shape[0] == 1:
-            kwargs = minimize
-            # TODO: recheck
-            solver = {}
+            solver = minimize
+            kwargs = {}
         else:
             solver = least_squares
             bounds = (bounds[:, 0], bounds[:, 1])
@@ -141,7 +139,7 @@ class Fault():
     def _proper_fix_pso(self, init_guess, bounds, wrapper_args,
                         phi_s_limits=None):
         """Fix with multi-PSO algorithm."""
-        n_obj = 6  # FIXME
+        n_obj = len(WHAT_TO_FIT['objective'])
         if FLAG_PHI_S_FIT:
             n_constr = 0
         else:
@@ -316,8 +314,6 @@ class Fault():
         bounds = np.array(bounds[:2 * n_cav])
 
         print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
-        if OPTI_METHOD == 'PSO' and not FLAG_PHI_ABS:
-            print('Additional constraint: phi_s_limits:\n', phi_s_limits)
 
         return initial_guess, bounds, phi_s_limits, l_prop_label
 

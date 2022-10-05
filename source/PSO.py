@@ -66,8 +66,7 @@ class MyProblem(ElementwiseProblem):
                          n_constr=n_constr,
                          xl=bounds[:, 0], xu=bounds[:, 1])
         if n_constr > 0:
-            print(f"{n_constr} constraints")
-            print(phi_s_limits)
+            print(f"{n_constr} constraints on phi_s:\n{phi_s_limits}")
 
     def _evaluate(self, x, out, *args, **kwargs):
         """
@@ -80,15 +79,13 @@ class MyProblem(ElementwiseProblem):
         out : truc
             Mmmh
         """
-        out["F"], brok_results = self.wrapper_pso(
+        out["F"], results = self.wrapper_pso(
             x, self.fault, self.fun_residual, self.d_idx)
 
         out_G = []
-        for i in range(len(brok_results['phi_s_rad'])):
-            out_G.append(self.phi_s_limits[i][0]
-                         - brok_results['phi_s_rad'][i])
-            out_G.append(brok_results['phi_s_rad'][i]
-                         - self.phi_s_limits[i][1])
+        for i in range(len(results['phi_s_rad'])):
+            out_G.append(self.phi_s_limits[i][0] - results['phi_s_rad'][i])
+            out_G.append(results['phi_s_rad'][i] - self.phi_s_limits[i][1])
         out["G"] = np.array(out_G)
 
     def cheat(self):
@@ -337,12 +334,19 @@ def _convergence_running_metrics(hist):
         running.notify(algorithm)
 
 
-def set_weights(objective_str):
+def set_weights(l_obj_str):
     """Set array of weights for the different objectives."""
-    d_weights = {'energy': np.array([1.]),
-                 'phase': np.array([1.]),
-                 'energy_phase': np.array([.3, 8.]),
-                 'transf_mat': np.array([1., 1., 1., 1.]),
-                 'all': np.array([2., 2., 1., 1., 1., 1.]),
+    d_weights = {'energy': 1.,
+                 'phase': 1.,
+                 'eps': 1.,
+                 'twiss_alpha': 1.,
+                 'twiss_beta': 1.,
+                 'twiss_gamma': 1.,
+                 'M_11': 1.,
+                 'M_12': 1.,
+                 'M_21': 1.,
+                 'M_22': 1.,
+                 'mismatch_factor': 1,
                  }
-    return d_weights[objective_str]
+    weights = [d_weights[obj] for obj in l_obj_str]
+    return np.array(weights)

@@ -269,7 +269,7 @@ class FieldMap(_Element):
 
     def rf_param(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
         """Set the properties of the electric field."""
-        assert self.info['status'] != 'fault', "Should not look for cavity" \
+        assert self.info['status'] != 'failed', "Should not look for cavity" \
             + "parameters of a broken cavity."
         assert synch.info['synchronous'], "Out of synch particle to be" \
             + "implemented."

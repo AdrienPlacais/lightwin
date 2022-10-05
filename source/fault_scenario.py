@@ -201,6 +201,7 @@ class FaultScenario():
             n_comb = len(ll_comp)
             if n_comb <= 1:
                 flag_gathered = True
+                break
 
             i_max = int(math.factorial(n_comb) / (
                 math.factorial(r_comb) * math.factorial(n_comb - r_comb)))

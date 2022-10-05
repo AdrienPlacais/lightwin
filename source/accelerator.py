@@ -157,6 +157,14 @@ class Accelerator():
             l_elt_results.append(elt_results)
             l_rf_fields.append(rf_field)
 
+            # If there is nominal cavities in the recalculated zone during a
+            # fit, we remove the associated rf fields and phi_s_rad
+            if (not flag_transfer_data) \
+                and (d_fits is not None) \
+                    and (elt.info['status'] == 'nominal'):
+                l_rf_fields[-1] = None
+                l_elt_results[-1]['phi_s_rad'] = None
+
             # Update energy and phase
             phi_abs += elt_results["phi_rel"][-1]
             w_kin = elt_results["w_kin"][-1]
