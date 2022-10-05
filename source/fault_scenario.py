@@ -12,6 +12,9 @@ smoothen the individual fixes. # TODO
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 
+TODO handle faults at linac extremities
+TODO allow for different strategies according to the section
+
 TODO remake a small fit after the first one?
 TODO plot interesting data before the second fit to see if it is
 useful
