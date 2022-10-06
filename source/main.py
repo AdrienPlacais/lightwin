@@ -22,7 +22,6 @@ from constants import I_MILLI_A
 import accelerator as acc
 import debug
 import helper
-import emittance
 import tracewin_interface as tw
 import fault_scenario as mod_fs
 
@@ -62,6 +61,7 @@ PLOTS = [
     # "emittance",
     # "twiss",
     "enveloppes",
+    "mismatch factor",
 ]
 PLOT_TM = False
 
@@ -77,6 +77,7 @@ DICT_PLOTS_PRESETS = {
     "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
     "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
     "enveloppes": [["envel_pos_w", "envel_ener_w", "struct"], 26],
+    "mismatch factor": [["mismatch factor", "struct"], 27],
 }
 
 DICT_SAVES = {
@@ -106,8 +107,6 @@ for plot in PLOTS:
 # Broken linac
 broken_linac = acc.Accelerator(FILEPATH, "Broken")
 fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
-fail.transfer_phi0_from_ref_to_broken()
-broken_linac.compute_transfer_matrices()
 for plot in PLOTS:
     debug.compare_with_tracewin(broken_linac, x_dat="s",
                                 y_dat=DICT_PLOTS_PRESETS[plot][0],

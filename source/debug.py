@@ -228,6 +228,7 @@ def _create_plot_dicts():
         "envel_ener_zdelta": [r"$\sigma_\delta$ [rad]", {"marker": None}],
         "envel_ener_z": [r"$\sigma_{z'}$ [mrad]", {"marker": None}],
         "envel_ener_w": [r"$\sigma_\phi$ [MeV]", {"marker": None}],
+        "mismatch factor": [r"$M$", {"marker": None}],
     }
 
     d_x_data = {
@@ -266,6 +267,7 @@ def _create_plot_dicts():
             lin.beam_param["enveloppe"]["zdelta"][:, 1],
         "envel_ener_z": lambda lin: lin.beam_param["enveloppes"]["z"][:, 1],
         "envel_ener_w": lambda lin: lin.beam_param["enveloppes"]["w"][:, 1],
+        "mismatch factor": lambda lin: lin.beam_param["mismatch factor"],
     }
 
     d_err_factor = {

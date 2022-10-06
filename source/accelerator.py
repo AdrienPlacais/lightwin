@@ -15,7 +15,8 @@ import tracewin_interface as tw
 import particle
 from constants import E_MEV, FLAG_PHI_ABS
 import elements
-from emittance import beam_parameters_zdelta, beam_parameters_all
+from emittance import beam_parameters_zdelta, beam_parameters_all, \
+    mismatch_factor
 from helper import kin_to_gamma
 
 
@@ -78,7 +79,8 @@ class Accelerator():
                     "w": np.full((last_idx + 1), np.NaN)},
             "enveloppes": {"zdelta": np.full((last_idx + 1, 2), np.NaN),
                            "z": np.full((last_idx + 1, 2), np.NaN),
-                           "w": np.full((last_idx + 1, 2), np.NaN)}
+                           "w": np.full((last_idx + 1, 2), np.NaN)},
+            "mismatch factor": np.full((last_idx + 1), np.NaN)
         }
 
         # Check that LW and TW computes the phases in the same way (abs or rel)
@@ -304,6 +306,8 @@ class Accelerator():
 
         # Go across beam parameters (Twiss, emittance, long. enveloppes)
         for item1 in self.beam_param.items():
+            if not isinstance(item1[1], dict):
+                continue
             # Go across phase spaces (z-z', z-delta, w-phi)
             for item2 in item1[1].items():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
@@ -415,6 +419,14 @@ class Accelerator():
             print('Synch index', idx, 'is in:', elt.info)
             print('Indexes of this elt:', elt.idx, '\n\n')
         return elt
+
+    def compute_mismatch(self, ref_linac):
+        """Compute mismatch factor between this non-nominal linac and a ref."""
+        assert self.name != 'Working'
+        assert ref_linac.name == 'Working'
+        self.beam_param["mismatch factor"] = \
+                mismatch_factor(ref_linac.beam_param["twiss"]["z"],
+                                self.beam_param["twiss"]["z"], transp=True)
 
 
 def _prepare_sections_and_lattices(l_elts):

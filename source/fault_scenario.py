@@ -62,7 +62,11 @@ class FaultScenario():
         if not FLAG_PHI_ABS:
             self._update_status_of_cavities_to_rephase()
 
-    def transfer_phi0_from_ref_to_broken(self):
+        self._transfer_phi0_from_ref_to_broken()
+        self.brok_lin.compute_transfer_matrices()
+        self.brok_lin.compute_mismatch(self.ref_lin)
+
+    def _transfer_phi0_from_ref_to_broken(self):
         """
         Transfer the entry phases from ref linac to broken.
 
@@ -120,6 +124,7 @@ class FaultScenario():
 
         # At the end we recompute the full transfer matrix
         self.brok_lin.compute_transfer_matrices()
+        self.brok_lin.compute_mismatch(self.ref_lin)
         self.brok_lin.name = f"Fixed ({str(l_flags_success.count(True))}" \
             + f" of {str(len(l_flags_success))})"
 

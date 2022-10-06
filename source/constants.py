@@ -128,7 +128,7 @@ WHAT_TO_FIT = {
         'phase',
         # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
         'M_11', 'M_12', 'M_22',  # 'M_21',
-        'mismatch_factor',
+        # 'mismatch_factor',
     ],
     # =========================================================================
     #     Where should we evaluate objective?
