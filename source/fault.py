@@ -426,7 +426,7 @@ def _select_objective(l_str_objectives):
         # 'mismatch_factor': mismatch,
         "mismatch_factor": lambda ref, i_r, calc, i_b:
             mismatch_factor(d_ref["twiss"](ref, i_r),
-                            d_brok["twiss"](calc, i_b)),
+                            d_brok["twiss"](calc, i_b))[0],
     }
 
     def fun_residual(ref_lin, d_results, d_idx):

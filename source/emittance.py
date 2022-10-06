@@ -76,10 +76,22 @@ def beam_parameters_all(d_zdelta, gamma):
     return d_beam_parameters
 
 
-def mismatch_factor(twiss_ref, twiss_fix):
-    """Compute the mismatc factor between two ellipses."""
+def mismatch_factor(twiss_ref, twiss_fix, transp=False):
+    """Compute the mismatch factor between two ellipses."""
+    # Transposition needed when computing the mismatch factor at more than one
+    # position, as shape of twiss arrays is (n, 3).
+    if transp:
+        twiss_ref = twiss_ref.transpose()
+        twiss_fix = twiss_fix.transpose()
+
+    # R in TW doc
     __r = twiss_ref[1] * twiss_fix[2] + twiss_ref[2] * twiss_fix[1]
     __r -= 2. * twiss_ref[0] * twiss_fix[0]
+
+    # Forbid R values lower than 2 (numerical error)
+    __r = np.atleast_1d(__r)
+    __r[np.where(__r < 2.)] = 2.
+
     mismatch = np.sqrt(.5 * (__r + np.sqrt(__r**2 - 4.))) - 1.
     return mismatch
 
