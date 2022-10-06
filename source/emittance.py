@@ -76,6 +76,13 @@ def beam_parameters_all(d_zdelta, gamma):
     return d_beam_parameters
 
 
+def mismatch_factor(twiss_ref, twiss_fix):
+    """Compute the mismatc factor between two ellipses."""
+    __r = twiss_ref[1] * twiss_fix[2] + twiss_ref[2] * twiss_fix[1]
+    __r -= 2. * twiss_ref[0] * twiss_ref[0]
+    mismatch = np.sqrt(.5 * (__r + np.sqrt(__r**2 - 4.))) - 1.
+    return mismatch
+
 # =============================================================================
 # Private - sigma
 # =============================================================================
@@ -208,141 +215,3 @@ def _enveloppes_all(twiss, eps):
     d_env = {key: _enveloppes(twiss[key], eps[key]) for key in twiss.keys()}
     return d_env
 
-
-# =============================================================================
-# Private - to be moved to debug
-# =============================================================================
-# TODO Twiss should become Accelerator attribute, and plot_twiss should go in
-# debug
-def _plot_twiss(linac, twiss_zdelta):
-    """Plot Twiss parameters."""
-    _, axs = helper.create_fig_if_not_exist(33, [311, 312, 313])
-    z_pos = linac.synch.z['abs_array']
-
-    axs[0].plot(z_pos, twiss_zdelta[:, 0], label=linac.name)
-    axs[0].set_ylabel(r'$\alpha_z$ [1]')
-    axs[0].legend()
-
-    axs[1].plot(z_pos, twiss_zdelta[:, 1])
-    axs[1].set_ylabel(r'$\beta_z$ [mm/$\pi$%]')
-
-    axs[2].plot(z_pos, twiss_zdelta[:, 2])
-    axs[2].set_ylabel(r'$\gamma_z$ [$\pi$/mm/%]')
-    axs[2].set_xlabel('s [m]')
-
-    for ax_ in axs:
-        ax_.grid(True)
-
-
-# TODO Should also go in debug
-def _output_twiss(d_twiss, idx=0):
-    """Output Twiss parameters in three phase spaces at index idx."""
-    d_units = {"zdelta": ["[1]", "[mm/pi.%]", "[pi/mm.%]"],
-               "w": ["[1]", "[deg/pi.MeV]", "[pi/deg.MeV]"],
-               "z": ["[1]", "[mm/pi.mrad]", "[pi/mm.mrad]"]}
-
-    df_twiss = pd.DataFrame(columns=(
-        'Twiss',
-        '[z - delta]', 'Unit',
-        '[phi - W]', 'Unit',
-        "[z - z']", 'Unit'))
-
-    for i, name in enumerate(["alpha", "beta", "gamma"]):
-        line = [name]
-
-        for phase_space in ["zdelta", "w", "z"]:
-            line.append(d_twiss[phase_space][idx, i])
-            line.append(d_units[phase_space][i])
-        df_twiss.loc[i] = line
-
-    df_twiss = df_twiss.round(decimals=4)
-    pd.options.display.max_columns = 8
-    pd.options.display.width = 120
-    helper.printd(df_twiss, header=f"Twiss parameters at index {idx}:")
-
-
-# =============================================================================
-# Old junk
-# =============================================================================
-def plot_phase_spaces(linac, twiss):
-    """Plot ellipsoid."""
-    fig, ax = helper.create_fig_if_not_exist(34, [111])
-    ax = ax[0]
-    z_pos = linac.get_from_elements('pos_m', 'abs')
-
-    ax.set_xlabel('z [m]')
-    ax.set_ylabel("z' [m]")
-    ax.grid(True)
-
-
-def _beam_unnormalized_beam_emittance(w, w_prime):
-    """Compute the beam rms unnormalized emittance (pi.m.rad)."""
-    emitt_w = _beam_rms_size(w)**2 * _beam_rms_size(w_prime)**2
-    emitt_w -= _compute_mean(w * w_prime)**2
-    emitt_w = np.sqrt(emitt_w)
-    return emitt_w
-
-
-def beam_unnormalized_effective_emittance(w, w_prime):
-    """Compute the beam rms effective emittance (?)."""
-    return 5. * _beam_unnormalized_beam_emittance(w, w_prime)
-
-
-def twiss_parameters(w, w_prime):
-    """Compute the Twiss parameters."""
-    emitt_w = _beam_unnormalized_beam_emittance(w, w_prime)
-    alpha_w = -_beam_rms_correlation(w, w_prime) / emitt_w
-    beta_w = _beam_rms_size(w)**2 / emitt_w
-    gamma_w = _beam_rms_size(w_prime)**2 / emitt_w
-    return alpha_w, beta_w, gamma_w
-
-
-def _compute_mean(w):
-    """Compute the mean value of a property over the beam at location s <w>."""
-    return np.NaN
-
-
-def _beam_rms_size(w):
-    """Compute the beam rms size ~w."""
-    return np.sqrt(_compute_mean((w - _compute_mean(w))**2))
-
-
-def _beam_rms_correlation(w, v):
-    """Compute the beam rms correlation bar(wv)."""
-    return _compute_mean((w - _compute_mean(w)) * (v - _compute_mean(v)))
-
-
-def calc_emittance_from_tw_transf_mat(linac, sigma_in):
-    """Compute emittance with TW's transfer matrices."""
-    l_sigma = [sigma_in]
-    fold = linac.files['project_folder']
-    filepath_ref = [fold + '/results/M_55_ref.txt',
-                    fold + '/results/M_56_ref.txt',
-                    fold + '/results/M_65_ref.txt',
-                    fold + '/results/M_66_ref.txt']
-    r_zz_tmp = tw.load_transfer_matrices(filepath_ref)
-    z = r_zz_tmp[:, 0]
-    n_z = z.shape[0]
-    r_zz_ref = np.empty([n_z, 2, 2])
-    for i in range(n_z):
-        r_zz_ref[i, 0, 0] = r_zz_tmp[i, 1]
-        r_zz_ref[i, 0, 1] = r_zz_tmp[i, 2]
-        r_zz_ref[i, 1, 0] = r_zz_tmp[i, 3]
-        r_zz_ref[i, 1, 1] = r_zz_tmp[i, 4]
-        l_sigma.append(r_zz_ref[i] @ sigma_in @ r_zz_ref[i].transpose())
-    arr_sigma = np.array(l_sigma)
-
-    l_epsilon_zdelta = [np.sqrt(np.linalg.det(arr_sigma[i]))
-                        for i in range(n_z)]
-    arr_eps_zdelta = np.array(l_epsilon_zdelta)
-
-    filepath = linac.files['project_folder'] + '/results/Chart_Energy(MeV).txt'
-    w_kin = np.loadtxt(filepath, skiprows=1)
-    w_kin = np.interp(x=z, xp=w_kin[:, 0], fp=w_kin[:, 1])
-    gamma = helper.kin_to_gamma(w_kin)
-    arr_eps_w = _convert_emittance(arr_eps_zdelta, "zdelta to w", gamma)
-
-    fig, ax = helper.create_fig_if_not_exist(13, [111])
-    ax = ax[0]
-    ax.plot(z, arr_eps_w, label="Calc with TW transf mat")
-    ax.legend()

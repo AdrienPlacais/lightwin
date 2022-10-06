@@ -28,6 +28,7 @@ from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT,\
     LINAC
 import debug
 from helper import printc
+from emittance import mismatch_factor
 
 
 debugs = {
@@ -400,16 +401,6 @@ def _select_objective(l_str_objectives):
         'twiss': lambda calc, i_b: calc["d_zdelta"]["twiss"][i_b],
     }
 
-    # Def objective functions that are more complex than just a difference
-    # between two quantities
-    def mismatch(ref, i_r, calc, i_b):
-        """Compute mismatch between ellipses."""
-        r_t = d_ref["twiss"](ref, i_r)
-        b_t = d_brok["twiss"](calc, i_b)
-        r_tmp = r_t[1] * b_t[2] + r_t[2] * b_t[1] - 2. * r_t[0] * b_t[0]
-        mism = np.sqrt(.5 * (r_tmp + np.sqrt(r_tmp**2 - 4.))) - 1.
-        return mism
-
     # Dictionary to return objective functions
     d_obj = {
         'energy': lambda ref, i_r, calc, i_b:
@@ -432,7 +423,10 @@ def _select_objective(l_str_objectives):
             d_ref["twiss"](ref, i_r)[1] - d_brok["twiss"](calc, i_b)[1],
         'twiss_gamma': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[2] - d_brok["twiss"](calc, i_b)[2],
-        'mismatch_factor': mismatch,
+        # 'mismatch_factor': mismatch,
+        "mismatch_factor": lambda ref, i_r, calc, i_b:
+            mismatch_factor(d_ref["twiss"](ref, i_r),
+                            d_brok["twiss"](calc, i_b)),
     }
 
     def fun_residual(ref_lin, d_results, d_idx):
