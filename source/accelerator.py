@@ -8,6 +8,7 @@ Created on Tue Sep 21 11:54:19 2021.
 TODO : Check if _check_consistency_phases message still relatable
 TODO : compute_transfer_matrices: simplify, add a calculation of missing phi_0
 at the end
+TODO : check is where_is still in use
 """
 import os.path
 import numpy as np
@@ -17,7 +18,7 @@ from constants import E_MEV, FLAG_PHI_ABS
 import elements
 from emittance import beam_parameters_zdelta, beam_parameters_all, \
     mismatch_factor
-from helper import kin_to_gamma
+from helper import kin_to_gamma, printc
 
 
 class Accelerator():
@@ -111,15 +112,17 @@ class Accelerator():
             flags_absolute.append(cav.acc_field.phi_0['abs_phase_flag'])
 
         if FLAG_PHI_ABS and False in flags_absolute:
-            print("Warning: you asked LW a simulation in absolute phase,",
-                  "while there is at least one cavity in relative phase in",
-                  "the .dat file used by TW. Results won't match if there",
-                  "are faulty cavities.\n")
+            printc("Accelerator._check_consistency_phases warning: ",
+                   opt_message="you asked LW a simulation in absolute phase,"
+                   + " while there is at least one cavity in relative phase in"
+                   + " the .dat file used by TW. Results won't match if there"
+                   + " are faulty cavities.\n")
         elif not FLAG_PHI_ABS and True in flags_absolute:
-            print("Warning: you asked LW a simulation in relative phase,",
-                  "while there is at least one cavity in absolute phase in",
-                  "the .dat file used by TW. Results won't match if there",
-                  "are faulty cavities.\n")
+            printc("Accelerator._check_consistency_phases warning: ",
+                   opt_message="you asked LW a simulation in relative phase,"
+                   + " while there is at least one cavity in absolute phase in"
+                   + " the .dat file used by TW. Results won't match if there"
+                   + " are faulty cavities.\n")
 
     def compute_transfer_matrices(self, l_elts=None, d_fits=None,
                                   flag_transfer_data=True):
@@ -402,10 +405,12 @@ class Accelerator():
 
         """
         if nature:
-            print('Warning, calling where_is with argument nature.')
+            printc("Accelerator.where_is warning: ", opt_message="calling"
+                   + " where_is with argument nature.")
             idx = self.elements_of(nature=elt.info['nature']).index(elt)
         else:
-            print('Warning, where_is should be useless now.')
+            printc("Accelerator.where_is warning: ", opt_message="where_is"
+                   + " shoul be useless now.")
             idx = self.elements['list'].index(elt)
 
         return idx
