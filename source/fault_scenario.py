@@ -296,6 +296,7 @@ class FaultScenario():
             'phi': lambda lin: lin.synch.phi['abs_array'],
             'sigma_phi': lambda lin: lin.beam_param['enveloppes']['w'][:, 0],
             'sigma_w': lambda lin: lin.beam_param['enveloppes']['w'][:, 1],
+            'mismatch factor': lambda lin: lin.beam_param['mismatch factor'],
         }
 
         def rel_sq_diff(ref, fix):
@@ -308,6 +309,7 @@ class FaultScenario():
             'phi': rel_sq_diff,
             'sigma_phi': rel_sq_diff,
             'sigma_w': rel_sq_diff,
+            'mismatch factor': lambda r_l, b_l: np.nansum(b_l),
         }
 
         criterions = d_get.keys()
