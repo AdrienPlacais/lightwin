@@ -79,7 +79,7 @@ def beam_parameters_all(d_zdelta, gamma):
 def mismatch_factor(twiss_ref, twiss_fix):
     """Compute the mismatc factor between two ellipses."""
     __r = twiss_ref[1] * twiss_fix[2] + twiss_ref[2] * twiss_fix[1]
-    __r -= 2. * twiss_ref[0] * twiss_ref[0]
+    __r -= 2. * twiss_ref[0] * twiss_fix[0]
     mismatch = np.sqrt(.5 * (__r + np.sqrt(__r**2 - 4.))) - 1.
     return mismatch
 
