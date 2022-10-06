@@ -22,7 +22,7 @@ useful
 import itertools
 import math
 import numpy as np
-from constants import FLAG_PHI_ABS, WHAT_TO_FIT
+from constants import FLAG_PHI_ABS
 from helper import printc
 import debug
 import fault as mod_f
@@ -31,9 +31,10 @@ import fault as mod_f
 class FaultScenario():
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_linac, broken_linac, l_fault_idx):
+    def __init__(self, ref_linac, broken_linac, l_fault_idx, wtf):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
+        self.wtf = wtf
 
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
@@ -157,13 +158,13 @@ class FaultScenario():
         lin = self.brok_lin
 
         # If in manual mode, faults should be already gathered
-        if WHAT_TO_FIT['strategy'] == 'manual':
+        if self.wtf['strategy'] == 'manual':
             l_faulty_cav = [[lin.elements['list'][idx]
                              for idx in l_idx]
                             for l_idx in l_fault_idx]
             ll_idx_faults = l_fault_idx
             ll_comp = manually_set_cavities(lin, l_fault_idx,
-                                            WHAT_TO_FIT['manual list'])
+                                            self.wtf['manual list'])
 
         else:
             l_faulty_cav = [lin.elements['list'][idx]
@@ -191,15 +192,15 @@ class FaultScenario():
         """Proper method that gathers faults requiring the same compens cav."""
         d_comp_cav = {
             'k out of n': lambda l_cav:
-                neighboring_cavities(self.brok_lin, l_cav, WHAT_TO_FIT['k']),
+                neighboring_cavities(self.brok_lin, l_cav, self.wtf['k']),
             'l neighboring lattices': lambda l_cav:
-                neighboring_lattices(self.brok_lin, l_cav, WHAT_TO_FIT['l'])}
+                neighboring_lattices(self.brok_lin, l_cav, self.wtf['l'])}
         flag_gathered = False
         r_comb = 2
 
         while not flag_gathered:
             # List of list of corresp. compensating cavities
-            ll_comp = [d_comp_cav[WHAT_TO_FIT['strategy']](l_cav)
+            ll_comp = [d_comp_cav[self.wtf['strategy']](l_cav)
                        for l_cav in ll_faults]
 
             # Set a counter to exit the 'for' loop when all faults are gathered
@@ -242,8 +243,8 @@ class FaultScenario():
             nature = {cav.info['nature'] for cav in l_faulty_cav}
             assert nature == {"FIELD_MAP"}
             l_faults_obj.append(
-                mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav)
-            )
+                mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav,
+                            self.wtf))
         return l_faults_obj
 
     def _update_status_of_cavities_to_rephase(self):

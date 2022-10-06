@@ -24,8 +24,7 @@ TODO : _set_fit_parameters could be cleaner
 import numpy as np
 from scipy.optimize import minimize, least_squares
 import PSO as pso
-from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, WHAT_TO_FIT,\
-    LINAC
+from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, LINAC
 import debug
 from helper import printc
 from emittance import mismatch_factor
@@ -44,9 +43,10 @@ debugs = {
 class Fault():
     """A class to hold one or several close Faults."""
 
-    def __init__(self, ref_lin, brok_lin, fail_cav):
+    def __init__(self, ref_lin, brok_lin, fail_cav, wtf):
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
+        self.wtf = wtf
         self.fail = {'l_cav': fail_cav}
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
@@ -64,9 +64,9 @@ class Fault():
         # Set the fit variables
         initial_guesses, bounds, phi_s_limits, l_prop_label \
             = self._set_fit_parameters()
-        l_elts, d_idx = self._select_zone_to_recompute(WHAT_TO_FIT['position'])
+        l_elts, d_idx = self._select_zone_to_recompute(self.wtf['position'])
 
-        fun_residual, l_obj_label = _select_objective(WHAT_TO_FIT['objective'])
+        fun_residual, l_obj_label = _select_objective(self.wtf['objective'])
 
         # Save some data for debug and output purposes
         self.info['initial_guesses'] = initial_guesses
@@ -140,7 +140,7 @@ class Fault():
     def _proper_fix_pso(self, init_guess, bounds, wrapper_args,
                         phi_s_limits=None):
         """Fix with multi-PSO algorithm."""
-        n_obj = len(WHAT_TO_FIT['objective'])
+        n_obj = len(self.wtf['objective'])
         if FLAG_PHI_S_FIT:
             n_constr = 0
         else:
@@ -152,7 +152,7 @@ class Fault():
                                 bounds, wrapper_args, phi_s_limits)
         res = pso.perform_pso(problem)
 
-        weights = pso.set_weights(WHAT_TO_FIT['objective'])
+        weights = pso.set_weights(self.wtf['objective'])
         opti_sol, approx_ideal, approx_nadir = pso.mcdm(res, weights,
                                                         self.info)
 

@@ -91,7 +91,7 @@ else:
 OPTI_METHOD = 'least_squares'
 # OPTI_METHOD = 'PSO'
 
-WHAT_TO_FIT = {
+WHAT_TO_FIT2 = {
     # =========================================================================
     # strategy: manual
     # You must provide a list of lists of broken cavities, and the
@@ -110,7 +110,7 @@ WHAT_TO_FIT = {
     # compensating cavities per faulty cavity. Close broken cavities are
     # gathered and fixed together.
     # =========================================================================
-    'strategy': 'k out of n',
+    # 'strategy': 'k out of n',
     'k': 2,
     # =========================================================================
     # strategy: l neighboring lattices
@@ -118,7 +118,7 @@ WHAT_TO_FIT = {
     # compensating lattices per faulty cavity. Close broken cavities are
     # gathered and fixed together.
     # =========================================================================
-    # 'strategy': 'l neighboring lattices',
+    'strategy': 'l neighboring lattices',
     'l': 2,
     # =========================================================================
     #     What should we fit?
