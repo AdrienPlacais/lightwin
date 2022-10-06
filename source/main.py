@@ -18,7 +18,7 @@ import time
 from datetime import timedelta
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from constants import I_MILLI_A, WHAT_TO_FIT
+from constants import I_MILLI_A
 import accelerator as acc
 import debug
 import helper
@@ -36,20 +36,63 @@ if FILEPATH == "":
 # =============================================================================
 # Fault compensation
 # =============================================================================
-failed_cav = [
-    # 29, 108,
-    # 35,
-    205,
-    # 155, 157, 167,
-    # 295, 307,
-    # 355,
-    # 395,
-    # 521, 523, 525, 527,
-    # 583
-]
-
 FLAG_FIX = True
 SAVE_FIX = False
+
+failed_cav = [
+    # 29, 108, # 35,
+    205,
+    # 155, 157, 167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
+]
+
+WHAT_TO_FIT = {
+    'opti method': 'least_squares',
+    # 'opti method': 'PSO',
+    # =========================================================================
+    # strategy: manual
+    # You must provide a list of lists of broken cavities, and the
+    # corresponding list of lists of compensating cavities. Broken cavities in
+    # a sublist are fixed together with the provided sublist of compensating
+    # cavities.
+    # =========================================================================
+    # 'strategy': 'manual',
+    'manual list': [
+        [25, 37],
+        [145, 147, 165, 175, 177]
+    ],
+    # =========================================================================
+    # strategy: k out of n
+    # You must provide a list of broken cavities, and the number of
+    # compensating cavities per faulty cavity. Close broken cavities are
+    # gathered and fixed together.
+    # =========================================================================
+    # 'strategy': 'k out of n',
+    'k': 2,
+    # =========================================================================
+    # strategy: l neighboring lattices
+    # You must provide a list of broken cavities, and the number of
+    # compensating lattices per faulty cavity. Close broken cavities are
+    # gathered and fixed together.
+    # =========================================================================
+    'strategy': 'l neighboring lattices',
+    'l': 2,
+    # =========================================================================
+    #     What should we fit?
+    # =========================================================================
+    'objective': [
+        'energy',
+        'phase',
+        # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
+        'M_11', 'M_12', 'M_22',  # 'M_21',
+        # 'mismatch_factor',
+    ],
+    # =========================================================================
+    #     Where should we evaluate objective?
+    # =========================================================================
+    'position': 'end_mod',
+    # 'position': '1_mod_after',
+    # 'position': 'both',
+}
 
 # =============================================================================
 # Outputs

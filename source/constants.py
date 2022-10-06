@@ -86,55 +86,6 @@ if FLAG_CYTHON:
 else:
     METHOD += '_p'
 
-WHAT_TO_FIT = {
-    'opti method': 'least_squares',
-    # 'opti method': 'PSO',
-    # =========================================================================
-    # strategy: manual
-    # You must provide a list of lists of broken cavities, and the
-    # corresponding list of lists of compensating cavities. Broken cavities in
-    # a sublist are fixed together with the provided sublist of compensating
-    # cavities.
-    # =========================================================================
-    # 'strategy': 'manual',
-    'manual list': [
-        [25, 37],
-        [145, 147, 165, 175, 177]
-    ],
-    # =========================================================================
-    # strategy: k out of n
-    # You must provide a list of broken cavities, and the number of
-    # compensating cavities per faulty cavity. Close broken cavities are
-    # gathered and fixed together.
-    # =========================================================================
-    # 'strategy': 'k out of n',
-    'k': 2,
-    # =========================================================================
-    # strategy: l neighboring lattices
-    # You must provide a list of broken cavities, and the number of
-    # compensating lattices per faulty cavity. Close broken cavities are
-    # gathered and fixed together.
-    # =========================================================================
-    'strategy': 'l neighboring lattices',
-    'l': 2,
-    # =========================================================================
-    #     What should we fit?
-    # =========================================================================
-    'objective': [
-        'energy',
-        'phase',
-        # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
-        'M_11', 'M_12', 'M_22',  # 'M_21',
-        # 'mismatch_factor',
-    ],
-    # =========================================================================
-    #     Where should we evaluate objective?
-    # =========================================================================
-    'position': 'end_mod',
-    # 'position': '1_mod_after',
-    # 'position': 'both',
-}
-
 # =============================================================================
 # Simulation constants -- end of user interface
 # =============================================================================
