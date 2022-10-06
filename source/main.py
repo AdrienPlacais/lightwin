@@ -18,7 +18,7 @@ import time
 from datetime import timedelta
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from constants import I_MILLI_A, WHAT_TO_FIT2
+from constants import I_MILLI_A, WHAT_TO_FIT
 import accelerator as acc
 import debug
 import helper
@@ -107,7 +107,7 @@ for plot in PLOTS:
 # Broken linac
 broken_linac = acc.Accelerator(FILEPATH, "Broken")
 fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav,
-                            wtf=WHAT_TO_FIT2)
+                            wtf=WHAT_TO_FIT)
 for plot in PLOTS:
     debug.compare_with_tracewin(broken_linac, x_dat="s",
                                 y_dat=DICT_PLOTS_PRESETS[plot][0],

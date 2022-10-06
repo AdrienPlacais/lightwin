@@ -24,7 +24,7 @@ TODO : _set_fit_parameters could be cleaner
 import numpy as np
 from scipy.optimize import minimize, least_squares
 import PSO as pso
-from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, OPTI_METHOD, LINAC
+from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, LINAC
 import debug
 from helper import printc
 from emittance import mismatch_factor
@@ -78,11 +78,11 @@ class Fault():
         wrapper_args = (self, fun_residual, d_idx)
 
         self.count = 0
-        if OPTI_METHOD == 'least_squares':
+        if self.wtf['opti method'] == 'least_squares':
             flag_success, opti_sol = self._proper_fix_lsq_opt(
                 initial_guesses, bounds, wrapper_args)
 
-        elif OPTI_METHOD == 'PSO':
+        elif self.wtf['opti method'] == 'PSO':
             flag_success, opti_sol = self._proper_fix_pso(
                 initial_guesses, bounds, wrapper_args, phi_s_limits)
 
@@ -99,7 +99,7 @@ class Fault():
         The least_squares algorithm does not allow to add constraint functions.
         In particular, if you want to control the synchronous phase, you should
         directly optimise phi_s (FLAG_PHI_S_FIT == True) or use PSO algorithm
-        (OPTI_METHOD == 'PSO').
+        (self.wtf['opti method'] == 'PSO').
         """
         if init_guess.shape[0] == 1:
             solver = minimize

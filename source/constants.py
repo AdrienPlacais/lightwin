@@ -86,12 +86,9 @@ if FLAG_CYTHON:
 else:
     METHOD += '_p'
 
-
-# Optimisation method: least_squares or PSO
-OPTI_METHOD = 'least_squares'
-# OPTI_METHOD = 'PSO'
-
-WHAT_TO_FIT2 = {
+WHAT_TO_FIT = {
+    'opti method': 'least_squares',
+    # 'opti method': 'PSO',
     # =========================================================================
     # strategy: manual
     # You must provide a list of lists of broken cavities, and the
