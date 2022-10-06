@@ -290,7 +290,7 @@ class FaultScenario():
             if cav.info['status'] == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
 
-    def evaluate_fit_quality(self):
+    def evaluate_fit_quality(self, delta_t):
         """Compute some quantities on the whole linac to see if fit is good."""
         d_get = {
             'W_kin': lambda lin: lin.synch.energy['kin_array_mev'],
@@ -313,6 +313,7 @@ class FaultScenario():
             'mismatch factor': lambda r_l, b_l: np.nansum(b_l),
         }
 
+        print(f"Time spent: {delta_t}s")
         criterions = d_get.keys()
         for crit in criterions:
             args = (d_get[crit](self.ref_lin), d_get[crit](self.brok_lin))

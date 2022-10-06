@@ -6,7 +6,7 @@ Created on Thu May  5 15:37:16 2022.
 @author: placais
 
 Run with
-%timeit run speed_test.py
+%timeit run test_speed.py
 
 Warning! submodules are not always properly reloaded with this command. Hence,
 you may want to double check which functions are used, eg after modifying
@@ -18,15 +18,16 @@ import numpy as np
 import constants
 import accelerator as acc
 import fault_scenario as mod_fs
+from main import WHAT_TO_FIT
 
-# test = 'simple'
-test = 'compensation'
+# TEST = 'simple'
+TEST = 'compensation'
 
 FILEPATH = os.path.abspath(
     "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
 )
 
-if test == 'simple':
+if TEST == 'simple':
     linac = acc.Accelerator(FILEPATH, "Working")
     linac.compute_transfer_matrices()
 
@@ -42,17 +43,13 @@ if test == 'simple':
         + f"METHOD: {constants.METHOD}"
     )
 
-elif test == 'compensation':
+elif TEST == 'compensation':
     ref_linac = acc.Accelerator(FILEPATH, 'Working')
-    broken_linac = acc.Accelerator(FILEPATH, "Broken")
+    ref_linac.compute_transfer_matrices()
 
     failed_cav = [35]
-    fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav)
-
-    ref_linac.compute_transfer_matrices()
-    fail.transfer_phi0_from_ref_to_broken()
-    broken_linac.compute_transfer_matrices()
-
-    fail.prepare_compensating_cavities_of_all_faults([0])
+    broken_linac = acc.Accelerator(FILEPATH, "Broken")
+    fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav,
+                                wtf=WHAT_TO_FIT)
     fail.fix_all()
     broken_linac.compute_transfer_matrices()
