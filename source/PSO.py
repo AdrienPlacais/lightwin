@@ -28,7 +28,7 @@ from pymoo.core.callback import Callback
 
 
 str_algorithm = "NSGA-III"
-flag_verbose = True
+flag_verbose = False
 flag_hypervolume = False
 flag_running = False
 flag_convergence_history = False  # Heavier in terms of memory usage

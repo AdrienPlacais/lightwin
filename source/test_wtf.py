@@ -28,12 +28,12 @@ ref_linac.compute_transfer_matrices()
 # Set the configurations that will be tested
 # =============================================================================
 l_failed_cav = [
-    [35],
-    [155, 157],
+    # [35],
+    # [155, 157],
     [205],
 ]
 what_to_fit = {
-    'opti method': 'least_squares',
+    'opti method': 'PSO',
     'manual list': [
         [25, 37],
         [145, 147, 165, 175, 177]
