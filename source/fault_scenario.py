@@ -313,12 +313,13 @@ class FaultScenario():
             'mismatch factor': lambda r_l, b_l: np.nansum(b_l),
         }
 
-        print(f"Time spent: {delta_t}s")
+        ranking = [delta_t]
         criterions = d_get.keys()
         for crit in criterions:
             args = (d_get[crit](self.ref_lin), d_get[crit](self.brok_lin))
             delta_sum = d_delta[crit](*args)
-            print(f"Error on {crit}: {delta_sum}")
+            ranking.append(delta_sum)
+        return ranking
 
 
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):

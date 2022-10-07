@@ -8,8 +8,12 @@ Created on Thu Oct  6 13:50:45 2022.
 import os
 import time
 from datetime import timedelta
+import numpy as np
+import pandas as pd
 import accelerator as acc
 import fault_scenario as mod_fs
+import helper
+import matplotlib.pyplot as plt
 
 # =============================================================================
 # Set linac
@@ -23,8 +27,11 @@ ref_linac.compute_transfer_matrices()
 # =============================================================================
 # Set the configurations that will be tested
 # =============================================================================
-l_failed_cav = [[35],
-                [205]]
+l_failed_cav = [
+    [35],
+    [155, 157],
+    [205],
+]
 what_to_fit = {
     'opti method': 'least_squares',
     'manual list': [
@@ -45,13 +52,27 @@ what_to_fit = {
 }
 l_objectives = [
     ['energy', 'phase'],
+    ['energy', 'phase', 'twiss_beta', 'twiss_gamma'],
     ['energy', 'phase', 'eps', 'twiss_beta', 'twiss_gamma'],
     ['energy', 'phase', 'M_11', 'M_12', 'M_22'],
     ['energy', 'phase', 'M_11', 'M_12', 'M_21', 'M_22'],
     ['energy', 'phase', 'mismatch_factor'],
 ]
 
+measurables = ['Time [s]', r'$W_{kin}$', r'$\phi$', r'$\sigma_\phi$',
+               r'$\sigma_W$', '$M$']
+df_rank = pd.DataFrame(columns=measurables)
+
+xticks = np.linspace(0, len(measurables), len(measurables))
+
+j = 0
 for failed_cav in l_failed_cav:
+    fig = plt.figure(30 + j)
+    axx = fig.add_subplot(111)
+    axx.set_xticks(xticks)
+    axx.set_xticklabels(measurables)
+    axx.set_yscale('log')
+    i = 0
     for objective in l_objectives:
         start_time = time.monotonic()
         broken_linac = acc.Accelerator(FILEPATH, "Broken")
@@ -62,4 +83,12 @@ for failed_cav in l_failed_cav:
         broken_linac.compute_transfer_matrices()
         end_time = time.monotonic()
         delta_t = timedelta(seconds=end_time - start_time)
-        fail.evaluate_fit_quality(delta_t)
+        df_rank.loc[i] = fail.evaluate_fit_quality(delta_t.seconds)
+        axx.plot(xticks, df_rank.loc[i], label=str(i))
+        i += 1
+
+    axx.grid(True)
+    axx.legend()
+    j += 1
+
+helper.printd(df_rank, header='bonjoure')
