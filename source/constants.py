@@ -22,8 +22,8 @@ Q_ADIM = 1.
 
 # Warning, fit parameters that can change between the two linacs are also set
 # in fault._set_fit_parameters
-LINAC = "MYRRHA"
-# LINAC = "JAEA"
+# LINAC = "MYRRHA"
+LINAC = "JAEA"
 
 # =============================================================================
 # MYRRHA
@@ -32,7 +32,6 @@ if LINAC == "MYRRHA":
     E_MEV = 16.6
     F_BUNCH_MHZ = 176.1
     I_MILLI_A = 0.0
-
     # Input sigma beam matrix in [z-z'] plane
     SIGMA_ZDELTA = np.array(([2.9511603e-06, -1.9823111e-07],
                              [-1.9823111e-07, 7.0530641e-07]))
@@ -60,7 +59,7 @@ elif LINAC == "JAEA":
 FLAG_PHI_ABS = True
 
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = False
+FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
 # METHOD = 'leapfrog'

@@ -31,7 +31,7 @@ str_algorithm = "NSGA-III"
 flag_verbose = False
 flag_hypervolume = False
 flag_running = False
-flag_convergence_history = False  # Heavier in terms of memory usage
+flag_convergence_history = True  # Heavier in terms of memory usage
 flag_convergence_callback = True
 
 
@@ -132,7 +132,7 @@ def perform_pso(problem):
     elif str_algorithm == 'NSGA-III':
         ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
                                             n_partitions=6)
-        algorithm = NSGA3(pop_size=500,
+        algorithm = NSGA3(pop_size=75, # 500
                           ref_dirs=ref_dirs,
                           )
 
@@ -153,7 +153,7 @@ def _set_termination():
     """Set a termination condition."""
     d_termination = {
         'NSGA-II': get_termination("n_gen", 1000),
-        'NSGA-III': get_termination("n_gen", 200),
+        'NSGA-III': get_termination("n_gen", 200),# 200
     }
     termination = d_termination[str_algorithm]
 

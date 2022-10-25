@@ -187,11 +187,11 @@ def _create_plot_dicts():
                 {'marker': None}],
         'energy': ['Beam energy [MeV]',
                    {'marker': None}],
-        'energy_err': ['Log of abs. error [1]',
+        'energy_err': ['Error',
                        {'marker': None}],
         'abs_phase': ['Beam phase [deg]',
                       {'marker': None}],
-        'abs_phase_err': ['Log of phase error [1]',
+        'abs_phase_err': ['Error',
                           {'marker': None}],
         'beta_synch': [r'Synch. $\beta$ [1]',
                        {'marker': None}],
@@ -334,8 +334,8 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
         return err_data
     # Add it to the dict of y data
     d_errors = {
-        'energy_err': lambda lin: _err('energy', diff='log'),
-        'abs_phase_err': lambda lin: _err('abs_phase', diff='log'),
+        'energy_err': lambda lin: _err('energy', diff='rel'),
+        'abs_phase_err': lambda lin: _err('abs_phase', diff='rel'),
         'beta_synch_err': lambda lin: _err('beta_synch', diff='abs'),
     }
     dicts['errors'] = d_errors
@@ -398,14 +398,16 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
 
         # If there is at least one 'Fixed' plot, we set the ylims ignoring
         # the 'Broken' plot
-        if 'Fixed' in linac.name:
-            lines_labels = axx.get_legend_handles_labels()
-            try:
-                idx_to_ignore = lines_labels[1].index('LW Broken')
-                lines_labels[0].pop(idx_to_ignore)
-            except ValueError:
-                pass
-            _autoscale_based_on(axx, lines_labels[0])
+        ignore_broken_ylims = True
+        if ignore_broken_ylims:
+            if 'Fixed' in linac.name:
+                lines_labels = axx.get_legend_handles_labels()
+                try:
+                    idx_to_ignore = lines_labels[1].index('LW Broken')
+                    lines_labels[0].pop(idx_to_ignore)
+                except ValueError:
+                    pass
+                _autoscale_based_on(axx, lines_labels[0])
         # FIXME does not work on plots without legend...
 
 
@@ -454,7 +456,7 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
     line = axx.axvline(maxi_phi, c='b')
     axx.axhline(-twi[0] * np.sqrt(eps / twi[1]), c=line.get_color())
     axx.get_xticklabels().append(
-        plt.text(1.005*maxi_phi, .05, form.format(maxi_phi),
+        plt.text(1.005 * maxi_phi, .05, form.format(maxi_phi),
                  va="bottom", rotation=90.,
                  transform=axx.get_xaxis_transform(), c=line.get_color())
     )
@@ -464,7 +466,7 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
     line = axx.axhline(maxi_w)
     axx.axvline(-twi[0] * np.sqrt(eps / twi[2]), c=line.get_color())
     axx.get_yticklabels().append(
-        plt.text(.005, .95*maxi_w, form.format(maxi_w), va="top",
+        plt.text(.005, .95 * maxi_w, form.format(maxi_w), va="top",
                  rotation=0.,
                  transform=axx.get_yaxis_transform(), c=line.get_color())
     )

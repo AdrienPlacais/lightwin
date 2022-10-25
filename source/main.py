@@ -12,6 +12,7 @@ General TODO list:
         Interpolation function could be replaced by pre-interpolated array?
     - Recheck non synch particles.
     - Replace flag phi_abs/phi_rel by a three positions switch: synch/abs/rel?
+    - raise error when the failed_cav is not a list of list (when manual)
 """
 import os
 import time
@@ -28,8 +29,8 @@ import fault_scenario as mod_fs
 # Select .dat file
 Tk().withdraw()
 
-FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-# FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
+# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -37,11 +38,10 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 FLAG_FIX = True
-SAVE_FIX = False
+SAVE_FIX = True
 
 failed_cav = [
-    # 29, 108, # 35,
-    205,
+    25,
     # 155, 157, 167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
 ]
 
@@ -57,8 +57,7 @@ WHAT_TO_FIT = {
     # =========================================================================
     # 'strategy': 'manual',
     'manual list': [
-        [25, 37],
-        [145, 147, 165, 175, 177]
+        # [145, 147, 165, 175, 177]
     ],
     # =========================================================================
     # strategy: k out of n
@@ -66,15 +65,15 @@ WHAT_TO_FIT = {
     # compensating cavities per faulty cavity. Close broken cavities are
     # gathered and fixed together.
     # =========================================================================
-    # 'strategy': 'k out of n',
-    'k': 2,
+    'strategy': 'k out of n',
+    'k': 6,
     # =========================================================================
     # strategy: l neighboring lattices
     # You must provide a list of broken cavities, and the number of
     # compensating lattices per faulty cavity. Close broken cavities are
     # gathered and fixed together.
     # =========================================================================
-    'strategy': 'l neighboring lattices',
+    # 'strategy': 'l neighboring lattices',
     'l': 2,
     # =========================================================================
     #     What should we fit?
@@ -83,8 +82,8 @@ WHAT_TO_FIT = {
         'energy',
         'phase',
         # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
-        'M_11', 'M_12', 'M_22',  # 'M_21',
-        # 'mismatch_factor',
+        # 'M_11', 'M_12', 'M_22',  # 'M_21',
+        'mismatch_factor',
     ],
     # =========================================================================
     #     Where should we evaluate objective?
@@ -99,10 +98,10 @@ WHAT_TO_FIT = {
 # =============================================================================
 PLOTS = [
     "energy",
-    # "phase",
+    "phase",
     "cav",
-    # "emittance",
-    # "twiss",
+    "emittance",
+    "twiss",
     "enveloppes",
     "mismatch factor",
 ]
@@ -178,4 +177,7 @@ if SAVE_FIX:
 # =============================================================================
 end_time = time.monotonic()
 print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
-fail.evaluate_fit_quality()
+
+delta_t = timedelta(seconds=end_time - start_time)
+ranking = fail.evaluate_fit_quality(delta_t)
+helper.printd(ranking, header='Fit evaluation')

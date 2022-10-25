@@ -14,6 +14,9 @@ ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 
 TODO handle faults at linac extremities
 TODO allow for different strategies according to the section
+TODO raise explicit error when the format of error (list vs idx) is not
+appropriate, especially when manual mode.
+TODO allow for uneven distribution of compensating cavities (ex: k out of n=5)
 
 TODO remake a small fit after the first one?
 TODO plot interesting data before the second fit to see if it is
@@ -22,6 +25,7 @@ useful
 import itertools
 import math
 import numpy as np
+import pandas as pd
 from constants import FLAG_PHI_ABS
 from helper import printc
 import debug
@@ -290,6 +294,7 @@ class FaultScenario():
             if cav.info['status'] == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
 
+    # FIXME not Pythonic at all
     def evaluate_fit_quality(self, delta_t):
         """Compute some quantities on the whole linac to see if fit is good."""
         d_get = {
@@ -298,28 +303,61 @@ class FaultScenario():
             'sigma_phi': lambda lin: lin.beam_param['enveloppes']['w'][:, 0],
             'sigma_w': lambda lin: lin.beam_param['enveloppes']['w'][:, 1],
             'mismatch factor': lambda lin: lin.beam_param['mismatch factor'],
+            'emittance': lambda lin: lin.beam_param['eps']['w'],
         }
+        idx_end_comp_zone = 824
+        printc("Warning fault_scenario.evaluate_fit_quality: ",
+               opt_message="Index of end compensation zone manually set.")
 
         def rel_sq_diff(ref, fix):
             delta = np.sqrt(((ref - fix) / ref)**2)
             delta_sum = np.nansum(delta)
             return delta_sum
 
-        d_delta = {
-            'W_kin': rel_sq_diff,
-            'phi': rel_sq_diff,
-            'sigma_phi': rel_sq_diff,
-            'sigma_w': rel_sq_diff,
-            'mismatch factor': lambda r_l, b_l: np.nansum(b_l),
-        }
+        def rel_diff_end_linac(ref, fix):
+            err = 1e2 * (ref[-1] - fix[-1]) / ref[-1]
+            return err
 
-        ranking = [delta_t]
+        def rel_diff_end_comp_zone(ref, fix):
+            err = 1e2 * (ref[idx_end_comp_zone] - fix[idx_end_comp_zone]) \
+                / ref[idx_end_comp_zone]
+            return err
+
+        l_str_fun = ['end of comp. zone [%]', 'end of linac [%]',
+                     'sum error on linac']
+        df_ranking = pd.DataFrame(columns=(['Qty'] + l_str_fun))
+        df_ranking.loc[0] = ['time', delta_t, None, None]
+
         criterions = d_get.keys()
-        for crit in criterions:
-            args = (d_get[crit](self.ref_lin), d_get[crit](self.brok_lin))
-            delta_sum = d_delta[crit](*args)
-            ranking.append(delta_sum)
-        return ranking
+        for i, crit in enumerate(criterions):
+            l_rank = [crit]
+            for str_fun in l_str_fun:
+                if str_fun == 'end of linac [%]':
+                    fun1 = rel_diff_end_linac
+                    fun2 = lambda r_l, b_l: b_l[-1]
+                elif str_fun == 'end of comp. zone [%]':
+                    fun1 = rel_diff_end_comp_zone
+                    fun2 = lambda r_l, b_l: b_l[idx_end_comp_zone]
+                elif str_fun == 'sum error on linac':
+                    fun1 = rel_sq_diff
+                    fun2 = lambda r_l, b_l: np.nansum(b_l)
+                else:
+                    raise IOError
+
+                d_delta = {
+                    'W_kin': fun1,
+                    'phi': fun1,
+                    'sigma_phi': fun1,
+                    'sigma_w': fun1,
+                    'mismatch factor': fun2,
+                    'emittance': fun1,
+                }
+
+                args = (d_get[crit](self.ref_lin), d_get[crit](self.brok_lin))
+                delta = d_delta[crit](*args)
+                l_rank.append(delta)
+            df_ranking.loc[i + 1] = l_rank
+        return df_ranking
 
 
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):

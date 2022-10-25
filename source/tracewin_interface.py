@@ -4,6 +4,8 @@
 Created on Thu Feb 17 15:52:37 2022.
 
 @author: placais
+
+TODO insert line skip at each section change in the output.dat
 """
 import os.path
 from tkinter import Tk

@@ -9,6 +9,7 @@ Created on Wed Sep 22 14:15:48 2021.
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as pat
+import pandas as pd
 from constants import c, E_REST_MEV
 
 
@@ -30,6 +31,11 @@ def printc(message, color='cyan', opt_message=''):
 
 def printd(message, color_header='cyan', header=''):
     """Print delimited message."""
+    pd.options.display.float_format = '{:.4e}'.format
+    pd.options.display.max_columns = 10
+    pd.options.display.max_colwidth = 65
+    pd.options.display.width = 250
+
     line = '=================================================================='
     print(line, '\n')
     if len(header) > 0:
