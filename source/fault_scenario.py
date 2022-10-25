@@ -18,6 +18,10 @@ TODO raise explicit error when the format of error (list vs idx) is not
 appropriate, especially when manual mode.
 TODO allow for uneven distribution of compensating cavities (ex: k out of n=5)
 
+TODO tune the PSO
+TODO method to avoid big changes of acceptance
+TODO option to minimize the power of compensating cavities
+
 TODO remake a small fit after the first one?
 TODO plot interesting data before the second fit to see if it is
 useful

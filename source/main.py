@@ -38,7 +38,7 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 FLAG_FIX = True
-SAVE_FIX = True
+SAVE_FIX = False
 
 failed_cav = [
     25,
@@ -46,8 +46,8 @@ failed_cav = [
 ]
 
 WHAT_TO_FIT = {
-    'opti method': 'least_squares',
-    # 'opti method': 'PSO',
+    # 'opti method': 'least_squares',
+    'opti method': 'PSO',
     # =========================================================================
     # strategy: manual
     # You must provide a list of lists of broken cavities, and the
