@@ -23,7 +23,7 @@ from pymoo.decomposition.asf import ASF
 from pymoo.mcdm.pseudo_weights import PseudoWeights
 
 from pymoo.indicators.hv import Hypervolume
-from pymoo.util.running_metric import RunningMetric
+from pymoo.util.running_metric import RunningMetricAnimation
 
 from pymoo.visualization.pcp import PCP
 
@@ -34,7 +34,7 @@ from helper import printc, create_fig_if_not_exist
 STR_ALGORITHM = "NSGA-II"
 FLAG_VERBOSE = False
 FLAG_HYPERVOLUME = True
-FLAG_RUNNING = False
+FLAG_RUNNING = True
 FLAG_CONVERGENCE_HISTORY = True  # Heavier in terms of memory usage
 FLAG_CONVERGENCE_CALLBACK = True
 FLAG_CV = False
@@ -110,7 +110,7 @@ class MyProblem(ElementwiseProblem):
 def perform_pso(problem):
     """Perform the PSO."""
     if STR_ALGORITHM == 'NSGA-II':
-        algorithm = NSGA2(pop_size=100,
+        algorithm = NSGA2(pop_size=500,
                           eliminate_duplicates=True)
 
     elif STR_ALGORITHM == 'NSGA-III':
@@ -136,7 +136,7 @@ def perform_pso(problem):
 def _set_termination():
     """Set a termination condition."""
     d_termination = {
-        'NSGA-II': get_termination("n_gen", 50),
+        'NSGA-II': get_termination("n_gen", 500),
         'NSGA-III': get_termination("n_gen", 200),# 200
     }
     termination = d_termination[STR_ALGORITHM]
@@ -317,8 +317,8 @@ def _convergence_hypervolume(n_eval, hist_f, approx_ideal, approx_nadir,
     # Dictionary for reference points
     # They must be typical large values for the objective
     d_ref = {
-        'energy': 30.,
-        'phase': np.pi,
+        'energy': 70.,
+        'phase': 0.5,
         'mismatch_factor': 1.,
         'M_11': None,
         'M_12': None,
@@ -338,10 +338,17 @@ def _convergence_hypervolume(n_eval, hist_f, approx_ideal, approx_nadir,
 
     h_v = [metric.do(_F) for _F in hist_f]
 
+    printc("Warning PSO._convergence_hypervolume: ", opt_message="manually"
+           + "added the optimal point to the hypervolume plot.")
+    ideal = np.abs([1075.34615847359 - 1075.346158310222,
+                    77.17023331557031 - 77.17023332120309,
+                    7.324542512066046e-06])
+    h_v.append(metric.do(ideal))
+
     _, axx = create_fig_if_not_exist(60, [111])
     axx = axx[0]
 
-    axx.plot(n_eval, h_v, lw=.7, marker='o', c='k')
+    axx.plot(n_eval + [n_eval[-1] + n_eval[0]], h_v, lw=.7, marker='o', c='k')
     axx.set_title("Objective space")
     axx.set_xlabel("Function evaluations")
     axx.set_ylabel("Hypervolume")
@@ -350,13 +357,14 @@ def _convergence_hypervolume(n_eval, hist_f, approx_ideal, approx_nadir,
 
 def _convergence_running_metrics(hist):
     """Study convergence using running metrics."""
-    running = RunningMetric(delta_gen=2,
-                            n_plots=10,
-                            only_if_n_plots=True,
-                            key_press=True,
-                            do_show=True)
+    running = RunningMetricAnimation(
+        delta_gen=10,
+        n_plots=10,
+        # only_if_n_plots=True,
+        key_press=True,
+        do_show=True,)
     for algorithm in hist:
-        running.notify(algorithm)
+        running.update(algorithm)
 
 
 def set_weights(l_obj_str):
