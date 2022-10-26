@@ -11,28 +11,33 @@ FIXME : removed pymoo.util.termination in import and _set_termination
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.algorithms.moo.nsga3 import NSGA3
-from pymoo.factory import get_sampling, get_crossover, get_mutation, \
-    get_termination, get_reference_directions
-# from pymoo.util.termination.default import \
-#     MultiObjectiveSpaceToleranceTermination
+
+from pymoo.factory import get_termination, get_reference_directions
 from pymoo.optimize import minimize
+
 from pymoo.decomposition.asf import ASF
 from pymoo.mcdm.pseudo_weights import PseudoWeights
+
 from pymoo.indicators.hv import Hypervolume
 from pymoo.util.running_metric import RunningMetric
+
 from pymoo.visualization.pcp import PCP
+
 from pymoo.core.callback import Callback
 
+from helper import printc, create_fig_if_not_exist
 
-str_algorithm = "NSGA-III"
-flag_verbose = False
-flag_hypervolume = False
-flag_running = False
-flag_convergence_history = True  # Heavier in terms of memory usage
-flag_convergence_callback = True
+STR_ALGORITHM = "NSGA-II"
+FLAG_VERBOSE = False
+FLAG_HYPERVOLUME = True
+FLAG_RUNNING = False
+FLAG_CONVERGENCE_HISTORY = True  # Heavier in terms of memory usage
+FLAG_CONVERGENCE_CALLBACK = True
+FLAG_CV = False
 
 
 class MyCallback(Callback):
@@ -53,17 +58,30 @@ class MyProblem(ElementwiseProblem):
     """Class holding PSO."""
 
     def __init__(self, wrapper_fun, n_var, n_obj, n_constr, bounds,
-                 wrapper_args, phi_s_limits):
+                 wrapper_args, phi_s_limits, **kwargs):
         self.wrapper_pso = wrapper_fun
         self.fault = wrapper_args[0]
         self.fun_residual = wrapper_args[1]
         self.d_idx = wrapper_args[2]
         self.phi_s_limits = phi_s_limits
         self.n_obj = n_obj
-        print('number of objectives:', n_obj)
+
+        # printc("Warning PSO.__init__: ", opt_message="Bounds manually " +
+               # "modified.")
+        # xl = np.array([
+            # 0.2753397474805297, 1.64504348936957, 5.132411286781306,
+            # 1.827816962622414, 3.3763299623648138, 4.9824476431763784,
+            # # 5.694483445783, 5.712739409783303, 5.733318868185172,
+            # # 5.75486203532526, 5.779637177905215, 5.805588466008629])
+            # 0.861770057293058, 0.8750412568825341, 0.9060682969220509,
+            # 0.9286910481509094, 0.9304272, 0.9304272])
+        # xu = xl + 1e-5
+        # xl -= 1e-5
+        print(f"Number of objectives: {n_obj}")
         super().__init__(n_var=n_var,
                          n_obj=n_obj,
                          n_constr=n_constr,
+                         # xl=xl, xu=xu)
                          xl=bounds[:, 0], xu=bounds[:, 1])
         if n_constr > 0:
             print(f"{n_constr} constraints on phi_s:\n{phi_s_limits}")
@@ -76,8 +94,8 @@ class MyProblem(ElementwiseProblem):
         ----------
         x : np.array
             Holds phases (first half) and norms (second half) of cavities.
-        out : truc
-            Mmmh
+        out : dict
+            Holds function values in "F" key and constraints in "G".
         """
         out["F"], results = self.wrapper_pso(
             x, self.fault, self.fun_residual, self.d_idx)
@@ -88,50 +106,17 @@ class MyProblem(ElementwiseProblem):
             out_G.append(results['phi_s_rad'][i] - self.phi_s_limits[i][1])
         out["G"] = np.array(out_G)
 
-    def cheat(self):
-        """Set a solution that works for comparison."""
-        # Results found with least squares
-        phi_0_cheat = np.deg2rad(np.array([22.091899,
-                                           57.085305,
-                                           224.586449,
-                                           70.098014,
-                                           187.441566]))
-        k_e_cheat = np.array([3.523201, 3.893933, 3.948438,
-                              3.402330, 3.527800])
-        X_cheat = np.hstack((phi_0_cheat, k_e_cheat))
-        print('X_cheat:', X_cheat)
-
-        F_cheat, brok_res_cheat = self.wrapper_pso(
-            X_cheat, self.fault, self.fun_residual, self.d_idx)
-        print('F_cheat:', F_cheat)
-        print('phi_s_cheat:', np.rad2deg(brok_res_cheat['phi_s_rad']))
-
-        G_cheat = []
-        for i in range(len(brok_res_cheat['phi_s_rad'])):
-            G_cheat.append(self.phi_s_limits[i][0]
-                           - brok_res_cheat['phi_s_rad'][i])
-            G_cheat.append(brok_res_cheat['phi_s_rad'][i]
-                           - self.phi_s_limits[i][1])
-        G_cheat = np.array(G_cheat)
-        print('G_cheat:', G_cheat)
-        return X_cheat, F_cheat, G_cheat
-
 
 def perform_pso(problem):
     """Perform the PSO."""
-    if str_algorithm == 'NSGA-II':
+    if STR_ALGORITHM == 'NSGA-II':
         algorithm = NSGA2(pop_size=100,
-                          n_offsprings=10,
-                          sampling=get_sampling("real_random"),
-                          crossover=get_crossover("real_sbx", prob=.9, eta=10),
-                          mutation=get_mutation("real_pm", eta=5),
-                          # Ensure that offsprings are different from each
-                          # other and from existing population:
                           eliminate_duplicates=True)
 
-    elif str_algorithm == 'NSGA-III':
-        ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
-                                            n_partitions=6)
+    elif STR_ALGORITHM == 'NSGA-III':
+        # ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
+                                            # n_partitions=6)
+        ref_dirs = get_reference_directions("energy", problem.n_obj, 90)
         algorithm = NSGA3(pop_size=75, # 500
                           ref_dirs=ref_dirs,
                           )
@@ -141,21 +126,20 @@ def perform_pso(problem):
                    algorithm,
                    termination,
                    seed=1,
-                   save_history=flag_convergence_history,
-                   verbose=flag_verbose,
+                   save_history=FLAG_CONVERGENCE_HISTORY,
+                   verbose=FLAG_VERBOSE,
                    callback=MyCallback(),
                    )
-
     return res
 
 
 def _set_termination():
     """Set a termination condition."""
     d_termination = {
-        'NSGA-II': get_termination("n_gen", 1000),
+        'NSGA-II': get_termination("n_gen", 50),
         'NSGA-III': get_termination("n_gen", 200),# 200
     }
-    termination = d_termination[str_algorithm]
+    termination = d_termination[STR_ALGORITHM]
 
     # termination = MultiObjectiveSpaceToleranceTermination(
     #     # What is the tolerance in the objective space on average. If the value
@@ -175,42 +159,46 @@ def _set_termination():
     return termination
 
 
-def mcdm(res, weights, fault_info):
+def mcdm(res, weights, fault_info, compare=None):
     """Perform Multi-Criteria Decision Making."""
     print(f"Shapes: X={res.X.shape}, F={res.F.shape}, G={res.G.shape}")
     # Multi-Criteria Decision Making
-    fl = res.F.min(axis=0)
-    fu = res.F.max(axis=0)
-    for _l, _u in zip(fl, fu):
+    f_l = res.F.min(axis=0)
+    f_u = res.F.max(axis=0)
+    for _l, _u in zip(f_l, f_u):
         print(f"Pre-scale f: [{_l}, {_u}]")
 
     approx_ideal = res.F.min(axis=0)
     approx_nadir = res.F.max(axis=0)
 
-    nF = (res.F - approx_ideal) / (approx_nadir - approx_ideal)
-    fl = nF.min(axis=0)
-    fu = nF.max(axis=0)
+    n_f = (res.F - approx_ideal) / (approx_nadir - approx_ideal)
+    f_l = n_f.min(axis=0)
+    f_u = n_f.max(axis=0)
 
-    pd_best_sol, i = _best_solutions(res, nF, weights, fault_info)
+    pd_best_sol, i = _best_solutions(res, n_f, weights, fault_info,
+                                     compare=compare)
     fault_info['resume'] = pd_best_sol
 
     return res.X[i], approx_ideal, approx_nadir
 
 
-def _best_solutions(res, nF, weights, fault_info):
+def _best_solutions(res, n_f, weights, fault_info, compare=None):
     """Look for best solutions according to various criteria."""
-    two_n_cav = res.X.shape[1]
-    columns = ['Criteria', 'i'] + fault_info['l_prop_label'][:two_n_cav] \
+    # Create a pandas dataframe for the final objective values
+    n_var = res.X.shape[1]
+    columns = ['Criteria', 'i'] + fault_info['l_prop_label'][:n_var] \
         + fault_info['l_obj_label']
     pd_best_sol = pd.DataFrame(columns=(columns))
 
+    # Best solution according to ASF
     decomp = ASF()
-    minASF = decomp.do(nF, 1. / weights)
-    i_asf = minASF.argmin()
+    min_asf = decomp.do(n_f, 1. / weights)
+    i_asf = min_asf.argmin()
     pd_best_sol.loc[0] = ['ASF', i_asf] + res.X[i_asf].tolist() \
         + res.F[i_asf].tolist()
 
-    i_pw = PseudoWeights(weights).do(nF)
+    # Best solution according to Pseudo-Weights
+    i_pw = PseudoWeights(weights).do(n_f)
     pd_best_sol.loc[1] = ['PW', i_pw] + res.X[i_pw].tolist() \
         + res.F[i_pw].tolist()
 
@@ -221,40 +209,60 @@ def _best_solutions(res, nF, weights, fault_info):
           '\n\n')
 
     # Viualize solutions
-    kwargs_matplotlib = {'close_on_destroy': False}
-    best_sol_plot = PCP(title=("Run", {'pad': 30}),
-                        n_ticks=10,
-                        legend=(True, {'loc': "upper left"}),
-                        labels=fault_info['l_obj_label'],
-                        **kwargs_matplotlib,
-                        )
-    best_sol_plot.set_axis_style(color="grey", alpha=0.5)
-    best_sol_plot.add(res.F, color="grey", alpha=0.3)
-    best_sol_plot.add(res.F[i_asf], linewidth=5, color="red", label='ASF')
-    best_sol_plot.add(res.F[i_pw], linewidth=5, color="blue", label='PW')
-    best_sol_plot.show()
-    best_sol_plot.ax.grid(True)
+    if res.F.shape[1] != 3:
+        kwargs_matplotlib = {'close_on_destroy': False}
+        best_sol_plot = PCP(title=("Run", {'pad': 30}),
+                            n_ticks=10,
+                            legend=(True, {'loc': "upper left"}),
+                            labels=fault_info['l_obj_label'],
+                            **kwargs_matplotlib,
+                            )
+        best_sol_plot.set_axis_style(color="grey", alpha=0.5)
+        best_sol_plot.add(res.F, color="grey", alpha=0.3)
+        best_sol_plot.add(res.F[i_asf], linewidth=5, color="red", label='ASF')
+        best_sol_plot.add(res.F[i_pw], linewidth=5, color="blue", label='PW')
+        best_sol_plot.show()
+        best_sol_plot.ax.grid(True)
+    else:
+        fig = plt.figure(2)
+        axx = fig.add_subplot(projection='3d')
+        kwargs = {'marker': '^', 'alpha': 1, 's': 30}
+        tmp = np.log(res.F)
+        axx.scatter(tmp[:, 0], tmp[:, 1], tmp[:, 2])
+        axx.scatter(tmp[i_asf, 0], tmp[i_asf, 1], tmp[i_asf, 2],
+                    color='green', label='ASF', **kwargs)
+        axx.scatter(tmp[i_pw, 0], tmp[i_pw, 1], tmp[i_pw, 2],
+                    color='blue', label='PW', **kwargs)
+        if compare is not None:
+            axx.scatter(compare[0], compare[1], compare[2], color='k',
+                        label='Least-squares', **kwargs)
+        axx.set_xlabel(r"$W_{kin}$")
+        axx.set_ylabel(r"$\phi$")
+        axx.set_zlabel(r"$M$")
+        axx.legend()
+        fig.show()
+
     return pd_best_sol, i_asf
 
 
 def convergence_callback(callback, l_obj_label):
     """Plot convergence info using the results of the callback."""
     fig = plt.figure(58)
-    ax = fig.add_subplot(111)
-    ax.set_title("Convergence")
-    ax.plot(callback.n_evals, callback.opt, label=l_obj_label)
-    ax.set_xlabel('Number of evaluations')
-    ax.set_ylabel('res.F[0, :]')
-    ax.set_yscale("log")
-    ax.legend()
-    ax.grid(True)
+    axx = fig.add_subplot(111)
+    axx.set_title("Convergence")
+    axx.plot(callback.n_evals, callback.opt, label=l_obj_label)
+    axx.set_xlabel('Number of evaluations')
+    axx.set_ylabel('res.F[0, :]')
+    axx.set_yscale("log")
+    axx.legend()
+    axx.grid(True)
 
 
-def convergence_history(hist, approx_ideal, approx_nadir):
+def convergence_history(hist, approx_ideal, approx_nadir, str_obj):
     """Study the convergence of the algorithm."""
     # Convergence study
     n_evals = []      # Num of func evaluations
-    hist_F = []       # Objective space values in each generation
+    hist_f = []       # Objective space values in each generation
     hist_cv = []      # Constraint violation in each generation
     hist_cv_avg = []  # Average contraint violation in the whole population
 
@@ -265,7 +273,7 @@ def convergence_history(hist, approx_ideal, approx_nadir):
         hist_cv_avg.append(algo.pop.get("CV").mean())
         # Filter out only the feasible and append and objective space values
         feas = np.where(opt.get("feasible"))[0]
-        hist_F.append(opt.get("F")[feas])
+        hist_f.append(opt.get("F")[feas])
 
     k = np.where(np.array(hist_cv) <= 0.)[0].min()
     print(f"At least one feasible solution in Generation {k} after",
@@ -278,49 +286,66 @@ def convergence_history(hist, approx_ideal, approx_nadir):
     print(f"Whole population feasible in Generation {k} after {n_evals[k]}",
           "evaluations.")
 
-    fig = plt.figure(56)
-    ax = [fig.add_subplot(2, 1, 1), fig.add_subplot(2, 1, 2)]
+    if FLAG_CV:
+        fig, axx = create_fig_if_not_exist(61, [211, 212])
 
-    ax[0].plot(n_evals, hist_cv_avg, marker='o', c='k', lw=.7,
-               label="Avg. CV of pop.")
-    ax[0].axvline(n_evals[k], ls='--', label='All feasible', c='r')
-    ax[0].set_title("Convergence")
+        axx[0].plot(n_evals, hist_cv_avg, marker='o', c='k', lw=.7,
+                    label="Avg. CV of pop.")
+        axx[0].axvline(n_evals[k], ls='--', label='All feasible', c='r')
+        axx[0].set_title("Convergence")
 
-    ax[1].plot(n_evals, hist_cv, marker='o', c='b', lw=.7,
-               label="Least feasible opt. sol.")
+        axx[1].plot(n_evals, hist_cv, marker='o', c='b', lw=.7,
+                   label="Least feasible opt. sol.")
+        for i in range(2):
+            axx[i].set_xlabel("Function evaluations")
+            axx[i].set_ylabel("Constraint Violation")
+            axx[i].legend()
+            axx[i].grid(True)
+        fig.show()
 
-    for i in range(2):
-        ax[i].set_xlabel("Function Evaluations")
-        ax[i].set_ylabel("Constraint Violation")
-        ax[i].legend()
-    plt.show()
+    if FLAG_HYPERVOLUME:
+        _convergence_hypervolume(n_evals, hist_f, approx_ideal, approx_nadir,
+                                 str_obj)
 
-    if flag_hypervolume:
-        _convergence_hypervolume(n_evals, hist_F, approx_ideal, approx_nadir)
-
-    if flag_running:
+    if FLAG_RUNNING:
         _convergence_running_metrics(hist)
 
 
-def _convergence_hypervolume(n_evals, hist_F, approx_ideal, approx_nadir):
+def _convergence_hypervolume(n_eval, hist_f, approx_ideal, approx_nadir,
+                             str_obj):
     """Study convergence using hypervolume. Not adapted when too many dims."""
+    # Dictionary for reference points
+    # They must be typical large values for the objective
+    d_ref = {
+        'energy': 30.,
+        'phase': np.pi,
+        'mismatch_factor': 1.,
+        'M_11': None,
+        'M_12': None,
+        'M_21': None,
+        'M_22': None,
+        'eps': None,
+        'twiss_alpha': None,
+        'twiss_beta': None,
+        'twiss_gamma': None,
+    }
+    ref_point = [d_ref[obj] for obj in str_obj]
     metric = Hypervolume(
-        ref_point=np.array([1.1, 1.1]),
-        norm_ref_point=False,
-        zero_to_one=True,
+        ref_point=ref_point,
         ideal=approx_ideal,
         nadir=approx_nadir,
     )
 
-    hv = [metric.do(_F) for _F in hist_F]
+    h_v = [metric.do(_F) for _F in hist_f]
 
-    fig, ax = plt.subplots(1, 1, figsize=(15, 8))
+    _, axx = create_fig_if_not_exist(60, [111])
+    axx = axx[0]
 
-    ax.plot(n_evals, hv, lw=.7, marker='o', c='k')
-
-    ax.set_title("Objective Space")
-    ax.set_xlabel("Function Evaluations")
-    ax.set_ylabel("Hypervolume")
+    axx.plot(n_eval, h_v, lw=.7, marker='o', c='k')
+    axx.set_title("Objective space")
+    axx.set_xlabel("Function evaluations")
+    axx.set_ylabel("Hypervolume")
+    axx.grid(True)
 
 
 def _convergence_running_metrics(hist):
@@ -336,7 +361,7 @@ def _convergence_running_metrics(hist):
 
 def set_weights(l_obj_str):
     """Set array of weights for the different objectives."""
-    d_weights = {'energy': 1.,
+    d_weights = {'energy': 2.,
                  'phase': 1.,
                  'eps': 1.,
                  'twiss_alpha': 1.,

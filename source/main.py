@@ -97,13 +97,13 @@ WHAT_TO_FIT = {
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
-    "emittance",
-    "twiss",
-    "enveloppes",
-    "mismatch factor",
+    # "energy",
+    # "phase",
+    # "cav",
+    # "emittance",
+    # "twiss",
+    # "enveloppes",
+    # "mismatch factor",
 ]
 PLOT_TM = False
 

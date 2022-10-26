@@ -21,12 +21,17 @@ TODO : at init of Fault, say self.brok_lin = brok_lin.deepcopy() (or copy)
        Or can the breakage be done at the init of the Accelerator?
 TODO : _set_fit_parameters could be cleaner
 """
+# import multiprocessing
 import numpy as np
 from scipy.optimize import minimize, least_squares
-import PSO as pso
+
+# from multiprocessing.pool import ThreadPool
+# from pymoo.core.problem import StarmapParallelization
+
 from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, LINAC
 import debug
 from helper import printc
+import PSO as pso
 from emittance import mismatch_factor
 
 
@@ -140,6 +145,12 @@ class Fault():
     def _proper_fix_pso(self, init_guess, bounds, wrapper_args,
                         phi_s_limits=None):
         """Fix with multi-PSO algorithm."""
+        printc("Warning fault._proper_fix_pso: ", opt_message="Solution from"
+               + " least squares manually entered.")
+        lsq_f = [1075.34615847359 - 1075.346158310222,
+                 77.17023331557031 - 77.17023332120309,
+                 7.324542512066046e-06]
+        lsq_f = np.abs(np.array(lsq_f))
         n_obj = len(self.wtf['objective'])
         if FLAG_PHI_S_FIT:
             n_constr = 0
@@ -154,13 +165,17 @@ class Fault():
 
         weights = pso.set_weights(self.wtf['objective'])
         opti_sol, approx_ideal, approx_nadir = pso.mcdm(res, weights,
-                                                        self.info)
+                                                        self.info,
+                                                        compare=np.log(lsq_f))
 
-        if pso.flag_convergence_history:
-            pso.convergence_history(res.history, approx_ideal, approx_nadir)
-        if pso.flag_convergence_callback:
+        if pso.FLAG_CONVERGENCE_HISTORY:
+            pso.convergence_history(res.history, approx_ideal, approx_nadir,
+                                   self.wtf['objective'])
+        if pso.FLAG_CONVERGENCE_CALLBACK:
             pso.convergence_callback(res.algorithm.callback,
                                      self.info['l_obj_label'])
+        self.keep_problem = problem
+        self.keep_results = res
 
         return True, opti_sol
 
@@ -314,7 +329,7 @@ class Fault():
         phi_s_limits = np.array(bounds[2 * n_cav:])
         bounds = np.array(bounds[:2 * n_cav])
 
-        print('initial_guess:\n', initial_guess, '\nbounds:\n', bounds)
+        print(f"Initial_guess:\n{initial_guess}\nBounds:\n{bounds}")
 
         return initial_guess, bounds, phi_s_limits, l_prop_label
 

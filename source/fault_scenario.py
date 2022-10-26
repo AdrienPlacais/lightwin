@@ -56,8 +56,8 @@ class FaultScenario():
                        'l_idx': ll_fault_idx,
                        # List of list of compensating + failed cavities,
                        # grouped by Fault
-                       'l_comp': ll_comp_cav,
-                       }
+                       'l_comp': ll_comp_cav}
+
         # Ensure that the cavities are sorted from linac entrance to linac exit
         flattened_l_fault_idx = [idx
                                  for l_idx in ll_fault_idx
