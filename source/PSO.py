@@ -4,8 +4,6 @@
 Created on Tue Apr 26 16:44:53 2022.
 
 @author: placais
-
-FIXME : removed pymoo.util.termination in import and _set_termination
 """
 
 import numpy as np
@@ -33,10 +31,10 @@ from helper import printc, create_fig_if_not_exist
 
 STR_ALGORITHM = "NSGA-II"
 FLAG_VERBOSE = False
-FLAG_HYPERVOLUME = True
-FLAG_RUNNING = True
+FLAG_HYPERVOLUME = False
+FLAG_RUNNING = False
 FLAG_CONVERGENCE_HISTORY = True  # Heavier in terms of memory usage
-FLAG_CONVERGENCE_CALLBACK = True
+FLAG_CONVERGENCE_CALLBACK = False
 FLAG_CV = False
 
 
@@ -110,7 +108,7 @@ class MyProblem(ElementwiseProblem):
 def perform_pso(problem):
     """Perform the PSO."""
     if STR_ALGORITHM == 'NSGA-II':
-        algorithm = NSGA2(pop_size=500,
+        algorithm = NSGA2(pop_size=100,
                           eliminate_duplicates=True)
 
     elif STR_ALGORITHM == 'NSGA-III':
@@ -136,7 +134,7 @@ def perform_pso(problem):
 def _set_termination():
     """Set a termination condition."""
     d_termination = {
-        'NSGA-II': get_termination("n_gen", 500),
+        'NSGA-II': get_termination("n_gen", 200),
         'NSGA-III': get_termination("n_gen", 200),# 200
     }
     termination = d_termination[STR_ALGORITHM]
@@ -266,14 +264,24 @@ def convergence_history(hist, approx_ideal, approx_nadir, str_obj):
     hist_cv = []      # Constraint violation in each generation
     hist_cv_avg = []  # Average contraint violation in the whole population
 
+    hist_xf = []      # Explored variables (Feasible)
+    hist_xu = []      # Explored variables (Unfeasible)
+
     for algo in hist:
         n_evals.append(algo.evaluator.n_eval)
         opt = algo.opt
         hist_cv.append(opt.get("CV").min())
         hist_cv_avg.append(algo.pop.get("CV").mean())
+
         # Filter out only the feasible and append and objective space values
         feas = np.where(opt.get("feasible"))[0]
         hist_f.append(opt.get("F")[feas])
+
+        pop = algo.pop
+        feas = np.where(pop.get("feasible"))[0]
+        hist_xf.append(pop.get("X")[feas])
+        unfeas = np.where(~pop.get("feasible"))[0]
+        hist_xu.append(pop.get("X")[unfeas])
 
     k = np.where(np.array(hist_cv) <= 0.)[0].min()
     print(f"At least one feasible solution in Generation {k} after",
@@ -309,6 +317,10 @@ def convergence_history(hist, approx_ideal, approx_nadir, str_obj):
 
     if FLAG_RUNNING:
         _convergence_running_metrics(hist)
+
+    flag_design = True
+    if flag_design:
+        _space_design_exploration(hist_xf, hist_xu)
 
 
 def _convergence_hypervolume(n_eval, hist_f, approx_ideal, approx_nadir,
@@ -365,6 +377,45 @@ def _convergence_running_metrics(hist):
         do_show=True,)
     for algorithm in hist:
         running.update(algorithm)
+
+
+def _space_design_exploration(hist_xf, hist_xu):
+    """Plot for each cavity the norm and phase that were tried."""
+    n_cav = np.shape(hist_xf[-1])[1] / 2
+    n_cav = int(n_cav)
+    assert n_cav == 6, "Not designed for number of cavities different from 6."
+
+    printc("Warning PSO._space_design_exploration: ", opt_message="Solution "
+           + "manually entered.")
+    x_lsq = np.array([
+        0.2753397474805297, 1.64504348936957, 5.132411286781306,
+        1.827816962622414, 3.3763299623648138, 4.9824476431763784,
+        # 5.694483445783, 5.712739409783303, 5.733318868185172,
+        # 5.75486203532526, 5.779637177905215, 5.805588466008629])
+        0.861770057293058, 0.8750412568825341, 0.9060682969220509,
+        0.9286910481509094, 0.9304272, 0.9304272])
+
+    fig, axx = create_fig_if_not_exist(63, range(231, 237))
+
+    for i in range(n_cav):
+        for xf, xu in zip(hist_xf, hist_xu):
+            if np.shape(xf)[0] > 0:
+                axx[i].scatter(np.mod(xf[:, i], 2. * np.pi), xf[:, i + n_cav],
+                               marker='o', c='r', alpha=.5)
+            if np.shape(xu)[0] > 0:
+                axx[i].scatter(np.mod(xu[:, i], 2. * np.pi), xu[:, i + n_cav],
+                               marker='x', c='r', alpha=.5)
+        axx[i].scatter(np.mod(x_lsq[i], 2. * np.pi), x_lsq[i + n_cav],
+                       marker='^', c='k', alpha=.5)
+        axx[i].grid(True)
+        axx[i].set_xlim([0., 2. * np.pi])
+        axx[i].set_ylim([0., 0.9304272])
+    axx[0].set_ylabel(r'$k_e$')
+    axx[3].set_ylabel(r'$k_e$')
+    axx[4].set_xlabel(r'$\phi_0$')
+    fig.show()
+    printc("Warning PSO._space_design_exploration: ", opt_message="Limits "
+           + "manually entered.")
 
 
 def set_weights(l_obj_str):

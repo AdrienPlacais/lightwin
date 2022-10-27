@@ -150,7 +150,7 @@ class Fault():
         lsq_f = [1075.34615847359 - 1075.346158310222,
                  77.17023331557031 - 77.17023332120309,
                  7.324542512066046e-06]
-        lsq_f = np.abs(np.array(lsq_f))
+        lsq_f = np.abs(lsq_f)
         n_obj = len(self.wtf['objective'])
         if FLAG_PHI_S_FIT:
             n_constr = 0
@@ -170,7 +170,7 @@ class Fault():
 
         if pso.FLAG_CONVERGENCE_HISTORY:
             pso.convergence_history(res.history, approx_ideal, approx_nadir,
-                                   self.wtf['objective'])
+                                    self.wtf['objective'])
         if pso.FLAG_CONVERGENCE_CALLBACK:
             pso.convergence_callback(res.algorithm.callback,
                                      self.info['l_obj_label'])
