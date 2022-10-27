@@ -409,7 +409,7 @@ def _space_design_exploration(hist_xf, hist_xu):
                        marker='^', c='k', alpha=.5)
         axx[i].grid(True)
         axx[i].set_xlim([0., 2. * np.pi])
-        axx[i].set_ylim([0., 0.9304272])
+        axx[i].set_ylim([0.387678, 0.9304272])
     axx[0].set_ylabel(r'$k_e$')
     axx[3].set_ylabel(r'$k_e$')
     axx[4].set_xlabel(r'$\phi_0$')

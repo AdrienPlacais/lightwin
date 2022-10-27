@@ -292,6 +292,9 @@ class Fault():
             d_tech_n = {0: np.NaN}
             d_bounds_rel['k_e'] = [.5, 1.2]
             d_bounds_rel['phi_s'] = [np.NaN, 1. - .5]
+        if self.wtf['opti method'] == 'PSO':
+            d_bounds_abs['phi_0_rel'] = [0., 2. * np.pi]
+            d_bounds_abs['phi_0_abs'] = [0., 2. * np.pi]
 
         # Set a list of properties that will be fitted
         if FLAG_PHI_S_FIT:
