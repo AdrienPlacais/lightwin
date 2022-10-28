@@ -28,7 +28,7 @@ from scipy.optimize import minimize, least_squares
 # from multiprocessing.pool import ThreadPool
 # from pymoo.core.problem import StarmapParallelization
 
-from constants import FLAG_PHI_ABS, FLAG_PHI_S_FIT, LINAC
+from constants import FLAG_PHI_ABS, LINAC
 import debug
 from helper import printc
 import PSO as pso
@@ -64,7 +64,7 @@ class Fault():
         for cav in self.fail['l_cav']:
             cav.update_status('failed')
 
-    def fix_single(self):
+    def fix_single(self, other_sol):
         """Try to compensate the faulty cavities."""
         # Set the fit variables
         initial_guesses, bounds, phi_s_limits, l_prop_label \
@@ -80,7 +80,7 @@ class Fault():
         self.info['l_obj_label'] = l_obj_label
         self.comp['l_recompute'] = l_elts
 
-        wrapper_args = (self, fun_residual, d_idx)
+        wrapper_args = (self, fun_residual, d_idx, self.wtf['phi_s fit'])
 
         self.count = 0
         if self.wtf['opti method'] == 'least_squares':
@@ -89,7 +89,8 @@ class Fault():
 
         elif self.wtf['opti method'] == 'PSO':
             flag_success, opti_sol = self._proper_fix_pso(
-                initial_guesses, bounds, wrapper_args, phi_s_limits)
+                initial_guesses, bounds, wrapper_args, phi_s_limits,
+                other_sol=other_sol)
 
         if debugs['plot_progression']:
             debug.plot_fit_progress(self.info['l_obj_evaluations'],
@@ -140,10 +141,10 @@ class Fault():
         self.info['sol'] = sol
         self.info['jac'] = sol.jac
 
-        return sol.success, sol.x
+        return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
     def _proper_fix_pso(self, init_guess, bounds, wrapper_args,
-                        phi_s_limits=None):
+                        phi_s_limits=None, other_sol=None):
         """Fix with multi-PSO algorithm."""
         printc("Warning fault._proper_fix_pso: ", opt_message="Solution from"
                + " least squares manually entered.")
@@ -157,13 +158,12 @@ class Fault():
             # 5.75486203532526, 5.779637177905215, 5.805588466008629])
             0.861770057293058, 0.8750412568825341, 0.9060682969220509,
             0.9286910481509094, 0.9304272, 0.9304272])
+        print(f"DEBUG!! Is ok? {other_sol}")
+        printc("Create rf_field_to_dict function?")
 
         n_obj = len(self.wtf['objective'])
-        if FLAG_PHI_S_FIT:
-            n_constr = 0
-        else:
-            assert phi_s_limits is not None
-            n_constr = 2 * phi_s_limits.shape[0]
+        assert phi_s_limits is not None
+        n_constr = 2 * phi_s_limits.shape[0]
 
         problem = pso.MyProblem(wrapper_pso, init_guess.shape[0], n_obj,
                                 n_constr,
@@ -187,7 +187,7 @@ class Fault():
         self.keep_results = res
 
         # Here we return the ASF sol
-        return True, np.array(d_opti['asf']['X'])
+        return True, d_opti['asf']
 
     def prepare_cavities_for_compensation(self, l_comp_cav):
         """
@@ -307,7 +307,7 @@ class Fault():
             d_bounds_abs['phi_0_abs'] = [0., 2. * np.pi]
 
         # Set a list of properties that will be fitted
-        if FLAG_PHI_S_FIT:
+        if self.wtf['phi_s fit']:
             l_prop = ['phi_s']
         else:
             if FLAG_PHI_ABS:
@@ -484,7 +484,7 @@ def _select_objective(l_str_objectives):
     return fun_residual, l_obj_label
 
 
-def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
+def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
     """
     Unpack arguments and compute proper residues at proper spot.
 
@@ -508,7 +508,8 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
     """
     # Convert phases and norms into a dict for compute_transfer_matrices
     d_fits = {'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
-              'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
+              'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist(),
+              'phi_s fit': phi_s_fit}
 
     # Update transfer matrices
     d_results = fault.brok_lin.compute_transfer_matrices(
@@ -528,7 +529,8 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx):
 def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
     """Unpack arguments and compute proper residues at proper spot."""
     d_fits = {'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
-              'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist()}
+              'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist(),
+              'phi_s fit': False}
 
     # Update transfer matrices
     d_results = fault.brok_lin.compute_transfer_matrices(

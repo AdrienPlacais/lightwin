@@ -109,7 +109,7 @@ class MyProblem(ElementwiseProblem):
 def perform_pso(problem):
     """Perform the PSO."""
     if STR_ALGORITHM == 'NSGA-II':
-        algorithm = NSGA2(pop_size=500,
+        algorithm = NSGA2(pop_size=100,
                           eliminate_duplicates=True)
 
     elif STR_ALGORITHM == 'NSGA-III':

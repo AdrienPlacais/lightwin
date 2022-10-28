@@ -198,7 +198,8 @@ class Accelerator():
                and elt.info['status'] == 'compensate (in progress)':
                 d_fit_elt = {'flag': True,
                              'phi': d_fits['l_phi'].pop(0),
-                             'k_e': d_fits['l_k_e'].pop(0)}
+                             'k_e': d_fits['l_k_e'].pop(0),
+                             'phi_s fit': d_fits['phi_s fit']}
             else:
                 d_fit_elt = d_fits
 

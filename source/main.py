@@ -38,6 +38,7 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 FLAG_FIX = True
+FLAG_TRY_OPTI_METHODS = True
 SAVE_FIX = False
 
 failed_cav = [
@@ -45,6 +46,13 @@ failed_cav = [
     # 155, 157, 167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
 ]
 
+wtf_pso = {'opti method': 'PSO', 'manual list': [], 'strategy': 'k out of n',
+           'k': 6, 'l': 2, 'objective': ['energy', 'phase', 'mismatch_factor'],
+           'position': 'end_mod', 'phi_s fit': False}
+wtf_lsq = {'opti method': 'least_squares', 'manual list': [],
+           'strategy': 'k out of n', 'k': 6, 'l': 2,
+           'objective': ['energy', 'phase', 'mismatch_factor'],
+           'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
     # 'opti method': 'least_squares',
     'opti method': 'PSO',
@@ -91,6 +99,7 @@ WHAT_TO_FIT = {
     'position': 'end_mod',
     # 'position': '1_mod_after',
     # 'position': 'both',
+    'phi_s fit': True,
 }
 
 # =============================================================================
@@ -147,21 +156,28 @@ for plot in PLOTS:
                                 fignum=DICT_PLOTS_PRESETS[plot][1])
 
 # Broken linac
-broken_linac = acc.Accelerator(FILEPATH, "Broken")
-fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav,
-                            wtf=WHAT_TO_FIT)
-for plot in PLOTS:
-    debug.compare_with_tracewin(broken_linac, x_dat="s",
-                                y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                fignum=DICT_PLOTS_PRESETS[plot][1])
+lsq_sol = None
+l_broken_linacs = []
+for wtf in [wtf_lsq, wtf_pso]:
+    broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
-if FLAG_FIX:
-    fail.fix_all()
-    broken_linac.compute_transfer_matrices()
+    fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav,
+                                wtf=wtf, other_sol=lsq_sol)
     for plot in PLOTS:
         debug.compare_with_tracewin(broken_linac, x_dat="s",
                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
+
+    if FLAG_FIX:
+        l_d_sols = fail.fix_all()
+        broken_linac.compute_transfer_matrices()
+        for plot in PLOTS:
+            debug.compare_with_tracewin(broken_linac, x_dat="s",
+                                        y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                        fignum=DICT_PLOTS_PRESETS[plot][1])
+        if wtf == wtf_lsq:
+            lsq_sol = l_d_sols
+    l_broken_linacs.append(broken_linac)
 
 if PLOT_TM:
     debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])

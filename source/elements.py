@@ -13,7 +13,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import OMEGA_0_BUNCH, E_REST_MEV, INV_E_REST_MEV,\
-    N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS, FLAG_PHI_S_FIT
+    N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
 
 try:
     import transfer_matrices_c as tm_c
@@ -393,7 +393,7 @@ def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
 
     flag_abs_to_rel = FLAG_PHI_ABS
 
-    if FLAG_PHI_S_FIT:
+    if d_fit['phi_s fit']:
         phi_0 = obj_cavity.match_synch_phase(
             w_kin, phi_s_objective=d_fit['phi'], **rf_field_kwargs)
         rf_field_kwargs['phi_0_rel'] = phi_0
