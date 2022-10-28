@@ -32,7 +32,7 @@ from helper import printc, create_fig_if_not_exist
 STR_ALGORITHM = "NSGA-II"
 FLAG_VERBOSE = False
 FLAG_HYPERVOLUME = False
-FLAG_RUNNING = False
+FLAG_RUNNING = True
 FLAG_CONVERGENCE_HISTORY = True  # Heavier in terms of memory usage
 FLAG_CONVERGENCE_CALLBACK = False
 FLAG_CV = False
@@ -109,7 +109,7 @@ class MyProblem(ElementwiseProblem):
 def perform_pso(problem):
     """Perform the PSO."""
     if STR_ALGORITHM == 'NSGA-II':
-        algorithm = NSGA2(pop_size=100,
+        algorithm = NSGA2(pop_size=500,
                           eliminate_duplicates=True)
 
     elif STR_ALGORITHM == 'NSGA-III':
@@ -135,7 +135,7 @@ def perform_pso(problem):
 def _set_termination():
     """Set a termination condition."""
     d_termination = {
-        'NSGA-II': get_termination("n_gen", 60),
+        'NSGA-II': get_termination("n_gen", 100),
         'NSGA-III': get_termination("n_gen", 200),# 200
     }
     termination = d_termination[STR_ALGORITHM]
