@@ -36,6 +36,7 @@ FLAG_RUNNING = False
 FLAG_CONVERGENCE_HISTORY = True  # Heavier in terms of memory usage
 FLAG_CONVERGENCE_CALLBACK = False
 FLAG_CV = False
+FLAG_DESIGN_SPACE = True
 
 
 class MyCallback(Callback):
@@ -134,7 +135,7 @@ def perform_pso(problem):
 def _set_termination():
     """Set a termination condition."""
     d_termination = {
-        'NSGA-II': get_termination("n_gen", 200),
+        'NSGA-II': get_termination("n_gen", 60),
         'NSGA-III': get_termination("n_gen", 200),# 200
     }
     termination = d_termination[STR_ALGORITHM]
@@ -166,18 +167,19 @@ def mcdm(res, weights, fault_info, compare=None):
     for _l, _u in zip(f_l, f_u):
         print(f"Pre-scale f: [{_l}, {_u}]")
 
-    approx_ideal = res.F.min(axis=0)
-    approx_nadir = res.F.max(axis=0)
+    d_approx = {'ideal': res.F.min(axis=0),
+                'nadir': res.F.max(axis=0),}
 
-    n_f = (res.F - approx_ideal) / (approx_nadir - approx_ideal)
+    n_f = (res.F - d_approx['ideal']) / (d_approx['nadir'] - d_approx['ideal'])
     f_l = n_f.min(axis=0)
     f_u = n_f.max(axis=0)
 
-    pd_best_sol, i = _best_solutions(res, n_f, weights, fault_info,
-                                     compare=compare)
+    pd_best_sol, d_asf, d_pw = _best_solutions(res, n_f, weights, fault_info,
+                                               compare=compare)
     fault_info['resume'] = pd_best_sol
+    d_opti = {'asf': d_asf, 'pw': d_pw}
 
-    return res.X[i], approx_ideal, approx_nadir
+    return d_opti, d_approx
 
 
 def _best_solutions(res, n_f, weights, fault_info, compare=None):
@@ -188,23 +190,25 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
         + fault_info['l_obj_label']
     pd_best_sol = pd.DataFrame(columns=(columns))
 
-    # Best solution according to ASF
+    # Best solution according to ASF and Pseudo Weights
     decomp = ASF()
     min_asf = decomp.do(n_f, 1. / weights)
-    i_asf = min_asf.argmin()
-    pd_best_sol.loc[0] = ['ASF', i_asf] + res.X[i_asf].tolist() \
-        + res.F[i_asf].tolist()
 
+    idx = min_asf.argmin()
+    d_asf = {'idx': idx, 'X': res.X[idx].tolist(), 'F': res.F[idx].tolist()}
+    pd_best_sol.loc[0] = ['ASF', idx] + res.X[idx].tolist() \
+            + res.F[idx].tolist()
     # Best solution according to Pseudo-Weights
-    i_pw = PseudoWeights(weights).do(n_f)
-    pd_best_sol.loc[1] = ['PW', i_pw] + res.X[i_pw].tolist() \
-        + res.F[i_pw].tolist()
+    idx = PseudoWeights(weights).do(n_f)
+    d_pw = {'idx':  idx, 'X': res.X[idx].tolist(), 'F': res.F[idx].tolist()}
+    pd_best_sol.loc[1] = ['PW', idx] + res.X[idx].tolist() \
+            + res.F[idx].tolist()
 
     for col in pd_best_sol:
         if 'phi' in col:
             pd_best_sol[col] = np.rad2deg(pd_best_sol[col])
-    print('\n\n', pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']],
-          '\n\n')
+    print(f"\n\n{pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']]}"
+          + '\n\n')
 
     # Viualize solutions
     if res.F.shape[1] != 3:
@@ -217,8 +221,8 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
                             )
         best_sol_plot.set_axis_style(color="grey", alpha=0.5)
         best_sol_plot.add(res.F, color="grey", alpha=0.3)
-        best_sol_plot.add(res.F[i_asf], linewidth=5, color="red", label='ASF')
-        best_sol_plot.add(res.F[i_pw], linewidth=5, color="blue", label='PW')
+        best_sol_plot.add(d_asf['F'], linewidth=5, color="red", label='ASF')
+        best_sol_plot.add(d_pw['F'], linewidth=5, color="blue", label='PW')
         best_sol_plot.show()
         best_sol_plot.ax.grid(True)
     else:
@@ -227,9 +231,11 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
         kwargs = {'marker': '^', 'alpha': 1, 's': 30}
         tmp = np.log(res.F)
         axx.scatter(tmp[:, 0], tmp[:, 1], tmp[:, 2])
-        axx.scatter(tmp[i_asf, 0], tmp[i_asf, 1], tmp[i_asf, 2],
+        axx.scatter(tmp[d_asf['idx'], 0], tmp[d_asf['idx'], 1],
+                    tmp[d_asf['idx'], 2],
                     color='green', label='ASF', **kwargs)
-        axx.scatter(tmp[i_pw, 0], tmp[i_pw, 1], tmp[i_pw, 2],
+        axx.scatter(tmp[d_pw['idx'], 0], tmp[d_pw['idx'], 1],
+                    tmp[d_pw['idx'], 2],
                     color='blue', label='PW', **kwargs)
         if compare is not None:
             axx.scatter(compare[0], compare[1], compare[2], color='k',
@@ -240,7 +246,7 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
         axx.legend()
         fig.show()
 
-    return pd_best_sol, i_asf
+    return pd_best_sol, d_asf, d_pw
 
 
 def convergence_callback(callback, l_obj_label):
@@ -256,16 +262,13 @@ def convergence_callback(callback, l_obj_label):
     axx.grid(True)
 
 
-def convergence_history(hist, approx_ideal, approx_nadir, str_obj):
+def convergence_history(hist, d_approx, str_obj):
     """Study the convergence of the algorithm."""
     # Convergence study
     n_evals = []      # Num of func evaluations
     hist_f = []       # Objective space values in each generation
     hist_cv = []      # Constraint violation in each generation
     hist_cv_avg = []  # Average contraint violation in the whole population
-
-    hist_xf = []      # Explored variables (Feasible)
-    hist_xu = []      # Explored variables (Unfeasible)
 
     for algo in hist:
         n_evals.append(algo.evaluator.n_eval)
@@ -276,12 +279,6 @@ def convergence_history(hist, approx_ideal, approx_nadir, str_obj):
         # Filter out only the feasible and append and objective space values
         feas = np.where(opt.get("feasible"))[0]
         hist_f.append(opt.get("F")[feas])
-
-        pop = algo.pop
-        feas = np.where(pop.get("feasible"))[0]
-        hist_xf.append(pop.get("X")[feas])
-        unfeas = np.where(~pop.get("feasible"))[0]
-        hist_xu.append(pop.get("X")[unfeas])
 
     k = np.where(np.array(hist_cv) <= 0.)[0].min()
     print(f"At least one feasible solution in Generation {k} after",
@@ -312,19 +309,29 @@ def convergence_history(hist, approx_ideal, approx_nadir, str_obj):
         fig.show()
 
     if FLAG_HYPERVOLUME:
-        _convergence_hypervolume(n_evals, hist_f, approx_ideal, approx_nadir,
+        _convergence_hypervolume(n_evals, hist_f, d_approx,
                                  str_obj)
 
     if FLAG_RUNNING:
         _convergence_running_metrics(hist)
 
-    flag_design = True
-    if flag_design:
-        _space_design_exploration(hist_xf, hist_xu)
+
+def convergence_design_space(hist, d_opti, lsq_x=None):
+    """Represent the variables that were tried during optimisation."""
+    hist_xf = []      # Explored variables (Feasible)
+    hist_xu = []      # Explored variables (Unfeasible)
+
+    for algo in hist:
+        pop = algo.pop
+        feas = np.where(pop.get("feasible"))[0]
+        hist_xf.append(pop.get("X")[feas])
+        unfeas = np.where(~pop.get("feasible"))[0]
+        hist_xu.append(pop.get("X")[unfeas])
+
+    _plot_design(hist_xf, hist_xu, d_opti, lsq_x)
 
 
-def _convergence_hypervolume(n_eval, hist_f, approx_ideal, approx_nadir,
-                             str_obj):
+def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj):
     """Study convergence using hypervolume. Not adapted when too many dims."""
     # Dictionary for reference points
     # They must be typical large values for the objective
@@ -344,8 +351,8 @@ def _convergence_hypervolume(n_eval, hist_f, approx_ideal, approx_nadir,
     ref_point = [d_ref[obj] for obj in str_obj]
     metric = Hypervolume(
         ref_point=ref_point,
-        ideal=approx_ideal,
-        nadir=approx_nadir,
+        ideal=d_approx['ideal'],
+        nadir=d_approx['nadir'],
     )
 
     h_v = [metric.do(_F) for _F in hist_f]
@@ -379,25 +386,17 @@ def _convergence_running_metrics(hist):
         running.update(algorithm)
 
 
-def _space_design_exploration(hist_xf, hist_xu):
+def _plot_design(hist_xf, hist_xu, d_opti, lsq_x=None):
     """Plot for each cavity the norm and phase that were tried."""
     n_cav = np.shape(hist_xf[-1])[1] / 2
     n_cav = int(n_cav)
     assert n_cav == 6, "Not designed for number of cavities different from 6."
 
-    printc("Warning PSO._space_design_exploration: ", opt_message="Solution "
-           + "manually entered.")
-    x_lsq = np.array([
-        0.2753397474805297, 1.64504348936957, 5.132411286781306,
-        1.827816962622414, 3.3763299623648138, 4.9824476431763784,
-        # 5.694483445783, 5.712739409783303, 5.733318868185172,
-        # 5.75486203532526, 5.779637177905215, 5.805588466008629])
-        0.861770057293058, 0.8750412568825341, 0.9060682969220509,
-        0.9286910481509094, 0.9304272, 0.9304272])
-
     fig, axx = create_fig_if_not_exist(63, range(231, 237))
+    color = ['g', 'b']
 
     for i in range(n_cav):
+        # Plot X corresponding to feasible and unfeasible F
         for xf, xu in zip(hist_xf, hist_xu):
             if np.shape(xf)[0] > 0:
                 axx[i].scatter(np.mod(xf[:, i], 2. * np.pi), xf[:, i + n_cav],
@@ -405,12 +404,19 @@ def _space_design_exploration(hist_xf, hist_xu):
             if np.shape(xu)[0] > 0:
                 axx[i].scatter(np.mod(xu[:, i], 2. * np.pi), xu[:, i + n_cav],
                                marker='x', c='r', alpha=.5)
-        axx[i].scatter(np.mod(x_lsq[i], 2. * np.pi), x_lsq[i + n_cav],
-                       marker='^', c='k', alpha=.5)
+        # Plot solution(s) X found in mcdm:
+        for j, key in enumerate(d_opti.keys()):
+            axx[i].scatter(d_opti[key]['X'][i], d_opti[key]['X'][i + n_cav],
+                           marker='^', c=color[j], alpha=1, label=key)
+        # Plot solution found by LSQ
+        if lsq_x is not None:
+            axx[i].scatter(np.mod(lsq_x[i], 2. * np.pi), lsq_x[i + n_cav],
+                           marker='^', c='k', alpha=1, label='LSQ')
         axx[i].grid(True)
         axx[i].set_xlim([0., 2. * np.pi])
         axx[i].set_ylim([0.387678, 0.9304272])
     axx[0].set_ylabel(r'$k_e$')
+    axx[0].legend()
     axx[3].set_ylabel(r'$k_e$')
     axx[4].set_xlabel(r'$\phi_0$')
     fig.show()
