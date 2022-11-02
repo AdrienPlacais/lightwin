@@ -158,7 +158,7 @@ linacs = [ref_linac]
 
 # Broken linac
 lsq_info = None
-for wtf in [wtf_lsq]:#, wtf_pso]:
+for wtf in [wtf_lsq, wtf_pso]:
     lin = acc.Accelerator(FILEPATH, "Broken")
 
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,

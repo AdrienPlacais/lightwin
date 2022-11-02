@@ -61,7 +61,7 @@ class Fault():
                      'X_0': [],         # Initial guess
                      'X_lim': [],       # Bounds
                      'l_X_str': [],     # Name of variables for output
-                     'X_in_relative_phase': [],   # See _get_lsq_solution_..
+                     'X_in_real_phase': [],   # See get_x_sol_in_real_phase
                      'F': [],           # Final objective values
                      'hist_F': [],      # Objective evaluations
                      'l_F_str': [],     # Name of objectives for output
@@ -160,33 +160,20 @@ class Fault():
     def _proper_fix_pso(self, init_guess, x_lim, wrapper_args,
                         phi_s_limits=None, info_other_sol=None):
         """Fix with multi-PSO algorithm."""
-        printc("Warning fault._proper_fix_pso: ", opt_message="Solution from"
-               + " least squares manually entered.")
-        lsq_f = np.abs([1075.34615847359 - 1075.346158310222,
-                        77.17023331557031 - 77.17023332120309,
-                        7.324542512066046e-06])
-        lsq_x = np.array([
-            0.2753397474805297, 1.64504348936957, 5.132411286781306,
-            1.827816962622414, 3.3763299623648138, 4.9824476431763784,
-            # 5.694483445783, 5.712739409783303, 5.733318868185172,
-            # 5.75486203532526, 5.779637177905215, 5.805588466008629])
-            0.861770057293058, 0.8750412568825341, 0.9060682969220509,
-            0.9286910481509094, 0.9304272, 0.9304272])
-        print(f"DEBUG!! Is ok? {info_other_sol}")
-        # printc("Create rf_field_to_dict function?")
+        if info_other_sol is None:
+            info_other_sol = {'F': None, 'X_in_real_phase': None}
 
         n_obj = len(self.wtf['objective'])
         assert phi_s_limits is not None
         n_constr = 2 * phi_s_limits.shape[0]
 
         problem = pso.MyProblem(wrapper_pso, init_guess.shape[0], n_obj,
-                                n_constr,
-                                x_lim, wrapper_args, phi_s_limits)
+                                n_constr, x_lim, wrapper_args, phi_s_limits)
         res = pso.perform_pso(problem)
 
         weights = pso.set_weights(self.wtf['objective'])
         d_opti, d_approx = pso.mcdm(res, weights, self.info,
-                                    compare=lsq_f)
+                                    compare=info_other_sol['F'])
 
         if pso.SAVE_HISTORY:
             pso.convergence_history(res.history, d_approx,
@@ -195,7 +182,8 @@ class Fault():
             pso.convergence_callback(res.algorithm.callback,
                                      self.info['l_F_str'])
         if pso.FLAG_DESIGN_SPACE:
-            pso.convergence_design_space(res.history, d_opti, lsq_x=lsq_x)
+            pso.convergence_design_space(
+                res.history, d_opti, lsq_x=info_other_sol['X_in_real_phase'])
 
         self.keep_problem = problem
         self.keep_results = res
@@ -409,23 +397,27 @@ class Fault():
 
         return l_elts, d_idx
 
-    def get_x_sol_in_relative_phase(self):
+    def get_x_sol_in_real_phase(self):
         """
-        Get least-square solutions in relative phases instead of synchronous.
+        Get least-square solutions in rel/abs phases instead of synchronous.
 
         Least-squares fits the synchronous phase, while PSO fits the relative
-        entry phase. We get the relative phase from a least-square fit in order
-        to compare it with PSO solution.
+        or absolute entry phase. We get all in relative/absolute to ease
+        comparison between solutions.
         """
         # First half of X array: phase of cavities (relative or synchronous
         # according to the value of wtf['phi_s fit']).
         # Second half is the norms of cavities
-        x_in_rel_phase = self.info["X"].copy()
+        x_in_real_phase = self.info["X"].copy()
+
+        key = 'rel'
+        if FLAG_PHI_ABS:
+            key = 'abs'
 
         for i, cav in enumerate(self.comp['l_cav']):
-            x_in_rel_phase[i] = cav.acc_field.phi_0['rel']
+            x_in_real_phase[i] = cav.acc_field.phi_0[key]
             # second half of the array remains untouched
-        self.info['X_in_relative_phase'] = x_in_rel_phase
+        self.info['X_in_real_phase'] = x_in_real_phase
 
 
 def _select_objective(l_objectives):

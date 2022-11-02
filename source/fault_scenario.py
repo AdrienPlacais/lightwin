@@ -127,7 +127,7 @@ class FaultScenario():
             fault.brok_lin.compute_transfer_matrices(fault.comp['l_recompute'],
                                                      d_fits=d_fits,
                                                      flag_transfer_data=True)
-            fault.get_x_sol_in_relative_phase()
+            fault.get_x_sol_in_real_phase()
 
             # Update status of the compensating cavities according to the
             # success or not of the fit.
@@ -162,10 +162,8 @@ class FaultScenario():
         if fault is not l_faults[-1] and success:
             next_fault = l_faults[l_faults.index(fault) + 1]
             idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
-            print('fault_scenario: recompute only until index', idx2)
         else:
             idx2 = len(l_elts)
-            print('fault_scenario: recompute until end')
 
         elt1_to_elt2 = l_elts[idx1:idx2]
         self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
