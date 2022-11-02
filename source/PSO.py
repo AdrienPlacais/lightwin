@@ -294,60 +294,6 @@ def convergence_design_space(hist, d_opti, lsq_x=None):
     _plot_design(hist_xf, hist_xu, d_opti, lsq_x)
 
 
-def _plot_solutions(res_f, d_opti, labels, compare=None):
-    """Represent the value of the objective functions."""
-    d_colors = {"ASF": "green", "PW": "blue"}
-    assert d_colors.keys() == d_opti.keys(), "You need to set a color per " \
-        + "solution and vice-versa."
-
-    # Specific case of 3 objectives: we make a 3d plot
-    if res_f.shape[1] == 3:
-        fig = plt.figure(2)
-        axx = fig.add_subplot(projection='3d')
-        kwargs = {'marker': '^', 'alpha': 1, 's': 30}
-
-        # Sometimes it is easier to take the log of the obj functions to
-        # compare different solutions
-        flag_log = True
-        tmp = res_f
-        if flag_log:
-            tmp = np.log(tmp)
-            if compare is not None:
-                compare = np.log(compare)
-
-        # Plot all solutions
-        axx.scatter(tmp[:, 0], tmp[:, 1], tmp[:, 2])
-        # Plot best solutions according to MCDM
-        for key, val in d_opti.items():
-            idx = val["idx"]
-            axx.scatter(tmp[idx, 0], tmp[idx, 1], tmp[idx, 2],
-                        color=d_colors[key], label=key, **kwargs)
-        # If provided, plot least-squares solution
-        if compare is not None:
-            axx.scatter(compare[0], compare[1], compare[2], color='k',
-                        label='Least-squares', **kwargs)
-        axx.set_xlabel(labels[0])
-        axx.set_ylabel(labels[1])
-        axx.set_zlabel(labels[2])
-        axx.legend()
-        fig.show()
-        return
-
-    kwargs_matplotlib = {'close_on_destroy': False}
-    sol_plot = PCP(title=("Run", {'pad': 30}),
-                   n_ticks=10,
-                   legend=(True, {'loc': "upper left"}),
-                   labels=labels,
-                   **kwargs_matplotlib,
-                   )
-    sol_plot.set_axis_style(color="grey", alpha=0.5)
-    sol_plot.add(res_f, color="grey", alpha=0.3)
-    for key, val in d_opti.items():
-        sol_plot.add(val['F'], linewidth=5, color=d_colors[key], label=key)
-    sol_plot.show()
-    sol_plot.ax.grid(True)
-
-
 def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj):
     """Study convergence using hypervolume. Not adapted when too many dims."""
     # Dictionary for reference points
@@ -401,6 +347,60 @@ def _convergence_running_metrics(hist):
         do_show=True,)
     for algorithm in hist:
         running.update(algorithm)
+
+
+def _plot_solutions(res_f, d_opti, labels, compare=None):
+    """Represent the value of the objective functions."""
+    d_colors = {"ASF": "green", "PW": "blue"}
+    assert d_colors.keys() == d_opti.keys(), "You need to set a color per " \
+        + "solution and vice-versa."
+
+    # Specific case of 3 objectives: we make a 3d plot
+    if res_f.shape[1] == 3:
+        fig = plt.figure(2)
+        axx = fig.add_subplot(projection='3d')
+        kwargs = {'marker': '^', 'alpha': 1, 's': 30}
+
+        # Sometimes it is easier to take the log of the obj functions to
+        # compare different solutions
+        flag_log = True
+        tmp = res_f
+        if flag_log:
+            tmp = np.log(tmp)
+            if compare is not None:
+                compare = np.log(compare)
+
+        # Plot all solutions
+        axx.scatter(tmp[:, 0], tmp[:, 1], tmp[:, 2])
+        # Plot best solutions according to MCDM
+        for key, val in d_opti.items():
+            idx = val["idx"]
+            axx.scatter(tmp[idx, 0], tmp[idx, 1], tmp[idx, 2],
+                        color=d_colors[key], label=key, **kwargs)
+        # If provided, plot least-squares solution
+        if compare is not None:
+            axx.scatter(compare[0], compare[1], compare[2], color='k',
+                        label='Least-squares', **kwargs)
+        axx.set_xlabel(labels[0])
+        axx.set_ylabel(labels[1])
+        axx.set_zlabel(labels[2])
+        axx.legend()
+        fig.show()
+        return
+
+    # General case: Parallel Coordinate Plot
+    kwargs = {'close_on_destroy': False}
+    fig = PCP(title=("Run", {'pad': 30}), n_ticks=10,
+                   legend=(True, {'loc': "upper left"}), labels=labels,
+                   **kwargs)
+    fig.set_axis_style(color="grey", alpha=0.5)
+    fig.add(res_f, color="grey", alpha=0.3)
+    for key, val in d_opti.items():
+        fig.add(val['F'], linewidth=5, color=d_colors[key], label=key)
+    if compare is not None:
+        fig.add(compare, linewidth=5, color='k', label='Least-squares')
+    fig.show()
+    fig.ax.grid(True)
 
 
 def _plot_design(hist_xf, hist_xu, d_opti, lsq_x=None):
