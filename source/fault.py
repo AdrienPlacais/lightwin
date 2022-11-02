@@ -52,12 +52,21 @@ class Fault():
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
         self.wtf = wtf
+
         self.fail = {'l_cav': fail_cav}
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
-        self.info = {'sol': None, 'initial_guesses': None, 'bounds': None,
-                     'jac': None, 'l_obj_label': [], 'l_prop_label': [],
-                     'resume': None, 'l_obj_evaluations': []}
+
+        self.info = {'X': None,         # Solution
+                     'X_0': None,       # Initial guess
+                     'X_lim': None,     # Bounds
+                     'l_X_str': [],     # Name of variables
+                     'F': None,         # Final objective values
+                     'hist_F': [],      # Objective evaluations
+                     'l_F_str': [],     # Name of objectives
+                     'resume': None,    # For output
+                     'jac': None,       # Jacobian
+        }
         self.count = None
 
         # We directly break the proper cavities
@@ -67,17 +76,19 @@ class Fault():
     def fix_single(self, other_sol):
         """Try to compensate the faulty cavities."""
         # Set the fit variables
-        initial_guesses, bounds, phi_s_limits, l_prop_label \
+        x_0, x_lim, constraints, l_x_str \
             = self._set_fit_parameters()
         l_elts, d_idx = self._select_zone_to_recompute(self.wtf['position'])
 
-        fun_residual, l_obj_label = _select_objective(self.wtf['objective'])
+        fun_residual, l_f_str = _select_objective(self.wtf['objective'])
 
         # Save some data for debug and output purposes
-        self.info['initial_guesses'] = initial_guesses
-        self.info['bounds'] = bounds
-        self.info['l_prop_label'] = l_prop_label
-        self.info['l_obj_label'] = l_obj_label
+        self.info.update({
+            'X_0': x_0,
+            'X_lim': x_lim,
+            'l_X_str': l_x_str,
+            'l_F_str': l_f_str,
+        })
         self.comp['l_recompute'] = l_elts
 
         wrapper_args = (self, fun_residual, d_idx, self.wtf['phi_s fit'])
@@ -85,20 +96,20 @@ class Fault():
         self.count = 0
         if self.wtf['opti method'] == 'least_squares':
             flag_success, opti_sol = self._proper_fix_lsq_opt(
-                initial_guesses, bounds, wrapper_args)
+                x_0, x_lim, wrapper_args)
 
         elif self.wtf['opti method'] == 'PSO':
             flag_success, opti_sol = self._proper_fix_pso(
-                initial_guesses, bounds, wrapper_args, phi_s_limits,
+                x_0, x_lim, wrapper_args, constraints,
                 other_sol=other_sol)
 
         if debugs['plot_progression']:
-            debug.plot_fit_progress(self.info['l_obj_evaluations'],
-                                    l_obj_label)
+            debug.plot_fit_progress(self.info['hist_F'],
+                                    l_f_str)
 
         return flag_success, opti_sol
 
-    def _proper_fix_lsq_opt(self, init_guess, bounds, wrapper_args):
+    def _proper_fix_lsq_opt(self, init_guess, x_lim, wrapper_args):
         """
         Fix with classic least_squares optimisation.
 
@@ -112,7 +123,7 @@ class Fault():
             kwargs = {}
         else:
             solver = least_squares
-            bounds = (bounds[:, 0], bounds[:, 1])
+            x_lim = (x_lim[:, 0], x_lim[:, 1])
             kwargs = {'jac': '2-point',     # Default
                       # 'trf' not ideal as jac is not sparse. 'dogbox' may have
                       # difficulties with rank-defficient jacobian.
@@ -126,14 +137,14 @@ class Fault():
                       'jac_sparsity': None,
                       'verbose': debugs['verbose']
                       }
-        sol = solver(fun=wrapper, x0=init_guess, bounds=bounds,
+        sol = solver(fun=wrapper, x0=init_guess, x_lim=x_lim,
                      args=wrapper_args, **kwargs)
 
         if debugs['fit_progression']:
             debug.output_fit_progress(self.count, sol.fun,
-                                      self.info["l_obj_label"], final=True)
+                                      self.info["l_F_str"], final=True)
         if debugs['plot_progression']:
-            self.info["l_obj_evaluations"].append(sol.fun)
+            self.info["hist_F"].append(sol.fun)
 
         print(f"""\nmessage: {sol.message}\nnfev: {sol.nfev}\tnjev: {sol.njev}
               \noptimality: {sol.optimality}\nstatus: {sol.status}\n
@@ -143,7 +154,7 @@ class Fault():
 
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
-    def _proper_fix_pso(self, init_guess, bounds, wrapper_args,
+    def _proper_fix_pso(self, init_guess, x_lim, wrapper_args,
                         phi_s_limits=None, other_sol=None):
         """Fix with multi-PSO algorithm."""
         printc("Warning fault._proper_fix_pso: ", opt_message="Solution from"
@@ -167,7 +178,7 @@ class Fault():
 
         problem = pso.MyProblem(wrapper_pso, init_guess.shape[0], n_obj,
                                 n_constr,
-                                bounds, wrapper_args, phi_s_limits)
+                                x_lim, wrapper_args, phi_s_limits)
         res = pso.perform_pso(problem)
 
         weights = pso.set_weights(self.wtf['objective'])
@@ -179,7 +190,7 @@ class Fault():
                                     self.wtf['objective'])
         if pso.FLAG_CONVERGENCE_CALLBACK:
             pso.convergence_callback(res.algorithm.callback,
-                                     self.info['l_obj_label'])
+                                     self.info['l_F_str'])
         if pso.FLAG_DESIGN_SPACE:
             pso.convergence_design_space(res.history, d_opti, lsq_x=lsq_x)
 
@@ -257,10 +268,10 @@ class Fault():
 
         Returns
         -------
-        initial_guess : np.array
+        x_0 : np.array
             Initial guess for the initial phase and norm of the compensating
             cavities.
-        bounds : np.array of tuples
+        x_lim : np.array of tuples
             Array of (min, max) bounds for the electric fields of the
             compensating cavities.
         phi_s_limits : np.array of tuples
@@ -283,11 +294,11 @@ class Fault():
         d_tech_n = {0: 1.3 * 3.03726,
                     1: 1.3 * 4.45899,
                     2: 1.3 * 6.67386}
-        d_bounds_abs = {'k_e': [0., np.NaN],
+        d_x_lim_abs = {'k_e': [0., np.NaN],
                         'phi_0_rel': [0., 4. * np.pi],
                         'phi_0_abs': [0., 4. * np.pi],
                         'phi_s': [-.5 * np.pi, 0.]}
-        d_bounds_rel = {'k_e': [.5, np.NaN],
+        d_x_lim_rel = {'k_e': [.5, np.NaN],
                         'phi_0_rel': [np.NaN, np.NaN],
                         'phi_0_abs': [np.NaN, np.NaN],
                         'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
@@ -300,51 +311,49 @@ class Fault():
             # nominal electric field (not a single limit for each section as in
             # MYRRHA)
             d_tech_n = {0: np.NaN}
-            d_bounds_rel['k_e'] = [.5, 1.2]
-            d_bounds_rel['phi_s'] = [np.NaN, 1. - .5]
+            d_x_lim_rel['k_e'] = [.5, 1.2]
+            d_x_lim_rel['phi_s'] = [np.NaN, 1. - .5]
         if self.wtf['opti method'] == 'PSO':
-            d_bounds_abs['phi_0_rel'] = [0., 2. * np.pi]
-            d_bounds_abs['phi_0_abs'] = [0., 2. * np.pi]
+            d_x_lim_abs['phi_0_rel'] = [0., 2. * np.pi]
+            d_x_lim_abs['phi_0_abs'] = [0., 2. * np.pi]
 
         # Set a list of properties that will be fitted
         if self.wtf['phi_s fit']:
-            l_prop = ['phi_s']
+            l_x = ['phi_s']
         else:
             if FLAG_PHI_ABS:
-                l_prop = ['phi_0_abs']
+                l_x = ['phi_0_abs']
             else:
-                l_prop = ['phi_0_rel']
-        l_prop += ['k_e', 'phi_s']
-        l_prop_label = []
+                l_x = ['phi_0_rel']
+        l_x += ['k_e', 'phi_s']
+        l_x_str = []
 
-        # Get initial guess and bounds for every property of l_prop and every
+        # Get initial guess and bounds for every property of l_x and every
         # compensating cavity
-        initial_guess, bounds = [], []
-        for prop in l_prop:
+        x_0, x_lim = [], []
+        for __x in l_x:
             for cav in self.comp['l_cav']:
                 equiv_cav = self.ref_lin.elements['list'][cav.idx['element']]
-                ref_value = d_getter[prop](equiv_cav)
-                b_down = np.nanmax((d_bounds_abs[prop][0],
-                                    d_bounds_rel[prop][0] * ref_value))
-                if prop == 'k_e':
+                ref_value = d_getter[__x](equiv_cav)
+                b_down = np.nanmax((d_x_lim_abs[__x][0],
+                                    d_x_lim_rel[__x][0] * ref_value))
+                if __x == 'k_e':
                     b_up = np.nanmin((d_tech_n[cav.idx['section'][0]],
-                                      d_bounds_rel[prop][1] * ref_value))
+                                      d_x_lim_rel[__x][1] * ref_value))
                 else:
-                    b_up = np.nanmin((d_bounds_abs[prop][1],
-                                      d_bounds_rel[prop][1] * ref_value))
-                bounds.append((b_down, b_up))
-                initial_guess.append(d_init_g[prop](ref_value))
-                l_prop_label.append(' '.join((cav.info['name'],
-                                              d_prop_label[prop])))
-
+                    b_up = np.nanmin((d_x_lim_abs[__x][1],
+                                      d_x_lim_rel[__x][1] * ref_value))
+                x_lim.append((b_down, b_up))
+                x_0.append(d_init_g[__x](ref_value))
+                l_x_str.append(' '.join((cav.info['name'], d_prop_label[__x])))
         n_cav = len(self.comp['l_cav'])
-        initial_guess = np.array(initial_guess[:2 * n_cav])
-        phi_s_limits = np.array(bounds[2 * n_cav:])
-        bounds = np.array(bounds[:2 * n_cav])
+        x_0 = np.array(x_0[:2 * n_cav])
+        phi_s_limits = np.array(x_lim[2 * n_cav:])
+        x_lim = np.array(x_lim[:2 * n_cav])
 
-        print(f"Initial_guess:\n{initial_guess}\nBounds:\n{bounds}")
+        print(f"Initial_guess:\n{x_0}\nBounds:\n{x_lim}")
 
-        return initial_guess, bounds, phi_s_limits, l_prop_label
+        return x_0, x_lim, phi_s_limits, l_x_str
 
     def _select_zone_to_recompute(self, str_position):
         """
@@ -479,9 +488,9 @@ def _select_objective(l_str_objectives):
                  'twiss_gamma': r'$\gamma_{z\delta}$',
                  'mismatch_factor': r'$M$',
                  }
-    l_obj_label = [d_obj_str[str_obj] for str_obj in l_str_objectives]
+    l_f_str = [d_obj_str[str_obj] for str_obj in l_str_objectives]
 
-    return fun_residual, l_obj_label
+    return fun_residual, l_f_str
 
 
 def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
@@ -518,9 +527,9 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
         debug.output_fit_progress(fault.count, arr_objective,
-                                  fault.info["l_obj_label"])
+                                  fault.info["l_F_str"])
     if debugs['plot_progression']:
-        fault.info['l_obj_evaluations'].append(arr_objective)
+        fault.info['hist_F'].append(arr_objective)
     fault.count += 1
 
     return arr_objective
@@ -539,9 +548,9 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
         debug.output_fit_progress(fault.count, arr_objective,
-                                  fault.info["l_obj_label"])
+                                  fault.info["l_F_str"])
     if debugs['plot_progression']:
-        fault.info['l_obj_evaluations'].append(arr_objective)
+        fault.info['hist_F'].append(arr_objective)
     fault.count += 1
 
     return arr_objective, d_results

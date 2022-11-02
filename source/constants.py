@@ -22,8 +22,8 @@ Q_ADIM = 1.
 
 # Warning, fit parameters that can change between the two linacs are also set
 # in fault._set_fit_parameters
-LINAC = "MYRRHA"
-# LINAC = "JAEA"
+# LINAC = "MYRRHA"
+LINAC = "JAEA"
 
 # =============================================================================
 # MYRRHA

@@ -536,7 +536,7 @@ def output_cavities(linac, out=False):
 
 
 def _create_output_fit_dicts():
-    d_param = {
+    d_pd = {
         'phi_0_rel': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
                                            'Fixed', 'Orig.', '(var %)')),
         'phi_0_abs': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
@@ -545,29 +545,26 @@ def _create_output_fit_dicts():
                                       'Fixed', 'Orig.', '(var %)')),
     }
     # TODO : no entry for phi_s?
-    d_attribute = {
+    d_x = {
         'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['rel']),
         'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['abs']),
         'Norm': lambda cav: cav.acc_field.k_e,
     }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
-    d_guess_bnds = {
-        'phi_0_rel':
-            lambda f, i: [np.rad2deg(f.info['bounds'][0][i]),
-                          np.rad2deg(f.info['bounds'][1][i])],
-        'phi_0_abs':
-            lambda f, i: [np.rad2deg(f.info['bounds'][0][i]),
-                          np.rad2deg(f.info['bounds'][1][i])],
-        'Norm':
-            lambda f, i: [f.info['bounds'][0][i + len(f.comp['l_cav'])],
-                          f.info['bounds'][1][i + len(f.comp['l_cav'])]]
+    d_x_lim = {
+        'phi_0_rel': lambda f, i: [np.rad2deg(f.info['X_lim'][0][i]),
+                                   np.rad2deg(f.info['X_lim'][1][i])],
+        'phi_0_abs': lambda f, i: [np.rad2deg(f.info['X_lim'][0][i]),
+                                   np.rad2deg(f.info['X_lim'][1][i])],
+        'Norm': lambda f, i: [f.info['X_lim'][0][i + len(f.comp['l_cav'])],
+                              f.info['X_lim'][1][i + len(f.comp['l_cav'])]]
     }
 
     all_dicts = {
-        'param': d_param,
-        'attribute': d_attribute,
-        'guess_bnds': d_guess_bnds,
+        'd_pd': d_pd,
+        'd_x': d_x,
+        'd_X_lim': d_x_lim,
     }
 
     return all_dicts
@@ -576,53 +573,56 @@ def _create_output_fit_dicts():
 def output_fit(fault_scenario, out_detail=False, out_compact=True):
     """Output relatable parameters of fit."""
     dicts = _create_output_fit_dicts()
+    d_pd = dicts['d_pd']
 
     shift_i = 0
-    for f in fault_scenario.faults['l_obj']:
+    i = None
+    for __f in fault_scenario.faults['l_obj']:
         # We change the shape of the bounds if necessary
-        if not isinstance(f.info['bounds'], tuple):
-            f.info['bounds'] = (f.info['bounds'][:, 0], f.info['bounds'][:, 1])
+        if not isinstance(__f.info['X_lim'], tuple):
+            __f.info['X_lim'] = (__f.info['X_lim'][:, 0],
+                                 __f.info['X_lim'][:, 1])
 
         # Get list of compensating cavities, and their original counterpart in
         # the reference linac
         ref_equiv = [
-            f.ref_lin.elements['list'][cav.idx['element']]
-            for cav in f.comp['l_cav']
+            __f.ref_lin.elements['list'][cav.idx['element']]
+            for cav in __f.comp['l_cav']
         ]
 
-        for param in dicts['param']:
-            dicts['param'][param].loc[shift_i] = \
+        for key, val in d_pd.items():
+            val.loc[shift_i] = \
                 ['----', '----------', None, None, None, None, None]
-            for i, cav in enumerate(f.comp['l_cav']):
-                bnds = dicts['guess_bnds'][param](f, i)
-                old = dicts['attribute'][param](ref_equiv[i])
-                new = dicts['attribute'][param](cav)
+            for i, cav in enumerate(__f.comp['l_cav']):
+                x_lim = dicts['d_X_lim'][key](__f, i)
+                old = dicts['d_x'][key](ref_equiv[i])
+                new = dicts['d_x'][key](cav)
                 var = 100. * (new - old) / old
 
-                dicts['param'][param].loc[i + shift_i + 1] =\
-                    [cav.info['name'], cav.info['status'], bnds[0], bnds[1],
+                val.loc[i + shift_i + 1] = \
+                    [cav.info['name'], cav.info['status'], x_lim[0], x_lim[1],
                      new, old, var]
         shift_i += i + 2
 
     if out_detail:
-        for param in dicts['param']:
-            helper.printd(dicts['param'][param].round(3), header=param)
+        for key, val in d_pd.items():
+            helper.printd(val.round(3), header=key)
 
     compact = pd.DataFrame(columns=('Name', 'Status', 'Norm', '(var %)',
                                     'phi_0 (rel)', 'phi_0 (abs)'))
-    for i in range(dicts['param']['Norm'].shape[0]):
+    for i in range(d_pd['Norm'].shape[0]):
         compact.loc[i] = [
-            dicts['param']['Norm']['Name'][i],
-            dicts['param']['Norm']['Status'][i],
-            dicts['param']['Norm']['Fixed'][i],
-            dicts['param']['Norm']['(var %)'][i],
-            dicts['param']['phi_0_rel']['Fixed'][i],
-            dicts['param']['phi_0_abs']['Fixed'][i],
+            d_pd['Norm']['Name'][i],
+            d_pd['Norm']['Status'][i],
+            d_pd['Norm']['Fixed'][i],
+            d_pd['Norm']['(var %)'][i],
+            d_pd['phi_0_rel']['Fixed'][i],
+            d_pd['phi_0_abs']['Fixed'][i],
         ]
     if out_compact:
         helper.printd(compact.round(3), header='Fit compact resume')
 
-    return dicts['param']
+    return d_pd
 
 
 def output_fit_progress(count, obj, l_label, final=False):
@@ -649,21 +649,23 @@ def output_fit_progress(count, obj, l_label, final=False):
         print(''.center(total_width, '='))
 
 
-def plot_fit_progress(l_obj_eval, l_label):
+def plot_fit_progress(hist_f, l_label):
     """Plot the evolution of the objective functions w/ each iteration."""
     _, axx = helper.create_fig_if_not_exist(32, [111])
     axx = axx[0]
 
-    n_prop = len(l_label)
-    n_iter = len(l_obj_eval)
+    # Number of objectives, number of evaluations
+    n_f = len(l_label)
+    n_iter = len(hist_f)
     iteration = np.linspace(0, n_iter - 1, n_iter)
 
-    obj = np.empty([n_prop, n_iter])
+    __f = np.empty([n_f, n_iter])
     for i in range(n_iter):
-        obj[:, i] = np.abs(l_obj_eval[i] / l_obj_eval[0])
+        __f[:, i] = np.abs(hist_f[i] / hist_f[0])
 
     for j, label in enumerate(l_label):
-        axx.plot(iteration, obj[j], label=label)
+        axx.plot(iteration, __f[j], label=label)
+
     axx.grid(True)
     axx.legend()
     axx.set_xlabel("Iteration #")

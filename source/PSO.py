@@ -181,8 +181,8 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
     """Look for best solutions according to various criteria."""
     # Create a pandas dataframe for the final objective values
     n_var = res.X.shape[1]
-    columns = ['Criteria', 'i'] + fault_info['l_prop_label'][:n_var] \
-        + fault_info['l_obj_label']
+    columns = ['Criteria', 'i'] + fault_info['l_X_str'][:n_var] \
+        + fault_info['l_F_str']
     pd_best_sol = pd.DataFrame(columns=(columns))
 
     # Best solution according to ASF
@@ -204,20 +204,20 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
     for col in pd_best_sol:
         if 'phi' in col:
             pd_best_sol[col] = np.rad2deg(pd_best_sol[col])
-    print(f"\n\n{pd_best_sol[['Criteria', 'i'] + fault_info['l_obj_label']]}"
+    print(f"\n\n{pd_best_sol[['Criteria', 'i'] + fault_info['l_F_str']]}"
           + '\n\n')
 
     # Viualize solutions
-    _plot_solutions(res.F, d_opti, fault_info['l_obj_label'], compare)
+    _plot_solutions(res.F, d_opti, fault_info['l_F_str'], compare)
 
     return pd_best_sol, d_opti["ASF"], d_opti["PW"]
 
 
-def convergence_callback(callback, l_obj_label):
+def convergence_callback(callback, l_f_str):
     """Plot convergence info using the results of the callback."""
     fig, axx = create_fig_if_not_exist(58, [111])
     axx[0].set_title("Convergence")
-    axx[0].plot(callback.n_evals, callback.opt, label=l_obj_label)
+    axx[0].plot(callback.n_evals, callback.opt, label=l_f_str)
     axx[0].set_xlabel('Number of evaluations')
     axx[0].set_ylabel('res.F[0, :]')
     axx[0].set_yscale("log")

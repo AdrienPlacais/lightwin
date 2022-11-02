@@ -29,8 +29,8 @@ import fault_scenario as mod_fs
 # Select .dat file
 Tk().withdraw()
 
-FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-# FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
+# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
