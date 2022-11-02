@@ -112,7 +112,7 @@ WHAT_TO_FIT = {
 PLOTS = [
     "energy",
     # "phase",
-    # "cav",
+    "cav",
     # "emittance",
     # "twiss",
     "enveloppes",
