@@ -29,8 +29,8 @@ import fault_scenario as mod_fs
 # Select .dat file
 Tk().withdraw()
 
-# FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
-FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
+FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+# FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 if FILEPATH == "":
     FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
@@ -42,15 +42,15 @@ FLAG_TRY_OPTI_METHODS = True
 SAVE_FIX = False
 
 failed_cav = [
-    25,
-    # 155, 157, 167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
+    # 25,
+    155, 157, #167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
 ]
 
-wtf_pso = {'opti method': 'PSO', 'manual list': [], 'strategy': 'k out of n',
+wtf_pso = {'opti method': 'PSO', 'manual list': [], 'strategy': 'l neighboring lattices',
            'k': 6, 'l': 2, 'objective': ['energy', 'phase', 'mismatch_factor'],
            'position': 'end_mod', 'phi_s fit': False}
 wtf_lsq = {'opti method': 'least_squares', 'manual list': [],
-           'strategy': 'k out of n', 'k': 6, 'l': 2,
+           'strategy': 'l neighboring lattices', 'k': 6, 'l': 2,
            'objective': ['energy', 'phase', 'mismatch_factor'],
            'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
@@ -106,13 +106,13 @@ WHAT_TO_FIT = {
 # Outputs
 # =============================================================================
 PLOTS = [
-    # "energy",
-    # "phase",
-    # "cav",
-    # "emittance",
-    # "twiss",
-    # "enveloppes",
-    # "mismatch factor",
+    "energy",
+    "phase",
+    "cav",
+    "emittance",
+    "twiss",
+    "enveloppes",
+    "mismatch factor",
 ]
 PLOT_TM = False
 
@@ -158,7 +158,7 @@ for plot in PLOTS:
 # Broken linac
 lsq_sol = None
 l_broken_linacs = []
-for wtf in [wtf_lsq, wtf_pso]:
+for wtf in [wtf_pso]:#, wtf_pso]:
     broken_linac = acc.Accelerator(FILEPATH, "Broken")
 
     fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav,

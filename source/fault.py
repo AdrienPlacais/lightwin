@@ -148,18 +148,18 @@ class Fault():
         """Fix with multi-PSO algorithm."""
         printc("Warning fault._proper_fix_pso: ", opt_message="Solution from"
                + " least squares manually entered.")
-        lsq_f = np.abs([1075.34615847359 - 1075.346158310222,
-                 77.17023331557031 - 77.17023332120309,
-                 7.324542512066046e-06])
-        lsq_x = np.array([
-            0.2753397474805297, 1.64504348936957, 5.132411286781306,
-            1.827816962622414, 3.3763299623648138, 4.9824476431763784,
-            # 5.694483445783, 5.712739409783303, 5.733318868185172,
-            # 5.75486203532526, 5.779637177905215, 5.805588466008629])
-            0.861770057293058, 0.8750412568825341, 0.9060682969220509,
-            0.9286910481509094, 0.9304272, 0.9304272])
-        print(f"DEBUG!! Is ok? {other_sol}")
-        printc("Create rf_field_to_dict function?")
+        # lsq_f = np.abs([1075.34615847359 - 1075.346158310222,
+                 # 77.17023331557031 - 77.17023332120309,
+                 # 7.324542512066046e-06])
+        # lsq_x = np.array([
+            # 0.2753397474805297, 1.64504348936957, 5.132411286781306,
+            # 1.827816962622414, 3.3763299623648138, 4.9824476431763784,
+            # # 5.694483445783, 5.712739409783303, 5.733318868185172,
+            # # 5.75486203532526, 5.779637177905215, 5.805588466008629])
+            # 0.861770057293058, 0.8750412568825341, 0.9060682969220509,
+            # 0.9286910481509094, 0.9304272, 0.9304272])
+        # print(f"DEBUG!! Is ok? {other_sol}")
+        # printc("Create rf_field_to_dict function?")
 
         n_obj = len(self.wtf['objective'])
         assert phi_s_limits is not None
@@ -171,8 +171,8 @@ class Fault():
         res = pso.perform_pso(problem)
 
         weights = pso.set_weights(self.wtf['objective'])
-        d_opti, d_approx = pso.mcdm(res, weights, self.info,
-                                    compare=np.log(lsq_f))
+        d_opti, d_approx = pso.mcdm(res, weights, self.info,)
+                                    # compare=np.log(lsq_f))
 
         if pso.FLAG_CONVERGENCE_HISTORY:
             pso.convergence_history(res.history, d_approx,
@@ -181,7 +181,7 @@ class Fault():
             pso.convergence_callback(res.algorithm.callback,
                                      self.info['l_obj_label'])
         if pso.FLAG_DESIGN_SPACE:
-            pso.convergence_design_space(res.history, d_opti, lsq_x=lsq_x)
+            pso.convergence_design_space(res.history, d_opti)#, lsq_x=lsq_x)
 
         self.keep_problem = problem
         self.keep_results = res

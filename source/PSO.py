@@ -31,7 +31,7 @@ from helper import printc, create_fig_if_not_exist
 
 STR_ALGORITHM = "NSGA-II"
 FLAG_VERBOSE = False
-FLAG_HYPERVOLUME = False
+FLAG_HYPERVOLUME = True
 FLAG_RUNNING = True
 FLAG_CONVERGENCE_HISTORY = True  # Heavier in terms of memory usage
 FLAG_CONVERGENCE_CALLBACK = False
@@ -65,22 +65,10 @@ class MyProblem(ElementwiseProblem):
         self.phi_s_limits = phi_s_limits
         self.n_obj = n_obj
 
-        # printc("Warning PSO.__init__: ", opt_message="Bounds manually " +
-               # "modified.")
-        # xl = np.array([
-            # 0.2753397474805297, 1.64504348936957, 5.132411286781306,
-            # 1.827816962622414, 3.3763299623648138, 4.9824476431763784,
-            # # 5.694483445783, 5.712739409783303, 5.733318868185172,
-            # # 5.75486203532526, 5.779637177905215, 5.805588466008629])
-            # 0.861770057293058, 0.8750412568825341, 0.9060682969220509,
-            # 0.9286910481509094, 0.9304272, 0.9304272])
-        # xu = xl + 1e-5
-        # xl -= 1e-5
         print(f"Number of objectives: {n_obj}")
         super().__init__(n_var=n_var,
                          n_obj=n_obj,
                          n_constr=n_constr,
-                         # xl=xl, xu=xu)
                          xl=bounds[:, 0], xu=bounds[:, 1])
         if n_constr > 0:
             print(f"{n_constr} constraints on phi_s:\n{phi_s_limits}")
@@ -109,7 +97,7 @@ class MyProblem(ElementwiseProblem):
 def perform_pso(problem):
     """Perform the PSO."""
     if STR_ALGORITHM == 'NSGA-II':
-        algorithm = NSGA2(pop_size=100,
+        algorithm = NSGA2(pop_size=200,
                           eliminate_duplicates=True)
 
     elif STR_ALGORITHM == 'NSGA-III':
@@ -135,7 +123,7 @@ def perform_pso(problem):
 def _set_termination():
     """Set a termination condition."""
     d_termination = {
-        'NSGA-II': get_termination("n_gen", 100),
+        'NSGA-II': get_termination("n_gen", 150),
         'NSGA-III': get_termination("n_gen", 200),# 200
     }
     termination = d_termination[STR_ALGORITHM]
