@@ -30,12 +30,19 @@ from pymoo.core.callback import Callback
 from helper import printc, create_fig_if_not_exist
 
 STR_ALGORITHM = "NSGA-II"
+# Messages from algorithm
 FLAG_VERBOSE = False
+# Needed by most debug tools
+SAVE_HISTORY = True
+# Convergence criterion. Needs a reference point.
 FLAG_HYPERVOLUME = True
-FLAG_RUNNING = True
-FLAG_CONVERGENCE_HISTORY = True  # Heavier in terms of memory usage
+# Show evolution of objective evaluations with number of generations
+FLAG_RUNNING = False
 FLAG_CONVERGENCE_CALLBACK = False
+# Show evolution of Constraint Violation with number of generations
 FLAG_CV = False
+# Show the cavity parameters that were tried, discriminating feasible solutions
+# from unfeasible
 FLAG_DESIGN_SPACE = True
 
 
@@ -87,17 +94,17 @@ class MyProblem(ElementwiseProblem):
         out["F"], results = self.wrapper_pso(
             x, self.fault, self.fun_residual, self.d_idx)
 
-        out_G = []
+        out_g = []
         for i in range(len(results['phi_s_rad'])):
-            out_G.append(self.phi_s_limits[i][0] - results['phi_s_rad'][i])
-            out_G.append(results['phi_s_rad'][i] - self.phi_s_limits[i][1])
-        out["G"] = np.array(out_G)
+            out_g.append(self.phi_s_limits[i][0] - results['phi_s_rad'][i])
+            out_g.append(results['phi_s_rad'][i] - self.phi_s_limits[i][1])
+        out["G"] = np.array(out_g)
 
 
 def perform_pso(problem):
     """Perform the PSO."""
     if STR_ALGORITHM == 'NSGA-II':
-        algorithm = NSGA2(pop_size=200,
+        algorithm = NSGA2(pop_size=100,
                           eliminate_duplicates=True)
 
     elif STR_ALGORITHM == 'NSGA-III':
@@ -113,7 +120,7 @@ def perform_pso(problem):
                    algorithm,
                    termination,
                    seed=1,
-                   save_history=FLAG_CONVERGENCE_HISTORY,
+                   save_history=SAVE_HISTORY,
                    verbose=FLAG_VERBOSE,
                    callback=MyCallback(),
                    )
@@ -123,7 +130,7 @@ def perform_pso(problem):
 def _set_termination():
     """Set a termination condition."""
     d_termination = {
-        'NSGA-II': get_termination("n_gen", 150),
+        'NSGA-II': get_termination("n_gen", 60),
         'NSGA-III': get_termination("n_gen", 200),# 200
     }
     termination = d_termination[STR_ALGORITHM]
@@ -178,19 +185,21 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
         + fault_info['l_obj_label']
     pd_best_sol = pd.DataFrame(columns=(columns))
 
-    # Best solution according to ASF and Pseudo Weights
-    decomp = ASF()
-    min_asf = decomp.do(n_f, 1. / weights)
-
-    idx = min_asf.argmin()
-    d_asf = {'idx': idx, 'X': res.X[idx].tolist(), 'F': res.F[idx].tolist()}
-    pd_best_sol.loc[0] = ['ASF', idx] + res.X[idx].tolist() \
-            + res.F[idx].tolist()
+    # Best solution according to ASF
+    min_asf = ASF().do(n_f, 1. / weights)
+    l_idx = [min_asf.argmin()]
     # Best solution according to Pseudo-Weights
-    idx = PseudoWeights(weights).do(n_f)
-    d_pw = {'idx':  idx, 'X': res.X[idx].tolist(), 'F': res.F[idx].tolist()}
-    pd_best_sol.loc[1] = ['PW', idx] + res.X[idx].tolist() \
-            + res.F[idx].tolist()
+    l_idx.append(PseudoWeights(weights).do(n_f))
+
+    d_opti = {"ASF": None, "PW": None}
+    for i, (name, idx) in enumerate(zip(d_opti.keys(), l_idx)):
+        # Dict is used for data treatment
+        d_tmp = {"idx": idx, "X": res.X[idx].tolist(),
+                 "F": res.F[idx].tolist()}
+        d_opti[name] = d_tmp
+        # Pandas datafram is used only for user output
+        pd_best_sol.loc[i] = [name, idx] + res.X[idx].tolist() \
+                + res.F[idx].tolist()
 
     for col in pd_best_sol:
         if 'phi' in col:
@@ -199,55 +208,21 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
           + '\n\n')
 
     # Viualize solutions
-    if res.F.shape[1] != 3:
-        kwargs_matplotlib = {'close_on_destroy': False}
-        best_sol_plot = PCP(title=("Run", {'pad': 30}),
-                            n_ticks=10,
-                            legend=(True, {'loc': "upper left"}),
-                            labels=fault_info['l_obj_label'],
-                            **kwargs_matplotlib,
-                            )
-        best_sol_plot.set_axis_style(color="grey", alpha=0.5)
-        best_sol_plot.add(res.F, color="grey", alpha=0.3)
-        best_sol_plot.add(d_asf['F'], linewidth=5, color="red", label='ASF')
-        best_sol_plot.add(d_pw['F'], linewidth=5, color="blue", label='PW')
-        best_sol_plot.show()
-        best_sol_plot.ax.grid(True)
-    else:
-        fig = plt.figure(2)
-        axx = fig.add_subplot(projection='3d')
-        kwargs = {'marker': '^', 'alpha': 1, 's': 30}
-        tmp = np.log(res.F)
-        axx.scatter(tmp[:, 0], tmp[:, 1], tmp[:, 2])
-        axx.scatter(tmp[d_asf['idx'], 0], tmp[d_asf['idx'], 1],
-                    tmp[d_asf['idx'], 2],
-                    color='green', label='ASF', **kwargs)
-        axx.scatter(tmp[d_pw['idx'], 0], tmp[d_pw['idx'], 1],
-                    tmp[d_pw['idx'], 2],
-                    color='blue', label='PW', **kwargs)
-        if compare is not None:
-            axx.scatter(compare[0], compare[1], compare[2], color='k',
-                        label='Least-squares', **kwargs)
-        axx.set_xlabel(r"$W_{kin}$")
-        axx.set_ylabel(r"$\phi$")
-        axx.set_zlabel(r"$M$")
-        axx.legend()
-        fig.show()
+    _plot_solutions(res.F, d_opti, fault_info['l_obj_label'], compare)
 
-    return pd_best_sol, d_asf, d_pw
+    return pd_best_sol, d_opti["ASF"], d_opti["PW"]
 
 
 def convergence_callback(callback, l_obj_label):
     """Plot convergence info using the results of the callback."""
-    fig = plt.figure(58)
-    axx = fig.add_subplot(111)
-    axx.set_title("Convergence")
-    axx.plot(callback.n_evals, callback.opt, label=l_obj_label)
-    axx.set_xlabel('Number of evaluations')
-    axx.set_ylabel('res.F[0, :]')
-    axx.set_yscale("log")
-    axx.legend()
-    axx.grid(True)
+    fig, axx = create_fig_if_not_exist(58, [111])
+    axx[0].set_title("Convergence")
+    axx[0].plot(callback.n_evals, callback.opt, label=l_obj_label)
+    axx[0].set_xlabel('Number of evaluations')
+    axx[0].set_ylabel('res.F[0, :]')
+    axx[0].set_yscale("log")
+    axx[0].legend()
+    axx[0].grid(True)
 
 
 def convergence_history(hist, d_approx, str_obj):
@@ -317,6 +292,60 @@ def convergence_design_space(hist, d_opti, lsq_x=None):
         hist_xu.append(pop.get("X")[unfeas])
 
     _plot_design(hist_xf, hist_xu, d_opti, lsq_x)
+
+
+def _plot_solutions(res_f, d_opti, labels, compare=None):
+    """Represent the value of the objective functions."""
+    d_colors = {"ASF": "green", "PW": "blue"}
+    assert d_colors.keys() == d_opti.keys(), "You need to set a color per " \
+        + "solution and vice-versa."
+
+    # Specific case of 3 objectives: we make a 3d plot
+    if res_f.shape[1] == 3:
+        fig = plt.figure(2)
+        axx = fig.add_subplot(projection='3d')
+        kwargs = {'marker': '^', 'alpha': 1, 's': 30}
+
+        # Sometimes it is easier to take the log of the obj functions to
+        # compare different solutions
+        flag_log = True
+        tmp = res_f
+        if flag_log:
+            tmp = np.log(tmp)
+            if compare is not None:
+                compare = np.log(compare)
+
+        # Plot all solutions
+        axx.scatter(tmp[:, 0], tmp[:, 1], tmp[:, 2])
+        # Plot best solutions according to MCDM
+        for key, val in d_opti.items():
+            idx = val["idx"]
+            axx.scatter(tmp[idx, 0], tmp[idx, 1], tmp[idx, 2],
+                        color=d_colors[key], label=key, **kwargs)
+        # If provided, plot least-squares solution
+        if compare is not None:
+            axx.scatter(compare[0], compare[1], compare[2], color='k',
+                        label='Least-squares', **kwargs)
+        axx.set_xlabel(labels[0])
+        axx.set_ylabel(labels[1])
+        axx.set_zlabel(labels[2])
+        axx.legend()
+        fig.show()
+        return
+
+    kwargs_matplotlib = {'close_on_destroy': False}
+    sol_plot = PCP(title=("Run", {'pad': 30}),
+                   n_ticks=10,
+                   legend=(True, {'loc': "upper left"}),
+                   labels=labels,
+                   **kwargs_matplotlib,
+                   )
+    sol_plot.set_axis_style(color="grey", alpha=0.5)
+    sol_plot.add(res_f, color="grey", alpha=0.3)
+    for key, val in d_opti.items():
+        sol_plot.add(val['F'], linewidth=5, color=d_colors[key], label=key)
+    sol_plot.show()
+    sol_plot.ax.grid(True)
 
 
 def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj):
