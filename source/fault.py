@@ -57,23 +57,24 @@ class Fault():
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
 
-        self.info = {'X': None,         # Solution
-                     'X_0': None,       # Initial guess
-                     'X_lim': None,     # Bounds
-                     'l_X_str': [],     # Name of variables
-                     'F': None,         # Final objective values
+        self.info = {'X': [],           # Solution
+                     'X_0': [],         # Initial guess
+                     'X_lim': [],       # Bounds
+                     'l_X_str': [],     # Name of variables for output
+                     'X_in_relative_phase': [],   # See _get_lsq_solution_..
+                     'F': [],           # Final objective values
                      'hist_F': [],      # Objective evaluations
-                     'l_F_str': [],     # Name of objectives
+                     'l_F_str': [],     # Name of objectives for output
                      'resume': None,    # For output
                      'jac': None,       # Jacobian
-        }
+                     }
         self.count = None
 
         # We directly break the proper cavities
         for cav in self.fail['l_cav']:
             cav.update_status('failed')
 
-    def fix_single(self, other_sol):
+    def fix_single(self, info_other_sol):
         """Try to compensate the faulty cavities."""
         # Set the fit variables
         x_0, x_lim, constraints, l_x_str \
@@ -101,11 +102,13 @@ class Fault():
         elif self.wtf['opti method'] == 'PSO':
             flag_success, opti_sol = self._proper_fix_pso(
                 x_0, x_lim, wrapper_args, constraints,
-                other_sol=other_sol)
+                info_other_sol=info_other_sol)
 
         if debugs['plot_progression']:
             debug.plot_fit_progress(self.info['hist_F'],
                                     l_f_str)
+        self.info['X'] = opti_sol['X']
+        self.info['F'] = opti_sol['F']
 
         return flag_success, opti_sol
 
@@ -137,7 +140,7 @@ class Fault():
                       'jac_sparsity': None,
                       'verbose': debugs['verbose']
                       }
-        sol = solver(fun=wrapper, x0=init_guess, x_lim=x_lim,
+        sol = solver(fun=wrapper, x0=init_guess, bounds=x_lim,
                      args=wrapper_args, **kwargs)
 
         if debugs['fit_progression']:
@@ -155,13 +158,13 @@ class Fault():
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
     def _proper_fix_pso(self, init_guess, x_lim, wrapper_args,
-                        phi_s_limits=None, other_sol=None):
+                        phi_s_limits=None, info_other_sol=None):
         """Fix with multi-PSO algorithm."""
         printc("Warning fault._proper_fix_pso: ", opt_message="Solution from"
                + " least squares manually entered.")
         lsq_f = np.abs([1075.34615847359 - 1075.346158310222,
-                 77.17023331557031 - 77.17023332120309,
-                 7.324542512066046e-06])
+                        77.17023331557031 - 77.17023332120309,
+                        7.324542512066046e-06])
         lsq_x = np.array([
             0.2753397474805297, 1.64504348936957, 5.132411286781306,
             1.827816962622414, 3.3763299623648138, 4.9824476431763784,
@@ -169,7 +172,7 @@ class Fault():
             # 5.75486203532526, 5.779637177905215, 5.805588466008629])
             0.861770057293058, 0.8750412568825341, 0.9060682969220509,
             0.9286910481509094, 0.9304272, 0.9304272])
-        # print(f"DEBUG!! Is ok? {other_sol}")
+        print(f"DEBUG!! Is ok? {info_other_sol}")
         # printc("Create rf_field_to_dict function?")
 
         n_obj = len(self.wtf['objective'])
@@ -295,16 +298,16 @@ class Fault():
                     1: 1.3 * 4.45899,
                     2: 1.3 * 6.67386}
         d_x_lim_abs = {'k_e': [0., np.NaN],
-                        'phi_0_rel': [0., 4. * np.pi],
-                        'phi_0_abs': [0., 4. * np.pi],
-                        'phi_s': [-.5 * np.pi, 0.]}
+                       'phi_0_rel': [0., 4. * np.pi],
+                       'phi_0_abs': [0., 4. * np.pi],
+                       'phi_s': [-.5 * np.pi, 0.]}
         d_x_lim_rel = {'k_e': [.5, np.NaN],
-                        'phi_0_rel': [np.NaN, np.NaN],
-                        'phi_0_abs': [np.NaN, np.NaN],
-                        'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
-        d_prop_label = {'k_e': r'$k_e$', 'phi_0_abs': r'$\phi_{0, abs}$',
-                        'phi_0_rel': r'$\phi_{0, rel}$',
-                        'phi_s': r'$\varphi_s$'}
+                       'phi_0_rel': [np.NaN, np.NaN],
+                       'phi_0_abs': [np.NaN, np.NaN],
+                       'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
+        d_x_label = {'k_e': r'$k_e$', 'phi_0_abs': r'$\phi_{0, abs}$',
+                     'phi_0_rel': r'$\phi_{0, rel}$',
+                     'phi_s': r'$\varphi_s$'}
 
         if LINAC == 'JAEA':
             # In Bruce's paper, the maximum electric field is 20% above the
@@ -345,7 +348,7 @@ class Fault():
                                       d_x_lim_rel[__x][1] * ref_value))
                 x_lim.append((b_down, b_up))
                 x_0.append(d_init_g[__x](ref_value))
-                l_x_str.append(' '.join((cav.info['name'], d_prop_label[__x])))
+                l_x_str.append(' '.join((cav.info['name'], d_x_label[__x])))
         n_cav = len(self.comp['l_cav'])
         x_0 = np.array(x_0[:2 * n_cav])
         phi_s_limits = np.array(x_lim[2 * n_cav:])
@@ -406,14 +409,32 @@ class Fault():
 
         return l_elts, d_idx
 
+    def get_x_sol_in_relative_phase(self):
+        """
+        Get least-square solutions in relative phases instead of synchronous.
 
-def _select_objective(l_str_objectives):
+        Least-squares fits the synchronous phase, while PSO fits the relative
+        entry phase. We get the relative phase from a least-square fit in order
+        to compare it with PSO solution.
+        """
+        # First half of X array: phase of cavities (relative or synchronous
+        # according to the value of wtf['phi_s fit']).
+        # Second half is the norms of cavities
+        x_in_rel_phase = self.info["X"].copy()
+
+        for i, cav in enumerate(self.comp['l_cav']):
+            x_in_rel_phase[i] = cav.acc_field.phi_0['rel']
+            # second half of the array remains untouched
+        self.info['X_in_relative_phase'] = x_in_rel_phase
+
+
+def _select_objective(l_objectives):
     """
     Select the objective to fit.
 
     Parameters
     ----------
-    l_str_objectives : list of strings
+    l_objectives : list of strings
         Indicates what should be fitted.
 
     Return
@@ -439,7 +460,7 @@ def _select_objective(l_str_objectives):
     }
 
     # Dictionary to return objective functions
-    d_obj = {
+    d_f = {
         'energy': lambda ref, i_r, calc, i_b:
             d_ref["energy"](ref, i_r) - d_brok['energy'](calc, i_b),
         'phase': lambda ref, i_r, calc, i_b:
@@ -460,7 +481,6 @@ def _select_objective(l_str_objectives):
             d_ref["twiss"](ref, i_r)[1] - d_brok["twiss"](calc, i_b)[1],
         'twiss_gamma': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[2] - d_brok["twiss"](calc, i_b)[2],
-        # 'mismatch_factor': mismatch,
         "mismatch_factor": lambda ref, i_r, calc, i_b:
             mismatch_factor(d_ref["twiss"](ref, i_r),
                             d_brok["twiss"](calc, i_b))[0],
@@ -469,10 +489,10 @@ def _select_objective(l_str_objectives):
     def fun_residual(ref_lin, d_results, d_idx):
         """Compute difference between ref_linac and current optimis. param."""
         l_obj = []
-        for str_obj in l_str_objectives:
+        for str_obj in l_objectives:
             for i_r, i_b in zip(d_idx['l_ref'], d_idx['l_brok']):
                 args = (ref_lin, i_r, d_results, i_b)
-                l_obj.append(d_obj[str_obj](*args))
+                l_obj.append(d_f[str_obj](*args))
         obj = np.abs(np.array(l_obj))
         return obj
 
@@ -488,7 +508,7 @@ def _select_objective(l_str_objectives):
                  'twiss_gamma': r'$\gamma_{z\delta}$',
                  'mismatch_factor': r'$M$',
                  }
-    l_f_str = [d_obj_str[str_obj] for str_obj in l_str_objectives]
+    l_f_str = [d_obj_str[str_obj] for str_obj in l_objectives]
 
     return fun_residual, l_f_str
 
@@ -512,7 +532,7 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
 
     Return
     ------
-    arr_objective : np.array
+    arr_f : np.array
         Array of residues on the objectives.
     """
     # Convert phases and norms into a dict for compute_transfer_matrices
@@ -523,16 +543,16 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
     # Update transfer matrices
     d_results = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    arr_objective = fun_residual(fault.ref_lin, d_results, d_idx)
+    arr_f = fun_residual(fault.ref_lin, d_results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, arr_objective,
+        debug.output_fit_progress(fault.count, arr_f,
                                   fault.info["l_F_str"])
     if debugs['plot_progression']:
-        fault.info['hist_F'].append(arr_objective)
+        fault.info['hist_F'].append(arr_f)
     fault.count += 1
 
-    return arr_objective
+    return arr_f
 
 
 def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
@@ -544,13 +564,13 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
     # Update transfer matrices
     d_results = fault.brok_lin.compute_transfer_matrices(
         fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    arr_objective = fun_residual(fault.ref_lin, d_results, d_idx)
+    arr_f = fun_residual(fault.ref_lin, d_results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, arr_objective,
+        debug.output_fit_progress(fault.count, arr_f,
                                   fault.info["l_F_str"])
     if debugs['plot_progression']:
-        fault.info['hist_F'].append(arr_objective)
+        fault.info['hist_F'].append(arr_f)
     fault.count += 1
 
-    return arr_objective, d_results
+    return arr_f, d_results

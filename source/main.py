@@ -46,11 +46,15 @@ failed_cav = [
     # 155, 157, #167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
 ]
 
-wtf_pso = {'opti method': 'PSO', 'manual list': [], 'strategy': 'k out of n',
-           'k': 6, 'l': 2, 'objective': ['energy', 'phase', 'mismatch_factor'],
+wtf_pso = {'opti method': 'PSO',
+           'strategy': 'k out of n',
+           'k': 6, 'l': 2, 'manual list': [],
+           'objective': ['energy', 'phase', 'mismatch_factor'],
            'position': 'end_mod', 'phi_s fit': False}
-wtf_lsq = {'opti method': 'least_squares', 'manual list': [],
-           'strategy': 'k out of n', 'k': 6, 'l': 2,
+
+wtf_lsq = {'opti method': 'least_squares',
+           'strategy': 'k out of n',
+           'k': 6, 'l': 2, 'manual list': [],
            'objective': ['energy', 'phase', 'mismatch_factor'],
            'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
@@ -150,34 +154,27 @@ FILEPATH = os.path.abspath(FILEPATH)
 # Reference linac
 ref_linac = acc.Accelerator(FILEPATH, "Working")
 ref_linac.compute_transfer_matrices()
-for plot in PLOTS:
-    debug.compare_with_tracewin(ref_linac, x_dat="s",
-                                y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                fignum=DICT_PLOTS_PRESETS[plot][1])
+linacs = [ref_linac]
 
 # Broken linac
-lsq_sol = None
-l_broken_linacs = []
-for wtf in [wtf_pso]:#, wtf_pso]:
+lsq_info = None
+for wtf in [wtf_lsq]:#, wtf_pso]:
     lin = acc.Accelerator(FILEPATH, "Broken")
 
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
-                                wtf=wtf, other_sol=lsq_sol)
+                                wtf=wtf, l_info_other_sol=lsq_info)
     for plot in PLOTS:
         debug.compare_with_tracewin(lin, x_dat="s",
                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 
     if FLAG_FIX:
-        l_d_sols = fail.fix_all()
+        fail.fix_all()
         lin.compute_transfer_matrices()
-        for plot in PLOTS:
-            debug.compare_with_tracewin(lin, x_dat="s",
-                                        y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                        fignum=DICT_PLOTS_PRESETS[plot][1])
+
         if wtf == wtf_lsq:
-            lsq_sol = l_d_sols
-    l_broken_linacs.append(lin)
+            lsq_info = [f.info for f in fail.faults['l_obj']]
+    linacs.append(lin)
 
     if SAVE_FIX:
         helper.printc("main warning: ", opt_message="if studying several "
@@ -185,6 +182,11 @@ for wtf in [wtf_pso]:#, wtf_pso]:
                       + "last one.")
         tw.save_new_dat(lin, FILEPATH)
 
+for lin in linacs:
+    for plot in PLOTS:
+        debug.compare_with_tracewin(lin, x_dat="s",
+                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+                                    fignum=DICT_PLOTS_PRESETS[plot][1])
 if PLOT_TM:
     debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])
 

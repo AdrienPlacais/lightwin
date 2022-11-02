@@ -40,11 +40,11 @@ class FaultScenario():
     """A class to hold all fault related data."""
 
     def __init__(self, ref_linac, broken_linac, l_fault_idx, wtf,
-                 other_sol=None):
+                 l_info_other_sol=None):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
         self.wtf = wtf
-        self.l_other_sol = other_sol
+        self.l_info_other_sol = l_info_other_sol
 
         assert ref_linac.synch.info['reference'] is True
         assert broken_linac.synch.info['reference'] is False
@@ -109,15 +109,15 @@ class FaultScenario():
             fault.prepare_cavities_for_compensation(comp_cav)
 
         l_flags_success = []
-        l_d_sols = []
-        other_sol = None
 
         # We fix all Faults individually
         for i, fault in enumerate(self.faults['l_obj']):
-            if self.l_other_sol is not None:
-                other_sol = self.l_other_sol[i]
-            flag_success, d_sol = fault.fix_single(other_sol)
-            l_d_sols.append(d_sol)
+            # If provided, we take the fault.info of another fault
+            info_other_sol = None
+            if self.l_info_other_sol is not None:
+                info_other_sol = self.l_info_other_sol[i]
+            flag_success, d_sol \
+                = fault.fix_single(info_other_sol=info_other_sol)
 
             # Recompute transfer matrices to transfer proper rf_field, transfer
             # matrix, etc to _Elements, _Particles and _Accelerators.
@@ -127,6 +127,7 @@ class FaultScenario():
             fault.brok_lin.compute_transfer_matrices(fault.comp['l_recompute'],
                                                      d_fits=d_fits,
                                                      flag_transfer_data=True)
+            fault.get_x_sol_in_relative_phase()
 
             # Update status of the compensating cavities according to the
             # success or not of the fit.
@@ -151,7 +152,6 @@ class FaultScenario():
 
         self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
                                             mod_f.debugs['fit_compact'])
-        return l_d_sols
 
     def _compute_matrix_to_next_fault(self, fault, success):
         """Recompute transfer matrices between this fault and the next."""

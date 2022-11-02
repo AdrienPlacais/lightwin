@@ -215,7 +215,7 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
 
 def convergence_callback(callback, l_f_str):
     """Plot convergence info using the results of the callback."""
-    fig, axx = create_fig_if_not_exist(58, [111])
+    _, axx = create_fig_if_not_exist(58, [111])
     axx[0].set_title("Convergence")
     axx[0].plot(callback.n_evals, callback.opt, label=l_f_str)
     axx[0].set_xlabel('Number of evaluations')
