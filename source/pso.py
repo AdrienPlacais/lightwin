@@ -63,22 +63,25 @@ class MyCallback(Callback):
 class MyProblem(ElementwiseProblem):
     """Class holding PSO."""
 
-    def __init__(self, wrapper_fun, n_var, n_obj, n_constr, bounds,
-                 wrapper_args, phi_s_limits, **kwargs):
+    def __init__(self, wrapper_fun, wrapper_args, **kwargs):
         self.wrapper_pso = wrapper_fun
         self.fault = wrapper_args[0]
         self.fun_residual = wrapper_args[1]
         self.d_idx = wrapper_args[2]
-        self.phi_s_limits = phi_s_limits
-        self.n_obj = n_obj
+
+        info = self.fault.info
+        n_var = info['X_0'].shape[0]
+        _xl = info['X_lim'][:, 0]
+        _xu = info['X_lim'][:, 1]
+        n_obj = len(self.fault.wtf['objective'])
+        n_constr = 2 * info['G'].shape[0]
+        self.phi_s_limits = info['G']
 
         print(f"Number of objectives: {n_obj}")
-        super().__init__(n_var=n_var,
-                         n_obj=n_obj,
-                         n_constr=n_constr,
-                         xl=bounds[:, 0], xu=bounds[:, 1])
+        super().__init__(n_var=n_var, n_obj=n_obj, n_constr=n_constr,
+                         xl=_xl, xu=_xu)
         if n_constr > 0:
-            print(f"{n_constr} constraints on phi_s:\n{phi_s_limits}")
+            print(f"{n_constr} constraints on phi_s:\n{info['G']}")
 
     def _evaluate(self, x, out, *args, **kwargs):
         """
@@ -155,13 +158,6 @@ def _set_termination():
 
 def mcdm(res, weights, fault_info, compare=None):
     """Perform Multi-Criteria Decision Making."""
-    print(f"Shapes: X={res.X.shape}, F={res.F.shape}, G={res.G.shape}")
-    # Multi-Criteria Decision Making
-    f_l = res.F.min(axis=0)
-    f_u = res.F.max(axis=0)
-    for _l, _u in zip(f_l, f_u):
-        print(f"Pre-scale f: [{_l}, {_u}]")
-
     d_approx = {'ideal': res.F.min(axis=0),
                 'nadir': res.F.max(axis=0)}
 

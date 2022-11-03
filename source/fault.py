@@ -19,7 +19,7 @@ TODO : at init of Fault, say self.brok_lin = brok_lin.deepcopy() (or copy)
        AH no in fact, maybe plutôt self.fixed_linac = brok_lin after it is
        broken, end of __init__. And then fix only fixed?
        Or can the breakage be done at the init of the Accelerator?
-TODO : _set_fit_parameters could be cleaner
+TODO : _set_design_space could be cleaner
 """
 # import multiprocessing
 import numpy as np
@@ -66,8 +66,8 @@ class Fault():
             'F': [],                # Final objective values
             'hist_F': [],           # Objective evaluations
             'l_F_str': [],          # Name of objectives for output
+            'G': [],                # Constraints
             'resume': None,         # For output
-            'jac': None,            # Jacobian
             }
         self.count = None
 
@@ -77,9 +77,8 @@ class Fault():
 
     def fix_single(self, info_other_sol):
         """Try to compensate the faulty cavities."""
-        # Set the fit variables
-        x_0, x_lim, constraints, l_x_str \
-            = self._set_fit_parameters()
+        # Set the variables
+        x_0, x_lim, constr, l_x_str = self._set_design_space()
         l_elts, d_idx = self._select_zone_to_recompute(self.wtf['position'])
 
         fun_residual, l_f_str = _select_objective(self.wtf['objective'])
@@ -90,6 +89,7 @@ class Fault():
             'X_lim': x_lim,
             'l_X_str': l_x_str,
             'l_F_str': l_f_str,
+            'G': constr,
         })
         self.comp['l_recompute'] = l_elts
 
@@ -97,13 +97,11 @@ class Fault():
 
         self.count = 0
         if self.wtf['opti method'] == 'least_squares':
-            flag_success, opti_sol = self._proper_fix_lsq_opt(
-                x_0, x_lim, wrapper_args)
+            success, opti_sol = self._proper_fix_lsq_opt(wrapper_args)
 
         elif self.wtf['opti method'] == 'PSO':
-            flag_success, opti_sol = self._proper_fix_pso(
-                x_0, x_lim, wrapper_args, constraints,
-                info_other_sol=info_other_sol)
+            success, opti_sol = self._proper_fix_pso(
+                wrapper_args, info_other_sol=info_other_sol)
 
         if debugs['plot_progression']:
             debug.plot_fit_progress(self.info['hist_F'],
@@ -111,9 +109,9 @@ class Fault():
         self.info['X'] = opti_sol['X']
         self.info['F'] = opti_sol['F']
 
-        return flag_success, opti_sol
+        return success, opti_sol
 
-    def _proper_fix_lsq_opt(self, init_guess, x_lim, wrapper_args):
+    def _proper_fix_lsq_opt(self, wrapper_args):
         """
         Fix with classic least_squares optimisation.
 
@@ -122,12 +120,13 @@ class Fault():
         directly optimise phi_s (FLAG_PHI_S_FIT == True) or use PSO algorithm
         (self.wtf['opti method'] == 'PSO').
         """
-        if init_guess.shape[0] == 1:
+        if self.info['X_0'].shape[0] == 1:
             solver = minimize
             kwargs = {}
         else:
             solver = least_squares
-            x_lim = (x_lim[:, 0], x_lim[:, 1])
+            x_lim = (self.info['X_lim'][:, 0],
+                     self.info['X_lim'][:, 1])
             kwargs = {'jac': '2-point',     # Default
                       # 'trf' not ideal as jac is not sparse. 'dogbox' may have
                       # difficulties with rank-defficient jacobian.
@@ -141,7 +140,7 @@ class Fault():
                       'jac_sparsity': None,
                       'verbose': debugs['verbose']
                       }
-        sol = solver(fun=wrapper, x0=init_guess, bounds=x_lim,
+        sol = solver(fun=wrapper, x0=self.info['X_0'], bounds=x_lim,
                      args=wrapper_args, **kwargs)
 
         if debugs['fit_progression']:
@@ -153,28 +152,20 @@ class Fault():
         print(f"""\nmessage: {sol.message}\nnfev: {sol.nfev}\tnjev: {sol.njev}
               \noptimality: {sol.optimality}\nstatus: {sol.status}\n
               success: {sol.success}\nsolution: {sol.x}\n\n""")
-        self.info['sol'] = sol
-        self.info['jac'] = sol.jac
 
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
-    def _proper_fix_pso(self, init_guess, x_lim, wrapper_args,
-                        phi_s_limits=None, info_other_sol=None):
+    def _proper_fix_pso(self, wrapper_args, info_other_sol=None):
         """Fix with multi-PSO algorithm."""
         if info_other_sol is None:
             info_other_sol = {'F': None, 'X_in_real_phase': None}
 
-        n_obj = len(self.wtf['objective'])
-        assert phi_s_limits is not None
-        n_constr = 2 * phi_s_limits.shape[0]
-
-        problem = pso.MyProblem(wrapper_pso, init_guess.shape[0], n_obj,
-                                n_constr, x_lim, wrapper_args, phi_s_limits)
+        problem = pso.MyProblem(wrapper_pso, wrapper_args)
         res = pso.perform_pso(problem)
 
         weights = pso.set_weights(self.wtf['objective'])
         d_opti, d_approx = pso.mcdm(res, weights, self.info,
-                                    compare=info_other_sol['F'])
+                                    info_other_sol['F'])
 
         if pso.SAVE_HISTORY:
             pso.convergence_history(res.history, d_approx,
@@ -185,9 +176,6 @@ class Fault():
         if pso.FLAG_DESIGN_SPACE:
             pso.convergence_design_space(
                 res.history, d_opti, lsq_x=info_other_sol['X_in_real_phase'])
-
-        self.keep_problem = problem
-        self.keep_results = res
 
         # Here we return the ASF sol
         return True, d_opti['asf']
@@ -251,7 +239,7 @@ class Fault():
         for cav in self.comp['l_cav']:
             cav.update_status(new_status)
 
-    def _set_fit_parameters(self):
+    def _set_design_space(self):
         """
         Set initial conditions and boundaries for the fit.
 
