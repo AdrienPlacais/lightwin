@@ -109,9 +109,9 @@ def perform_pso(problem):
 
     elif STR_ALGORITHM == 'NSGA-III':
         # ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
-                                            # n_partitions=6)
+        #                                     n_partitions=6)
         ref_dirs = get_reference_directions("energy", problem.n_obj, 90)
-        algorithm = NSGA3(pop_size=75, # 500
+        algorithm = NSGA3(pop_size=75,  # 500
                           ref_dirs=ref_dirs,
                           )
 
@@ -131,7 +131,7 @@ def _set_termination():
     """Set a termination condition."""
     d_termination = {
         'NSGA-II': get_termination("n_gen", 60),
-        'NSGA-III': get_termination("n_gen", 200),# 200
+        'NSGA-III': get_termination("n_gen", 200),  # 200
     }
     termination = d_termination[STR_ALGORITHM]
 
@@ -163,7 +163,7 @@ def mcdm(res, weights, fault_info, compare=None):
         print(f"Pre-scale f: [{_l}, {_u}]")
 
     d_approx = {'ideal': res.F.min(axis=0),
-                'nadir': res.F.max(axis=0),}
+                'nadir': res.F.max(axis=0)}
 
     n_f = (res.F - d_approx['ideal']) / (d_approx['nadir'] - d_approx['ideal'])
     f_l = n_f.min(axis=0)
@@ -199,7 +199,7 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
         d_opti[name] = d_tmp
         # Pandas datafram is used only for user output
         pd_best_sol.loc[i] = [name, idx] + res.X[idx].tolist() \
-                + res.F[idx].tolist()
+            + res.F[idx].tolist()
 
     for col in pd_best_sol:
         if 'phi' in col:
@@ -263,7 +263,7 @@ def convergence_history(hist, d_approx, str_obj):
         axx[0].set_title("Convergence")
 
         axx[1].plot(n_evals, hist_cv, marker='o', c='b', lw=.7,
-                   label="Least feasible opt. sol.")
+                    label="Least feasible opt. sol.")
         for i in range(2):
             axx[i].set_xlabel("Function evaluations")
             axx[i].set_ylabel("Constraint Violation")
@@ -391,8 +391,7 @@ def _plot_solutions(res_f, d_opti, labels, compare=None):
     # General case: Parallel Coordinate Plot
     kwargs = {'close_on_destroy': False}
     fig = PCP(title=("Run", {'pad': 30}), n_ticks=10,
-                   legend=(True, {'loc': "upper left"}), labels=labels,
-                   **kwargs)
+              legend=(True, {'loc': "upper left"}), labels=labels, **kwargs)
     fig.set_axis_style(color="grey", alpha=0.5)
     fig.add(res_f, color="grey", alpha=0.3)
     for key, val in d_opti.items():
@@ -414,12 +413,14 @@ def _plot_design(hist_xf, hist_xu, d_opti, lsq_x=None):
 
     for i in range(n_cav):
         # Plot X corresponding to feasible and unfeasible F
-        for xf, xu in zip(hist_xf, hist_xu):
-            if np.shape(xf)[0] > 0:
-                axx[i].scatter(np.mod(xf[:, i], 2. * np.pi), xf[:, i + n_cav],
+        for x_f, x_u in zip(hist_xf, hist_xu):
+            if np.shape(x_f)[0] > 0:
+                axx[i].scatter(np.mod(x_f[:, i], 2. * np.pi),
+                               x_f[:, i + n_cav],
                                marker='o', c='r', alpha=.5)
-            if np.shape(xu)[0] > 0:
-                axx[i].scatter(np.mod(xu[:, i], 2. * np.pi), xu[:, i + n_cav],
+            if np.shape(x_u)[0] > 0:
+                axx[i].scatter(np.mod(x_u[:, i], 2. * np.pi),
+                               x_u[:, i + n_cav],
                                marker='x', c='r', alpha=.5)
         # Plot solution(s) X found in mcdm:
         for j, key in enumerate(d_opti.keys()):

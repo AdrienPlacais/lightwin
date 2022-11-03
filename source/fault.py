@@ -31,7 +31,7 @@ from scipy.optimize import minimize, least_squares
 from constants import FLAG_PHI_ABS, LINAC
 import debug
 from helper import printc
-import PSO as pso
+import pso
 from emittance import mismatch_factor
 
 
@@ -57,17 +57,18 @@ class Fault():
         self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
                      'n_cav': None}
 
-        self.info = {'X': [],           # Solution
-                     'X_0': [],         # Initial guess
-                     'X_lim': [],       # Bounds
-                     'l_X_str': [],     # Name of variables for output
-                     'X_in_real_phase': [],   # See get_x_sol_in_real_phase
-                     'F': [],           # Final objective values
-                     'hist_F': [],      # Objective evaluations
-                     'l_F_str': [],     # Name of objectives for output
-                     'resume': None,    # For output
-                     'jac': None,       # Jacobian
-                     }
+        self.info = {
+            'X': [],                # Solution
+            'X_0': [],              # Initial guess
+            'X_lim': [],            # Bounds
+            'l_X_str': [],          # Name of variables for output
+            'X_in_real_phase': [],  # See get_x_sol_in_real_phase
+            'F': [],                # Final objective values
+            'hist_F': [],           # Objective evaluations
+            'l_F_str': [],          # Name of objectives for output
+            'resume': None,         # For output
+            'jac': None,            # Jacobian
+            }
         self.count = None
 
         # We directly break the proper cavities
