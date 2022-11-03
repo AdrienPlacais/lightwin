@@ -177,6 +177,8 @@ class Fault():
             pso.convergence_design_space(
                 res.history, d_opti, lsq_x=info_other_sol['X_in_real_phase'])
 
+        self.info.update({'problem': problem, 'res': res})
+
         # Here we return the ASF sol
         return True, d_opti['asf']
 

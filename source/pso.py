@@ -9,6 +9,7 @@ Created on Tue Apr 26 16:44:53 2022.
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from palettable.colorbrewer.sequential import OrRd_5 as prog_c
 
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
@@ -162,9 +163,6 @@ def mcdm(res, weights, fault_info, compare=None):
                 'nadir': res.F.max(axis=0)}
 
     n_f = (res.F - d_approx['ideal']) / (d_approx['nadir'] - d_approx['ideal'])
-    f_l = n_f.min(axis=0)
-    f_u = n_f.max(axis=0)
-
     pd_best_sol, d_asf, d_pw = _best_solutions(res, n_f, weights, fault_info,
                                                compare=compare)
     fault_info['resume'] = pd_best_sol
@@ -189,10 +187,9 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
 
     d_opti = {"ASF": None, "PW": None}
     for i, (name, idx) in enumerate(zip(d_opti.keys(), l_idx)):
-        # Dict is used for data treatment
-        d_tmp = {"idx": idx, "X": res.X[idx].tolist(),
-                 "F": res.F[idx].tolist()}
-        d_opti[name] = d_tmp
+        # Dict is used to study convergence, design space exploration, etc
+        d_opti[name] = {"idx": idx, "X": res.X[idx].tolist(),
+                        "F": res.F[idx].tolist()}
         # Pandas datafram is used only for user output
         pd_best_sol.loc[i] = [name, idx] + res.X[idx].tolist() \
             + res.F[idx].tolist()
@@ -400,28 +397,34 @@ def _plot_solutions(res_f, d_opti, labels, compare=None):
 
 def _plot_design(hist_xf, hist_xu, d_opti, lsq_x=None):
     """Plot for each cavity the norm and phase that were tried."""
-    n_cav = np.shape(hist_xf[-1])[1] / 2
-    n_cav = int(n_cav)
+    n_cav = int(np.shape(hist_xf[-1])[1] / 2)
+    # FIXME
     assert n_cav == 6, "Not designed for number of cavities different from 6."
 
     fig, axx = create_fig_if_not_exist(63, range(231, 237))
-    color = ['g', 'b']
+    sol_color = ['g', 'b']
+
+    # Set color scheme
+    prog_color = [tuple([c / 255 for c in c_list]) for c_list in prog_c.colors]
+    n_eval = int(np.shape(hist_xf)[0])
+    n_eval_per_color = n_eval // len(prog_color) + 1
 
     for i in range(n_cav):
         # Plot X corresponding to feasible and unfeasible F
-        for x_f, x_u in zip(hist_xf, hist_xu):
+        for j, (x_f, x_u) in enumerate(zip(hist_xf, hist_xu)):
+            color = prog_color[j // n_eval_per_color]
             if np.shape(x_f)[0] > 0:
                 axx[i].scatter(np.mod(x_f[:, i], 2. * np.pi),
                                x_f[:, i + n_cav],
-                               marker='o', c='r', alpha=.5)
+                               marker='o', color=color, alpha=.5, s=10)
             if np.shape(x_u)[0] > 0:
                 axx[i].scatter(np.mod(x_u[:, i], 2. * np.pi),
                                x_u[:, i + n_cav],
-                               marker='x', c='r', alpha=.5)
+                               marker='x', color=color, alpha=.5, s=10)
         # Plot solution(s) X found in mcdm:
-        for j, key in enumerate(d_opti.keys()):
+        for k, key in enumerate(d_opti.keys()):
             axx[i].scatter(d_opti[key]['X'][i], d_opti[key]['X'][i + n_cav],
-                           marker='^', c=color[j], alpha=1, label=key)
+                           marker='^', c=sol_color[k], alpha=1, label=key)
         # Plot solution found by LSQ
         if lsq_x is not None:
             axx[i].scatter(np.mod(lsq_x[i], 2. * np.pi), lsq_x[i + n_cav],
