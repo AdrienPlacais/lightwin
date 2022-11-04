@@ -16,6 +16,8 @@ from constants import c, E_REST_MEV
 # =============================================================================
 # Plot and messages functions
 # =============================================================================
+# TODO: transform inputs into strings if they are not already strings
+# TODO: use args to avoid lenghty 'opt_message=' each time
 def printc(message, color='cyan', opt_message=''):
     """Print colored messages."""
     dict_c = {

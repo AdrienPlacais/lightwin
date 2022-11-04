@@ -68,7 +68,7 @@ class Fault():
             'l_F_str': [],          # Name of objectives for output
             'G': [],                # Constraints
             'resume': None,         # For output
-            }
+        }
         self.count = None
 
         # We directly break the proper cavities
@@ -169,7 +169,7 @@ class Fault():
 
         if pso.SAVE_HISTORY:
             pso.convergence_history(res.history, d_approx,
-                                    self.wtf['objective'])
+                                    self.wtf['objective'], info_other_sol['F'])
         if pso.FLAG_CONVERGENCE_CALLBACK:
             pso.convergence_callback(res.algorithm.callback,
                                      self.info['l_F_str'])

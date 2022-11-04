@@ -218,7 +218,7 @@ def convergence_callback(callback, l_f_str):
     axx[0].grid(True)
 
 
-def convergence_history(hist, d_approx, str_obj):
+def convergence_history(hist, d_approx, str_obj, lsq_f):
     """Study the convergence of the algorithm."""
     # Convergence study
     n_evals = []      # Num of func evaluations
@@ -265,8 +265,7 @@ def convergence_history(hist, d_approx, str_obj):
         fig.show()
 
     if FLAG_HYPERVOLUME:
-        _convergence_hypervolume(n_evals, hist_f, d_approx,
-                                 str_obj)
+        _convergence_hypervolume(n_evals, hist_f, d_approx, str_obj, lsq_f)
 
     if FLAG_RUNNING:
         _convergence_running_metrics(hist)
@@ -287,7 +286,7 @@ def convergence_design_space(hist, d_opti, lsq_x=None):
     _plot_design(hist_xf, hist_xu, d_opti, lsq_x)
 
 
-def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj):
+def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj, lsq_f=None):
     """Study convergence using hypervolume. Not adapted when too many dims."""
     # Dictionary for reference points
     # They must be typical large values for the objective
@@ -313,17 +312,17 @@ def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj):
 
     h_v = [metric.do(_F) for _F in hist_f]
 
-    printc("Warning PSO._convergence_hypervolume: ", opt_message="manually"
-           + "added the optimal point to the hypervolume plot.")
-    ideal = np.abs([1075.34615847359 - 1075.346158310222,
-                    77.17023331557031 - 77.17023332120309,
-                    7.324542512066046e-06])
-    h_v.append(metric.do(ideal))
-
     _, axx = create_fig_if_not_exist(60, [111])
     axx = axx[0]
 
-    axx.plot(n_eval + [n_eval[-1] + n_eval[0]], h_v, lw=.7, marker='o', c='k')
+    axx.plot(n_eval, h_v, lw=.7, marker='o', c='k')
+
+    # FIXME
+    lsq_f = None
+    if lsq_f is not None:
+        axx.axhline(metric.do(lsq_f), -n_eval, 1.1 * n_eval,
+                    label='Least-squares')
+        axx.legend()
     axx.set_title("Objective space")
     axx.set_xlabel("Function evaluations")
     axx.set_ylabel("Hypervolume")

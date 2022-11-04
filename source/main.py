@@ -203,3 +203,6 @@ print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
 delta_t = timedelta(seconds=end_time - start_time)
 ranking = fail.evaluate_fit_quality(delta_t)
 helper.printd(ranking, header='Fit evaluation')
+
+import anim
+a = anim.AnimatedScatter(fail.faults['l_obj'][0].info['res'].history)
