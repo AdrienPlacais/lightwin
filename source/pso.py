@@ -29,6 +29,7 @@ from pymoo.visualization.pcp import PCP
 from pymoo.core.callback import Callback
 
 from helper import printc, create_fig_if_not_exist
+import anim
 
 STR_ALGORITHM = "NSGA-II"
 # Messages from algorithm
@@ -108,7 +109,7 @@ class MyProblem(ElementwiseProblem):
 def perform_pso(problem):
     """Perform the PSO."""
     if STR_ALGORITHM == 'NSGA-II':
-        algorithm = NSGA2(pop_size=100,
+        algorithm = NSGA2(pop_size=200,
                           eliminate_duplicates=True)
 
     elif STR_ALGORITHM == 'NSGA-III':
@@ -134,7 +135,7 @@ def perform_pso(problem):
 def _set_termination():
     """Set a termination condition."""
     d_termination = {
-        'NSGA-II': get_termination("n_gen", 60),
+        'NSGA-II': get_termination("n_gen", 100),
         'NSGA-III': get_termination("n_gen", 200),  # 200
     }
     termination = d_termination[STR_ALGORITHM]
@@ -273,17 +274,26 @@ def convergence_history(hist, d_approx, str_obj, lsq_f):
 
 def convergence_design_space(hist, d_opti, lsq_x=None):
     """Represent the variables that were tried during optimisation."""
-    hist_xf = []      # Explored variables (Feasible)
-    hist_xu = []      # Explored variables (Unfeasible)
+    # hist_xf = []      # Explored variables (Feasible)
+    # hist_xu = []      # Explored variables (Unfeasible)
 
-    for algo in hist:
-        pop = algo.pop
-        feas = np.where(pop.get("feasible"))[0]
-        hist_xf.append(pop.get("X")[feas])
-        unfeas = np.where(~pop.get("feasible"))[0]
-        hist_xu.append(pop.get("X")[unfeas])
+    # for algo in hist:
+        # pop = algo.pop
+        # feas = np.where(pop.get("feasible"))[0]
+        # hist_xf.append(pop.get("X")[feas])
+        # unfeas = np.where(~pop.get("feasible"))[0]
+        # hist_xu.append(pop.get("X")[unfeas])
 
-    _plot_design(hist_xf, hist_xu, d_opti, lsq_x)
+    n_cav = int(np.shape(hist[0].pop.get('X'))[1] / 2)
+    # FIXME
+    assert n_cav == 6, "Not designed for number of cavities different from 6."
+    fig, _ = create_fig_if_not_exist(63, range(231, 237),
+                                     **{'figsize': (15, 10)})
+
+    # Plot solutions (fixed points)
+    _plot_variables_final_sol(fig, d_opti, n_cav, lsq_x)
+    # Plot evolution of variables that were tried (animation)
+    anim.AnimatedScatterDesign(fig, hist, n_cav)
 
 
 def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj, lsq_f=None):
@@ -394,32 +404,13 @@ def _plot_solutions(res_f, d_opti, labels, compare=None):
     fig.ax.grid(True)
 
 
-def _plot_design(hist_xf, hist_xu, d_opti, lsq_x=None):
+def _plot_variables_final_sol(fig, d_opti, n_cav, lsq_x=None):
     """Plot for each cavity the norm and phase that were tried."""
-    n_cav = int(np.shape(hist_xf[-1])[1] / 2)
-    # FIXME
-    assert n_cav == 6, "Not designed for number of cavities different from 6."
-
-    fig, axx = create_fig_if_not_exist(63, range(231, 237))
+    axx = fig.get_axes()
     sol_color = ['g', 'b']
 
-    # Set color scheme
-    prog_color = [tuple([c / 255 for c in c_list]) for c_list in prog_c.colors]
-    n_eval = int(np.shape(hist_xf)[0])
-    n_eval_per_color = n_eval // len(prog_color) + 1
-
+    # First we plot the solutions
     for i in range(n_cav):
-        # Plot X corresponding to feasible and unfeasible F
-        for j, (x_f, x_u) in enumerate(zip(hist_xf, hist_xu)):
-            color = prog_color[j // n_eval_per_color]
-            if np.shape(x_f)[0] > 0:
-                axx[i].scatter(np.mod(x_f[:, i], 2. * np.pi),
-                               x_f[:, i + n_cav],
-                               marker='o', color=color, alpha=.5, s=10)
-            if np.shape(x_u)[0] > 0:
-                axx[i].scatter(np.mod(x_u[:, i], 2. * np.pi),
-                               x_u[:, i + n_cav],
-                               marker='x', color=color, alpha=.5, s=10)
         # Plot solution(s) X found in mcdm:
         for k, key in enumerate(d_opti.keys()):
             axx[i].scatter(d_opti[key]['X'][i], d_opti[key]['X'][i + n_cav],
@@ -435,7 +426,6 @@ def _plot_design(hist_xf, hist_xu, d_opti, lsq_x=None):
     axx[0].legend()
     axx[3].set_ylabel(r'$k_e$')
     axx[4].set_xlabel(r'$\phi_0$')
-    fig.show()
     printc("Warning PSO._space_design_exploration: ", opt_message="Limits "
            + "manually entered.")
 

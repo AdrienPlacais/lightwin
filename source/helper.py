@@ -45,17 +45,17 @@ def printd(message, color_header='cyan', header=''):
     print(message, '\n\n' + line, '\n')
 
 
-def simple_plot(x, y, label_x, label_y, fignum=33):
+def simple_plot(dat_x, dat_y, label_x, label_y, fignum=33):
     """Simplest plot."""
     axnumlist = [111]
-    fig, axlist = create_fig_if_not_exist(fignum, axnumlist)
-    axlist[0].plot(x, y)
+    _, axlist = create_fig_if_not_exist(fignum, axnumlist)
+    axlist[0].plot(dat_x, dat_y)
     axlist[0].set_xlabel(label_x)
     axlist[0].set_ylabel(label_y)
     axlist[0].grid(True)
 
 
-def create_fig_if_not_exist(fignum, axnum, sharex=False):
+def create_fig_if_not_exist(fignum, axnum, sharex=False, **fkwargs):
     """
     Check if figures were already created, create it if not.
 
@@ -75,7 +75,7 @@ def create_fig_if_not_exist(fignum, axnum, sharex=False):
             axlist.append(fig.axes[i])
 
     else:
-        fig = plt.figure(fignum)
+        fig = plt.figure(fignum, **fkwargs)
         axlist.append(fig.add_subplot(axnum[0]))
         dict_sharex = {True: axlist[0], False: None}
         for i in axnum[1:]:
@@ -88,8 +88,8 @@ def clean_fig(fignumlist):
     """Clean axis of Figs in fignumlist."""
     for fignum in fignumlist:
         fig = plt.figure(fignum)
-        for ax in fig.get_axes():
-            ax.cla()
+        for axx in fig.get_axes():
+            axx.cla()
 
 
 def empty_fig(fignum):
@@ -98,8 +98,8 @@ def empty_fig(fignum):
     if plt.fignum_exists(fignum):
         fig = plt.figure(fignum)
         axlist = fig.get_axes()
-        for ax in axlist:
-            if ax.lines == []:
+        for axx in axlist:
+            if axx.lines == []:
                 out = True
     return out
 
