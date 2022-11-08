@@ -87,6 +87,32 @@ class Accelerator():
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
+    def get(self, *keys, to_numpy=True, **kwargs):
+        """Shorthand to get attributes."""
+        val = {}
+        for key in keys:
+            val[key] = []
+
+        # Get for each Element and for each argument
+        for elt in self.elements['list']:
+            for key in keys:
+                data = elt.get(key, to_numpy = False)
+                if isinstance(data, list):\
+                   val[key] += data
+                else:
+                    val[key].append(data)
+
+        # Convert to list, and to numpy array if necessary
+        out = [val[key] for key in keys]
+        if to_numpy:
+            out = [np.array(val) for val in out]
+
+        # Return as tuple or single value
+        if len(keys) == 1:
+            return out[0]
+        # implicit else
+        return tuple(out)
+
     def _set_indexes_and_abs_positions(self):
         """Init solvers, set indexes and absolute positions of elements."""
         pos = {'in': 0., 'out': 0.}

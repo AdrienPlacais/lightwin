@@ -43,8 +43,8 @@ class Particle():
         self.energy = {
             'kin_array_mev': np.full((n_steps + 1), np.NaN),
             'gamma_array': np.full((n_steps + 1), np.NaN),
-            'beta_array': np.full((n_steps + 1), np.NaN),
-            'p_array_mev': np.full((n_steps + 1), np.NaN),
+            'beta_array': np.full((n_steps + 1), np.NaN),   # Necessary? TODO
+            'p_array_mev': np.full((n_steps + 1), np.NaN),  # Necessary? TODO
         }
         self.set_energy(e_mev, idx=0, delta_e=False)
 
@@ -56,8 +56,9 @@ class Particle():
         self._init_phi(idx=0)
 
         if not self.info["synchronous"]:
-            print("__init__ non-synch Particle: the absolute position of",
-                  "a non synch particle is not initialized.")
+            helper.printc("Particle.__init__ warning: ", opt_message="the "
+                          + "absolute position of a non synchrous particle "
+                          + "is not initialized.")
 
     def get(self, *keys):
         """Shorthand to get attributes."""

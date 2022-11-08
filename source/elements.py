@@ -104,7 +104,7 @@ class _Element():
                              'd_z': None},
         }
 
-    def get(self, *keys):
+    def get(self, *keys, to_numpy=True):
         """Shorthand to get attributes."""
         out = []
 
@@ -127,6 +127,12 @@ class _Element():
                 dat = self.acc_field.get(key)
             else:
                 dat = None
+
+            if isinstance(dat, np.ndarray) and not to_numpy:
+                dat = dat.tolist()
+            elif isinstance(dat, list) and to_numpy:
+                dat = np.array(dat)
+            # tuples remain tuples
 
             out.append(dat)
 
