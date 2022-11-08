@@ -55,13 +55,6 @@ class Particle():
         }
         self._init_phi(idx=0)
 
-        self.phase_space = {
-            # z_abs-s_abs or z_rel-s_rel
-            'z_array': np.full((n_steps + 1), np.NaN),
-            'delta_array': np.full((n_steps + 1), np.NaN),  # (p - p_s) / p_s
-            'both_array': np.full((n_steps + 1), np.NaN),
-            'phi_array_rad': np.full((n_steps + 1), np.NaN),
-        }
         if not self.info["synchronous"]:
             print("__init__ non-synch Particle: the absolute position of",
                   "a non synch particle is not initialized.")
@@ -81,8 +74,6 @@ class Particle():
                 dat = self.energy[key]
             elif key in self.phi:
                 dat = self.phi[key]
-            elif key in self.phase_space:
-                dat = self.phase_space[key]
             else:
                 dat = None
 
