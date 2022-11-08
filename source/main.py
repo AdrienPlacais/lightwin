@@ -37,7 +37,7 @@ if FILEPATH == "":
 # =============================================================================
 # Fault compensation
 # =============================================================================
-FLAG_FIX = True
+FLAG_FIX = False
 FLAG_TRY_OPTI_METHODS = True
 SAVE_FIX = False
 
@@ -143,7 +143,6 @@ DICT_SAVES = {
 if abs(I_MILLI_A) > 1e-10:
     helper.printc("main.py warning: ", opt_message="I_MILLI_A is not zero,"
                   + "but LW does not take space charge forces into account.")
-
 
 # =============================================================================
 # Start

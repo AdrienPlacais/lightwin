@@ -66,6 +66,33 @@ class Particle():
             print("__init__ non-synch Particle: the absolute position of",
                   "a non synch particle is not initialized.")
 
+    def get(self, *keys):
+        """Shorthand to get attributes."""
+        out = []
+
+        for key in keys:
+            if hasattr(self, key):
+                dat = getattr(self, key)
+            elif key in self.info:
+                dat = self.info[key]
+            elif key in self.z:
+                dat = self.z[key]
+            elif key in self.energy:
+                dat = self.energy[key]
+            elif key in self.phi:
+                dat = self.phi[key]
+            elif key in self.phase_space:
+                dat = self.phase_space[key]
+            else:
+                dat = None
+
+            out.append(dat)
+
+        if len(out) == 1:
+            return out[0]
+        # implicit else:
+        return tuple(out)
+
     def init_abs_z(self, list_of_elements):
         """Create the array of absolute positions."""
         assert self.info["synchronous"], """This routine only works for the

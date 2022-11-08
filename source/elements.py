@@ -104,6 +104,37 @@ class _Element():
                              'd_z': None},
         }
 
+    def get(self, *keys):
+        """Shorthand to get attributes."""
+        out = []
+
+        # FIXME I think this could be more pythonic with a list of dicts, or
+        # even a generator?
+        for key in keys:
+            if hasattr(self, key):
+                dat = getattr(self, key)
+            elif key in self.info:
+                dat = self.info[key]
+            elif key in self.pos_m:
+                dat = self.pos_m[key]
+            elif key in self.idx:
+                dat = self.idx[key]
+            elif key in self.tmat:
+                dat = self.tmat[key]
+            elif key in self.tmat['solver_param']:
+                dat = self.tmat['solver_param'][key]
+            elif hasattr(self, 'acc_field'):
+                dat = self.acc_field.get(key)
+            else:
+                dat = None
+
+            out.append(dat)
+
+        if len(out) == 1:
+            return out[0]
+        # implicit else:
+        return tuple(out)
+
     def init_solvers(self):
         """Initialize how transfer matrices will be calculated."""
         l_method = METHOD.split('_')

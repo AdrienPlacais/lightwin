@@ -57,6 +57,27 @@ class RfField():
         # Initialized later as it depends on the Section the cavity is in
         self.omega0_rf, self.n_cell, self.n_z = None, None, None
 
+    def get(self, *keys):
+        """Shorthand to get attributes."""
+        out = []
+
+        for key in keys:
+            if hasattr(self, key):
+                dat = getattr(self, key)
+            elif key in self.phi_0:
+                dat = self.phi_0[key]
+            elif key in self.cav_params:
+                dat = self.cav_params[key]
+            else:
+                dat = None
+
+            out.append(dat)
+
+        if len(out) == 1:
+            return out[0]
+        # implicit else:
+        return tuple(out)
+
     def init_freq_ncell(self, f_mhz, n_cell):
         """Initialize the frequency and the number of cells."""
         self.omega0_rf = 2e6 * np.pi * f_mhz
