@@ -9,11 +9,11 @@ Created on Tue Apr 26 16:44:53 2022.
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from palettable.colorbrewer.sequential import OrRd_5 as prog_c
 
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.algorithms.moo.nsga3 import NSGA3
+from pymoo.algorithms.moo.ctaea import CTAEA
 
 from pymoo.factory import get_termination, get_reference_directions
 from pymoo.optimize import minimize
@@ -31,7 +31,7 @@ from pymoo.core.callback import Callback
 from helper import printc, create_fig_if_not_exist
 import anim
 
-STR_ALGORITHM = "NSGA-II"
+STR_ALGORITHM = "NSGA-III"
 # Messages from algorithm
 FLAG_VERBOSE = False
 # Needed by most debug tools
@@ -76,7 +76,9 @@ class MyProblem(ElementwiseProblem):
         _xl = info['X_lim'][:, 0]
         _xu = info['X_lim'][:, 1]
         n_obj = len(self.fault.wtf['objective'])
-        n_constr = 2 * info['G'].shape[0]
+        # n_constr = 2 * info['G'].shape[0]
+        printc("Warning! k_e constraint manually added.")
+        n_constr = 2 * info['G'].shape[0] + 1
         self.phi_s_limits = info['G']
 
         print(f"Number of objectives: {n_obj}")
@@ -103,6 +105,15 @@ class MyProblem(ElementwiseProblem):
         for i in range(len(results['phi_s_rad'])):
             out_g.append(self.phi_s_limits[i][0] - results['phi_s_rad'][i])
             out_g.append(results['phi_s_rad'][i] - self.phi_s_limits[i][1])
+
+        # Add a constraint on the k_e.
+        # We want the norms to globally increase
+        n_cav = int(x.shape[0] / 2)
+        n_faults = 1
+        sum_of_nominal_k_e = (n_cav + n_faults) * 0.775356  # FIXME
+        sum_of_this_iteration_k_e = np.sum(x[n_cav:])
+        out_g.append(sum_of_nominal_k_e - sum_of_this_iteration_k_e)
+
         out["G"] = np.array(out_g)
 
 
@@ -116,7 +127,15 @@ def perform_pso(problem):
         # ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
         #                                     n_partitions=6)
         ref_dirs = get_reference_directions("energy", problem.n_obj, 90)
-        algorithm = NSGA3(pop_size=75,  # 500
+        algorithm = NSGA3(pop_size=200,  # 500
+                          ref_dirs=ref_dirs,
+                          )
+
+    elif STR_ALGORITHM == 'try':
+        # ref_dirs = get_reference_directions("energy", problem.n_obj, 12)
+        ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
+                                            n_partitions=12)
+        algorithm = CTAEA(
                           ref_dirs=ref_dirs,
                           )
 
@@ -137,6 +156,7 @@ def _set_termination():
     d_termination = {
         'NSGA-II': get_termination("n_gen", 100),
         'NSGA-III': get_termination("n_gen", 200),  # 200
+        'try': get_termination("n_gen", 200),
     }
     termination = d_termination[STR_ALGORITHM]
 
@@ -162,6 +182,7 @@ def mcdm(res, weights, fault_info, compare=None):
     """Perform Multi-Criteria Decision Making."""
     d_approx = {'ideal': res.F.min(axis=0),
                 'nadir': res.F.max(axis=0)}
+    print(f"Nadir and ideal: {d_approx}")
 
     n_f = (res.F - d_approx['ideal']) / (d_approx['nadir'] - d_approx['ideal'])
     pd_best_sol, d_asf, d_pw = _best_solutions(res, n_f, weights, fault_info,
@@ -365,7 +386,7 @@ def _plot_solutions(res_f, d_opti, labels, compare=None):
 
         # Sometimes it is easier to take the log of the obj functions to
         # compare different solutions
-        flag_log = True
+        flag_log = False
         tmp = res_f
         if flag_log:
             tmp = np.log(tmp)
@@ -432,7 +453,7 @@ def _plot_variables_final_sol(fig, d_opti, n_cav, lsq_x=None):
 
 def set_weights(l_obj_str):
     """Set array of weights for the different objectives."""
-    d_weights = {'energy': 2.,
+    d_weights = {'energy': 1.,
                  'phase': 1.,
                  'eps': 1.,
                  'twiss_alpha': 1.,

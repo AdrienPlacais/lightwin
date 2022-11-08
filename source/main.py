@@ -148,7 +148,6 @@ if abs(I_MILLI_A) > 1e-10:
 # =============================================================================
 # Start
 # =============================================================================
-start_time = time.monotonic()
 FILEPATH = os.path.abspath(FILEPATH)
 
 # Reference linac
@@ -158,7 +157,9 @@ linacs = [ref_linac]
 
 # Broken linac
 lsq_info = None
-for wtf in [wtf_pso]:#[wtf_lsq, wtf_pso]:
+# for wtf in [wtf_pso]:
+for wtf in [wtf_lsq, wtf_pso]:
+    start_time = time.monotonic()
     lin = acc.Accelerator(FILEPATH, "Broken")
 
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
@@ -174,7 +175,15 @@ for wtf in [wtf_pso]:#[wtf_lsq, wtf_pso]:
 
         if wtf == wtf_lsq:
             lsq_info = [f.info for f in fail.faults['l_obj']]
+
     linacs.append(lin)
+
+    # Output some info onthe quality of the fit
+    end_time = time.monotonic()
+    print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
+    delta_t = timedelta(seconds=end_time - start_time)
+    ranking = fail.evaluate_fit_quality(delta_t)
+    helper.printd(ranking, header='Fit evaluation')
 
     if SAVE_FIX:
         helper.printc("main warning: ", opt_message="if studying several "
@@ -189,17 +198,3 @@ for lin in linacs:
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 if PLOT_TM:
     debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])
-
-#     for save in SAVES:
-#         DICT_SAVES[save](lin)
-
-
-# =============================================================================
-# End
-# =============================================================================
-end_time = time.monotonic()
-print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
-
-delta_t = timedelta(seconds=end_time - start_time)
-ranking = fail.evaluate_fit_quality(delta_t)
-helper.printd(ranking, header='Fit evaluation')

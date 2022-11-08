@@ -40,10 +40,10 @@ class AnimatedScatterDesign(object):
         x_ini = next(self.stream)
 
         for j, axx in enumerate(self.axx):
-            x_j = np.column_stack((x_ini[:, j],
+            x_j = np.column_stack((np.mod(x_ini[:, j], 2. * np.pi),
                                    x_ini[:, j + self.n_cav]))
             self.l_scat.append(
-                axx.scatter(x_j[0, :], x_j[1, :], c='r', s=5)
+                axx.scatter(x_j[0, :], x_j[1, :], c='r', s=5, alpha=.5)
             )
         return self.l_scat
 
@@ -53,7 +53,7 @@ class AnimatedScatterDesign(object):
         x_frame = next(self.stream)
 
         for j, scat in enumerate(self.l_scat):
-            x_j = np.column_stack((x_frame[:, j],
+            x_j = np.column_stack((np.mod(x_frame[:, j], 2. * np.pi),
                                    x_frame[:, j + self.n_cav]))
             scat.set_offsets(x_j)
         return self.l_scat

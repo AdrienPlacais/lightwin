@@ -295,9 +295,9 @@ class Fault():
             d_tech_n = {0: np.NaN}
             d_x_lim_rel['k_e'] = [.5, 1.2]
             d_x_lim_rel['phi_s'] = [np.NaN, 1. - .5]
-        if self.wtf['opti method'] == 'PSO':
-            d_x_lim_abs['phi_0_rel'] = [0., 2. * np.pi]
-            d_x_lim_abs['phi_0_abs'] = [0., 2. * np.pi]
+        # if self.wtf['opti method'] == 'PSO':
+            # d_x_lim_abs['phi_0_rel'] = [0., 2. * np.pi]
+            # d_x_lim_abs['phi_0_abs'] = [0., 2. * np.pi]
 
         # Set a list of properties that will be fitted
         if self.wtf['phi_s fit']:
