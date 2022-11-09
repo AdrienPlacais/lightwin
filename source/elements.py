@@ -14,6 +14,7 @@ from scipy.optimize import minimize_scalar
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import OMEGA_0_BUNCH, E_REST_MEV, INV_E_REST_MEV,\
     N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
+from helper import recursive_items
 
 try:
     import transfer_matrices_c as tm_c
@@ -104,6 +105,10 @@ class _Element():
                              'd_z': None},
         }
 
+    def has(self, key):
+        """Tell if the required attribute is in this class."""
+        return key in recursive_items(vars(self))
+
     def get(self, *keys, to_numpy=True):
         """Shorthand to get attributes."""
         out = []
@@ -123,7 +128,7 @@ class _Element():
                 dat = self.tmat[key]
             elif key in self.tmat['solver_param']:
                 dat = self.tmat['solver_param'][key]
-            elif hasattr(self, 'acc_field'):
+            elif hasattr(self, 'acc_field') and self.acc_field.has(key):
                 dat = self.acc_field.get(key)
             else:
                 dat = None

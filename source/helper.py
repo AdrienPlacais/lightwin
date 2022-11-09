@@ -14,7 +14,19 @@ from constants import c, E_REST_MEV
 
 
 # =============================================================================
-# Plot and messages functions
+# Misc
+# =============================================================================
+def recursive_items(dictionary):
+    """Recursively list all keys of a possibly nested dictionary."""
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            yield key
+            yield from recursive_items(value)
+        else:
+            yield key
+
+# =============================================================================
+# Messages functions
 # =============================================================================
 # TODO: transform inputs into strings if they are not already strings
 # TODO: use args to avoid lenghty 'opt_message=' each time
@@ -45,6 +57,9 @@ def printd(message, color_header='cyan', header=''):
     print(message, '\n\n' + line, '\n')
 
 
+# =============================================================================
+# Plot functions
+# =============================================================================
 def simple_plot(dat_x, dat_y, label_x, label_y, fignum=33):
     """Simplest plot."""
     axnumlist = [111]
@@ -262,8 +277,6 @@ def plot_ellipse(axx, d_eq, **plot_kwargs):
     axx.plot(d_plot["x0"] + ellipse_rot[0, :],
              d_plot["y0"] + ellipse_rot[1, :],
              lw=0., marker='o', ms=.5, **plot_kwargs)
-
-
 
 
 # =============================================================================

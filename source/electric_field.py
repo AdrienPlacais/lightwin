@@ -9,6 +9,7 @@ TODO : phi_s_rad_objective should not be used too
 """
 import cmath
 import numpy as np
+from helper import recursive_items
 
 
 def compute_param_cav(integrated_field, status):
@@ -56,6 +57,10 @@ class RfField():
 
         # Initialized later as it depends on the Section the cavity is in
         self.omega0_rf, self.n_cell, self.n_z = None, None, None
+
+    def has(self, key):
+        """Tell if the required attribute is in this class."""
+        return key in recursive_items(vars(self))
 
     def get(self, *keys):
         """Shorthand to get attributes."""

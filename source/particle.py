@@ -7,7 +7,8 @@ Created on Thu Dec  2 13:44:00 2021.
 """
 import numpy as np
 import pandas as pd
-import helper
+from helper import recursive_items, printc, kin_to_gamma, kin_to_beta, \
+        gamma_to_beta, gamma_and_beta_to_p, z_to_phi
 from constants import E_REST_MEV, OMEGA_0_BUNCH
 
 
@@ -56,9 +57,13 @@ class Particle():
         self._init_phi(idx=0)
 
         if not self.info["synchronous"]:
-            helper.printc("Particle.__init__ warning: ", opt_message="the "
-                          + "absolute position of a non synchrous particle "
-                          + "is not initialized.")
+            printc("Particle.__init__ warning: ", opt_message="the "
+                   + "absolute position of a non synchrous particle "
+                   + "is not initialized.")
+
+    def has(self, key):
+        """Tell if the required attribute is in this class."""
+        return key in recursive_items(vars(self))
 
     def get(self, *keys):
         """Shorthand to get attributes."""
@@ -123,10 +128,9 @@ class Particle():
         else:
             self.energy['kin_array_mev'][idx] = e_mev
 
-        gamma = helper.kin_to_gamma(self.energy['kin_array_mev'][idx],
-                                    E_REST_MEV)
-        beta = helper.gamma_to_beta(gamma)
-        p_mev = helper.gamma_and_beta_to_p(gamma, beta, E_REST_MEV)
+        gamma = kin_to_gamma(self.energy['kin_array_mev'][idx], E_REST_MEV)
+        beta = gamma_to_beta(gamma)
+        p_mev = gamma_and_beta_to_p(gamma, beta, E_REST_MEV)
 
         self.energy['gamma_array'][idx] = gamma
         self.energy['beta_array'][idx] = beta
@@ -134,9 +138,8 @@ class Particle():
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
-        phi_abs = helper.z_to_phi(self.z['abs_array'][idx],
-                                  self.energy['beta_array'][idx],
-                                  OMEGA_0_BUNCH)
+        phi_abs = z_to_phi(self.z['abs_array'][idx],
+                           self.energy['beta_array'][idx], OMEGA_0_BUNCH)
         self.phi['abs'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs
         self.phi['rel'] = phi_abs
@@ -178,8 +181,8 @@ class Particle():
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
         self.energy['kin_array_mev'][idx_range] = w_kin
-        self.energy['gamma_array'][idx_range] = helper.kin_to_gamma(w_kin)
-        self.energy['beta_array'][idx_range] = helper.kin_to_beta(w_kin)
+        self.energy['gamma_array'][idx_range] = kin_to_gamma(w_kin)
+        self.energy['beta_array'][idx_range] = kin_to_beta(w_kin)
         self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])
 
 

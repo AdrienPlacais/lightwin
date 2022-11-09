@@ -87,20 +87,39 @@ class Accelerator():
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
-    def get(self, *keys, to_numpy=True, **kwargs):
+    def get(self, *keys, to_numpy=True, remove_first=False, **kwargs):
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
             val[key] = []
 
         # Get for each Element and for each argument
-        for elt in self.elements['list']:
-            for key in keys:
-                data = elt.get(key, to_numpy = False)
-                if isinstance(data, list):\
-                   val[key] += data
-                else:
-                    val[key].append(data)
+        for key in keys:
+            if hasattr(self, key):
+                val[key] = getattr(self, key)
+            elif key in self.elements:
+                val[key] = self.elements[key]
+            elif key in self.files:
+                val[key] = self.files[key]
+            elif key in self.transf_mat:
+                val[key] = self.transf_mat[key]
+            elif key in self.beam_param:
+                val[key] = self.beam_param[key]
+            elif self.synch.has(key):
+                val[key] = self.synch.get(key)
+            elif self.elements['list'][0].has(key):
+                for elt in self.elements['list']:
+                    data = elt.get(key, to_numpy=False)
+                    # In some arrays such as z position arrays, the last pos of
+                    # an element is the first of the next
+                    if remove_first and elt is not self.elements['list'][0]:
+                        data = data[1:]
+                    if isinstance(data, list):
+                        val[key] += data
+                    else:
+                        val[key].append(data)
+            else:
+                data = None
 
         # Convert to list, and to numpy array if necessary
         out = [val[key] for key in keys]
