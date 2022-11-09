@@ -79,7 +79,7 @@ class _Element():
         elem: list of string
             A valid line of the .dat file.
         """
-        self.info = {
+        self.elt_info = {
             'name': None,
             'nature': elem[0],
             'status': None,    # Only make sense for cavities
@@ -115,7 +115,7 @@ class _Element():
     def get(self, *keys, to_numpy=True, **kwargs):
         """Shorthand to get attributes."""
         out = []
-        l_dicts = [self.info, self.pos_m, self.idx, self.tmat,
+        l_dicts = [self.elt_info, self.pos_m, self.idx, self.tmat,
                    self.tmat['solver_param']]
 
         for key in keys:
@@ -156,7 +156,7 @@ class _Element():
 
         # Select proper number of steps
         key_n_steps = l_method[0]
-        if self.info['nature'] != 'FIELD_MAP':
+        if self.elt_info['nature'] != 'FIELD_MAP':
             key_n_steps = 'drift'
         n_steps = d_n_steps[key_n_steps](self)
 
@@ -167,8 +167,8 @@ class _Element():
 
         # Select proper function to compute transfer matrix
         key_fun = l_method[0]
-        if (self.info['nature'] != 'FIELD_MAP'
-                or self.info['status'] == 'failed'):
+        if (self.elt_info['nature'] != 'FIELD_MAP'
+                or self.elt_info['status'] == 'failed'):
             key_fun = 'non_acc'
 
         self.tmat['func'] = d_func_tm[key_fun](mod)
@@ -190,14 +190,14 @@ class _Element():
         n_steps, d_z = self.tmat['solver_param'].values()
         gamma = 1. + w_kin_in * INV_E_REST_MEV
 
-        if self.info['nature'] == 'FIELD_MAP' and \
-                self.info['status'] != 'failed':
+        if self.elt_info['nature'] == 'FIELD_MAP' and \
+                self.elt_info['status'] != 'failed':
 
             r_zz, gamma_phi, itg_field = \
                 self.tmat['func'](d_z, gamma, n_steps, rf_field_kwargs)
 
             gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
-            cav_params = compute_param_cav(itg_field, self.info['status'])
+            cav_params = compute_param_cav(itg_field, self.elt_info['status'])
 
         else:
             r_zz, gamma_phi, _ = self.tmat['func'](d_z, gamma, n_steps)
@@ -217,7 +217,7 @@ class _Element():
         We also ensure that the value new_status is correct. If the new value
         is 'failed', we also set the norm of the electric field to 0.
         """
-        assert self.info['nature'] == 'FIELD_MAP', 'The status of an ' + \
+        assert self.elt_info['nature'] == 'FIELD_MAP', 'The status of an ' + \
             'element only makes sense for cavities.'
 
         authorized_values = [
@@ -237,7 +237,7 @@ class _Element():
         ]
         assert new_status in authorized_values
 
-        self.info['status'] = new_status
+        self.elt_info['status'] = new_status
         if new_status == 'failed':
             self.acc_field.k_e = 0.
             self.init_solvers()
@@ -312,9 +312,9 @@ class FieldMap(_Element):
 
     def rf_param(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
         """Set the properties of the electric field."""
-        assert self.info['status'] != 'failed', "Should not look for cavity" \
-            + "parameters of a broken cavity."
-        assert synch.info['synchronous'], "Out of synch particle to be" \
+        assert self.elt_info['status'] != 'failed', "Should not look for " \
+            + "cavity parameters of a broken cavity."
+        assert synch.get('synchronous'), "Out of synch particle to be " \
             + "implemented."
 
         # Add the parameters that are independent from the cavity status
@@ -323,7 +323,6 @@ class FieldMap(_Element):
                            'e_spat': a_f.e_spat,
                            'section_idx': self.idx['section'][0],
                            'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
-
         # FIXME By definition, the synchronous particle has a relative input
         # phase of 0. phi_rf_rel = 0.
 
@@ -338,12 +337,13 @@ class FieldMap(_Element):
         }
         # Argument for the functions in d_cav_param_setter
         arg = (a_f,)
-        if self.info['status'] == "compensate (in progress)":
+        if self.elt_info['status'] == "compensate (in progress)":
             arg = (d_fit, w_kin_in, self)
 
         # Apply
         rf_field_kwargs, flag_abs_to_rel = \
-            d_cav_param_setter[self.info['status']](*arg, **rf_field_kwargs)
+            d_cav_param_setter[self.elt_info['status']](*arg,
+                                                        **rf_field_kwargs)
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased

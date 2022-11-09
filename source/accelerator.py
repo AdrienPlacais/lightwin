@@ -217,8 +217,7 @@ class Accelerator():
             # If there is nominal cavities in the recalculated zone during a
             # fit, we remove the associated rf fields and phi_s
             if (not flag_transfer_data) \
-                and (d_fits is not None) \
-                    and (elt.info['status'] == 'nominal'):
+                and (d_fits is not None) and (elt.get('status') == 'nominal'):
                 l_rf_fields[-1] = None
                 l_elt_results[-1]['phi_s'] = None
 
@@ -239,7 +238,7 @@ class Accelerator():
 
     def _proper_transf_mat(self, elt, phi_abs, w_kin, d_fits):
         """Get the proper arguments and call the elt.calc_transf_mat."""
-        if elt.info['nature'] != 'FIELD_MAP' or elt.info['status'] == 'failed':
+        if elt.get('nature') != 'FIELD_MAP' or elt.get('status') == 'failed':
             rf_field = None
             elt_results = elt.calc_transf_mat(w_kin)
 
@@ -247,7 +246,7 @@ class Accelerator():
             # Here we determine if we take the rf field parameters from an
             # optimisation algorithm or from the Element.Rf_Field object
             if d_fits is not None \
-               and elt.info['status'] == 'compensate (in progress)':
+               and elt.get('status') == 'compensate (in progress)':
                 d_fit_elt = {'flag': True,
                              'phi': d_fits['l_phi'].pop(0),
                              'k_e': d_fits['l_k_e'].pop(0),
@@ -432,7 +431,7 @@ class Accelerator():
         """
         if sub_list is None:
             sub_list = self.elements['list']
-        list_of = list(filter(lambda elt: elt.info['nature'] == nature,
+        list_of = list(filter(lambda elt: elt.get('nature') == nature,
                               sub_list))
         return list_of
 
@@ -460,7 +459,7 @@ class Accelerator():
         if nature:
             printc("Accelerator.where_is warning: ", opt_message="calling"
                    + " where_is with argument nature.")
-            idx = self.elements_of(nature=elt.info['nature']).index(elt)
+            idx = self.elements_of(nature=elt.get('nature')).index(elt)
         else:
             printc("Accelerator.where_is warning: ", opt_message="where_is"
                    + " shoul be useless now.")
@@ -474,7 +473,7 @@ class Accelerator():
             if idx in range(elt.idx['s_in'], elt.idx['s_out']):
                 break
         if showinfo:
-            print('Synch index', idx, 'is in:', elt.info)
+            print('Synch index', idx, 'is in:', elt.elt_info)
             print('Indexes of this elt:', elt.idx, '\n\n')
         return elt
 

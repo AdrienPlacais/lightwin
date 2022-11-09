@@ -138,10 +138,10 @@ def give_name(l_elts):
     for key, value in civil_register.items():
         sub_list = [elt
                     for elt in l_elts
-                    if elt.info['nature'] == key
+                    if elt.get('nature') == key
                     ]
         for i, elt in enumerate(sub_list, start=1):
-            elt.info['name'] = value + str(i)
+            elt.elt_info['name'] = value + str(i)
 
 
 # TODO is it necessary to load all the electric fields when _p?
@@ -186,7 +186,7 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
         n_cell = int(f_mhz / F_BUNCH_MHZ)   # FIXME
         for lattice in section:
             for elt in lattice:
-                if elt.info['nature'] == 'FIELD_MAP':
+                if elt.get('nature') == 'FIELD_MAP':
                     elt.field_map_file_name = field_map_folder + '/' \
                         + elt.field_map_file_name  # TODO with join
                     a_f = elt.acc_field
@@ -301,25 +301,25 @@ def output_data_in_tw_fashion(linac):
     """Mimick TW's Data tab."""
     larousse = {
         '#': lambda i, elt, synch: i,
-        'Name': lambda i, elt, synch: elt.info['name'],
-        'Type': lambda i, elt, synch: elt.info['nature'],
+        'Name': lambda i, elt, synch: elt.get('name'),
+        'Type': lambda i, elt, synch: elt.get('nature'),
         'Length (mm)': lambda i, elt, synch: elt.length_m * 1e3,
         'Grad/Field/Amp': lambda i, elt, synch:
         elt.grad
-        if(elt.info['nature'] == 'QUAD')
+        if(elt.get('nature') == 'QUAD')
         else np.NaN,
         'EoT (MV/m)': lambda i, elt, synch: None,
         'EoTLc (MV)': lambda i, elt, synch:
         elt.acc_field.cav_params['v_cav_mv']
-        if(elt.info['nature'] == 'FIELD_MAP')
+        if(elt.get('nature') == 'FIELD_MAP')
         else np.NaN,
         'Input_Phase (deg)': lambda i, elt, synch:
         np.rad2deg(elt.acc_field.phi_0['phi_0_rel'])
-        if(elt.info['nature'] == 'FIELD_MAP')
+        if(elt.get('nature') == 'FIELD_MAP')
         else np.NaN,
         'Sync_Phase (deg)': lambda i, elt, synch:
         elt.acc_field.cav_params['phi_s_deg']
-        if(elt.info['nature'] == 'FIELD_MAP')
+        if(elt.get('nature') == 'FIELD_MAP')
         else np.NaN,
         'Energy (MeV)': lambda i, elt, synch:
         synch.energy['kin_array_mev'][elt.idx['s_out']],

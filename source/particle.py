@@ -24,7 +24,7 @@ class Particle():
 
     def __init__(self, z, e_mev, n_steps=1, synchronous=False,
                  reference=True):
-        self.info = {
+        self.part_info = {
             # Is this particle the generator?
             'synchronous': synchronous,
             # Is it in a reference (non-faulty) linac?
@@ -56,7 +56,7 @@ class Particle():
         }
         self._init_phi(idx=0)
 
-        if not self.info["synchronous"]:
+        if not self.part_info["synchronous"]:
             printc("Particle.__init__ warning: ", opt_message="the "
                    + "absolute position of a non synchrous particle "
                    + "is not initialized.")
@@ -68,7 +68,7 @@ class Particle():
     def get(self, *keys, to_deg=False):
         """Shorthand to get attributes."""
         out = []
-        l_dicts = [self.info, self.z, self.energy, self.phi]
+        l_dicts = [self.part_info, self.z, self.energy, self.phi]
 
         for key in keys:
             if hasattr(self, key):
@@ -93,7 +93,7 @@ class Particle():
 
     def init_abs_z(self, list_of_elements):
         """Create the array of absolute positions."""
-        assert self.info["synchronous"], """This routine only works for the
+        assert self.part_info["synchronous"], """This routine only works for the
         synch particle I think."""
         # Get all positions
         z_abs = [elt.pos_m["abs"]

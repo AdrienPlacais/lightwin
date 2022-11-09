@@ -159,7 +159,7 @@ def plot_structure(linac, ax, x_axis='s'):
 
     for i, elt in enumerate(linac.elements['list']):
         kwargs = dict_x_axis[x_axis](elt, i)[0]
-        ax.add_patch(dict_elem_plot[elt.info['nature']](elt, **kwargs))
+        ax.add_patch(dict_elem_plot[elt.get('nature')](elt, **kwargs))
 
     ax.set_xlim(dict_x_axis[x_axis](elt, i)[1])
     ax.set_yticklabels([])
@@ -200,7 +200,7 @@ def _plot_field_map(field_map, x0, width):
         'compensate (not ok)': 'orange',
     }
     patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
-                        lw=0.5, fc=dict_colors[field_map.info['status']],
+                        lw=0.5, fc=dict_colors[field_map.get('status')],
                         ec='k')
     return patch
 

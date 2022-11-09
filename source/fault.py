@@ -195,7 +195,7 @@ class Fault():
         # Remove broke cavities, check if some compensating cavities already
         # compensate another fault, update status of comp cav
         for cav in l_comp_cav:
-            current_status = cav.info['status']
+            current_status = cav.get('status')
             assert current_status != new_status, "Current cavity already has" \
                 + " the status that you asked for. Maybe two faults want the" \
                 + " same cavity for their compensation?"
@@ -327,7 +327,7 @@ class Fault():
                                       d_x_lim_rel[__x][1] * ref_value))
                 x_lim.append((b_down, b_up))
                 x_0.append(d_init_g[__x](ref_value))
-                l_x_str.append(' '.join((cav.info['name'], d_x_label[__x])))
+                l_x_str.append(' '.join((cav.get('name'), d_x_label[__x])))
         n_cav = len(self.comp['l_cav'])
         x_0 = np.array(x_0[:2 * n_cav])
         phi_s_limits = np.array(x_lim[2 * n_cav:])
@@ -384,7 +384,7 @@ class Fault():
         for idx in d_idx['l_ref']:
             elt = self.brok_lin.where_is_this_index(idx)
             print('\nWe try to match at synch index:', idx, 'which is',
-                  elt.info, elt.idx, ".")
+                  elt.elt_info, elt.idx, ".")
 
         return l_elts, d_idx
 

@@ -46,8 +46,7 @@ class FaultScenario():
         self.wtf = wtf
         self.l_info_other_sol = l_info_other_sol
 
-        assert ref_linac.synch.info['reference'] is True
-        assert broken_linac.synch.info['reference'] is False
+        assert ref_linac.get('reference') and not broken_linac.get('reference')
 
         ll_comp_cav, ll_fault_idx = self._sort_faults(l_fault_idx)
         l_obj = self._create_fault_objects(ll_fault_idx)
@@ -184,7 +183,7 @@ class FaultScenario():
         else:
             l_faulty_cav = [lin.elements['list'][idx]
                             for idx in sorted(l_fault_idx)]
-            natures = {elem.info['nature'] for elem in l_faulty_cav}
+            natures = {elem.get('nature') for elem in l_faulty_cav}
             assert natures == {'FIELD_MAP'}, "Not all failed cavities that" \
                 + " you asked are cavities."
 
@@ -255,7 +254,7 @@ class FaultScenario():
         for l_idx in l_l_idx_faults:
             l_faulty_cav = [self.brok_lin.elements['list'][idx]
                             for idx in l_idx]
-            nature = {cav.info['nature'] for cav in l_faulty_cav}
+            nature = {cav.get('nature') for cav in l_faulty_cav}
             assert nature == {"FIELD_MAP"}
             l_faults_obj.append(
                 mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav,
@@ -277,7 +276,7 @@ class FaultScenario():
         idx_first_failed = self.faults['l_idx'][0][0]
 
         to_rephase_cavities = [cav for cav in all_elements[idx_first_failed:]
-                               if cav.info['status'] == 'nominal']
+                               if cav.get('status') == 'nominal']
         # The status of non-cavities is None, so they are implicitely excluded
         for cav in to_rephase_cavities:
             cav.update_status('rephased (in progress)')
@@ -300,9 +299,9 @@ class FaultScenario():
             idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
 
         l_cav_between_two_faults = [elt for elt in l_elts[idx1:idx2]
-                                    if elt.info['nature'] == 'FIELD_MAP']
+                                    if elt.get('nature') == 'FIELD_MAP']
         for cav in l_cav_between_two_faults:
-            if cav.info['status'] == 'rephased (in progress)':
+            if cav.get('status') == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
 
     # FIXME not Pythonic at all
@@ -419,7 +418,7 @@ def neighboring_lattices(lin, l_faulty_cav, n_lattices_per_fault):
     l_comp_cav = [element
                   for lattice in l_comp_latt
                   for element in lattice
-                  if element.info['nature'] == 'FIELD_MAP']
+                  if element.get('nature') == 'FIELD_MAP']
     return l_comp_cav
 
 
@@ -432,7 +431,7 @@ def manually_set_cavities(lin, l_faulty_idx, l_comp_idx):
         + " cavities index for each list of faults."
 
     all_elements = lin.elements['list']
-    natures = {all_elements[idx].info['nature']
+    natures = {all_elements[idx].get('nature')
                for l_idx in l_faulty_idx + l_comp_idx
                for idx in l_idx}
     assert natures == {'FIELD_MAP'}, "All faulty and compensating elements" \
