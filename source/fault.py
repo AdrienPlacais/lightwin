@@ -264,8 +264,8 @@ class Fault():
         # different linacs.
         # Useful dicts
         d_getter = {'k_e': lambda cav: cav.acc_field.k_e,
-                    'phi_0_rel': lambda cav: cav.acc_field.phi_0['rel'],
-                    'phi_0_abs': lambda cav: cav.acc_field.phi_0['abs'],
+                    'phi_0_rel': lambda cav: cav.acc_field.phi_0['phi_0_rel'],
+                    'phi_0_abs': lambda cav: cav.acc_field.phi_0['phi_0_abs'],
                     'phi_s': lambda cav: cav.acc_field.cav_params['phi_s_rad']}
         d_init_g = {'k_e': lambda ref_value: ref_value,
                     'phi_0_rel': lambda ref_value: 0.,
@@ -401,9 +401,9 @@ class Fault():
         # Second half is the norms of cavities
         x_in_real_phase = self.info["X"].copy()
 
-        key = 'rel'
+        key = 'phi_0_rel'
         if FLAG_PHI_ABS:
-            key = 'abs'
+            key = 'phi_0_abs'
 
         for i, cav in enumerate(self.comp['l_cav']):
             x_in_real_phase[i] = cav.acc_field.phi_0[key]

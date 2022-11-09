@@ -40,14 +40,14 @@ class RfField():
         self.e_spat = lambda x: 0.
         self.k_e = k_e
 
-        self.phi_0 = {'rel': None,
-                      'abs': None,
+        self.phi_0 = {'phi_0_rel': None,
+                      'phi_0_abs': None,
                       'nominal_rel': None,
                       'abs_phase_flag': bool(absolute_phase_flag)}
         if self.phi_0['abs_phase_flag']:
-            self.phi_0['abs'] = phi_0
+            self.phi_0['phi_0_abs'] = phi_0
         else:
-            self.phi_0['rel'] = phi_0
+            self.phi_0['phi_0_rel'] = phi_0
             self.phi_0['nominal_rel'] = phi_0
 
         self.cav_params = {'v_cav_mv': np.NaN,
@@ -98,8 +98,8 @@ class RfField():
         phase as in the nominal linac.
         """
         assert self.phi_0['nominal_rel'] is not None
-        self.phi_0['rel'] = self.phi_0['nominal_rel']
-        self.phi_0['abs'] = np.mod(self.phi_0['nominal_rel'] - phi_rf_abs,
+        self.phi_0['phi_0_rel'] = self.phi_0['nominal_rel']
+        self.phi_0['phi_0_abs'] = np.mod(self.phi_0['nominal_rel'] - phi_rf_abs,
                                    2. * np.pi)
 
 

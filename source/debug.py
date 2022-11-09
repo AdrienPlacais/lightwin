@@ -514,8 +514,8 @@ def output_cavities(linac, out=False):
     for i, cav in enumerate(full_list_of_cav):
         df_cav.loc[i] = [cav.info['name'], cav.info['status'],
                          cav.acc_field.k_e,
-                         np.rad2deg(cav.acc_field.phi_0['abs']),
-                         np.rad2deg(cav.acc_field.phi_0['rel']),
+                         np.rad2deg(cav.acc_field.phi_0['phi_0_abs']),
+                         np.rad2deg(cav.acc_field.phi_0['phi_0_rel']),
                          cav.acc_field.cav_params['v_cav_mv'],
                          cav.acc_field.cav_params['phi_s_deg']]
     df_cav.round(decimals=3)
@@ -546,8 +546,8 @@ def _create_output_fit_dicts():
     }
     # TODO : no entry for phi_s?
     d_x = {
-        'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['rel']),
-        'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['abs']),
+        'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['phi_0_rel']),
+        'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['phi_0_abs']),
         'Norm': lambda cav: cav.acc_field.k_e,
     }
     # Hypothesis: the first guesses for the phases are the phases of the

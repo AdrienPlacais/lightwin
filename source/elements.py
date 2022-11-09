@@ -248,8 +248,8 @@ class _Element():
 
         if rf_field is not None:
             self.acc_field.cav_params = cav_params
-            self.acc_field.phi_0['abs'] = rf_field['phi_0_abs']
-            self.acc_field.phi_0['rel'] = rf_field['phi_0_rel']
+            self.acc_field.phi_0['phi_0_abs'] = rf_field['phi_0_abs']
+            self.acc_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
             self.acc_field.k_e = rf_field['k_e']
 
 
@@ -405,14 +405,14 @@ def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
     """Extract RfField object parameters."""
     rf_field_kwargs['k_e'] = a_f.k_e
     rf_field_kwargs['phi_0_rel'] = None
-    rf_field_kwargs['phi_0_abs'] = a_f.phi_0['abs']
+    rf_field_kwargs['phi_0_abs'] = a_f.phi_0['phi_0_abs']
     flag_abs_to_rel = True
 
     # If we are calculating the transfer matrices of the nominal linac and the
     # initial phases are defined in the .dat as relative phases, phi_0_abs is
     # not defined
-    if a_f.phi_0['abs'] is None:
-        rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
+    if a_f.phi_0['phi_0_abs'] is None:
+        rf_field_kwargs['phi_0_rel'] = a_f.phi_0['phi_0_rel']
         flag_abs_to_rel = False
 
     return rf_field_kwargs, flag_abs_to_rel
@@ -421,7 +421,7 @@ def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
 def _find_new_absolute_entry_phase(a_f, **rf_field_kwargs):
     """Extract RfField parameters, except phi_0_abs that is recalculated."""
     rf_field_kwargs['k_e'] = a_f.k_e
-    rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
+    rf_field_kwargs['phi_0_rel'] = a_f.phi_0['phi_0_rel']
     rf_field_kwargs['phi_0_abs'] = None
     flag_abs_to_rel = False
     return rf_field_kwargs, flag_abs_to_rel

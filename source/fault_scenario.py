@@ -93,9 +93,9 @@ class FaultScenario():
             ref_a_f = ref_c.acc_field
             brok_a_f = brok_c.acc_field
 
-            brok_a_f.phi_0['abs'] = ref_a_f.phi_0['abs']
-            brok_a_f.phi_0['rel'] = ref_a_f.phi_0['rel']
-            brok_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['rel']
+            brok_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
+            brok_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
+            brok_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
     def fix_all(self):
         """

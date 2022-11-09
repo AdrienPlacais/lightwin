@@ -218,8 +218,8 @@ def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
     idx_elt = 0
 
     d_phi = {
-        True: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['abs'])), '1'],
-        False: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['rel'])), '0']
+        True: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['phi_0_abs'])), '1'],
+        False: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['phi_0_rel'])), '0']
     }
 
     for line in dat_filecontent:
@@ -314,7 +314,7 @@ def output_data_in_tw_fashion(linac):
         if(elt.info['nature'] == 'FIELD_MAP')
         else np.NaN,
         'Input_Phase (deg)': lambda i, elt, synch:
-        np.rad2deg(elt.acc_field.phi_0['rel'])
+        np.rad2deg(elt.acc_field.phi_0['phi_0_rel'])
         if(elt.info['nature'] == 'FIELD_MAP')
         else np.NaN,
         'Sync_Phase (deg)': lambda i, elt, synch:
