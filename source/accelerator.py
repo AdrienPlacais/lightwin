@@ -113,10 +113,10 @@ class Accelerator():
                         data = dic[key]
                         break
             elif self.synch.has(key):
-                val[key] = self.synch.get(key)
+                val[key] = self.synch.get(key, **kwargs)
             elif self.elements['list'][0].has(key):
                 for elt in self.elements['list']:
-                    data = elt.get(key, to_numpy=False)
+                    data = elt.get(key, to_numpy=False, **kwargs)
                     # In some arrays such as z position arrays, the last pos of
                     # an element is the first of the next
                     if remove_first and elt is not self.elements['list'][0]:
@@ -215,12 +215,12 @@ class Accelerator():
             l_rf_fields.append(rf_field)
 
             # If there is nominal cavities in the recalculated zone during a
-            # fit, we remove the associated rf fields and phi_s_rad
+            # fit, we remove the associated rf fields and phi_s
             if (not flag_transfer_data) \
                 and (d_fits is not None) \
                     and (elt.info['status'] == 'nominal'):
                 l_rf_fields[-1] = None
-                l_elt_results[-1]['phi_s_rad'] = None
+                l_elt_results[-1]['phi_s'] = None
 
             # Update energy and phase
             phi_abs += elt_results["phi_rel"][-1]
@@ -290,7 +290,7 @@ class Accelerator():
         """
         # To store results
         results = {
-            "phi_s_rad": [],
+            "phi_s": [],
             "cav_params": [],
             "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
             "phi_abs": [self.synch.phi['abs_array'][idx_in]],
@@ -304,8 +304,8 @@ class Accelerator():
             results["rf_fields"].append(rf_field)
             results["cav_params"].append(elt_results["cav_params"])
             if rf_field is not None:
-                results["phi_s_rad"].append(
-                    elt_results['cav_params']['phi_s_rad'])
+                results["phi_s"].append(
+                    elt_results['cav_params']['phi_s'])
 
             r_zz_elt = [elt_results['r_zz'][i, :, :]
                         for i in range(elt_results['r_zz'].shape[0])]

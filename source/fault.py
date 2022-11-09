@@ -266,7 +266,7 @@ class Fault():
         d_getter = {'k_e': lambda cav: cav.acc_field.k_e,
                     'phi_0_rel': lambda cav: cav.acc_field.phi_0['phi_0_rel'],
                     'phi_0_abs': lambda cav: cav.acc_field.phi_0['phi_0_abs'],
-                    'phi_s': lambda cav: cav.acc_field.cav_params['phi_s_rad']}
+                    'phi_s': lambda cav: cav.acc_field.cav_params['phi_s']}
         d_init_g = {'k_e': lambda ref_value: ref_value,
                     'phi_0_rel': lambda ref_value: 0.,
                     'phi_0_abs': lambda ref_value: 0.,

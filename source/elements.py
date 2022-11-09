@@ -112,7 +112,7 @@ class _Element():
                 or (self.acc_field.has(key) and check_sub_classes)
         return out
 
-    def get(self, *keys, to_numpy=True):
+    def get(self, *keys, to_numpy=True, **kwargs):
         """Shorthand to get attributes."""
         out = []
         l_dicts = [self.info, self.pos_m, self.idx, self.tmat,
@@ -130,7 +130,7 @@ class _Element():
                         break
             # key in acc_field
             elif self.acc_field.has(key):
-                dat = self.acc_field.get(key)
+                dat = self.acc_field.get(key, **kwargs)
             else:
                 dat = None
 
@@ -354,7 +354,7 @@ class FieldMap(_Element):
 
     def match_synch_phase(self, w_kin_in, phi_s_objective, **rf_field_kwargs):
         """
-        Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad.
+        Sweeps phi_0_rel until the cavity synch phase matches phi_s.
 
         Parameters
         ----------
@@ -376,7 +376,7 @@ class FieldMap(_Element):
             rf_field_kwargs['phi_0_abs'] = None
             results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
             diff = helper.diff_angle(phi_s_objective,
-                                     results['cav_params']['phi_s_rad'])
+                                     results['cav_params']['phi_s'])
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)

@@ -37,7 +37,7 @@ if FILEPATH == "":
 # =============================================================================
 # Fault compensation
 # =============================================================================
-FLAG_FIX = True
+FLAG_FIX = False
 FLAG_TRY_OPTI_METHODS = True
 SAVE_FIX = False
 

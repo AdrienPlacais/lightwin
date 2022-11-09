@@ -19,8 +19,7 @@ def compute_param_cav(integrated_field, status):
     else:
         polar_itg = cmath.polar(integrated_field)
     cav_params = {'v_cav_mv': polar_itg[0],
-                  'phi_s_deg': np.rad2deg(polar_itg[1]),
-                  'phi_s_rad': polar_itg[1]}
+                  'phi_s': polar_itg[1]}
     return cav_params
 
 
@@ -51,8 +50,7 @@ class RfField():
             self.phi_0['nominal_rel'] = phi_0
 
         self.cav_params = {'v_cav_mv': np.NaN,
-                           'phi_s_deg': np.NaN,
-                           'phi_s_rad': np.NaN}
+                           'phi_s': np.NaN}
         self.phi_s_rad_objective = None
 
         # Initialized later as it depends on the Section the cavity is in
@@ -62,7 +60,7 @@ class RfField():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys):
+    def get(self, *keys, to_deg=False):
         """Shorthand to get attributes."""
         out = []
         l_dicts = [self.phi_0, self.cav_params]
@@ -77,6 +75,9 @@ class RfField():
                         break
             else:
                 dat = None
+
+            if dat is not None and to_deg and 'phi' in key:
+                dat = np.rad2deg(dat)
 
             out.append(dat)
 

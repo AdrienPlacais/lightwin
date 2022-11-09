@@ -65,7 +65,7 @@ class Particle():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys):
+    def get(self, *keys, to_deg=False):
         """Shorthand to get attributes."""
         out = []
         l_dicts = [self.info, self.z, self.energy, self.phi]
@@ -80,6 +80,9 @@ class Particle():
                         break
             else:
                 dat = None
+
+            if to_deg and 'phi' in key:
+                dat = np.rad2deg(dat)
 
             out.append(dat)
 

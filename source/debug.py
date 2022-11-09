@@ -202,7 +202,7 @@ def _create_plot_dicts():
         'v_cav_mv': ['Acc. field [MV]',
                      {'marker': 'o'}],
         'phi_s_deg': ['Synch. phase [deg]',
-                      {'marker': 'o'}],
+                  {'marker': 'o'}],
         'field_map_factor': [r'$k_e$ [1]',
                              {'marker': 'o'}],
         "eps_zdelta": [r"$\epsilon_{z\delta}$ [$\pi$.m.rad]",
@@ -243,8 +243,7 @@ def _create_plot_dicts():
         'beta_synch': lambda lin: lin.synch.energy['beta_array'],
         'v_cav_mv': lambda lin:
             lin.get_from_elements('acc_field', 'cav_params', 'v_cav_mv'),
-        'phi_s_deg': lambda lin:
-            lin.get_from_elements('acc_field', 'cav_params', 'phi_s_deg'),
+        'phi_s_deg': lambda lin: lin.get('phi_s', to_deg=True),
         'field_map_factor': lambda lin:
             lin.get_from_elements('acc_field', 'k_e'),
         "eps_zdelta": lambda lin: lin.beam_param["eps"]["zdelta"],
@@ -517,7 +516,8 @@ def output_cavities(linac, out=False):
                          np.rad2deg(cav.acc_field.phi_0['phi_0_abs']),
                          np.rad2deg(cav.acc_field.phi_0['phi_0_rel']),
                          cav.acc_field.cav_params['v_cav_mv'],
-                         cav.acc_field.cav_params['phi_s_deg']]
+                         cav.acc_field.cav_params['phi_s']]
+                         # cav.acc_field.cav_params['phi_s_deg']]
     df_cav.round(decimals=3)
 
     # Output only the cavities that have changed
