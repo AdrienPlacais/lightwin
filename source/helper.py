@@ -147,9 +147,9 @@ def plot_structure(linac, ax, x_axis='s'):
     }
     dict_x_axis = {  # first element is patch dimension. second is x limits
         's': lambda elt, i: [
-            {'x0': elt.pos_m['abs'][0], 'width': elt.length_m},
-            [linac.elements['list'][0].pos_m['abs'][0],
-             linac.elements['list'][-1].pos_m['abs'][-1]]
+            {'x0': elt.get('abs_mesh')[0], 'width': elt.length_m},
+            [linac.elements['list'][0].get('abs_mesh')[0],
+             linac.elements['list'][-1].get('abs_mesh')[-1]]
         ],
         'elt': lambda elt, i: [
             {'x0': i, 'width': 1},

@@ -22,7 +22,7 @@ class Particle():
         phi = omega_0_rf * t
     """
 
-    def __init__(self, z, e_mev, n_steps=1, synchronous=False,
+    def __init__(self, z_0, e_mev, n_steps=1, synchronous=False,
                  reference=True):
         self.part_info = {
             # Is this particle the generator?
@@ -37,10 +37,10 @@ class Particle():
         }
 
         self.z = {
-            'rel': z,           # Position from the start of the element
+            'rel': z_0,           # Position from the start of the element
             'abs_array': np.full((n_steps + 1), np.NaN),
         }
-        self.z['abs_array'][0] = z
+        self.z['abs_array'][0] = z_0
         self.energy = {
             'kin_array_mev': np.full((n_steps + 1), np.NaN),
             'gamma_array': np.full((n_steps + 1), np.NaN),
@@ -91,19 +91,11 @@ class Particle():
         # implicit else:
         return tuple(out)
 
-    def init_abs_z(self, list_of_elements):
+    def init_abs_z(self, abs_z_array):
         """Create the array of absolute positions."""
         assert self.part_info["synchronous"], """This routine only works for the
         synch particle I think."""
-        # Get all positions
-        z_abs = [elt.pos_m["abs"]
-                 for elt in list_of_elements]
-        # Concatenate list of arrays into unique array
-        z_abs = np.concatenate(z_abs)
-        # Remove duplicates (last pos_m["abs"] of an element == first of
-        # following element)
-        z_abs = np.unique(z_abs)
-        self.z["abs_array"] = z_abs
+        self.z["abs_array"] = abs_z_array
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
@@ -150,6 +142,8 @@ class Particle():
             'phi_rel': [self.phi['rel']],
         })
 
+
+    # FIXME still used?
     def advance_phi(self, delta_phi, idx=np.NaN, flag_rf=False):
         """
         Increase relative and absolute phase by delta_phi.

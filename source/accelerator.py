@@ -60,7 +60,6 @@ class Accelerator():
         reference = bool(name == 'Working')
         self.synch = particle.Particle(0., E_MEV, n_steps=last_idx,
                                        synchronous=True, reference=reference)
-        self.synch.init_abs_z(self.elements['list'])
 
         # Transfer matrices
         self.transf_mat = {
@@ -84,6 +83,7 @@ class Accelerator():
             "mismatch factor": np.full((last_idx + 1), np.NaN)
         }
 
+        self.synch.init_abs_z(self.get('abs_mesh', remove_first=True))
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
@@ -101,8 +101,7 @@ class Accelerator():
         val = {}
         for key in keys:
             val[key] = []
-        l_dicts = [self.elements, self.files, self.transf_mat,
-                   self.beam_param]
+        l_dicts = [self.elements, self.files, self.transf_mat, self.beam_param]
 
         for key in keys:
             if hasattr(self, key):
@@ -149,10 +148,10 @@ class Accelerator():
 
             pos['in'] = pos['out']
             pos['out'] += elt.length_m
-            elt.pos_m['abs'] = elt.pos_m['rel'] + pos['in']
+            elt.solver_param['abs_mesh'] = elt.get('rel_mesh') + pos['in']
 
             idx['in'] = idx['out']
-            idx['out'] += elt.tmat['solver_param']['n_steps']
+            idx['out'] += elt.get('n_steps')
             elt.idx['s_in'], elt.idx['s_out'] = idx['in'], idx['out']
         return idx['out']
 
@@ -161,7 +160,7 @@ class Accelerator():
         cavities = self.elements_of(nature='FIELD_MAP')
         flags_absolute = []
         for cav in cavities:
-            flags_absolute.append(cav.acc_field.phi_0['abs_phase_flag'])
+            flags_absolute.append(cav.get('abs_phase_flag'))
 
         if FLAG_PHI_ABS and False in flags_absolute:
             printc("Accelerator._check_consistency_phases warning: ",
@@ -202,7 +201,7 @@ class Accelerator():
 
         # Initial phase and energy values:
         idx_in = l_elts[0].idx['s_in']
-        w_kin = self.synch.energy['kin_array_mev'][idx_in]
+        w_kin = self.get('kin_array_mev')[idx_in]
         phi_abs = self.synch.phi['abs_array'][idx_in]
 
         # Compute transfer matrix and acceleration in each element

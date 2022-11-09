@@ -55,9 +55,9 @@ d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
 
 # Dict to select the proper number of steps for the transfer matrix, the
 # energy, the phase, etc
-d_n_steps = {'RK': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
-             'leapfrog': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
-             'jm': lambda elt: elt.acc_field.n_z,
+d_n_steps = {'RK': lambda elt: N_STEPS_PER_CELL * elt.get('n_cell'),
+             'leapfrog': lambda elt: N_STEPS_PER_CELL * elt.get('n_cell'),
+             'jm': lambda elt: elt.get('n_z'),
              'drift': lambda elt: 1}
 
 
@@ -90,7 +90,7 @@ class _Element():
         # accelerating field.
         self.acc_field = RfField()
 
-        self.pos_m = {'abs': None, 'rel': None}
+        # self.pos_m = {'abs': None, 'rel': None}
         self.idx = {'s_in': None, 's_out': None,
                     'element': None,
                     'lattice': [],
@@ -101,9 +101,11 @@ class _Element():
             'func': lambda d_z, gamma, n_steps, rf_field=None:
                 (np.empty([10, 2, 2]), np.empty([10, 2]), None),
             'matrix': np.empty([10, 2, 2]),
-            'solver_param': {'n_steps': None,
-                             'd_z': None},
+            # 'solver_param': {'n_steps': None,
+                             # 'd_z': None},
         }
+        self.solver_param = {'n_steps': None, 'd_z': None,
+                             'abs_mesh': None, 'rel_mesh': None}
 
     def has(self, key, check_sub_classes=True):
         """Tell if the required attribute is in this class."""
@@ -115,8 +117,9 @@ class _Element():
     def get(self, *keys, to_numpy=True, **kwargs):
         """Shorthand to get attributes."""
         out = []
-        l_dicts = [self.elt_info, self.pos_m, self.idx, self.tmat,
-                   self.tmat['solver_param']]
+        l_dicts = [self.elt_info, self.idx, self.tmat, self.solver_param]
+        # l_dicts = [self.elt_info, self.pos_m, self.idx, self.tmat,
+                   # self.tmat['solver_param']]
 
         for key in keys:
             # key is a straightforward attribute
@@ -160,15 +163,17 @@ class _Element():
             key_n_steps = 'drift'
         n_steps = d_n_steps[key_n_steps](self)
 
-        self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
+        # self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
-        self.tmat['solver_param']['n_steps'] = n_steps
-        self.tmat['solver_param']['d_z'] = self.length_m / n_steps
+        self.solver_param['n_steps'] = n_steps
+        self.solver_param['d_z'] = self.length_m / n_steps
+        self.solver_param['rel_mesh'] = np.linspace(0., self.length_m,
+                                                    n_steps + 1)
 
         # Select proper function to compute transfer matrix
         key_fun = l_method[0]
-        if (self.elt_info['nature'] != 'FIELD_MAP'
-                or self.elt_info['status'] == 'failed'):
+        if (self.get('nature') != 'FIELD_MAP'
+                or self.get('status') == 'failed'):
             key_fun = 'non_acc'
 
         self.tmat['func'] = d_func_tm[key_fun](mod)
@@ -187,17 +192,17 @@ class _Element():
             For Python implementation, also need e_spat.
             For Cython implementation, also need section_idx.
         """
-        n_steps, d_z = self.tmat['solver_param'].values()
+        n_steps, d_z = self.get('n_steps', 'd_z')
         gamma = 1. + w_kin_in * INV_E_REST_MEV
 
-        if self.elt_info['nature'] == 'FIELD_MAP' and \
-                self.elt_info['status'] != 'failed':
+        if self.get('nature') == 'FIELD_MAP' and \
+                self.get('status') != 'failed':
 
             r_zz, gamma_phi, itg_field = \
                 self.tmat['func'](d_z, gamma, n_steps, rf_field_kwargs)
 
             gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
-            cav_params = compute_param_cav(itg_field, self.elt_info['status'])
+            cav_params = compute_param_cav(itg_field, self.get('status'))
 
         else:
             r_zz, gamma_phi, _ = self.tmat['func'](d_z, gamma, n_steps)
@@ -342,8 +347,7 @@ class FieldMap(_Element):
 
         # Apply
         rf_field_kwargs, flag_abs_to_rel = \
-            d_cav_param_setter[self.elt_info['status']](*arg,
-                                                        **rf_field_kwargs)
+            d_cav_param_setter[self.get('status')](*arg, **rf_field_kwargs)
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
@@ -403,16 +407,16 @@ class Freq():
 
 def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
     """Extract RfField object parameters."""
-    rf_field_kwargs['k_e'] = a_f.k_e
+    rf_field_kwargs['k_e'] = a_f.get('k_e')
     rf_field_kwargs['phi_0_rel'] = None
-    rf_field_kwargs['phi_0_abs'] = a_f.phi_0['phi_0_abs']
+    rf_field_kwargs['phi_0_abs'] = a_f.get('phi_0_abs')
     flag_abs_to_rel = True
 
     # If we are calculating the transfer matrices of the nominal linac and the
     # initial phases are defined in the .dat as relative phases, phi_0_abs is
     # not defined
-    if a_f.phi_0['phi_0_abs'] is None:
-        rf_field_kwargs['phi_0_rel'] = a_f.phi_0['phi_0_rel']
+    if a_f.get('phi_0_abs') is None:
+        rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
         flag_abs_to_rel = False
 
     return rf_field_kwargs, flag_abs_to_rel
@@ -420,8 +424,8 @@ def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
 
 def _find_new_absolute_entry_phase(a_f, **rf_field_kwargs):
     """Extract RfField parameters, except phi_0_abs that is recalculated."""
-    rf_field_kwargs['k_e'] = a_f.k_e
-    rf_field_kwargs['phi_0_rel'] = a_f.phi_0['phi_0_rel']
+    rf_field_kwargs['k_e'] = a_f.get('k_e')
+    rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
     rf_field_kwargs['phi_0_abs'] = None
     flag_abs_to_rel = False
     return rf_field_kwargs, flag_abs_to_rel
