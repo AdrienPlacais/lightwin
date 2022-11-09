@@ -107,7 +107,7 @@ class _Element():
 
     def has(self, key):
         """Tell if the required attribute is in this class."""
-        return key in recursive_items(vars(self))
+        return key in recursive_items(vars(self)) or self.acc_field.has(key)
 
     def get(self, *keys, to_numpy=True):
         """Shorthand to get attributes."""
