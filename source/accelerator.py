@@ -18,7 +18,7 @@ from constants import E_MEV, FLAG_PHI_ABS
 import elements
 from emittance import beam_parameters_zdelta, beam_parameters_all, \
     mismatch_factor
-from helper import kin_to_gamma, printc
+from helper import kin_to_gamma, printc, recursive_items
 
 
 class Accelerator():
@@ -87,24 +87,31 @@ class Accelerator():
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
+    def has(self, key, check_sub_classes=True):
+        """Tell if the required attribute is in this class."""
+        # check_sub_classes tells if we should also look into elements and
+        # synch
+        out = key in recursive_items(vars(self)) \
+                or ((self.synch.has(key) or self.elements['list'][0].has(key))\
+                and check_sub_classes)
+        return out
+
     def get(self, *keys, to_numpy=True, remove_first=False, **kwargs):
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
             val[key] = []
+        l_dicts = [self.elements, self.files, self.transf_mat,
+                   self.beam_param]
 
-        # Get for each Element and for each argument
         for key in keys:
             if hasattr(self, key):
                 val[key] = getattr(self, key)
-            elif key in self.elements:
-                val[key] = self.elements[key]
-            elif key in self.files:
-                val[key] = self.files[key]
-            elif key in self.transf_mat:
-                val[key] = self.transf_mat[key]
-            elif key in self.beam_param:
-                val[key] = self.beam_param[key]
+            elif self.has(key, check_sub_classes=False):
+                for dic in l_dicts:
+                    if key in dic:
+                        data = dic[key]
+                        break
             elif self.synch.has(key):
                 val[key] = self.synch.get(key)
             elif self.elements['list'][0].has(key):

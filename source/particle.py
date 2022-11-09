@@ -68,18 +68,16 @@ class Particle():
     def get(self, *keys):
         """Shorthand to get attributes."""
         out = []
+        l_dicts = [self.info, self.z, self.energy, self.phi]
 
         for key in keys:
             if hasattr(self, key):
                 dat = getattr(self, key)
-            elif key in self.info:
-                dat = self.info[key]
-            elif key in self.z:
-                dat = self.z[key]
-            elif key in self.energy:
-                dat = self.energy[key]
-            elif key in self.phi:
-                dat = self.phi[key]
+            elif self.has(key):
+                for dic in l_dicts:
+                    if key in dic:
+                        dat = dic[key]
+                        break
             else:
                 dat = None
 

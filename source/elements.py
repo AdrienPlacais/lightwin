@@ -105,30 +105,31 @@ class _Element():
                              'd_z': None},
         }
 
-    def has(self, key):
+    def has(self, key, check_sub_classes=True):
         """Tell if the required attribute is in this class."""
-        return key in recursive_items(vars(self)) or self.acc_field.has(key)
+        # check_sub_classes tells if we should also look into acc_field
+        out = key in recursive_items(vars(self)) \
+                or (self.acc_field.has(key) and check_sub_classes)
+        return out
 
     def get(self, *keys, to_numpy=True):
         """Shorthand to get attributes."""
         out = []
+        l_dicts = [self.info, self.pos_m, self.idx, self.tmat,
+                   self.tmat['solver_param']]
 
-        # FIXME I think this could be more pythonic with a list of dicts, or
-        # even a generator?
         for key in keys:
+            # key is a straightforward attribute
             if hasattr(self, key):
                 dat = getattr(self, key)
-            elif key in self.info:
-                dat = self.info[key]
-            elif key in self.pos_m:
-                dat = self.pos_m[key]
-            elif key in self.idx:
-                dat = self.idx[key]
-            elif key in self.tmat:
-                dat = self.tmat[key]
-            elif key in self.tmat['solver_param']:
-                dat = self.tmat['solver_param'][key]
-            elif hasattr(self, 'acc_field') and self.acc_field.has(key):
+            # key is in one of the possibly nested dicts attributes
+            elif self.has(key, check_sub_classes=False):
+                for dic in l_dicts:
+                    if key in dic:
+                        dat = dic[key]
+                        break
+            # key in acc_field
+            elif self.acc_field.has(key):
                 dat = self.acc_field.get(key)
             else:
                 dat = None

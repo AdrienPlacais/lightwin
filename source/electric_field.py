@@ -65,14 +65,16 @@ class RfField():
     def get(self, *keys):
         """Shorthand to get attributes."""
         out = []
+        l_dicts = [self.phi_0, self.cav_params]
 
         for key in keys:
             if hasattr(self, key):
                 dat = getattr(self, key)
-            elif key in self.phi_0:
-                dat = self.phi_0[key]
-            elif key in self.cav_params:
-                dat = self.cav_params[key]
+            elif self.has(key):
+                for dic in l_dicts:
+                    if key in dic:
+                        dat = dic[key]
+                        break
             else:
                 dat = None
 
