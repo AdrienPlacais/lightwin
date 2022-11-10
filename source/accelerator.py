@@ -16,6 +16,7 @@ import tracewin_interface as tw
 import particle
 from constants import E_MEV, FLAG_PHI_ABS
 import elements
+from list_of_elements import ListOfElements
 from emittance import beam_parameters_zdelta, beam_parameters_all, \
     mismatch_factor
 from helper import kin_to_gamma, printc, recursive_items
@@ -38,14 +39,14 @@ class Accelerator(list):
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, l_elts = tw.load_dat_file(dat_filepath)
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
-        super().__init__()
-        self.extend(l_elts)
+
+        self.elts = ListOfElements(l_elts)
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 
         tw.load_filemaps(dat_filepath, dat_filecontent,
                          self.elements['l_sections'], freqs)
-        tw.give_name(self)
+        tw.give_name(self.elts)
 
         self.files = {'project_folder': os.path.dirname(dat_filepath),
                       'dat_filecontent': dat_filecontent,
@@ -92,11 +93,11 @@ class Accelerator(list):
         # check_sub_classes tells if we should also look into elements and
         # synch
         out = key in recursive_items(vars(self)) \
-            or ((self.synch.has(key) or self[0].has(key))
+            or ((self.synch.has(key) or self.elts[0].has(key))
                 and check_sub_classes)
         return out
 
-    def get(self, *keys, to_numpy=True, remove_first=False, **kwargs):
+    def get(self, *keys, to_numpy=True, **kwargs):
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -113,17 +114,8 @@ class Accelerator(list):
                         break
             elif self.synch.has(key):
                 val[key] = self.synch.get(key, **kwargs)
-            elif self[0].has(key):
-                for elt in self:
-                    data = elt.get(key, to_numpy=False, **kwargs)
-                    # In some arrays such as z position arrays, the last pos of
-                    # an element is the first of the next
-                    if remove_first and elt is not self[0]:
-                        data = data[1:]
-                    if isinstance(data, list):
-                        val[key] += data
-                    else:
-                        val[key].append(data)
+            elif self.elts.has(key, check_sub_classes=True):
+                val[key] = self.elts.get(key, to_numpy=False, **kwargs)
             else:
                 data = None
 
@@ -143,7 +135,7 @@ class Accelerator(list):
         pos = {'in': 0., 'out': 0.}
         idx = {'in': 0, 'out': 0}
 
-        for elt in self:
+        for elt in self.elts:
             elt.init_solvers()
 
             pos['in'] = pos['out']
@@ -193,7 +185,7 @@ class Accelerator(list):
             calculated in the routine.
         """
         if l_elts is None:
-            l_elts = self
+            l_elts = self.elts
 
         # Prepare lists to store each element's results
         l_elt_results = []
@@ -380,7 +372,7 @@ class Accelerator(list):
             If attribute[key] is a dict, a second key must be provided. Default
             is None.
         """
-        list_of_keys = vars(self[0])
+        list_of_keys = vars(self.elts[0])
         data_nature = str(type(list_of_keys[attribute]))
 
         dict_data_getter = {
@@ -394,7 +386,7 @@ class Accelerator(list):
         fun = dict_data_getter[data_nature]
 
         data_out = []
-        for elt in self:
+        for elt in self.elts:
             list_of_keys = vars(elt)
             piece_of_data = fun(list_of_keys[attribute], key)
             if isinstance(piece_of_data, dict):
@@ -429,7 +421,7 @@ class Accelerator(list):
             List of all the Elements which have a nature 'nature'.
         """
         if sub_list is None:
-            sub_list = self
+            sub_list = self.elts
         list_of = list(filter(lambda elt: elt.get('nature') == nature,
                               sub_list))
         return list_of
@@ -438,7 +430,7 @@ class Accelerator(list):
         """Give the element where the given index is."""
         found, elt = False, None
 
-        for elt in self:
+        for elt in self.elts:
             if idx in range(elt.idx['s_in'], elt.idx['s_out']):
                 found = True
                 break

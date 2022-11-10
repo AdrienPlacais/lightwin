@@ -156,7 +156,6 @@ class _Element():
             key_n_steps = 'drift'
         n_steps = d_n_steps[key_n_steps](self)
 
-        # self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
         self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
         self.solver_param['n_steps'] = n_steps
         self.solver_param['d_z'] = self.length_m / n_steps
