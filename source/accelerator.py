@@ -81,6 +81,7 @@ class Accelerator(list):
                            "w": np.full((last_idx + 1, 2), np.NaN)},
             "mismatch factor": np.full((last_idx + 1), np.NaN)
         }
+        printc('Warning! accelerator. keys of beam param not gettable.')
 
         self.synch.init_abs_z(self.get('abs_mesh', remove_first=True))
         # Check that LW and TW computes the phases in the same way (abs or rel)
@@ -91,7 +92,7 @@ class Accelerator(list):
         # check_sub_classes tells if we should also look into elements and
         # synch
         out = key in recursive_items(vars(self)) \
-                or ((self.synch.has(key) or self[0].has(key))\
+            or ((self.synch.has(key) or self[0].has(key))
                 and check_sub_classes)
         return out
 
@@ -433,38 +434,6 @@ class Accelerator(list):
                               sub_list))
         return list_of
 
-    def where_is(self, elt, nature=False):
-        """
-        Determine where is elt in list_of_elements.
-
-        If nature = True, elt is the idx-th element of his nature.
-
-        Parameters
-        ----------
-        elt : Element
-            Element you want the position of.
-        nature : bool, optional
-            Allow to count only the elt's nature (eg QUAD). The default is
-            False.
-
-        Returns
-        -------
-        idx : int
-            Position of elt in list_of_elements, or in the list of elements of
-            it's nature if nature is True.
-
-        """
-        if nature:
-            printc("Accelerator.where_is warning: ", opt_message="calling"
-                   + " where_is with argument nature.")
-            idx = self.elements_of(nature=elt.get('nature')).index(elt)
-        else:
-            printc("Accelerator.where_is warning: ", opt_message="where_is"
-                   + " shoul be useless now.")
-            idx = self.index(elt)
-
-        return idx
-
     def where_is_this_index(self, idx, showinfo=False):
         """Give the element where the given index is."""
         found, elt = False, None
@@ -489,6 +458,35 @@ class Accelerator(list):
         self.beam_param["mismatch factor"] = \
                 mismatch_factor(ref_linac.beam_param["twiss"]["z"],
                                 self.beam_param["twiss"]["z"], transp=True)
+
+
+def _sections_lattices(l_elts):
+    """Gather elements by section and lattice."""
+    l_elts, dict_struct = _prepare_sections_and_lattices(l_elts)
+
+    lattices = []
+    sections = []
+    j = 0
+    for i in range(dict_struct['n_sections']):
+        lattices = []
+        n_lattice = dict_struct['lattices'][i].n_lattice
+        while j < dict_struct['indices'][i]:
+            lattices.append(l_elts[j:j + n_lattice])
+            j += n_lattice
+        sections.append(lattices)
+
+    shift_lattice = 0
+    for i, sec in enumerate(sections):
+        for j, lattice in enumerate(sec):
+            for elt in lattice:
+                elt.idx['section'] = i
+                elt.idx['lattice'] = j
+                elt.idx['element'] = l_elts.index(elt)
+        shift_lattice += j + 1
+    lattices = []
+    for sec in sections:
+        lattices += sec
+    return l_elts, sections, lattices, dict_struct['frequencies']
 
 
 def _prepare_sections_and_lattices(l_elts):
@@ -532,32 +530,3 @@ def _prepare_sections_and_lattices(l_elts):
     return l_elts, {'lattices': lattices, 'frequencies': frequencies,
                     'indices': idx_of_section_changes,
                     'n_sections': n_sections}
-
-
-def _sections_lattices(l_elts):
-    """Gather elements by section and lattice."""
-    l_elts, dict_struct = _prepare_sections_and_lattices(l_elts)
-
-    lattices = []
-    sections = []
-    j = 0
-    for i in range(dict_struct['n_sections']):
-        lattices = []
-        n_lattice = dict_struct['lattices'][i].n_lattice
-        while j < dict_struct['indices'][i]:
-            lattices.append(l_elts[j:j + n_lattice])
-            j += n_lattice
-        sections.append(lattices)
-
-    shift_lattice = 0
-    for i, sec in enumerate(sections):
-        for j, lattice in enumerate(sec):
-            for elt in lattice:
-                elt.idx['section'] = i
-                elt.idx['lattice'] = j
-                elt.idx['element'] = l_elts.index(elt)
-        shift_lattice += j + 1
-    lattices = []
-    for sec in sections:
-        lattices += sec
-    return l_elts, sections, lattices, dict_struct['frequencies']
