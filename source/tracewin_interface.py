@@ -304,31 +304,15 @@ def output_data_in_tw_fashion(linac):
         'Name': lambda i, elt, synch: elt.get('name'),
         'Type': lambda i, elt, synch: elt.get('nature'),
         'Length (mm)': lambda i, elt, synch: elt.length_m * 1e3,
-        'Grad/Field/Amp': lambda i, elt, synch:
-        elt.grad
-        if(elt.get('nature') == 'QUAD')
-        else np.NaN,
+        'Grad/Field/Amp': lambda i, elt, synch: elt.grad if(elt.get('nature') == 'QUAD') else np.NaN,
         'EoT (MV/m)': lambda i, elt, synch: None,
-        'EoTLc (MV)': lambda i, elt, synch:
-        elt.acc_field.cav_params['v_cav_mv']
-        if(elt.get('nature') == 'FIELD_MAP')
-        else np.NaN,
-        'Input_Phase (deg)': lambda i, elt, synch:
-        np.rad2deg(elt.acc_field.phi_0['phi_0_rel'])
-        if(elt.get('nature') == 'FIELD_MAP')
-        else np.NaN,
-        'Sync_Phase (deg)': lambda i, elt, synch:
-        elt.acc_field.cav_params['phi_s_deg']
-        if(elt.get('nature') == 'FIELD_MAP')
-        else np.NaN,
-        'Energy (MeV)': lambda i, elt, synch:
-        synch.energy['kin_array_mev'][elt.idx['s_out']],
-        'Beta Synch.': lambda i, elt, synch:
-        synch.energy['beta_array'][elt.idx['s_out']],
-        'Full length (mm)': lambda i, elt, synch:
-        synch.z['abs_array'][elt.idx['s_out']] * 1e3,
-        'Abs. phase (deg)': lambda i, elt, synch:
-        np.rad2deg(synch.phi['abs_array'][elt.idx['s_out']]),
+        'EoTLc (MV)': lambda i, elt, synch: elt.get('v_cav_mv'),
+        'Input_Phase (deg)': lambda i, elt, synch: elt.get('phi_0_rel', to_deg=True),
+        'Sync_Phase (deg)': lambda i, elt, synch: elt.get('phi_s', to_deg=True),
+        'Energy (MeV)': lambda i, elt, synch: synch.energy['kin_array_mev'][elt.idx['s_out']],
+        'Beta Synch.': lambda i, elt, synch: synch.energy['beta_array'][elt.idx['s_out']],
+        'Full length (mm)': lambda i, elt, synch: synch.z['abs_array'][elt.idx['s_out']] * 1e3,
+        'Abs. phase (deg)': lambda i, elt, synch: np.rad2deg(synch.phi['abs_array'][elt.idx['s_out']]),
     }
 
     data = []

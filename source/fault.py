@@ -380,8 +380,9 @@ class Fault():
 
         for idx in d_idx['l_ref']:
             elt = self.brok_lin.where_is_this_index(idx)
-            print('\nWe try to match at synch index:', idx, 'which is',
-                  elt.elt_info, elt.idx, ".")
+            print(f"\nWe try to match at mesh index {idx}.")
+            print(f"Info: {elt.get('elt_info')}.")
+            print(f"Full indexes: {elt.get('idx')}.")
 
         return l_elts, d_idx
 
