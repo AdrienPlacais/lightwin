@@ -91,7 +91,7 @@ class _Element():
         self.acc_field = RfField()
 
         self.idx = {'s_in': None, 's_out': None,
-                    'element': None, 'lattice': [], 'section': []}
+                    'element': None, 'lattice': None, 'section': None}
 
         # tmat stands for 'transfer matrix'
         self.tmat = {
@@ -319,7 +319,7 @@ class FieldMap(_Element):
         a_f = self.acc_field
         rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
                            'e_spat': a_f.e_spat,
-                           'section_idx': self.idx['section'][0],
+                           'section_idx': self.idx['section'],
                            'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
         # FIXME By definition, the synchronous particle has a relative input
         # phase of 0. phi_rf_rel = 0.

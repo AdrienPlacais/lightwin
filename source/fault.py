@@ -318,7 +318,7 @@ class Fault():
                 b_down = np.nanmax((d_x_lim_abs[__x][0],
                                     d_x_lim_rel[__x][0] * ref_value))
                 if __x == 'k_e':
-                    b_up = np.nanmin((d_tech_n[cav.idx['section'][0]],
+                    b_up = np.nanmin((d_tech_n[cav.idx['section']],
                                       d_x_lim_rel[__x][1] * ref_value))
                 else:
                     b_up = np.nanmin((d_x_lim_abs[__x][1],
@@ -357,11 +357,11 @@ class Fault():
         # Which lattices' data are necessary?
         d_lattices = {
             'end_mod': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 1],
+            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 1],
             '1_mod_after': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
+            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 2],
             'both': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice'][0]:l_cav[-1].idx['lattice'][0] + 2],
+            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 2],
         }
         l_lattices = d_lattices[str_position](self.comp['l_cav'])
         l_elts = [elt

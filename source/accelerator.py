@@ -552,9 +552,9 @@ def _sections_lattices(l_elts):
     shift_lattice = 0
     for i, sec in enumerate(sections):
         for j, lattice in enumerate(sec):
-            for k, elt in enumerate(lattice):
-                elt.idx['section'] = (i, j, k)
-                elt.idx['lattice'] = (j + shift_lattice, k)
+            for elt in lattice:
+                elt.idx['section'] = i
+                elt.idx['lattice'] = j
                 elt.idx['element'] = l_elts.index(elt)
         shift_lattice += j + 1
     lattices = []
