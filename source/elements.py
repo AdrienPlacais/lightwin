@@ -90,19 +90,14 @@ class _Element():
         # accelerating field.
         self.acc_field = RfField()
 
-        # self.pos_m = {'abs': None, 'rel': None}
         self.idx = {'s_in': None, 's_out': None,
-                    'element': None,
-                    'lattice': [],
-                    'section': []}
+                    'element': None, 'lattice': [], 'section': []}
 
         # tmat stands for 'transfer matrix'
         self.tmat = {
             'func': lambda d_z, gamma, n_steps, rf_field=None:
                 (np.empty([10, 2, 2]), np.empty([10, 2]), None),
             'matrix': np.empty([10, 2, 2]),
-            # 'solver_param': {'n_steps': None,
-                             # 'd_z': None},
         }
         self.solver_param = {'n_steps': None, 'd_z': None,
                              'abs_mesh': None, 'rel_mesh': None}

@@ -566,7 +566,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
 
         # Get list of compensating cavities, and their original counterpart in
         # the reference linac
-        idx_equiv = [__f.brok_lin.index(cav) for cav in __f.comp['l_cav']]
+        idx_equiv = [cav.idx['element'] for cav in __f.comp['l_cav']]
         ref_equiv = [__f.ref_lin[idx] for idx in idx_equiv]
 
         for key, val in d_pd.items():
