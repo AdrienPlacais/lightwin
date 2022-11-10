@@ -21,7 +21,7 @@ from emittance import beam_parameters_zdelta, beam_parameters_all, \
 from helper import kin_to_gamma, printc, recursive_items
 
 
-class Accelerator():
+class Accelerator(list):
     """Class holding the list of the accelerator's elements."""
 
     def __init__(self, dat_filepath, name):
@@ -29,7 +29,7 @@ class Accelerator():
         Create Accelerator object.
 
         The different elements constituting the accelerator will be stored
-        in the list self.elements['list'].
+        in the list self.
         The data such as the synch phase or the beam energy will be stored in
         the self.synch Particle object.
         """
@@ -38,15 +38,14 @@ class Accelerator():
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, l_elts = tw.load_dat_file(dat_filepath)
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
+        super().__init__()
+        self.extend(l_elts)
 
-        self.elements = {'n': len(l_elts),
-                         'list': l_elts,
-                         'l_lattices': l_latts,
-                         'l_sections': l_secs}
+        self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 
         tw.load_filemaps(dat_filepath, dat_filecontent,
                          self.elements['l_sections'], freqs)
-        tw.give_name(self.elements['list'])
+        tw.give_name(self)
 
         self.files = {'project_folder': os.path.dirname(dat_filepath),
                       'dat_filecontent': dat_filecontent,
@@ -92,7 +91,7 @@ class Accelerator():
         # check_sub_classes tells if we should also look into elements and
         # synch
         out = key in recursive_items(vars(self)) \
-                or ((self.synch.has(key) or self.elements['list'][0].has(key))\
+                or ((self.synch.has(key) or self[0].has(key))\
                 and check_sub_classes)
         return out
 
@@ -113,12 +112,12 @@ class Accelerator():
                         break
             elif self.synch.has(key):
                 val[key] = self.synch.get(key, **kwargs)
-            elif self.elements['list'][0].has(key):
-                for elt in self.elements['list']:
+            elif self[0].has(key):
+                for elt in self:
                     data = elt.get(key, to_numpy=False, **kwargs)
                     # In some arrays such as z position arrays, the last pos of
                     # an element is the first of the next
-                    if remove_first and elt is not self.elements['list'][0]:
+                    if remove_first and elt is not self[0]:
                         data = data[1:]
                     if isinstance(data, list):
                         val[key] += data
@@ -143,7 +142,7 @@ class Accelerator():
         pos = {'in': 0., 'out': 0.}
         idx = {'in': 0, 'out': 0}
 
-        for elt in self.elements['list']:
+        for elt in self:
             elt.init_solvers()
 
             pos['in'] = pos['out']
@@ -193,7 +192,7 @@ class Accelerator():
             calculated in the routine.
         """
         if l_elts is None:
-            l_elts = self.elements['list']
+            l_elts = self
 
         # Prepare lists to store each element's results
         l_elt_results = []
@@ -380,7 +379,7 @@ class Accelerator():
             If attribute[key] is a dict, a second key must be provided. Default
             is None.
         """
-        list_of_keys = vars(self.elements['list'][0])
+        list_of_keys = vars(self[0])
         data_nature = str(type(list_of_keys[attribute]))
 
         dict_data_getter = {
@@ -394,7 +393,7 @@ class Accelerator():
         fun = dict_data_getter[data_nature]
 
         data_out = []
-        for elt in self.elements['list']:
+        for elt in self:
             list_of_keys = vars(elt)
             piece_of_data = fun(list_of_keys[attribute], key)
             if isinstance(piece_of_data, dict):
@@ -429,7 +428,7 @@ class Accelerator():
             List of all the Elements which have a nature 'nature'.
         """
         if sub_list is None:
-            sub_list = self.elements['list']
+            sub_list = self
         list_of = list(filter(lambda elt: elt.get('nature') == nature,
                               sub_list))
         return list_of
@@ -462,13 +461,13 @@ class Accelerator():
         else:
             printc("Accelerator.where_is warning: ", opt_message="where_is"
                    + " shoul be useless now.")
-            idx = self.elements['list'].index(elt)
+            idx = self.index(elt)
 
         return idx
 
     def where_is_this_index(self, idx, showinfo=False):
         """Give an equivalent index."""
-        for elt in self.elements['list']:
+        for elt in self:
             if idx in range(elt.idx['s_in'], elt.idx['s_out']):
                 break
         if showinfo:

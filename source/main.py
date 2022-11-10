@@ -156,7 +156,8 @@ linacs = [ref_linac]
 
 # Broken linac
 lsq_info = None
-for wtf in [wtf_lsq]:
+for wtf in []:
+# for wtf in [wtf_lsq]:
 # for wtf in [wtf_lsq, wtf_pso]:
     start_time = time.monotonic()
     lin = acc.Accelerator(FILEPATH, "Broken")
