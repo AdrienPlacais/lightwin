@@ -325,7 +325,7 @@ class Fault():
                                       d_x_lim_rel[__x][1] * ref_value))
                 x_lim.append((b_down, b_up))
                 x_0.append(d_init_g[__x](ref_value))
-                l_x_str.append(' '.join((cav.get('name'), d_x_label[__x])))
+                l_x_str.append(' '.join((cav.get('elt_name'), d_x_label[__x])))
         n_cav = len(self.comp['l_cav'])
         x_0 = np.array(x_0[:2 * n_cav])
         phi_s_limits = np.array(x_lim[2 * n_cav:])

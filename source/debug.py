@@ -510,7 +510,7 @@ def output_cavities(linac, out=False):
     full_list_of_cav = linac.elements_of('FIELD_MAP')
 
     for i, cav in enumerate(full_list_of_cav):
-        df_cav.loc[i] = cav.get('name', 'status', 'k_e', 'phi_0_abs',
+        df_cav.loc[i] = cav.get('elt_name', 'status', 'k_e', 'phi_0_abs',
                                 'phi_0_rel', 'v_cav_mv', 'phi_s', to_deg=True)
     df_cav.round(decimals=3)
 
@@ -582,7 +582,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
                     var = 100. * (new - old) / old
 
                 val.loc[i + shift_i + 1] = \
-                    [cav.get('name'), cav.get('status'), x_lim[0], x_lim[1],
+                    [cav.get('elt_name'), cav.get('status'), x_lim[0], x_lim[1],
                      new, old, var]
         shift_i += i + 2
 

@@ -80,7 +80,7 @@ class _Element():
             A valid line of the .dat file.
         """
         self.elt_info = {
-            'name': None,
+            'elt_name': None,
             'nature': elem[0],
             'status': None,    # Only make sense for cavities
         }
