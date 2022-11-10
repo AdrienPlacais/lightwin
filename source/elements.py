@@ -118,8 +118,6 @@ class _Element():
         """Shorthand to get attributes."""
         out = []
         l_dicts = [self.elt_info, self.idx, self.tmat, self.solver_param]
-        # l_dicts = [self.elt_info, self.pos_m, self.idx, self.tmat,
-                   # self.tmat['solver_param']]
 
         for key in keys:
             # key is a straightforward attribute

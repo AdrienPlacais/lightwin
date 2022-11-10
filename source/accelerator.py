@@ -466,14 +466,21 @@ class Accelerator(list):
         return idx
 
     def where_is_this_index(self, idx, showinfo=False):
-        """Give an equivalent index."""
+        """Give the element where the given index is."""
+        found, elt = False, None
+
         for elt in self:
             if idx in range(elt.idx['s_in'], elt.idx['s_out']):
+                found = True
                 break
+
         if showinfo:
-            print('Synch index', idx, 'is in:', elt.elt_info)
-            print('Indexes of this elt:', elt.idx, '\n\n')
-        return elt
+            if found:
+                print(f"Mesh index {idx} is in {elt.get('elt_info')}.")
+                print(f"Indexes of this elt: {elt.get('idx')}.\n")
+            else:
+                print(f"Mesh index {idx} does not belong to any element.")
+        return elt if found else None
 
     def compute_mismatch(self, ref_linac):
         """Compute mismatch factor between this non-nominal linac and a ref."""

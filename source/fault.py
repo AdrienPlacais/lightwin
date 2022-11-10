@@ -263,10 +263,6 @@ class Fault():
         # FIXME find a cleaner way to set these limits, esp. when working with
         # different linacs.
         # Useful dicts
-        d_getter = {'k_e': lambda cav: cav.acc_field.k_e,
-                    'phi_0_rel': lambda cav: cav.acc_field.phi_0['phi_0_rel'],
-                    'phi_0_abs': lambda cav: cav.acc_field.phi_0['phi_0_abs'],
-                    'phi_s': lambda cav: cav.acc_field.cav_params['phi_s']}
         d_init_g = {'k_e': lambda ref_value: ref_value,
                     'phi_0_rel': lambda ref_value: 0.,
                     'phi_0_abs': lambda ref_value: 0.,
@@ -316,7 +312,8 @@ class Fault():
         for __x in l_x:
             for cav in self.comp['l_cav']:
                 equiv_cav = self.ref_lin[cav.idx['element']]
-                ref_value = d_getter[__x](equiv_cav)
+                ref_value = equiv_cav.get(__x)
+
                 b_down = np.nanmax((d_x_lim_abs[__x][0],
                                     d_x_lim_rel[__x][0] * ref_value))
                 if __x == 'k_e':
