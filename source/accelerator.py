@@ -22,7 +22,7 @@ from emittance import beam_parameters_zdelta, beam_parameters_all, \
 from helper import kin_to_gamma, printc, recursive_items
 
 
-class Accelerator(list):
+class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
     def __init__(self, dat_filepath, name):
@@ -39,7 +39,6 @@ class Accelerator(list):
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, l_elts = tw.load_dat_file(dat_filepath)
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
-
         self.elts = ListOfElements(l_elts)
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}

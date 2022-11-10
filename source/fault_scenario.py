@@ -155,7 +155,7 @@ class FaultScenario():
     def _compute_matrix_to_next_fault(self, fault, success):
         """Recompute transfer matrices between this fault and the next."""
         l_faults = self.faults['l_obj']
-        l_elts = self.brok_lin
+        l_elts = self.brok_lin.elts
         idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
 
         if fault is not l_faults[-1] and success:
@@ -173,7 +173,7 @@ class FaultScenario():
 
         # If in manual mode, faults should be already gathered
         if self.wtf['strategy'] == 'manual':
-            l_faulty_cav = [[lin[idx]
+            l_faulty_cav = [[lin.elts[idx]
                              for idx in l_idx]
                             for l_idx in l_fault_idx]
             ll_idx_faults = l_fault_idx
@@ -181,7 +181,7 @@ class FaultScenario():
                                             self.wtf['manual list'])
 
         else:
-            l_faulty_cav = [lin[idx]
+            l_faulty_cav = [lin.elts[idx]
                             for idx in sorted(l_fault_idx)]
             natures = {elem.get('nature') for elem in l_faulty_cav}
             assert natures == {'FIELD_MAP'}, "Not all failed cavities that" \
@@ -190,7 +190,7 @@ class FaultScenario():
             # Initialize list of list of faults indexes
             ll_idx_faults = [[idx] for idx in sorted(l_fault_idx)]
             # Initialize list of list of corresp. faulty cavities
-            ll_faults = [[lin[idx]
+            ll_faults = [[lin.elts[idx]
                           for idx in l_idx]
                          for l_idx in ll_idx_faults]
 
@@ -252,7 +252,7 @@ class FaultScenario():
         """Create the Faults."""
         l_faults_obj = []
         for l_idx in l_l_idx_faults:
-            l_faulty_cav = [self.brok_lin[idx]
+            l_faulty_cav = [self.brok_lin.elts[idx]
                             for idx in l_idx]
             nature = {cav.get('nature') for cav in l_faulty_cav}
             assert nature == {"FIELD_MAP"}
@@ -274,7 +274,7 @@ class FaultScenario():
                + " it would avoid the rephasing of the linac at each cavity.")
         idx_first_failed = self.faults['l_idx'][0][0]
 
-        to_rephase_cavities = [cav for cav in self.brok_lin[idx_first_failed:]
+        to_rephase_cavities = [cav for cav in self.brok_lin.elts[idx_first_failed:]
                                if cav.get('status') == 'nominal']
         # The status of non-cavities is None, so they are implicitely excluded
         for cav in to_rephase_cavities:
@@ -288,7 +288,7 @@ class FaultScenario():
         "rephased (ok)" between this fault and the next one.
         """
         l_faults = self.faults['l_obj']
-        l_elts = self.brok_lin
+        l_elts = self.brok_lin.elts
 
         idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
         if fault is l_faults[-1]:
@@ -429,13 +429,13 @@ def manually_set_cavities(lin, l_faulty_idx, l_comp_idx):
     assert len(l_faulty_idx) == len(l_comp_idx), "Need a list of compensating"\
         + " cavities index for each list of faults."
 
-    natures = {lin[idx].get('nature')
+    natures = {lin.elts[idx].get('nature')
                for l_idx in l_faulty_idx + l_comp_idx
                for idx in l_idx}
     assert natures == {'FIELD_MAP'}, "All faulty and compensating elements" \
         + " must be 'FIELD_MAP's."
 
-    l_comp_cav = [[lin[idx]
+    l_comp_cav = [[lin.elts[idx]
                    for idx in l_idx]
                   for l_idx in l_comp_idx]
     return l_comp_cav

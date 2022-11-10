@@ -37,7 +37,7 @@ if FILEPATH == "":
 # =============================================================================
 # Fault compensation
 # =============================================================================
-FLAG_FIX = False
+FLAG_FIX = True
 FLAG_TRY_OPTI_METHODS = True
 SAVE_FIX = False
 
@@ -156,8 +156,8 @@ linacs = [ref_linac]
 
 # Broken linac
 lsq_info = None
-for wtf in []:
-# for wtf in [wtf_lsq]:
+# for wtf in []:
+for wtf in [wtf_lsq]:
 # for wtf in [wtf_lsq, wtf_pso]:
     start_time = time.monotonic()
     lin = acc.Accelerator(FILEPATH, "Broken")
