@@ -315,7 +315,7 @@ class Fault():
         x_0, x_lim = [], []
         for __x in l_x:
             for cav in self.comp['l_cav']:
-                equiv_cav = self.ref_lin.elements['list'][cav.idx['element']]
+                equiv_cav = self.ref_lin[cav.idx['element']]
                 ref_value = d_getter[__x](equiv_cav)
                 b_down = np.nanmax((d_x_lim_abs[__x][0],
                                     d_x_lim_rel[__x][0] * ref_value))

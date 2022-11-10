@@ -233,7 +233,6 @@ def _create_plot_dicts():
 
     d_x_data = {
         's': lambda lin: lin.synch.z['abs_array'],
-        # 'elt': lambda lin: np.array(range(lin.elements['n'])),
         'elt': lambda lin: np.array(range(len(lin))),
     }
 
@@ -507,28 +506,21 @@ def load_phase_space(accelerator):
 def output_cavities(linac, out=False):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
-        'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
-        'phis'))
+        'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs', 'phis'))
     full_list_of_cav = linac.elements_of('FIELD_MAP')
 
     for i, cav in enumerate(full_list_of_cav):
-        df_cav.loc[i] = [cav.info['name'], cav.info['status'],
-                         cav.acc_field.k_e,
-                         np.rad2deg(cav.acc_field.phi_0['phi_0_abs']),
-                         np.rad2deg(cav.acc_field.phi_0['phi_0_rel']),
-                         cav.acc_field.cav_params['v_cav_mv'],
-                         cav.acc_field.cav_params['phi_s']]
-                         # cav.acc_field.cav_params['phi_s_deg']]
+        df_cav.loc[i] = cav.get('name', 'status', 'k_e', 'phi_0_abs',
+                                'phi_0_rel', 'v_cav_mv', 'phi_s', to_deg=True)
     df_cav.round(decimals=3)
 
     # Output only the cavities that have changed
     if 'Fixed' in linac.name:
         df_out = pd.DataFrame(columns=(
-            'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
-            'phis'))
+            'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs', 'phis'))
         i = 0
         for c in full_list_of_cav:
-            if 'compensate' in c.info['status']:
+            if 'compensate' in c.get('status'):
                 i += 1
                 df_out.loc[i] = df_cav.loc[full_list_of_cav.index(c)]
         if out:
@@ -537,19 +529,10 @@ def output_cavities(linac, out=False):
 
 
 def _create_output_fit_dicts():
-    d_pd = {
-        'phi_0_rel': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
-                                           'Fixed', 'Orig.', '(var %)')),
-        'phi_0_abs': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
-                                           'Fixed', 'Orig.', '(var %)')),
-        'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
-                                      'Fixed', 'Orig.', '(var %)')),
-    }
-    # TODO : no entry for phi_s?
-    d_x = {
-        'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['phi_0_rel']),
-        'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['phi_0_abs']),
-        'Norm': lambda cav: cav.acc_field.k_e,
+    col = ('Name', 'Status', 'Min.', 'Max.', 'Fixed', 'Orig.', '(var %)')
+    d_pd = {'phi_0_rel': pd.DataFrame(columns=col),
+            'phi_0_abs': pd.DataFrame(columns=col),
+            'Norm': pd.DataFrame(columns=col),
     }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
@@ -562,11 +545,8 @@ def _create_output_fit_dicts():
                               f.info['X_lim'][1][i + len(f.comp['l_cav'])]]
     }
 
-    all_dicts = {
-        'd_pd': d_pd,
-        'd_x': d_x,
-        'd_X_lim': d_x_lim,
-    }
+    all_dicts = {'d_pd': d_pd,
+                 'd_X_lim': d_x_lim}
 
     return all_dicts
 
@@ -587,7 +567,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
         # Get list of compensating cavities, and their original counterpart in
         # the reference linac
         ref_equiv = [
-            __f.ref_lin.elements['list'][cav.idx['element']]
+            __f.ref_lin[cav.idx['element']]
             for cav in __f.comp['l_cav']
         ]
 
@@ -596,12 +576,15 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
                 ['----', '----------', None, None, None, None, None]
             for i, cav in enumerate(__f.comp['l_cav']):
                 x_lim = dicts['d_X_lim'][key](__f, i)
-                old = dicts['d_x'][key](ref_equiv[i])
-                new = dicts['d_x'][key](cav)
-                var = 100. * (new - old) / old
+                old = ref_equiv[i].get(key, to_deg=True)
+                new = cav.get(key, to_deg=True)
+                if old is None or new is None:
+                    var = None
+                else:
+                    var = 100. * (new - old) / old
 
                 val.loc[i + shift_i + 1] = \
-                    [cav.info['name'], cav.info['status'], x_lim[0], x_lim[1],
+                    [cav.get('name'), cav.get('status'), x_lim[0], x_lim[1],
                      new, old, var]
         shift_i += i + 2
 
