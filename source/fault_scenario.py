@@ -31,6 +31,7 @@ import math
 import numpy as np
 import pandas as pd
 from constants import FLAG_PHI_ABS
+from list_of_elements import ListOfElements
 from helper import printc
 import debug
 import fault as mod_f
@@ -73,7 +74,9 @@ class FaultScenario():
             self._update_status_of_cavities_to_rephase()
 
         self._transfer_phi0_from_ref_to_broken()
-        self.brok_lin.compute_transfer_matrices()
+        # self.brok_lin.compute_transfer_matrices()
+        results = self.brok_lin.elts.compute_transfer_matrices()
+        self.brok_lin.save_results(results, self.brok_lin.elts)
         self.brok_lin.compute_mismatch(self.ref_lin)
 
     def _transfer_phi0_from_ref_to_broken(self):
@@ -115,17 +118,20 @@ class FaultScenario():
             info_other_sol = None
             if self.l_info_other_sol is not None:
                 info_other_sol = self.l_info_other_sol[i]
-            flag_success, d_sol \
-                = fault.fix_single(info_other_sol=info_other_sol)
+            flag_success, d_sol = fault.fix_single(info_other_sol=info_other_sol)
 
             # Recompute transfer matrices to transfer proper rf_field, transfer
             # matrix, etc to _Elements, _Particles and _Accelerators.
             d_fits = {'l_phi': d_sol['X'][:fault.comp['n_cav']],
                       'l_k_e': d_sol['X'][fault.comp['n_cav']:],
                       'phi_s fit': self.wtf['phi_s fit']}
-            fault.brok_lin.compute_transfer_matrices(fault.comp['l_recompute'],
-                                                     d_fits=d_fits,
-                                                     flag_transfer_data=True)
+
+            # fault.brok_lin.compute_transfer_matrices(fault.comp['l_recompute'],
+                                                     # d_fits=d_fits,
+                                                     # flag_transfer_data=True)
+            results = fault.elts.compute_transfer_matrices(
+                d_fits=d_fits, flag_transfer_data=True)
+            self.ref_lin.save_results(results, fault.elt)
             fault.get_x_sol_in_real_phase()
 
             # Update status of the compensating cavities according to the
@@ -140,7 +146,9 @@ class FaultScenario():
                 self._reupdate_status_of_rephased_cavities(fault)
 
         # At the end we recompute the full transfer matrix
-        self.brok_lin.compute_transfer_matrices()
+        # self.brok_lin.compute_transfer_matrices()
+        results = self.brok_lin.elts.compute_transfer_matrices()
+        self.brok_lin.save_results(results, self.brok_lin.elts)
         self.brok_lin.compute_mismatch(self.ref_lin)
         self.brok_lin.name = f"Fixed ({str(l_flags_success.count(True))}" \
             + f" of {str(len(l_flags_success))})"
@@ -156,16 +164,27 @@ class FaultScenario():
         """Recompute transfer matrices between this fault and the next."""
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elts
-        idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
+        # idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
+        idx1 = fault.elts[-1].idx('element')
 
         if fault is not l_faults[-1] and success:
             next_fault = l_faults[l_faults.index(fault) + 1]
-            idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+            # idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+            idx2 = next_fault.elts[0].idx('element') + 1
         else:
             idx2 = len(l_elts)
 
         elt1_to_elt2 = l_elts[idx1:idx2]
-        self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
+        s_elt1 = l_elts[idx1].elt_idx['s_in']
+        w_kin = self.brok_lin.get('kin_array_mev')[s_elt1]
+        phi_abs = self.brok_lin.synch.phase['abs_array'][s_elt1]
+        transf_mat = self.brok_lin.transf_mat['cumul'][s_elt1]
+        elts = ListOfElements(elt1_to_elt2, w_kin=w_kin, phi_abs=phi_abs,
+                              idx_in=s_elt1, r_zz_cumul=transf_mat)
+        results = elts.compute_transfer_matrices()
+        self.brok_lin.save_results(results, elts)
+
+        # self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
 
     def _sort_faults(self, l_fault_idx):
         """Gather faults that are close to each other."""

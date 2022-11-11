@@ -243,11 +243,16 @@ class _Element():
         """Save data calculated by Accelerator.compute_transfer_matrices."""
         self.tmat["matrix"] = transf_mat_elt
 
-        if rf_field is not None:
+        if rf_field != {}:
             self.acc_field.cav_params = cav_params
             self.acc_field.phi_0['phi_0_abs'] = rf_field['phi_0_abs']
             self.acc_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
             self.acc_field.k_e = rf_field['k_e']
+
+    def rf_param2(self, *args, **kwargs):
+        """Set the properties of the rf field (returns {} by default)."""
+        rf_field_kwargs = {}
+        return rf_field_kwargs
 
 
 # =============================================================================
@@ -306,6 +311,50 @@ class FieldMap(_Element):
                                  absolute_phase_flag=absolute_phase_flag,
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
+
+    def rf_param2(self, phi_bunch_abs, w_kin_in, d_fit=None):
+        """Set the properties of the electric field."""
+        if self.get('status') == 'failed':
+            rf_field_kwargs = {}
+            return rf_field_kwargs
+
+        # assert synch.get('synchronous'), "Out of synch particle to be " \
+            # + "implemented."
+        # FIXME By definition, the synchronous particle has a relative input
+        # phase of 0. phi_rf_rel = 0.
+
+        # Add the parameters that are independent from the cavity status
+        rf_field_kwargs = {'omega0_rf': self.get('omega0_rf'),
+                           'e_spat': self.get('e_spat'),
+                           'section_idx': self.idx['section'],
+                           'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
+
+        # Set norm and phi_0 of the cavity
+        d_cav_param_setter = {
+            "nominal": _take_parameters_from_rf_field_object,
+            "rephased (in progress)": _find_new_absolute_entry_phase,
+            "rephased (ok)": _take_parameters_from_rf_field_object,
+            "compensate (in progress)": _try_parameters_from_d_fit,
+            "compensate (ok)": _take_parameters_from_rf_field_object,
+            "compensate (not ok)": _take_parameters_from_rf_field_object,
+        }
+        # Argument for the functions in d_cav_param_setter
+        arg = (self.acc_field,)
+        if self.get('status') == "compensate (in progress)":
+            arg = (d_fit, w_kin_in, self)
+
+        # Apply
+        rf_field_kwargs, flag_abs_to_rel = \
+            d_cav_param_setter[self.get('status')](*arg, **rf_field_kwargs)
+
+        # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
+        # the cavity is rephased
+        phi_rf_abs = phi_bunch_abs * rf_field_kwargs['omega0_rf'] / OMEGA_0_BUNCH
+
+        rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
+            convert_phi_0(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
+
+        return rf_field_kwargs
 
     def rf_param(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
         """Set the properties of the electric field."""

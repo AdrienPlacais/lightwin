@@ -37,7 +37,7 @@ if FILEPATH == "":
 # =============================================================================
 # Fault compensation
 # =============================================================================
-FLAG_FIX = True
+FLAG_FIX = False
 FLAG_TRY_OPTI_METHODS = True
 SAVE_FIX = False
 
@@ -151,7 +151,9 @@ FILEPATH = os.path.abspath(FILEPATH)
 
 # Reference linac
 ref_linac = acc.Accelerator(FILEPATH, "Working")
-ref_linac.compute_transfer_matrices()
+results = ref_linac.elts.compute_transfer_matrices()
+ref_linac.save_results(results, ref_linac.elts)
+
 linacs = [ref_linac]
 
 # Broken linac

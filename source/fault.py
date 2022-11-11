@@ -31,6 +31,7 @@ from scipy.optimize import minimize, least_squares
 from constants import FLAG_PHI_ABS, LINAC
 import debug
 from helper import printc
+from list_of_elements import ListOfElements
 import pso
 from emittance import mismatch_factor
 
@@ -80,6 +81,14 @@ class Fault():
         # Set the variables
         x_0, x_lim, constr, l_x_str = self._set_design_space()
         l_elts, d_idx = self._select_zone_to_recompute(self.wtf['position'])
+        idx = l_elts[0].get('s_in')
+        self.elts = ListOfElements(
+            l_elts,
+            w_kin=self.brok_lin.synch.energy['kin_array_mev'][idx],
+            phi_abs=self.brok_lin.synch.phi['abs_array'][idx],
+            idx_in=idx,
+            r_zz_cumul = self.brok_lin.transf_mat['cumul'][idx])
+        # FIXME would be better of at Fault initialization
 
         fun_residual, l_f_str = _select_objective(self.wtf['objective'])
 
@@ -91,7 +100,7 @@ class Fault():
             'l_F_str': l_f_str,
             'G': constr,
         })
-        self.comp['l_recompute'] = l_elts
+        # self.comp['l_recompute'] = l_elts
 
         wrapper_args = (self, fun_residual, d_idx, self.wtf['phi_s fit'])
 
@@ -223,8 +232,7 @@ class Fault():
                       for section in self.brok_lin.elements['l_sections']
                       for lattice in section]
 
-        self.comp['l_all_elts'] = [elt
-                                   for lattice in l_lattices
+        self.comp['l_all_elts'] = [elt for lattice in l_lattices
                                    for elt in lattice
                                    if any((cav in lattice
                                            for cav in self.comp['l_cav']))]
@@ -523,13 +531,14 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
               'phi_s fit': phi_s_fit}
 
     # Update transfer matrices
-    d_results = fault.brok_lin.compute_transfer_matrices(
-        fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    arr_f = fun_residual(fault.ref_lin, d_results, d_idx)
+    results = fault.elts.compute_transfer_matrices(d_fits,
+                                                   flag_transfer_data=False)
+    # d_results = fault.brok_lin.compute_transfer_matrices(
+        # fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
+    arr_f = fun_residual(fault.ref_lin, results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, arr_f,
-                                  fault.info["l_F_str"])
+        debug.output_fit_progress(fault.count, arr_f, fault.info["l_F_str"])
     if debugs['plot_progression']:
         fault.info['hist_F'].append(arr_f)
     fault.count += 1
@@ -544,15 +553,16 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
               'phi_s fit': False}
 
     # Update transfer matrices
-    d_results = fault.brok_lin.compute_transfer_matrices(
-        fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
-    arr_f = fun_residual(fault.ref_lin, d_results, d_idx)
+    results = fault.elts.compute_transfer_matrices(d_fits,
+                                                   flag_transfer_data=False)
+    # d_results = fault.brok_lin.compute_transfer_matrices(
+        # fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
+    arr_f = fun_residual(fault.ref_lin, results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, arr_f,
-                                  fault.info["l_F_str"])
+        debug.output_fit_progress(fault.count, arr_f, fault.info["l_F_str"])
     if debugs['plot_progression']:
         fault.info['hist_F'].append(arr_f)
     fault.count += 1
 
-    return arr_f, d_results
+    return arr_f, results
