@@ -37,7 +37,7 @@ if FILEPATH == "":
 # =============================================================================
 # Fault compensation
 # =============================================================================
-FLAG_FIX = False
+FLAG_FIX = True
 FLAG_TRY_OPTI_METHODS = True
 SAVE_FIX = False
 
@@ -54,7 +54,8 @@ wtf_pso = {'opti method': 'PSO',
 
 wtf_lsq = {'opti method': 'least_squares',
            'strategy': 'k out of n',
-           'k': 6, 'l': 2, 'manual list': [],
+           'k': 2, 'l': 2, 'manual list': [],
+           # 'k': 6, 'l': 2, 'manual list': [],
            'objective': ['energy', 'phase', 'mismatch_factor'],
            'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
@@ -173,7 +174,8 @@ for wtf in [wtf_lsq]:
 
     if FLAG_FIX:
         fail.fix_all()
-        lin.compute_transfer_matrices()
+        results = lin.elts.compute_transfer_matrices()
+        lin.save_results(results, lin.elts)
 
         if wtf == wtf_lsq:
             lsq_info = [f.info for f in fail.faults['l_obj']]

@@ -54,8 +54,10 @@ class Fault():
         self.brok_lin = brok_lin
         self.wtf = wtf
 
-        self.fail = {'l_cav': fail_cav}
-        self.comp = {'l_cav': [], 'l_all_elts': [], 'l_recompute': None,
+        self.elts = None
+        # self.fail = {'l_cav': fail_cav}
+        # self.l_faulty_cav = fail_cav
+        self.comp = {'l_cav': [],#'l_all_elts': [],#'l_recompute': None,
                      'n_cav': None}
 
         self.info = {
@@ -73,7 +75,7 @@ class Fault():
         self.count = None
 
         # We directly break the proper cavities
-        for cav in self.fail['l_cav']:
+        for cav in fail_cav:
             cav.update_status('failed')
 
     def fix_single(self, info_other_sol):
@@ -299,9 +301,6 @@ class Fault():
             d_tech_n = {0: np.NaN}
             d_x_lim_rel['k_e'] = [.5, 1.2]
             d_x_lim_rel['phi_s'] = [np.NaN, 1. - .5]
-        # if self.wtf['opti method'] == 'PSO':
-            # d_x_lim_abs['phi_0_rel'] = [0., 2. * np.pi]
-            # d_x_lim_abs['phi_0_abs'] = [0., 2. * np.pi]
 
         # Set a list of properties that will be fitted
         if self.wtf['phi_s fit']:

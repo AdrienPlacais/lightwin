@@ -74,7 +74,6 @@ class FaultScenario():
             self._update_status_of_cavities_to_rephase()
 
         self._transfer_phi0_from_ref_to_broken()
-        # self.brok_lin.compute_transfer_matrices()
         results = self.brok_lin.elts.compute_transfer_matrices()
         self.brok_lin.save_results(results, self.brok_lin.elts)
         self.brok_lin.compute_mismatch(self.ref_lin)
@@ -131,7 +130,7 @@ class FaultScenario():
                                                      # flag_transfer_data=True)
             results = fault.elts.compute_transfer_matrices(
                 d_fits=d_fits, flag_transfer_data=True)
-            self.ref_lin.save_results(results, fault.elt)
+            self.ref_lin.save_results(results, fault.elts)
             fault.get_x_sol_in_real_phase()
 
             # Update status of the compensating cavities according to the
@@ -165,7 +164,7 @@ class FaultScenario():
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elts
         # idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
-        idx1 = fault.elts[-1].idx('element')
+        idx1 = fault.elts[-1].idx['element']
 
         if fault is not l_faults[-1] and success:
             next_fault = l_faults[l_faults.index(fault) + 1]
@@ -175,9 +174,9 @@ class FaultScenario():
             idx2 = len(l_elts)
 
         elt1_to_elt2 = l_elts[idx1:idx2]
-        s_elt1 = l_elts[idx1].elt_idx['s_in']
+        s_elt1 = l_elts[idx1].idx['s_in']
         w_kin = self.brok_lin.get('kin_array_mev')[s_elt1]
-        phi_abs = self.brok_lin.synch.phase['abs_array'][s_elt1]
+        phi_abs = self.brok_lin.synch.phi['abs_array'][s_elt1]
         transf_mat = self.brok_lin.transf_mat['cumul'][s_elt1]
         elts = ListOfElements(elt1_to_elt2, w_kin=w_kin, phi_abs=phi_abs,
                               idx_in=s_elt1, r_zz_cumul=transf_mat)
@@ -267,17 +266,23 @@ class FaultScenario():
 
         return ll_comp, ll_idx_faults
 
-    def _create_fault_objects(self, l_l_idx_faults):
+    def _create_fault_objects(self, ll_fault_idx):
         """Create the Faults."""
         l_faults_obj = []
-        for l_idx in l_l_idx_faults:
-            l_faulty_cav = [self.brok_lin.elts[idx]
-                            for idx in l_idx]
-            nature = {cav.get('nature') for cav in l_faulty_cav}
-            assert nature == {"FIELD_MAP"}
-            l_faults_obj.append(
-                mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav,
-                            self.wtf))
+        # Unpack the list of list of faulty indexes
+        for l_idx in ll_fault_idx:
+            # Get faulty cavities
+            l_faulty_cav = [self.brok_lin.elts[idx] for idx in l_idx]
+
+            # Check that they are all cavities
+            set_nature = {cav.get('nature') for cav in l_faulty_cav}
+            assert set_nature == {"FIELD_MAP"}
+
+            # Create Fault object and append it to the list of Fault objects
+            new_fault = mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav,
+                                    self.wtf)
+            l_faults_obj.append(new_fault)
+
         return l_faults_obj
 
     def _update_status_of_cavities_to_rephase(self):
