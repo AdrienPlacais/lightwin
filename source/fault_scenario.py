@@ -232,7 +232,8 @@ class FaultScenario():
             info_other_sol = None
             if self.l_info_other_sol is not None:
                 info_other_sol = self.l_info_other_sol[i]
-            flag_success, d_sol = fault.fix_single(info_other_sol=info_other_sol)
+
+            success, d_sol = fault.fix_single(info_other_sol=info_other_sol)
 
             # Recompute transfer matrices to transfer proper rf_field, transfer
             # matrix, etc to _Elements, _Particles and _Accelerators.
@@ -247,9 +248,9 @@ class FaultScenario():
 
             # Update status of the compensating cavities according to the
             # success or not of the fit.
-            fault.update_status(flag_success)
-            l_flags_success.append(flag_success)
-            self._compute_matrix_to_next_fault(fault, flag_success)
+            fault.update_status(success)
+            l_flags_success.append(success)
+            self._compute_matrix_to_next_fault(fault, success)
 
             if not FLAG_PHI_ABS:
                 # Tell LW to keep the new phase of the rephased cavities
