@@ -6,7 +6,7 @@ Created on Mon Jan 24 12:51:15 2022.
 @author: placais
 
 Module holding the FaultScenario, which holds the Faults. Each Fault object
-fixes himself (Fault.fix_single), and a second optimization is performed to
+fixes himself (Fault.fix), and a second optimization is performed to
 smoothen the individual fixes. # TODO
 
 brok_lin: holds for "broken_linac", the linac with faults.
@@ -224,7 +224,7 @@ class FaultScenario():
         First, fix all the Faults independently. Then, recompute the linac
         and make small adjustments.
         """
-        l_flags_success = []
+        l_successes = []
 
         # We fix all Faults individually
         for i, fault in enumerate(self.faults['l_obj']):
@@ -233,7 +233,7 @@ class FaultScenario():
             if self.l_info_other_sol is not None:
                 info_other_sol = self.l_info_other_sol[i]
 
-            success, d_sol = fault.fix_single(info_other_sol=info_other_sol)
+            success, d_sol = fault.fix(info_other_sol=info_other_sol)
 
             # Recompute transfer matrices to transfer proper rf_field, transfer
             # matrix, etc to _Elements, _Particles and _Accelerators.
@@ -249,7 +249,7 @@ class FaultScenario():
             # Update status of the compensating cavities according to the
             # success or not of the fit.
             fault.update_status(success)
-            l_flags_success.append(success)
+            l_successes.append(success)
             self._compute_matrix_to_next_fault(fault, success)
 
             if not FLAG_PHI_ABS:
@@ -262,8 +262,8 @@ class FaultScenario():
         results = self.brok_lin.elts.compute_transfer_matrices()
         self.brok_lin.save_results(results, self.brok_lin.elts)
         self.brok_lin.compute_mismatch(self.ref_lin)
-        self.brok_lin.name = f"Fixed ({str(l_flags_success.count(True))}" \
-            + f" of {str(len(l_flags_success))})"
+        self.brok_lin.name = f"Fixed ({str(l_successes.count(True))}" \
+            + f" of {str(len(l_successes))})"
 
         for linac in [self.ref_lin, self.brok_lin]:
             self.info[linac.name + ' cav'] = \

@@ -77,7 +77,7 @@ class Fault():
             cav.update_status('failed')
 
         # We create the list of compensating cavities. We update their status
-        # to 'compensate (in progress)' in fix_single when the optimisatin
+        # to 'compensate (in progress)' in fix when the optimisatin
         # process starts
         for cav in comp_cav:
             if cav.get('status') != 'failed':
@@ -96,7 +96,7 @@ class Fault():
         for cav in self.comp['l_cav']:
             cav.update_status(new_status)
 
-    def fix_single(self, info_other_sol):
+    def fix(self, info_other_sol):
         """Try to compensate the faulty cavities."""
         self._prepare_cavities_for_compensation()
 
