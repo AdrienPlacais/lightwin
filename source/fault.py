@@ -49,14 +49,12 @@ debugs = {
 class Fault():
     """A class to hold one or several close Faults."""
 
-    def __init__(self, ref_lin, brok_lin, fail_cav, wtf):
+    def __init__(self, ref_lin, brok_lin, fail_cav, comp_cav, wtf):
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
         self.wtf = wtf
 
         self.elts = None
-        # self.fail = {'l_cav': fail_cav}
-        # self.l_faulty_cav = fail_cav
         self.comp = {'l_cav': [],#'l_all_elts': [],#'l_recompute': None,
                      'n_cav': None}
 
@@ -78,8 +76,30 @@ class Fault():
         for cav in fail_cav:
             cav.update_status('failed')
 
+        # We create the list of compensating cavities. We update their status
+        # to 'compensate (in progress)' in fix_single when the optimisatin
+        # process starts
+        for cav in comp_cav:
+            if cav.get('status') != 'failed':
+                self.comp['l_cav'].append(cav)
+        self.comp['n_cav'] = len(self.comp['l_cav'])
+
+    def update_status(self, flag_success):
+        """Update status of the compensating cavities."""
+        if flag_success:
+            new_status = "compensate (ok)"
+        else:
+            new_status = "compensate (not ok)"
+
+        # Remove broke cavities, check if some compensating cavities already
+        # compensate another fault, update status of comp cav
+        for cav in self.comp['l_cav']:
+            cav.update_status(new_status)
+
     def fix_single(self, info_other_sol):
         """Try to compensate the faulty cavities."""
+        self._prepare_cavities_for_compensation()
+
         # Set the variables
         x_0, x_lim, constr, l_x_str = self._set_design_space()
         l_elts, d_idx = self._select_zone_to_recompute(self.wtf['position'])
@@ -121,6 +141,97 @@ class Fault():
         self.info['F'] = opti_sol['F']
 
         return success, opti_sol
+
+    def _prepare_cavities_for_compensation(self):
+        """
+        Prepare the compensating cavities for the upcoming optimisation.
+
+        In particular, update the status of the compensating cavities to
+        'compensate (in progress)', create list of all elements in the
+        compensating zone.
+        """
+        new_status = "compensate (in progress)"
+
+        # Remove broke cavities, check if some compensating cavities already
+        # compensate another fault, update status of comp cav
+        for cav in self.comp['l_cav']:
+            current_status = cav.get('status')
+            assert current_status != new_status, "Current cavity already has" \
+                + " the status that you asked for. Maybe two faults want the" \
+                + " same cavity for their compensation?"
+
+            if current_status in ["compensate (ok)", "compensate (not ok)"]:
+                printc("fault.prepare_cavities_for_compensation warning: ",
+                       opt_message="you want to update the status of a"
+                       + " cavity that is already used for compensation."
+                       + " Check"
+                       + "fault_scenario._gather_and_create_fault_objects."
+                       + " Maybe two faults want to use the same cavity for"
+                       + " compensation?")
+
+            cav.update_status(new_status)
+
+        # Also create a list of all the elements in the compensating lattices
+        l_lattices = [lattice
+                      for section in self.brok_lin.elements['l_sections']
+                      for lattice in section]
+
+        self.comp['l_all_elts'] = [elt for lattice in l_lattices
+                                   for elt in lattice
+                                   if any((cav in lattice
+                                           for cav in self.comp['l_cav']))]
+
+    def _select_zone_to_recompute(self, str_position):
+        """
+        Determine zone to recompute and indexes of where objective is checked.
+
+        Parameters
+        ----------
+        str_position : string
+            Indicates where the objective should be matched.
+
+        Return
+        ------
+        l_elts : list of _Element
+            List of elements that should be recomputed.
+        d_idx : dict
+            Dict holding the lists of indexes (ref and broken) to evaluate the
+            objectives at the right spot.
+        """
+        d_idx = {'l_ref': [], 'l_brok': []}
+
+        # Which lattices' data are necessary?
+        d_lattices = {
+            'end_mod': lambda l_cav: self.brok_lin.elements['l_lattices']
+            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 1],
+            '1_mod_after': lambda l_cav: self.brok_lin.elements['l_lattices']
+            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 2],
+            'both': lambda l_cav: self.brok_lin.elements['l_lattices']
+            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 2],
+        }
+        l_lattices = d_lattices[str_position](self.comp['l_cav'])
+        l_elts = [elt
+                  for lattice in l_lattices
+                  for elt in lattice]
+        # Where do you want to verify that the objective is matched?
+        d_pos = {
+            'end_mod': lambda lattices: [lattices[-1][-1].idx['s_out']],
+            '1_mod_after': lambda lattices: [lattices[-1][-1].idx['s_out']],
+            'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
+                                      lattices[-1][-1].idx['s_out']],
+        }
+        d_idx['l_ref'] = d_pos[str_position](l_lattices)
+        shift_s_idx_brok = self.comp['l_all_elts'][0].idx['s_in']
+        d_idx['l_brok'] = [idx - shift_s_idx_brok
+                           for idx in d_idx['l_ref']]
+
+        for idx in d_idx['l_ref']:
+            elt = self.brok_lin.where_is_this_index(idx)
+            print(f"\nWe try to match at mesh index {idx}.")
+            print(f"Info: {elt.get('elt_info')}.")
+            print(f"Full indexes: {elt.get('idx')}.")
+
+        return l_elts, d_idx
 
     def _proper_fix_lsq_opt(self, wrapper_args):
         """
@@ -192,64 +303,6 @@ class Fault():
 
         # Here we return the ASF sol
         return True, d_opti['asf']
-
-    def prepare_cavities_for_compensation(self, l_comp_cav):
-        """
-        Prepare the compensating cavities for the upcoming optimisation.
-
-        In particular, update the status of the compensating cavities to
-        'compensate (in progress)', create list of all elements in the
-        compensating zone.
-        """
-        new_status = "compensate (in progress)"
-
-        # Remove broke cavities, check if some compensating cavities already
-        # compensate another fault, update status of comp cav
-        for cav in l_comp_cav:
-            current_status = cav.get('status')
-            assert current_status != new_status, "Current cavity already has" \
-                + " the status that you asked for. Maybe two faults want the" \
-                + " same cavity for their compensation?"
-
-            # If the cavity is broken, we do not want to change it's status
-            if current_status == 'failed':
-                continue
-
-            if current_status in ["compensate (ok)", "compensate (not ok)"]:
-                printc("fault.prepare_cavities_for_compensation warning: ",
-                       opt_message="you want to update the status of a"
-                       + " cavity that is already used for compensation."
-                       + " Check"
-                       + "fault_scenario._gather_and_create_fault_objects."
-                       + " Maybe two faults want to use the same cavity for"
-                       + " compensation?")
-
-            cav.update_status(new_status)
-            self.comp['l_cav'].append(cav)
-
-        self.comp['n_cav'] = len(self.comp['l_cav'])
-
-        # Also create a list of all the elements in the compensating lattices
-        l_lattices = [lattice
-                      for section in self.brok_lin.elements['l_sections']
-                      for lattice in section]
-
-        self.comp['l_all_elts'] = [elt for lattice in l_lattices
-                                   for elt in lattice
-                                   if any((cav in lattice
-                                           for cav in self.comp['l_cav']))]
-
-    def update_status(self, flag_success):
-        """Update status of the compensating cavities."""
-        if flag_success:
-            new_status = "compensate (ok)"
-        else:
-            new_status = "compensate (not ok)"
-
-        # Remove broke cavities, check if some compensating cavities already
-        # compensate another fault, update status of comp cav
-        for cav in self.comp['l_cav']:
-            cav.update_status(new_status)
 
     def _set_design_space(self):
         """
@@ -341,58 +394,6 @@ class Fault():
         print(f"Initial_guess:\n{x_0}\nBounds:\n{x_lim}")
 
         return x_0, x_lim, phi_s_limits, l_x_str
-
-    def _select_zone_to_recompute(self, str_position):
-        """
-        Determine zone to recompute and indexes of where objective is checked.
-
-        Parameters
-        ----------
-        str_position : string
-            Indicates where the objective should be matched.
-
-        Return
-        ------
-        l_elts : list of _Element
-            List of elements that should be recomputed.
-        d_idx : dict
-            Dict holding the lists of indexes (ref and broken) to evaluate the
-            objectives at the right spot.
-        """
-        d_idx = {'l_ref': [], 'l_brok': []}
-
-        # Which lattices' data are necessary?
-        d_lattices = {
-            'end_mod': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 1],
-            '1_mod_after': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 2],
-            'both': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 2],
-        }
-        l_lattices = d_lattices[str_position](self.comp['l_cav'])
-        l_elts = [elt
-                  for lattice in l_lattices
-                  for elt in lattice]
-        # Where do you want to verify that the objective is matched?
-        d_pos = {
-            'end_mod': lambda lattices: [lattices[-1][-1].idx['s_out']],
-            '1_mod_after': lambda lattices: [lattices[-1][-1].idx['s_out']],
-            'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
-                                      lattices[-1][-1].idx['s_out']],
-        }
-        d_idx['l_ref'] = d_pos[str_position](l_lattices)
-        shift_s_idx_brok = self.comp['l_all_elts'][0].idx['s_in']
-        d_idx['l_brok'] = [idx - shift_s_idx_brok
-                           for idx in d_idx['l_ref']]
-
-        for idx in d_idx['l_ref']:
-            elt = self.brok_lin.where_is_this_index(idx)
-            print(f"\nWe try to match at mesh index {idx}.")
-            print(f"Info: {elt.get('elt_info')}.")
-            print(f"Full indexes: {elt.get('idx')}.")
-
-        return l_elts, d_idx
 
     def get_x_sol_in_real_phase(self):
         """
