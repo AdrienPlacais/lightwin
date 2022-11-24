@@ -226,7 +226,7 @@ def _create_plot_dicts():
 
     # LW y data
     d_y_data_lw = {
-        'energy': lambda lin: lin.synch.energy['kin_array_mev'],
+        'energy': lambda lin: lin.synch.energy['w_kin'],
         'abs_phase': lambda lin: np.rad2deg(lin.synch.phi['abs_array']),
         'beta_synch': lambda lin: lin.synch.energy['beta_array'],
         'v_cav_mv': lambda lin:

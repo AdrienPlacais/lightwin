@@ -107,7 +107,7 @@ class Fault():
         idx = l_elts[0].get('s_in')
         self.elts = ListOfElements(
             l_elts,
-            w_kin=self.brok_lin.synch.energy['kin_array_mev'][idx],
+            w_kin=self.brok_lin.synch.energy['w_kin'][idx],
             phi_abs=self.brok_lin.synch.phi['abs_array'][idx],
             idx_in=idx,
             r_zz_cumul = self.brok_lin.transf_mat['tm_cumul'][idx])
@@ -447,7 +447,7 @@ def _select_objective(l_objectives):
     """
     # Get data from reference linac
     d_ref = {
-        'energy': lambda ref, i_r: ref.synch.energy['kin_array_mev'][i_r],
+        'energy': lambda ref, i_r: ref.synch.energy['w_kin'][i_r],
         'phase': lambda ref, i_r: ref.synch.phi['abs_array'][i_r],
         'M_ij': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r],
         'M_11': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 0 , 0],

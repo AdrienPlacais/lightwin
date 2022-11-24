@@ -42,7 +42,7 @@ class Particle():
         }
         self.z['abs_array'][0] = z_0
         self.energy = {
-            'kin_array_mev': np.full((n_steps + 1), np.NaN),
+            'w_kin': np.full((n_steps + 1), np.NaN),
             'gamma_array': np.full((n_steps + 1), np.NaN),
             'beta_array': np.full((n_steps + 1), np.NaN),   # Necessary? TODO
             'p_array_mev': np.full((n_steps + 1), np.NaN),  # Necessary? TODO
@@ -107,21 +107,21 @@ class Particle():
             New energy in MeV.
         idx: int, opt
             Index of the the energy concerned. If NaN, e_mev replaces the first
-            NaN element of kin_array_mev.
+            NaN element of w_kin.
         delta_e: bool, opt
             If True, energy is increased by e_mev. If False, energy is set to
             e_mev.
         """
         if np.isnan(idx):
-            idx = np.where(np.isnan(self.energy['kin_array_mev']))[0][0]
+            idx = np.where(np.isnan(self.energy['w_kin']))[0][0]
 
         if delta_e:
-            self.energy['kin_array_mev'][idx] = \
-                self.energy['kin_array_mev'][idx - 1] + e_mev
+            self.energy['w_kin'][idx] = \
+                self.energy['w_kin'][idx - 1] + e_mev
         else:
-            self.energy['kin_array_mev'][idx] = e_mev
+            self.energy['w_kin'][idx] = e_mev
 
-        gamma = kin_to_gamma(self.energy['kin_array_mev'][idx], E_REST_MEV)
+        gamma = kin_to_gamma(self.energy['w_kin'][idx], E_REST_MEV)
         beta = gamma_to_beta(gamma)
         p_mev = gamma_and_beta_to_p(gamma, beta, E_REST_MEV)
 
@@ -175,7 +175,7 @@ class Particle():
     def keep_energy_and_phase(self, results, idx_range):
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
-        self.energy['kin_array_mev'][idx_range] = w_kin
+        self.energy['w_kin'][idx_range] = w_kin
         self.energy['gamma_array'][idx_range] = kin_to_gamma(w_kin)
         self.energy['beta_array'][idx_range] = kin_to_beta(w_kin)
         self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])

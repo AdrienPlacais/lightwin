@@ -296,7 +296,7 @@ def save_energy_phase_tm(lin):
     n_z = lin.synch.z['abs_array'].shape[0]
     data = np.column_stack((
         lin.synch.z['abs_array'],
-        lin.synch.energy['kin_array_mev'],
+        lin.synch.energy['w_kin'],
         lin.synch.phi['abs_array'],
         np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
     ))
