@@ -110,7 +110,7 @@ class Fault():
             w_kin=self.brok_lin.synch.energy['kin_array_mev'][idx],
             phi_abs=self.brok_lin.synch.phi['abs_array'][idx],
             idx_in=idx,
-            r_zz_cumul = self.brok_lin.transf_mat['cumul'][idx])
+            r_zz_cumul = self.brok_lin.transf_mat['tm_cumul'][idx])
         # FIXME would be better of at Fault initialization
 
         fun_residual, l_f_str = _select_objective(self.wtf['objective'])
@@ -449,11 +449,11 @@ def _select_objective(l_objectives):
     d_ref = {
         'energy': lambda ref, i_r: ref.synch.energy['kin_array_mev'][i_r],
         'phase': lambda ref, i_r: ref.synch.phi['abs_array'][i_r],
-        'M_ij': lambda ref, i_r: ref.transf_mat['cumul'][i_r],
-        'M_11': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 0 , 0],
-        'M_12': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 0 , 1],
-        'M_21': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 1 , 0],
-        'M_22': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 1 , 1],
+        'M_ij': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r],
+        'M_11': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 0 , 0],
+        'M_12': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 0 , 1],
+        'M_21': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 1 , 0],
+        'M_22': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 1 , 1],
         'eps': lambda ref, i_r: ref.beam_param["eps"]["eps_zdelta"][i_r],
         'twiss': lambda ref, i_r: ref.beam_param["twiss"]["twiss_zdelta"][i_r],
     }

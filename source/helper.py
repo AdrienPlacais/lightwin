@@ -298,7 +298,7 @@ def save_energy_phase_tm(lin):
         lin.synch.z['abs_array'],
         lin.synch.energy['kin_array_mev'],
         lin.synch.phi['abs_array'],
-        np.reshape(lin.transf_mat['cumul'], (n_z, 4))
+        np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
     ))
     filepath = lin.files['results_folder'] + lin.name \
         + '_energy_phase_tm.txt'

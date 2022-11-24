@@ -62,11 +62,11 @@ class Accelerator():
 
         # Transfer matrices
         self.transf_mat = {
-            'cumul': np.full((last_idx + 1, 2, 2), np.NaN),
-            'indiv': np.full((last_idx + 1, 2, 2), np.NaN),
+            'tm_cumul': np.full((last_idx + 1, 2, 2), np.NaN),
+            'tm_indiv': np.full((last_idx + 1, 2, 2), np.NaN),
             'first_calc?': True,
         }
-        self.transf_mat['indiv'][0, :, :] = np.eye(2)
+        self.transf_mat['tm_indiv'][0, :, :] = np.eye(2)
 
         # Beam parameters: emittance, Twiss
         self.beam_param = {
@@ -192,11 +192,11 @@ class Accelerator():
                             elt.idx['s_out'] + 1 - idx_in)
             transf_mat_elt = results["r_zz_cumul"][idx_rel]
 
-            self.transf_mat["indiv"][idx_abs] = transf_mat_elt
+            self.transf_mat['tm_indiv'][idx_abs] = transf_mat_elt
             elt.keep_mt_and_rf_field(transf_mat_elt, rf_field, cav_params)
 
         # Save into Accelerator
-        self.transf_mat['cumul'][idx_in:idx_out] = results["r_zz_cumul"]
+        self.transf_mat['tm_cumul'][idx_in:idx_out] = results["r_zz_cumul"]
 
         # Save into Particle
         self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))

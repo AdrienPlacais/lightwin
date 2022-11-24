@@ -94,7 +94,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     z_pos = accelerator.synch.z['abs_array']
     n_z = z_pos.shape[0]
 
-    transfer_matrix = accelerator.transf_mat['cumul']
+    transfer_matrix = accelerator.transf_mat['tm_cumul']
 
     # Change shape of calculated transfer matrix to match the ref one
     # i.e.: 1st column is z, 2nd 3rd 4th and 5th are matrix components
