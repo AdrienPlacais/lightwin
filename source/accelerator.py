@@ -16,8 +16,7 @@ import particle
 from constants import E_MEV, FLAG_PHI_ABS
 import elements
 from list_of_elements import ListOfElements
-from emittance import beam_parameters_zdelta, beam_parameters_all, \
-    mismatch_factor
+from emittance import beam_parameters_all, mismatch_factor
 from helper import kin_to_gamma, printc, recursive_items
 
 
@@ -166,113 +165,6 @@ class Accelerator():
                    + " while there is at least one cavity in absolute phase in"
                    + " the .dat file used by TW. Results won't match if there"
                    + " are faulty cavities.\n")
-
-    # def compute_transfer_matrices(self, l_elts, d_fits=None, flag_transfer_data=True):
-        # """
-        # Compute the transfer matrices of Accelerator's elements.
-
-        # Parameters
-        # ----------
-        # l_elts : ListOfElements
-            # List of elements from which you want the transfer matrices.
-        # d_fits: dict, optional
-            # Dict to where norms and phases of compensating cavities are stored.
-            # If the dict is None, we take norms and phases from cavity objects.
-        # flag_transfer_data : boolean, optional
-            # If True, we save the energies, transfer matrices, etc that are
-            # calculated in the routine.
-        # """
-        # results = l_elts.compute_transfer_matrices(d_fits, flag_transfer_data)
-        # if flag_transfer_data:
-            # self.save_results(results, l_elts)
-
-        # return results
-
-    # def _proper_transf_mat(self, elt, phi_abs, w_kin, d_fits):
-        # """Get the proper arguments and call the elt.calc_transf_mat."""
-        # if elt.get('nature') != 'FIELD_MAP' or elt.get('status') == 'failed':
-            # rf_field = None
-            # elt_results = elt.calc_transf_mat(w_kin)
-
-        # else:
-            # # Here we determine if we take the rf field parameters from an
-            # # optimisation algorithm or from the Element.Rf_Field object
-            # if d_fits is not None \
-               # and elt.get('status') == 'compensate (in progress)':
-                # d_fit_elt = {'flag': True,
-                             # 'phi': d_fits['l_phi'].pop(0),
-                             # 'k_e': d_fits['l_k_e'].pop(0),
-                             # 'phi_s fit': d_fits['phi_s fit']}
-            # else:
-                # d_fit_elt = d_fits
-
-            # rf_field = elt.rf_param(self.synch, phi_abs, w_kin, d_fit_elt)
-            # elt_results = elt.calc_transf_mat(w_kin, **rf_field)
-
-        # return elt_results, rf_field
-
-    # # Could be function instead of method
-    # def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, idx_in, n_steps):
-        # """Compute cumulated transfer matrix."""
-        # # Compute transfer matrix of l_elts
-        # arr_r_zz_cumul = np.full((n_steps, 2, 2), np.NaN)
-
-        # # If we are at the start of the linac, initial transf mat is unity
-        # if idx_in == 0:
-            # arr_r_zz_cumul[0] = np.eye(2)
-        # else:
-            # # Else we take the tm at the start of l_elts
-            # arr_r_zz_cumul[0] = self.transf_mat['cumul'][idx_in]
-            # assert ~np.isnan(arr_r_zz_cumul[0]).any(), \
-                # "Previous transfer matrix was not calculated."
-
-        # for i in range(1, n_steps):
-            # arr_r_zz_cumul[i] = l_r_zz_elt[i - 1] @ arr_r_zz_cumul[i - 1]
-
-        # return arr_r_zz_cumul
-
-    # # Could be function instead of method
-    # # FIXME could be simpler
-    # def _pack_into_single_dict(self, l_elt_results, l_rf_fields, idx_in):
-        # """
-        # We store energy, transfer matrices, phase, etc into the results dict.
-
-        # This dict is used in the fitting process.
-        # """
-        # # To store results
-        # results = {
-            # "phi_s": [],
-            # "cav_params": [],
-            # "w_kin": [self.synch.energy['kin_array_mev'][idx_in]],
-            # "phi_abs": [self.synch.phi['abs_array'][idx_in]],
-            # "r_zz_elt": [],         # List of numpy arrays
-            # "r_zz_cumul": None,     # (n, 2, 2) numpy array
-            # "rf_fields": [],        # List of dicts
-            # "d_zdelta": None,
-        # }
-
-        # for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
-            # results["rf_fields"].append(rf_field)
-            # results["cav_params"].append(elt_results["cav_params"])
-            # if rf_field is not None:
-                # results["phi_s"].append(
-                    # elt_results['cav_params']['phi_s'])
-
-            # r_zz_elt = [elt_results['r_zz'][i, :, :]
-                        # for i in range(elt_results['r_zz'].shape[0])]
-            # results["r_zz_elt"].extend(r_zz_elt)
-
-            # l_phi_abs = [phi_rel + results["phi_abs"][-1]
-                         # for phi_rel in elt_results['phi_rel']]
-            # results["phi_abs"].extend(l_phi_abs)
-
-            # results["w_kin"].extend(elt_results['w_kin'].tolist())
-
-        # results["r_zz_cumul"] = self._indiv_to_cumul_transf_mat(
-            # results["r_zz_elt"], idx_in, len(results["w_kin"]))
-
-        # results["d_zdelta"] = beam_parameters_zdelta(results["r_zz_cumul"])
-        # return results
 
     def save_results(self, results, l_elts):
         """
