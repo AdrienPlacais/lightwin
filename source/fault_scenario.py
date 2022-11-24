@@ -276,11 +276,11 @@ class FaultScenario():
         """Recompute transfer matrices between this fault and the next."""
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elts
-        idx1 = fault.elts[-1].idx['element']
+        idx1 = fault.elts[-1].idx['elt_idx']
 
         if fault is not l_faults[-1] and success:
             next_fault = l_faults[l_faults.index(fault) + 1]
-            idx2 = next_fault.elts[0].idx('element') + 1
+            idx2 = next_fault.elts[0].idx('elt_idx') + 1
         else:
             idx2 = len(l_elts)
 
@@ -308,13 +308,13 @@ class FaultScenario():
         l_elts = self.brok_lin.elts
 
         # idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
-        idx1 = fault.elts[-1].idx['element']
+        idx1 = fault.elts[-1].idx['elt_idx']
         if fault is l_faults[-1]:
             idx2 = len(l_elts)
         else:
             next_fault = l_faults[l_faults.index(fault) + 1]
             # idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
-            idx2 = next_fault.elts[0].idx('element') + 1
+            idx2 = next_fault.elts[0].idx('elt_idx') + 1
 
         l_cav_between_two_faults = [elt for elt in l_elts[idx1:idx2]
                                     if elt.get('nature') == 'FIELD_MAP']

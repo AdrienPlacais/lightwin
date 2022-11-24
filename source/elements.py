@@ -91,7 +91,7 @@ class _Element():
         self.acc_field = RfField()
 
         self.idx = {'s_in': None, 's_out': None,
-                    'element': None, 'lattice': None, 'section': None}
+                    'elt_idx': None, 'lattice': None, 'section': None}
 
         # tmat stands for 'transfer matrix'
         self.tmat = {

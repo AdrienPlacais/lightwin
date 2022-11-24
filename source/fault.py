@@ -384,7 +384,7 @@ class Fault():
         x_0, x_lim = [], []
         for __x in l_x:
             for cav in self.comp['l_cav']:
-                equiv_idx = cav.idx['element']
+                equiv_idx = cav.idx['elt_idx']
                 equiv_cav = self.ref_lin.elts[equiv_idx]
                 ref_value = equiv_cav.get(__x)
 
