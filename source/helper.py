@@ -297,7 +297,7 @@ def save_energy_phase_tm(lin):
     data = np.column_stack((
         lin.get('z_abs'),
         lin.get('w_kin'),
-        lin.synch.phi['abs_array'],
+        lin.get('phi_abs_array'),
         np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
     ))
     filepath = lin.files['results_folder'] + lin.name \

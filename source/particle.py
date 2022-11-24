@@ -50,9 +50,10 @@ class Particle():
         self.set_energy(e_mev, idx=0, delta_e=False)
 
         self.phi = {
-            'rel': None,
-            'abs': None,
-            'abs_array': np.full((n_steps + 1), np.NaN),
+            'phi_rel': None,
+            'phi_abs': None,
+            'phi_abs_rf': None,
+            'phi_abs_array': np.full((n_steps + 1), np.NaN),
         }
         self._init_phi(idx=0)
 
@@ -133,13 +134,13 @@ class Particle():
         """Init phi by taking z_rel and beta."""
         phi_abs = z_to_phi(self.pos['z_abs'][idx],
                            self.energy['beta'][idx], OMEGA_0_BUNCH)
-        self.phi['abs'] = phi_abs
-        self.phi['abs_array'][idx] = phi_abs
-        self.phi['rel'] = phi_abs
+        self.phi['phi_abs'] = phi_abs
+        self.phi['phi_abs_array'][idx] = phi_abs
+        self.phi['phi_rel'] = phi_abs
         self.df = pd.DataFrame({
-            'phi_abs_array': [self.phi['abs_array'][idx]],
-            'phi_abs': [self.phi['abs']],
-            'phi_rel': [self.phi['rel']],
+            'phi_abs_array': [self.phi['phi_abs_array'][idx]],
+            'phi_abs': [self.phi['phi_abs']],
+            'phi_rel': [self.phi['phi_rel']],
         })
 
 
@@ -161,16 +162,16 @@ class Particle():
             delta_phi = omega_0_rf * delta_t. Default is False.
         """
         if np.isnan(idx):
-            idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
+            idx = np.where(np.isnan(self.phi['phi_abs_array']))[0][0]
 
-        self.phi['rel'] += delta_phi
+        self.phi['phi_rel'] += delta_phi
 
         if flag_rf:
-            self.phi['abs_rf'] += delta_phi
+            self.phi['phi_abs_rf'] += delta_phi
             delta_phi *= self.frac_omega['rf_to_bunch']
 
-        self.phi['abs'] += delta_phi
-        self.phi['abs_array'][idx] = self.phi['abs_array'][idx - 1] + delta_phi
+        self.phi['phi_abs'] += delta_phi
+        self.phi['phi_abs_array'][idx] = self.phi['phi_abs_array'][idx - 1] + delta_phi
 
     def keep_energy_and_phase(self, results, idx_range):
         """Assign the energy and phase data to synch after MT calculation."""
@@ -178,7 +179,7 @@ class Particle():
         self.energy['w_kin'][idx_range] = w_kin
         self.energy['gamma'][idx_range] = kin_to_gamma(w_kin)
         self.energy['beta'][idx_range] = kin_to_beta(w_kin)
-        self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])
+        self.phi['phi_abs_array'][idx_range] = np.array(results["phi_abs"])
 
 
 def create_rand_particles(e_0_mev):

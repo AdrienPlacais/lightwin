@@ -222,7 +222,7 @@ def _create_plot_dicts():
     # LW y data
     d_y_data_lw = {
         'energy': lambda lin: lin.get('w_kin'),
-        'abs_phase': lambda lin: np.rad2deg(lin.synch.phi['abs_array']),
+        'abs_phase': lambda lin: lin.get('phi_abs_array', to_deg=True),
         'beta_synch': lambda lin: lin.get('beta'),
         'v_cav_mv': lambda lin: lin.get('v_cav_mv'),
         'phi_s_deg': lambda lin: lin.get('phi_s', to_deg=True),
@@ -239,12 +239,10 @@ def _create_plot_dicts():
         "gamma_zdelta": lambda lin: lin.get("twiss_zdelta")[:, 2],
         "gamma_z": lambda lin: lin.get("twiss_z")[:, 2],
         "gamma_w": lambda lin: lin.get("twiss_w")[:, 2],
-        "envel_pos_zdelta": lambda lin:
-            lin.get("enveloppe_zdelta")[:, 0],
+        "envel_pos_zdelta": lambda lin: lin.get("enveloppe_zdelta")[:, 0],
         "envel_pos_z": lambda lin: lin.get("enveloppes_z")[:, 0],
         "envel_pos_w": lambda lin: lin.get("enveloppes_w")[:, 0],
-        "envel_ener_zdelta": lambda lin:
-            lin.get("enveloppe_zdelta")[:, 1],
+        "envel_ener_zdelta": lambda lin: lin.get("enveloppe_zdelta")[:, 1],
         "envel_ener_z": lambda lin: lin.get("enveloppes_z")[:, 1],
         "envel_ener_w": lambda lin: lin.get("enveloppes_w")[:, 1],
         "mismatch factor": lambda lin: lin.get("mismatch factor"),

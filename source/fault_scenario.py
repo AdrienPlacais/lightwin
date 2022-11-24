@@ -287,7 +287,7 @@ class FaultScenario():
         elt1_to_elt2 = l_elts[idx1:idx2]
         s_elt1 = l_elts[idx1].idx['s_in']
         w_kin = self.brok_lin.get('w_kin')[s_elt1]
-        phi_abs = self.brok_lin.synch.phi['abs_array'][s_elt1]
+        phi_abs = self.brok_lin.get('phi_abs_array')[s_elt1]
         transf_mat = self.brok_lin.transf_mat['tm_cumul'][s_elt1]
 
         elts = ListOfElements(elt1_to_elt2, w_kin=w_kin, phi_abs=phi_abs,
@@ -327,7 +327,7 @@ class FaultScenario():
         """Compute some quantities on the whole linac to see if fit is good."""
         d_get = {
             'W_kin': lambda lin: lin.synch.energy['w_kin'],
-            'phi': lambda lin: lin.synch.phi['abs_array'],
+            'phi': lambda lin: lin.get('phi_abs_array'),
             'sigma_phi': lambda lin: lin.get('enveloppes_w')[:, 0],
             'sigma_w': lambda lin: lin.get('enveloppes_w')[:, 1],
             'mismatch factor': lambda lin: lin.get('mismatch factor'),
