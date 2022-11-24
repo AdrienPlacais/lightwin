@@ -102,7 +102,8 @@ class Fault():
 
         # Set the variables
         x_0, x_lim, constr, l_x_str = self._set_design_space()
-        l_elts, d_idx = self._select_zone_to_recompute(self.wtf['position'])
+        l_elts, d_idx = self._zone_to_recompute(self.wtf['position'])
+
         idx = l_elts[0].get('s_in')
         self.elts = ListOfElements(
             l_elts,
@@ -181,7 +182,7 @@ class Fault():
                                    # if any((cav in lattice
                                            # for cav in self.comp['l_cav']))]
 
-    def _select_zone_to_recompute(self, str_position):
+    def _zone_to_recompute(self, str_position):
         """
         Determine zone to recompute and indexes of where objective is checked.
 
@@ -198,44 +199,6 @@ class Fault():
             Dict holding the lists of indexes (ref and broken) to evaluate the
             objectives at the right spot.
         """
-        d_idx = {'l_ref': [], 'l_brok': []}
-
-        # Which lattices' data are necessary?
-        d_lattices = {
-            'end_mod': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 1],
-            '1_mod_after': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 2],
-            'both': lambda l_cav: self.brok_lin.elements['l_lattices']
-            [l_cav[0].idx['lattice']:l_cav[-1].idx['lattice'] + 2],
-        }
-        l_lattices = d_lattices[str_position](self.comp['l_cav'])
-        l_elts = [elt
-                  for lattice in l_lattices
-                  for elt in lattice]
-        # Where do you want to verify that the objective is matched?
-        d_pos = {
-            'end_mod': lambda lattices: [lattices[-1][-1].idx['s_out']],
-            '1_mod_after': lambda lattices: [lattices[-1][-1].idx['s_out']],
-            'both': lambda lattices: [lattices[-2][-1].idx['s_out'],
-                                      lattices[-1][-1].idx['s_out']],
-        }
-        d_idx['l_ref'] = d_pos[str_position](l_lattices)
-        shift_s_idx_brok = l_elts[0].idx['s_in']
-        # shift_s_idx_brok = self.comp['l_all_elts'][0].idx['s_in']
-        d_idx['l_brok'] = [idx - shift_s_idx_brok
-                           for idx in d_idx['l_ref']]
-
-        for idx in d_idx['l_ref']:
-            elt = self.brok_lin.where_is_this_index(idx)
-            print(f"\nWe try to match at mesh index {idx}.")
-            print(f"Info: {elt.get('elt_info')}.")
-            print(f"Full indexes: {elt.get('idx')}.")
-
-        return l_elts, d_idx
-
-    def _zone_to_recompute(self, str_position):
-        """Simpler routine to set the list of elements to recompute."""
         l_comp_cav = self.comp['l_cav']
 
         # We need the list of compensating cavities to be ordered for this
@@ -257,19 +220,39 @@ class Fault():
 
         # First elt of first lattice, last elt of last lattice
         idx1 = np.where(lattices == lattice1)[0][0]
-        idx2 = np.where(lattices == lattice2)[0][-1] + 1
-        idx3 = np.where(lattices == lattice3)[0][-1] + 1
+        idx2 = np.where(lattices == lattice2)[0][-1]
+        idx3 = np.where(lattices == lattice3)[0][-1]
 
         # We have the list of Elements that will be recomputed during
         # optimisation
         d_elts = {
-            'end_mod': lambda elts: elts[idx1:idx2],
-            '1_mod_after': lambda elts: elts[idx1:idx3],
-            'both': lambda elts: elts[idx1:idx3]}
-        return d_elts[str_position](self.brok_lin.elts)
+            'end_mod': self.brok_lin.elts[idx1:idx2 + 1],
+            '1_mod_after': self.brok_lin.elts[idx1:idx3 + 1],
+            'both': self.brok_lin.elts[idx1:idx3 + 1],
+        }
+        l_elts = d_elts[str_position]
 
-    def _where_evaluate_objective(self, str_position):
+        # Now get indexes
+        s_out = self.ref_lin.get('s_out')
+        d_position = {'end_mod': [s_out[idx2]],
+                      '1_mod_after': [s_out[idx3]],
+                      'both': [s_out[idx2], s_out[idx3]],
+        }
+        shift = l_elts[0].idx['s_in']
+        d_idx = {'l_ref': d_position[str_position],
+                 'l_brok': [idx - shift for idx in d_position[str_position]],
+                }
+        for idx in d_idx['l_ref']:
+            elt = self.brok_lin.where_is_this_index(idx)
+            print(f"\nWe try to match at mesh index {idx}.")
+            print(f"Info: {elt.get('elt_info')}.")
+            print(f"Full indexes: {elt.get('idx')}.\n")
+
+        return l_elts, d_idx
+
+    def _where_evaluate_objective(self, lattices, str_position):
         """Simpler routine to set indexes to easily access objectives."""
+        # Where do you want to verify that the objective is matched?
 
     def _proper_fix_lsq_opt(self, wrapper_args):
         """
@@ -579,8 +562,6 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
     # Update transfer matrices
     results = fault.elts.compute_transfer_matrices(d_fits,
                                                    flag_transfer_data=False)
-    # d_results = fault.brok_lin.compute_transfer_matrices(
-        # fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
     arr_f = fun_residual(fault.ref_lin, results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
