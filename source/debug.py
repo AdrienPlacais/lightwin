@@ -246,27 +246,27 @@ def _create_plot_dicts():
         'phi_s_deg': lambda lin: lin.get('phi_s', to_deg=True),
         'field_map_factor': lambda lin:
             lin.get_from_elements('acc_field', 'k_e'),
-        "eps_zdelta": lambda lin: lin.beam_param["eps"]["zdelta"],
-        "eps_z": lambda lin: lin.beam_param["eps"]["z"],
-        "eps_w": lambda lin: lin.beam_param["eps"]["w"],
-        "alpha_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 0],
-        "alpha_z": lambda lin: lin.beam_param["twiss"]["z"][:, 0],
-        "alpha_w": lambda lin: lin.beam_param["twiss"]["w"][:, 0],
-        "beta_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 1],
-        "beta_z": lambda lin: lin.beam_param["twiss"]["z"][:, 1],
-        "beta_w": lambda lin: lin.beam_param["twiss"]["w"][:, 1],
-        "gamma_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 2],
-        "gamma_z": lambda lin: lin.beam_param["twiss"]["z"][:, 2],
-        "gamma_w": lambda lin: lin.beam_param["twiss"]["w"][:, 2],
+        "eps_zdelta": lambda lin: lin.get("eps_zdelta"),
+        "eps_z": lambda lin: lin.get("eps_z"),
+        "eps_w": lambda lin: lin.get("eps_w"),
+        "alpha_zdelta": lambda lin: lin.get("twiss_zdelta")[:, 0],
+        "alpha_z": lambda lin: lin.get("twiss_z")[:, 0],
+        "alpha_w": lambda lin: lin.get("twiss_w")[:, 0],
+        "beta_zdelta": lambda lin: lin.get("twiss_zdelta")[:, 1],
+        "beta_z": lambda lin: lin.get("twiss_z")[:, 1],
+        "beta_w": lambda lin: lin.get("twiss_w")[:, 1],
+        "gamma_zdelta": lambda lin: lin.get("twiss_zdelta")[:, 2],
+        "gamma_z": lambda lin: lin.get("twiss_z")[:, 2],
+        "gamma_w": lambda lin: lin.get("twiss_w")[:, 2],
         "envel_pos_zdelta": lambda lin:
-            lin.beam_param["enveloppe"]["zdelta"][:, 0],
-        "envel_pos_z": lambda lin: lin.beam_param["enveloppes"]["z"][:, 0],
-        "envel_pos_w": lambda lin: lin.beam_param["enveloppes"]["w"][:, 0],
+            lin.get("enveloppe_zdelta")[:, 0],
+        "envel_pos_z": lambda lin: lin.get("enveloppes_z")[:, 0],
+        "envel_pos_w": lambda lin: lin.get("enveloppes_w")[:, 0],
         "envel_ener_zdelta": lambda lin:
-            lin.beam_param["enveloppe"]["zdelta"][:, 1],
-        "envel_ener_z": lambda lin: lin.beam_param["enveloppes"]["z"][:, 1],
-        "envel_ener_w": lambda lin: lin.beam_param["enveloppes"]["w"][:, 1],
-        "mismatch factor": lambda lin: lin.beam_param["mismatch factor"],
+            lin.get("enveloppe_zdelta")[:, 1],
+        "envel_ener_z": lambda lin: lin.get("enveloppes_z")[:, 1],
+        "envel_ener_w": lambda lin: lin.get("enveloppes_w")[:, 1],
+        "mismatch factor": lambda lin: lin.get("mismatch factor"),
     }
 
     d_err_factor = {
@@ -422,8 +422,8 @@ def _autoscale_based_on(axx, lines):
 def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
     """Plot the emittance ellipse and highlight interesting data."""
     # Extract Twiss and emittance at the index idx
-    twi = accelerator.beam_param["twiss"][phase_space][idx]
-    eps = accelerator.beam_param["eps"][phase_space][idx]
+    twi = accelerator.get("twiss_" + phase_space)[idx]
+    eps = accelerator.get("eps_ " + phase_space)[idx]
 
     # Compute ellipse dimensions; ellipse equation:
     # Ax**2 + Bxy + Cy**2 + Dx + Ey + F = 0

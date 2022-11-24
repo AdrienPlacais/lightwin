@@ -70,15 +70,16 @@ class Accelerator():
 
         # Beam parameters: emittance, Twiss
         self.beam_param = {
-            "twiss": {"zdelta": np.full((last_idx + 1, 3), np.NaN),
-                      "z": np.full((last_idx + 1, 3), np.NaN),
-                      "w": np.full((last_idx + 1, 3), np.NaN)},
-            "eps": {"zdelta": np.full((last_idx + 1), np.NaN),
-                    "z": np.full((last_idx + 1), np.NaN),
-                    "w": np.full((last_idx + 1), np.NaN)},
-            "enveloppes": {"zdelta": np.full((last_idx + 1, 2), np.NaN),
-                           "z": np.full((last_idx + 1, 2), np.NaN),
-                           "w": np.full((last_idx + 1, 2), np.NaN)},
+            "twiss": {"twiss_zdelta": np.full((last_idx + 1, 3), np.NaN),
+                      "twiss_z": np.full((last_idx + 1, 3), np.NaN),
+                      "twiss_w": np.full((last_idx + 1, 3), np.NaN)},
+            "eps": {"eps_zdelta": np.full((last_idx + 1), np.NaN),
+                    "eps_z": np.full((last_idx + 1), np.NaN),
+                    "eps_w": np.full((last_idx + 1), np.NaN)},
+            "enveloppes": {
+                "enveloppes_zdelta": np.full((last_idx + 1, 2), np.NaN),
+                "enveloppes_z": np.full((last_idx + 1, 2), np.NaN),
+                "enveloppes_w": np.full((last_idx + 1, 2), np.NaN)},
             "mismatch factor": np.full((last_idx + 1), np.NaN)
         }
         printc('Warning! accelerator. keys of beam param not gettable.')
@@ -101,7 +102,9 @@ class Accelerator():
         val = {}
         for key in keys:
             val[key] = []
-        l_dicts = [self.elements, self.files, self.transf_mat, self.beam_param]
+        l_dicts = [self.elements, self.files, self.transf_mat,
+                   self.beam_param, self.beam_param['twiss'],
+                   self.beam_param['enveloppes'], self.beam_param['eps']]
 
         for key in keys:
             if hasattr(self, key):
@@ -109,14 +112,14 @@ class Accelerator():
             elif self.has(key, check_sub_classes=False):
                 for dic in l_dicts:
                     if key in dic:
-                        data = dic[key]
+                        val[key] = dic[key]
                         break
             elif self.synch.has(key):
                 val[key] = self.synch.get(key, **kwargs)
             elif self.elts.has(key, check_sub_classes=True):
                 val[key] = self.elts.get(key, to_numpy=False, **kwargs)
             else:
-                data = None
+                val[key] = None
 
         # Convert to list, and to numpy array if necessary
         out = [val[key] for key in keys]
@@ -300,8 +303,8 @@ class Accelerator():
         assert self.name != 'Working'
         assert ref_linac.name == 'Working'
         self.beam_param["mismatch factor"] = \
-                mismatch_factor(ref_linac.beam_param["twiss"]["z"],
-                                self.beam_param["twiss"]["z"], transp=True)
+                mismatch_factor(ref_linac.beam_param["twiss"]["twiss_z"],
+                                self.beam_param["twiss"]["twiss_z"], transp=True)
 
 
 def _sections_lattices(l_elts):

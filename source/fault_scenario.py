@@ -328,10 +328,10 @@ class FaultScenario():
         d_get = {
             'W_kin': lambda lin: lin.synch.energy['kin_array_mev'],
             'phi': lambda lin: lin.synch.phi['abs_array'],
-            'sigma_phi': lambda lin: lin.beam_param['enveloppes']['w'][:, 0],
-            'sigma_w': lambda lin: lin.beam_param['enveloppes']['w'][:, 1],
-            'mismatch factor': lambda lin: lin.beam_param['mismatch factor'],
-            'emittance': lambda lin: lin.beam_param['eps']['w'],
+            'sigma_phi': lambda lin: lin.get('enveloppes_w')[:, 0],
+            'sigma_w': lambda lin: lin.get('enveloppes_w')[:, 1],
+            'mismatch factor': lambda lin: lin.get('mismatch factor'),
+            'emittance': lambda lin: lin.get('eps_w'),
         }
         idx_end_comp_zone = 824
         printc("Warning fault_scenario.evaluate_fit_quality: ",

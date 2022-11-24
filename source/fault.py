@@ -454,8 +454,8 @@ def _select_objective(l_objectives):
         'M_12': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 0 , 1],
         'M_21': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 1 , 0],
         'M_22': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 1 , 1],
-        'eps': lambda ref, i_r: ref.beam_param["eps"]["zdelta"][i_r],
-        'twiss': lambda ref, i_r: ref.beam_param["twiss"]["zdelta"][i_r],
+        'eps': lambda ref, i_r: ref.beam_param["eps"]["eps_zdelta"][i_r],
+        'twiss': lambda ref, i_r: ref.beam_param["twiss"]["twiss_zdelta"][i_r],
     }
     # Get data from results dictionary
     d_brok = {

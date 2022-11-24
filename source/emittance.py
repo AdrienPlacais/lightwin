@@ -31,10 +31,7 @@ FIXME r_zz should be an argument instead of taking the linac attribute. Also
 """
 
 import numpy as np
-import pandas as pd
-import helper
 from constants import E_REST_MEV, LAMBDA_BUNCH, SIGMA_ZDELTA
-import tracewin_interface as tw
 
 
 # =============================================================================
@@ -125,9 +122,9 @@ def _emittance_zdelta(arr_sigma):
 
 def _emittances_all(eps_zdelta, gamma):
     """Compute emittances in [phi-W] and [z-z']."""
-    d_eps = {"zdelta": eps_zdelta,
-             "w": _convert_emittance(eps_zdelta, "zdelta to w", gamma),
-             "z": _convert_emittance(eps_zdelta, "zdelta to z", gamma)}
+    d_eps = {"eps_zdelta": eps_zdelta,
+             "eps_w": _convert_emittance(eps_zdelta, "zdelta to w", gamma),
+             "eps_z": _convert_emittance(eps_zdelta, "zdelta to z", gamma)}
     return d_eps
 
 
@@ -176,9 +173,9 @@ def _twiss_zdelta(arr_sigma, arr_eps_zdelta):
 
 def _twiss_all(twiss_zdelta, gamma):
     """Compute Twiss parameters in [phi-W] and [z-z']."""
-    d_twiss = {"zdelta": twiss_zdelta,
-               "w": _convert_twiss(twiss_zdelta, "zdelta to w", gamma),
-               "z": _convert_twiss(twiss_zdelta, "zdelta to z", gamma)}
+    d_twiss = {"twiss_zdelta": twiss_zdelta,
+               "twiss_w": _convert_twiss(twiss_zdelta, "zdelta to w", gamma),
+               "twiss_z": _convert_twiss(twiss_zdelta, "zdelta to z", gamma)}
     return d_twiss
 
 
@@ -224,6 +221,9 @@ def _enveloppes(twiss, eps):
 
 def _enveloppes_all(twiss, eps):
     """Compute beam envelopes in all the planes."""
-    d_env = {key: _enveloppes(twiss[key], eps[key]) for key in twiss.keys()}
+    spa = ['_zdelta', '_w', '_z']
+    d_env = {'enveloppes' + key:
+             _enveloppes(twiss['twiss' + key], eps['eps' + key])
+             for key in spa}
     return d_env
 
