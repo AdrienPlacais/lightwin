@@ -276,12 +276,10 @@ class FaultScenario():
         """Recompute transfer matrices between this fault and the next."""
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elts
-        # idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
         idx1 = fault.elts[-1].idx['element']
 
         if fault is not l_faults[-1] and success:
             next_fault = l_faults[l_faults.index(fault) + 1]
-            # idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
             idx2 = next_fault.elts[0].idx('element') + 1
         else:
             idx2 = len(l_elts)
@@ -305,15 +303,19 @@ class FaultScenario():
         Change the cavities with status "rephased (in progress)" to
         "rephased (ok)" between this fault and the next one.
         """
+        printc("fault_scenario._reupdate_status_of_rephased_cavities warning:",
+               opt_message=" changed the way of defining idx1 and idx2.")
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elts
 
-        idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
+        # idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
+        idx1 = fault.elts[-1].idx['element']
         if fault is l_faults[-1]:
             idx2 = len(l_elts)
         else:
             next_fault = l_faults[l_faults.index(fault) + 1]
-            idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+            # idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+            idx2 = next_fault.elts[0].idx('element') + 1
 
         l_cav_between_two_faults = [elt for elt in l_elts[idx1:idx2]
                                     if elt.get('nature') == 'FIELD_MAP']

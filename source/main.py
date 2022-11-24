@@ -54,8 +54,8 @@ wtf_pso = {'opti method': 'PSO',
 
 wtf_lsq = {'opti method': 'least_squares',
            'strategy': 'k out of n',
-           'k': 2, 'l': 2, 'manual list': [],
-           # 'k': 6, 'l': 2, 'manual list': [],
+           # 'k': 2, 'l': 2, 'manual list': [],
+            'k': 6, 'l': 2, 'manual list': [],
            'objective': ['energy', 'phase', 'mismatch_factor'],
            'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {

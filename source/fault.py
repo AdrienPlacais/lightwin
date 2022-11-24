@@ -172,14 +172,14 @@ class Fault():
             cav.update_status(new_status)
 
         # Also create a list of all the elements in the compensating lattices
-        l_lattices = [lattice
-                      for section in self.brok_lin.elements['l_sections']
-                      for lattice in section]
+        # l_lattices = [lattice
+                      # for section in self.brok_lin.elements['l_sections']
+                      # for lattice in section]
 
-        self.comp['l_all_elts'] = [elt for lattice in l_lattices
-                                   for elt in lattice
-                                   if any((cav in lattice
-                                           for cav in self.comp['l_cav']))]
+        # self.comp['l_all_elts'] = [elt for lattice in l_lattices
+                                   # for elt in lattice
+                                   # if any((cav in lattice
+                                           # for cav in self.comp['l_cav']))]
 
     def _select_zone_to_recompute(self, str_position):
         """
@@ -221,7 +221,8 @@ class Fault():
                                       lattices[-1][-1].idx['s_out']],
         }
         d_idx['l_ref'] = d_pos[str_position](l_lattices)
-        shift_s_idx_brok = self.comp['l_all_elts'][0].idx['s_in']
+        shift_s_idx_brok = l_elts[0].idx['s_in']
+        # shift_s_idx_brok = self.comp['l_all_elts'][0].idx['s_in']
         d_idx['l_brok'] = [idx - shift_s_idx_brok
                            for idx in d_idx['l_ref']]
 
@@ -232,6 +233,43 @@ class Fault():
             print(f"Full indexes: {elt.get('idx')}.")
 
         return l_elts, d_idx
+
+    def _zone_to_recompute(self, str_position):
+        """Simpler routine to set the list of elements to recompute."""
+        l_comp_cav = self.comp['l_cav']
+
+        # We need the list of compensating cavities to be ordered for this
+        # routine to work
+        l_idx = [cav.get('s_in', to_numpy=False) for cav in l_comp_cav]
+        assert l_idx == sorted(l_idx)
+
+        lattices = self.brok_lin.get('lattice')
+
+        # Lattice of first and last compensating cavity
+        lattice1 = l_comp_cav[0].get('lattice')
+        lattice2 = l_comp_cav[-1].get('lattice')
+        lattice3 = lattice2 + 1
+        if lattice2 == lattices[-1]:
+            # FIXME set default behavior: fall back on end_mod
+            assert str_position not in ['1_mod_after', 'both'], \
+                    f"str_position={str_position} asks for elements outside" \
+                    + "of the linac."
+
+        # First elt of first lattice, last elt of last lattice
+        idx1 = np.where(lattices == lattice1)[0][0]
+        idx2 = np.where(lattices == lattice2)[0][-1] + 1
+        idx3 = np.where(lattices == lattice3)[0][-1] + 1
+
+        # We have the list of Elements that will be recomputed during
+        # optimisation
+        d_elts = {
+            'end_mod': lambda elts: elts[idx1:idx2],
+            '1_mod_after': lambda elts: elts[idx1:idx3],
+            'both': lambda elts: elts[idx1:idx3]}
+        return d_elts[str_position](self.brok_lin.elts)
+
+    def _where_evaluate_objective(self, str_position):
+        """Simpler routine to set indexes to easily access objectives."""
 
     def _proper_fix_lsq_opt(self, wrapper_args):
         """
@@ -437,6 +475,10 @@ def _select_objective(l_objectives):
         'energy': lambda ref, i_r: ref.synch.energy['kin_array_mev'][i_r],
         'phase': lambda ref, i_r: ref.synch.phi['abs_array'][i_r],
         'M_ij': lambda ref, i_r: ref.transf_mat['cumul'][i_r],
+        'M_11': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 0 , 0],
+        'M_12': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 0 , 1],
+        'M_21': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 1 , 0],
+        'M_22': lambda ref, i_r: ref.transf_mat['cumul'][i_r, 1 , 1],
         'eps': lambda ref, i_r: ref.beam_param["eps"]["zdelta"][i_r],
         'twiss': lambda ref, i_r: ref.beam_param["twiss"]["zdelta"][i_r],
     }
@@ -445,6 +487,10 @@ def _select_objective(l_objectives):
         'energy': lambda calc, i_b: calc['w_kin'][i_b],
         'phase': lambda calc, i_b: calc['phi_abs'][i_b],
         'M_ij': lambda calc, i_b: calc['r_zz_cumul'][i_b],
+        'M_11': lambda calc, i_b: calc['r_zz_cumul'][i_b, 0, 0],
+        'M_12': lambda calc, i_b: calc['r_zz_cumul'][i_b, 0, 1],
+        'M_21': lambda calc, i_b: calc['r_zz_cumul'][i_b, 1, 0],
+        'M_22': lambda calc, i_b: calc['r_zz_cumul'][i_b, 1, 1],
         'eps': lambda calc, i_b: calc["d_zdelta"]["eps"][i_b],
         'twiss': lambda calc, i_b: calc["d_zdelta"]["twiss"][i_b],
     }
