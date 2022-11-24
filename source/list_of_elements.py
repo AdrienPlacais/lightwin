@@ -147,7 +147,7 @@ class ListOfElements(list):
 
         # Create an rf_field dict with data from d_fit_elt or element according
         # to the case
-        rf_field_kwargs = elt.rf_param2(phi_abs, w_kin, d_fit_elt)
+        rf_field_kwargs = elt.rf_param(phi_abs, w_kin, d_fit_elt)
         # Compute transf mat, acceleration, phase, etc
         elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
         return elt_results, rf_field_kwargs
