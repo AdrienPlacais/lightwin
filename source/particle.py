@@ -37,10 +37,10 @@ class Particle():
         }
 
         self.pos = {
-            'rel': z_0,           # Position from the start of the element
-            'abs_array': np.full((n_steps + 1), np.NaN),
+            'z_rel': z_0,           # Position from the start of the element
+            'z_abs': np.full((n_steps + 1), np.NaN),
         }
-        self.pos['abs_array'][0] = z_0
+        self.pos['z_abs'][0] = z_0
         self.energy = {
             'w_kin': np.full((n_steps + 1), np.NaN),
             'gamma': np.full((n_steps + 1), np.NaN),
@@ -131,7 +131,7 @@ class Particle():
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
-        phi_abs = z_to_phi(self.pos['abs_array'][idx],
+        phi_abs = z_to_phi(self.pos['z_abs'][idx],
                            self.energy['beta'][idx], OMEGA_0_BUNCH)
         self.phi['abs'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs

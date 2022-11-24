@@ -91,7 +91,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
                     fold + '/results/M_65_ref.txt',
                     fold + '/results/M_66_ref.txt']
 
-    z_pos = accelerator.synch.pos['abs_array']
+    z_pos = accelerator.synch.pos['z_abs']
     n_z = z_pos.shape[0]
 
     transfer_matrix = accelerator.transf_mat['tm_cumul']
@@ -193,8 +193,7 @@ def _create_plot_dicts():
         'v_cav_mv': ['Acc. field [MV]', {'marker': 'o'}],
         'phi_s_deg': ['Synch. phase [deg]', {'marker': 'o'}],
         'field_map_factor': [r'$k_e$ [1]', {'marker': 'o'}],
-        "eps_zdelta": [r"$\epsilon_{z\delta}$ [$\pi$.m.rad]",
-                       {"marker": None}],
+        "eps_zdelta": [r"$\epsilon_{z\delta}$ [$\pi$.m.rad]", {"marker": None}],
         "eps_z": [r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
         "eps_w": [r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]", {"marker": None}],
         "alpha_zdelta": [r"$\alpha_{z\delta}$ [1]", {"marker": None}],
@@ -202,14 +201,10 @@ def _create_plot_dicts():
         "alpha_w": [r"$\alpha_{\phi W}$ [1]", {"marker": None}],
         "beta_zdelta": [r"$\beta_{z\delta}$ [mm/$\pi$.%]", {"marker": None}],
         "beta_z": [r"$\beta_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
-        "beta_w": [r"$\beta_{\phi W}$ [deg/$\pi$.MeV]",
-                   {"marker": None}],
-        "gamma_zdelta": [r"$\gamma_{z\delta}$ [$\pi$/mm.rad]",
-                         {"marker": None}],
-        "gamma_z": [r"$\gamma_{zz'}$ [$\pi$/mm.mrad]",
-                    {"marker": None}],
-        "gamma_w": [r"$\gamma_{\phi W}$ [$\pi$/deg.MeV]",
-                    {"marker": None}],
+        "beta_w": [r"$\beta_{\phi W}$ [deg/$\pi$.MeV]", {"marker": None}],
+        "gamma_zdelta": [r"$\gamma_{z\delta}$ [$\pi$/mm.rad]", {"marker": None}],
+        "gamma_z": [r"$\gamma_{zz'}$ [$\pi$/mm.mrad]", {"marker": None}],
+        "gamma_w": [r"$\gamma_{\phi W}$ [$\pi$/deg.MeV]", {"marker": None}],
         "envel_pos_zdelta": [r"$\sigma_z$ [m]", {"marker": None}],
         "envel_pos_z": [r"$\sigma_z$ [mm]", {"marker": None}],
         "envel_pos_w": [r"$\sigma_\phi$ [deg]", {"marker": None}],
@@ -220,7 +215,7 @@ def _create_plot_dicts():
     }
 
     d_x_data = {
-        's': lambda lin: lin.synch.pos['abs_array'],
+        's': lambda lin: lin.get('z_abs'),
         'elt': lambda lin: np.array(range(len(lin.elts))),
     }
 

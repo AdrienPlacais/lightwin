@@ -209,7 +209,7 @@ def plot_section(linac, ax, x_axis='s'):
     """Add light grey rectangles behind the plot to show the sections."""
     dict_x_axis = {
         'last_elt_of_sec': lambda sec: sec[-1][-1],
-        's': lambda elt: linac.synch.pos['abs_array'][elt.idx['s_out']],
+        's': lambda elt: linac.synch.pos['z_abs'][elt.idx['s_out']],
         'elt': lambda elt: elt.idx['element'] + 1,
     }
     x_ax = [0]
@@ -293,9 +293,9 @@ def save_energy_phase_tm(lin):
     lin : Accelerator object
         Object of corresponding to desired output.
     """
-    n_z = lin.synch.pos['abs_array'].shape[0]
+    n_z = lin.get('z_abs').shape[0]
     data = np.column_stack((
-        lin.synch.pos['abs_array'],
+        lin.get('z_abs'),
         lin.get('w_kin'),
         lin.synch.phi['abs_array'],
         np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
