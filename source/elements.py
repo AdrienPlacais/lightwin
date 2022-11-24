@@ -93,7 +93,7 @@ class _Element():
         self.idx = {'s_in': None, 's_out': None,
                     'elt_idx': None, 'lattice': None, 'section': None}
 
-        self.tm_func = lambda d_z, gamma, n_steps, rf_field=None: \
+        self._tm_func = lambda d_z, gamma, n_steps, rf_field=None: \
                 (np.empty([10, 2, 2]), np.empty([10, 2]), None)
         self.solver_param = {'n_steps': None, 'd_z': None,
                              'abs_mesh': None, 'rel_mesh': None}
@@ -163,7 +163,7 @@ class _Element():
                 or self.get('status') == 'failed'):
             key_fun = 'non_acc'
 
-        self.tm_func = d_func_tm[key_fun](mod)
+        self._tm_func = d_func_tm[key_fun](mod)
 
     def calc_transf_mat(self, w_kin_in, **rf_field_kwargs):
         """
@@ -186,13 +186,13 @@ class _Element():
                 self.get('status') != 'failed':
 
             r_zz, gamma_phi, itg_field = \
-                self.tm_func(d_z, gamma, n_steps, rf_field_kwargs)
+                self._tm_func(d_z, gamma, n_steps, rf_field_kwargs)
 
             gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.get('status'))
 
         else:
-            r_zz, gamma_phi, _ = self.tm_func(d_z, gamma, n_steps)
+            r_zz, gamma_phi, _ = self._tm_func(d_z, gamma, n_steps)
             cav_params = None
 
         w_kin = (gamma_phi[:, 0] - 1.) * E_REST_MEV
