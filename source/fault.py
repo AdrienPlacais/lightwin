@@ -55,7 +55,7 @@ class Fault():
         self.wtf = wtf
 
         self.elts = None
-        self.comp = {'l_cav': [],#'l_all_elts': [],#'l_recompute': None,
+        self.comp = {'l_cav': [],
                      'n_cav': None}
 
         self.info = {
@@ -123,7 +123,6 @@ class Fault():
             'l_F_str': l_f_str,
             'G': constr,
         })
-        # self.comp['l_recompute'] = l_elts
 
         wrapper_args = (self, fun_residual, d_idx, self.wtf['phi_s fit'])
 
@@ -171,16 +170,6 @@ class Fault():
                        + " compensation?")
 
             cav.update_status(new_status)
-
-        # Also create a list of all the elements in the compensating lattices
-        # l_lattices = [lattice
-                      # for section in self.brok_lin.elements['l_sections']
-                      # for lattice in section]
-
-        # self.comp['l_all_elts'] = [elt for lattice in l_lattices
-                                   # for elt in lattice
-                                   # if any((cav in lattice
-                                           # for cav in self.comp['l_cav']))]
 
     def _zone_to_recompute(self, str_position):
         """
@@ -256,10 +245,6 @@ class Fault():
         idx2 = np.where(lattices == lattice2)[0][-1]
         idx3 = np.where(lattices == lattice3)[0][-1]
         return idx1, idx2, idx3
-
-    def _where_evaluate_objective(self, lattices, str_position):
-        """Simpler routine to set indexes to easily access objectives."""
-        # Where do you want to verify that the objective is matched?
 
     def _proper_fix_lsq_opt(self, wrapper_args):
         """

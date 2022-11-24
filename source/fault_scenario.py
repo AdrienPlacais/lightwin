@@ -289,12 +289,11 @@ class FaultScenario():
         w_kin = self.brok_lin.get('kin_array_mev')[s_elt1]
         phi_abs = self.brok_lin.synch.phi['abs_array'][s_elt1]
         transf_mat = self.brok_lin.transf_mat['cumul'][s_elt1]
+
         elts = ListOfElements(elt1_to_elt2, w_kin=w_kin, phi_abs=phi_abs,
                               idx_in=s_elt1, r_zz_cumul=transf_mat)
         results = elts.compute_transfer_matrices()
         self.brok_lin.save_results(results, elts)
-
-        # self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
 
     def _reupdate_status_of_rephased_cavities(self, fault):
         """
