@@ -91,7 +91,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
                     fold + '/results/M_65_ref.txt',
                     fold + '/results/M_66_ref.txt']
 
-    z_pos = accelerator.synch.z['abs_array']
+    z_pos = accelerator.synch.pos['abs_array']
     n_z = z_pos.shape[0]
 
     transfer_matrix = accelerator.transf_mat['tm_cumul']
@@ -220,20 +220,18 @@ def _create_plot_dicts():
     }
 
     d_x_data = {
-        's': lambda lin: lin.synch.z['abs_array'],
+        's': lambda lin: lin.synch.pos['abs_array'],
         'elt': lambda lin: np.array(range(len(lin.elts))),
     }
 
     # LW y data
     d_y_data_lw = {
-        'energy': lambda lin: lin.synch.energy['w_kin'],
+        'energy': lambda lin: lin.get('w_kin'),
         'abs_phase': lambda lin: np.rad2deg(lin.synch.phi['abs_array']),
-        'beta_synch': lambda lin: lin.synch.energy['beta'],
-        'v_cav_mv': lambda lin:
-            lin.get_from_elements('acc_field', 'cav_params', 'v_cav_mv'),
+        'beta_synch': lambda lin: lin.get('beta'),
+        'v_cav_mv': lambda lin: lin.get('v_cav_mv'),
         'phi_s_deg': lambda lin: lin.get('phi_s', to_deg=True),
-        'field_map_factor': lambda lin:
-            lin.get_from_elements('acc_field', 'k_e'),
+        'field_map_factor': lambda lin: lin.get('k_e'),
         "eps_zdelta": lambda lin: lin.get("eps_zdelta"),
         "eps_z": lambda lin: lin.get("eps_z"),
         "eps_w": lambda lin: lin.get("eps_w"),

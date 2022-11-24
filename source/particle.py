@@ -36,11 +36,11 @@ class Particle():
             # compensation
         }
 
-        self.z = {
+        self.pos = {
             'rel': z_0,           # Position from the start of the element
             'abs_array': np.full((n_steps + 1), np.NaN),
         }
-        self.z['abs_array'][0] = z_0
+        self.pos['abs_array'][0] = z_0
         self.energy = {
             'w_kin': np.full((n_steps + 1), np.NaN),
             'gamma': np.full((n_steps + 1), np.NaN),
@@ -68,7 +68,7 @@ class Particle():
     def get(self, *keys, to_deg=False):
         """Shorthand to get attributes."""
         out = []
-        l_dicts = [self.part_info, self.z, self.energy, self.phi]
+        l_dicts = [self.part_info, self.pos, self.energy, self.phi]
 
         for key in keys:
             if hasattr(self, key):
@@ -95,7 +95,7 @@ class Particle():
         """Create the array of absolute positions."""
         assert self.part_info["synchronous"], """This routine only works for the
         synch particle I think."""
-        self.z["abs_array"] = abs_z_array
+        self.pos["abs_array"] = abs_z_array
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
@@ -131,7 +131,7 @@ class Particle():
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
-        phi_abs = z_to_phi(self.z['abs_array'][idx],
+        phi_abs = z_to_phi(self.pos['abs_array'][idx],
                            self.energy['beta'][idx], OMEGA_0_BUNCH)
         self.phi['abs'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs
