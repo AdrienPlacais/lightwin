@@ -43,9 +43,9 @@ class Particle():
         self.z['abs_array'][0] = z_0
         self.energy = {
             'w_kin': np.full((n_steps + 1), np.NaN),
-            'gamma_array': np.full((n_steps + 1), np.NaN),
-            'beta_array': np.full((n_steps + 1), np.NaN),   # Necessary? TODO
-            'p_array_mev': np.full((n_steps + 1), np.NaN),  # Necessary? TODO
+            'gamma': np.full((n_steps + 1), np.NaN),
+            'beta': np.full((n_steps + 1), np.NaN),   # Necessary? TODO
+            'p': np.full((n_steps + 1), np.NaN),  # Necessary? TODO
         }
         self.set_energy(e_mev, idx=0, delta_e=False)
 
@@ -125,14 +125,14 @@ class Particle():
         beta = gamma_to_beta(gamma)
         p_mev = gamma_and_beta_to_p(gamma, beta, E_REST_MEV)
 
-        self.energy['gamma_array'][idx] = gamma
-        self.energy['beta_array'][idx] = beta
-        self.energy['p_array_mev'][idx] = p_mev
+        self.energy['gamma'][idx] = gamma
+        self.energy['beta'][idx] = beta
+        self.energy['p'][idx] = p_mev
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
         phi_abs = z_to_phi(self.z['abs_array'][idx],
-                           self.energy['beta_array'][idx], OMEGA_0_BUNCH)
+                           self.energy['beta'][idx], OMEGA_0_BUNCH)
         self.phi['abs'] = phi_abs
         self.phi['abs_array'][idx] = phi_abs
         self.phi['rel'] = phi_abs
@@ -176,8 +176,8 @@ class Particle():
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
         self.energy['w_kin'][idx_range] = w_kin
-        self.energy['gamma_array'][idx_range] = kin_to_gamma(w_kin)
-        self.energy['beta_array'][idx_range] = kin_to_beta(w_kin)
+        self.energy['gamma'][idx_range] = kin_to_gamma(w_kin)
+        self.energy['beta'][idx_range] = kin_to_beta(w_kin)
         self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])
 
 
