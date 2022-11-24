@@ -242,7 +242,7 @@ class FaultScenario():
                       'phi_s fit': self.wtf['phi_s fit']}
 
             results = fault.elts.compute_transfer_matrices(
-                d_fits=d_fits, flag_transfer_data=True)
+                d_fits=d_fits, transfer_data=True)
             self.ref_lin.save_results(results, fault.elts)
             fault.get_x_sol_in_real_phase()
 

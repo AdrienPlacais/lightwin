@@ -80,8 +80,8 @@ class ListOfElements(list):
         # implicit else
         return tuple(out)
 
-    # FIXME flag_transfer_data does not have the same meaning anymore
-    def compute_transfer_matrices(self, d_fits=None, flag_transfer_data=True):
+    # FIXME transfer_data does not have the same meaning anymore
+    def compute_transfer_matrices(self, d_fits=None, transfer_data=True):
         """
         Compute the transfer matrices of Accelerator's elements.
 
@@ -90,7 +90,7 @@ class ListOfElements(list):
         d_fits: dict, optional
             Dict to where norms and phases of compensating cavities are stored.
             If the dict is None, we take norms and phases from cavity objects.
-        flag_transfer_data : boolean, optional
+        transfer_data : boolean, optional
             If True, we save the energies, transfer matrices, etc that are
             calculated in the routine.
         """
@@ -115,7 +115,7 @@ class ListOfElements(list):
             # fit, we remove the associated rf fields and phi_s
             # (not used by the optimisation algorithms)
             # FIXME simpler equivalent?
-            if (not flag_transfer_data) and (d_fits is not None) \
+            if (not transfer_data) and (d_fits is not None) \
                and (elt.get('status') == 'nominal'):
                 l_rf_fields[-1] = None
                 l_elt_results[-1]['phi_s'] = None

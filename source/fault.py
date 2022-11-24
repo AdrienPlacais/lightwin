@@ -552,8 +552,7 @@ def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
               'phi_s fit': phi_s_fit}
 
     # Update transfer matrices
-    results = fault.elts.compute_transfer_matrices(d_fits,
-                                                   flag_transfer_data=False)
+    results = fault.elts.compute_transfer_matrices(d_fits, transfer_data=False)
     arr_f = fun_residual(fault.ref_lin, results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
@@ -572,10 +571,7 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
               'phi_s fit': False}
 
     # Update transfer matrices
-    results = fault.elts.compute_transfer_matrices(d_fits,
-                                                   flag_transfer_data=False)
-    # d_results = fault.brok_lin.compute_transfer_matrices(
-        # fault.comp['l_recompute'], d_fits=d_fits, flag_transfer_data=False)
+    results = fault.elts.compute_transfer_matrices(d_fits, transfer_data=False)
     arr_f = fun_residual(fault.ref_lin, results, d_idx)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
