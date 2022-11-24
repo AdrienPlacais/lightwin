@@ -93,12 +93,8 @@ class _Element():
         self.idx = {'s_in': None, 's_out': None,
                     'elt_idx': None, 'lattice': None, 'section': None}
 
-        # tmat stands for 'transfer matrix'
-        self.tmat = {
-            'func': lambda d_z, gamma, n_steps, rf_field=None:
-                (np.empty([10, 2, 2]), np.empty([10, 2]), None),
-            'matrix': np.empty([10, 2, 2]),
-        }
+        self.tm_func = lambda d_z, gamma, n_steps, rf_field=None: \
+                (np.empty([10, 2, 2]), np.empty([10, 2]), None)
         self.solver_param = {'n_steps': None, 'd_z': None,
                              'abs_mesh': None, 'rel_mesh': None}
 
@@ -112,7 +108,7 @@ class _Element():
     def get(self, *keys, to_numpy=True, **kwargs):
         """Shorthand to get attributes."""
         out = []
-        l_dicts = [self.elt_info, self.idx, self.tmat, self.solver_param]
+        l_dicts = [self.elt_info, self.idx, self.solver_param]
 
         for key in keys:
             # key is a straightforward attribute
@@ -156,7 +152,6 @@ class _Element():
             key_n_steps = 'drift'
         n_steps = d_n_steps[key_n_steps](self)
 
-        self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
         self.solver_param['n_steps'] = n_steps
         self.solver_param['d_z'] = self.length_m / n_steps
         self.solver_param['rel_mesh'] = np.linspace(0., self.length_m,
@@ -168,7 +163,7 @@ class _Element():
                 or self.get('status') == 'failed'):
             key_fun = 'non_acc'
 
-        self.tmat['func'] = d_func_tm[key_fun](mod)
+        self.tm_func = d_func_tm[key_fun](mod)
 
     def calc_transf_mat(self, w_kin_in, **rf_field_kwargs):
         """
@@ -191,13 +186,13 @@ class _Element():
                 self.get('status') != 'failed':
 
             r_zz, gamma_phi, itg_field = \
-                self.tmat['func'](d_z, gamma, n_steps, rf_field_kwargs)
+                self.tm_func(d_z, gamma, n_steps, rf_field_kwargs)
 
             gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
             cav_params = compute_param_cav(itg_field, self.get('status'))
 
         else:
-            r_zz, gamma_phi, _ = self.tmat['func'](d_z, gamma, n_steps)
+            r_zz, gamma_phi, _ = self.tm_func(d_z, gamma, n_steps)
             cav_params = None
 
         w_kin = (gamma_phi[:, 0] - 1.) * E_REST_MEV
@@ -239,10 +234,8 @@ class _Element():
             self.acc_field.k_e = 0.
             self.init_solvers()
 
-    def keep_mt_and_rf_field(self, transf_mat_elt, rf_field, cav_params):
+    def keep_rf_field(self, rf_field, cav_params):
         """Save data calculated by Accelerator.compute_transfer_matrices."""
-        self.tmat["matrix"] = transf_mat_elt
-
         if rf_field != {}:
             self.acc_field.cav_params = cav_params
             self.acc_field.phi_0['phi_0_abs'] = rf_field['phi_0_abs']

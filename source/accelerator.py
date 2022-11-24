@@ -193,7 +193,7 @@ class Accelerator():
             transf_mat_elt = results["r_zz_cumul"][idx_rel]
 
             self.transf_mat['tm_indiv'][idx_abs] = transf_mat_elt
-            elt.keep_mt_and_rf_field(transf_mat_elt, rf_field, cav_params)
+            elt.keep_rf_field(rf_field, cav_params)
 
         # Save into Accelerator
         self.transf_mat['tm_cumul'][idx_in:idx_out] = results["r_zz_cumul"]
