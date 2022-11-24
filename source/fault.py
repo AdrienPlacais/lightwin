@@ -199,29 +199,9 @@ class Fault():
             Dict holding the lists of indexes (ref and broken) to evaluate the
             objectives at the right spot.
         """
-        l_comp_cav = self.comp['l_cav']
-
-        # We need the list of compensating cavities to be ordered for this
-        # routine to work
-        l_idx = [cav.get('s_in', to_numpy=False) for cav in l_comp_cav]
-        assert l_idx == sorted(l_idx)
-
-        lattices = self.brok_lin.get('lattice')
-
-        # Lattice of first and last compensating cavity
-        lattice1 = l_comp_cav[0].get('lattice')
-        lattice2 = l_comp_cav[-1].get('lattice')
-        lattice3 = lattice2 + 1
-        if lattice2 == lattices[-1]:
-            # FIXME set default behavior: fall back on end_mod
-            assert str_position not in ['1_mod_after', 'both'], \
-                    f"str_position={str_position} asks for elements outside" \
-                    + "of the linac."
-
-        # First elt of first lattice, last elt of last lattice
-        idx1 = np.where(lattices == lattice1)[0][0]
-        idx2 = np.where(lattices == lattice2)[0][-1]
-        idx3 = np.where(lattices == lattice3)[0][-1]
+        # Get indexes at start of first compensating lattice, end of last
+        # compensating lattice, end of following lattice.
+        idx1, idx2, idx3 = self._indexes_start_end_comp_zone(str_position)
 
         # We have the list of Elements that will be recomputed during
         # optimisation
@@ -249,6 +229,33 @@ class Fault():
             print(f"Full indexes: {elt.get('idx')}.\n")
 
         return l_elts, d_idx
+
+    def _indexes_start_end_comp_zone(self, str_position):
+        """Get indexes delimiting compensation zone."""
+        l_comp_cav = self.comp['l_cav']
+
+        # We need the list of compensating cavities to be ordered for this
+        # routine to work
+        l_idx = [cav.get('s_in', to_numpy=False) for cav in l_comp_cav]
+        assert l_idx == sorted(l_idx)
+
+        lattices = self.brok_lin.get('lattice')
+
+        # Lattice of first and last compensating cavity
+        lattice1 = l_comp_cav[0].get('lattice')
+        lattice2 = l_comp_cav[-1].get('lattice')
+        lattice3 = lattice2 + 1
+        if lattice2 == lattices[-1]:
+            # FIXME set default behavior: fall back on end_mod
+            assert str_position not in ['1_mod_after', 'both'], \
+                    f"str_position={str_position} asks for elements outside" \
+                    + "of the linac."
+
+        # First elt of first lattice, last elt of last lattice
+        idx1 = np.where(lattices == lattice1)[0][0]
+        idx2 = np.where(lattices == lattice2)[0][-1]
+        idx3 = np.where(lattices == lattice3)[0][-1]
+        return idx1, idx2, idx3
 
     def _where_evaluate_objective(self, lattices, str_position):
         """Simpler routine to set indexes to easily access objectives."""
