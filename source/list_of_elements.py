@@ -13,7 +13,7 @@ from emittance import beam_parameters_zdelta
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
-    def __init__(self, l_elts, w_kin, phi_abs, idx_in=None, r_zz_cumul=None):
+    def __init__(self, l_elts, w_kin, phi_abs, idx_in=None, tm_cumul=None):
         super().__init__(l_elts)
         print(f"Init list from {l_elts[0].get('elt_name')} to " +
               f"{l_elts[-1].get('elt_name')}.")
@@ -25,11 +25,11 @@ class ListOfElements(list):
         self.phi_abs_in = phi_abs
 
         if self._idx_in == 0:
-            r_zz_cumul = np.eye(2)
+            tm_cumul = np.eye(2)
         else:
-            assert ~np.isnan(r_zz_cumul).any(), \
+            assert ~np.isnan(tm_cumul).any(), \
                 "Previous transfer matrix was not calculated."
-        self.r_zz_cumul_in = r_zz_cumul
+        self.tm_cumul_in = tm_cumul
 
     def has(self, key):
         """Tell if the required attribute is in this class."""
@@ -160,7 +160,7 @@ class ListOfElements(list):
             "w_kin": [self.w_kin_in],
             "phi_abs_array": [self.phi_abs_in],
             "r_zz_elt": [],         # List of numpy arrays
-            "r_zz_cumul": None,     # (n, 2, 2) numpy array
+            "tm_cumul": None,     # (n, 2, 2) numpy array
             "rf_fields": [],        # List of dicts
             "d_zdelta": None,
         }
@@ -181,18 +181,18 @@ class ListOfElements(list):
 
             results["w_kin"].extend(elt_results['w_kin'].tolist())
 
-        results["r_zz_cumul"] = self._indiv_to_cumul_transf_mat(
+        results["tm_cumul"] = self._indiv_to_cumul_transf_mat(
             results["r_zz_elt"], len(results["w_kin"]))
 
-        results["d_zdelta"] = beam_parameters_zdelta(results["r_zz_cumul"])
+        results["d_zdelta"] = beam_parameters_zdelta(results["tm_cumul"])
         return results
 
     def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, n_steps):
         """Compute cumulated transfer matrix."""
         # Compute transfer matrix of l_elts
-        arr_r_zz_cumul = np.full((n_steps, 2, 2), np.NaN)
-        arr_r_zz_cumul[0] = self.r_zz_cumul_in
+        arr_tm_cumul = np.full((n_steps, 2, 2), np.NaN)
+        arr_tm_cumul[0] = self.tm_cumul_in
         for i in range(1, n_steps):
-            arr_r_zz_cumul[i] = l_r_zz_elt[i - 1] @ arr_r_zz_cumul[i - 1]
-        return arr_r_zz_cumul
+            arr_tm_cumul[i] = l_r_zz_elt[i - 1] @ arr_tm_cumul[i - 1]
+        return arr_tm_cumul
 

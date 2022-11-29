@@ -176,13 +176,13 @@ class Accelerator():
             idx_abs = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
             idx_rel = range(elt.idx['s_in'] + 1 - idx_in,
                             elt.idx['s_out'] + 1 - idx_in)
-            transf_mat_elt = results["r_zz_cumul"][idx_rel]
+            transf_mat_elt = results["tm_cumul"][idx_rel]
 
             self.transf_mat['tm_indiv'][idx_abs] = transf_mat_elt
             elt.keep_rf_field(rf_field, cav_params)
 
         # Save into Accelerator
-        self.transf_mat['tm_cumul'][idx_in:idx_out] = results["r_zz_cumul"]
+        self.transf_mat['tm_cumul'][idx_in:idx_out] = results["tm_cumul"]
 
         # Save into Particle
         self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))

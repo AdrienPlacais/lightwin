@@ -292,7 +292,7 @@ class FaultScenario():
         transf_mat = self.brok_lin.transf_mat['tm_cumul'][s_elt1]
 
         elts = ListOfElements(elt1_to_elt2, w_kin=w_kin, phi_abs=phi_abs,
-                              idx_in=s_elt1, r_zz_cumul=transf_mat)
+                              idx_in=s_elt1, tm_cumul=transf_mat)
         results = elts.compute_transfer_matrices()
         self.brok_lin.save_results(results, elts)
 

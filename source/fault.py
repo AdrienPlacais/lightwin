@@ -111,7 +111,7 @@ class Fault():
             w_kin=self.brok_lin.get('w_kin')[idx],
             phi_abs=self.brok_lin.get('phi_abs_array')[idx],
             idx_in=idx,
-            r_zz_cumul = self.brok_lin.get('tm_cumul')[idx])
+            tm_cumul = self.brok_lin.get('tm_cumul')[idx])
         # FIXME would be better of at Fault initialization
 
         fun_residual, l_f_str = _select_objective(self.wtf['objective'])
@@ -460,11 +460,11 @@ def _select_objective(l_objectives):
     d_brok = {
         'w_kin': lambda calc, i_b: calc['w_kin'][i_b],
         'phi_abs_array': lambda calc, i_b: calc['phi_abs_array'][i_b],
-        'M_ij': lambda calc, i_b: calc['r_zz_cumul'][i_b],
-        'M_11': lambda calc, i_b: calc['r_zz_cumul'][i_b, 0, 0],
-        'M_12': lambda calc, i_b: calc['r_zz_cumul'][i_b, 0, 1],
-        'M_21': lambda calc, i_b: calc['r_zz_cumul'][i_b, 1, 0],
-        'M_22': lambda calc, i_b: calc['r_zz_cumul'][i_b, 1, 1],
+        'M_ij': lambda calc, i_b: calc['tm_cumul'][i_b],
+        'M_11': lambda calc, i_b: calc['tm_cumul'][i_b, 0, 0],
+        'M_12': lambda calc, i_b: calc['tm_cumul'][i_b, 0, 1],
+        'M_21': lambda calc, i_b: calc['tm_cumul'][i_b, 1, 0],
+        'M_22': lambda calc, i_b: calc['tm_cumul'][i_b, 1, 1],
         'eps_zdelta': lambda calc, i_b: calc["d_zdelta"]["eps"][i_b],
         'twiss': lambda calc, i_b: calc["d_zdelta"]["twiss"][i_b],
     }
