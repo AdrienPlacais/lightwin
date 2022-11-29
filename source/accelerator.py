@@ -199,51 +199,6 @@ class Accelerator():
             for item2 in item1[1].items():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
 
-    def get_from_elements(self, attribute, key=None, other_key=None):
-        """
-        Return attribute from all elements in list_of_elements.
-
-        Parameters
-        ----------
-        attribute : string
-            Name of the desired attribute.
-        key : string, optional
-            If attribute is a dict, key must be provided. Default is None.
-        other_key : string, optional
-            If attribute[key] is a dict, a second key must be provided. Default
-            is None.
-        """
-        list_of_keys = vars(self.elts[0])
-        data_nature = str(type(list_of_keys[attribute]))
-
-        dict_data_getter = {
-            "<class 'dict'>": lambda elt_dict, key: elt_dict[key],
-            "<class 'electric_field.RfField'>": lambda elt_class, key:
-                vars(elt_class)[key],
-            "<class 'numpy.ndarray'>": lambda data_new, key: data_new,
-            "<class 'float'>": lambda data_new, key: data_new,
-            "<class 'str'>": lambda data_new, key: data_new,
-        }
-        fun = dict_data_getter[data_nature]
-
-        data_out = []
-        for elt in self.elts:
-            list_of_keys = vars(elt)
-            piece_of_data = fun(list_of_keys[attribute], key)
-            if isinstance(piece_of_data, dict):
-                piece_of_data = piece_of_data[other_key]
-            data_out.append(piece_of_data)
-
-        # Concatenate into a single matrix
-        if attribute == 'transfer_matrix':
-            data_array = data_out[0]
-            for i in range(1, len(data_out)):
-                data_array = np.vstack((data_array, data_out[i]))
-        # Transform into array
-        else:
-            data_array = np.array(data_out)
-        return data_array
-
     def elements_of(self, nature, sub_list=None):
         """
         Return a list of elements of nature 'nature'.

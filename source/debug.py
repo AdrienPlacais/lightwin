@@ -230,7 +230,6 @@ def _create_plot_dicts():
         'x_data': d_x_data,
         'y_data_lw': d_y_data_lw,
         'err_factor': d_err_factor,
-        # 'errors': d_errors,
     }
 
     return all_dicts
@@ -268,7 +267,7 @@ def compare_with_tracewin(linac, x_dat='z_abs', y_dat=None, filepath_ref=None,
 
     dicts = _create_plot_dicts()
 
-    elts_indexes = linac.get_from_elements('idx', 's_out')
+    elts_indexes = linac.get('s_out')
 
     def _err(y_d, diff):
         assert y_d in tw.d_tw_data_table
