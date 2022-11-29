@@ -200,29 +200,14 @@ class Accelerator():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
 
     def elements_of(self, nature, sub_list=None):
-        """
-        Return a list of elements of nature 'nature'.
-
-        Parameters
-        ----------
-        nature : string
-            Nature of the elements you want, eg FIELD_MAP or DRIFT.
-        sub_list : list, optional
-            List of elements (eg module) if you want the elements only in this
-            module.
-
-        Returns
-        -------
-        list_of : list of Element
-            List of all the Elements which have a nature 'nature'.
-        """
+        """Return a list of elements of nature 'nature'."""
         if sub_list is None:
             sub_list = self.elts
         list_of = list(filter(lambda elt: elt.get('nature') == nature,
                               sub_list))
         return list_of
 
-    def where_is_this_index(self, idx, showinfo=False):
+    def where_is_this_index(self, idx, show_info=False):
         """Give the element where the given index is."""
         found, elt = False, None
 
@@ -231,7 +216,7 @@ class Accelerator():
                 found = True
                 break
 
-        if showinfo:
+        if show_info:
             if found:
                 print(f"Mesh index {idx} is in {elt.get('elt_info')}.")
                 print(f"Indexes of this elt: {elt.get('idx')}.\n")

@@ -6,19 +6,14 @@ Created on Tue Nov 29 12:01:01 2022.
 @author: placais
 """
 
+# NB: all phi are in radians. The reason why they all have unit [deg] is that
+# they are always converted to degrees when outputed.
 d_markdown = {
-    'z_abs': "Synch. position [m]",
-    'elt': "Element number",
-    'w_kin': "Beam energy [MeV]",
-    'w_kin_err': "Error",
-    'phi_abs_array': "Beam phase [deg]",
-    'phi_abs_array_err': "Error",
-    'beta': r"Synch. $\beta$ [1]",
-    'beta_err': r"Abs. $\beta$ error [1]",
-    'struct': "Structure",
-    'v_cav_mv': "Acc. field [MV]",
-    'phi_s': "Synch. phase [deg]",
-    'k_e': r"$k_e$ [1]",
+    # Accelerator
+    'M_11': r"$M_{11}$",
+    'M_12': r"$M_{12}$",
+    'M_21': r"$M_{21}$",
+    'M_22': r"$M_{22}$",
     'eps_zdelta': r"$\epsilon_{z\delta}$ [$\pi$.m.rad]",
     'eps_z': r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]",
     'eps_w': r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]",
@@ -38,6 +33,25 @@ d_markdown = {
     'envel_ener_z': r"$\sigma_{z'}$ [mrad]",
     'envel_ener_w': r"$\sigma_\phi$ [MeV]",
     'mismatch factor': r"$M$",
+    # Element
+    'elt': "Element number",
+    # RfField
+    'v_cav_mv': "Acc. field [MV]",
+    'phi_s': "Synch. phase [deg]",
+    'k_e': r"$k_e$ [1]",
+    'phi_0_abs': r"$\phi_{0, abs}$ [deg]",
+    'phi_0_rel': r"$\phi_{0, rel}$ [deg]",
+    # Particle
+    'z_abs': "Synch. position [m]",
+    'w_kin': "Beam energy [MeV]",
+    'w_kin_err': "Error",
+    'phi_abs_array': "Beam phase [deg]",
+    'phi_abs_array_err': "Error",
+    'beta': r"Synch. $\beta$ [1]",
+    'beta_err': r"Abs. $\beta$ error [1]",
+    # Misc
+    'struct': "Structure",
+    # ListOfElements
 }
 
 d_plot_kwargs = {

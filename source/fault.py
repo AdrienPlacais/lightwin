@@ -28,6 +28,7 @@ from scipy.optimize import minimize, least_squares
 # from multiprocessing.pool import ThreadPool
 # from pymoo.core.problem import StarmapParallelization
 
+from dicts_output import d_markdown
 from constants import FLAG_PHI_ABS, LINAC
 import debug
 from helper import printc
@@ -356,9 +357,6 @@ class Fault():
                        'phi_0_rel': [np.NaN, np.NaN],
                        'phi_0_abs': [np.NaN, np.NaN],
                        'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
-        d_x_label = {'k_e': r'$k_e$', 'phi_0_abs': r'$\phi_{0, abs}$',
-                     'phi_0_rel': r'$\phi_{0, rel}$',
-                     'phi_s': r'$\varphi_s$'}
 
         if LINAC == 'JAEA':
             # In Bruce's paper, the maximum electric field is 20% above the
@@ -398,7 +396,8 @@ class Fault():
                                       d_x_lim_rel[__x][1] * ref_value))
                 x_lim.append((b_down, b_up))
                 x_0.append(d_init_g[__x](ref_value))
-                l_x_str.append(' '.join((cav.get('elt_name', to_numpy=False), d_x_label[__x])))
+                l_x_str.append(' '.join((cav.get('elt_name', to_numpy=False),
+                                         d_markdown[__x])))
         n_cav = len(self.comp['l_cav'])
         x_0 = np.array(x_0[:2 * n_cav])
         phi_s_limits = np.array(x_lim[2 * n_cav:])
