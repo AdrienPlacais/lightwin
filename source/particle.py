@@ -7,8 +7,8 @@ Created on Thu Dec  2 13:44:00 2021.
 """
 import numpy as np
 import pandas as pd
-from helper import recursive_items, printc, kin_to_gamma, kin_to_beta, \
-        gamma_to_beta, gamma_and_beta_to_p, z_to_phi
+from helper import recursive_items, recursive_getter, printc, kin_to_gamma, \
+        kin_to_beta, gamma_to_beta, gamma_and_beta_to_p, z_to_phi
 from constants import E_REST_MEV, OMEGA_0_BUNCH
 
 
@@ -66,26 +66,24 @@ class Particle():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys, to_deg=False):
+    def get(self, *keys, to_deg=False, **kwargs):
         """Shorthand to get attributes."""
-        out = []
-        l_dicts = [self.part_info, self.pos, self.energy, self.phi]
+        val = {}
+        for key in keys:
+            val[key] = []
 
         for key in keys:
-            if hasattr(self, key):
-                dat = getattr(self, key)
-            elif self.has(key):
-                for dic in l_dicts:
-                    if key in dic:
-                        dat = dic[key]
-                        break
-            else:
-                dat = None
+            if not self.has(key):
+                val[key] = None
+                continue
 
-            if to_deg and 'phi' in key:
-                dat = np.rad2deg(dat)
+            val[key] = recursive_getter(key, vars(self), **kwargs)
 
-            out.append(dat)
+            if val[key] is not None and to_deg and 'phi' in key:
+                val[key] = np.rad2deg(val[key])
+
+        # Convert to list
+        out = [val[key] for key in keys]
 
         if len(out) == 1:
             return out[0]
@@ -96,7 +94,7 @@ class Particle():
         """Create the array of absolute positions."""
         assert self.part_info["synchronous"], """This routine only works for the
         synch particle I think."""
-        self.pos["abs_array"] = abs_z_array
+        self.pos['z_abs'] = abs_z_array
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """

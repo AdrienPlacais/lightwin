@@ -54,10 +54,10 @@ def beam_parameters_zdelta(r_zz, sigma_in=SIGMA_ZDELTA):
     # Compute emittance and Twiss parameters in the z-delta plane.
     eps_zdelta = _emittance_zdelta(sigma)
     twiss_zdelta = _twiss_zdelta(sigma, eps_zdelta)
-    enveloppes_zdelta = _enveloppes(twiss_zdelta, eps_zdelta)
+    envelopes_zdelta = _envelopes(twiss_zdelta, eps_zdelta)
     d_zdelta = {'twiss': twiss_zdelta,
                 'eps': eps_zdelta,
-                'enveloppes': enveloppes_zdelta}
+                'envelopes': envelopes_zdelta}
 
     return d_zdelta
 
@@ -66,10 +66,10 @@ def beam_parameters_all(d_zdelta, gamma):
     """Convert the [z - delta] beam parameters in [phi - W] and [z - z']."""
     d_eps = _emittances_all(d_zdelta["eps"], gamma)
     d_twiss = _twiss_all(d_zdelta["twiss"], gamma)
-    d_enveloppes = _enveloppes_all(d_twiss, d_eps)
+    d_envelopes = _envelopes_all(d_twiss, d_eps)
     d_beam_parameters = {"twiss": d_twiss,
                          "eps": d_eps,
-                         "enveloppes": d_enveloppes}
+                         "envelopes": d_envelopes}
     return d_beam_parameters
 
 
@@ -211,19 +211,19 @@ def _convert_twiss(twiss_orig, str_convert, gamma, beta=None, lam=LAMBDA_BUNCH,
 
 
 # =============================================================================
-# Private - Beam enveloppes
+# Private - Beam envelopes
 # =============================================================================
-def _enveloppes(twiss, eps):
-    """Compute beam enveloppes in a given plane."""
+def _envelopes(twiss, eps):
+    """Compute beam envelopes in a given plane."""
     env = np.sqrt(np.column_stack((twiss[:, 1], twiss[:, 2]) * eps))
     return env
 
 
-def _enveloppes_all(twiss, eps):
+def _envelopes_all(twiss, eps):
     """Compute beam envelopes in all the planes."""
     spa = ['_zdelta', '_w', '_z']
-    d_env = {'enveloppes' + key:
-             _enveloppes(twiss['twiss' + key], eps['eps' + key])
+    d_env = {'envelopes' + key:
+             _envelopes(twiss['twiss' + key], eps['eps' + key])
              for key in spa}
     return d_env
 

@@ -9,7 +9,7 @@ TODO : phi_s_rad_objective should not be used too
 """
 import cmath
 import numpy as np
-from helper import recursive_items
+from helper import recursive_items, recursive_getter
 
 
 def compute_param_cav(integrated_field, status):
@@ -60,26 +60,24 @@ class RfField():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys, to_deg=False):
+    def get(self, *keys, to_deg=False, **kwargs):
         """Shorthand to get attributes."""
-        out = []
-        l_dicts = [self.phi_0, self.cav_params]
+        val = {}
+        for key in keys:
+            val[key] = []
 
         for key in keys:
-            if hasattr(self, key):
-                dat = getattr(self, key)
-            elif self.has(key):
-                for dic in l_dicts:
-                    if key in dic:
-                        dat = dic[key]
-                        break
-            else:
-                dat = None
+            if not self.has(key):
+                val[key] = None
+                continue
 
-            if dat is not None and to_deg and 'phi' in key:
-                dat = np.rad2deg(dat)
+            val[key] = recursive_getter(key, vars(self), **kwargs)
 
-            out.append(dat)
+            if val[key] is not None and to_deg and 'phi' in key:
+                val[key] = np.rad2deg(val[key])
+
+        # Convert to list
+        out = [val[key] for key in keys]
 
         if len(out) == 1:
             return out[0]

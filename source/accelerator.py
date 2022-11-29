@@ -17,7 +17,7 @@ from constants import E_MEV, FLAG_PHI_ABS
 import elements
 from list_of_elements import ListOfElements
 from emittance import beam_parameters_all, mismatch_factor
-from helper import kin_to_gamma, printc, recursive_items
+from helper import kin_to_gamma, printc, recursive_items, recursive_getter
 
 
 class Accelerator():
@@ -76,10 +76,10 @@ class Accelerator():
             "eps": {"eps_zdelta": np.full((last_idx + 1), np.NaN),
                     "eps_z": np.full((last_idx + 1), np.NaN),
                     "eps_w": np.full((last_idx + 1), np.NaN)},
-            "enveloppes": {
-                "enveloppes_zdelta": np.full((last_idx + 1, 2), np.NaN),
-                "enveloppes_z": np.full((last_idx + 1, 2), np.NaN),
-                "enveloppes_w": np.full((last_idx + 1, 2), np.NaN)},
+            "envelopes": {
+                "envelopes_zdelta": np.full((last_idx + 1, 2), np.NaN),
+                "envelopes_z": np.full((last_idx + 1, 2), np.NaN),
+                "envelopes_w": np.full((last_idx + 1, 2), np.NaN)},
             "mismatch factor": np.full((last_idx + 1), np.NaN)
         }
         printc('Warning! accelerator. keys of beam param not gettable.')
@@ -88,43 +88,29 @@ class Accelerator():
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
-    def has(self, key, check_sub_classes=True):
+    def has(self, key):
         """Tell if the required attribute is in this class."""
-        # check_sub_classes tells if we should also look into elements and
-        # synch
-        out = key in recursive_items(vars(self)) \
-            or ((self.synch.has(key) or self.elts[0].has(key))
-                and check_sub_classes)
-        return out
+        return key in recursive_items(vars(self))
 
     def get(self, *keys, to_numpy=True, **kwargs):
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
             val[key] = []
-        l_dicts = [self.elements, self.files, self.transf_mat,
-                   self.beam_param, self.beam_param['twiss'],
-                   self.beam_param['enveloppes'], self.beam_param['eps']]
 
         for key in keys:
-            if hasattr(self, key):
-                val[key] = getattr(self, key)
-            elif self.has(key, check_sub_classes=False):
-                for dic in l_dicts:
-                    if key in dic:
-                        val[key] = dic[key]
-                        break
-            elif self.synch.has(key):
-                val[key] = self.synch.get(key, **kwargs)
-            elif self.elts.has(key, check_sub_classes=True):
-                val[key] = self.elts.get(key, to_numpy=False, **kwargs)
-            else:
+            if not self.has(key):
                 val[key] = None
+                continue
+            val[key] = recursive_getter(key, vars(self), to_numpy=False,
+                                        **kwargs)
 
         # Convert to list, and to numpy array if necessary
         out = [val[key] for key in keys]
         if to_numpy:
-            out = [np.array(val) for val in out]
+            out = [np.array(val) if isinstance(val, list)
+                   else val
+                   for val in out]
 
         # Return as tuple or single value
         if len(keys) == 1:
@@ -205,7 +191,7 @@ class Accelerator():
         gamma = kin_to_gamma(np.array(results["w_kin"]))
         d_beam_param = beam_parameters_all(results["d_zdelta"], gamma)
 
-        # Go across beam parameters (Twiss, emittance, long. enveloppes)
+        # Go across beam parameters (Twiss, emittance, long. envelopes)
         for item1 in self.beam_param.items():
             if not isinstance(item1[1], dict):
                 continue

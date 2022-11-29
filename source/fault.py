@@ -108,7 +108,7 @@ class Fault():
         self.elts = ListOfElements(
             l_elts,
             w_kin=self.brok_lin.get('w_kin')[idx],
-            phi_abs=self.brok_lin.get('abs_array')[idx],
+            phi_abs=self.brok_lin.get('phi_abs_array')[idx],
             idx_in=idx,
             r_zz_cumul = self.brok_lin.get('tm_cumul')[idx])
         # FIXME would be better of at Fault initialization
@@ -398,7 +398,7 @@ class Fault():
                                       d_x_lim_rel[__x][1] * ref_value))
                 x_lim.append((b_down, b_up))
                 x_0.append(d_init_g[__x](ref_value))
-                l_x_str.append(' '.join((cav.get('elt_name'), d_x_label[__x])))
+                l_x_str.append(' '.join((cav.get('elt_name', to_numpy=False), d_x_label[__x])))
         n_cav = len(self.comp['l_cav'])
         x_0 = np.array(x_0[:2 * n_cav])
         phi_s_limits = np.array(x_lim[2 * n_cav:])

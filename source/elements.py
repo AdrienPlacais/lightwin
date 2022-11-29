@@ -14,7 +14,7 @@ from scipy.optimize import minimize_scalar
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import OMEGA_0_BUNCH, E_REST_MEV, INV_E_REST_MEV,\
     N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
-from helper import recursive_items
+from helper import recursive_items, recursive_getter
 
 try:
     import transfer_matrices_c as tm_c
@@ -82,7 +82,7 @@ class _Element():
         self.elt_info = {
             'elt_name': None,
             'nature': elem[0],
-            'status': None,    # Only make sense for cavities
+            'status': 'none',    # Only make sense for cavities
         }
         self.length_m = 1e-3 * float(elem[1])
 
@@ -98,42 +98,32 @@ class _Element():
         self.solver_param = {'n_steps': None, 'd_z': None,
                              'abs_mesh': None, 'rel_mesh': None}
 
-    def has(self, key, check_sub_classes=True):
+    def has(self, key):
         """Tell if the required attribute is in this class."""
-        # check_sub_classes tells if we should also look into acc_field
-        out = key in recursive_items(vars(self)) \
-                or (self.acc_field.has(key) and check_sub_classes)
-        return out
+        return key in recursive_items(vars(self))
 
     def get(self, *keys, to_numpy=True, **kwargs):
         """Shorthand to get attributes."""
-        out = []
-        l_dicts = [self.elt_info, self.idx, self.solver_param]
+        val = {}
+        for key in keys:
+            val[key] = []
 
         for key in keys:
-            # key is a straightforward attribute
-            if hasattr(self, key):
-                dat = getattr(self, key)
-            # key is in one of the possibly nested dicts attributes
-            elif self.has(key, check_sub_classes=False):
-                for dic in l_dicts:
-                    if key in dic:
-                        dat = dic[key]
-                        break
-            # key in acc_field
-            elif self.acc_field.has(key):
-                dat = self.acc_field.get(key, **kwargs)
-            else:
-                dat = None
+            if not self.has(key):
+                val[key] = None
+                continue
 
-            if isinstance(dat, np.ndarray) and not to_numpy:
-                dat = dat.tolist()
-            elif isinstance(dat, list) and to_numpy:
-                dat = np.array(dat)
-            # tuples remain tuples
+            val[key] = recursive_getter(key, vars(self), **kwargs)
+            # Easier to concatenate lists that stack numpy arrays, so convert
+            # to list
+            if not to_numpy and isinstance(val[key], np.ndarray):
+                val[key] = val[key].tolist()
 
-            out.append(dat)
+        out = [val[key] for key in keys]
+        if to_numpy:
+            out = [np.array(val) for val in out]
 
+        # Return as tuple or single value
         if len(out) == 1:
             return out[0]
         # implicit else:
@@ -336,12 +326,12 @@ class FieldMap(_Element):
         }
         # Argument for the functions in d_cav_param_setter
         arg = (self.acc_field,)
-        if self.get('status') == "compensate (in progress)":
+        if self.elt_info['status'] == "compensate (in progress)":
             arg = (d_fit, w_kin_in, self)
 
         # Apply
         rf_field_kwargs, flag_abs_to_rel = \
-            d_cav_param_setter[self.get('status')](*arg, **rf_field_kwargs)
+            d_cav_param_setter[self.elt_info['status']](*arg, **rf_field_kwargs)
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased

@@ -166,7 +166,8 @@ class FaultScenario():
             l_faulty_cav = [self.brok_lin.elts[idx] for idx in l_idx]
 
             # Check that they are all cavities
-            set_nature = {cav.get('nature') for cav in l_faulty_cav}
+            set_nature = {cav.get('nature', to_numpy=False)
+                          for cav in l_faulty_cav}
             assert set_nature == {"FIELD_MAP"}
 
             # Create Fault object and append it to the list of Fault objects
@@ -328,8 +329,8 @@ class FaultScenario():
         d_get = {
             'W_kin': lambda lin: lin.synch.energy['w_kin'],
             'phi': lambda lin: lin.get('phi_abs_array'),
-            'sigma_phi': lambda lin: lin.get('enveloppes_w')[:, 0],
-            'sigma_w': lambda lin: lin.get('enveloppes_w')[:, 1],
+            'sigma_phi': lambda lin: lin.get('envelopes_w')[:, 0],
+            'sigma_w': lambda lin: lin.get('envelopes_w')[:, 1],
             'mismatch factor': lambda lin: lin.get('mismatch factor'),
             'emittance': lambda lin: lin.get('eps_w'),
         }

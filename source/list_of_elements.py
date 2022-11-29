@@ -6,7 +6,7 @@ Created on Thu Nov 10 15:11:55 2022.
 @author: placais
 """
 import numpy as np
-from helper import recursive_items
+from helper import recursive_items, recursive_getter
 from emittance import beam_parameters_zdelta
 
 
@@ -31,31 +31,25 @@ class ListOfElements(list):
                 "Previous transfer matrix was not calculated."
         self.r_zz_cumul_in = r_zz_cumul
 
-    def has(self, key, check_sub_classes=True):
+    def has(self, key):
         """Tell if the required attribute is in this class."""
-        in_this_class = key in recursive_items(vars(self))
-        in_elements = all([elt.has(key) for elt in self])
-        return in_this_class or (in_elements and check_sub_classes)
+        return key in recursive_items(vars(self)) or \
+                key in recursive_items(vars(self[0]))
 
     def get(self, *keys, to_numpy=True, remove_first=False, **kwargs):
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
             val[key] = []
-        l_dicts = []
 
         for key in keys:
-            # basic attribute
-            if hasattr(self, key):
-                val[key] = getattr(self, key)
-            # attribute is a dic key
-            elif self.has(key, check_sub_classes=False):
-                for dic in l_dicts:
-                    if key in dic:
-                        data = dic[key]
-                        break
-            # attribute is in Element
-            elif self.has(key, check_sub_classes=True):
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            # Specific case: key is in Element so we concatenate all
+            # corresponding values in a single list
+            if self[0].has(key):
                 for elt in self:
                     data = elt.get(key, to_numpy=False, **kwargs)
                     # In some arrays such as z position arrays, the last pos of
@@ -67,7 +61,7 @@ class ListOfElements(list):
                     else:
                         val[key].append(data)
             else:
-                data = None
+                val[key] = recursive_getter(key, vars(self), **kwargs)
 
         # Convert to list, and to numpy array if necessary
         out = [val[key] for key in keys]

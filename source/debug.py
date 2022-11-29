@@ -239,12 +239,12 @@ def _create_plot_dicts():
         "gamma_zdelta": lambda lin: lin.get("twiss_zdelta")[:, 2],
         "gamma_z": lambda lin: lin.get("twiss_z")[:, 2],
         "gamma_w": lambda lin: lin.get("twiss_w")[:, 2],
-        "envel_pos_zdelta": lambda lin: lin.get("enveloppe_zdelta")[:, 0],
-        "envel_pos_z": lambda lin: lin.get("enveloppes_z")[:, 0],
-        "envel_pos_w": lambda lin: lin.get("enveloppes_w")[:, 0],
-        "envel_ener_zdelta": lambda lin: lin.get("enveloppe_zdelta")[:, 1],
-        "envel_ener_z": lambda lin: lin.get("enveloppes_z")[:, 1],
-        "envel_ener_w": lambda lin: lin.get("enveloppes_w")[:, 1],
+        "envel_pos_zdelta": lambda lin: lin.get("envelope_zdelta")[:, 0],
+        "envel_pos_z": lambda lin: lin.get("envelopes_z")[:, 0],
+        "envel_pos_w": lambda lin: lin.get("envelopes_w")[:, 0],
+        "envel_ener_zdelta": lambda lin: lin.get("envelope_zdelta")[:, 1],
+        "envel_ener_z": lambda lin: lin.get("envelopes_z")[:, 1],
+        "envel_ener_w": lambda lin: lin.get("envelopes_w")[:, 1],
         "mismatch factor": lambda lin: lin.get("mismatch factor"),
     }
 
@@ -485,7 +485,7 @@ def load_phase_space(accelerator):
 def output_cavities(linac, out=False):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
-        'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs', 'phis'))
+        'Name', 'Status?', 'k_e', 'phi0 abs', 'phi_0 rel', 'Vs', 'phis'))
     full_list_of_cav = linac.elements_of('FIELD_MAP')
 
     for i, cav in enumerate(full_list_of_cav):
@@ -496,7 +496,7 @@ def output_cavities(linac, out=False):
     # Output only the cavities that have changed
     if 'Fixed' in linac.name:
         df_out = pd.DataFrame(columns=(
-            'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs', 'phis'))
+            'Name', 'Status?', 'k_e', 'phi0 abs', 'phi_0 rel', 'Vs', 'phis'))
         i = 0
         for c in full_list_of_cav:
             if 'compensate' in c.get('status'):
@@ -511,7 +511,7 @@ def _create_output_fit_dicts():
     col = ('Name', 'Status', 'Min.', 'Max.', 'Fixed', 'Orig.', '(var %)')
     d_pd = {'phi_0_rel': pd.DataFrame(columns=col),
             'phi_0_abs': pd.DataFrame(columns=col),
-            'Norm': pd.DataFrame(columns=col),
+            'k_e': pd.DataFrame(columns=col),
     }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
@@ -520,8 +520,8 @@ def _create_output_fit_dicts():
                                    np.rad2deg(f.info['X_lim'][1][i])],
         'phi_0_abs': lambda f, i: [np.rad2deg(f.info['X_lim'][0][i]),
                                    np.rad2deg(f.info['X_lim'][1][i])],
-        'Norm': lambda f, i: [f.info['X_lim'][0][i + len(f.comp['l_cav'])],
-                              f.info['X_lim'][1][i + len(f.comp['l_cav'])]]
+        'k_e': lambda f, i: [f.info['X_lim'][0][i + len(f.comp['l_cav'])],
+                             f.info['X_lim'][1][i + len(f.comp['l_cav'])]]
     }
 
     all_dicts = {'d_pd': d_pd,
@@ -569,14 +569,14 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
         for key, val in d_pd.items():
             helper.printd(val.round(3), header=key)
 
-    compact = pd.DataFrame(columns=('Name', 'Status', 'Norm', '(var %)',
+    compact = pd.DataFrame(columns=('Name', 'Status', 'k_e', '(var %)',
                                     'phi_0 (rel)', 'phi_0 (abs)'))
-    for i in range(d_pd['Norm'].shape[0]):
+    for i in range(d_pd['k_e'].shape[0]):
         compact.loc[i] = [
-            d_pd['Norm']['Name'][i],
-            d_pd['Norm']['Status'][i],
-            d_pd['Norm']['Fixed'][i],
-            d_pd['Norm']['(var %)'][i],
+            d_pd['k_e']['Name'][i],
+            d_pd['k_e']['Status'][i],
+            d_pd['k_e']['Fixed'][i],
+            d_pd['k_e']['(var %)'][i],
             d_pd['phi_0_rel']['Fixed'][i],
             d_pd['phi_0_abs']['Fixed'][i],
         ]
