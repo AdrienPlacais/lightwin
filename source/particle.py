@@ -177,7 +177,7 @@ class Particle():
         self.energy['w_kin'][idx_range] = w_kin
         self.energy['gamma'][idx_range] = kin_to_gamma(w_kin)
         self.energy['beta'][idx_range] = kin_to_beta(w_kin)
-        self.phi['phi_abs_array'][idx_range] = np.array(results["phi_abs"])
+        self.phi['phi_abs_array'][idx_range] = np.array(results["phi_abs_array"])
 
 
 def create_rand_particles(e_0_mev):

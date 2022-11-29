@@ -158,7 +158,7 @@ class ListOfElements(list):
             "phi_s": [],
             "cav_params": [],
             "w_kin": [self.w_kin_in],
-            "phi_abs": [self.phi_abs_in],
+            "phi_abs_array": [self.phi_abs_in],
             "r_zz_elt": [],         # List of numpy arrays
             "r_zz_cumul": None,     # (n, 2, 2) numpy array
             "rf_fields": [],        # List of dicts
@@ -175,9 +175,9 @@ class ListOfElements(list):
                         for i in range(elt_results['r_zz'].shape[0])]
             results["r_zz_elt"].extend(r_zz_elt)
 
-            l_phi_abs = [phi_rel + results["phi_abs"][-1]
+            l_phi_abs = [phi_rel + results["phi_abs_array"][-1]
                          for phi_rel in elt_results['phi_rel']]
-            results["phi_abs"].extend(l_phi_abs)
+            results["phi_abs_array"].extend(l_phi_abs)
 
             results["w_kin"].extend(elt_results['w_kin'].tolist())
 

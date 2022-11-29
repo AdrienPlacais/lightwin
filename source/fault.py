@@ -447,25 +447,25 @@ def _select_objective(l_objectives):
     # Get data from reference linac
     d_ref = {
         'w_kin': lambda ref, i_r: ref.synch.energy['w_kin'][i_r],
-        'phase': lambda ref, i_r: ref.synch.phi['phi_abs_array'][i_r],
+        'phi_abs_array': lambda ref, i_r: ref.synch.phi['phi_abs_array'][i_r],
         'M_ij': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r],
         'M_11': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 0 , 0],
         'M_12': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 0 , 1],
         'M_21': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 1 , 0],
         'M_22': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 1 , 1],
-        'eps': lambda ref, i_r: ref.beam_param["eps"]["eps_zdelta"][i_r],
+        'eps_zdelta': lambda ref, i_r: ref.beam_param["eps"]["eps_zdelta"][i_r],
         'twiss': lambda ref, i_r: ref.beam_param["twiss"]["twiss_zdelta"][i_r],
     }
     # Get data from results dictionary
     d_brok = {
         'w_kin': lambda calc, i_b: calc['w_kin'][i_b],
-        'phase': lambda calc, i_b: calc['phi_abs'][i_b],
+        'phi_abs_array': lambda calc, i_b: calc['phi_abs_array'][i_b],
         'M_ij': lambda calc, i_b: calc['r_zz_cumul'][i_b],
         'M_11': lambda calc, i_b: calc['r_zz_cumul'][i_b, 0, 0],
         'M_12': lambda calc, i_b: calc['r_zz_cumul'][i_b, 0, 1],
         'M_21': lambda calc, i_b: calc['r_zz_cumul'][i_b, 1, 0],
         'M_22': lambda calc, i_b: calc['r_zz_cumul'][i_b, 1, 1],
-        'eps': lambda calc, i_b: calc["d_zdelta"]["eps"][i_b],
+        'eps_zdelta': lambda calc, i_b: calc["d_zdelta"]["eps"][i_b],
         'twiss': lambda calc, i_b: calc["d_zdelta"]["twiss"][i_b],
     }
 
@@ -473,8 +473,8 @@ def _select_objective(l_objectives):
     d_f = {
         'w_kin': lambda ref, i_r, calc, i_b:
             d_ref["w_kin"](ref, i_r) - d_brok['w_kin'](calc, i_b),
-        'phase': lambda ref, i_r, calc, i_b:
-            d_ref["phase"](ref, i_r) - d_brok['phase'](calc, i_b),
+        'phi_abs_array': lambda ref, i_r, calc, i_b:
+            d_ref["phi_abs_array"](ref, i_r) - d_brok['phi_abs_array'](calc, i_b),
         'M_11': lambda ref, i_r, calc, i_b:
             d_ref["M_ij"](ref, i_r)[0, 0] - d_brok['M_ij'](calc, i_b)[0, 0],
         'M_12': lambda ref, i_r, calc, i_b:
@@ -483,13 +483,13 @@ def _select_objective(l_objectives):
             d_ref["M_ij"](ref, i_r)[1, 0] - d_brok['M_ij'](calc, i_b)[1, 0],
         'M_22': lambda ref, i_r, calc, i_b:
             d_ref["M_ij"](ref, i_r)[1, 1] - d_brok['M_ij'](calc, i_b)[1, 1],
-        'eps': lambda ref, i_r, calc, i_b:
+        'eps_zdelta': lambda ref, i_r, calc, i_b:
             d_ref["eps"](ref, i_r) - d_brok["eps"](calc, i_b),
-        'twiss_alpha': lambda ref, i_r, calc, i_b:
+        'alpha_zdelta': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[0] - d_brok["twiss"](calc, i_b)[0],
-        'twiss_beta': lambda ref, i_r, calc, i_b:
+        'beta_zdelta': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[1] - d_brok["twiss"](calc, i_b)[1],
-        'twiss_gamma': lambda ref, i_r, calc, i_b:
+        'gamma_zdelta': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[2] - d_brok["twiss"](calc, i_b)[2],
         "mismatch factor": lambda ref, i_r, calc, i_b:
             mismatch_factor(d_ref["twiss"](ref, i_r),
@@ -507,15 +507,15 @@ def _select_objective(l_objectives):
         return obj
 
     d_obj_str = {'w_kin': r'$W_{kin}$',
-                 'phase': r'$\phi$',
+                 'phi_abs_array': r'$\phi$',
                  'M_11': r'$M_{11}$',
                  'M_12': r'$M_{12}$',
                  'M_21': r'$M_{21}$',
                  'M_22': r'$M_{22}$',
-                 'eps': r'$\epsilon_{z\delta}$',
-                 'twiss_alpha': r'$\alpha_{z\delta}$',
-                 'twiss_beta': r'$\beta_{z\delta}$',
-                 'twiss_gamma': r'$\gamma_{z\delta}$',
+                 'eps_zdelta': r'$\epsilon_{z\delta}$',
+                 'alpha_zdelta': r'$\alpha_{z\delta}$',
+                 'beta_zdelta': r'$\beta_{z\delta}$',
+                 'gamma_zdelta': r'$\gamma_{z\delta}$',
                  'mismatch factor': r'$M$',
                  }
     l_f_str = [d_obj_str[str_obj] for str_obj in l_objectives]

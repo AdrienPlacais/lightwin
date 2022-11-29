@@ -49,14 +49,14 @@ failed_cav = [
 wtf_pso = {'opti method': 'PSO',
            'strategy': 'k out of n',
            'k': 6, 'l': 2, 'manual list': [],
-           'objective': ['w_kin', 'phase', 'mismatch factor'],
+           'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
            'position': 'end_mod', 'phi_s fit': False}
 
 wtf_lsq = {'opti method': 'least_squares',
            'strategy': 'k out of n',
             'k': 2, 'l': 2, 'manual list': [],
             # 'k': 6, 'l': 2, 'manual list': [],
-           'objective': ['w_kin', 'phase', 'mismatch factor'],
+           'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
            'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
     # 'opti method': 'least_squares',
@@ -93,8 +93,8 @@ WHAT_TO_FIT = {
     # =========================================================================
     'objective': [
         'w_kin',
-        'phase',
-        # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
+        'phi_abs_array',
+        # 'eps_zdelta', 'beta_zdelta', 'gamma_zdelta',  # 'alpha_zdelta',
         # 'M_11', 'M_12', 'M_22',  # 'M_21',
         'mismatch factor',
     ],
