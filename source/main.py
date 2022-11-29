@@ -49,14 +49,14 @@ failed_cav = [
 wtf_pso = {'opti method': 'PSO',
            'strategy': 'k out of n',
            'k': 6, 'l': 2, 'manual list': [],
-           'objective': ['energy', 'phase', 'mismatch_factor'],
+           'objective': ['w_kin', 'phase', 'mismatch factor'],
            'position': 'end_mod', 'phi_s fit': False}
 
 wtf_lsq = {'opti method': 'least_squares',
            'strategy': 'k out of n',
             'k': 2, 'l': 2, 'manual list': [],
             # 'k': 6, 'l': 2, 'manual list': [],
-           'objective': ['energy', 'phase', 'mismatch_factor'],
+           'objective': ['w_kin', 'phase', 'mismatch factor'],
            'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
     # 'opti method': 'least_squares',
@@ -92,11 +92,11 @@ WHAT_TO_FIT = {
     #     What should we fit?
     # =========================================================================
     'objective': [
-        'energy',
+        'w_kin',
         'phase',
         # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
         # 'M_11', 'M_12', 'M_22',  # 'M_21',
-        'mismatch_factor',
+        'mismatch factor',
     ],
     # =========================================================================
     #     Where should we evaluate objective?

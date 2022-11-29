@@ -446,7 +446,7 @@ def _select_objective(l_objectives):
     """
     # Get data from reference linac
     d_ref = {
-        'energy': lambda ref, i_r: ref.synch.energy['w_kin'][i_r],
+        'w_kin': lambda ref, i_r: ref.synch.energy['w_kin'][i_r],
         'phase': lambda ref, i_r: ref.synch.phi['phi_abs_array'][i_r],
         'M_ij': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r],
         'M_11': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 0 , 0],
@@ -458,7 +458,7 @@ def _select_objective(l_objectives):
     }
     # Get data from results dictionary
     d_brok = {
-        'energy': lambda calc, i_b: calc['w_kin'][i_b],
+        'w_kin': lambda calc, i_b: calc['w_kin'][i_b],
         'phase': lambda calc, i_b: calc['phi_abs'][i_b],
         'M_ij': lambda calc, i_b: calc['r_zz_cumul'][i_b],
         'M_11': lambda calc, i_b: calc['r_zz_cumul'][i_b, 0, 0],
@@ -471,8 +471,8 @@ def _select_objective(l_objectives):
 
     # Dictionary to return objective functions
     d_f = {
-        'energy': lambda ref, i_r, calc, i_b:
-            d_ref["energy"](ref, i_r) - d_brok['energy'](calc, i_b),
+        'w_kin': lambda ref, i_r, calc, i_b:
+            d_ref["w_kin"](ref, i_r) - d_brok['w_kin'](calc, i_b),
         'phase': lambda ref, i_r, calc, i_b:
             d_ref["phase"](ref, i_r) - d_brok['phase'](calc, i_b),
         'M_11': lambda ref, i_r, calc, i_b:
@@ -491,7 +491,7 @@ def _select_objective(l_objectives):
             d_ref["twiss"](ref, i_r)[1] - d_brok["twiss"](calc, i_b)[1],
         'twiss_gamma': lambda ref, i_r, calc, i_b:
             d_ref["twiss"](ref, i_r)[2] - d_brok["twiss"](calc, i_b)[2],
-        "mismatch_factor": lambda ref, i_r, calc, i_b:
+        "mismatch factor": lambda ref, i_r, calc, i_b:
             mismatch_factor(d_ref["twiss"](ref, i_r),
                             d_brok["twiss"](calc, i_b))[0],
     }
@@ -506,7 +506,7 @@ def _select_objective(l_objectives):
         obj = np.abs(np.array(l_obj))
         return obj
 
-    d_obj_str = {'energy': r'$W_{kin}$',
+    d_obj_str = {'w_kin': r'$W_{kin}$',
                  'phase': r'$\phi$',
                  'M_11': r'$M_{11}$',
                  'M_12': r'$M_{12}$',
@@ -516,7 +516,7 @@ def _select_objective(l_objectives):
                  'twiss_alpha': r'$\alpha_{z\delta}$',
                  'twiss_beta': r'$\beta_{z\delta}$',
                  'twiss_gamma': r'$\gamma_{z\delta}$',
-                 'mismatch_factor': r'$M$',
+                 'mismatch factor': r'$M$',
                  }
     l_f_str = [d_obj_str[str_obj] for str_obj in l_objectives]
 
