@@ -189,7 +189,8 @@ class Accelerator():
 
         # Save into Accelerator
         gamma = kin_to_gamma(np.array(results["w_kin"]))
-        d_beam_param = beam_parameters_all(results["d_zdelta"], gamma)
+        d_beam_param = beam_parameters_all(results['eps_zdelta'],
+                                           results['twiss_zdelta'], gamma)
 
         # Go across beam parameters (Twiss, emittance, long. envelopes)
         for item1 in self.beam_param.items():

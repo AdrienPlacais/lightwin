@@ -162,7 +162,8 @@ class ListOfElements(list):
             "r_zz_elt": [],         # List of numpy arrays
             "tm_cumul": None,     # (n, 2, 2) numpy array
             "rf_fields": [],        # List of dicts
-            "d_zdelta": None,
+            "eps_zdelta": None,
+            "twiss_zdelta": None,
         }
 
         for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
@@ -184,7 +185,8 @@ class ListOfElements(list):
         results["tm_cumul"] = self._indiv_to_cumul_transf_mat(
             results["r_zz_elt"], len(results["w_kin"]))
 
-        results["d_zdelta"] = beam_parameters_zdelta(results["tm_cumul"])
+        results["eps_zdelta"], results['twiss_zdelta'] = \
+                beam_parameters_zdelta(results["tm_cumul"])
         return results
 
     def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, n_steps):

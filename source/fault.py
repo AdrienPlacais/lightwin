@@ -454,7 +454,7 @@ def _select_objective(l_objectives):
         'M_21': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 1 , 0],
         'M_22': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 1 , 1],
         'eps_zdelta': lambda ref, i_r: ref.beam_param["eps"]["eps_zdelta"][i_r],
-        'twiss': lambda ref, i_r: ref.beam_param["twiss"]["twiss_zdelta"][i_r],
+        'twiss_zdelta': lambda ref, i_r: ref.beam_param["twiss"]["twiss_zdelta"][i_r],
     }
     # Get data from results dictionary
     d_brok = {
@@ -465,8 +465,8 @@ def _select_objective(l_objectives):
         'M_12': lambda calc, i_b: calc['tm_cumul'][i_b, 0, 1],
         'M_21': lambda calc, i_b: calc['tm_cumul'][i_b, 1, 0],
         'M_22': lambda calc, i_b: calc['tm_cumul'][i_b, 1, 1],
-        'eps_zdelta': lambda calc, i_b: calc["d_zdelta"]["eps"][i_b],
-        'twiss': lambda calc, i_b: calc["d_zdelta"]["twiss"][i_b],
+        'eps_zdelta': lambda calc, i_b: calc["eps_zdelta"][i_b],
+        'twiss_zdelta': lambda calc, i_b: calc["twiss_zdelta"][i_b],
     }
 
     # Dictionary to return objective functions
@@ -484,16 +484,16 @@ def _select_objective(l_objectives):
         'M_22': lambda ref, i_r, calc, i_b:
             d_ref["M_ij"](ref, i_r)[1, 1] - d_brok['M_ij'](calc, i_b)[1, 1],
         'eps_zdelta': lambda ref, i_r, calc, i_b:
-            d_ref["eps"](ref, i_r) - d_brok["eps"](calc, i_b),
+            d_ref["eps_zdelta"](ref, i_r) - d_brok["eps_zdelta"](calc, i_b),
         'alpha_zdelta': lambda ref, i_r, calc, i_b:
-            d_ref["twiss"](ref, i_r)[0] - d_brok["twiss"](calc, i_b)[0],
+            d_ref["twiss_zdelta"](ref, i_r)[0] - d_brok["twiss_zdelta"](calc, i_b)[0],
         'beta_zdelta': lambda ref, i_r, calc, i_b:
-            d_ref["twiss"](ref, i_r)[1] - d_brok["twiss"](calc, i_b)[1],
+            d_ref["twiss_zdelta"](ref, i_r)[1] - d_brok["twiss_zdelta"](calc, i_b)[1],
         'gamma_zdelta': lambda ref, i_r, calc, i_b:
-            d_ref["twiss"](ref, i_r)[2] - d_brok["twiss"](calc, i_b)[2],
+            d_ref["twiss_zdelta"](ref, i_r)[2] - d_brok["twiss_zdelta"](calc, i_b)[2],
         "mismatch factor": lambda ref, i_r, calc, i_b:
-            mismatch_factor(d_ref["twiss"](ref, i_r),
-                            d_brok["twiss"](calc, i_b))[0],
+            mismatch_factor(d_ref["twiss_zdelta"](ref, i_r),
+                            d_brok["twiss_zdelta"](calc, i_b))[0],
     }
 
     def fun_residual(ref_lin, d_results, d_idx):
