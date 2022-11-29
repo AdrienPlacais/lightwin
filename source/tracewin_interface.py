@@ -45,7 +45,7 @@ d_tw_data_table = {
     'input_phase': 7,
     'synch_phase': 8,
     'phi_s_deg': 8,
-    'energy': 9,
+    'w_kin': 9,
     'beta_synch': 10,
     'full_length': 11,
     'abs_phase': 12,
@@ -300,19 +300,19 @@ def load_transfer_matrices(filepath_list):
 def output_data_in_tw_fashion(linac):
     """Mimick TW's Data tab."""
     larousse = {
-        '#': lambda i, elt, synch: i,
-        'Name': lambda i, elt, synch: elt.get('elt_name'),
-        'Type': lambda i, elt, synch: elt.get('nature'),
-        'Length (mm)': lambda i, elt, synch: elt.length_m * 1e3,
-        'Grad/Field/Amp': lambda i, elt, synch: elt.grad if(elt.get('nature') == 'QUAD') else np.NaN,
-        'EoT (MV/m)': lambda i, elt, synch: None,
-        'EoTLc (MV)': lambda i, elt, synch: elt.get('v_cav_mv'),
-        'Input_Phase (deg)': lambda i, elt, synch: elt.get('phi_0_rel', to_deg=True),
-        'Sync_Phase (deg)': lambda i, elt, synch: elt.get('phi_s', to_deg=True),
-        'Energy (MeV)': lambda i, elt, synch: synch.energy['kin_array_mev'][elt.idx['s_out']],
-        'Beta Synch.': lambda i, elt, synch: synch.energy['beta_array'][elt.idx['s_out']],
-        'Full length (mm)': lambda i, elt, synch: synch.z['abs_array'][elt.idx['s_out']] * 1e3,
-        'Abs. phase (deg)': lambda i, elt, synch: np.rad2deg(synch.phi['abs_array'][elt.idx['s_out']]),
+        '#': lambda lin, elt: elt.get('elt_idx', to_numpy=False),
+        'Name': lambda lin, elt: elt.get('elt_name', to_numpy=False),
+        'Type': lambda lin, elt: elt.get('nature', to_numpy=False),
+        'Length (mm)': lambda lin, elt: elt.length_m * 1e3,
+        'Grad/Field/Amp': lambda lin, elt: elt.grad if(elt.get('nature', to_numpy=False) == 'QUAD') else np.NaN,
+        'EoT (MV/m)': lambda lin, elt: None,
+        'EoTLc (MV)': lambda lin, elt: elt.get('v_cav_mv'),
+        'Input_Phase (deg)': lambda lin, elt: elt.get('phi_0_rel', to_deg=True),
+        'Sync_Phase (deg)': lambda lin, elt: elt.get('phi_s', to_deg=True),
+        'Energy (MeV)': lambda lin, elt: lin.get('w_kin')[elt.idx['s_out']],
+        'Beta Synch.': lambda lin, elt: lin.get('beta')[elt.idx['s_out']],
+        'Full length (mm)': lambda lin, elt: lin.get('z_abs')[elt.idx['s_out']] * 1e3,
+        'Abs. phase (deg)': lambda lin, elt: lin.get('phi_abs_array', to_deg=True)[elt.idx['s_out']],
     }
 
     data = []
@@ -327,7 +327,7 @@ def output_data_in_tw_fashion(linac):
             for elt in lattice:
                 row = []
                 for value in larousse.values():
-                    row.append(value(i, elt, linac.synch))
+                    row.append(value(linac, elt))
                 data.append(row)
                 i += 1
 

@@ -25,8 +25,7 @@ plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
-def compute_error_transfer_matrix(transf_mat, transf_mat_ref,
-                                  flag_output=False):
+def compute_error_transfer_matrix(transf_mat, transf_mat_ref, output=False):
     """Compute and output error between transfer matrix and ref."""
     n_z = transf_mat.shape[0]
     n_z_ref = transf_mat_ref.shape[0]
@@ -59,17 +58,24 @@ def compute_error_transfer_matrix(transf_mat, transf_mat_ref,
             err[:, i] = transf_mat_ref[:, i + 1] - f_interp(z_err)
             # err[:, i] = np.log10(transf_mat_ref[:, i + 1] / f_interp(z_err))
 
-    if flag_output:
-        header = 'Errors on transfer matrix'
-        message = 'Error matrix at end of line*1e3:\n' \
-            + str(err[-1, 0:2] * 1e3) + '\n' + str(err[-1, 2:4] * 1e3) \
-            + '\nCumulated error:\n' \
-            + str(np.linalg.norm(err, axis=0)[0:2]) + '\n' \
-            + str(np.linalg.norm(err, axis=0)[2:4]) \
-            + '\n\nCumulated error:\n' \
-            + str(np.linalg.norm(err, axis=0)[0:2]) + '\n' \
-            + str(np.linalg.norm(err, axis=0)[2:4]) \
-            + '\n\nTot error:\n' + str(np.linalg.norm(err))
+    if output:
+        header = "Errors on transfer matrix"
+        message = f"""
+            Error matrix at end of line*1e3:
+            {err[-1, 0:2] * 1e3}
+            {err[-1, 2:4] * 1e3}
+
+            Cumulated error:
+            {np.linalg.norm(err, axis=0)[0:2]}
+            {np.linalg.norm(err, axis=0)[2:4]}
+
+            Cumulated error:
+            {np.linalg.norm(err, axis=0)[0:2]}
+            {np.linalg.norm(err, axis=0)[2:4]}
+
+            Tot error:
+            {np.linalg.norm(err)}
+            """
         helper.printd(message, header=header)
     return err, z_err
 
@@ -105,7 +111,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     r_zz_tot_ref = tw.load_transfer_matrices(filepath_ref)
 
     err, z_err = compute_error_transfer_matrix(r_zz_tot, r_zz_tot_ref,
-                                               flag_output=False)
+                                               output=False)
 
     axnumlist = range(221, 225)
     _, axlist = helper.create_fig_if_not_exist(31, axnumlist)
@@ -181,18 +187,18 @@ def _reformat(x_data, y_data, elts_indexes):
 def _create_plot_dicts():
     # [label, marker]
     d_plot = {
-        's': ['Synch. position [m]', {'marker': None}],
+        'z_abs': ['Synch. position [m]', {'marker': None}],
         'elt': ['Element number', {'marker': None}],
-        'energy': ['Beam energy [MeV]', {'marker': None}],
-        'energy_err': ['Error', {'marker': None}],
-        'abs_phase': ['Beam phase [deg]', {'marker': None}],
-        'abs_phase_err': ['Error', {'marker': None}],
-        'beta_synch': [r'Synch. $\beta$ [1]', {'marker': None}],
-        'beta_synch_err': [r'Abs. $\beta$ error [1]', {'marker': None}],
+        'w_kin': ['Beam energy [MeV]', {'marker': None}],
+        'w_kin_err': ['Error', {'marker': None}],
+        'phi_abs_array': ['Beam phase [deg]', {'marker': None}],
+        'phi_abs_array_err': ['Error', {'marker': None}],
+        'beta': [r'Synch. $\beta$ [1]', {'marker': None}],
+        'beta_err': [r'Abs. $\beta$ error [1]', {'marker': None}],
         'struct': ['Structure', {'marker': None}],
         'v_cav_mv': ['Acc. field [MV]', {'marker': 'o'}],
-        'phi_s_deg': ['Synch. phase [deg]', {'marker': 'o'}],
-        'field_map_factor': [r'$k_e$ [1]', {'marker': 'o'}],
+        'phi_s': ['Synch. phase [deg]', {'marker': 'o'}],
+        'k_e': [r'$k_e$ [1]', {'marker': 'o'}],
         "eps_zdelta": [r"$\epsilon_{z\delta}$ [$\pi$.m.rad]", {"marker": None}],
         "eps_z": [r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
         "eps_w": [r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]", {"marker": None}],
@@ -215,18 +221,18 @@ def _create_plot_dicts():
     }
 
     d_x_data = {
-        's': lambda lin: lin.get('z_abs'),
+        'z_abs': lambda lin: lin.get('z_abs'),
         'elt': lambda lin: np.array(range(len(lin.elts))),
     }
 
     # LW y data
     d_y_data_lw = {
-        'energy': lambda lin: lin.get('w_kin'),
-        'abs_phase': lambda lin: lin.get('phi_abs_array', to_deg=True),
-        'beta_synch': lambda lin: lin.get('beta'),
+        'w_kin': lambda lin: lin.get('w_kin'),
+        'phi_abs_array': lambda lin: lin.get('phi_abs_array', to_deg=True),
+        'beta': lambda lin: lin.get('beta'),
         'v_cav_mv': lambda lin: lin.get('v_cav_mv'),
-        'phi_s_deg': lambda lin: lin.get('phi_s', to_deg=True),
-        'field_map_factor': lambda lin: lin.get('k_e'),
+        'phi_s': lambda lin: lin.get('phi_s', to_deg=True),
+        'k_e': lambda lin: lin.get('k_e'),
         "eps_zdelta": lambda lin: lin.get("eps_zdelta"),
         "eps_z": lambda lin: lin.get("eps_z"),
         "eps_w": lambda lin: lin.get("eps_w"),
@@ -249,9 +255,9 @@ def _create_plot_dicts():
     }
 
     d_err_factor = {
-        'energy': 1,
-        'abs_phase': 1.,
-        'beta_synch': 1.,
+        'w_kin': 1,
+        'phi_abs_array': 1.,
+        'beta': 1.,
     }
 
     all_dicts = {
@@ -265,7 +271,7 @@ def _create_plot_dicts():
     return all_dicts
 
 
-def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
+def compare_with_tracewin(linac, x_dat='z_abs', y_dat=None, filepath_ref=None,
                           fignum=21):
     """
     Compare data calculated by TraceWin and LightWin.
@@ -278,8 +284,8 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
     linac : Accelerator object
         Accelerator under study.
     x_dat : string
-        Data in x axis, common to the n plots. It should be 's' for a plot as
-        a function of the position and 'elt' for a plot a function of the
+        Data in x axis, common to the n plots. It should be 'z_abs' for a plot
+        as a function of the position and 'elt' for a plot a function of the
         number of elements.
     y_dat : list of string
         Data in y axis for each subplot. It should be in d_y_data_lw.
@@ -290,7 +296,7 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
         Number of the Figure.
     """
     if y_dat is None:
-        y_dat = ['energy', 'energy_err', 'struct']
+        y_dat = ['w_kin', 'w_kin_err', 'struct']
     if filepath_ref is None:
         filepath_ref = linac.files['project_folder'] \
             + '/results/energy_ref.txt'
@@ -312,9 +318,9 @@ def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
         return err_data
     # Add it to the dict of y data
     d_errors = {
-        'energy_err': lambda lin: _err('energy', diff='rel'),
-        'abs_phase_err': lambda lin: _err('abs_phase', diff='rel'),
-        'beta_synch_err': lambda lin: _err('beta_synch', diff='abs'),
+        'w_kin_err': lambda lin: _err('w_kin', diff='rel'),
+        'phi_abs_array_err': lambda lin: _err('phi_abs_array', diff='rel'),
+        'beta_err': lambda lin: _err('beta', diff='abs'),
     }
     dicts['errors'] = d_errors
     dicts['y_data_lw'].update(d_errors)
@@ -336,7 +342,7 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
     """Plot proper data in proper subplot."""
     x_dat = xydata[0]
     y_d = xydata[1]
-    elts_indexes = linac.get_from_elements('idx', 's_out')
+    elts_indexes = linac.get('s_out')
     if plot_section:
         helper.plot_section(linac, axx, x_axis=x_dat)
     if y_d == 'struct':
@@ -360,16 +366,13 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
         x_data, y_data = _reformat(x_data, y_data, elts_indexes)
         # dicts['plot'][y_d][1] is a dict that looks like to:
         # {'marker': '+', 'linewidth': 5}
-        # ** (**kwargs) unpacks it to:
-        # marker='+', linewidth=5
         label = 'LW ' + linac.name
 
         # We do not replot Working and Broken linac every time, unless this
         # flag is set to True
-        flag_replot = False
+        replot = False
 
-        if flag_replot \
-           or linac.name not in ['Working', 'Broken'] \
+        if replot or linac.name not in ['Working', 'Broken'] \
            or label not in axx.get_legend_handles_labels()[1]:
             axx.plot(x_data, y_data, label=label, ls='-',
                      **dicts['plot'][y_d][1])

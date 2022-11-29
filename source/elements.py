@@ -119,9 +119,11 @@ class _Element():
             if not to_numpy and isinstance(val[key], np.ndarray):
                 val[key] = val[key].tolist()
 
-        out = [val[key] for key in keys]
-        if to_numpy:
-            out = [np.array(val) for val in out]
+        # Convert to list; elements of the list are numpy is required, except
+        # strings that are never converted
+        out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
+               else val[key]
+               for key in keys]
 
         # Return as tuple or single value
         if len(out) == 1:

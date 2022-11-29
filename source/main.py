@@ -54,8 +54,8 @@ wtf_pso = {'opti method': 'PSO',
 
 wtf_lsq = {'opti method': 'least_squares',
            'strategy': 'k out of n',
-            # 'k': 2, 'l': 2, 'manual list': [],
-            'k': 6, 'l': 2, 'manual list': [],
+            'k': 2, 'l': 2, 'manual list': [],
+            # 'k': 6, 'l': 2, 'manual list': [],
            'objective': ['energy', 'phase', 'mismatch_factor'],
            'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
@@ -116,7 +116,7 @@ PLOTS = [
     "cav",
     # "emittance",
     # "twiss",
-    "enveloppes",
+    "envelopes",
     # "mismatch factor",
 ]
 PLOT_TM = False
@@ -127,12 +127,12 @@ SAVES = [
 ]
 
 DICT_PLOTS_PRESETS = {
-    "energy": [["energy", "energy_err", "struct"], 21],
-    "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
-    "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
+    "energy": [["w_kin", "w_kin_err", "struct"], 21],
+    "phase": [["phi_abs_array", "phi_abs_array_err", "struct"], 22],
+    "cav": [["v_cav_mv", "k_e", "phi_s", "struct"], 23],
     "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
     "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
-    "enveloppes": [["envel_pos_w", "envel_ener_w", "struct"], 26],
+    "envelopes": [["envel_pos_w", "envel_ener_w", "struct"], 26],
     "mismatch factor": [["mismatch factor", "struct"], 27],
 }
 
@@ -168,7 +168,7 @@ for wtf in [wtf_lsq]:
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
                                 wtf=wtf, l_info_other_sol=lsq_info)
     for plot in PLOTS:
-        debug.compare_with_tracewin(lin, x_dat="s",
+        debug.compare_with_tracewin(lin, x_dat="z_abs",
                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 
@@ -197,7 +197,7 @@ for wtf in [wtf_lsq]:
 
 for lin in linacs:
     for plot in PLOTS:
-        debug.compare_with_tracewin(lin, x_dat="s",
+        debug.compare_with_tracewin(lin, x_dat="z_abs",
                                     y_dat=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 if PLOT_TM:

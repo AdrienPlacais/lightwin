@@ -169,7 +169,7 @@ def plot_structure(linac, ax, x_axis='s'):
         'FIELD_MAP': _plot_field_map,
     }
     dict_x_axis = {  # first element is patch dimension. second is x limits
-        's': lambda elt, i: [
+        'z_abs': lambda elt, i: [
             {'x0': elt.get('abs_mesh')[0], 'width': elt.length_m},
             [linac.elts[0].get('abs_mesh')[0],
              linac.elts[-1].get('abs_mesh')[-1]]
@@ -233,7 +233,7 @@ def plot_section(linac, ax, x_axis='s'):
     """Add light grey rectangles behind the plot to show the sections."""
     dict_x_axis = {
         'last_elt_of_sec': lambda sec: sec[-1][-1],
-        's': lambda elt: linac.synch.pos['z_abs'][elt.idx['s_out']],
+        'z_abs': lambda elt: linac.synch.pos['z_abs'][elt.idx['s_out']],
         'elt': lambda elt: elt.idx['element'] + 1,
     }
     x_ax = [0]
@@ -318,10 +318,8 @@ def save_energy_phase_tm(lin):
         Object of corresponding to desired output.
     """
     n_z = lin.get('z_abs').shape[0]
-    data = np.column_stack((
-        lin.get('z_abs'),
-        lin.get('w_kin'),
-        lin.get('phi_abs_array'),
+    data = np.column_stack((lin.get('z_abs'), lin.get('w_kin'),
+                            lin.get('phi_abs_array'),
         np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
     ))
     filepath = lin.files['results_folder'] + lin.name \

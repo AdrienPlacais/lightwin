@@ -327,12 +327,12 @@ class FaultScenario():
     def evaluate_fit_quality(self, delta_t):
         """Compute some quantities on the whole linac to see if fit is good."""
         d_get = {
-            'W_kin': lambda lin: lin.synch.energy['w_kin'],
-            'phi': lambda lin: lin.get('phi_abs_array'),
+            'w_kin': lambda lin: lin.synch.energy['w_kin'],
+            'phi_abs_array': lambda lin: lin.get('phi_abs_array'),
             'sigma_phi': lambda lin: lin.get('envelopes_w')[:, 0],
             'sigma_w': lambda lin: lin.get('envelopes_w')[:, 1],
             'mismatch factor': lambda lin: lin.get('mismatch factor'),
-            'emittance': lambda lin: lin.get('eps_w'),
+            'eps_w': lambda lin: lin.get('eps_w'),
         }
         idx_end_comp_zone = 824
         printc("Warning fault_scenario.evaluate_fit_quality: ",
@@ -374,12 +374,12 @@ class FaultScenario():
                     raise IOError
 
                 d_delta = {
-                    'W_kin': fun1,
-                    'phi': fun1,
+                    'w_kin': fun1,
+                    'phi_abs_array': fun1,
                     'sigma_phi': fun1,
                     'sigma_w': fun1,
                     'mismatch factor': fun2,
-                    'emittance': fun1,
+                    'eps_w': fun1,
                 }
 
                 args = (d_get[crit](self.ref_lin), d_get[crit](self.brok_lin))
