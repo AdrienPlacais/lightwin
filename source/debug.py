@@ -15,6 +15,7 @@ from scipy.interpolate import interp1d
 import pandas as pd
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
+from dicts_output import d_markdown, d_plot_kwargs
 import helper
 import tracewin_interface as tw
 
@@ -185,41 +186,6 @@ def _reformat(x_data, y_data, elts_indexes):
 
 
 def _create_plot_dicts():
-    # [label, marker]
-    d_plot = {
-        'z_abs': ['Synch. position [m]', {'marker': None}],
-        'elt': ['Element number', {'marker': None}],
-        'w_kin': ['Beam energy [MeV]', {'marker': None}],
-        'w_kin_err': ['Error', {'marker': None}],
-        'phi_abs_array': ['Beam phase [deg]', {'marker': None}],
-        'phi_abs_array_err': ['Error', {'marker': None}],
-        'beta': [r'Synch. $\beta$ [1]', {'marker': None}],
-        'beta_err': [r'Abs. $\beta$ error [1]', {'marker': None}],
-        'struct': ['Structure', {'marker': None}],
-        'v_cav_mv': ['Acc. field [MV]', {'marker': 'o'}],
-        'phi_s': ['Synch. phase [deg]', {'marker': 'o'}],
-        'k_e': [r'$k_e$ [1]', {'marker': 'o'}],
-        "eps_zdelta": [r"$\epsilon_{z\delta}$ [$\pi$.m.rad]", {"marker": None}],
-        "eps_z": [r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
-        "eps_w": [r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]", {"marker": None}],
-        "alpha_zdelta": [r"$\alpha_{z\delta}$ [1]", {"marker": None}],
-        "alpha_z": [r"$\alpha_{zz'}$ [1]", {"marker": None}],
-        "alpha_w": [r"$\alpha_{\phi W}$ [1]", {"marker": None}],
-        "beta_zdelta": [r"$\beta_{z\delta}$ [mm/$\pi$.%]", {"marker": None}],
-        "beta_z": [r"$\beta_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
-        "beta_w": [r"$\beta_{\phi W}$ [deg/$\pi$.MeV]", {"marker": None}],
-        "gamma_zdelta": [r"$\gamma_{z\delta}$ [$\pi$/mm.rad]", {"marker": None}],
-        "gamma_z": [r"$\gamma_{zz'}$ [$\pi$/mm.mrad]", {"marker": None}],
-        "gamma_w": [r"$\gamma_{\phi W}$ [$\pi$/deg.MeV]", {"marker": None}],
-        "envel_pos_zdelta": [r"$\sigma_z$ [m]", {"marker": None}],
-        "envel_pos_z": [r"$\sigma_z$ [mm]", {"marker": None}],
-        "envel_pos_w": [r"$\sigma_\phi$ [deg]", {"marker": None}],
-        "envel_ener_zdelta": [r"$\sigma_\delta$ [rad]", {"marker": None}],
-        "envel_ener_z": [r"$\sigma_{z'}$ [mrad]", {"marker": None}],
-        "envel_ener_w": [r"$\sigma_\phi$ [MeV]", {"marker": None}],
-        "mismatch factor": [r"$M$", {"marker": None}],
-    }
-
     d_x_data = {
         'z_abs': lambda lin: lin.get('z_abs'),
         'elt': lambda lin: np.array(range(len(lin.elts))),
@@ -261,7 +227,6 @@ def _create_plot_dicts():
     }
 
     all_dicts = {
-        'plot': d_plot,
         'x_data': d_x_data,
         'y_data_lw': d_y_data_lw,
         'err_factor': d_err_factor,
@@ -333,8 +298,8 @@ def compare_with_tracewin(linac, x_dat='z_abs', y_dat=None, filepath_ref=None,
 
     for i, y_d in enumerate(y_dat):
         _single_plot(axlist[i], [x_dat, y_d], dicts, filepath_ref, linac)
-        axlist[i].set_ylabel(dicts['plot'][y_d][0])
-    axlist[-1].set_xlabel(dicts['plot'][x_dat][0])
+        axlist[i].set_ylabel(d_markdown[y_d])
+    axlist[-1].set_xlabel(d_markdown[x_dat])
     axlist[0].legend()
 
 
@@ -359,13 +324,11 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
             x_data_ref, y_data_ref = _reformat(x_data_ref, y_data_ref,
                                                elts_indexes)
             axx.plot(x_data_ref, y_data_ref, label='TW',
-                     c='k', ls='--', linewidth=2., **dicts['plot'][y_d][1])
+                     c='k', ls='--', linewidth=2., **d_plot_kwargs[y_d])
         axx.grid(True)
         x_data = dicts['x_data'][x_dat](linac)
         y_data = dicts['y_data_lw'][y_d](linac)
         x_data, y_data = _reformat(x_data, y_data, elts_indexes)
-        # dicts['plot'][y_d][1] is a dict that looks like to:
-        # {'marker': '+', 'linewidth': 5}
         label = 'LW ' + linac.name
 
         # We do not replot Working and Broken linac every time, unless this
@@ -375,7 +338,7 @@ def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
         if replot or linac.name not in ['Working', 'Broken'] \
            or label not in axx.get_legend_handles_labels()[1]:
             axx.plot(x_data, y_data, label=label, ls='-',
-                     **dicts['plot'][y_d][1])
+                     **d_plot_kwargs[y_d])
 
         # If there is at least one 'Fixed' plot, we set the ylims ignoring
         # the 'Broken' plot
@@ -488,7 +451,7 @@ def load_phase_space(accelerator):
 def output_cavities(linac, out=False):
     """Output relatable parameters of cavities in list_of_cav."""
     df_cav = pd.DataFrame(columns=(
-        'Name', 'Status?', 'k_e', 'phi0 abs', 'phi_0 rel', 'Vs', 'phis'))
+        'Name', 'Status?', 'k_e', 'phi_0abs', 'phi_0_rel', 'Vs', 'phis'))
     full_list_of_cav = linac.elements_of('FIELD_MAP')
 
     for i, cav in enumerate(full_list_of_cav):
@@ -499,7 +462,7 @@ def output_cavities(linac, out=False):
     # Output only the cavities that have changed
     if 'Fixed' in linac.name:
         df_out = pd.DataFrame(columns=(
-            'Name', 'Status?', 'k_e', 'phi0 abs', 'phi_0 rel', 'Vs', 'phis'))
+            'Name', 'Status?', 'k_e', 'phi_0_abs', 'phi_0_rel', 'Vs', 'phis'))
         i = 0
         for c in full_list_of_cav:
             if 'compensate' in c.get('status'):
