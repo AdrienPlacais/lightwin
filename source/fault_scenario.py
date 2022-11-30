@@ -244,7 +244,7 @@ class FaultScenario():
 
             results = fault.elts.compute_transfer_matrices(
                 d_fits=d_fits, transfer_data=True)
-            self.ref_lin.save_results(results, fault.elts)
+            self.brok_lin.save_results(results, fault.elts)
             fault.get_x_sol_in_real_phase()
 
             # Update status of the compensating cavities according to the

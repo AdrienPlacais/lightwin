@@ -15,6 +15,7 @@ General TODO list:
     - raise error when the failed_cav is not a list of list (when manual)
 """
 import os
+from copy import deepcopy
 import time
 from datetime import timedelta
 from tkinter import Tk
@@ -113,10 +114,10 @@ WHAT_TO_FIT = {
 PLOTS = [
     "energy",
     # "phase",
-    "cav",
+    # "cav",
     # "emittance",
     # "twiss",
-    "envelopes",
+    # "envelopes",
     # "mismatch factor",
 ]
 PLOT_TM = False
@@ -167,10 +168,7 @@ for wtf in [wtf_lsq]:
 
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
                                 wtf=wtf, l_info_other_sol=lsq_info)
-    for plot in PLOTS:
-        debug.compare_with_tracewin(lin, x_str="z_abs",
-                                    l_y_str=DICT_PLOTS_PRESETS[plot][0],
-                                    fignum=DICT_PLOTS_PRESETS[plot][1])
+    linacs.append(deepcopy(lin))
 
     if FLAG_FIX:
         fail.fix_all()
