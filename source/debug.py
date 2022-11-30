@@ -185,6 +185,7 @@ def _reformat(x_data, y_data, elts_indexes):
     return x_data, y_data
 
 
+# FIXME Some pieces of code are repeated, can do better
 def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
                            filepath_ref=None, fignum=21):
     """Plot data calculated by TraceWin and LightWin."""
@@ -236,7 +237,10 @@ def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
                     )
 
         if plot_error:
-            l_y_dat.append(_err(linac, y_str[:-4], filepath_ref, diff='abs'))
+            diff = 'abs'
+            if 'abs_phase' in y_str or 'w_kin' in y_str:
+                diff = 'log'
+            l_y_dat.append(_err(linac, y_str[:-4], filepath_ref, diff=diff))
             l_kwargs.append(
                 d_plot_kwargs[y_str] | {'label': linac.name + 'err. w/ TW'}
             )
@@ -281,7 +285,7 @@ def _err(linac, y_str, filepath_ref, diff='abs'):
 
     d_diff = {'abs': lambda ref, new: scale * np.abs(ref - new),
               'rel': lambda ref, new: scale * (ref - new),
-              'log': lambda ref, new: scale * np.log10(new / ref),
+              'log': lambda ref, new: scale * np.log10(np.abs(new / ref)),
              }
 
     y_data_tw = tw.load_tw_results(filepath_ref, y_str)

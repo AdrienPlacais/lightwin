@@ -112,12 +112,12 @@ WHAT_TO_FIT = {
 # =============================================================================
 PLOTS = [
     "energy",
-    "phase",
+    # "phase",
     "cav",
-    "emittance",
-    "twiss",
+    # "emittance",
+    # "twiss",
     "envelopes",
-    "mismatch factor",
+    # "mismatch factor",
 ]
 PLOT_TM = False
 
