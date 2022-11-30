@@ -136,8 +136,7 @@ class Fault():
                 wrapper_args, info_other_sol=info_other_sol)
 
         if debugs['plot_progression']:
-            debug.plot_fit_progress(self.info['hist_F'],
-                                    l_f_str)
+            debug.plot_fit_progress(self.info['hist_F'], self.info['l_F_str'])
         self.info['X'] = opti_sol['X']
         self.info['F'] = opti_sol['F']
 
@@ -429,6 +428,47 @@ class Fault():
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase
 
+def _select_objective2(self, l_objectives):
+    """Select the objective to fit."""
+    idx_ref = [440]
+    idx_brok = [135]
+    # mismatch factor treated differently as it is already calculated from two
+    # linacs
+    exceptions = ['mismatch factor']
+
+    # List of strings to output the objective names and positions
+    l_f_str = [f"idx={i_r}, " + d_markdown[key]
+               for i_r in idx_ref
+               for key in l_objectives]
+
+    # We evaluate all the desired objectives
+    l_ref = [self.ref_lin.get(key)[i_r]
+             if key not in exceptions
+             else self.ref_lin.get('twiss_zdelta')[i_r]
+             for i_r in idx_ref
+             for key in l_objectives]
+
+    def fun_residual(results):
+        """Compute difference between ref value and results dictionary."""
+        i = -1
+        residues = []
+        for i_b in idx_brok:
+            for key in l_objectives:
+                i += 1
+
+                # mismatch factor
+                if key == 'mismatch factor':
+                    residues.append(
+                        mismatch_factor(
+                            l_ref[i], results['twiss_zdelta'][i_b]
+                        )
+                    )
+                    continue
+
+                # all other keys
+                residues.append(l_ref[i] - results[key][i_b])
+        return np.abs(residues)
+    return fun_residual, l_f_str
 
 def _select_objective(l_objectives):
     """
@@ -506,19 +546,19 @@ def _select_objective(l_objectives):
         obj = np.abs(np.array(l_obj))
         return obj
 
-    d_obj_str = {'w_kin': r'$W_{kin}$',
-                 'phi_abs_array': r'$\phi$',
-                 'M_11': r'$M_{11}$',
-                 'M_12': r'$M_{12}$',
-                 'M_21': r'$M_{21}$',
-                 'M_22': r'$M_{22}$',
-                 'eps_zdelta': r'$\epsilon_{z\delta}$',
-                 'alpha_zdelta': r'$\alpha_{z\delta}$',
-                 'beta_zdelta': r'$\beta_{z\delta}$',
-                 'gamma_zdelta': r'$\gamma_{z\delta}$',
-                 'mismatch factor': r'$M$',
-                 }
-    l_f_str = [d_obj_str[str_obj] for str_obj in l_objectives]
+    # d_obj_str = {'w_kin': r'$W_{kin}$',
+                 # 'phi_abs_array': r'$\phi$',
+                 # 'M_11': r'$M_{11}$',
+                 # 'M_12': r'$M_{12}$',
+                 # 'M_21': r'$M_{21}$',
+                 # 'M_22': r'$M_{22}$',
+                 # 'eps_zdelta': r'$\epsilon_{z\delta}$',
+                 # 'alpha_zdelta': r'$\alpha_{z\delta}$',
+                 # 'beta_zdelta': r'$\beta_{z\delta}$',
+                 # 'gamma_zdelta': r'$\gamma_{z\delta}$',
+                 # 'mismatch factor': r'$M$',
+                 # }
+    l_f_str = [d_markdown[str_obj] for str_obj in l_objectives]
 
     return fun_residual, l_f_str
 

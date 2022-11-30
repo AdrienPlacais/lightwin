@@ -55,8 +55,8 @@ wtf_pso = {'opti method': 'PSO',
 
 wtf_lsq = {'opti method': 'least_squares',
            'strategy': 'k out of n',
-            'k': 2, 'l': 2, 'manual list': [],
-            # 'k': 6, 'l': 2, 'manual list': [],
+            # 'k': 2, 'l': 2, 'manual list': [],
+            'k': 6, 'l': 2, 'manual list': [],
            'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
            'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
@@ -114,10 +114,10 @@ WHAT_TO_FIT = {
 PLOTS = [
     "energy",
     # "phase",
-    # "cav",
+    "cav",
     # "emittance",
     # "twiss",
-    # "envelopes",
+    "envelopes",
     # "mismatch factor",
 ]
 PLOT_TM = False
@@ -161,14 +161,13 @@ linacs = [ref_linac]
 # Broken linac
 lsq_info = None
 # for wtf in []:
-for wtf in [wtf_lsq]:
 # for wtf in [wtf_lsq, wtf_pso]:
+for wtf in [wtf_lsq]:
     start_time = time.monotonic()
     lin = acc.Accelerator(FILEPATH, "Broken")
-
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
                                 wtf=wtf, l_info_other_sol=lsq_info)
-    linacs.append(deepcopy(lin))
+    # linacs.append(deepcopy(lin))
 
     if FLAG_FIX:
         fail.fix_all()
