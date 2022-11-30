@@ -82,6 +82,8 @@ class Accelerator():
                 "envelopes_w": np.full((last_idx + 1, 2), np.NaN)},
             "mismatch factor": np.full((last_idx + 1), np.NaN)
         }
+        # Define some shortcuts
+        self._d_special_getters = self._create_special_getters()
         printc('Warning! accelerator. keys of beam param not gettable.')
 
         self.synch.init_abs_z(self.get('abs_mesh', remove_first=True))
@@ -99,9 +101,14 @@ class Accelerator():
             val[key] = []
 
         for key in keys:
+            if key in self._d_special_getters:
+                val[key] = self._d_special_getters[key](self)
+                continue
+
             if not self.has(key):
                 val[key] = None
                 continue
+
             val[key] = recursive_getter(key, vars(self), to_numpy=False,
                                         **kwargs)
 
@@ -117,6 +124,47 @@ class Accelerator():
             return out[0]
         # implicit else
         return tuple(out)
+
+    def _create_special_getters(self) -> dict:
+        """Create a dict of aliases that can be accessed w/ the get method."""
+        _d_special_getters = {
+            'alpha_zdelta': lambda self:
+                self.beam_param['twiss']['twiss_zdelta'][:, 0],
+            'beta_zdelta': lambda self:
+                self.beam_param['twiss']['twiss_zdelta'][:, 1],
+            'gamma_zdelta': lambda self:
+                self.beam_param['twiss']['twiss_zdelta'][:, 2],
+            'alpha_z': lambda self:
+                self.beam_param['twiss']['twiss_z'][:, 0],
+            'beta_z': lambda self:
+                self.beam_param['twiss']['twiss_z'][:, 1],
+            'gamma_z': lambda self:
+                self.beam_param['twiss']['twiss_z'][:, 2],
+            'alpha_w': lambda self:
+                self.beam_param['twiss']['twiss_w'][:, 0],
+            'beta_w': lambda self:
+                self.beam_param['twiss']['twiss_w'][:, 1],
+            'gamma_w': lambda self:
+                self.beam_param['twiss']['twiss_w'][:, 2],
+            'envelope_pos_zdelta': lambda self:
+                self.beam_param['envelopes']['zdelta'][:, 0],
+            'envelope_energy_zdelta': lambda self:
+                self.beam_param['envelopes']['zdelta'][:, 1],
+            'envelope_pos_z': lambda self:
+                self.beam_param['envelopes']['envelopes_z'][:, 0],
+            'envelope_energy_z': lambda self:
+                self.beam_param['envelopes']['envelopes_z'][:, 1],
+            'envelope_pos_w': lambda self:
+                self.beam_param['envelopes']['envelopes_w'][:, 0],
+            'envelope_energy_w': lambda self:
+                self.beam_param['envelopes']['envelopes_w'][:, 1],
+            'M_11': lambda self: self.transf_mat['tm_cumul'][:, 0, 0],
+            'M_12': lambda self: self.transf_mat['tm_cumul'][:, 0, 1],
+            'M_21': lambda self: self.transf_mat['tm_cumul'][:, 1, 0],
+            'M_22': lambda self: self.transf_mat['tm_cumul'][:, 1, 1],
+            'element number': lambda self: self.get('elt_idx') + 1,
+        }
+        return _d_special_getters
 
     def _set_indexes_and_abs_positions(self):
         """Init solvers, set indexes and absolute positions of elements."""

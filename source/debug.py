@@ -185,173 +185,120 @@ def _reformat(x_data, y_data, elts_indexes):
     return x_data, y_data
 
 
-def _create_plot_dicts():
-    d_x_data = {
-        'z_abs': lambda lin: lin.get('z_abs'),
-        'elt': lambda lin: np.array(range(len(lin.elts))),
-    }
+def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
+                           filepath_ref=None, fignum=21):
+    """Plot data calculated by TraceWin and LightWin."""
+    plot_section = True
+    # Default plot
+    if l_y_str is None:
+        l_y_str = ['w_kin', 'w_kin_err', 'struct']
 
-    # LW y data
-    d_y_data_lw = {
-        'w_kin': lambda lin: lin.get('w_kin'),
-        'phi_abs_array': lambda lin: lin.get('phi_abs_array', to_deg=True),
-        'beta': lambda lin: lin.get('beta'),
-        'v_cav_mv': lambda lin: lin.get('v_cav_mv'),
-        'phi_s': lambda lin: lin.get('phi_s', to_deg=True),
-        'k_e': lambda lin: lin.get('k_e'),
-        "eps_zdelta": lambda lin: lin.get("eps_zdelta"),
-        "eps_z": lambda lin: lin.get("eps_z"),
-        "eps_w": lambda lin: lin.get("eps_w"),
-        "alpha_zdelta": lambda lin: lin.get("twiss_zdelta")[:, 0],
-        "alpha_z": lambda lin: lin.get("twiss_z")[:, 0],
-        "alpha_w": lambda lin: lin.get("twiss_w")[:, 0],
-        "beta_zdelta": lambda lin: lin.get("twiss_zdelta")[:, 1],
-        "beta_z": lambda lin: lin.get("twiss_z")[:, 1],
-        "beta_w": lambda lin: lin.get("twiss_w")[:, 1],
-        "gamma_zdelta": lambda lin: lin.get("twiss_zdelta")[:, 2],
-        "gamma_z": lambda lin: lin.get("twiss_z")[:, 2],
-        "gamma_w": lambda lin: lin.get("twiss_w")[:, 2],
-        "envel_pos_zdelta": lambda lin: lin.get("envelope_zdelta")[:, 0],
-        "envel_pos_z": lambda lin: lin.get("envelopes_z")[:, 0],
-        "envel_pos_w": lambda lin: lin.get("envelopes_w")[:, 0],
-        "envel_ener_zdelta": lambda lin: lin.get("envelope_zdelta")[:, 1],
-        "envel_ener_z": lambda lin: lin.get("envelopes_z")[:, 1],
-        "envel_ener_w": lambda lin: lin.get("envelopes_w")[:, 1],
-        "mismatch factor": lambda lin: lin.get("mismatch factor"),
-    }
-
-    d_err_factor = {
-        'w_kin': 1,
-        'phi_abs_array': 1.,
-        'beta': 1.,
-    }
-
-    all_dicts = {
-        'x_data': d_x_data,
-        'y_data_lw': d_y_data_lw,
-        'err_factor': d_err_factor,
-    }
-
-    return all_dicts
-
-
-def compare_with_tracewin(linac, x_dat='z_abs', y_dat=None, filepath_ref=None,
-                          fignum=21):
-    """
-    Compare data calculated by TraceWin and LightWin.
-
-    There are several plots on top of each other. Number of plots is determined
-    by the len of y_dat.
-
-    Parameters
-    ----------
-    linac : Accelerator object
-        Accelerator under study.
-    x_dat : string
-        Data in x axis, common to the n plots. It should be 'z_abs' for a plot
-        as a function of the position and 'elt' for a plot a function of the
-        number of elements.
-    y_dat : list of string
-        Data in y axis for each subplot. It should be in d_y_data_lw.
-    filepath_ref : string
-        Path to the TW results. They should be saved in TraceWin: Data > Save
-        table to file (loaded by tracewin_interface.load_tw_results).
-    fignum: int
-        Number of the Figure.
-    """
-    if y_dat is None:
-        y_dat = ['w_kin', 'w_kin_err', 'struct']
     if filepath_ref is None:
-        filepath_ref = linac.files['project_folder'] \
-            + '/results/energy_ref.txt'
+        filepath_ref = linac.get('project_folder') + '/results/energy_ref.txt'
 
-    dicts = _create_plot_dicts()
-
+    # Prep some data common to all plots
+    x_dat = linac.get(x_str, to_deg=True)
     elts_indexes = linac.get('s_out')
 
-    def _err(y_d, diff):
-        assert y_d in tw.d_tw_data_table
-        y_data_ref = tw.load_tw_results(filepath_ref, y_d)
-        y_data = dicts['y_data_lw'][y_d](linac)[elts_indexes]
-        if diff == 'abs':
-            err_data = dicts['err_factor'][y_d] * np.abs(y_data_ref - y_data)
-        elif diff == 'rel':
-            err_data = dicts['err_factor'][y_d] * (y_data_ref - y_data)
-        elif diff == 'log':
-            err_data = dicts['err_factor'][y_d] * np.log10(y_data / y_data_ref)
-        return err_data
-    # Add it to the dict of y data
-    d_errors = {
-        'w_kin_err': lambda lin: _err('w_kin', diff='rel'),
-        'phi_abs_array_err': lambda lin: _err('phi_abs_array', diff='rel'),
-        'beta_err': lambda lin: _err('beta', diff='abs'),
+    # Prep figure and axes
+    n_plots = len(l_y_str)
+    axnum = 100 * n_plots + 11
+    axnum = range(axnum, axnum + n_plots)
+    _, axx = helper.create_fig_if_not_exist(fignum, axnum, sharex=True)
+
+    # Get data and kwargs
+    for i, y_str in enumerate(l_y_str):
+        if plot_section:
+            helper.plot_section(linac, axx[i], x_axis=x_str)
+
+        if y_str == 'struct':
+            helper.plot_structure(linac, axx[i], x_axis=x_str)
+            continue
+
+        l_y_dat = []
+        l_kwargs = []
+
+        # Plot error data?
+        plot_error = y_str[-4:] == '_err'
+
+        # Plot TW data?
+        label_tw = 'TW'
+        plot_tw = not plot_error and y_str in tw.d_tw_data_table \
+                and label_tw not in axx[i].get_legend_handles_labels()[1]
+
+        # Replot Working and Broken every time?
+        replot_lw = False
+        label_lw = 'LW ' + linac.name
+        plot_lw = not plot_error \
+                and (replot_lw
+                     or linac.name not in ['Working', 'Broken']
+                     or label_lw not in axx[i].get_legend_handles_labels()[1]
+                    )
+
+        if plot_error:
+            l_y_dat.append(_err(linac, y_str[:-4], filepath_ref, diff='abs'))
+            l_kwargs.append(
+                d_plot_kwargs[y_str] | {'label': linac.name + 'err. w/ TW'}
+            )
+
+        if plot_tw:
+            l_y_dat.append(tw.load_tw_results(filepath_ref, y_str))
+            l_kwargs.append(
+                d_plot_kwargs[y_str] | {'label': label_tw, 'c': 'k', 'lw': 2.,
+                                        'ls': '--'}
+            )
+
+        if plot_lw:
+            # LightWin
+            l_y_dat.append(linac.get(y_str, to_deg=True))
+            l_kwargs.append(
+                d_plot_kwargs[y_str] | {'label': label_lw}
+            )
+
+        for y_dat, kwargs in zip(l_y_dat, l_kwargs):
+            # Downsample x or y if necessary
+            x_plot, y_plot = _reformat(x_dat, y_dat, elts_indexes)
+
+            axx[i].plot(x_plot, y_plot, **kwargs)
+
+        axx[i].set_ylabel(d_markdown[y_str])
+        axx[i].grid(True)
+
+    axx[0].legend()
+    axx[-1].set_xlabel(d_markdown[x_str])
+
+def _err(linac, y_str, filepath_ref, diff='abs'):
+    """Calculate error between linac (LW) and TW."""
+    assert y_str in tw.d_tw_data_table
+    elts_indexes = linac.get('s_out')
+
+    # Set up a scale (for example if the error is very small)
+    d_err_scales = {
+        'example': 1e3,
     }
-    dicts['errors'] = d_errors
-    dicts['y_data_lw'].update(d_errors)
+    scale = d_err_scales.get(y_str, 1.)
+    # this is the default value ----'
 
-    # Plot
-    first_axnum = len(y_dat) * 100 + 11
-    _, axlist = helper.create_fig_if_not_exist(
-        fignum, range(first_axnum, first_axnum + len(y_dat)), sharex=True,
-    )
+    d_diff = {'abs': lambda ref, new: scale * np.abs(ref - new),
+              'rel': lambda ref, new: scale * (ref - new),
+              'log': lambda ref, new: scale * np.log10(new / ref),
+             }
 
-    for i, y_d in enumerate(y_dat):
-        _single_plot(axlist[i], [x_dat, y_d], dicts, filepath_ref, linac)
-        axlist[i].set_ylabel(d_markdown[y_d])
-    axlist[-1].set_xlabel(d_markdown[x_dat])
-    axlist[0].legend()
+    y_data_tw = tw.load_tw_results(filepath_ref, y_str)
+    y_data_lw = linac.get(y_str)[elts_indexes]
+    return d_diff[diff](y_data_tw, y_data_lw)
 
-
-def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
-    """Plot proper data in proper subplot."""
-    x_dat = xydata[0]
-    y_d = xydata[1]
-    elts_indexes = linac.get('s_out')
-    if plot_section:
-        helper.plot_section(linac, axx, x_axis=x_dat)
-    if y_d == 'struct':
-        helper.plot_structure(linac, axx, x_axis=x_dat)
-
-    else:
-        # Plot TW data if it was not already done and if it is not an error
-        # plot
-        if (y_d not in dicts['errors']) and (y_d in tw.d_tw_data_table
-                                             ) and (
-                'TW' not in axx.get_legend_handles_labels()[1]):
-            x_data_ref = dicts['x_data'][x_dat](linac)
-            y_data_ref = tw.load_tw_results(filepath_ref, y_d)
-            x_data_ref, y_data_ref = _reformat(x_data_ref, y_data_ref,
-                                               elts_indexes)
-            axx.plot(x_data_ref, y_data_ref, label='TW',
-                     c='k', ls='--', linewidth=2., **d_plot_kwargs[y_d])
-        axx.grid(True)
-        x_data = dicts['x_data'][x_dat](linac)
-        y_data = dicts['y_data_lw'][y_d](linac)
-        x_data, y_data = _reformat(x_data, y_data, elts_indexes)
-        label = 'LW ' + linac.name
-
-        # We do not replot Working and Broken linac every time, unless this
-        # flag is set to True
-        replot = False
-
-        if replot or linac.name not in ['Working', 'Broken'] \
-           or label not in axx.get_legend_handles_labels()[1]:
-            axx.plot(x_data, y_data, label=label, ls='-',
-                     **d_plot_kwargs[y_d])
-
-        # If there is at least one 'Fixed' plot, we set the ylims ignoring
-        # the 'Broken' plot
-        ignore_broken_ylims = True
-        if ignore_broken_ylims:
-            if 'Fixed' in linac.name:
-                lines_labels = axx.get_legend_handles_labels()
-                try:
-                    idx_to_ignore = lines_labels[1].index('LW Broken')
-                    lines_labels[0].pop(idx_to_ignore)
-                except ValueError:
-                    pass
-                _autoscale_based_on(axx, lines_labels[0])
+    # Old piece of code for autoscale
         # FIXME does not work on plots without legend...
+        # if ignore_broken_ylims:
+            # if 'Fixed' in linac.name:
+                # lines_labels = axx.get_legend_handles_labels()
+                # try:
+                    # idx_to_ignore = lines_labels[1].index('LW Broken')
+                    # lines_labels[0].pop(idx_to_ignore)
+                # except ValueError:
+                    # pass
+                # _autoscale_based_on(axx, lines_labels[0])
 
 
 def _autoscale_based_on(axx, lines):

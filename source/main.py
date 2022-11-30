@@ -112,12 +112,12 @@ WHAT_TO_FIT = {
 # =============================================================================
 PLOTS = [
     "energy",
-    # "phase",
+    "phase",
     "cav",
-    # "emittance",
-    # "twiss",
+    "emittance",
+    "twiss",
     "envelopes",
-    # "mismatch factor",
+    "mismatch factor",
 ]
 PLOT_TM = False
 
@@ -132,7 +132,7 @@ DICT_PLOTS_PRESETS = {
     "cav": [["v_cav_mv", "k_e", "phi_s", "struct"], 23],
     "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
     "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
-    "envelopes": [["envel_pos_w", "envel_ener_w", "struct"], 26],
+    "envelopes": [["envelope_pos_w", "envelope_energy_w", "struct"], 26],
     "mismatch factor": [["mismatch factor", "struct"], 27],
 }
 
@@ -168,8 +168,8 @@ for wtf in [wtf_lsq]:
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
                                 wtf=wtf, l_info_other_sol=lsq_info)
     for plot in PLOTS:
-        debug.compare_with_tracewin(lin, x_dat="z_abs",
-                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+        debug.compare_with_tracewin(lin, x_str="z_abs",
+                                    l_y_str=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 
     if FLAG_FIX:
@@ -197,8 +197,8 @@ for wtf in [wtf_lsq]:
 
 for lin in linacs:
     for plot in PLOTS:
-        debug.compare_with_tracewin(lin, x_dat="z_abs",
-                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+        debug.compare_with_tracewin(lin, x_str="z_abs",
+                                    l_y_str=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
 if PLOT_TM:
     debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])

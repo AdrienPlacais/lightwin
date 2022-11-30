@@ -42,13 +42,12 @@ not_an_element = ['LATTICE', 'FREQ']
 # More info in load_tw_results
 d_tw_data_table = {
     'v_cav_mv': 6,
-    'input_phase': 7,
-    'synch_phase': 8,
-    'phi_s_deg': 8,
+    'phi_0_rel': 7,
+    'phi_s': 8,
     'w_kin': 9,
-    'beta_synch': 10,
-    'full_length': 11,
-    'abs_phase': 12,
+    'beta': 10,
+    'z_abs': 11,
+    'phi_abs_array': 12,
 }
 
 
