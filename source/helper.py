@@ -14,8 +14,45 @@ from constants import c, E_REST_MEV
 
 
 # =============================================================================
-# Plot and messages functions
+# Misc
 # =============================================================================
+def recursive_items(dictionary):
+    """Recursively list all keys of a possibly nested dictionary."""
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            yield key
+            yield from recursive_items(value)
+        elif hasattr(value, 'has'):
+            yield key
+            yield from recursive_items(vars(value))
+            # for ListOfElements:
+            if isinstance(value, list):
+                yield from recursive_items(vars(value[0]))
+        else:
+            yield key
+
+def recursive_getter(key, dictionary, **kwargs):
+    """Get first key in a possibly nested dictionary."""
+    for _key, _value in dictionary.items():
+        if key == _key:
+            return _value
+
+        if isinstance(_value, dict):
+            value = recursive_getter(key, _value, **kwargs)
+            if value is not None:
+                return value
+
+        elif hasattr(_value, 'get'):
+            value = _value.get(key, **kwargs)
+            if value is not None:
+                return value
+    return None
+
+# =============================================================================
+# Messages functions
+# =============================================================================
+# TODO: transform inputs into strings if they are not already strings
+# TODO: use args to avoid lenghty 'opt_message=' each time
 def printc(message, color='cyan', opt_message=''):
     """Print colored messages."""
     dict_c = {
@@ -43,17 +80,20 @@ def printd(message, color_header='cyan', header=''):
     print(message, '\n\n' + line, '\n')
 
 
-def simple_plot(x, y, label_x, label_y, fignum=33):
+# =============================================================================
+# Plot functions
+# =============================================================================
+def simple_plot(dat_x, dat_y, label_x, label_y, fignum=33):
     """Simplest plot."""
     axnumlist = [111]
-    fig, axlist = create_fig_if_not_exist(fignum, axnumlist)
-    axlist[0].plot(x, y)
+    _, axlist = create_fig_if_not_exist(fignum, axnumlist)
+    axlist[0].plot(dat_x, dat_y)
     axlist[0].set_xlabel(label_x)
     axlist[0].set_ylabel(label_y)
     axlist[0].grid(True)
 
 
-def create_fig_if_not_exist(fignum, axnum, sharex=False):
+def create_fig_if_not_exist(fignum, axnum, sharex=False, **fkwargs):
     """
     Check if figures were already created, create it if not.
 
@@ -73,7 +113,7 @@ def create_fig_if_not_exist(fignum, axnum, sharex=False):
             axlist.append(fig.axes[i])
 
     else:
-        fig = plt.figure(fignum)
+        fig = plt.figure(fignum, **fkwargs)
         axlist.append(fig.add_subplot(axnum[0]))
         dict_sharex = {True: axlist[0], False: None}
         for i in axnum[1:]:
@@ -86,8 +126,8 @@ def clean_fig(fignumlist):
     """Clean axis of Figs in fignumlist."""
     for fignum in fignumlist:
         fig = plt.figure(fignum)
-        for ax in fig.get_axes():
-            ax.cla()
+        for axx in fig.get_axes():
+            axx.cla()
 
 
 def empty_fig(fignum):
@@ -96,8 +136,8 @@ def empty_fig(fignum):
     if plt.fignum_exists(fignum):
         fig = plt.figure(fignum)
         axlist = fig.get_axes()
-        for ax in axlist:
-            if ax.lines == []:
+        for axx in axlist:
+            if axx.lines == []:
                 out = True
     return out
 
@@ -129,10 +169,10 @@ def plot_structure(linac, ax, x_axis='s'):
         'FIELD_MAP': _plot_field_map,
     }
     dict_x_axis = {  # first element is patch dimension. second is x limits
-        's': lambda elt, i: [
-            {'x0': elt.pos_m['abs'][0], 'width': elt.length_m},
-            [linac.elements['list'][0].pos_m['abs'][0],
-             linac.elements['list'][-1].pos_m['abs'][-1]]
+        'z_abs': lambda elt, i: [
+            {'x0': elt.get('abs_mesh')[0], 'width': elt.length_m},
+            [linac.elts[0].get('abs_mesh')[0],
+             linac.elts[-1].get('abs_mesh')[-1]]
         ],
         'elt': lambda elt, i: [
             {'x0': i, 'width': 1},
@@ -140,9 +180,9 @@ def plot_structure(linac, ax, x_axis='s'):
         ]
     }
 
-    for i, elt in enumerate(linac.elements['list']):
+    for i, elt in enumerate(linac.elts):
         kwargs = dict_x_axis[x_axis](elt, i)[0]
-        ax.add_patch(dict_elem_plot[elt.info['nature']](elt, **kwargs))
+        ax.add_patch(dict_elem_plot[elt.get('nature', to_numpy=False)](elt, **kwargs))
 
     ax.set_xlim(dict_x_axis[x_axis](elt, i)[1])
     ax.set_yticklabels([])
@@ -183,7 +223,8 @@ def _plot_field_map(field_map, x0, width):
         'compensate (not ok)': 'orange',
     }
     patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
-                        lw=0.5, fc=dict_colors[field_map.info['status']],
+                        lw=0.5, fc=dict_colors[field_map.get('status',
+                                                             to_numpy=False)],
                         ec='k')
     return patch
 
@@ -192,7 +233,7 @@ def plot_section(linac, ax, x_axis='s'):
     """Add light grey rectangles behind the plot to show the sections."""
     dict_x_axis = {
         'last_elt_of_sec': lambda sec: sec[-1][-1],
-        's': lambda elt: linac.synch.z['abs_array'][elt.idx['s_out']],
+        'z_abs': lambda elt: linac.synch.pos['z_abs'][elt.idx['s_out']],
         'elt': lambda elt: elt.idx['element'] + 1,
     }
     x_ax = [0]
@@ -262,8 +303,6 @@ def plot_ellipse(axx, d_eq, **plot_kwargs):
              lw=0., marker='o', ms=.5, **plot_kwargs)
 
 
-
-
 # =============================================================================
 # Files functions
 # =============================================================================
@@ -278,12 +317,10 @@ def save_energy_phase_tm(lin):
     lin : Accelerator object
         Object of corresponding to desired output.
     """
-    n_z = lin.synch.z['abs_array'].shape[0]
-    data = np.column_stack((
-        lin.synch.z['abs_array'],
-        lin.synch.energy['kin_array_mev'],
-        lin.synch.phi['abs_array'],
-        np.reshape(lin.transf_mat['cumul'], (n_z, 4))
+    n_z = lin.get('z_abs').shape[0]
+    data = np.column_stack((lin.get('z_abs'), lin.get('w_kin'),
+                            lin.get('phi_abs_array'),
+        np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
     ))
     filepath = lin.files['results_folder'] + lin.name \
         + '_energy_phase_tm.txt'
@@ -305,15 +342,17 @@ def save_vcav_and_phis(lin):
     accelerator: Accelerator object
         Object of corresponding to desired output.
     """
-    l_elts = lin.elements_of(nature='FIELD_MAP')
-    data = [[elt.pos_m['abs'][-1],
-             elt.acc_field.cav_params['v_cav_mv'],
-             elt.acc_field.cav_params['phi_s_deg']]
-            for elt in l_elts]
+    printc("helper.save_vcav_and_phis warning: ", opt_message="s [m] not "
+           + "saved.")
+    # data = lin.get('abs', 'v_cav_mv', 'phi_s', to_deg=True)
+    data = lin.get('v_cav_mv', 'phi_s', to_deg=True)
+    data = np.column_stack((data[0], data[1]))
+
     filepath = lin.files['results_folder'] + lin.name + '_Vcav_and_phis.txt'
     filepath = filepath.replace(' ', '_')
+
     header = 's [m] \t V_cav [MV] \t phi_s [deg]'
-    np.savetxt(filepath, np.array(data), header=header)
+    np.savetxt(filepath, data, header=header)
     print(f"Cavities accelerating field and synch. phase saved in {filepath}")
 
 

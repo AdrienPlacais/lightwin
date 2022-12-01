@@ -15,6 +15,7 @@ General TODO list:
     - raise error when the failed_cav is not a list of list (when manual)
 """
 import os
+from copy import deepcopy
 import time
 from datetime import timedelta
 from tkinter import Tk
@@ -38,13 +39,26 @@ if FILEPATH == "":
 # Fault compensation
 # =============================================================================
 FLAG_FIX = True
+FLAG_TRY_OPTI_METHODS = True
 SAVE_FIX = False
 
 failed_cav = [
     25,
-    # 155, 157, 167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
+    # 155, 157, #167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
 ]
 
+wtf_pso = {'opti method': 'PSO',
+           'strategy': 'k out of n',
+           'k': 6, 'l': 2, 'manual list': [],
+           'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+           'position': 'end_mod', 'phi_s fit': False}
+
+wtf_lsq = {'opti method': 'least_squares',
+           'strategy': 'k out of n',
+            # 'k': 2, 'l': 2, 'manual list': [],
+            'k': 6, 'l': 2, 'manual list': [],
+           'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+           'position': 'end_mod', 'phi_s fit': True}
 WHAT_TO_FIT = {
     'opti method': 'least_squares',
     # 'opti method': 'PSO',
@@ -79,11 +93,11 @@ WHAT_TO_FIT = {
     #     What should we fit?
     # =========================================================================
     'objective': [
-        'energy',
-        'phase',
-        # 'eps', 'twiss_beta', 'twiss_gamma',  # 'twiss_alpha',
+        'w_kin',
+        'phi_abs_array',
+        # 'eps_zdelta', 'beta_zdelta', 'gamma_zdelta',  # 'alpha_zdelta',
         # 'M_11', 'M_12', 'M_22',  # 'M_21',
-        'mismatch_factor',
+        'mismatch factor',
     ],
     # =========================================================================
     #     Where should we evaluate objective?
@@ -91,19 +105,19 @@ WHAT_TO_FIT = {
     'position': 'end_mod',
     # 'position': '1_mod_after',
     # 'position': 'both',
+    'phi_s fit': True,
 }
 
 # =============================================================================
 # Outputs
 # =============================================================================
 PLOTS = [
-    # "energy",
+    "energy",
     # "phase",
-    # "cav",
+    "cav",
     # "emittance",
     # "twiss",
-    # "enveloppes",
-    # "mismatch factor",
+    "envelopes",
 ]
 PLOT_TM = False
 
@@ -113,12 +127,12 @@ SAVES = [
 ]
 
 DICT_PLOTS_PRESETS = {
-    "energy": [["energy", "energy_err", "struct"], 21],
-    "phase": [["abs_phase", "abs_phase_err", "struct"], 22],
-    "cav": [["v_cav_mv", "field_map_factor", "phi_s_deg", "struct"], 23],
+    "energy": [["w_kin", "w_kin_err", "struct"], 21],
+    "phase": [["phi_abs_array", "phi_abs_array_err", "struct"], 22],
+    "cav": [["v_cav_mv", "k_e", "phi_s", "struct"], 23],
     "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
     "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
-    "enveloppes": [["envel_pos_w", "envel_ener_w", "struct"], 26],
+    "envelopes": [["envelope_pos_w", "envelope_energy_w", "struct"], 26],
     "mismatch factor": [["mismatch factor", "struct"], 27],
 }
 
@@ -131,53 +145,56 @@ if abs(I_MILLI_A) > 1e-10:
     helper.printc("main.py warning: ", opt_message="I_MILLI_A is not zero,"
                   + "but LW does not take space charge forces into account.")
 
-
 # =============================================================================
 # Start
 # =============================================================================
-start_time = time.monotonic()
 FILEPATH = os.path.abspath(FILEPATH)
 
 # Reference linac
 ref_linac = acc.Accelerator(FILEPATH, "Working")
-ref_linac.compute_transfer_matrices()
-for plot in PLOTS:
-    debug.compare_with_tracewin(ref_linac, x_dat="s",
-                                y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                fignum=DICT_PLOTS_PRESETS[plot][1])
+results = ref_linac.elts.compute_transfer_matrices()
+ref_linac.save_results(results, ref_linac.elts)
+
+linacs = [ref_linac]
 
 # Broken linac
-broken_linac = acc.Accelerator(FILEPATH, "Broken")
-fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav,
-                            wtf=WHAT_TO_FIT)
-for plot in PLOTS:
-    debug.compare_with_tracewin(broken_linac, x_dat="s",
-                                y_dat=DICT_PLOTS_PRESETS[plot][0],
-                                fignum=DICT_PLOTS_PRESETS[plot][1])
+lsq_info = None
+# for wtf in []:
+# for wtf in [wtf_lsq, wtf_pso]:
+for wtf in [wtf_lsq]:
+    start_time = time.monotonic()
+    lin = acc.Accelerator(FILEPATH, "Broken")
+    fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
+                                wtf=wtf, l_info_other_sol=lsq_info)
+    # linacs.append(deepcopy(lin))
 
-if FLAG_FIX:
-    fail.fix_all()
-    broken_linac.compute_transfer_matrices()
+    if FLAG_FIX:
+        fail.fix_all()
+        results = lin.elts.compute_transfer_matrices()
+        lin.save_results(results, lin.elts)
+
+        if wtf == wtf_lsq:
+            lsq_info = [f.info for f in fail.faults['l_obj']]
+
+    linacs.append(lin)
+
+    # Output some info onthe quality of the fit
+    end_time = time.monotonic()
+    print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
+    delta_t = timedelta(seconds=end_time - start_time)
+    ranking = fail.evaluate_fit_quality(delta_t)
+    helper.printd(ranking, header='Fit evaluation')
+
+    if SAVE_FIX:
+        helper.printc("main warning: ", opt_message="if studying several "
+                      + "linacs, the .dat of first fix will be replaced by "
+                      + "last one.")
+        tw.save_new_dat(lin, FILEPATH)
+
+for lin in linacs:
     for plot in PLOTS:
-        debug.compare_with_tracewin(broken_linac, x_dat="s",
-                                    y_dat=DICT_PLOTS_PRESETS[plot][0],
+        debug.compare_with_tracewin(lin, x_str="z_abs",
+                                    l_y_str=DICT_PLOTS_PRESETS[plot][0],
                                     fignum=DICT_PLOTS_PRESETS[plot][1])
-
 if PLOT_TM:
     debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])
-
-#     for save in SAVES:
-#         DICT_SAVES[save](lin)
-
-if SAVE_FIX:
-    tw.save_new_dat(broken_linac, FILEPATH)
-
-# =============================================================================
-# End
-# =============================================================================
-end_time = time.monotonic()
-print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
-
-delta_t = timedelta(seconds=end_time - start_time)
-ranking = fail.evaluate_fit_quality(delta_t)
-helper.printd(ranking, header='Fit evaluation')

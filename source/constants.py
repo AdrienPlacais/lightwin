@@ -58,9 +58,6 @@ elif LINAC == "JAEA":
 # modified cavity change their status to 'rephased'.
 FLAG_PHI_ABS = True
 
-# Fit performed over phi_s?
-FLAG_PHI_S_FIT = True
-
 # Method to integrate the motion. leapfrog or RK (RK4)
 # METHOD = 'leapfrog'
 METHOD = 'RK'

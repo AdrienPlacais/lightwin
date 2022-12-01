@@ -6,7 +6,7 @@ Created on Mon Jan 24 12:51:15 2022.
 @author: placais
 
 Module holding the FaultScenario, which holds the Faults. Each Fault object
-fixes himself (Fault.fix_single), and a second optimization is performed to
+fixes himself (Fault.fix), and a second optimization is performed to
 smoothen the individual fixes. # TODO
 
 brok_lin: holds for "broken_linac", the linac with faults.
@@ -31,6 +31,7 @@ import math
 import numpy as np
 import pandas as pd
 from constants import FLAG_PHI_ABS
+from list_of_elements import ListOfElements
 from helper import printc
 import debug
 import fault as mod_f
@@ -39,25 +40,27 @@ import fault as mod_f
 class FaultScenario():
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_linac, broken_linac, l_fault_idx, wtf):
+    def __init__(self, ref_linac, broken_linac, l_fault_idx, wtf,
+                 l_info_other_sol=None):
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
         self.wtf = wtf
+        self.l_info_other_sol = l_info_other_sol
 
-        assert ref_linac.synch.info['reference'] is True
-        assert broken_linac.synch.info['reference'] is False
+        assert ref_linac.get('reference') and not broken_linac.get('reference')
 
         ll_comp_cav, ll_fault_idx = self._sort_faults(l_fault_idx)
-        l_obj = self._create_fault_objects(ll_fault_idx)
+        l_obj = self._create_fault_objects(ll_fault_idx, ll_comp_cav)
 
-        self.faults = {'l_obj': l_obj,          # List of Fault objects
-                       # List of list of index of failed cavities, grouped by
-                       # Fault
-                       'l_idx': ll_fault_idx,
-                       # List of list of compensating + failed cavities,
-                       # grouped by Fault
-                       'l_comp': ll_comp_cav,
-                       }
+        self.faults = {
+            # List of Fault objects
+            'l_obj': l_obj,
+            # List of list of index of failed cavities, grouped by Fault
+            'l_idx': ll_fault_idx,
+            # List of list of compensating + failed cavities, grouped by Fault
+            'l_comp': ll_comp_cav,
+        }
+
         # Ensure that the cavities are sorted from linac entrance to linac exit
         flattened_l_fault_idx = [idx
                                  for l_idx in ll_fault_idx
@@ -70,96 +73,11 @@ class FaultScenario():
         # that they must keep their relative entry phases, not their absolute
         if not FLAG_PHI_ABS:
             self._update_status_of_cavities_to_rephase()
-
         self._transfer_phi0_from_ref_to_broken()
-        self.brok_lin.compute_transfer_matrices()
+
+        results = self.brok_lin.elts.compute_transfer_matrices()
+        self.brok_lin.save_results(results, self.brok_lin.elts)
         self.brok_lin.compute_mismatch(self.ref_lin)
-
-    def _transfer_phi0_from_ref_to_broken(self):
-        """
-        Transfer the entry phases from ref linac to broken.
-
-        If the absolute initial phases are not kept between reference and
-        broken linac, it comes down to rephasing the linac. This is what we
-        want to avoid when FLAG_PHI_ABS = True.
-        """
-        # Get CavitieS of REFerence and BROKen linacs
-        ref_cs = self.ref_lin.elements_of('FIELD_MAP')
-        brok_cs = self.brok_lin.elements_of('FIELD_MAP')
-
-        for ref_c, brok_c in zip(ref_cs, brok_cs):
-            ref_a_f = ref_c.acc_field
-            brok_a_f = brok_c.acc_field
-
-            brok_a_f.phi_0['abs'] = ref_a_f.phi_0['abs']
-            brok_a_f.phi_0['rel'] = ref_a_f.phi_0['rel']
-            brok_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['rel']
-
-    def fix_all(self):
-        """
-        Fix the linac.
-
-        First, fix all the Faults independently. Then, recompute the linac
-        and make small adjustments.
-        """
-        for fault, comp_cav in zip(self.faults['l_obj'],
-                                   self.faults['l_comp']):
-            fault.prepare_cavities_for_compensation(comp_cav)
-
-        l_flags_success = []
-
-        # We fix all Faults individually
-        for fault in self.faults['l_obj']:
-            flag_success, opti_sol = fault.fix_single()
-
-            # Recompute transfer matrices to transfer proper rf_field, transfer
-            # matrix, etc to _Elements, _Particles and _Accelerators.
-            d_fits = {'l_phi': opti_sol[:fault.comp['n_cav']].tolist(),
-                      'l_k_e': opti_sol[fault.comp['n_cav']:].tolist()}
-            fault.brok_lin.compute_transfer_matrices(fault.comp['l_recompute'],
-                                                     d_fits=d_fits,
-                                                     flag_transfer_data=True)
-
-            # Update status of the compensating cavities according to the
-            # success or not of the fit.
-            fault.update_status(flag_success)
-            l_flags_success.append(flag_success)
-            self._compute_matrix_to_next_fault(fault, flag_success)
-
-            if not FLAG_PHI_ABS:
-                # Tell LW to keep the new phase of the rephased cavities
-                # between the two compensation zones
-                self._reupdate_status_of_rephased_cavities(fault)
-
-        # At the end we recompute the full transfer matrix
-        self.brok_lin.compute_transfer_matrices()
-        self.brok_lin.compute_mismatch(self.ref_lin)
-        self.brok_lin.name = f"Fixed ({str(l_flags_success.count(True))}" \
-            + f" of {str(len(l_flags_success))})"
-
-        for linac in [self.ref_lin, self.brok_lin]:
-            self.info[linac.name + ' cav'] = \
-                debug.output_cavities(linac, mod_f.debugs['cav'])
-
-        self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
-                                            mod_f.debugs['fit_compact'])
-
-    def _compute_matrix_to_next_fault(self, fault, success):
-        """Recompute transfer matrices between this fault and the next."""
-        l_faults = self.faults['l_obj']
-        l_elts = self.brok_lin.elements['list']
-        idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
-
-        if fault is not l_faults[-1] and success:
-            next_fault = l_faults[l_faults.index(fault) + 1]
-            idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
-            print('fault_scenario: recompute only until index', idx2)
-        else:
-            idx2 = len(l_elts)
-            print('fault_scenario: recompute until end')
-
-        elt1_to_elt2 = l_elts[idx1:idx2]
-        self.brok_lin.compute_transfer_matrices(elt1_to_elt2)
 
     def _sort_faults(self, l_fault_idx):
         """Gather faults that are close to each other."""
@@ -167,7 +85,7 @@ class FaultScenario():
 
         # If in manual mode, faults should be already gathered
         if self.wtf['strategy'] == 'manual':
-            l_faulty_cav = [[lin.elements['list'][idx]
+            l_faulty_cav = [[lin.elts[idx]
                              for idx in l_idx]
                             for l_idx in l_fault_idx]
             ll_idx_faults = l_fault_idx
@@ -175,16 +93,13 @@ class FaultScenario():
                                             self.wtf['manual list'])
 
         else:
-            l_faulty_cav = [lin.elements['list'][idx]
+            l_faulty_cav = [lin.elts[idx]
                             for idx in sorted(l_fault_idx)]
-            natures = {elem.info['nature'] for elem in l_faulty_cav}
-            assert natures == {'FIELD_MAP'}, "Not all failed cavities that" \
-                + " you asked are cavities."
 
             # Initialize list of list of faults indexes
             ll_idx_faults = [[idx] for idx in sorted(l_fault_idx)]
             # Initialize list of list of corresp. faulty cavities
-            ll_faults = [[lin.elements['list'][idx]
+            ll_faults = [[lin.elts[idx]
                           for idx in l_idx]
                          for l_idx in ll_idx_faults]
 
@@ -242,17 +157,24 @@ class FaultScenario():
 
         return ll_comp, ll_idx_faults
 
-    def _create_fault_objects(self, l_l_idx_faults):
+    def _create_fault_objects(self, ll_fault_idx, ll_comp_cav):
         """Create the Faults."""
         l_faults_obj = []
-        for l_idx in l_l_idx_faults:
-            l_faulty_cav = [self.brok_lin.elements['list'][idx]
-                            for idx in l_idx]
-            nature = {cav.info['nature'] for cav in l_faulty_cav}
-            assert nature == {"FIELD_MAP"}
-            l_faults_obj.append(
-                mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav,
-                            self.wtf))
+        # Unpack the list of list of faulty indexes
+        for l_idx, l_comp_cav in zip(ll_fault_idx, ll_comp_cav):
+            # Get faulty cavities
+            l_faulty_cav = [self.brok_lin.elts[idx] for idx in l_idx]
+
+            # Check that they are all cavities
+            set_nature = {cav.get('nature', to_numpy=False)
+                          for cav in l_faulty_cav}
+            assert set_nature == {"FIELD_MAP"}
+
+            # Create Fault object and append it to the list of Fault objects
+            new_fault = mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav,
+                                    l_comp_cav, self.wtf)
+            l_faults_obj.append(new_fault)
+
         return l_faults_obj
 
     def _update_status_of_cavities_to_rephase(self):
@@ -266,14 +188,113 @@ class FaultScenario():
                opt_message=" the phases in the broken linac are relative."
                + " It may be more relatable to use absolute phases, as"
                + " it would avoid the rephasing of the linac at each cavity.")
-        all_elements = self.brok_lin.elements['list']
         idx_first_failed = self.faults['l_idx'][0][0]
 
-        to_rephase_cavities = [cav for cav in all_elements[idx_first_failed:]
-                               if cav.info['status'] == 'nominal']
-        # The status of non-cavities is None, so they are implicitely excluded
+        to_rephase_cavities = [cav for cav in self.brok_lin.elts[idx_first_failed:]
+                               if cav.get('status') == 'nominal'
+                               and cav.get('nature') == 'FIELD_MAP']
+        # (the status of non-cavities is None, so they would be implicitely
+        # excluded even without the nature checking)
         for cav in to_rephase_cavities:
             cav.update_status('rephased (in progress)')
+
+    def _transfer_phi0_from_ref_to_broken(self):
+        """
+        Transfer the entry phases from ref linac to broken.
+
+        If the absolute initial phases are not kept between reference and
+        broken linac, it comes down to rephasing the linac. This is what we
+        want to avoid when FLAG_PHI_ABS = True.
+        """
+        # Get CavitieS of REFerence and BROKen linacs
+        ref_cs = self.ref_lin.elements_of('FIELD_MAP')
+        brok_cs = self.brok_lin.elements_of('FIELD_MAP')
+
+        for ref_c, brok_c in zip(ref_cs, brok_cs):
+            ref_a_f = ref_c.acc_field
+            brok_a_f = brok_c.acc_field
+
+            brok_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
+            brok_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
+            brok_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
+
+    def fix_all(self):
+        """
+        Fix the linac.
+
+        First, fix all the Faults independently. Then, recompute the linac
+        and make small adjustments.
+        """
+        l_successes = []
+
+        # We fix all Faults individually
+        for i, fault in enumerate(self.faults['l_obj']):
+            # If provided, we take the fault.info of another fault
+            info_other_sol = None
+            if self.l_info_other_sol is not None:
+                info_other_sol = self.l_info_other_sol[i]
+
+            success, d_sol = fault.fix(info_other_sol=info_other_sol)
+
+            # Recompute transfer matrices to transfer proper rf_field, transfer
+            # matrix, etc to _Elements, _Particles and _Accelerators.
+            d_fits = {'l_phi': d_sol['X'][:fault.comp['n_cav']],
+                      'l_k_e': d_sol['X'][fault.comp['n_cav']:],
+                      'phi_s fit': self.wtf['phi_s fit']}
+
+            results = fault.elts.compute_transfer_matrices(
+                d_fits=d_fits, transfer_data=True)
+            self.brok_lin.save_results(results, fault.elts)
+            fault.get_x_sol_in_real_phase()
+
+            # Update status of the compensating cavities according to the
+            # success or not of the fit.
+            fault.update_status(success)
+            l_successes.append(success)
+            self._compute_matrix_to_next_fault(fault, success)
+
+            if not FLAG_PHI_ABS:
+                # Tell LW to keep the new phase of the rephased cavities
+                # between the two compensation zones
+                self._reupdate_status_of_rephased_cavities(fault)
+
+        # At the end we recompute the full transfer matrix
+        # self.brok_lin.compute_transfer_matrices()
+        results = self.brok_lin.elts.compute_transfer_matrices()
+        self.brok_lin.save_results(results, self.brok_lin.elts)
+        self.brok_lin.compute_mismatch(self.ref_lin)
+        self.brok_lin.name = f"Fixed ({str(l_successes.count(True))}" \
+            + f" of {str(len(l_successes))})"
+
+        for linac in [self.ref_lin, self.brok_lin]:
+            self.info[linac.name + ' cav'] = \
+                debug.output_cavities(linac, mod_f.debugs['cav'])
+
+        self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
+                                            mod_f.debugs['fit_compact'])
+
+    def _compute_matrix_to_next_fault(self, fault, success):
+        """Recompute transfer matrices between this fault and the next."""
+        l_faults = self.faults['l_obj']
+        l_elts = self.brok_lin.elts
+        idx1 = fault.elts[-1].idx['elt_idx']
+
+        if fault is not l_faults[-1] and success:
+            next_fault = l_faults[l_faults.index(fault) + 1]
+            idx2 = next_fault.elts[0].idx('elt_idx') + 1
+        else:
+            idx2 = len(l_elts)
+
+        elt1_to_elt2 = l_elts[idx1:idx2]
+        s_elt1 = l_elts[idx1].idx['s_in']
+        w_kin = self.brok_lin.get('w_kin')[s_elt1]
+        phi_abs = self.brok_lin.get('phi_abs_array')[s_elt1]
+        transf_mat = self.brok_lin.transf_mat['tm_cumul'][s_elt1]
+
+        elts = ListOfElements(elt1_to_elt2, w_kin=w_kin, phi_abs=phi_abs,
+                              idx_in=s_elt1, tm_cumul=transf_mat)
+        results = elts.compute_transfer_matrices()
+        self.brok_lin.save_results(results, elts)
 
     def _reupdate_status_of_rephased_cavities(self, fault):
         """
@@ -282,32 +303,36 @@ class FaultScenario():
         Change the cavities with status "rephased (in progress)" to
         "rephased (ok)" between this fault and the next one.
         """
+        printc("fault_scenario._reupdate_status_of_rephased_cavities warning:",
+               opt_message=" changed the way of defining idx1 and idx2.")
         l_faults = self.faults['l_obj']
-        l_elts = self.brok_lin.elements['list']
+        l_elts = self.brok_lin.elts
 
-        idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
+        # idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
+        idx1 = fault.elts[-1].idx['elt_idx']
         if fault is l_faults[-1]:
             idx2 = len(l_elts)
         else:
             next_fault = l_faults[l_faults.index(fault) + 1]
-            idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+            # idx2 = l_elts.index(next_fault.comp['l_all_elts'][0]) + 1
+            idx2 = next_fault.elts[0].idx('elt_idx') + 1
 
         l_cav_between_two_faults = [elt for elt in l_elts[idx1:idx2]
-                                    if elt.info['nature'] == 'FIELD_MAP']
+                                    if elt.get('nature') == 'FIELD_MAP']
         for cav in l_cav_between_two_faults:
-            if cav.info['status'] == 'rephased (in progress)':
+            if cav.get('status') == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
 
     # FIXME not Pythonic at all
     def evaluate_fit_quality(self, delta_t):
         """Compute some quantities on the whole linac to see if fit is good."""
         d_get = {
-            'W_kin': lambda lin: lin.synch.energy['kin_array_mev'],
-            'phi': lambda lin: lin.synch.phi['abs_array'],
-            'sigma_phi': lambda lin: lin.beam_param['enveloppes']['w'][:, 0],
-            'sigma_w': lambda lin: lin.beam_param['enveloppes']['w'][:, 1],
-            'mismatch factor': lambda lin: lin.beam_param['mismatch factor'],
-            'emittance': lambda lin: lin.beam_param['eps']['w'],
+            'w_kin': lambda lin: lin.synch.energy['w_kin'],
+            'phi_abs_array': lambda lin: lin.get('phi_abs_array'),
+            'sigma_phi': lambda lin: lin.get('envelopes_w')[:, 0],
+            'sigma_w': lambda lin: lin.get('envelopes_w')[:, 1],
+            'mismatch factor': lambda lin: lin.get('mismatch factor'),
+            'eps_w': lambda lin: lin.get('eps_w'),
         }
         idx_end_comp_zone = 824
         printc("Warning fault_scenario.evaluate_fit_quality: ",
@@ -349,12 +374,12 @@ class FaultScenario():
                     raise IOError
 
                 d_delta = {
-                    'W_kin': fun1,
-                    'phi': fun1,
+                    'w_kin': fun1,
+                    'phi_abs_array': fun1,
                     'sigma_phi': fun1,
                     'sigma_w': fun1,
                     'mismatch factor': fun2,
-                    'emittance': fun1,
+                    'eps_w': fun1,
                 }
 
                 args = (d_get[crit](self.ref_lin), d_get[crit](self.brok_lin))
@@ -412,7 +437,7 @@ def neighboring_lattices(lin, l_faulty_cav, n_lattices_per_fault):
     l_comp_cav = [element
                   for lattice in l_comp_latt
                   for element in lattice
-                  if element.info['nature'] == 'FIELD_MAP']
+                  if element.get('nature') == 'FIELD_MAP']
     return l_comp_cav
 
 
@@ -424,14 +449,13 @@ def manually_set_cavities(lin, l_faulty_idx, l_comp_idx):
     assert len(l_faulty_idx) == len(l_comp_idx), "Need a list of compensating"\
         + " cavities index for each list of faults."
 
-    all_elements = lin.elements['list']
-    natures = {all_elements[idx].info['nature']
+    natures = {lin.elts[idx].get('nature')
                for l_idx in l_faulty_idx + l_comp_idx
                for idx in l_idx}
     assert natures == {'FIELD_MAP'}, "All faulty and compensating elements" \
         + " must be 'FIELD_MAP's."
 
-    l_comp_cav = [[all_elements[idx]
+    l_comp_cav = [[lin.elts[idx]
                    for idx in l_idx]
                   for l_idx in l_comp_idx]
     return l_comp_cav

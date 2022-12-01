@@ -15,6 +15,7 @@ from scipy.interpolate import interp1d
 import pandas as pd
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
+from dicts_output import d_markdown, d_plot_kwargs
 import helper
 import tracewin_interface as tw
 
@@ -25,8 +26,7 @@ plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
-def compute_error_transfer_matrix(transf_mat, transf_mat_ref,
-                                  flag_output=False):
+def compute_error_transfer_matrix(transf_mat, transf_mat_ref, output=False):
     """Compute and output error between transfer matrix and ref."""
     n_z = transf_mat.shape[0]
     n_z_ref = transf_mat_ref.shape[0]
@@ -59,17 +59,24 @@ def compute_error_transfer_matrix(transf_mat, transf_mat_ref,
             err[:, i] = transf_mat_ref[:, i + 1] - f_interp(z_err)
             # err[:, i] = np.log10(transf_mat_ref[:, i + 1] / f_interp(z_err))
 
-    if flag_output:
-        header = 'Errors on transfer matrix'
-        message = 'Error matrix at end of line*1e3:\n' \
-            + str(err[-1, 0:2] * 1e3) + '\n' + str(err[-1, 2:4] * 1e3) \
-            + '\nCumulated error:\n' \
-            + str(np.linalg.norm(err, axis=0)[0:2]) + '\n' \
-            + str(np.linalg.norm(err, axis=0)[2:4]) \
-            + '\n\nCumulated error:\n' \
-            + str(np.linalg.norm(err, axis=0)[0:2]) + '\n' \
-            + str(np.linalg.norm(err, axis=0)[2:4]) \
-            + '\n\nTot error:\n' + str(np.linalg.norm(err))
+    if output:
+        header = "Errors on transfer matrix"
+        message = f"""
+            Error matrix at end of line*1e3:
+            {err[-1, 0:2] * 1e3}
+            {err[-1, 2:4] * 1e3}
+
+            Cumulated error:
+            {np.linalg.norm(err, axis=0)[0:2]}
+            {np.linalg.norm(err, axis=0)[2:4]}
+
+            Cumulated error:
+            {np.linalg.norm(err, axis=0)[0:2]}
+            {np.linalg.norm(err, axis=0)[2:4]}
+
+            Tot error:
+            {np.linalg.norm(err)}
+            """
         helper.printd(message, header=header)
     return err, z_err
 
@@ -91,10 +98,10 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
                     fold + '/results/M_65_ref.txt',
                     fold + '/results/M_66_ref.txt']
 
-    z_pos = accelerator.synch.z['abs_array']
+    z_pos = accelerator.synch.pos['z_abs']
     n_z = z_pos.shape[0]
 
-    transfer_matrix = accelerator.transf_mat['cumul']
+    transfer_matrix = accelerator.transf_mat['tm_cumul']
 
     # Change shape of calculated transfer matrix to match the ref one
     # i.e.: 1st column is z, 2nd 3rd 4th and 5th are matrix components
@@ -105,7 +112,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     r_zz_tot_ref = tw.load_transfer_matrices(filepath_ref)
 
     err, z_err = compute_error_transfer_matrix(r_zz_tot, r_zz_tot_ref,
-                                               flag_output=False)
+                                               output=False)
 
     axnumlist = range(221, 225)
     _, axlist = helper.create_fig_if_not_exist(31, axnumlist)
@@ -178,237 +185,124 @@ def _reformat(x_data, y_data, elts_indexes):
     return x_data, y_data
 
 
-def _create_plot_dicts():
-    # [label, marker]
-    d_plot = {
-        's': ['Synch. position [m]',
-              {'marker': None}],
-        'elt': ['Element number',
-                {'marker': None}],
-        'energy': ['Beam energy [MeV]',
-                   {'marker': None}],
-        'energy_err': ['Error',
-                       {'marker': None}],
-        'abs_phase': ['Beam phase [deg]',
-                      {'marker': None}],
-        'abs_phase_err': ['Error',
-                          {'marker': None}],
-        'beta_synch': [r'Synch. $\beta$ [1]',
-                       {'marker': None}],
-        'beta_synch_err': [r'Abs. $\beta$ error [1]',
-                           {'marker': None}],
-        'struct': ['Structure',
-                   {'marker': None}],
-        'v_cav_mv': ['Acc. field [MV]',
-                     {'marker': 'o'}],
-        'phi_s_deg': ['Synch. phase [deg]',
-                      {'marker': 'o'}],
-        'field_map_factor': [r'$k_e$ [1]',
-                             {'marker': 'o'}],
-        "eps_zdelta": [r"$\epsilon_{z\delta}$ [$\pi$.m.rad]",
-                       {"marker": None}],
-        "eps_z": [r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
-        "eps_w": [r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]", {"marker": None}],
-        "alpha_zdelta": [r"$\alpha_{z\delta}$ [1]", {"marker": None}],
-        "alpha_z": [r"$\alpha_{zz'}$ [1]", {"marker": None}],
-        "alpha_w": [r"$\alpha_{\phi W}$ [1]", {"marker": None}],
-        "beta_zdelta": [r"$\beta_{z\delta}$ [mm/$\pi$.%]", {"marker": None}],
-        "beta_z": [r"$\beta_{zz'}$ [mm/$\pi$.mrad]", {"marker": None}],
-        "beta_w": [r"$\beta_{\phi W}$ [deg/$\pi$.MeV]",
-                   {"marker": None}],
-        "gamma_zdelta": [r"$\gamma_{z\delta}$ [$\pi$/mm.rad]",
-                         {"marker": None}],
-        "gamma_z": [r"$\gamma_{zz'}$ [$\pi$/mm.mrad]",
-                    {"marker": None}],
-        "gamma_w": [r"$\gamma_{\phi W}$ [$\pi$/deg.MeV]",
-                    {"marker": None}],
-        "envel_pos_zdelta": [r"$\sigma_z$ [m]", {"marker": None}],
-        "envel_pos_z": [r"$\sigma_z$ [mm]", {"marker": None}],
-        "envel_pos_w": [r"$\sigma_\phi$ [deg]", {"marker": None}],
-        "envel_ener_zdelta": [r"$\sigma_\delta$ [rad]", {"marker": None}],
-        "envel_ener_z": [r"$\sigma_{z'}$ [mrad]", {"marker": None}],
-        "envel_ener_w": [r"$\sigma_\phi$ [MeV]", {"marker": None}],
-        "mismatch factor": [r"$M$", {"marker": None}],
-    }
+# FIXME Some pieces of code are repeated, can do better
+def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
+                           filepath_ref=None, fignum=21):
+    """Plot data calculated by TraceWin and LightWin."""
+    plot_section = True
+    # Default plot
+    if l_y_str is None:
+        l_y_str = ['w_kin', 'w_kin_err', 'struct']
 
-    d_x_data = {
-        's': lambda lin: lin.synch.z['abs_array'],
-        'elt': lambda lin: np.array(range(lin.elements['n'])),
-    }
-
-    # LW y data
-    d_y_data_lw = {
-        'energy': lambda lin: lin.synch.energy['kin_array_mev'],
-        'abs_phase': lambda lin: np.rad2deg(lin.synch.phi['abs_array']),
-        'beta_synch': lambda lin: lin.synch.energy['beta_array'],
-        'v_cav_mv': lambda lin:
-            lin.get_from_elements('acc_field', 'cav_params', 'v_cav_mv'),
-        'phi_s_deg': lambda lin:
-            lin.get_from_elements('acc_field', 'cav_params', 'phi_s_deg'),
-        'field_map_factor': lambda lin:
-            lin.get_from_elements('acc_field', 'k_e'),
-        "eps_zdelta": lambda lin: lin.beam_param["eps"]["zdelta"],
-        "eps_z": lambda lin: lin.beam_param["eps"]["z"],
-        "eps_w": lambda lin: lin.beam_param["eps"]["w"],
-        "alpha_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 0],
-        "alpha_z": lambda lin: lin.beam_param["twiss"]["z"][:, 0],
-        "alpha_w": lambda lin: lin.beam_param["twiss"]["w"][:, 0],
-        "beta_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 1],
-        "beta_z": lambda lin: lin.beam_param["twiss"]["z"][:, 1],
-        "beta_w": lambda lin: lin.beam_param["twiss"]["w"][:, 1],
-        "gamma_zdelta": lambda lin: lin.beam_param["twiss"]["zdelta"][:, 2],
-        "gamma_z": lambda lin: lin.beam_param["twiss"]["z"][:, 2],
-        "gamma_w": lambda lin: lin.beam_param["twiss"]["w"][:, 2],
-        "envel_pos_zdelta": lambda lin:
-            lin.beam_param["enveloppe"]["zdelta"][:, 0],
-        "envel_pos_z": lambda lin: lin.beam_param["enveloppes"]["z"][:, 0],
-        "envel_pos_w": lambda lin: lin.beam_param["enveloppes"]["w"][:, 0],
-        "envel_ener_zdelta": lambda lin:
-            lin.beam_param["enveloppe"]["zdelta"][:, 1],
-        "envel_ener_z": lambda lin: lin.beam_param["enveloppes"]["z"][:, 1],
-        "envel_ener_w": lambda lin: lin.beam_param["enveloppes"]["w"][:, 1],
-        "mismatch factor": lambda lin: lin.beam_param["mismatch factor"],
-    }
-
-    d_err_factor = {
-        'energy': 1,
-        'abs_phase': 1.,
-        'beta_synch': 1.,
-    }
-
-    all_dicts = {
-        'plot': d_plot,
-        'x_data': d_x_data,
-        'y_data_lw': d_y_data_lw,
-        'err_factor': d_err_factor,
-        # 'errors': d_errors,
-    }
-
-    return all_dicts
-
-
-def compare_with_tracewin(linac, x_dat='s', y_dat=None, filepath_ref=None,
-                          fignum=21):
-    """
-    Compare data calculated by TraceWin and LightWin.
-
-    There are several plots on top of each other. Number of plots is determined
-    by the len of y_dat.
-
-    Parameters
-    ----------
-    linac : Accelerator object
-        Accelerator under study.
-    x_dat : string
-        Data in x axis, common to the n plots. It should be 's' for a plot as
-        a function of the position and 'elt' for a plot a function of the
-        number of elements.
-    y_dat : list of string
-        Data in y axis for each subplot. It should be in d_y_data_lw.
-    filepath_ref : string
-        Path to the TW results. They should be saved in TraceWin: Data > Save
-        table to file (loaded by tracewin_interface.load_tw_results).
-    fignum: int
-        Number of the Figure.
-    """
-    if y_dat is None:
-        y_dat = ['energy', 'energy_err', 'struct']
     if filepath_ref is None:
-        filepath_ref = linac.files['project_folder'] \
-            + '/results/energy_ref.txt'
+        filepath_ref = linac.get('project_folder') + '/results/energy_ref.txt'
 
-    dicts = _create_plot_dicts()
+    # Prep some data common to all plots
+    x_dat = linac.get(x_str, to_deg=True)
+    elts_indexes = linac.get('s_out')
 
-    elts_indexes = linac.get_from_elements('idx', 's_out')
+    # Prep figure and axes
+    n_plots = len(l_y_str)
+    axnum = 100 * n_plots + 11
+    axnum = range(axnum, axnum + n_plots)
+    _, axx = helper.create_fig_if_not_exist(fignum, axnum, sharex=True)
 
-    def _err(y_d, diff):
-        assert y_d in tw.d_tw_data_table
-        y_data_ref = tw.load_tw_results(filepath_ref, y_d)
-        y_data = dicts['y_data_lw'][y_d](linac)[elts_indexes]
-        if diff == 'abs':
-            err_data = dicts['err_factor'][y_d] * np.abs(y_data_ref - y_data)
-        elif diff == 'rel':
-            err_data = dicts['err_factor'][y_d] * (y_data_ref - y_data)
-        elif diff == 'log':
-            err_data = dicts['err_factor'][y_d] * np.log10(y_data / y_data_ref)
-        return err_data
-    # Add it to the dict of y data
-    d_errors = {
-        'energy_err': lambda lin: _err('energy', diff='rel'),
-        'abs_phase_err': lambda lin: _err('abs_phase', diff='rel'),
-        'beta_synch_err': lambda lin: _err('beta_synch', diff='abs'),
+    # Get data and kwargs
+    for i, y_str in enumerate(l_y_str):
+        if plot_section:
+            helper.plot_section(linac, axx[i], x_axis=x_str)
+
+        if y_str == 'struct':
+            helper.plot_structure(linac, axx[i], x_axis=x_str)
+            continue
+
+        l_y_dat = []
+        l_kwargs = []
+
+        # Plot error data?
+        plot_error = y_str[-4:] == '_err'
+
+        # Plot TW data?
+        label_tw = 'TW'
+        plot_tw = not plot_error and y_str in tw.d_tw_data_table \
+                and label_tw not in axx[i].get_legend_handles_labels()[1]
+
+        # Replot Working and Broken every time?
+        replot_lw = False
+        label_lw = 'LW ' + linac.name
+        plot_lw = not plot_error \
+                and (replot_lw
+                     or linac.name not in ['Working', 'Broken']
+                     or label_lw not in axx[i].get_legend_handles_labels()[1]
+                    )
+
+        if plot_error:
+            diff = 'abs'
+            if 'abs_phase' in y_str or 'w_kin' in y_str:
+                diff = 'log'
+            l_y_dat.append(_err(linac, y_str[:-4], filepath_ref, diff=diff))
+            l_kwargs.append(
+                d_plot_kwargs[y_str] | {'label': linac.name + 'err. w/ TW'}
+            )
+
+        if plot_tw:
+            l_y_dat.append(tw.load_tw_results(filepath_ref, y_str))
+            l_kwargs.append(
+                d_plot_kwargs[y_str] | {'label': label_tw, 'c': 'k', 'lw': 2.,
+                                        'ls': '--'}
+            )
+
+        if plot_lw:
+            # LightWin
+            l_y_dat.append(linac.get(y_str, to_deg=True))
+            l_kwargs.append(
+                d_plot_kwargs[y_str] | {'label': label_lw}
+            )
+
+        for y_dat, kwargs in zip(l_y_dat, l_kwargs):
+            # Downsample x or y if necessary
+            x_plot, y_plot = _reformat(x_dat, y_dat, elts_indexes)
+
+            axx[i].plot(x_plot, y_plot, **kwargs)
+
+        axx[i].set_ylabel(d_markdown[y_str])
+        axx[i].grid(True)
+
+    axx[0].legend()
+    axx[-1].set_xlabel(d_markdown[x_str])
+
+def _err(linac, y_str, filepath_ref, diff='abs'):
+    """Calculate error between linac (LW) and TW."""
+    assert y_str in tw.d_tw_data_table
+    elts_indexes = linac.get('s_out')
+
+    # Set up a scale (for example if the error is very small)
+    d_err_scales = {
+        'example': 1e3,
     }
-    dicts['errors'] = d_errors
-    dicts['y_data_lw'].update(d_errors)
+    scale = d_err_scales.get(y_str, 1.)
+    # this is the default value ----'
 
-    # Plot
-    first_axnum = len(y_dat) * 100 + 11
-    _, axlist = helper.create_fig_if_not_exist(
-        fignum, range(first_axnum, first_axnum + len(y_dat)), sharex=True,
-    )
+    d_diff = {'abs': lambda ref, new: scale * np.abs(ref - new),
+              'rel': lambda ref, new: scale * (ref - new),
+              'log': lambda ref, new: scale * np.log10(np.abs(new / ref)),
+             }
 
-    for i, y_d in enumerate(y_dat):
-        _single_plot(axlist[i], [x_dat, y_d], dicts, filepath_ref, linac)
-        axlist[i].set_ylabel(dicts['plot'][y_d][0])
-    axlist[-1].set_xlabel(dicts['plot'][x_dat][0])
-    axlist[0].legend()
+    y_data_tw = tw.load_tw_results(filepath_ref, y_str)
+    y_data_lw = linac.get(y_str)[elts_indexes]
+    return d_diff[diff](y_data_tw, y_data_lw)
 
-
-def _single_plot(axx, xydata, dicts, filepath_ref, linac, plot_section=True):
-    """Plot proper data in proper subplot."""
-    x_dat = xydata[0]
-    y_d = xydata[1]
-    elts_indexes = linac.get_from_elements('idx', 's_out')
-    if plot_section:
-        helper.plot_section(linac, axx, x_axis=x_dat)
-    if y_d == 'struct':
-        helper.plot_structure(linac, axx, x_axis=x_dat)
-
-    else:
-        # Plot TW data if it was not already done and if it is not an error
-        # plot
-        if (y_d not in dicts['errors']) and (y_d in tw.d_tw_data_table
-                                             ) and (
-                'TW' not in axx.get_legend_handles_labels()[1]):
-            x_data_ref = dicts['x_data'][x_dat](linac)
-            y_data_ref = tw.load_tw_results(filepath_ref, y_d)
-            x_data_ref, y_data_ref = _reformat(x_data_ref, y_data_ref,
-                                               elts_indexes)
-            axx.plot(x_data_ref, y_data_ref, label='TW',
-                     c='k', ls='--', linewidth=2., **dicts['plot'][y_d][1])
-        axx.grid(True)
-        x_data = dicts['x_data'][x_dat](linac)
-        y_data = dicts['y_data_lw'][y_d](linac)
-        x_data, y_data = _reformat(x_data, y_data, elts_indexes)
-        # dicts['plot'][y_d][1] is a dict that looks like to:
-        # {'marker': '+', 'linewidth': 5}
-        # ** (**kwargs) unpacks it to:
-        # marker='+', linewidth=5
-        label = 'LW ' + linac.name
-
-        # We do not replot Working and Broken linac every time, unless this
-        # flag is set to True
-        flag_replot = False
-
-        if flag_replot \
-           or linac.name not in ['Working', 'Broken'] \
-           or label not in axx.get_legend_handles_labels()[1]:
-            axx.plot(x_data, y_data, label=label, ls='-',
-                     **dicts['plot'][y_d][1])
-
-        # If there is at least one 'Fixed' plot, we set the ylims ignoring
-        # the 'Broken' plot
-        ignore_broken_ylims = True
-        if ignore_broken_ylims:
-            if 'Fixed' in linac.name:
-                lines_labels = axx.get_legend_handles_labels()
-                try:
-                    idx_to_ignore = lines_labels[1].index('LW Broken')
-                    lines_labels[0].pop(idx_to_ignore)
-                except ValueError:
-                    pass
-                _autoscale_based_on(axx, lines_labels[0])
+    # Old piece of code for autoscale
         # FIXME does not work on plots without legend...
+        # if ignore_broken_ylims:
+            # if 'Fixed' in linac.name:
+                # lines_labels = axx.get_legend_handles_labels()
+                # try:
+                    # idx_to_ignore = lines_labels[1].index('LW Broken')
+                    # lines_labels[0].pop(idx_to_ignore)
+                # except ValueError:
+                    # pass
+                # _autoscale_based_on(axx, lines_labels[0])
 
 
 def _autoscale_based_on(axx, lines):
@@ -423,8 +317,8 @@ def _autoscale_based_on(axx, lines):
 def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
     """Plot the emittance ellipse and highlight interesting data."""
     # Extract Twiss and emittance at the index idx
-    twi = accelerator.beam_param["twiss"][phase_space][idx]
-    eps = accelerator.beam_param["eps"][phase_space][idx]
+    twi = accelerator.get("twiss_" + phase_space)[idx]
+    eps = accelerator.get("eps_ " + phase_space)[idx]
 
     # Compute ellipse dimensions; ellipse equation:
     # Ax**2 + Bxy + Cy**2 + Dx + Ey + F = 0
@@ -506,69 +400,48 @@ def load_phase_space(accelerator):
 
 def output_cavities(linac, out=False):
     """Output relatable parameters of cavities in list_of_cav."""
-    df_cav = pd.DataFrame(columns=(
-        'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
-        'phis'))
-    full_list_of_cav = linac.elements_of('FIELD_MAP')
+    columns=('elt_name', 'status', 'k_e', 'phi_0_abs', 'phi_0_rel', 'v_cav_mv',
+             'phi_s')
+    df_cav = pd.DataFrame(columns=columns)
+
+    full_list_of_cav = linac.elements_of(nature='FIELD_MAP')
 
     for i, cav in enumerate(full_list_of_cav):
-        df_cav.loc[i] = [cav.info['name'], cav.info['status'],
-                         cav.acc_field.k_e,
-                         np.rad2deg(cav.acc_field.phi_0['abs']),
-                         np.rad2deg(cav.acc_field.phi_0['rel']),
-                         cav.acc_field.cav_params['v_cav_mv'],
-                         cav.acc_field.cav_params['phi_s_deg']]
+        df_cav.loc[i] = cav.get(*columns, to_deg=True)
     df_cav.round(decimals=3)
 
     # Output only the cavities that have changed
     if 'Fixed' in linac.name:
-        df_out = pd.DataFrame(columns=(
-            'Name', 'Status?', 'Norm', 'phi0 abs', 'phi_0 rel', 'Vs',
-            'phis'))
+        df_out = pd.DataFrame(columns=columns)
         i = 0
-        for c in full_list_of_cav:
-            if 'compensate' in c.info['status']:
+        for cav in full_list_of_cav:
+            if 'compensate' in cav.get('status'):
                 i += 1
-                df_out.loc[i] = df_cav.loc[full_list_of_cav.index(c)]
+                df_out.loc[i] = df_cav.loc[full_list_of_cav.index(cav)]
         if out:
             helper.printd(df_out, header=linac.name)
     return df_cav
 
 
 def _create_output_fit_dicts():
-    d_param = {
-        'phi_0_rel': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
-                                           'Fixed', 'Orig.', '(var %)')),
-        'phi_0_abs': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
-                                           'Fixed', 'Orig.', '(var %)')),
-        'Norm': pd.DataFrame(columns=('Name', 'Status', 'Min.', 'Max.',
-                                      'Fixed', 'Orig.', '(var %)')),
-    }
-    # TODO : no entry for phi_s?
-    d_attribute = {
-        'phi_0_rel': lambda cav: np.rad2deg(cav.acc_field.phi_0['rel']),
-        'phi_0_abs': lambda cav: np.rad2deg(cav.acc_field.phi_0['abs']),
-        'Norm': lambda cav: cav.acc_field.k_e,
+    col = ('Name', 'Status', 'Min.', 'Max.', 'Fixed', 'Orig.', '(var %)')
+    d_pd = {'phi_0_rel': pd.DataFrame(columns=col),
+            'phi_0_abs': pd.DataFrame(columns=col),
+            'k_e': pd.DataFrame(columns=col),
     }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
-    d_guess_bnds = {
-        'phi_0_rel':
-            lambda f, i: [np.rad2deg(f.info['bounds'][0][i]),
-                          np.rad2deg(f.info['bounds'][1][i])],
-        'phi_0_abs':
-            lambda f, i: [np.rad2deg(f.info['bounds'][0][i]),
-                          np.rad2deg(f.info['bounds'][1][i])],
-        'Norm':
-            lambda f, i: [f.info['bounds'][0][i + len(f.comp['l_cav'])],
-                          f.info['bounds'][1][i + len(f.comp['l_cav'])]]
+    d_x_lim = {
+        'phi_0_rel': lambda f, i: [np.rad2deg(f.info['X_lim'][0][i]),
+                                   np.rad2deg(f.info['X_lim'][1][i])],
+        'phi_0_abs': lambda f, i: [np.rad2deg(f.info['X_lim'][0][i]),
+                                   np.rad2deg(f.info['X_lim'][1][i])],
+        'k_e': lambda f, i: [f.info['X_lim'][0][i + len(f.comp['l_cav'])],
+                             f.info['X_lim'][1][i + len(f.comp['l_cav'])]]
     }
 
-    all_dicts = {
-        'param': d_param,
-        'attribute': d_attribute,
-        'guess_bnds': d_guess_bnds,
-    }
+    all_dicts = {'d_pd': d_pd,
+                 'd_X_lim': d_x_lim}
 
     return all_dicts
 
@@ -576,53 +449,57 @@ def _create_output_fit_dicts():
 def output_fit(fault_scenario, out_detail=False, out_compact=True):
     """Output relatable parameters of fit."""
     dicts = _create_output_fit_dicts()
+    d_pd = dicts['d_pd']
 
     shift_i = 0
-    for f in fault_scenario.faults['l_obj']:
+    i = None
+    for __f in fault_scenario.faults['l_obj']:
         # We change the shape of the bounds if necessary
-        if not isinstance(f.info['bounds'], tuple):
-            f.info['bounds'] = (f.info['bounds'][:, 0], f.info['bounds'][:, 1])
+        if not isinstance(__f.info['X_lim'], tuple):
+            __f.info['X_lim'] = (__f.info['X_lim'][:, 0],
+                                 __f.info['X_lim'][:, 1])
 
         # Get list of compensating cavities, and their original counterpart in
         # the reference linac
-        ref_equiv = [
-            f.ref_lin.elements['list'][cav.idx['element']]
-            for cav in f.comp['l_cav']
-        ]
+        idx_equiv = [cav.idx['elt_idx'] for cav in __f.comp['l_cav']]
+        ref_equiv = [__f.ref_lin.elts[idx] for idx in idx_equiv]
 
-        for param in dicts['param']:
-            dicts['param'][param].loc[shift_i] = \
+        for key, val in d_pd.items():
+            val.loc[shift_i] = \
                 ['----', '----------', None, None, None, None, None]
-            for i, cav in enumerate(f.comp['l_cav']):
-                bnds = dicts['guess_bnds'][param](f, i)
-                old = dicts['attribute'][param](ref_equiv[i])
-                new = dicts['attribute'][param](cav)
-                var = 100. * (new - old) / old
+            for i, cav in enumerate(__f.comp['l_cav']):
+                x_lim = dicts['d_X_lim'][key](__f, i)
+                old = ref_equiv[i].get(key, to_deg=True)
+                new = cav.get(key, to_deg=True)
+                if old is None or new is None:
+                    var = None
+                else:
+                    var = 100. * (new - old) / old
 
-                dicts['param'][param].loc[i + shift_i + 1] =\
-                    [cav.info['name'], cav.info['status'], bnds[0], bnds[1],
+                val.loc[i + shift_i + 1] = \
+                    [cav.get('elt_name'), cav.get('status'), x_lim[0], x_lim[1],
                      new, old, var]
         shift_i += i + 2
 
     if out_detail:
-        for param in dicts['param']:
-            helper.printd(dicts['param'][param].round(3), header=param)
+        for key, val in d_pd.items():
+            helper.printd(val.round(3), header=key)
 
-    compact = pd.DataFrame(columns=('Name', 'Status', 'Norm', '(var %)',
+    compact = pd.DataFrame(columns=('Name', 'Status', 'k_e', '(var %)',
                                     'phi_0 (rel)', 'phi_0 (abs)'))
-    for i in range(dicts['param']['Norm'].shape[0]):
+    for i in range(d_pd['k_e'].shape[0]):
         compact.loc[i] = [
-            dicts['param']['Norm']['Name'][i],
-            dicts['param']['Norm']['Status'][i],
-            dicts['param']['Norm']['Fixed'][i],
-            dicts['param']['Norm']['(var %)'][i],
-            dicts['param']['phi_0_rel']['Fixed'][i],
-            dicts['param']['phi_0_abs']['Fixed'][i],
+            d_pd['k_e']['Name'][i],
+            d_pd['k_e']['Status'][i],
+            d_pd['k_e']['Fixed'][i],
+            d_pd['k_e']['(var %)'][i],
+            d_pd['phi_0_rel']['Fixed'][i],
+            d_pd['phi_0_abs']['Fixed'][i],
         ]
     if out_compact:
         helper.printd(compact.round(3), header='Fit compact resume')
 
-    return dicts['param']
+    return d_pd
 
 
 def output_fit_progress(count, obj, l_label, final=False):
@@ -649,21 +526,23 @@ def output_fit_progress(count, obj, l_label, final=False):
         print(''.center(total_width, '='))
 
 
-def plot_fit_progress(l_obj_eval, l_label):
+def plot_fit_progress(hist_f, l_label):
     """Plot the evolution of the objective functions w/ each iteration."""
     _, axx = helper.create_fig_if_not_exist(32, [111])
     axx = axx[0]
 
-    n_prop = len(l_label)
-    n_iter = len(l_obj_eval)
+    # Number of objectives, number of evaluations
+    n_f = len(l_label)
+    n_iter = len(hist_f)
     iteration = np.linspace(0, n_iter - 1, n_iter)
 
-    obj = np.empty([n_prop, n_iter])
+    __f = np.empty([n_f, n_iter])
     for i in range(n_iter):
-        obj[:, i] = np.abs(l_obj_eval[i] / l_obj_eval[0])
+        __f[:, i] = np.abs(hist_f[i] / hist_f[0])
 
     for j, label in enumerate(l_label):
-        axx.plot(iteration, obj[j], label=label)
+        axx.plot(iteration, __f[j], label=label)
+
     axx.grid(True)
     axx.legend()
     axx.set_xlabel("Iteration #")

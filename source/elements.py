@@ -13,7 +13,8 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 from electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import OMEGA_0_BUNCH, E_REST_MEV, INV_E_REST_MEV,\
-    N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS, FLAG_PHI_S_FIT
+    N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
+from helper import recursive_items, recursive_getter
 
 try:
     import transfer_matrices_c as tm_c
@@ -54,9 +55,9 @@ d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
 
 # Dict to select the proper number of steps for the transfer matrix, the
 # energy, the phase, etc
-d_n_steps = {'RK': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
-             'leapfrog': lambda elt: N_STEPS_PER_CELL * elt.acc_field.n_cell,
-             'jm': lambda elt: elt.acc_field.n_z,
+d_n_steps = {'RK': lambda elt: N_STEPS_PER_CELL * elt.get('n_cell'),
+             'leapfrog': lambda elt: N_STEPS_PER_CELL * elt.get('n_cell'),
+             'jm': lambda elt: elt.get('n_z'),
              'drift': lambda elt: 1}
 
 
@@ -78,10 +79,10 @@ class _Element():
         elem: list of string
             A valid line of the .dat file.
         """
-        self.info = {
-            'name': None,
+        self.elt_info = {
+            'elt_name': None,
             'nature': elem[0],
-            'status': None,    # Only make sense for cavities
+            'status': 'none',    # Only make sense for cavities
         }
         self.length_m = 1e-3 * float(elem[1])
 
@@ -89,20 +90,46 @@ class _Element():
         # accelerating field.
         self.acc_field = RfField()
 
-        self.pos_m = {'abs': None, 'rel': None}
         self.idx = {'s_in': None, 's_out': None,
-                    'element': None,
-                    'lattice': [],
-                    'section': []}
+                    'elt_idx': None, 'lattice': None, 'section': None}
 
-        # tmat stands for 'transfer matrix'
-        self.tmat = {
-            'func': lambda d_z, gamma, n_steps, rf_field=None:
-                (np.empty([10, 2, 2]), np.empty([10, 2]), None),
-            'matrix': np.empty([10, 2, 2]),
-            'solver_param': {'n_steps': None,
-                             'd_z': None},
-        }
+        self._tm_func = lambda d_z, gamma, n_steps, rf_field=None: \
+                (np.empty([10, 2, 2]), np.empty([10, 2]), None)
+        self.solver_param = {'n_steps': None, 'd_z': None,
+                             'abs_mesh': None, 'rel_mesh': None}
+
+    def has(self, key):
+        """Tell if the required attribute is in this class."""
+        return key in recursive_items(vars(self))
+
+    def get(self, *keys, to_numpy=True, **kwargs):
+        """Shorthand to get attributes."""
+        val = {}
+        for key in keys:
+            val[key] = []
+
+        for key in keys:
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            val[key] = recursive_getter(key, vars(self), **kwargs)
+            # Easier to concatenate lists that stack numpy arrays, so convert
+            # to list
+            if not to_numpy and isinstance(val[key], np.ndarray):
+                val[key] = val[key].tolist()
+
+        # Convert to list; elements of the list are numpy is required, except
+        # strings that are never converted
+        out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
+               else val[key]
+               for key in keys]
+
+        # Return as tuple or single value
+        if len(out) == 1:
+            return out[0]
+        # implicit else:
+        return tuple(out)
 
     def init_solvers(self):
         """Initialize how transfer matrices will be calculated."""
@@ -113,22 +140,22 @@ class _Element():
 
         # Select proper number of steps
         key_n_steps = l_method[0]
-        if self.info['nature'] != 'FIELD_MAP':
+        if self.elt_info['nature'] != 'FIELD_MAP':
             key_n_steps = 'drift'
         n_steps = d_n_steps[key_n_steps](self)
 
-        self.pos_m['rel'] = np.linspace(0., self.length_m, n_steps + 1)
-        self.tmat['matrix'] = np.full((n_steps, 2, 2), np.NaN)
-        self.tmat['solver_param']['n_steps'] = n_steps
-        self.tmat['solver_param']['d_z'] = self.length_m / n_steps
+        self.solver_param['n_steps'] = n_steps
+        self.solver_param['d_z'] = self.length_m / n_steps
+        self.solver_param['rel_mesh'] = np.linspace(0., self.length_m,
+                                                    n_steps + 1)
 
         # Select proper function to compute transfer matrix
         key_fun = l_method[0]
-        if (self.info['nature'] != 'FIELD_MAP'
-                or self.info['status'] == 'failed'):
+        if (self.get('nature') != 'FIELD_MAP'
+                or self.get('status') == 'failed'):
             key_fun = 'non_acc'
 
-        self.tmat['func'] = d_func_tm[key_fun](mod)
+        self._tm_func = d_func_tm[key_fun](mod)
 
     def calc_transf_mat(self, w_kin_in, **rf_field_kwargs):
         """
@@ -144,20 +171,20 @@ class _Element():
             For Python implementation, also need e_spat.
             For Cython implementation, also need section_idx.
         """
-        n_steps, d_z = self.tmat['solver_param'].values()
+        n_steps, d_z = self.get('n_steps', 'd_z')
         gamma = 1. + w_kin_in * INV_E_REST_MEV
 
-        if self.info['nature'] == 'FIELD_MAP' and \
-                self.info['status'] != 'failed':
+        if self.get('nature') == 'FIELD_MAP' and \
+                self.get('status') != 'failed':
 
             r_zz, gamma_phi, itg_field = \
-                self.tmat['func'](d_z, gamma, n_steps, rf_field_kwargs)
+                self._tm_func(d_z, gamma, n_steps, rf_field_kwargs)
 
             gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
-            cav_params = compute_param_cav(itg_field, self.info['status'])
+            cav_params = compute_param_cav(itg_field, self.get('status'))
 
         else:
-            r_zz, gamma_phi, _ = self.tmat['func'](d_z, gamma, n_steps)
+            r_zz, gamma_phi, _ = self._tm_func(d_z, gamma, n_steps)
             cav_params = None
 
         w_kin = (gamma_phi[:, 0] - 1.) * E_REST_MEV
@@ -174,7 +201,7 @@ class _Element():
         We also ensure that the value new_status is correct. If the new value
         is 'failed', we also set the norm of the electric field to 0.
         """
-        assert self.info['nature'] == 'FIELD_MAP', 'The status of an ' + \
+        assert self.elt_info['nature'] == 'FIELD_MAP', 'The status of an ' + \
             'element only makes sense for cavities.'
 
         authorized_values = [
@@ -194,20 +221,26 @@ class _Element():
         ]
         assert new_status in authorized_values
 
-        self.info['status'] = new_status
+        self.elt_info['status'] = new_status
         if new_status == 'failed':
             self.acc_field.k_e = 0.
             self.init_solvers()
 
-    def keep_mt_and_rf_field(self, transf_mat_elt, rf_field, cav_params):
+    def keep_rf_field(self, rf_field, cav_params):
         """Save data calculated by Accelerator.compute_transfer_matrices."""
-        self.tmat["matrix"] = transf_mat_elt
-
-        if rf_field is not None:
+        if rf_field != {}:
             self.acc_field.cav_params = cav_params
-            self.acc_field.phi_0['abs'] = rf_field['phi_0_abs']
-            self.acc_field.phi_0['rel'] = rf_field['phi_0_rel']
+            self.acc_field.phi_0['phi_0_abs'] = rf_field['phi_0_abs']
+            self.acc_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
             self.acc_field.k_e = rf_field['k_e']
+
+    def rf_param(self, phi_bunch_abs, w_kin_in, d_fit=None):
+        """Set the properties of the rf field (returns {} by default)."""
+        # Remove unused arguments warning:
+        del phi_bunch_abs, w_kin_in, d_fit
+
+        rf_field_kwargs = {}
+        return rf_field_kwargs
 
 
 # =============================================================================
@@ -267,22 +300,22 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def rf_param(self, synch, phi_bunch_abs, w_kin_in, d_fit=None):
+    def rf_param(self, phi_bunch_abs, w_kin_in, d_fit=None):
         """Set the properties of the electric field."""
-        assert self.info['status'] != 'failed', "Should not look for cavity" \
-            + "parameters of a broken cavity."
-        assert synch.info['synchronous'], "Out of synch particle to be" \
-            + "implemented."
+        if self.get('status') == 'failed':
+            rf_field_kwargs = {}
+            return rf_field_kwargs
 
-        # Add the parameters that are independent from the cavity status
-        a_f = self.acc_field
-        rf_field_kwargs = {'omega0_rf': a_f.omega0_rf,
-                           'e_spat': a_f.e_spat,
-                           'section_idx': self.idx['section'][0],
-                           'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
-
+        # assert synch.get('synchronous'), "Out of synch particle to be " \
+            # + "implemented."
         # FIXME By definition, the synchronous particle has a relative input
         # phase of 0. phi_rf_rel = 0.
+
+        # Add the parameters that are independent from the cavity status
+        rf_field_kwargs = {'omega0_rf': self.get('omega0_rf'),
+                           'e_spat': self.get('e_spat'),
+                           'section_idx': self.idx['section'],
+                           'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
 
         # Set norm and phi_0 of the cavity
         d_cav_param_setter = {
@@ -294,24 +327,26 @@ class FieldMap(_Element):
             "compensate (not ok)": _take_parameters_from_rf_field_object,
         }
         # Argument for the functions in d_cav_param_setter
-        arg = (a_f,)
-        if self.info['status'] == "compensate (in progress)":
+        arg = (self.acc_field,)
+        if self.elt_info['status'] == "compensate (in progress)":
             arg = (d_fit, w_kin_in, self)
 
         # Apply
         rf_field_kwargs, flag_abs_to_rel = \
-            d_cav_param_setter[self.info['status']](*arg, **rf_field_kwargs)
+            d_cav_param_setter[self.elt_info['status']](*arg, **rf_field_kwargs)
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
-        phi_rf_abs = phi_bunch_abs * a_f.omega0_rf / OMEGA_0_BUNCH
+        phi_rf_abs = phi_bunch_abs * rf_field_kwargs['omega0_rf'] / OMEGA_0_BUNCH
+
         rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
             convert_phi_0(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
+
         return rf_field_kwargs
 
     def match_synch_phase(self, w_kin_in, phi_s_objective, **rf_field_kwargs):
         """
-        Sweeps phi_0_rel until the cavity synch phase matches phi_s_rad.
+        Sweeps phi_0_rel until the cavity synch phase matches phi_s.
 
         Parameters
         ----------
@@ -333,7 +368,7 @@ class FieldMap(_Element):
             rf_field_kwargs['phi_0_abs'] = None
             results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
             diff = helper.diff_angle(phi_s_objective,
-                                     results['cav_params']['phi_s_rad'])
+                                     results['cav_params']['phi_s'])
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)
@@ -360,16 +395,16 @@ class Freq():
 
 def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
     """Extract RfField object parameters."""
-    rf_field_kwargs['k_e'] = a_f.k_e
+    rf_field_kwargs['k_e'] = a_f.get('k_e')
     rf_field_kwargs['phi_0_rel'] = None
-    rf_field_kwargs['phi_0_abs'] = a_f.phi_0['abs']
+    rf_field_kwargs['phi_0_abs'] = a_f.get('phi_0_abs')
     flag_abs_to_rel = True
 
     # If we are calculating the transfer matrices of the nominal linac and the
     # initial phases are defined in the .dat as relative phases, phi_0_abs is
     # not defined
-    if a_f.phi_0['abs'] is None:
-        rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
+    if a_f.get('phi_0_abs') is None:
+        rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
         flag_abs_to_rel = False
 
     return rf_field_kwargs, flag_abs_to_rel
@@ -377,8 +412,8 @@ def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
 
 def _find_new_absolute_entry_phase(a_f, **rf_field_kwargs):
     """Extract RfField parameters, except phi_0_abs that is recalculated."""
-    rf_field_kwargs['k_e'] = a_f.k_e
-    rf_field_kwargs['phi_0_rel'] = a_f.phi_0['rel']
+    rf_field_kwargs['k_e'] = a_f.get('k_e')
+    rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
     rf_field_kwargs['phi_0_abs'] = None
     flag_abs_to_rel = False
     return rf_field_kwargs, flag_abs_to_rel
@@ -393,7 +428,7 @@ def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
 
     flag_abs_to_rel = FLAG_PHI_ABS
 
-    if FLAG_PHI_S_FIT:
+    if d_fit['phi_s fit']:
         phi_0 = obj_cavity.match_synch_phase(
             w_kin, phi_s_objective=d_fit['phi'], **rf_field_kwargs)
         rf_field_kwargs['phi_0_rel'] = phi_0

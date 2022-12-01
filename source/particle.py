@@ -7,7 +7,8 @@ Created on Thu Dec  2 13:44:00 2021.
 """
 import numpy as np
 import pandas as pd
-import helper
+from helper import recursive_items, recursive_getter, printc, kin_to_gamma, \
+        kin_to_beta, gamma_to_beta, gamma_and_beta_to_p, z_to_phi
 from constants import E_REST_MEV, OMEGA_0_BUNCH
 
 
@@ -21,9 +22,9 @@ class Particle():
         phi = omega_0_rf * t
     """
 
-    def __init__(self, z, e_mev, n_steps=1, synchronous=False,
+    def __init__(self, z_0, e_mev, n_steps=1, synchronous=False,
                  reference=True):
-        self.info = {
+        self.part_info = {
             # Is this particle the generator?
             'synchronous': synchronous,
             # Is it in a reference (non-faulty) linac?
@@ -35,50 +36,65 @@ class Particle():
             # compensation
         }
 
-        self.z = {
-            'rel': z,           # Position from the start of the element
-            'abs_array': np.full((n_steps + 1), np.NaN),
+        self.pos = {
+            'z_rel': z_0,           # Position from the start of the element
+            'z_abs': np.full((n_steps + 1), np.NaN),
         }
-        self.z['abs_array'][0] = z
+        self.pos['z_abs'][0] = z_0
         self.energy = {
-            'kin_array_mev': np.full((n_steps + 1), np.NaN),
-            'gamma_array': np.full((n_steps + 1), np.NaN),
-            'beta_array': np.full((n_steps + 1), np.NaN),
-            'p_array_mev': np.full((n_steps + 1), np.NaN),
+            'w_kin': np.full((n_steps + 1), np.NaN),
+            'gamma': np.full((n_steps + 1), np.NaN),
+            'beta': np.full((n_steps + 1), np.NaN),   # Necessary? TODO
+            'p': np.full((n_steps + 1), np.NaN),  # Necessary? TODO
         }
         self.set_energy(e_mev, idx=0, delta_e=False)
 
         self.phi = {
-            'rel': None,
-            'abs': None,
-            'abs_array': np.full((n_steps + 1), np.NaN),
+            'phi_rel': None,
+            'phi_abs': None,
+            'phi_abs_rf': None,
+            'phi_abs_array': np.full((n_steps + 1), np.NaN),
         }
         self._init_phi(idx=0)
 
-        self.phase_space = {
-            # z_abs-s_abs or z_rel-s_rel
-            'z_array': np.full((n_steps + 1), np.NaN),
-            'delta_array': np.full((n_steps + 1), np.NaN),  # (p - p_s) / p_s
-            'both_array': np.full((n_steps + 1), np.NaN),
-            'phi_array_rad': np.full((n_steps + 1), np.NaN),
-        }
-        if not self.info["synchronous"]:
-            print("__init__ non-synch Particle: the absolute position of",
-                  "a non synch particle is not initialized.")
+        if not self.part_info["synchronous"]:
+            printc("Particle.__init__ warning: ", opt_message="the "
+                   + "absolute position of a non synchrous particle "
+                   + "is not initialized.")
 
-    def init_abs_z(self, list_of_elements):
+    def has(self, key):
+        """Tell if the required attribute is in this class."""
+        return key in recursive_items(vars(self))
+
+    def get(self, *keys, to_deg=False, **kwargs):
+        """Shorthand to get attributes."""
+        val = {}
+        for key in keys:
+            val[key] = []
+
+        for key in keys:
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            val[key] = recursive_getter(key, vars(self), **kwargs)
+
+            if val[key] is not None and to_deg and 'phi' in key:
+                val[key] = np.rad2deg(val[key])
+
+        # Convert to list
+        out = [val[key] for key in keys]
+
+        if len(out) == 1:
+            return out[0]
+        # implicit else:
+        return tuple(out)
+
+    def init_abs_z(self, abs_z_array):
         """Create the array of absolute positions."""
-        assert self.info["synchronous"], """This routine only works for the
+        assert self.part_info["synchronous"], """This routine only works for the
         synch particle I think."""
-        # Get all positions
-        z_abs = [elt.pos_m["abs"]
-                 for elt in list_of_elements]
-        # Concatenate list of arrays into unique array
-        z_abs = np.concatenate(z_abs)
-        # Remove duplicates (last pos_m["abs"] of an element == first of
-        # following element)
-        z_abs = np.unique(z_abs)
-        self.z["abs_array"] = z_abs
+        self.pos['z_abs'] = abs_z_array
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
         """
@@ -90,43 +106,43 @@ class Particle():
             New energy in MeV.
         idx: int, opt
             Index of the the energy concerned. If NaN, e_mev replaces the first
-            NaN element of kin_array_mev.
+            NaN element of w_kin.
         delta_e: bool, opt
             If True, energy is increased by e_mev. If False, energy is set to
             e_mev.
         """
         if np.isnan(idx):
-            idx = np.where(np.isnan(self.energy['kin_array_mev']))[0][0]
+            idx = np.where(np.isnan(self.energy['w_kin']))[0][0]
 
         if delta_e:
-            self.energy['kin_array_mev'][idx] = \
-                self.energy['kin_array_mev'][idx - 1] + e_mev
+            self.energy['w_kin'][idx] = \
+                self.energy['w_kin'][idx - 1] + e_mev
         else:
-            self.energy['kin_array_mev'][idx] = e_mev
+            self.energy['w_kin'][idx] = e_mev
 
-        gamma = helper.kin_to_gamma(self.energy['kin_array_mev'][idx],
-                                    E_REST_MEV)
-        beta = helper.gamma_to_beta(gamma)
-        p_mev = helper.gamma_and_beta_to_p(gamma, beta, E_REST_MEV)
+        gamma = kin_to_gamma(self.energy['w_kin'][idx], E_REST_MEV)
+        beta = gamma_to_beta(gamma)
+        p_mev = gamma_and_beta_to_p(gamma, beta, E_REST_MEV)
 
-        self.energy['gamma_array'][idx] = gamma
-        self.energy['beta_array'][idx] = beta
-        self.energy['p_array_mev'][idx] = p_mev
+        self.energy['gamma'][idx] = gamma
+        self.energy['beta'][idx] = beta
+        self.energy['p'][idx] = p_mev
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
-        phi_abs = helper.z_to_phi(self.z['abs_array'][idx],
-                                  self.energy['beta_array'][idx],
-                                  OMEGA_0_BUNCH)
-        self.phi['abs'] = phi_abs
-        self.phi['abs_array'][idx] = phi_abs
-        self.phi['rel'] = phi_abs
+        phi_abs = z_to_phi(self.pos['z_abs'][idx],
+                           self.energy['beta'][idx], OMEGA_0_BUNCH)
+        self.phi['phi_abs'] = phi_abs
+        self.phi['phi_abs_array'][idx] = phi_abs
+        self.phi['phi_rel'] = phi_abs
         self.df = pd.DataFrame({
-            'phi_abs_array': [self.phi['abs_array'][idx]],
-            'phi_abs': [self.phi['abs']],
-            'phi_rel': [self.phi['rel']],
+            'phi_abs_array': [self.phi['phi_abs_array'][idx]],
+            'phi_abs': [self.phi['phi_abs']],
+            'phi_rel': [self.phi['phi_rel']],
         })
 
+
+    # FIXME still used?
     def advance_phi(self, delta_phi, idx=np.NaN, flag_rf=False):
         """
         Increase relative and absolute phase by delta_phi.
@@ -144,24 +160,24 @@ class Particle():
             delta_phi = omega_0_rf * delta_t. Default is False.
         """
         if np.isnan(idx):
-            idx = np.where(np.isnan(self.phi['abs_array']))[0][0]
+            idx = np.where(np.isnan(self.phi['phi_abs_array']))[0][0]
 
-        self.phi['rel'] += delta_phi
+        self.phi['phi_rel'] += delta_phi
 
         if flag_rf:
-            self.phi['abs_rf'] += delta_phi
+            self.phi['phi_abs_rf'] += delta_phi
             delta_phi *= self.frac_omega['rf_to_bunch']
 
-        self.phi['abs'] += delta_phi
-        self.phi['abs_array'][idx] = self.phi['abs_array'][idx - 1] + delta_phi
+        self.phi['phi_abs'] += delta_phi
+        self.phi['phi_abs_array'][idx] = self.phi['phi_abs_array'][idx - 1] + delta_phi
 
     def keep_energy_and_phase(self, results, idx_range):
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
-        self.energy['kin_array_mev'][idx_range] = w_kin
-        self.energy['gamma_array'][idx_range] = helper.kin_to_gamma(w_kin)
-        self.energy['beta_array'][idx_range] = helper.kin_to_beta(w_kin)
-        self.phi['abs_array'][idx_range] = np.array(results["phi_abs"])
+        self.energy['w_kin'][idx_range] = w_kin
+        self.energy['gamma'][idx_range] = kin_to_gamma(w_kin)
+        self.energy['beta'][idx_range] = kin_to_beta(w_kin)
+        self.phi['phi_abs_array'][idx_range] = np.array(results["phi_abs_array"])
 
 
 def create_rand_particles(e_0_mev):

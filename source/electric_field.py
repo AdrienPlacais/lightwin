@@ -9,6 +9,7 @@ TODO : phi_s_rad_objective should not be used too
 """
 import cmath
 import numpy as np
+from helper import recursive_items, recursive_getter
 
 
 def compute_param_cav(integrated_field, status):
@@ -18,8 +19,7 @@ def compute_param_cav(integrated_field, status):
     else:
         polar_itg = cmath.polar(integrated_field)
     cav_params = {'v_cav_mv': polar_itg[0],
-                  'phi_s_deg': np.rad2deg(polar_itg[1]),
-                  'phi_s_rad': polar_itg[1]}
+                  'phi_s': polar_itg[1]}
     return cav_params
 
 
@@ -39,23 +39,50 @@ class RfField():
         self.e_spat = lambda x: 0.
         self.k_e = k_e
 
-        self.phi_0 = {'rel': None,
-                      'abs': None,
+        self.phi_0 = {'phi_0_rel': None,
+                      'phi_0_abs': None,
                       'nominal_rel': None,
                       'abs_phase_flag': bool(absolute_phase_flag)}
         if self.phi_0['abs_phase_flag']:
-            self.phi_0['abs'] = phi_0
+            self.phi_0['phi_0_abs'] = phi_0
         else:
-            self.phi_0['rel'] = phi_0
+            self.phi_0['phi_0_rel'] = phi_0
             self.phi_0['nominal_rel'] = phi_0
 
         self.cav_params = {'v_cav_mv': np.NaN,
-                           'phi_s_deg': np.NaN,
-                           'phi_s_rad': np.NaN}
+                           'phi_s': np.NaN}
         self.phi_s_rad_objective = None
 
         # Initialized later as it depends on the Section the cavity is in
         self.omega0_rf, self.n_cell, self.n_z = None, None, None
+
+    def has(self, key):
+        """Tell if the required attribute is in this class."""
+        return key in recursive_items(vars(self))
+
+    def get(self, *keys, to_deg=False, **kwargs):
+        """Shorthand to get attributes."""
+        val = {}
+        for key in keys:
+            val[key] = []
+
+        for key in keys:
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            val[key] = recursive_getter(key, vars(self), **kwargs)
+
+            if val[key] is not None and to_deg and 'phi' in key:
+                val[key] = np.rad2deg(val[key])
+
+        # Convert to list
+        out = [val[key] for key in keys]
+
+        if len(out) == 1:
+            return out[0]
+        # implicit else:
+        return tuple(out)
 
     def init_freq_ncell(self, f_mhz, n_cell):
         """Initialize the frequency and the number of cells."""
@@ -70,8 +97,8 @@ class RfField():
         phase as in the nominal linac.
         """
         assert self.phi_0['nominal_rel'] is not None
-        self.phi_0['rel'] = self.phi_0['nominal_rel']
-        self.phi_0['abs'] = np.mod(self.phi_0['nominal_rel'] - phi_rf_abs,
+        self.phi_0['phi_0_rel'] = self.phi_0['nominal_rel']
+        self.phi_0['phi_0_abs'] = np.mod(self.phi_0['nominal_rel'] - phi_rf_abs,
                                    2. * np.pi)
 
 
