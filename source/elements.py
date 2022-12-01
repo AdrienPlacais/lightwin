@@ -94,7 +94,7 @@ class _Element():
                     'elt_idx': None, 'lattice': None, 'section': None}
 
         self._tm_func = lambda d_z, gamma, n_steps, rf_field=None: \
-                (np.empty([10, 2, 2]), np.empty([10, 2]), None)
+            (np.empty([10, 2, 2]), np.empty([10, 2]), None)
         self.solver_param = {'n_steps': None, 'd_z': None,
                              'abs_mesh': None, 'rel_mesh': None}
 
@@ -332,15 +332,17 @@ class FieldMap(_Element):
             arg = (d_fit, w_kin_in, self)
 
         # Apply
-        rf_field_kwargs, flag_abs_to_rel = \
-            d_cav_param_setter[self.elt_info['status']](*arg, **rf_field_kwargs)
+        rf_field_kwargs, abs_to_rel = \
+            d_cav_param_setter[self.elt_info['status']](
+                *arg, **rf_field_kwargs)
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
-        phi_rf_abs = phi_bunch_abs * rf_field_kwargs['omega0_rf'] / OMEGA_0_BUNCH
+        phi_rf_abs = phi_bunch_abs * rf_field_kwargs['omega0_rf'] \
+            / OMEGA_0_BUNCH
 
         rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
-            convert_phi_0(phi_rf_abs, flag_abs_to_rel, rf_field_kwargs)
+            convert_phi_0(phi_rf_abs, abs_to_rel, rf_field_kwargs)
 
         return rf_field_kwargs
 
@@ -398,16 +400,16 @@ def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
     rf_field_kwargs['k_e'] = a_f.get('k_e')
     rf_field_kwargs['phi_0_rel'] = None
     rf_field_kwargs['phi_0_abs'] = a_f.get('phi_0_abs')
-    flag_abs_to_rel = True
+    abs_to_rel = True
 
     # If we are calculating the transfer matrices of the nominal linac and the
     # initial phases are defined in the .dat as relative phases, phi_0_abs is
     # not defined
     if a_f.get('phi_0_abs') is None:
         rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
-        flag_abs_to_rel = False
+        abs_to_rel = False
 
-    return rf_field_kwargs, flag_abs_to_rel
+    return rf_field_kwargs, abs_to_rel
 
 
 def _find_new_absolute_entry_phase(a_f, **rf_field_kwargs):
@@ -415,8 +417,8 @@ def _find_new_absolute_entry_phase(a_f, **rf_field_kwargs):
     rf_field_kwargs['k_e'] = a_f.get('k_e')
     rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
     rf_field_kwargs['phi_0_abs'] = None
-    flag_abs_to_rel = False
-    return rf_field_kwargs, flag_abs_to_rel
+    abs_to_rel = False
+    return rf_field_kwargs, abs_to_rel
 
 
 def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
@@ -426,15 +428,15 @@ def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
     rf_field_kwargs['phi_0_rel'] = d_fit['phi']
     rf_field_kwargs['phi_0_abs'] = d_fit['phi']
 
-    flag_abs_to_rel = FLAG_PHI_ABS
+    abs_to_rel = FLAG_PHI_ABS
 
     if d_fit['phi_s fit']:
         phi_0 = obj_cavity.match_synch_phase(
             w_kin, phi_s_objective=d_fit['phi'], **rf_field_kwargs)
         rf_field_kwargs['phi_0_rel'] = phi_0
         rf_field_kwargs['phi_0_abs'] = None
-        flag_abs_to_rel = False
+        abs_to_rel = False
 
     # TODO modify the fit process in order to always fit on the relative phase.
     # Absolute phase can easily be calculated afterwards.
-    return rf_field_kwargs, flag_abs_to_rel
+    return rf_field_kwargs, abs_to_rel

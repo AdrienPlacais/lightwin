@@ -69,7 +69,6 @@ class MyProblem(ElementwiseProblem):
         self.wrapper_pso = wrapper_fun
         self.fault = wrapper_args[0]
         self.fun_residual = wrapper_args[1]
-        self.d_idx = wrapper_args[2]
 
         info = self.fault.info
         n_var = info['X_0'].shape[0]
@@ -98,13 +97,12 @@ class MyProblem(ElementwiseProblem):
         out : dict
             Holds function values in "F" key and constraints in "G".
         """
-        out["F"], results = self.wrapper_pso(
-            x, self.fault, self.fun_residual, self.d_idx)
+        out["F"], results = self.wrapper_pso(x, self.fault, self.fun_residual)
 
         out_g = []
-        for i in range(len(results['phi_s_rad'])):
-            out_g.append(self.phi_s_limits[i][0] - results['phi_s_rad'][i])
-            out_g.append(results['phi_s_rad'][i] - self.phi_s_limits[i][1])
+        for i in range(len(results['phi_s'])):
+            out_g.append(self.phi_s_limits[i][0] - results['phi_s'][i])
+            out_g.append(results['phi_s'][i] - self.phi_s_limits[i][1])
 
         # Add a constraint on the k_e.
         # We want the norms to globally increase
@@ -135,9 +133,7 @@ def perform_pso(problem):
         # ref_dirs = get_reference_directions("energy", problem.n_obj, 12)
         ref_dirs = get_reference_directions("das-dennis", problem.n_obj,
                                             n_partitions=12)
-        algorithm = CTAEA(
-                          ref_dirs=ref_dirs,
-                          )
+        algorithm = CTAEA(ref_dirs=ref_dirs)
 
     termination = _set_termination()
     res = minimize(problem,
@@ -322,17 +318,17 @@ def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj, lsq_f=None):
     # Dictionary for reference points
     # They must be typical large values for the objective
     d_ref = {
-        'energy': 70.,
-        'phase': 0.5,
-        'mismatch_factor': 1.,
+        'w_kin': 70.,
+        'phi_abs_array': 0.5,
+        'mismatch factor': 1.,
         'M_11': None,
         'M_12': None,
         'M_21': None,
         'M_22': None,
-        'eps': None,
-        'twiss_alpha': None,
-        'twiss_beta': None,
-        'twiss_gamma': None,
+        'eps_zdelta': None,
+        'twiss_alpha_zdelta': None,
+        'twiss_beta_zdelta': None,
+        'twiss_gamma_zdelta': None,
     }
     ref_point = [d_ref[obj] for obj in str_obj]
     metric = Hypervolume(
@@ -453,17 +449,17 @@ def _plot_variables_final_sol(fig, d_opti, n_cav, lsq_x=None):
 
 def set_weights(l_obj_str):
     """Set array of weights for the different objectives."""
-    d_weights = {'energy': 1.,
-                 'phase': 1.,
-                 'eps': 1.,
-                 'twiss_alpha': 1.,
-                 'twiss_beta': 1.,
-                 'twiss_gamma': 1.,
+    d_weights = {'w_kin': 1.,
+                 'phi_abs_array': 1.,
+                 'eps_zdelta': 1.,
+                 'twiss_alpha_zdelta': 1.,
+                 'twiss_beta_zdelta': 1.,
+                 'twiss_gamma_zdelta': 1.,
                  'M_11': 1.,
                  'M_12': 1.,
                  'M_21': 1.,
                  'M_22': 1.,
-                 'mismatch_factor': 1,
+                 'mismatch factor': 1,
                  }
     weights = [d_weights[obj] for obj in l_obj_str]
     return np.array(weights)

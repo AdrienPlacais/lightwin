@@ -160,13 +160,14 @@ linacs = [ref_linac]
 # Broken linac
 lsq_info = None
 # for wtf in []:
-# for wtf in [wtf_lsq, wtf_pso]:
-for wtf in [wtf_lsq]:
+# for wtf in [wtf_lsq]:
+# for wtf in [wtf_pso]:
+for wtf in [wtf_lsq, wtf_pso]:
     start_time = time.monotonic()
     lin = acc.Accelerator(FILEPATH, "Broken")
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
                                 wtf=wtf, l_info_other_sol=lsq_info)
-    # linacs.append(deepcopy(lin))
+    linacs.append(deepcopy(lin))
 
     if FLAG_FIX:
         fail.fix_all()

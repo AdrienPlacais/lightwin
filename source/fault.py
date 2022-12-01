@@ -111,12 +111,12 @@ class Fault():
             w_kin=self.brok_lin.get('w_kin')[idx],
             phi_abs=self.brok_lin.get('phi_abs_array')[idx],
             idx_in=idx,
-            tm_cumul = self.brok_lin.get('tm_cumul')[idx])
+            tm_cumul=self.brok_lin.get('tm_cumul')[idx])
         # FIXME would be better of at Fault initialization
 
         # fun_residual, l_f_str = _select_objective(self.wtf['objective'])
         fun_residual, l_f_str = self._select_objective(self.wtf['objective'],
-                                                        **d_idx)
+                                                       **d_idx)
 
         # Save some data for debug and output purposes
         self.info.update({
@@ -127,7 +127,6 @@ class Fault():
             'G': constr,
         })
 
-        # wrapper_args = (self, fun_residual, d_idx, self.wtf['phi_s fit'])
         wrapper_args = (self, fun_residual, self.wtf['phi_s fit'])
 
         self.count = 0
@@ -209,11 +208,11 @@ class Fault():
         d_position = {'end_mod': [s_out[idx2]],
                       '1_mod_after': [s_out[idx3]],
                       'both': [s_out[idx2], s_out[idx3]],
-        }
+                      }
         shift = l_elts[0].idx['s_in']
         d_idx = {'l_ref': d_position[str_position],
                  'l_brok': [idx - shift for idx in d_position[str_position]],
-                }
+                 }
         for idx in d_idx['l_ref']:
             elt = self.brok_lin.where_is_this_index(idx)
             print(f"\nWe try to match at mesh index {idx}.")
@@ -240,8 +239,8 @@ class Fault():
         if lattice2 == lattices[-1]:
             # FIXME set default behavior: fall back on end_mod
             assert str_position not in ['1_mod_after', 'both'], \
-                    f"str_position={str_position} asks for elements outside" \
-                    + "of the linac."
+                f"str_position={str_position} asks for elements outside" \
+                + "of the linac."
 
         # First elt of first lattice, last elt of last lattice
         idx1 = np.where(lattices == lattice1)[0][0]
@@ -278,8 +277,6 @@ class Fault():
                       'jac_sparsity': None,
                       'verbose': debugs['verbose']
                       }
-        # sol = solver(fun=wrapper, x0=self.info['X_0'], bounds=x_lim,
-                     # args=wrapper_args, **kwargs)
         sol = solver(fun=wrapper_lsq, x0=self.info['X_0'], bounds=x_lim,
                      args=wrapper_args, **kwargs)
 
@@ -289,9 +286,13 @@ class Fault():
         if debugs['plot_progression']:
             self.info["hist_F"].append(sol.fun)
 
-        print(f"""\nmessage: {sol.message}\nnfev: {sol.nfev}\tnjev: {sol.njev}
-              \noptimality: {sol.optimality}\nstatus: {sol.status}\n
-              success: {sol.success}\nsolution: {sol.x}\n\n""")
+        print(
+            f"message: {sol.message}"
+            f"nfev: {sol.nfev}\tnjev: {sol.njev}"
+            f"optimality: {sol.optimality}"
+            f"status: {sol.status}"
+            f"success: {sol.success}"
+            f"solution: {sol.x}\n\n")
 
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
@@ -407,7 +408,8 @@ class Fault():
         phi_s_limits = np.array(x_lim[2 * n_cav:])
         x_lim = np.array(x_lim[:2 * n_cav])
 
-        print(f"Initial_guess:\n{x_0}\nBounds:\n{x_lim}")
+        print(f"Initial_guess:\n{x_0}"
+              f"Bounds:\n{x_lim}")
 
         return x_0, x_lim, phi_s_limits, l_x_str
 
@@ -516,6 +518,7 @@ def wrapper_lsq(arr_cav_prop, fault, fun_residual, phi_s_fit):
     fault.count += 1
 
     return arr_f
+
 
 def wrapper_pso(arr_cav_prop, fault, fun_residual):
     """Unpack arguments and compute proper residues at proper spot."""

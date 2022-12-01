@@ -15,7 +15,7 @@ class ListOfElements(list):
 
     def __init__(self, l_elts, w_kin, phi_abs, idx_in=None, tm_cumul=None):
         super().__init__(l_elts)
-        print(f"Init list from {l_elts[0].get('elt_name')} to " +
+        print(f"Init list from {l_elts[0].get('elt_name')} to "
               f"{l_elts[-1].get('elt_name')}.")
 
         if idx_in is None:
@@ -34,7 +34,7 @@ class ListOfElements(list):
     def has(self, key):
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self)) or \
-                key in recursive_items(vars(self[0]))
+            key in recursive_items(vars(self[0]))
 
     def get(self, *keys, to_numpy=True, remove_first=False, **kwargs):
         """Shorthand to get attributes."""
@@ -111,7 +111,7 @@ class ListOfElements(list):
             # FIXME simpler equivalent?
             if (not transfer_data) and (d_fits is not None) \
                and (elt.get('status') == 'nominal'):
-                l_rf_fields[-1] = None
+                l_rf_fields[-1] = {}
                 l_elt_results[-1]['phi_s'] = None
 
             # Update energy and phase
@@ -186,7 +186,7 @@ class ListOfElements(list):
             results["r_zz_elt"], len(results["w_kin"]))
 
         results["eps_zdelta"], results['twiss_zdelta'] = \
-                beam_parameters_zdelta(results["tm_cumul"])
+            beam_parameters_zdelta(results["tm_cumul"])
         return results
 
     def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, n_steps):
@@ -197,4 +197,3 @@ class ListOfElements(list):
         for i in range(1, n_steps):
             arr_tm_cumul[i] = l_r_zz_elt[i - 1] @ arr_tm_cumul[i - 1]
         return arr_tm_cumul
-
