@@ -115,7 +115,7 @@ class Fault():
         # FIXME would be better of at Fault initialization
 
         # fun_residual, l_f_str = _select_objective(self.wtf['objective'])
-        fun_residual, l_f_str = self._select_objective2(self.wtf['objective'],
+        fun_residual, l_f_str = self._select_objective(self.wtf['objective'],
                                                         **d_idx)
 
         # Save some data for debug and output purposes
@@ -280,7 +280,7 @@ class Fault():
                       }
         # sol = solver(fun=wrapper, x0=self.info['X_0'], bounds=x_lim,
                      # args=wrapper_args, **kwargs)
-        sol = solver(fun=wrapper2, x0=self.info['X_0'], bounds=x_lim,
+        sol = solver(fun=wrapper_lsq, x0=self.info['X_0'], bounds=x_lim,
                      args=wrapper_args, **kwargs)
 
         if debugs['fit_progression']:
@@ -433,20 +433,19 @@ class Fault():
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase
 
-    def _select_objective2(self, l_objectives, **d_idx):
+    def _select_objective(self, l_objectives, **d_idx):
         """Select the objective to fit."""
         # List of indexes for ref_lin object and results dictionary
         idx_ref, idx_brok = d_idx.values()
 
-        # mismatch factor treated differently as it is already calculated from two
-        # linacs
+        # mismatch factor treated differently as it is already calculated from
+        # two linacs
         exceptions = ['mismatch factor']
 
         # List of strings to output the objective names and positions
-        l_f_str = [f"idx={i_r}, " + d_markdown[key]
+        l_f_str = [f"idx={i_r}, " + d_markdown[key].replace("[deg]", "[rad]")
                    for i_r in idx_ref
                    for key in l_objectives]
-        # FIXME replace 'deg' by 'rad' in the strings
 
         # We evaluate all the desired objectives
         l_ref = [self.ref_lin.get(key)[i_r]
@@ -454,9 +453,10 @@ class Fault():
                  else self.ref_lin.get('twiss_zdelta')[i_r]
                  for i_r in idx_ref
                  for key in l_objectives]
-        for i in range(len(l_ref)):
-            print(f"Objective {i}: {l_f_str[i]}")
-            print(f"Value:       {l_ref[i]}\n")
+
+        print("\nObjectives:")
+        for i, (f_str, ref) in enumerate(zip(l_f_str, l_ref)):
+            print(f"{i}: {f_str:>35} | {ref}")
 
         def fun_residual(results):
             """Compute difference between ref value and results dictionary."""
@@ -480,100 +480,8 @@ class Fault():
             return np.abs(residues)
         return fun_residual, l_f_str
 
-def _select_objective(l_objectives):
-    """
-    Select the objective to fit.
 
-    Parameters
-    ----------
-    l_objectives : list of strings
-        Indicates what should be fitted.
-
-    Return
-    ------
-    fun_multi_objective : function
-        Return the residuals for each objective at the proper position.
-    """
-    # Get data from reference linac
-    d_ref = {
-        'w_kin': lambda ref, i_r: ref.synch.energy['w_kin'][i_r],
-        'phi_abs_array': lambda ref, i_r: ref.synch.phi['phi_abs_array'][i_r],
-        'M_ij': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r],
-        'M_11': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 0 , 0],
-        'M_12': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 0 , 1],
-        'M_21': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 1 , 0],
-        'M_22': lambda ref, i_r: ref.transf_mat['tm_cumul'][i_r, 1 , 1],
-        'eps_zdelta': lambda ref, i_r: ref.beam_param["eps"]["eps_zdelta"][i_r],
-        'twiss_zdelta': lambda ref, i_r: ref.beam_param["twiss"]["twiss_zdelta"][i_r],
-    }
-    # Get data from results dictionary
-    d_brok = {
-        'w_kin': lambda calc, i_b: calc['w_kin'][i_b],
-        'phi_abs_array': lambda calc, i_b: calc['phi_abs_array'][i_b],
-        'M_ij': lambda calc, i_b: calc['tm_cumul'][i_b],
-        'M_11': lambda calc, i_b: calc['tm_cumul'][i_b, 0, 0],
-        'M_12': lambda calc, i_b: calc['tm_cumul'][i_b, 0, 1],
-        'M_21': lambda calc, i_b: calc['tm_cumul'][i_b, 1, 0],
-        'M_22': lambda calc, i_b: calc['tm_cumul'][i_b, 1, 1],
-        'eps_zdelta': lambda calc, i_b: calc["eps_zdelta"][i_b],
-        'twiss_zdelta': lambda calc, i_b: calc["twiss_zdelta"][i_b],
-    }
-
-    # Dictionary to return objective functions
-    d_f = {
-        'w_kin': lambda ref, i_r, calc, i_b:
-            d_ref["w_kin"](ref, i_r) - d_brok['w_kin'](calc, i_b),
-        'phi_abs_array': lambda ref, i_r, calc, i_b:
-            d_ref["phi_abs_array"](ref, i_r) - d_brok['phi_abs_array'](calc, i_b),
-        'M_11': lambda ref, i_r, calc, i_b:
-            d_ref["M_ij"](ref, i_r)[0, 0] - d_brok['M_ij'](calc, i_b)[0, 0],
-        'M_12': lambda ref, i_r, calc, i_b:
-            d_ref["M_ij"](ref, i_r)[0, 1] - d_brok['M_ij'](calc, i_b)[0, 1],
-        'M_21': lambda ref, i_r, calc, i_b:
-            d_ref["M_ij"](ref, i_r)[1, 0] - d_brok['M_ij'](calc, i_b)[1, 0],
-        'M_22': lambda ref, i_r, calc, i_b:
-            d_ref["M_ij"](ref, i_r)[1, 1] - d_brok['M_ij'](calc, i_b)[1, 1],
-        'eps_zdelta': lambda ref, i_r, calc, i_b:
-            d_ref["eps_zdelta"](ref, i_r) - d_brok["eps_zdelta"](calc, i_b),
-        'alpha_zdelta': lambda ref, i_r, calc, i_b:
-            d_ref["twiss_zdelta"](ref, i_r)[0] - d_brok["twiss_zdelta"](calc, i_b)[0],
-        'beta_zdelta': lambda ref, i_r, calc, i_b:
-            d_ref["twiss_zdelta"](ref, i_r)[1] - d_brok["twiss_zdelta"](calc, i_b)[1],
-        'gamma_zdelta': lambda ref, i_r, calc, i_b:
-            d_ref["twiss_zdelta"](ref, i_r)[2] - d_brok["twiss_zdelta"](calc, i_b)[2],
-        "mismatch factor": lambda ref, i_r, calc, i_b:
-            mismatch_factor(d_ref["twiss_zdelta"](ref, i_r),
-                            d_brok["twiss_zdelta"](calc, i_b))[0],
-    }
-
-    def fun_residual(ref_lin, d_results, d_idx):
-        """Compute difference between ref_linac and current optimis. param."""
-        l_obj = []
-        for str_obj in l_objectives:
-            for i_r, i_b in zip(d_idx['l_ref'], d_idx['l_brok']):
-                args = (ref_lin, i_r, d_results, i_b)
-                l_obj.append(d_f[str_obj](*args))
-        obj = np.abs(np.array(l_obj))
-        return obj
-
-    # d_obj_str = {'w_kin': r'$W_{kin}$',
-                 # 'phi_abs_array': r'$\phi$',
-                 # 'M_11': r'$M_{11}$',
-                 # 'M_12': r'$M_{12}$',
-                 # 'M_21': r'$M_{21}$',
-                 # 'M_22': r'$M_{22}$',
-                 # 'eps_zdelta': r'$\epsilon_{z\delta}$',
-                 # 'alpha_zdelta': r'$\alpha_{z\delta}$',
-                 # 'beta_zdelta': r'$\beta_{z\delta}$',
-                 # 'gamma_zdelta': r'$\gamma_{z\delta}$',
-                 # 'mismatch factor': r'$M$',
-                 # }
-    l_f_str = [d_markdown[str_obj] for str_obj in l_objectives]
-
-    return fun_residual, l_f_str
-
-
-def wrapper2(arr_cav_prop, fault, fun_residual, phi_s_fit):
+def wrapper_lsq(arr_cav_prop, fault, fun_residual, phi_s_fit):
     """
     Unpack arguments and compute proper residues at proper spot.
 
@@ -609,48 +517,7 @@ def wrapper2(arr_cav_prop, fault, fun_residual, phi_s_fit):
 
     return arr_f
 
-
-def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
-    """
-    Unpack arguments and compute proper residues at proper spot.
-
-    Parameters
-    ----------
-    arr_cav_prop : np.array
-        Holds the norms (first half) and phases (second half) of cavities
-    fault : Fault object
-        The Fault under study.
-    fun_residual : function
-        Function returning the residues of the objective function at the proper
-        location.
-    d_idx : dict
-        Dict holding the lists of indexes (ref and broken) to evaluate the
-        objectives at the right spot.
-
-    Return
-    ------
-    arr_f : np.array
-        Array of residues on the objectives.
-    """
-    # Convert phases and norms into a dict for compute_transfer_matrices
-    d_fits = {'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
-              'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist(),
-              'phi_s fit': phi_s_fit}
-
-    # Update transfer matrices
-    results = fault.elts.compute_transfer_matrices(d_fits, transfer_data=False)
-    arr_f = fun_residual(fault.ref_lin, results, d_idx)
-
-    if debugs['fit_progression'] and fault.count % 20 == 0:
-        debug.output_fit_progress(fault.count, arr_f, fault.info["l_F_str"])
-    if debugs['plot_progression']:
-        fault.info['hist_F'].append(arr_f)
-    fault.count += 1
-
-    return arr_f
-
-
-def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
+def wrapper_pso(arr_cav_prop, fault, fun_residual):
     """Unpack arguments and compute proper residues at proper spot."""
     d_fits = {'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
               'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist(),
@@ -658,7 +525,7 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual, d_idx):
 
     # Update transfer matrices
     results = fault.elts.compute_transfer_matrices(d_fits, transfer_data=False)
-    arr_f = fun_residual(fault.ref_lin, results, d_idx)
+    arr_f = fun_residual(results)
 
     if debugs['fit_progression'] and fault.count % 20 == 0:
         debug.output_fit_progress(fault.count, arr_f, fault.info["l_F_str"])
