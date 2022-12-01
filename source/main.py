@@ -46,8 +46,8 @@ failed_cav = [
 ]
 
 WHAT_TO_FIT = {
-    # 'opti method': 'least_squares',
-    'opti method': 'PSO',
+    'opti method': 'least_squares',
+    # 'opti method': 'PSO',
     # =========================================================================
     # strategy: manual
     # You must provide a list of lists of broken cavities, and the
@@ -97,13 +97,13 @@ WHAT_TO_FIT = {
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
-    "phase",
-    "cav",
-    "emittance",
-    "twiss",
-    "enveloppes",
-    "mismatch factor",
+    # "energy",
+    # "phase",
+    # "cav",
+    # "emittance",
+    # "twiss",
+    # "enveloppes",
+    # "mismatch factor",
 ]
 PLOT_TM = False
 

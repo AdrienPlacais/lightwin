@@ -59,7 +59,7 @@ elif LINAC == "JAEA":
 FLAG_PHI_ABS = True
 
 # Fit performed over phi_s?
-FLAG_PHI_S_FIT = False
+FLAG_PHI_S_FIT = True
 
 # Method to integrate the motion. leapfrog or RK (RK4)
 # METHOD = 'leapfrog'

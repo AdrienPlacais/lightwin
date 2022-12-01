@@ -24,7 +24,8 @@ from main import WHAT_TO_FIT
 TEST = 'compensation'
 
 FILEPATH = os.path.abspath(
-    "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+    # "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
+    "../data/JAEA/JAEA_ADS_026.dat"
 )
 
 if TEST == 'simple':
@@ -47,7 +48,7 @@ elif TEST == 'compensation':
     ref_linac = acc.Accelerator(FILEPATH, 'Working')
     ref_linac.compute_transfer_matrices()
 
-    failed_cav = [35]
+    failed_cav = [25]
     broken_linac = acc.Accelerator(FILEPATH, "Broken")
     fail = mod_fs.FaultScenario(ref_linac, broken_linac, failed_cav,
                                 wtf=WHAT_TO_FIT)
