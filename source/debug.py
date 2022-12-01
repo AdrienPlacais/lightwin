@@ -400,24 +400,24 @@ def load_phase_space(accelerator):
 
 def output_cavities(linac, out=False):
     """Output relatable parameters of cavities in list_of_cav."""
-    df_cav = pd.DataFrame(columns=(
-        'Name', 'Status?', 'k_e', 'phi_0abs', 'phi_0_rel', 'Vs', 'phis'))
-    full_list_of_cav = linac.elements_of('FIELD_MAP')
+    columns=('elt_name', 'status', 'k_e', 'phi_0_abs', 'phi_0_rel', 'v_cav_mv',
+             'phi_s')
+    df_cav = pd.DataFrame(columns=columns)
+
+    full_list_of_cav = linac.elements_of(nature='FIELD_MAP')
 
     for i, cav in enumerate(full_list_of_cav):
-        df_cav.loc[i] = cav.get('elt_name', 'status', 'k_e', 'phi_0_abs',
-                                'phi_0_rel', 'v_cav_mv', 'phi_s', to_deg=True)
+        df_cav.loc[i] = cav.get(*columns, to_deg=True)
     df_cav.round(decimals=3)
 
     # Output only the cavities that have changed
     if 'Fixed' in linac.name:
-        df_out = pd.DataFrame(columns=(
-            'Name', 'Status?', 'k_e', 'phi_0_abs', 'phi_0_rel', 'Vs', 'phis'))
+        df_out = pd.DataFrame(columns=columns)
         i = 0
-        for c in full_list_of_cav:
-            if 'compensate' in c.get('status'):
+        for cav in full_list_of_cav:
+            if 'compensate' in cav.get('status'):
                 i += 1
-                df_out.loc[i] = df_cav.loc[full_list_of_cav.index(c)]
+                df_out.loc[i] = df_cav.loc[full_list_of_cav.index(cav)]
         if out:
             helper.printd(df_out, header=linac.name)
     return df_cav

@@ -114,7 +114,9 @@ class Fault():
             tm_cumul = self.brok_lin.get('tm_cumul')[idx])
         # FIXME would be better of at Fault initialization
 
-        fun_residual, l_f_str = _select_objective(self.wtf['objective'])
+        # fun_residual, l_f_str = _select_objective(self.wtf['objective'])
+        fun_residual, l_f_str = self._select_objective2(self.wtf['objective'],
+                                                        **d_idx)
 
         # Save some data for debug and output purposes
         self.info.update({
@@ -125,7 +127,8 @@ class Fault():
             'G': constr,
         })
 
-        wrapper_args = (self, fun_residual, d_idx, self.wtf['phi_s fit'])
+        # wrapper_args = (self, fun_residual, d_idx, self.wtf['phi_s fit'])
+        wrapper_args = (self, fun_residual, self.wtf['phi_s fit'])
 
         self.count = 0
         if self.wtf['opti method'] == 'least_squares':
@@ -275,7 +278,9 @@ class Fault():
                       'jac_sparsity': None,
                       'verbose': debugs['verbose']
                       }
-        sol = solver(fun=wrapper, x0=self.info['X_0'], bounds=x_lim,
+        # sol = solver(fun=wrapper, x0=self.info['X_0'], bounds=x_lim,
+                     # args=wrapper_args, **kwargs)
+        sol = solver(fun=wrapper2, x0=self.info['X_0'], bounds=x_lim,
                      args=wrapper_args, **kwargs)
 
         if debugs['fit_progression']:
@@ -428,47 +433,52 @@ class Fault():
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase
 
-def _select_objective2(self, l_objectives):
-    """Select the objective to fit."""
-    idx_ref = [440]
-    idx_brok = [135]
-    # mismatch factor treated differently as it is already calculated from two
-    # linacs
-    exceptions = ['mismatch factor']
+    def _select_objective2(self, l_objectives, **d_idx):
+        """Select the objective to fit."""
+        # List of indexes for ref_lin object and results dictionary
+        idx_ref, idx_brok = d_idx.values()
 
-    # List of strings to output the objective names and positions
-    l_f_str = [f"idx={i_r}, " + d_markdown[key]
-               for i_r in idx_ref
-               for key in l_objectives]
+        # mismatch factor treated differently as it is already calculated from two
+        # linacs
+        exceptions = ['mismatch factor']
 
-    # We evaluate all the desired objectives
-    l_ref = [self.ref_lin.get(key)[i_r]
-             if key not in exceptions
-             else self.ref_lin.get('twiss_zdelta')[i_r]
-             for i_r in idx_ref
-             for key in l_objectives]
+        # List of strings to output the objective names and positions
+        l_f_str = [f"idx={i_r}, " + d_markdown[key]
+                   for i_r in idx_ref
+                   for key in l_objectives]
+        # FIXME replace 'deg' by 'rad' in the strings
 
-    def fun_residual(results):
-        """Compute difference between ref value and results dictionary."""
-        i = -1
-        residues = []
-        for i_b in idx_brok:
-            for key in l_objectives:
-                i += 1
+        # We evaluate all the desired objectives
+        l_ref = [self.ref_lin.get(key)[i_r]
+                 if key not in exceptions
+                 else self.ref_lin.get('twiss_zdelta')[i_r]
+                 for i_r in idx_ref
+                 for key in l_objectives]
+        for i in range(len(l_ref)):
+            print(f"Objective {i}: {l_f_str[i]}")
+            print(f"Value:       {l_ref[i]}\n")
 
-                # mismatch factor
-                if key == 'mismatch factor':
-                    residues.append(
-                        mismatch_factor(
-                            l_ref[i], results['twiss_zdelta'][i_b]
+        def fun_residual(results):
+            """Compute difference between ref value and results dictionary."""
+            i = -1
+            residues = []
+            for i_b in idx_brok:
+                for key in l_objectives:
+                    i += 1
+
+                    # mismatch factor
+                    if key == 'mismatch factor':
+                        residues.append(
+                            mismatch_factor(
+                                l_ref[i], results['twiss_zdelta'][i_b]
+                            )[0]
                         )
-                    )
-                    continue
+                        continue
 
-                # all other keys
-                residues.append(l_ref[i] - results[key][i_b])
-        return np.abs(residues)
-    return fun_residual, l_f_str
+                    # all other keys
+                    residues.append(l_ref[i] - results[key][i_b])
+            return np.abs(residues)
+        return fun_residual, l_f_str
 
 def _select_objective(l_objectives):
     """
@@ -561,6 +571,43 @@ def _select_objective(l_objectives):
     l_f_str = [d_markdown[str_obj] for str_obj in l_objectives]
 
     return fun_residual, l_f_str
+
+
+def wrapper2(arr_cav_prop, fault, fun_residual, phi_s_fit):
+    """
+    Unpack arguments and compute proper residues at proper spot.
+
+    Parameters
+    ----------
+    arr_cav_prop : np.array
+        Holds the norms (first half) and phases (second half) of cavities
+    fault : Fault object
+        The Fault under study.
+    fun_residual : function
+        Function returning the residues of the objective function at the proper
+        location.
+
+    Return
+    ------
+    arr_f : np.array
+        Array of residues on the objectives.
+    """
+    # Convert phases and norms into a dict for compute_transfer_matrices
+    d_fits = {'l_phi': arr_cav_prop[:fault.comp['n_cav']].tolist(),
+              'l_k_e': arr_cav_prop[fault.comp['n_cav']:].tolist(),
+              'phi_s fit': phi_s_fit}
+
+    # Update transfer matrices
+    results = fault.elts.compute_transfer_matrices(d_fits, transfer_data=False)
+    arr_f = fun_residual(results)
+
+    if debugs['fit_progression'] and fault.count % 20 == 0:
+        debug.output_fit_progress(fault.count, arr_f, fault.info["l_F_str"])
+    if debugs['plot_progression']:
+        fault.info['hist_F'].append(arr_f)
+    fault.count += 1
+
+    return arr_f
 
 
 def wrapper(arr_cav_prop, fault, fun_residual, d_idx, phi_s_fit):
