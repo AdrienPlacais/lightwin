@@ -84,7 +84,6 @@ class Accelerator():
         }
         # Define some shortcuts
         self._d_special_getters = self._create_special_getters()
-        printc('Warning! accelerator. keys of beam param not gettable.')
 
         self.synch.init_abs_z(self.get('abs_mesh', remove_first=True))
         # Check that LW and TW computes the phases in the same way (abs or rel)
