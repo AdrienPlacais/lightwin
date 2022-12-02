@@ -98,8 +98,8 @@ class RfField():
         """
         assert self.phi_0['nominal_rel'] is not None
         self.phi_0['phi_0_rel'] = self.phi_0['nominal_rel']
-        self.phi_0['phi_0_abs'] = np.mod(self.phi_0['nominal_rel'] - phi_rf_abs,
-                                   2. * np.pi)
+        self.phi_0['phi_0_abs'] = np.mod(
+            self.phi_0['nominal_rel'] - phi_rf_abs, 2. * np.pi)
 
 
 # =============================================================================

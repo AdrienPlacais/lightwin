@@ -35,9 +35,9 @@ STR_ALGORITHM = "NSGA-III"
 # Messages from algorithm
 FLAG_VERBOSE = False
 # Needed by most debug tools
-SAVE_HISTORY = True
+SAVE_HISTORY = False
 # Convergence criterion. Needs a reference point.
-FLAG_HYPERVOLUME = True
+FLAG_HYPERVOLUME = False
 # Show evolution of objective evaluations with number of generations
 FLAG_RUNNING = False
 FLAG_CONVERGENCE_CALLBACK = False
@@ -45,7 +45,7 @@ FLAG_CONVERGENCE_CALLBACK = False
 FLAG_CV = False
 # Show the cavity parameters that were tried, discriminating feasible solutions
 # from unfeasible
-FLAG_DESIGN_SPACE = True
+FLAG_DESIGN_SPACE = False
 
 
 class MyCallback(Callback):
@@ -82,7 +82,7 @@ class MyProblem(ElementwiseProblem):
 
         print(f"Number of objectives: {n_obj}")
         super().__init__(n_var=n_var, n_obj=n_obj, n_constr=n_constr,
-                         xl=_xl, xu=_xu)
+                         xl=_xl, xu=_xu, **kwargs)
         if n_constr > 0:
             print(f"{n_constr} constraints on phi_s:\n{info['G']}")
 

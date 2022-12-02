@@ -21,11 +21,11 @@ TODO : at init of Fault, say self.brok_lin = brok_lin.deepcopy() (or copy)
        Or can the breakage be done at the init of the Accelerator?
 TODO : _set_design_space could be cleaner
 """
+# from multiprocessing.pool import ThreadPool
 # import multiprocessing
 import numpy as np
 from scipy.optimize import minimize, least_squares
 
-# from multiprocessing.pool import ThreadPool
 # from pymoo.core.problem import StarmapParallelization
 
 from dicts_output import d_markdown
@@ -301,8 +301,22 @@ class Fault():
         if info_other_sol is None:
             info_other_sol = {'F': None, 'X_in_real_phase': None}
 
-        problem = pso.MyProblem(wrapper_pso, wrapper_args)
+        # Threading: slower
+        # n_threads = 2
+        # pool = ThreadPool(n_threads)
+        # runner = StarmapParallelization(pool.starmap)
+
+        # Processing:
+        # n_proc = 8
+        # pool = multiprocessing.Pool(n_proc)
+        # runner = StarmapParallelization(pool.starmap)
+
+        problem = pso.MyProblem(wrapper_pso, wrapper_args,
+                                # elementwise_runner=runner
+                               )
         res = pso.perform_pso(problem)
+
+        # pool.close()
 
         weights = pso.set_weights(self.wtf['objective'])
         d_opti, d_approx = pso.mcdm(res, weights, self.info,

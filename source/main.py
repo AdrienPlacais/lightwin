@@ -112,12 +112,12 @@ WHAT_TO_FIT = {
 # Outputs
 # =============================================================================
 PLOTS = [
-    "energy",
+    # "energy",
     # "phase",
-    "cav",
+    # "cav",
     # "emittance",
     # "twiss",
-    "envelopes",
+    # "envelopes",
 ]
 PLOT_TM = False
 
@@ -159,10 +159,11 @@ linacs = [ref_linac]
 
 # Broken linac
 lsq_info = None
-# for wtf in []:
-# for wtf in [wtf_lsq]:
-# for wtf in [wtf_pso]:
-for wtf in [wtf_lsq, wtf_pso]:
+l_wtf = [
+    wtf_lsq,
+    # wtf_pso,
+    ]
+for wtf in l_wtf:
     start_time = time.monotonic()
     lin = acc.Accelerator(FILEPATH, "Broken")
     fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,

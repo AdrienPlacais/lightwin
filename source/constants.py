@@ -76,7 +76,7 @@ elif 'jm' in METHOD:
 # (pure Python). _c is ~2 to 4 times faster than _p.
 # Warning, you may have to relaod the kernel to force iPython to take the
 # change in FLAG_CYTHON into account.
-FLAG_CYTHON = True
+FLAG_CYTHON = False
 if FLAG_CYTHON:
     METHOD += '_c'
 else:

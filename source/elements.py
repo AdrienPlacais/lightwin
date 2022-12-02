@@ -312,10 +312,11 @@ class FieldMap(_Element):
         # phase of 0. phi_rf_rel = 0.
 
         # Add the parameters that are independent from the cavity status
-        rf_field_kwargs = {'omega0_rf': self.get('omega0_rf'),
-                           'e_spat': self.get('e_spat'),
-                           'section_idx': self.idx['section'],
-                           'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
+        rf_field_kwargs = {
+            'omega0_rf': self.get('omega0_rf'),
+            'e_spat': self.acc_field.e_spat,
+            'section_idx': self.idx['section'],
+            'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
 
         # Set norm and phi_0 of the cavity
         d_cav_param_setter = {
