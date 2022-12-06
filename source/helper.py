@@ -31,6 +31,7 @@ def recursive_items(dictionary):
         else:
             yield key
 
+
 def recursive_getter(key, dictionary, **kwargs):
     """Get first key in a possibly nested dictionary."""
     for _key, _value in dictionary.items():
@@ -47,6 +48,7 @@ def recursive_getter(key, dictionary, **kwargs):
             if value is not None:
                 return value
     return None
+
 
 # =============================================================================
 # Messages functions
@@ -66,6 +68,7 @@ def printc(message, color='cyan', opt_message=''):
     print(dict_c[color] + message + dict_c['normal'] + opt_message)
 
 
+# TODO: replace nan by ' ' when there is a \n in a pd DataFrame header
 def printd(message, color_header='cyan', header=''):
     """Print delimited message."""
     pd.options.display.float_format = '{:.4e}'.format
@@ -77,6 +80,9 @@ def printd(message, color_header='cyan', header=''):
     print(line, '\n')
     if len(header) > 0:
         printc(header, color_header)
+    # Output multi-line for headers
+    if isinstance(message, pd.DataFrame):
+        message.columns = message.columns.str.split("\n", expand=True)
     print(message, '\n\n' + line, '\n')
 
 

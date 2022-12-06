@@ -321,7 +321,6 @@ class FaultScenario():
             if cav.get('status') == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
 
-    # TODO: idx of the fault
     def evaluate_fit_quality(self, delta_t):
         """Compute some quantities on the whole linac to see if fit is good."""
         keys = ['w_kin', 'phi_abs_array', 'envelope_pos_w',
@@ -331,7 +330,8 @@ class FaultScenario():
             val[key] = []
 
         # End of each compensation zone
-        str_columns = ["end comp. zone [%]" for fault in self.faults['l_obj']]
+        str_columns = [f"end comp zone\n(idx {fault.elts[-1].get('s_out')}) [%]"
+                       for fault in self.faults['l_obj']]
         str_columns.insert(0, "Qty")
         l_idx = [fault.elts[-1].get('s_out') for fault in self.faults['l_obj']]
 
