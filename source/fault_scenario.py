@@ -23,8 +23,6 @@ TODO method to avoid big changes of acceptance
 TODO option to minimize the power of compensating cavities
 
 TODO remake a small fit after the first one?
-TODO plot interesting data before the second fit to see if it is
-useful
 """
 import itertools
 import math
@@ -323,71 +321,61 @@ class FaultScenario():
             if cav.get('status') == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
 
-    # FIXME not Pythonic at all
+    # TODO: idx of the fault
     def evaluate_fit_quality(self, delta_t):
         """Compute some quantities on the whole linac to see if fit is good."""
-        d_get = {
-            'w_kin': lambda lin: lin.synch.energy['w_kin'],
-            'phi_abs_array': lambda lin: lin.get('phi_abs_array'),
-            'sigma_phi': lambda lin: lin.get('envelopes_w')[:, 0],
-            'sigma_w': lambda lin: lin.get('envelopes_w')[:, 1],
-            'mismatch factor': lambda lin: lin.get('mismatch factor'),
-            'eps_w': lambda lin: lin.get('eps_w'),
-        }
-        idx_end_comp_zone = 824
-        printc("Warning fault_scenario.evaluate_fit_quality: ",
-               opt_message="Index of end compensation zone manually set.")
+        keys = ['w_kin', 'phi_abs_array', 'envelope_pos_w',
+                'envelope_energy_w', 'mismatch factor', 'eps_w']
+        val = {}
+        for key in keys:
+            val[key] = []
 
-        def rel_sq_diff(ref, fix):
-            delta = np.sqrt(((ref - fix) / ref)**2)
-            delta_sum = np.nansum(delta)
-            return delta_sum
+        # End of each compensation zone
+        str_columns = ["end comp. zone [%]" for fault in self.faults['l_obj']]
+        str_columns.insert(0, "Qty")
+        l_idx = [fault.elts[-1].get('s_out') for fault in self.faults['l_obj']]
 
-        def rel_diff_end_linac(ref, fix):
-            err = 1e2 * (ref[-1] - fix[-1]) / ref[-1]
-            return err
+        # End of linac
+        str_columns.append("end linac [%]")
+        l_idx.append(-1)
 
-        def rel_diff_end_comp_zone(ref, fix):
-            err = 1e2 * (ref[idx_end_comp_zone] - fix[idx_end_comp_zone]) \
-                / ref[idx_end_comp_zone]
-            return err
+        # Calculate relative errors in %
+        for idx in l_idx:
+            for key in keys:
+                ref = self.ref_lin.get(key)[idx]
+                fix = self.brok_lin.get(key)[idx]
 
-        l_str_fun = ['end of comp. zone [%]', 'end of linac [%]',
-                     'sum error on linac']
-        df_ranking = pd.DataFrame(columns=(['Qty'] + l_str_fun))
-        df_ranking.loc[0] = ['time', delta_t, None, None]
+                if key == 'mismatch factor':
+                    val[key].append(fix)
+                    continue
+                val[key].append(1e2 * (ref - fix) / ref)
 
-        criterions = d_get.keys()
-        for i, crit in enumerate(criterions):
-            l_rank = [crit]
-            for str_fun in l_str_fun:
-                if str_fun == 'end of linac [%]':
-                    fun1 = rel_diff_end_linac
-                    fun2 = lambda r_l, b_l: b_l[-1]
-                elif str_fun == 'end of comp. zone [%]':
-                    fun1 = rel_diff_end_comp_zone
-                    fun2 = lambda r_l, b_l: b_l[idx_end_comp_zone]
-                elif str_fun == 'sum error on linac':
-                    fun1 = rel_sq_diff
-                    fun2 = lambda r_l, b_l: np.nansum(b_l)
-                else:
-                    raise IOError
+        # Relative square difference sumed on whole linac
+        str_columns.append("sum error linac")
+        for key in keys:
+            ref = self.ref_lin.get(key)
+            ref[ref == 0.] = np.NaN
+            fix = self.brok_lin.get(key)
 
-                d_delta = {
-                    'w_kin': fun1,
-                    'phi_abs_array': fun1,
-                    'sigma_phi': fun1,
-                    'sigma_w': fun1,
-                    'mismatch factor': fun2,
-                    'eps_w': fun1,
-                }
+            if key == 'mismatch factor':
+                val[key].append(np.sum(fix))
+                continue
+            val[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
 
-                args = (d_get[crit](self.ref_lin), d_get[crit](self.brok_lin))
-                delta = d_delta[crit](*args)
-                l_rank.append(delta)
-            df_ranking.loc[i + 1] = l_rank
-        return df_ranking
+        # Handle time
+        time_line = [None for n in range(len(val[keys[0]]))]
+        days, seconds = delta_t.days, delta_t.seconds
+        time_line[0] = f"{days * 24 + seconds // 3600} hrs"
+        time_line[1] = f"{seconds % 3600 // 60} min"
+        time_line[2] = f"{seconds % 60} sec"
 
+        # Now make it a pandas dataframe for sweet output
+        df_eval = pd.DataFrame(columns=str_columns)
+        df_eval.loc[0] = ['time'] + time_line
+        for i, key in enumerate(keys):
+            df_eval.loc[i + 1] = [key] + val[key]
+
+        return df_eval
 
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
     """Select the cavities neighboring the failed one(s)."""

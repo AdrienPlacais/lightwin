@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # =========================================================================
     # Fault compensation
     # =========================================================================
-    FLAG_FIX = False
+    FLAG_FIX = True
     FLAG_TRY_OPTI_METHODS = True
     SAVE_FIX = False
 
@@ -144,8 +144,8 @@ if __name__ == '__main__':
 
     if abs(I_MILLI_A) > 1e-10:
         helper.printc("main.py warning: ", opt_message="I_MILLI_A is not zero,"
-                      + "but LW does not take space charge forces into "
-                      + " account.")
+                      " but LW does not take space charge forces into"
+                      " account.")
 
     # =========================================================================
     # Start
