@@ -321,7 +321,7 @@ class FaultScenario():
             if cav.get('status') == 'rephased (in progress)':
                 cav.update_status('rephased (ok)')
 
-    def evaluate_fit_quality(self, delta_t):
+    def evaluate_fit_quality(self, delta_t, user_idx=None):
         """Compute some quantities on the whole linac to see if fit is good."""
         keys = ['w_kin', 'phi_abs_array', 'envelope_pos_w',
                 'envelope_energy_w', 'mismatch factor', 'eps_w']
@@ -330,14 +330,22 @@ class FaultScenario():
             val[key] = []
 
         # End of each compensation zone
-        str_columns = [f"end comp zone\n(idx {fault.elts[-1].get('s_out')}) [%]"
-                       for fault in self.faults['l_obj']]
-        str_columns.insert(0, "Qty")
         l_idx = [fault.elts[-1].get('s_out') for fault in self.faults['l_obj']]
+        str_columns = [f"end comp zone\n(idx {idx}) [%]"
+                       for idx in l_idx]
+
+        # If user provided more idx to check
+        if user_idx is not None:
+            l_idx += user_idx
+            str_columns += [f"user defined\n(idx {idx}) [%]"
+                            for idx in user_idx]
 
         # End of linac
-        str_columns.append("end linac [%]")
         l_idx.append(-1)
+        str_columns.append("end linac [%]")
+
+        # First column labels
+        str_columns.insert(0, "Qty")
 
         # Calculate relative errors in %
         for idx in l_idx:
@@ -363,7 +371,10 @@ class FaultScenario():
             val[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
 
         # Handle time
+        print(str_columns)
+        print(val[keys[0]])
         time_line = [None for n in range(len(val[keys[0]]))]
+        print(time_line)
         days, seconds = delta_t.days, delta_t.seconds
         time_line[0] = f"{days * 24 + seconds // 3600} hrs"
         time_line[1] = f"{seconds % 3600 // 60} min"
