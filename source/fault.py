@@ -215,6 +215,9 @@ class Fault():
                  }
         for idx in d_idx['l_ref']:
             elt = self.brok_lin.where_is_this_index(idx)
+            # will return None if idx is the last index of the linac
+            if elt is None:
+                elt = self.brok_lin.where_is_this_index(idx - 1)
             print(f"\nWe try to match at mesh index {idx}.")
             print(f"Info: {elt.get('elt_info')}.")
             print(f"Full indexes: {elt.get('idx')}.\n")
@@ -233,18 +236,22 @@ class Fault():
         lattices = self.brok_lin.get('lattice')
 
         # Lattice of first and last compensating cavity
+        # First elt of first lattice
         lattice1 = l_comp_cav[0].get('lattice')
+        idx1 = np.where(lattices == lattice1)[0][0]
+
+        # last elt of last lattice
         lattice2 = l_comp_cav[-1].get('lattice')
-        lattice3 = lattice2 + 1
+        idx2 = np.where(lattices == lattice2)[0][-1]
+
         if lattice2 == lattices[-1]:
             # FIXME set default behavior: fall back on end_mod
             assert str_position not in ['1_mod_after', 'both'], \
                 f"str_position={str_position} asks for elements outside" \
                 + "of the linac."
+            return idx1, idx2, idx2
 
-        # First elt of first lattice, last elt of last lattice
-        idx1 = np.where(lattices == lattice1)[0][0]
-        idx2 = np.where(lattices == lattice2)[0][-1]
+        lattice3 = lattice2 + 1
         idx3 = np.where(lattices == lattice3)[0][-1]
         return idx1, idx2, idx3
 

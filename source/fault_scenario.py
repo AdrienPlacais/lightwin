@@ -371,10 +371,7 @@ class FaultScenario():
             val[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
 
         # Handle time
-        print(str_columns)
-        print(val[keys[0]])
         time_line = [None for n in range(len(val[keys[0]]))]
-        print(time_line)
         days, seconds = delta_t.days, delta_t.seconds
         time_line[0] = f"{days * 24 + seconds // 3600} hrs"
         time_line[1] = f"{seconds % 3600 // 60} min"
