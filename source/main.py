@@ -194,7 +194,8 @@ if __name__ == '__main__':
             helper.printc("main warning: ", opt_message="if studying several "
                           "linacs, the .dat of first fix will be replaced by "
                           "last one.")
-            tw.save_new_dat(lin, FILEPATH)
+            filepath = FILEPATH[:-4] + '_fixed.txt'
+            tw.save_new_dat(lin, filepath, ranking)
 
     for lin in linacs:
         for plot in PLOTS:

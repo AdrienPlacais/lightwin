@@ -200,14 +200,16 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
         tm_c.init_arrays(l_filepaths)
 
 
-def save_new_dat(fixed_linac, filepath_old):
+def save_new_dat(fixed_linac, filepath, *args):
     """Save a new dat with the new linac settings."""
     print('saving new dat\n\n')
     _update_dat_with_fixed_cavities(fixed_linac.files['dat_filecontent'],
-                                    fixed_linac.elements['list'])
+                                    fixed_linac.elts)
 
-    filepath_new = filepath_old[:-4] + '_fixed.dat'
-    with open(filepath_new, 'w') as file:
+    for i, arg in enumerate(args):
+        arg.to_csv(filepath + str(i) + '.csv')
+
+    with open(filepath, 'w') as file:
         for line in fixed_linac.files['dat_filecontent']:
             file.write(' '.join(line) + '\n')
 
