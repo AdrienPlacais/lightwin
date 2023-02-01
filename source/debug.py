@@ -187,7 +187,7 @@ def _reformat(x_data, y_data, elts_indexes):
 
 # FIXME Some pieces of code are repeated, can do better
 def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
-                           filepath_ref=None, fignum=21):
+                          filepath_ref=None, fignum=21):
     """Plot data calculated by TraceWin and LightWin."""
     plot_section = True
     # Default plot
@@ -225,16 +225,16 @@ def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
         # Plot TW data?
         label_tw = 'TW'
         plot_tw = not plot_error and y_str in tw.d_tw_data_table \
-                and label_tw not in axx[i].get_legend_handles_labels()[1]
+            and label_tw not in axx[i].get_legend_handles_labels()[1]
 
         # Replot Working and Broken every time?
         replot_lw = False
         label_lw = 'LW ' + linac.name
         plot_lw = not plot_error \
-                and (replot_lw
-                     or linac.name not in ['Working', 'Broken']
-                     or label_lw not in axx[i].get_legend_handles_labels()[1]
-                    )
+            and (replot_lw
+                 or linac.name not in ['Working', 'Broken']
+                 or label_lw not in axx[i].get_legend_handles_labels()[1]
+                 )
 
         if plot_error:
             diff = 'abs'
@@ -271,6 +271,7 @@ def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
     axx[0].legend()
     axx[-1].set_xlabel(d_markdown[x_str])
 
+
 def _err(linac, y_str, filepath_ref, diff='abs'):
     """Calculate error between linac (LW) and TW."""
     assert y_str in tw.d_tw_data_table
@@ -281,28 +282,28 @@ def _err(linac, y_str, filepath_ref, diff='abs'):
         'example': 1e3,
     }
     scale = d_err_scales.get(y_str, 1.)
-    # this is the default value ----'
+    # 1. is the default value
 
     d_diff = {'abs': lambda ref, new: scale * np.abs(ref - new),
               'rel': lambda ref, new: scale * (ref - new),
               'log': lambda ref, new: scale * np.log10(np.abs(new / ref)),
-             }
+              }
 
     y_data_tw = tw.load_tw_results(filepath_ref, y_str)
     y_data_lw = linac.get(y_str)[elts_indexes]
     return d_diff[diff](y_data_tw, y_data_lw)
 
     # Old piece of code for autoscale
-        # FIXME does not work on plots without legend...
-        # if ignore_broken_ylims:
-            # if 'Fixed' in linac.name:
-                # lines_labels = axx.get_legend_handles_labels()
-                # try:
-                    # idx_to_ignore = lines_labels[1].index('LW Broken')
-                    # lines_labels[0].pop(idx_to_ignore)
-                # except ValueError:
-                    # pass
-                # _autoscale_based_on(axx, lines_labels[0])
+    # FIXME does not work on plots without legend...
+    # if ignore_broken_ylims:
+    #     if 'Fixed' in linac.name:
+    #         lines_labels = axx.get_legend_handles_labels()
+    #         try:
+    #             idx_to_ignore = lines_labels[1].index('LW Broken')
+    #             lines_labels[0].pop(idx_to_ignore)
+    #         except ValueError:
+    #             pass
+    #         _autoscale_based_on(axx, lines_labels[0])
 
 
 def _autoscale_based_on(axx, lines):
@@ -400,8 +401,8 @@ def load_phase_space(accelerator):
 
 def output_cavities(linac, out=False):
     """Output relatable parameters of cavities in list_of_cav."""
-    columns=('elt_name', 'status', 'k_e', 'phi_0_abs', 'phi_0_rel', 'v_cav_mv',
-             'phi_s')
+    columns = ('elt_name', 'status', 'k_e', 'phi_0_abs', 'phi_0_rel',
+               'v_cav_mv', 'phi_s')
     df_cav = pd.DataFrame(columns=columns)
 
     full_list_of_cav = linac.elements_of(nature='FIELD_MAP')
@@ -428,7 +429,7 @@ def _create_output_fit_dicts():
     d_pd = {'phi_0_rel': pd.DataFrame(columns=col),
             'phi_0_abs': pd.DataFrame(columns=col),
             'k_e': pd.DataFrame(columns=col),
-    }
+            }
     # Hypothesis: the first guesses for the phases are the phases of the
     # reference cavities
     d_x_lim = {
