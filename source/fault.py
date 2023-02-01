@@ -390,7 +390,9 @@ class Fault():
             # MYRRHA)
             d_tech_n = {0: np.NaN}
             d_x_lim_rel['k_e'] = [.5, 1.2]
-            d_x_lim_rel['phi_s'] = [np.NaN, 1. - .5]
+            # d_x_lim_rel['phi_s'] = [np.NaN, 1. - 5]
+            d_x_lim_rel['phi_s'] = [np.NaN, 1. - 1]
+            print("Warning! in fault.py, manually changed the upper limit for phi_s")
 
         # Set a list of properties that will be fitted
         if self.wtf['phi_s fit']:

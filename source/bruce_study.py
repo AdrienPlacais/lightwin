@@ -67,16 +67,32 @@ if __name__ == '__main__':
              'k': 6, 'l': 2, 'manual list': [[116, 125, 127, 129, 131]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
+
+    failed_8 = [[25]]
+    wtf_8 = {'opti method': 'least_squares', 'strategy': 'manual',
+             'k': 6, 'l': 2, 'manual list': [[12, 14, 23, 27, 29, 31]],
+             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'position': 'end_mod', 'phi_s fit': True}
+
+    failed_9 = [[40, 42, 44, 46, 48]]
+    wtf_9 = {'opti method': 'least_squares', 'strategy': 'manual',
+             'k': 3, 'l': 2, 'manual list': [[6, 8, 10, 12, 14,
+                                              23, 25, 27, 29, 31,
+                                              57, 59, 61, 63, 65,
+                                              74, 76, 78, 80, 82]],
+             'objective': ['w_kin', 'phi_abs_array'], #, 'mismatch factor'],
+             'position': 'end_mod', 'phi_s fit': True}
+
     # =========================================================================
     # Outputs
     # =========================================================================
     PLOTS = [
         "energy",
-        # "phase",
-        # "cav",
+        "phase",
+        "cav",
         # "emittance",
         # "twiss",
-        # "envelopes",
+        "envelopes",
     ]
 
     SAVES = [
@@ -116,8 +132,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_5]
-    l_wtf = [wtf_5]
+    l_failed = [failed_9]
+    l_wtf = [wtf_9]
 
     for [wtf, failed] in zip(l_wtf, l_failed):
         start_time = time.monotonic()

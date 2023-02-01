@@ -14,11 +14,7 @@ source/untitled*.py
 *.prof
 *.so
 *.swp
-data/*.txt
-data/JAEA_work/*
-data/*/results/
-data/*/*/results/
-data/*/*/results_lw/
+data/*
 
 !data/full_energy_and_MT.txt
 !data/Vcav_and_phis.txt
