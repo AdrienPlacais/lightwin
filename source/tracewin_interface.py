@@ -17,6 +17,7 @@ from electric_field import load_field_map_file
 import elements
 from helper import printc
 
+
 try:
     import transfer_matrices_c as tm_c
 except ModuleNotFoundError:
@@ -186,8 +187,8 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
         for lattice in section:
             for elt in lattice:
                 if elt.get('nature') == 'FIELD_MAP':
-                    elt.field_map_file_name = "/".join(
-                        (field_map_folder, elt.field_map_file_name))
+                    elt.field_map_file_name = os.path.join(
+                        field_map_folder, elt.field_map_file_name)
                     a_f = elt.acc_field
                     a_f.e_spat, a_f.n_z = load_field_map_file(elt)
                     a_f.init_freq_ncell(f_mhz, n_cell)
@@ -202,7 +203,8 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
 
 def save_new_dat(fixed_linac, filepath, *args):
     """Save a new dat with the new linac settings."""
-    print('saving new dat\n\n')
+    printc("tracewin_interface.save_new_dat info: ",
+           opt_message=f"new dat saved in {filepath}\n\n")
     _update_dat_with_fixed_cavities(fixed_linac.files['dat_filecontent'],
                                     fixed_linac.elts)
 
@@ -219,8 +221,8 @@ def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
     idx_elt = 0
 
     d_phi = {
-        True: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['phi_0_abs'])), '1'],
-        False: lambda elt: [str(np.rad2deg(elt.acc_field.phi_0['phi_0_rel'])), '0']
+        True: lambda elt: str(elt.get('phi_0_abs', to_deg=True)),
+        False: lambda elt: str(elt.get('phi_0_rel', to_deg=True)),
     }
 
     for line in dat_filecontent:
@@ -229,9 +231,10 @@ def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
 
         if line[0] == 'FIELD_MAP':
             elt = l_elts[idx_elt]
-            line[3] = d_phi[FLAG_PHI_ABS](elt)[0]
-            line[6] = str(elt.acc_field.k_e)
-            line[10] = d_phi[FLAG_PHI_ABS](elt)[1]
+            line[3] = d_phi[FLAG_PHI_ABS](elt)
+            line[6] = str(elt.get('k_e'))
+            # '1' if True, '0' if False
+            line[10] = str(int(FLAG_PHI_ABS))
 
         idx_elt += 1
 
@@ -254,9 +257,8 @@ def load_tw_results(filepath, prop):
         Array containing the desired property.
     """
     if not os.path.isfile(filepath):
-        print('debug/compare_energies error:')
-        print('The filepath to the energy file is invalid. Please check the')
-        print('source code for more info. Enter a valid filepath:')
+        __s = "Filepath to results is incorrect. Provide another one."
+        printc("tracewin_interface.load_tw_results warning: ", opt_message=__s)
         Tk().withdraw()
         filepath = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
@@ -305,15 +307,20 @@ def output_data_in_tw_fashion(linac):
         'Name': lambda lin, elt: elt.get('elt_name', to_numpy=False),
         'Type': lambda lin, elt: elt.get('nature', to_numpy=False),
         'Length (mm)': lambda lin, elt: elt.length_m * 1e3,
-        'Grad/Field/Amp': lambda lin, elt: elt.grad if(elt.get('nature', to_numpy=False) == 'QUAD') else np.NaN,
+        'Grad/Field/Amp': lambda lin, elt:
+            elt.grad if(elt.get('nature', to_numpy=False) == 'QUAD')
+            else np.NaN,
         'EoT (MV/m)': lambda lin, elt: None,
         'EoTLc (MV)': lambda lin, elt: elt.get('v_cav_mv'),
-        'Input_Phase (deg)': lambda lin, elt: elt.get('phi_0_rel', to_deg=True),
+        'Input_Phase (deg)': lambda lin, elt: elt.get('phi_0_rel',
+                                                      to_deg=True),
         'Sync_Phase (deg)': lambda lin, elt: elt.get('phi_s', to_deg=True),
         'Energy (MeV)': lambda lin, elt: lin.get('w_kin')[elt.idx['s_out']],
         'Beta Synch.': lambda lin, elt: lin.get('beta')[elt.idx['s_out']],
-        'Full length (mm)': lambda lin, elt: lin.get('z_abs')[elt.idx['s_out']] * 1e3,
-        'Abs. phase (deg)': lambda lin, elt: lin.get('phi_abs_array', to_deg=True)[elt.idx['s_out']],
+        'Full length (mm)': lambda lin, elt: lin.get('z_abs')[
+            elt.idx['s_out']] * 1e3,
+        'Abs. phase (deg)': lambda lin, elt: lin.get(
+            'phi_abs_array', to_deg=True)[elt.idx['s_out']],
     }
 
     data = []
