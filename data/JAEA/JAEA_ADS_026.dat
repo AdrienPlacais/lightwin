@@ -1,3 +1,4 @@
+FIELD_MAP_PATH ./field_maps_1D
 LATTICE 17 0
 FREQ 648
   

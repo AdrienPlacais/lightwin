@@ -8,6 +8,7 @@ Created on Thu Feb 17 15:52:37 2022.
 TODO insert line skip at each section change in the output.dat
 """
 import os.path
+import subprocess
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import pandas as pd
@@ -31,7 +32,7 @@ except ModuleNotFoundError:
 
 
 to_be_implemented = [
-    'SPACE_CHARGE_COMP', 'FIELD_MAP_PATH', 'SET_SYNC_PHASE', 'STEERER',
+    'SPACE_CHARGE_COMP', 'SET_SYNC_PHASE', 'STEERER',
     'ADJUST', 'ADJUST_STEERER',
     'DIAG_DSIZE3', 'DIAG_ENERGY', 'DIAG_TWISS', 'DIAG_POSITION', 'DIAG_DPHASE',
     'DIAG_DENERGY',
@@ -112,17 +113,15 @@ def _create_structure(dat_filecontent):
         'SOLENOID': elements.Solenoid,
         'LATTICE': elements.Lattice,
         'FREQ': elements.Freq,
+        'FIELD_MAP_PATH': elements.FieldMapPath,
     }
 
     # We look at each element in dat_filecontent, and according to the
     # value of the 1st column string we create the appropriate Element
     # subclass and store this instance in l_elts
-    try:
-        l_elts = [subclasses_dispatcher[elem[0]](elem)
-                  for elem in dat_filecontent
-                  if elem[0] not in to_be_implemented]
-    except KeyError:
-        print('Warning, an element from filepath was not recognized.')
+    l_elts = [subclasses_dispatcher[elem[0]](elem)
+              for elem in dat_filecontent
+              if elem[0] not in to_be_implemented]
 
     return l_elts
 
@@ -145,14 +144,14 @@ def give_name(l_elts):
 
 
 # TODO is it necessary to load all the electric fields when _p?
-def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
+def load_filemaps(files, sections, freqs):
     """
     Load all the filemaps.
 
     Parameters
     ----------
-    dat_filepath: string
-        Filepath to the .dat file, as understood by TraceWin.
+    files: dict
+        Accelerator.files dict
     dat_filecontent: list, opt
         List containing all the lines of dat_filepath.
     sections: list of lists of Element
@@ -162,24 +161,6 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
     """
     assert len(sections) == len(freqs)
 
-    field_map_folder = [line[1]
-                        for line in dat_filecontent
-                        if line[0] == 'FIELD_MAP_PATH']
-
-    if len(field_map_folder) == 0:
-        printc("tracewin_interface warning: ", opt_message="No field map "
-               "folder specified. Assuming that field maps are in the same "
-               "folder as the .dat")
-        field_map_folder = os.path.dirname(dat_filepath)
-
-    elif len(field_map_folder) > 1:
-        raise IOError("Several field map folders are specified, which is ",
-                      "currently not supported.")
-
-    else:
-        field_map_folder = os.path.dirname(dat_filepath) \
-            + field_map_folder[0][1:]
-
     l_filepaths = []
     for i, section in enumerate(sections):
         f_mhz = freqs[i].f_rf_mhz
@@ -188,7 +169,7 @@ def load_filemaps(dat_filepath, dat_filecontent, sections, freqs):
             for elt in lattice:
                 if elt.get('nature') == 'FIELD_MAP':
                     elt.field_map_file_name = os.path.join(
-                        field_map_folder, elt.field_map_file_name)
+                        files['field_map_folder'], elt.field_map_file_name)
                     a_f = elt.acc_field
                     a_f.e_spat, a_f.n_z = load_field_map_file(elt)
                     a_f.init_freq_ncell(f_mhz, n_cell)
@@ -205,8 +186,10 @@ def save_new_dat(fixed_linac, filepath, *args):
     """Save a new dat with the new linac settings."""
     printc("tracewin_interface.save_new_dat info: ",
            opt_message=f"new dat saved in {filepath}\n\n")
+
     _update_dat_with_fixed_cavities(fixed_linac.files['dat_filecontent'],
-                                    fixed_linac.elts)
+                                    fixed_linac.elts,
+                                    fixed_linac.files['field_map_folder'])
 
     for i, arg in enumerate(args):
         arg.to_csv(filepath + str(i) + '.csv')
@@ -215,8 +198,10 @@ def save_new_dat(fixed_linac, filepath, *args):
         for line in fixed_linac.files['dat_filecontent']:
             file.write(' '.join(line) + '\n')
 
+    fixed_linac.files['dat_filepath'] = filepath
 
-def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
+
+def _update_dat_with_fixed_cavities(dat_filecontent, l_elts, fm_folder):
     """Create a new dat containing the new linac settings."""
     idx_elt = 0
 
@@ -235,6 +220,10 @@ def _update_dat_with_fixed_cavities(dat_filecontent, l_elts):
             line[6] = str(elt.get('k_e'))
             # '1' if True, '0' if False
             line[10] = str(int(FLAG_PHI_ABS))
+
+        elif line[0] == 'FIELD_MAP_PATH':
+            line[1] = fm_folder
+            continue
 
         idx_elt += 1
 
@@ -341,3 +330,35 @@ def output_data_in_tw_fashion(linac):
 
     data = pd.DataFrame(data, columns=larousse.keys())
     return data
+
+
+def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin",
+           **kwargs):
+    """Prepare arguments and run TraceWin."""
+    l_keys = ["dat_file", "path_cel"]
+    l_values = [os.path.abspath(linac.get("dat_filepath")),
+                os.path.abspath(linac.get("out_tw"))]
+
+    for key, val in zip(l_keys, l_values):
+        if key not in kwargs.keys():
+            __s = f"The key {key} was not found in kwargs. Used the default"
+            __s += f" value {val} instead."
+            printc("tracewin_interface.run_tw info: ", opt_message=__s)
+
+    cmd = _tw_cmd(tw_path, ini_path, **kwargs)
+    printc("tracewin_interface.run_tw info: ",
+           opt_message=f"Running TW with command {cmd}.")
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    process.wait()
+    for line in process.stdout:
+        print(line)
+    printc("tracewin_interface.run_tw info: ", opt_message="TW finished!")
+    return
+
+
+def _tw_cmd(tw_path, ini_path, **kwargs):
+    """Make the command line to launch TraceWin."""
+    cmd = tw_path + " " + ini_path + " hide"
+    for key, value in kwargs.items():
+        cmd += " " + key + "=" + str(value)
+    return cmd

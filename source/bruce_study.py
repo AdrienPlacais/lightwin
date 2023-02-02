@@ -25,6 +25,7 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
+    FLAG_TW = True
 
     failed_1 = [[12]]
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
@@ -140,7 +141,7 @@ if __name__ == '__main__':
 
         # Output some info onthe quality of the fit
         end_time = time.monotonic()
-        print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
+        print(f"\n\nElapsed time: {timedelta(seconds=end_time - start_time)}")
         delta_t = timedelta(seconds=end_time - start_time)
         ranking = fail.evaluate_fit_quality(delta_t)
         helper.printd(ranking, header='Fit evaluation')
@@ -150,7 +151,9 @@ if __name__ == '__main__':
             helper.printc("main warning: ", opt_message="if studying several "
                           "linacs, the .dat of first fix will be replaced by "
                           "last one.")
-            filepath = FILEPATH[:-4] + '_fixed_' + str(failed[0][0]) + '.dat'
+            filepath = os.path.join(lin.get('out_lw'),
+                                    os.path.basename(FILEPATH))
+            os.makedirs(lin.get('out_lw'))
             tw.save_new_dat(lin, filepath, data, ranking)
 
     for lin in linacs:
@@ -158,3 +161,11 @@ if __name__ == '__main__':
             kwargs = debug.DICT_PLOT_PRESETS[plot]
             kwargs['linac_ref'] = linacs[0]
             debug.compare_with_tracewin(lin, **kwargs)
+
+    if FLAG_TW:
+        lin = linacs[-1]
+        ini_path = FILEPATH.replace(".dat", ".ini")
+        os.makedirs(lin.get('out_tw'))
+        kwargs = {'path_cal': lin.get('out_tw'),
+                  'dat_file': lin.get('dat_filepath')}
+        tw.run_tw(lin, ini_path, **kwargs)

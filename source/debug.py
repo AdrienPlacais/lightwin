@@ -7,7 +7,7 @@ Created on Tue Oct 12 13:50:44 2021.
 TODO merge dict entries for phase space, ie alpha['z'] instead of 'alpha_z'
 TODO ellipse plot could be better
 """
-from os import listdir
+import os
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 import numpy as np
@@ -138,10 +138,8 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
         Transfer matrices to plot.
     """
     fold = accelerator.files['project_folder']
-    filepath_ref = [fold + '/results/M_55_ref.txt',
-                    fold + '/results/M_56_ref.txt',
-                    fold + '/results/M_65_ref.txt',
-                    fold + '/results/M_66_ref.txt']
+    filepath_ref = [os.path.join(fold, f"results/M_{i}_ref.txt")
+                    for i in [55, 56, 65, 66]]
 
     z_pos = accelerator.synch.pos['z_abs']
     n_z = z_pos.shape[0]
@@ -260,11 +258,15 @@ def compare_with_tracewin(linac, x_str='z_abs', **kwargs):
     for key, val in BASE_DICT.items():
         if key not in kwargs:
             kwargs[key] = val
-    print(kwargs)
 
     if kwargs["filepath_ref"] is None:
-        kwargs["filepath_ref"] = linac.get(
-            'project_folder') + '/results/energy_ref.txt'
+        __f = os.path.join(
+            linac.get('project_folder'), 'results/energy_ref.txt')
+        assert os.path.exists(__f), f"""
+        You need to run a TW reference simulation, go to Data > Save table to
+        file. Default filename is {__f}.
+        """
+        kwargs["filepath_ref"] = __f
 
     # Prep some data common to all plots
     x_dat = linac.get(x_str, to_deg=True)
@@ -453,11 +455,12 @@ def load_phase_space(accelerator):
         Phase spaces or beam distributions: Output at element n
         Then save all particle as ASCII.
     """
-    folder = accelerator.project_folder + '/results/phase_space/'
+    folder = os.path.join(accelerator.get('project_folder'),
+                          'results/phase_space/')
     file_type = ['txt']
     file_list = []
 
-    for file in listdir(folder):
+    for file in os.listdir(folder):
         if file.split('.')[-1] in file_type:
             file_list.append(folder + file)
     file_list.sort()

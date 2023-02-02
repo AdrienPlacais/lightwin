@@ -10,6 +10,7 @@ TODO : compute_transfer_matrices: simplify, add a calculation of missing phi_0
 at the end
 """
 import os.path
+import datetime
 import numpy as np
 import tracewin_interface as tw
 import particle
@@ -34,8 +35,17 @@ class Accelerator():
         """
         self.name = name
 
+        # Prepare files and folders
+        self.files = {'dat_filepath': os.path.abspath(dat_filepath),
+                      'project_folder': os.path.dirname(dat_filepath),
+                      'dat_filecontent': None,
+                      'field_map_folder': None,
+                      'out_lw': None,
+                      'out_tw': None}
+
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, l_elts = tw.load_dat_file(dat_filepath)
+        l_elts = self._handle_paths_and_folders(l_elts)
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
 
         # Create a the list containing all the elements
@@ -43,14 +53,9 @@ class Accelerator():
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 
-        tw.load_filemaps(dat_filepath, dat_filecontent,
-                         self.elements['l_sections'], freqs)
+        tw.load_filemaps(self.files, self.elements['l_sections'], freqs)
         tw.give_name(l_elts)
-
-        self.files = {
-            'project_folder': os.path.dirname(dat_filepath),
-            'dat_filecontent': dat_filecontent,
-            'results_folder': os.path.dirname(dat_filepath) + '/results_lw/'}
+        self.files['dat_filecontent'] = dat_filecontent
 
         # Set indexes and absolute position of the different elements
         last_idx = self._set_indexes_and_abs_positions()
@@ -123,6 +128,49 @@ class Accelerator():
             return out[0]
         # implicit else
         return tuple(out)
+
+    def _handle_paths_and_folders(self, l_elts):
+        """Make paths absolute, create results folders."""
+        # First we take care of where results will be stored
+        i = 0
+        out_base = os.path.join(
+            self.files['project_folder'],
+            datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss') + f"_{i}")
+
+        while os.path.exists(out_base):
+            i += 1
+            out_base = os.path.join(
+                self.path['project_folder'],
+                datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss')
+                + f"_{i}")
+        self.files['out_lw'] = os.path.join(out_base, 'LW')
+        self.files['out_tw'] = os.path.join(out_base, 'TW')
+
+        # Now we handle where to look for the field maps
+        field_map_basepaths = [basepath
+                               for basepath in l_elts
+                               if isinstance(basepath, elements.FieldMapPath)]
+        # FIELD_MAP_PATH are not physical elements, so we remove them
+        for basepath in field_map_basepaths:
+            l_elts.remove(basepath)
+
+        # If no FIELD_MAP_PATH command was provided, we take field maps in the
+        # .dat dir
+        if len(field_map_basepaths) == 0:
+            field_map_basepaths = [elements.FieldMapPath(
+                ['FIELD_MAP_PATH', self.files['project_folder']])]
+
+        # If more than one field map folder is provided, raise an error
+        msg = "Change of base folder for field maps currently not supported."
+        assert len(field_map_basepaths) == 1, msg
+
+        # Convert FieldMapPath objects into absolute paths
+        field_map_basepaths = [os.path.join(self.files['project_folder'],
+                                            fm_path.path)
+                               for fm_path in field_map_basepaths]
+        self.files['field_map_folder'] = field_map_basepaths[0]
+
+        return l_elts
 
     def _create_special_getters(self) -> dict:
         """Create a dict of aliases that can be accessed w/ the get method."""
@@ -277,8 +325,8 @@ class Accelerator():
         assert self.name != 'Working'
         assert ref_linac.name == 'Working'
         self.beam_param["mismatch factor"] = \
-                mismatch_factor(ref_linac.beam_param["twiss"]["twiss_z"],
-                                self.beam_param["twiss"]["twiss_z"], transp=True)
+            mismatch_factor(ref_linac.beam_param["twiss"]["twiss_z"],
+                            self.beam_param["twiss"]["twiss_z"], transp=True)
 
 
 def _sections_lattices(l_elts):
@@ -318,16 +366,15 @@ def _prepare_sections_and_lattices(l_elts):
     the rf frequency of cavities, the position of the delimitations between
     two sections.
     """
-    lattices = [
-        lattice
-        for lattice in l_elts
-        if isinstance(lattice, elements.Lattice)
-    ]
-    frequencies = [
-        frequency
-        for frequency in l_elts
-        if isinstance(frequency, elements.Freq)
-    ]
+    lattices = [lattice
+                for lattice in l_elts
+                if isinstance(lattice, elements.Lattice)
+                ]
+    frequencies = [frequency
+                   for frequency in l_elts
+                   if isinstance(frequency, elements.Freq)
+                   ]
+
     n_sections = len(lattices)
     assert n_sections == len(frequencies)
 

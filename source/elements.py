@@ -9,6 +9,7 @@ TODO : check FLAG_PHI_S_FIT
 TODO : rf_param should also return phi_rf_rel. Will be necessary
 for non-synch particles.
 """
+import os
 import numpy as np
 from scipy.optimize import minimize_scalar
 from electric_field import RfField, compute_param_cav, convert_phi_0
@@ -394,6 +395,13 @@ class Freq():
 
     def __init__(self, elem):
         self.f_rf_mhz = float(elem[1])
+
+
+class FieldMapPath():
+    """Used to get the base path of field maps."""
+
+    def __init__(self, elem):
+        self.path = elem[1]
 
 
 def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
