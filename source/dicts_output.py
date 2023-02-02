@@ -44,13 +44,13 @@ d_markdown = {
     # Particle
     'z_abs': "Synch. position [m]",
     'w_kin': "Beam energy [MeV]",
-    'w_kin_err': "Error",
     'phi_abs_array': "Beam phase [deg]",
-    'phi_abs_array_err': "Error",
     'beta': r"Synch. $\beta$ [1]",
-    'beta_err': r"Abs. $\beta$ error [1]",
     # Misc
     'struct': "Structure",
+    'err_abs': "Abs. error",
+    'err_rel': "Rel. error",
+    'err_log': "log of rel. error",
     # ListOfElements
 }
 
@@ -58,9 +58,7 @@ d_plot_kwargs = {
     'z_abs': {'marker': None},
     'element number': {'marker': None},
     'w_kin': {'marker': None},
-    'w_kin_err': {'marker': None},
     'phi_abs_array': {'marker': None},
-    'phi_abs_array_err': {'marker': None},
     'beta': {'marker': None},
     'beta_err': {'marker': None},
     'struct': {'marker': None},
@@ -86,4 +84,7 @@ d_plot_kwargs = {
     'envelope_energy_z': {'marker': None},
     'envelope_energy_w': {'marker': None},
     'mismatch factor': {'marker': None},
+    'err_abs': {'marker': None},
+    'err_rel': {'marker': None},
+    'err_log': {'marker': None},
 }

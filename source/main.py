@@ -127,16 +127,6 @@ if __name__ == '__main__':
         "Vcav and phis",
     ]
 
-    DICT_PLOTS_PRESETS = {
-        "energy": [["w_kin", "w_kin_err", "struct"], 21],
-        "phase": [["phi_abs_array", "phi_abs_array_err", "struct"], 22],
-        "cav": [["v_cav_mv", "k_e", "phi_s", "struct"], 23],
-        "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
-        "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
-        "envelopes": [["envelope_pos_w", "envelope_energy_w", "struct"], 26],
-        "mismatch factor": [["mismatch factor", "struct"], 27],
-    }
-
     DICT_SAVES = {
         "energy phase and mt": helper.save_energy_phase_tm,
         "Vcav and phis": helper.save_vcav_and_phis,
@@ -199,8 +189,9 @@ if __name__ == '__main__':
 
     for lin in linacs:
         for plot in PLOTS:
-            debug.compare_with_tracewin(lin, x_str="z_abs",
-                                        l_y_str=DICT_PLOTS_PRESETS[plot][0],
-                                        fignum=DICT_PLOTS_PRESETS[plot][1])
+            kwargs = debug.DICT_PLOT_PRESETS[plot]
+            kwargs['linac_ref'] = linacs[0]
+            debug.compare_with_tracewin(lin, **kwargs)
+
     if PLOT_TM:
         debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])

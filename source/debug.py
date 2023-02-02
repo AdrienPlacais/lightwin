@@ -25,6 +25,51 @@ plt.rc('font', **font)
 plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
+DICT_PLOTS_PRESETS = {
+    "energy": [["w_kin", "err_abs", "struct"], 21],
+    "phase": [["phi_abs_array", "err_abs", "struct"], 22],
+    "cav": [["v_cav_mv", "k_e", "phi_s", "struct"], 23],
+    "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
+    "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
+    "envelopes": [["envelope_pos_w", "envelope_energy_w", "struct"], 26],
+    "mismatch factor": [["mismatch factor", "struct"], 27],
+}
+
+BASE_DICT = {'x_str': 'z_abs', 'filepath_ref': None, 'linac_ref': None,
+             'reference': 'LW', 'plot_section': True, 'replot_lw': False,
+             }
+
+DICT_PLOT_PRESETS = {
+    "energy": {'x_str': 'z_abs',
+               'l_y_str': ["w_kin", "err_abs", "struct"],
+               'fignum': 21,
+               },
+    "phase": {'x_str': 'z_abs',
+              'l_y_str': ["phi_abs_array", "err_abs", "struct"],
+              'fignum': 22,
+              },
+    "cav": {'x_str': 'z_abs',
+            'l_y_str': ["v_cav_mv", "k_e", "phi_s", "struct"],
+            'fignum': 23,
+            },
+    "emittance": {'x_str': 'z_abs',
+                  'l_y_str': ["eps_w", "eps_zdelta", "struct"],
+                  'fignum': 24,
+                  },
+    "twiss": {'x_str': 'z_abs',
+              'l_y_str': ["alpha_w", "beta_w", "gamma_w"],
+              'fignum': 25,
+              },
+    "envelopes": {'x_str': 'z_abs',
+                  'l_y_str': ["envelope_pos_w", "envelope_energy_w", "struct"],
+                  'fignum': 26,
+                  },
+    "mismatch factor": {'x_str': 'z_abs',
+                        'l_y_str': ["mismatch factor", "struct"],
+                        'fignum': 27,
+                        },
+}
+
 
 def compute_error_transfer_matrix(transf_mat, transf_mat_ref, output=False):
     """Compute and output error between transfer matrix and ref."""
@@ -186,30 +231,55 @@ def _reformat(x_data, y_data, elts_indexes):
 
 
 # FIXME Some pieces of code are repeated, can do better
-def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
-                          filepath_ref=None, fignum=21):
-    """Plot data calculated by TraceWin and LightWin."""
-    plot_section = True
-    # Default plot
-    if l_y_str is None:
-        l_y_str = ['w_kin', 'w_kin_err', 'struct']
+def compare_with_tracewin(linac, x_str='z_abs', **kwargs):
+    """
+    Plot data calculated by TraceWin and LightWin.
 
-    if filepath_ref is None:
-        filepath_ref = linac.get('project_folder') + '/results/energy_ref.txt'
+    Parameters
+    ----------
+    linac : Accelerator
+        Linac under study.
+    x_str : str, opt
+        To designate what the x axis should be.
+    l_y_str : list, opt
+        List of str to designate what y axis should be.
+    filepath_ref : str, opt
+        Path to the results of the TW project for error plots.
+    linac_ref : Accelerator
+        Reference linac for error plots.
+    fignum : int, opt
+        Num of fig.
+    reference : str, opt
+        To tell what is the reference in the error plots.
+    plot_section : bool, opt
+        To separate different linac sections.
+    replot_lw : bool, opt
+        To replot Working and Broken data every time (deactivate if you want to
+        study different retuning settings on a fixed error.)
+    """
+    for key, val in BASE_DICT.items():
+        if key not in kwargs:
+            kwargs[key] = val
+    print(kwargs)
+
+    if kwargs["filepath_ref"] is None:
+        kwargs["filepath_ref"] = linac.get(
+            'project_folder') + '/results/energy_ref.txt'
 
     # Prep some data common to all plots
     x_dat = linac.get(x_str, to_deg=True)
     elts_indexes = linac.get('s_out')
 
     # Prep figure and axes
-    n_plots = len(l_y_str)
+    n_plots = len(kwargs["l_y_str"])
     axnum = 100 * n_plots + 11
     axnum = range(axnum, axnum + n_plots)
-    _, axx = helper.create_fig_if_not_exist(fignum, axnum, sharex=True)
+    _, axx = helper.create_fig_if_not_exist(
+        kwargs["fignum"], axnum, sharex=True)
 
     # Get data and kwargs
-    for i, y_str in enumerate(l_y_str):
-        if plot_section:
+    for i, y_str in enumerate(kwargs["l_y_str"]):
+        if kwargs["plot_section"]:
             helper.plot_section(linac, axx[i], x_axis=x_str)
 
         if y_str == 'struct':
@@ -220,7 +290,7 @@ def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
         l_kwargs = []
 
         # Plot error data?
-        plot_error = y_str[-4:] == '_err'
+        plot_error = y_str[:3] == 'err'
 
         # Plot TW data?
         label_tw = 'TW'
@@ -228,25 +298,23 @@ def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
             and label_tw not in axx[i].get_legend_handles_labels()[1]
 
         # Replot Working and Broken every time?
-        replot_lw = False
         label_lw = 'LW ' + linac.name
         plot_lw = not plot_error \
-            and (replot_lw
+            and (kwargs["replot_lw"]
                  or linac.name not in ['Working', 'Broken']
-                 or label_lw not in axx[i].get_legend_handles_labels()[1]
-                 )
+                 or label_lw not in axx[i].get_legend_handles_labels()[1])
 
         if plot_error:
-            diff = 'abs'
-            if 'abs_phase' in y_str or 'w_kin' in y_str:
-                diff = 'log'
-            l_y_dat.append(_err(linac, y_str[:-4], filepath_ref, diff=diff))
+            diff = y_str[4:]
+            l_y_dat.append(_err(linac, kwargs["l_y_str"][i - 1], diff=diff,
+                                **kwargs))
             l_kwargs.append(
-                d_plot_kwargs[y_str] | {'label': linac.name + 'err. w/ TW'}
+                d_plot_kwargs[kwargs["l_y_str"][i - 1]] | {
+                    'label': linac.name + 'err. w/ TW'}
             )
 
         if plot_tw:
-            l_y_dat.append(tw.load_tw_results(filepath_ref, y_str))
+            l_y_dat.append(tw.load_tw_results(kwargs["filepath_ref"], y_str))
             l_kwargs.append(
                 d_plot_kwargs[y_str] | {'label': label_tw, 'c': 'k', 'lw': 2.,
                                         'ls': '--'}
@@ -259,11 +327,11 @@ def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
                 d_plot_kwargs[y_str] | {'label': label_lw}
             )
 
-        for y_dat, kwargs in zip(l_y_dat, l_kwargs):
+        for y_dat, other_kwargs in zip(l_y_dat, l_kwargs):
             # Downsample x or y if necessary
             x_plot, y_plot = _reformat(x_dat, y_dat, elts_indexes)
 
-            axx[i].plot(x_plot, y_plot, **kwargs)
+            axx[i].plot(x_plot, y_plot, **other_kwargs)
 
         axx[i].set_ylabel(d_markdown[y_str])
         axx[i].grid(True)
@@ -272,10 +340,18 @@ def compare_with_tracewin(linac, x_str='z_abs', l_y_str=None,
     axx[-1].set_xlabel(d_markdown[x_str])
 
 
-def _err(linac, y_str, filepath_ref, diff='abs'):
-    """Calculate error between linac (LW) and TW."""
-    assert y_str in tw.d_tw_data_table
+def _err(linac, y_str, diff='abs', **kwargs):
+    """Calculate error between two linacs."""
+    assert kwargs["reference"] in ['LW', 'TW']
     elts_indexes = linac.get('s_out')
+    if kwargs["reference"] == 'TW':
+        assert kwargs["filepath_ref"] is not None
+        assert y_str in tw.d_tw_data_table
+        y_data_ref = tw.load_tw_results(kwargs["filepath_ref"], y_str)
+
+    elif kwargs["reference"] == 'LW':
+        assert kwargs["linac_ref"] is not None
+        y_data_ref = kwargs["linac_ref"].get(y_str)[elts_indexes]
 
     # Set up a scale (for example if the error is very small)
     d_err_scales = {
@@ -289,9 +365,8 @@ def _err(linac, y_str, filepath_ref, diff='abs'):
               'log': lambda ref, new: scale * np.log10(np.abs(new / ref)),
               }
 
-    y_data_tw = tw.load_tw_results(filepath_ref, y_str)
-    y_data_lw = linac.get(y_str)[elts_indexes]
-    return d_diff[diff](y_data_tw, y_data_lw)
+    y_data_new = linac.get(y_str)[elts_indexes]
+    return d_diff[diff](y_data_ref, y_data_new)
 
     # Old piece of code for autoscale
     # FIXME does not work on plots without legend...
@@ -466,8 +541,8 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
         ref_equiv = [__f.ref_lin.elts[idx] for idx in idx_equiv]
 
         for key, val in d_pd.items():
-            val.loc[shift_i] = \
-                ['----', '----------', None, None, None, None, None]
+            val.loc[shift_i] = ['----', '----------',
+                                None, None, None, None, None]
             for i, cav in enumerate(__f.comp['l_cav']):
                 x_lim = dicts['d_X_lim'][key](__f, i)
                 old = ref_equiv[i].get(key, to_deg=True)
@@ -477,9 +552,8 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
                 else:
                     var = 100. * (new - old) / old
 
-                val.loc[i + shift_i + 1] = \
-                    [cav.get('elt_name'), cav.get('status'), x_lim[0], x_lim[1],
-                     new, old, var]
+                val.loc[i + shift_i + 1] = [cav.get('elt_name'), cav.get('status'), x_lim[0], x_lim[1],
+                                            new, old, var]
         shift_i += i + 2
 
     if out_detail:
