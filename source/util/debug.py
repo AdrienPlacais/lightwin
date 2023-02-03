@@ -14,7 +14,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import pandas as pd
 
-from palettable.colorbrewer.qualitative import Set1_9
+from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
 import util.tracewin_interface as tw
@@ -24,7 +24,7 @@ from util import helper
 font = {'family': 'serif',
         'size': 20}
 plt.rc('font', **font)
-plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
+plt.rc('axes', prop_cycle=(cycler('color', Dark2_8.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 BASE_DICT = {'x_str': 'z_abs', 'filepath_ref': None, 'linac_ref': None,
@@ -618,3 +618,51 @@ def plot_fit_progress(hist_f, l_label):
     axx.set_xlabel("Iteration #")
     axx.set_ylabel("Relative variation of error")
     axx.set_yscale('log')
+
+
+def compare_with_multiparticle_tw(project):
+    """Check if the new settings are ok."""
+    d_out = tw.get_multipart_tw_results(project, filename="partran1.out")
+    d_valid = {'Powlost': True,
+               'e': True,
+               'e99': True}
+    # d_limits = {'Powlost_abs': 1e-10,
+    #             'e_rel': 0.02,
+    #             'e99_rel': None}
+    z = d_out['z(m)']
+
+    pow_lost = d_out['Powlost']
+    if pow_lost[-1] > 1e-10:
+        print("Loss of power!")
+        d_valid['Powlost'] = False
+
+    # Normalized RMS emittances [mm.mrad, mm.mrad, pi.deg.MeV]
+    n_eps_rms = np.column_stack((d_out['ex'], d_out['ey'], d_out['ep']))
+    n_eps_rms = 100. * n_eps_rms / n_eps_rms[0, :]
+    if np.any(np.where(n_eps_rms > 120.)):
+        print("The RMS emittance is too damn high!")
+        d_valid['e'] = False
+
+    # Emittance at 99%
+    if False:
+        eps_99 = np.column_stack((d_out['ex99'], d_out['ey99'], d_out['ep99']))
+        ref_eps_99 = []
+        maxs = []
+        for i in range(3):
+            maxs.append(np.max(eps_99[:, i]) / np.max(ref_eps_99[:, i]))
+
+    fig, axx = plt.subplots(3, 1)
+    axx[0].set_ylabel('Lost power [%]')
+    axx[1].set_ylabel(r'$\varepsilon_{RMS}/\epsilon_{RMS}^0$ [%]')
+    axx[2].set_ylabel('99percent emittances')
+    axx[-1].set_xlabel('Position [m]')
+
+    axx[0].plot(z, pow_lost)
+    lab = ['ex', 'ey', 'ep']
+    for i in range(3):
+        axx[1].plot(z, n_eps_rms[:, i], label=lab[i])
+    axx[1].axhline(120, xmin=z[0], xmax=z[-1], c='r', lw=4)
+    axx[1].legend()
+
+    for i in range(3):
+        axx[i].grid(True)

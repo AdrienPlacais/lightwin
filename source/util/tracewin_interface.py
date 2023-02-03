@@ -363,9 +363,9 @@ def _tw_cmd(tw_path, ini_path, **kwargs):
     return cmd
 
 
-def get_multipart_tw_results(linac, filename='partran1.out'):
+def get_multipart_tw_results(project, filename='partran1.out'):
     """Get the results."""
-    f_p = os.path.join(linac.get('out_tw'), filename)
+    f_p = os.path.join(project, filename)
     n_lines_header = 9
     d_out = {}
 
@@ -380,27 +380,3 @@ def get_multipart_tw_results(linac, filename='partran1.out'):
         d_out[key] = out[:, i]
 
     return d_out
-
-
-def check_results_after_tw(linac):
-    """Check that some criterions are matched."""
-    # We check Power Loss
-    f_p = os.path.join(linac.get('out_tw'), 'partran1.out')
-    out = np.loadtxt(f_p, skiprows=10)
-
-    pow_lost = out[:, 35]
-    if pow_lost[-1] > 1e-10:
-        print("Loss of power!")
-
-    # Normalized RMS emittances [mm.mrad, mm.mrad, pi.deg.MeV]
-    eps_rms = out[:, 15:18]
-    var_eps_rms = np.abs((eps_rms[0] - eps_rms) / eps_rms[0])
-    if np.any(np.where(var_eps_rms > 2e-2)):
-        print("The RMS emittance is too damn high!")
-
-    # Emittance at 99%
-    eps_99 = out[:, 25:28]
-    ref_eps_99 = []
-    maxs = []
-    for i in range(3):
-        maxs.append(np.max(eps_99[:, i]) / np.max(ref_eps_99[:, i]))

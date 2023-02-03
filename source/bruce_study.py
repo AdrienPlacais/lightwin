@@ -27,6 +27,12 @@ if __name__ == '__main__':
     SAVE_FIX = True
     FLAG_TW = False
 
+    failed_0 = [12]
+    wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
+             'k': 6, 'l': 2, 'manual list': [],
+             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'position': 'end_mod', 'phi_s fit': True}
+
     failed_1 = [[12]]
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
              'k': 6, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
@@ -123,8 +129,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_1]
-    l_wtf = [wtf_1]
+    l_failed = [failed_0]
+    l_wtf = [wtf_0]
 
     for [wtf, failed] in zip(l_wtf, l_failed):
         start_time = time.monotonic()
@@ -168,4 +174,8 @@ if __name__ == '__main__':
         os.makedirs(lin.get('out_tw'))
         kwargs = {'path_cal': lin.get('out_tw'),
                   'dat_file': lin.get('dat_filepath')}
+
         tw.run_tw(lin, ini_path, **kwargs)
+        # project = linac.get('out_tw')
+        project = '/home/placais/LightWin/data/JAEA/2023.02.02_16h25_56s_0/TW'
+        debug.compare_with_multiparticle_tw(project)
