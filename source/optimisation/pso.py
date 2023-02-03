@@ -28,8 +28,8 @@ from pymoo.visualization.pcp import PCP
 
 from pymoo.core.callback import Callback
 
-from helper import printc, create_fig_if_not_exist
-import anim
+from util.helper import printc, create_fig_if_not_exist
+from visualization import anim
 
 STR_ALGORITHM = "NSGA-III"
 # Messages from algorithm

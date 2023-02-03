@@ -12,13 +12,13 @@ at the end
 import os.path
 import datetime
 import numpy as np
-import tracewin_interface as tw
-import particle
+import util.tracewin_interface as tw
 from constants import E_MEV, FLAG_PHI_ABS
-import elements
-from list_of_elements import ListOfElements
-from emittance import beam_parameters_all, mismatch_factor
-from helper import kin_to_gamma, printc, recursive_items, recursive_getter
+from core import particle
+from core import elements
+from core.list_of_elements import ListOfElements
+from core.emittance import beam_parameters_all, mismatch_factor
+from util.helper import kin_to_gamma, printc, recursive_items, recursive_getter
 
 
 class Accelerator():

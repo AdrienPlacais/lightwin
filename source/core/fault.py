@@ -26,15 +26,13 @@ TODO : _set_design_space could be cleaner
 import numpy as np
 from scipy.optimize import minimize, least_squares
 
-# from pymoo.core.problem import StarmapParallelization
-
-from dicts_output import d_markdown
 from constants import FLAG_PHI_ABS, LINAC
-import debug
-from helper import printc
-from list_of_elements import ListOfElements
-import pso
-from emittance import mismatch_factor
+from core.list_of_elements import ListOfElements
+from core.emittance import mismatch_factor
+from util import debug
+from util.dicts_output import d_markdown
+from util.helper import printc
+from optimisation import pso
 
 
 debugs = {

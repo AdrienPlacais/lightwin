@@ -16,8 +16,8 @@ constants.METHOD.
 import os
 import numpy as np
 import constants
-import accelerator as acc
-import fault_scenario as mod_fs
+import core.accelerator as acc
+import core.fault_scenario as mod_fs
 
 # TEST = 'simple'
 TEST = 'compensation'

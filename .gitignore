@@ -1,5 +1,7 @@
 archives/
-source/__pycache__/*
+data/*
+*/__pycache__/*
+*/*/__pycache__/*
 source/build/
 source/untitled*.py
 *.ini_******
@@ -14,7 +16,6 @@ source/untitled*.py
 *.prof
 *.so
 *.swp
-data/*
 
 !data/full_energy_and_MT.txt
 !data/Vcav_and_phis.txt

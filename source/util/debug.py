@@ -13,11 +13,13 @@ import matplotlib.transforms as mtransforms
 import numpy as np
 from scipy.interpolate import interp1d
 import pandas as pd
+
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
-from dicts_output import d_markdown, d_plot_kwargs
-import helper
-import tracewin_interface as tw
+
+import util.tracewin_interface as tw
+from util.dicts_output import d_markdown, d_plot_kwargs
+from util import helper
 
 font = {'family': 'serif',
         'size': 20}

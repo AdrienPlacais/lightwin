@@ -8,11 +8,10 @@ Created on Tue Nov 9 14:26:45 2021.
 
 import numpy as np
 from palettable.colorbrewer.qualitative import Set1_9
-import helper
 from constants import Q_ADIM, E_REST_MEV, c
-# import solver
-import particle
-import accelerator as acc
+from core import particle
+import core.accelerator as acc
+from util import helper
 
 
 def transport_beam(accelerator):

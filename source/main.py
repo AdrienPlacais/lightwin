@@ -21,11 +21,11 @@ from datetime import timedelta
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from constants import I_MILLI_A
-import accelerator as acc
-import debug
-import helper
-import tracewin_interface as tw
-import fault_scenario as mod_fs
+import core.accelerator as acc
+import core.fault_scenario as mod_fs
+from util import debug
+from util import helper
+import util.tracewin_interface as tw
 
 if __name__ == '__main__':
     # Select .dat file

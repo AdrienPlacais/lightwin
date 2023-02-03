@@ -6,13 +6,13 @@ Created on Tue Jun  7 10:25:31 2022.
 @author: placais
 """
 import os
-import numpy as np
 import timeit as ti
+import numpy as np
 import matplotlib.pyplot as plt
-import constants
-import accelerator as acc
 from palettable.colorbrewer.qualitative import Set1_9
 from cycler import cycler
+import constants
+import core.accelerator as acc
 font = {'family': 'serif',
         'size': 20}
 plt.rc('font', **font)

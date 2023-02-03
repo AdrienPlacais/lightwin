@@ -10,11 +10,11 @@ import os
 from copy import deepcopy
 import time
 from datetime import timedelta
-import accelerator as acc
-import debug
-import helper
-import tracewin_interface as tw
-import fault_scenario as mod_fs
+import core.accelerator as acc
+import core.fault_scenario as mod_fs
+from util import debug
+from util import helper
+import util.tracewin_interface as tw
 
 if __name__ == '__main__':
     # Select .dat file
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = True
+    FLAG_TW = False
 
     failed_1 = [[12]]
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',

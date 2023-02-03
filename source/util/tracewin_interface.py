@@ -14,13 +14,13 @@ from tkinter.filedialog import askopenfilename
 import pandas as pd
 import numpy as np
 from constants import FLAG_PHI_ABS, FLAG_CYTHON, F_BUNCH_MHZ
-from electric_field import load_field_map_file
-import elements
-from helper import printc
+from core.electric_field import load_field_map_file
+from core import elements
+from util.helper import printc
 
 
 try:
-    import transfer_matrices_c as tm_c
+    import core.transfer_matrices_c as tm_c
 except ModuleNotFoundError:
     MESSAGE = ', Cython module not compilated. Check elements.py and setup.py'\
         + ' for more information.'
@@ -28,7 +28,7 @@ except ModuleNotFoundError:
         raise ModuleNotFoundError('Error' + MESSAGE)
     print('Warning' + MESSAGE)
     # Load Python version as Cython to allow the execution of the code.
-    import transfer_matrices_p as tm_c
+    import core.transfer_matrices_p as tm_c
 
 
 to_be_implemented = [

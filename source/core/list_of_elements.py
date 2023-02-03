@@ -6,8 +6,8 @@ Created on Thu Nov 10 15:11:55 2022.
 @author: placais
 """
 import numpy as np
-from helper import recursive_items, recursive_getter
-from emittance import beam_parameters_zdelta
+from util.helper import recursive_items, recursive_getter
+from core.emittance import beam_parameters_zdelta
 
 
 class ListOfElements(list):

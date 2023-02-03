@@ -29,10 +29,10 @@ import math
 import numpy as np
 import pandas as pd
 from constants import FLAG_PHI_ABS
-from list_of_elements import ListOfElements
-from helper import printc
-import debug
-import fault as mod_f
+import core.fault as mod_f
+from core.list_of_elements import ListOfElements
+from util import debug
+from util.helper import printc
 
 
 class FaultScenario():

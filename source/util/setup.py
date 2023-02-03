@@ -9,7 +9,7 @@ Created on Mon Apr 11 14:46:05 2022.
 from setuptools import setup
 from Cython.Build import cythonize
 
-setup(ext_modules=cythonize("transfer_matrices_c.pyx",))
+setup(ext_modules=cythonize("core/transfer_matrices_c.pyx",))
       #                       compiler_directives={'boundscheck': False,
       #                                            'nonecheck': False,
       #                                            'wraparound': False}

@@ -7,8 +7,8 @@ Created on Thu Dec  2 13:44:00 2021.
 """
 import numpy as np
 import pandas as pd
-from helper import recursive_items, recursive_getter, printc, kin_to_gamma, \
-        kin_to_beta, gamma_to_beta, gamma_and_beta_to_p, z_to_phi
+from util.helper import recursive_items, recursive_getter, printc, \
+    kin_to_gamma, kin_to_beta, gamma_to_beta, gamma_and_beta_to_p, z_to_phi
 from constants import E_REST_MEV, OMEGA_0_BUNCH
 
 

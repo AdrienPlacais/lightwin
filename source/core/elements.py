@@ -9,16 +9,15 @@ TODO : check FLAG_PHI_S_FIT
 TODO : rf_param should also return phi_rf_rel. Will be necessary
 for non-synch particles.
 """
-import os
 import numpy as np
 from scipy.optimize import minimize_scalar
-from electric_field import RfField, compute_param_cav, convert_phi_0
+from core.electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import OMEGA_0_BUNCH, E_REST_MEV, INV_E_REST_MEV,\
     N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
-from helper import recursive_items, recursive_getter
+from util.helper import recursive_items, recursive_getter
 
 try:
-    import transfer_matrices_c as tm_c
+    import core.transfer_matrices_c as tm_c
 
 except ModuleNotFoundError:
     MESSAGE = ', Cython module not compilated. Check elements.py and setup.py'\
@@ -31,10 +30,10 @@ except ModuleNotFoundError:
     print('Warning' + MESSAGE)
     # Load Python version as Cython to allow the execution of the code.
     # It will not be used.
-    import transfer_matrices_p as tm_c
+    import core.transfer_matrices_p as tm_c
 
-import transfer_matrices_p as tm_p
-import helper
+import core.transfer_matrices_p as tm_p
+from util import helper
 
 # Force reload of the module constants, as a modification of METHOD between
 # two executions is not taken into account (alternative is to restart kernel
