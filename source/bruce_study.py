@@ -24,12 +24,12 @@ if __name__ == '__main__':
     # Fault compensation
     # =========================================================================
     FLAG_FIX = True
-    SAVE_FIX = True
+    SAVE_FIX = False
     FLAG_TW = False
 
-    failed_0 = [12]
+    failed_0 = [12, 23]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 6, 'l': 2, 'manual list': [],
+             'k': 4, 'l': 2, 'manual list': [],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
 
@@ -133,8 +133,12 @@ if __name__ == '__main__':
     l_wtf = [wtf_0]
 
     for [wtf, failed] in zip(l_wtf, l_failed):
+        name = failed[0]
+        if isinstance(name, list):
+            name = name[0]
+        name = str(name)
         start_time = time.monotonic()
-        lin = acc.Accelerator(FILEPATH, "Broken " + str(failed[0][0]))
+        lin = acc.Accelerator(FILEPATH, "Broken " + name)
         fail = mod_fs.FaultScenario(ref_linac, lin, failed, wtf=wtf)
         linacs.append(deepcopy(lin))
 

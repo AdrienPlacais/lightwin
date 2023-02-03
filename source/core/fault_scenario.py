@@ -12,11 +12,9 @@ smoothen the individual fixes. # TODO
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 
-TODO handle faults at linac extremities
 TODO allow for different strategies according to the section
 TODO raise explicit error when the format of error (list vs idx) is not
 appropriate, especially when manual mode.
-TODO allow for uneven distribution of compensating cavities (ex: k out of n=5)
 
 TODO tune the PSO
 TODO method to avoid big changes of acceptance
@@ -385,25 +383,34 @@ class FaultScenario():
 
         return df_eval
 
+
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
     """Select the cavities neighboring the failed one(s)."""
-    assert n_comp_per_fault % 2 == 0, "Need an even number of compensating" \
-        + " cavities per fault."
     l_all_cav = lin.elements_of(nature='FIELD_MAP')
     l_idx_faults = [l_all_cav.index(faulty_cav)
                     for faulty_cav in l_faulty_cav]
+    distances = []
+    for idx_f in l_idx_faults:
+        # Distance between every cavity and the cavity under study
+        distance = np.array([idx_f - l_all_cav.index(cav)
+                             for cav in l_all_cav], dtype=np.float64)
+        distances.append(np.abs(distance))
 
-    n_faults = len(l_faulty_cav)
-    half_n_comp = int(n_faults * n_comp_per_fault / 2)
-    l_comp_cav = l_all_cav[l_idx_faults[0] - half_n_comp:
-                           l_idx_faults[-1] + half_n_comp + 1]
+    # Distance between every cavity and it's closest fault
+    distances = np.array(distances)
+    distance = np.min(distances, axis=0)
+    n_cav_to_take = len(l_idx_faults) * (1 + n_comp_per_fault)
 
-    if len(l_comp_cav) > n_faults * (n_comp_per_fault + 1):
-        printc("fault._select_neighboring_cavities warning: ",
-               opt_message="the faults are probably not contiguous."
-               + " Cavities between faulty cavities will be used for"
-               + " compensation, thus increasing the number of"
-               + " compensating cavites per fault.")
+    # To favorise cavities near the start of the linac when there is an
+    # equality in distance
+    sort_bis = np.linspace(1, len(l_all_cav), len(l_all_cav))
+
+    # To favorise the cavities near the end of the linac, just invert this
+    sort_bis = -sort_bis
+
+    idx_compensating = np.lexsort((sort_bis, distance))[:n_cav_to_take]
+    idx_compensating.sort()
+    l_comp_cav = [l_all_cav[idx] for idx in idx_compensating]
     return l_comp_cav
 
 
