@@ -353,7 +353,6 @@ def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin",
     for line in process.stdout:
         print(line)
     printc("tracewin_interface.run_tw info: ", opt_message="TW finished!")
-    return
 
 
 def _tw_cmd(tw_path, ini_path, **kwargs):
@@ -362,3 +361,46 @@ def _tw_cmd(tw_path, ini_path, **kwargs):
     for key, value in kwargs.items():
         cmd += " " + key + "=" + str(value)
     return cmd
+
+
+def get_multipart_tw_results(linac, filename='partran1.out'):
+    """Get the results."""
+    f_p = os.path.join(linac.get('out_tw'), filename)
+    n_lines_header = 9
+    d_out = {}
+
+    with open(f_p) as file:
+        for i, line in enumerate(file):
+            if i == n_lines_header:
+                headers = line.strip().split()
+                break
+
+    out = np.loadtxt(f_p, skiprows=n_lines_header)
+    for i, key in enumerate(headers):
+        d_out[key] = out[:, i]
+
+    return d_out
+
+
+def check_results_after_tw(linac):
+    """Check that some criterions are matched."""
+    # We check Power Loss
+    f_p = os.path.join(linac.get('out_tw'), 'partran1.out')
+    out = np.loadtxt(f_p, skiprows=10)
+
+    pow_lost = out[:, 35]
+    if pow_lost[-1] > 1e-10:
+        print("Loss of power!")
+
+    # Normalized RMS emittances [mm.mrad, mm.mrad, pi.deg.MeV]
+    eps_rms = out[:, 15:18]
+    var_eps_rms = np.abs((eps_rms[0] - eps_rms) / eps_rms[0])
+    if np.any(np.where(var_eps_rms > 2e-2)):
+        print("The RMS emittance is too damn high!")
+
+    # Emittance at 99%
+    eps_99 = out[:, 25:28]
+    ref_eps_99 = []
+    maxs = []
+    for i in range(3):
+        maxs.append(np.max(eps_99[:, i]) / np.max(ref_eps_99[:, i]))
