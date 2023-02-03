@@ -25,20 +25,9 @@ plt.rc('font', **font)
 plt.rc('axes', prop_cycle=(cycler('color', Set1_9.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
-DICT_PLOTS_PRESETS = {
-    "energy": [["w_kin", "err_abs", "struct"], 21],
-    "phase": [["phi_abs_array", "err_abs", "struct"], 22],
-    "cav": [["v_cav_mv", "k_e", "phi_s", "struct"], 23],
-    "emittance": [["eps_w", "eps_zdelta", "struct"], 24],
-    "twiss": [["alpha_w", "beta_w", "gamma_w"], 25],
-    "envelopes": [["envelope_pos_w", "envelope_energy_w", "struct"], 26],
-    "mismatch factor": [["mismatch factor", "struct"], 27],
-}
-
 BASE_DICT = {'x_str': 'z_abs', 'filepath_ref': None, 'linac_ref': None,
              'reference': 'LW', 'plot_section': True, 'replot_lw': False,
              }
-
 DICT_PLOT_PRESETS = {
     "energy": {'x_str': 'z_abs',
                'l_y_str': ["w_kin", "err_abs", "struct"],

@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     failed_cav = [
         # 25,
-        155, #157, #167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
+        155,  # 157, #167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
     ]
 
     wtf_pso = {'opti method': 'PSO',
@@ -175,7 +175,7 @@ if __name__ == '__main__':
 
         # Output some info onthe quality of the fit
         end_time = time.monotonic()
-        print("\n\nElapsed time:", timedelta(seconds=end_time - start_time))
+        print(f"\n\nElapsed time: {timedelta(seconds=end_time - start_time)}")
         delta_t = timedelta(seconds=end_time - start_time)
         ranking = fail.evaluate_fit_quality(delta_t)
         helper.printd(ranking, header='Fit evaluation')
@@ -184,7 +184,8 @@ if __name__ == '__main__':
             helper.printc("main warning: ", opt_message="if studying several "
                           "linacs, the .dat of first fix will be replaced by "
                           "last one.")
-            filepath = FILEPATH[:-4] + '_fixed.txt'
+            filepath = os.path.join(lin.get('out_lw'),
+                                    os.path.basename(FILEPATH))
             tw.save_new_dat(lin, filepath, ranking)
 
     for lin in linacs:
