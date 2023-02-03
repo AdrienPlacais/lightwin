@@ -60,10 +60,11 @@ DICT_PLOT_PRESETS = {
 }
 
 
-def compute_error_transfer_matrix(transf_mat, transf_mat_ref, output=False):
+# TODO modernize
+def compute_error_transfer_matrix(t_m, t_m_ref, output=False):
     """Compute and output error between transfer matrix and ref."""
-    n_z = transf_mat.shape[0]
-    n_z_ref = transf_mat_ref.shape[0]
+    n_z = t_m.shape[0]
+    n_z_ref = t_m_ref.shape[0]
 
     # We calculate error by interpolating the tab with most points on the one
     # with least points.
@@ -72,26 +73,24 @@ def compute_error_transfer_matrix(transf_mat, transf_mat_ref, output=False):
     fill_value = 'extrapolate'
 
     if n_z < n_z_ref:
-        z_err = transf_mat[:, 0]
+        z_err = t_m[:, 0]
         err = np.full((n_z, 4), np.NaN)
         for i in range(4):
-            f_interp = interp1d(x=transf_mat_ref[:, 0],
-                                y=transf_mat_ref[:, i + 1],
+            f_interp = interp1d(x=t_m_ref[:, 0],
+                                y=t_m_ref[:, i + 1],
                                 kind=kind, bounds_error=bounds_error,
                                 fill_value=fill_value)
-            err[:, i] = f_interp(z_err) - transf_mat[:, i + 1]
-            # err[:, i] = np.log10(transf_mat[:, i + 1] / f_interp(z_err))
+            err[:, i] = f_interp(z_err) - t_m[:, i + 1]
 
     else:
-        z_err = transf_mat_ref[:, 0]
+        z_err = t_m_ref[:, 0]
         err = np.full((n_z_ref, 4), np.NaN)
         for i in range(4):
-            f_interp = interp1d(x=transf_mat[:, 0],
-                                y=transf_mat[:, i + 1],
+            f_interp = interp1d(x=t_m[:, 0],
+                                y=t_m[:, i + 1],
                                 kind=kind, bounds_error=bounds_error,
                                 fill_value=fill_value)
-            err[:, i] = transf_mat_ref[:, i + 1] - f_interp(z_err)
-            # err[:, i] = np.log10(transf_mat_ref[:, i + 1] / f_interp(z_err))
+            err[:, i] = t_m_ref[:, i + 1] - f_interp(z_err)
 
     if output:
         header = "Errors on transfer matrix"
@@ -115,7 +114,8 @@ def compute_error_transfer_matrix(transf_mat, transf_mat_ref, output=False):
     return err, z_err
 
 
-def plot_transfer_matrices(accelerator, transfer_matrix):
+# TODO modernize
+def plot_transfer_matrices(accelerator, t_m):
     """
     Plot the transfer matrix components of TraceWin and LightWin.
 
@@ -123,7 +123,7 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     ----------
     accelerator: Accelerator object
         Accelerator under study.
-    transfer_matrix: numpy array
+    t_m: numpy array
         Transfer matrices to plot.
     """
     fold = accelerator.files['project_folder']
@@ -133,12 +133,12 @@ def plot_transfer_matrices(accelerator, transfer_matrix):
     z_pos = accelerator.synch.pos['z_abs']
     n_z = z_pos.shape[0]
 
-    transfer_matrix = accelerator.transf_mat['tm_cumul']
+    t_m = accelerator.transf_mat['tm_cumul']
 
     # Change shape of calculated transfer matrix to match the ref one
     # i.e.: 1st column is z, 2nd 3rd 4th and 5th are matrix components
-    # r_zz_tot = accelerator.transfer_matrix_cumul.reshape((n_z, 4))
-    r_zz_tot = transfer_matrix.reshape((n_z, 4))
+    # r_zz_tot = accelerator.t_m_cumul.reshape((n_z, 4))
+    r_zz_tot = t_m.reshape((n_z, 4))
     r_zz_tot = np.hstack((np.expand_dims(z_pos, 1), r_zz_tot))
 
     r_zz_tot_ref = tw.load_transfer_matrices(filepath_ref)
@@ -544,8 +544,9 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
                 else:
                     var = 100. * (new - old) / old
 
-                val.loc[i + shift_i + 1] = [cav.get('elt_name'), cav.get('status'), x_lim[0], x_lim[1],
-                                            new, old, var]
+                val.loc[i + shift_i + 1] = \
+                    [cav.get('elt_name'), cav.get('status'), x_lim[0],
+                     x_lim[1], new, old, var]
         shift_i += i + 2
 
     if out_detail:
