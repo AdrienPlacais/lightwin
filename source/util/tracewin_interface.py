@@ -182,26 +182,7 @@ def load_filemaps(files, sections, freqs):
         tm_c.init_arrays(l_filepaths)
 
 
-def save_new_dat(fixed_linac, filepath, *args):
-    """Save a new dat with the new linac settings."""
-    printc("tracewin_interface.save_new_dat info: ",
-           opt_message=f"new dat saved in {filepath}\n\n")
-
-    _update_dat_with_fixed_cavities(fixed_linac.files['dat_filecontent'],
-                                    fixed_linac.elts,
-                                    fixed_linac.files['field_map_folder'])
-
-    for i, arg in enumerate(args):
-        arg.to_csv(filepath + str(i) + '.csv')
-
-    with open(filepath, 'w') as file:
-        for line in fixed_linac.files['dat_filecontent']:
-            file.write(' '.join(line) + '\n')
-
-    fixed_linac.files['dat_filepath'] = filepath
-
-
-def _update_dat_with_fixed_cavities(dat_filecontent, l_elts, fm_folder):
+def update_dat_with_fixed_cavities(dat_filecontent, l_elts, fm_folder):
     """Create a new dat containing the new linac settings."""
     idx_elt = 0
 

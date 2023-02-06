@@ -23,8 +23,7 @@ from tkinter.filedialog import askopenfilename
 from constants import I_MILLI_A
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
-from util import debug
-from util import helper
+from util import debug, helper, output
 import util.tracewin_interface as tw
 
 if __name__ == '__main__':
@@ -177,16 +176,23 @@ if __name__ == '__main__':
         end_time = time.monotonic()
         print(f"\n\nElapsed time: {timedelta(seconds=end_time - start_time)}")
         delta_t = timedelta(seconds=end_time - start_time)
+
+        # Update the .dat filecontent
+        tw.update_dat_with_fixed_cavities(lin.get('dat_filecontent'), lin.elts,
+                                          lin.get('field_map_folder'))
+        # Reproduce TW's Data tab
+        data = tw.output_data_in_tw_fashion(lin)
+
+        # Some measurables to evaluate how the fitting went
         ranking = fail.evaluate_fit_quality(delta_t)
         helper.printd(ranking, header='Fit evaluation')
 
         if SAVE_FIX:
-            helper.printc("main warning: ", opt_message="if studying several "
-                          "linacs, the .dat of first fix will be replaced by "
-                          "last one.")
-            filepath = os.path.join(lin.get('out_lw'),
-                                    os.path.basename(FILEPATH))
-            tw.save_new_dat(lin, filepath, ranking)
+            lin.files['dat_filepath'] = os.path.join(
+                lin.get('out_lw'), os.path.basename(FILEPATH))
+
+            # Save .dat file, plus other data that is given
+            output.save_files(lin, data=data, ranking=ranking)
 
     for lin in linacs:
         for plot in PLOTS:

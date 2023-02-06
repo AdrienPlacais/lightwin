@@ -12,6 +12,9 @@ smoothen the individual fixes. # TODO
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
 
+TODO in neighboring_cavities, allow for preference of cavities according to
+their section
+
 TODO allow for different strategies according to the section
 TODO raise explicit error when the format of error (list vs idx) is not
 appropriate, especially when manual mode.
@@ -406,7 +409,7 @@ def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
     sort_bis = np.linspace(1, len(l_all_cav), len(l_all_cav))
 
     # To favorise the cavities near the end of the linac, just invert this
-    sort_bis = -sort_bis
+    # sort_bis = -sort_bis
 
     idx_compensating = np.lexsort((sort_bis, distance))[:n_cav_to_take]
     idx_compensating.sort()
