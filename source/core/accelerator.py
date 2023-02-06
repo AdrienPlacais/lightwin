@@ -251,7 +251,7 @@ class Accelerator():
                    + " the .dat file used by TW. Results won't match if there"
                    + " are faulty cavities.\n")
 
-    def save_results(self, results, l_elts):
+    def store_results(self, results, l_elts):
         """
         We save data into the appropriate objects.
 

@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
     results = ref_linac.elts.compute_transfer_matrices()
-    ref_linac.save_results(results, ref_linac.elts)
+    ref_linac.store_results(results, ref_linac.elts)
 
     linacs = [ref_linac]
 
@@ -168,7 +168,7 @@ if __name__ == '__main__':
         if FLAG_FIX:
             fail.fix_all()
             results = lin.elts.compute_transfer_matrices()
-            lin.save_results(results, lin.elts)
+            lin.store_results(results, lin.elts)
 
             if wtf == wtf_lsq:
                 lsq_info = [f.info for f in fail.faults['l_obj']]

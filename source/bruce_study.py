@@ -122,7 +122,7 @@ if __name__ == '__main__':
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
     results = ref_linac.elts.compute_transfer_matrices()
-    ref_linac.save_results(results, ref_linac.elts)
+    ref_linac.store_results(results, ref_linac.elts)
 
     linacs = [ref_linac]
 
@@ -131,8 +131,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_0, failed_1]
-    l_wtf = [wtf_0, wtf_1]
+    l_failed = [failed_0]
+    l_wtf = [wtf_0]
 
     for [wtf, failed] in zip(l_wtf, l_failed):
         name = failed[0]
@@ -147,7 +147,7 @@ if __name__ == '__main__':
         if FLAG_FIX:
             fail.fix_all()
             results = lin.elts.compute_transfer_matrices()
-            lin.save_results(results, lin.elts)
+            lin.store_results(results, lin.elts)
 
         linacs.append(lin)
 

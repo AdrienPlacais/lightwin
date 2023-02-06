@@ -75,7 +75,7 @@ class FaultScenario():
         self._transfer_phi0_from_ref_to_broken()
 
         results = self.brok_lin.elts.compute_transfer_matrices()
-        self.brok_lin.save_results(results, self.brok_lin.elts)
+        self.brok_lin.store_results(results, self.brok_lin.elts)
         self.brok_lin.compute_mismatch(self.ref_lin)
 
     def _sort_faults(self, l_fault_idx):
@@ -243,7 +243,7 @@ class FaultScenario():
 
             results = fault.elts.compute_transfer_matrices(
                 d_fits=d_fits, transfer_data=True)
-            self.brok_lin.save_results(results, fault.elts)
+            self.brok_lin.store_results(results, fault.elts)
             fault.get_x_sol_in_real_phase()
 
             # Update status of the compensating cavities according to the
@@ -260,7 +260,7 @@ class FaultScenario():
         # At the end we recompute the full transfer matrix
         # self.brok_lin.compute_transfer_matrices()
         results = self.brok_lin.elts.compute_transfer_matrices()
-        self.brok_lin.save_results(results, self.brok_lin.elts)
+        self.brok_lin.store_results(results, self.brok_lin.elts)
         self.brok_lin.compute_mismatch(self.ref_lin)
         self.brok_lin.name = f"Fixed ({str(l_successes.count(True))}" \
             + f" of {str(len(l_successes))})"
@@ -293,7 +293,7 @@ class FaultScenario():
         elts = ListOfElements(elt1_to_elt2, w_kin=w_kin, phi_abs=phi_abs,
                               idx_in=s_elt1, tm_cumul=transf_mat)
         results = elts.compute_transfer_matrices()
-        self.brok_lin.save_results(results, elts)
+        self.brok_lin.store_results(results, elts)
 
     def _reupdate_status_of_rephased_cavities(self, fault):
         """
