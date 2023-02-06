@@ -10,7 +10,6 @@ TODO : compute_transfer_matrices: simplify, add a calculation of missing phi_0
 at the end
 """
 import os.path
-import datetime
 import numpy as np
 import util.tracewin_interface as tw
 from constants import E_MEV, FLAG_PHI_ABS
@@ -24,7 +23,7 @@ from util.helper import kin_to_gamma, printc, recursive_items, recursive_getter
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, dat_filepath, name):
+    def __init__(self, dat_filepath, project_folder, name):
         """
         Create Accelerator object.
 
@@ -36,12 +35,14 @@ class Accelerator():
         self.name = name
 
         # Prepare files and folders
-        self.files = {'dat_filepath': os.path.abspath(dat_filepath),
-                      'project_folder': os.path.dirname(dat_filepath),
-                      'dat_filecontent': None,
-                      'field_map_folder': None,
-                      'out_lw': None,
-                      'out_tw': None}
+        self.files = {
+            'dat_filepath': os.path.abspath(dat_filepath),
+            'orig_dat_folder': os.path.abspath(os.path.dirname(dat_filepath)),
+            'project_folder': project_folder,
+            'dat_filecontent': None,
+            'field_map_folder': None,
+            'out_lw': None,
+            'out_tw': None}
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent, l_elts = tw.load_dat_file(dat_filepath)
@@ -129,20 +130,19 @@ class Accelerator():
         # implicit else
         return tuple(out)
 
+    # TODO add linac name in the subproject folder name
     def _handle_paths_and_folders(self, l_elts):
         """Make paths absolute, create results folders."""
         # First we take care of where results will be stored
         i = 0
-        out_base = os.path.join(
-            self.files['project_folder'],
-            datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss') + f"_{i}")
+
+        # i is useful if  you launch several simulations
+        out_base = os.path.join(self.files['project_folder'], f"{i:06d}")
 
         while os.path.exists(out_base):
             i += 1
-            out_base = os.path.join(
-                self.path['project_folder'],
-                datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss')
-                + f"_{i}")
+            out_base = os.path.join(self.files['project_folder'], f"{i:06d}")
+        os.makedirs(out_base)
         self.files['out_lw'] = os.path.join(out_base, 'LW')
         self.files['out_tw'] = os.path.join(out_base, 'TW')
 
@@ -158,16 +158,17 @@ class Accelerator():
         # .dat dir
         if len(field_map_basepaths) == 0:
             field_map_basepaths = [elements.FieldMapPath(
-                ['FIELD_MAP_PATH', self.files['project_folder']])]
+                ['FIELD_MAP_PATH', self.files['orig_dat_folder']])]
 
         # If more than one field map folder is provided, raise an error
         msg = "Change of base folder for field maps currently not supported."
         assert len(field_map_basepaths) == 1, msg
 
         # Convert FieldMapPath objects into absolute paths
-        field_map_basepaths = [os.path.join(self.files['project_folder'],
-                                            fm_path.path)
-                               for fm_path in field_map_basepaths]
+        field_map_basepaths = [
+            os.path.join(self.files['orig_dat_folder'],
+                         fm_path.path)
+            for fm_path in field_map_basepaths]
         self.files['field_map_folder'] = field_map_basepaths[0]
 
         return l_elts

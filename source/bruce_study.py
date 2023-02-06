@@ -9,7 +9,7 @@ Created on Tue Dec  6 14:33:39 2022.
 import os
 from copy import deepcopy
 import time
-from datetime import timedelta
+import datetime
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
 from util import debug, helper, output
@@ -115,9 +115,12 @@ if __name__ == '__main__':
     # Start
     # =========================================================================
     FILEPATH = os.path.abspath(FILEPATH)
+    PROJECT_FOLDER = os.path.join(
+        os.path.dirname(FILEPATH),
+        datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
 
     # Reference linac
-    ref_linac = acc.Accelerator(FILEPATH, "Working")
+    ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
     results = ref_linac.elts.compute_transfer_matrices()
     ref_linac.save_results(results, ref_linac.elts)
 
@@ -128,8 +131,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_0]
-    l_wtf = [wtf_0]
+    l_failed = [failed_0, failed_1]
+    l_wtf = [wtf_0, wtf_1]
 
     for [wtf, failed] in zip(l_wtf, l_failed):
         name = failed[0]
@@ -137,7 +140,7 @@ if __name__ == '__main__':
             name = name[0]
         name = str(name)
         start_time = time.monotonic()
-        lin = acc.Accelerator(FILEPATH, "Broken " + name)
+        lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken " + name)
         fail = mod_fs.FaultScenario(ref_linac, lin, failed, wtf=wtf)
         linacs.append(deepcopy(lin))
 
@@ -150,8 +153,8 @@ if __name__ == '__main__':
 
         # Output some info onthe quality of the fit
         end_time = time.monotonic()
-        print(f"\n\nElapsed time: {timedelta(seconds=end_time - start_time)}")
-        delta_t = timedelta(seconds=end_time - start_time)
+        delta_t = datetime.timedelta(seconds=end_time - start_time)
+        print(f"\n\nElapsed time: {delta_t}")
 
         # Update the .dat filecontent
         tw.update_dat_with_fixed_cavities(lin.get('dat_filecontent'), lin.elts,

@@ -17,7 +17,7 @@ General TODO list:
 import os
 from copy import deepcopy
 import time
-from datetime import timedelta
+import datetime
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from constants import I_MILLI_A
@@ -140,9 +140,12 @@ if __name__ == '__main__':
     # Start
     # =========================================================================
     FILEPATH = os.path.abspath(FILEPATH)
+    PROJECT_FOLDER = os.path.join(
+        os.path.dirname(FILEPATH),
+        datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
 
     # Reference linac
-    ref_linac = acc.Accelerator(FILEPATH, "Working")
+    ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
     results = ref_linac.elts.compute_transfer_matrices()
     ref_linac.save_results(results, ref_linac.elts)
 
@@ -157,7 +160,7 @@ if __name__ == '__main__':
 
     for wtf in l_wtf:
         start_time = time.monotonic()
-        lin = acc.Accelerator(FILEPATH, "Broken")
+        lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken")
         fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
                                     wtf=wtf, l_info_other_sol=lsq_info)
         linacs.append(deepcopy(lin))
@@ -174,8 +177,8 @@ if __name__ == '__main__':
 
         # Output some info onthe quality of the fit
         end_time = time.monotonic()
-        print(f"\n\nElapsed time: {timedelta(seconds=end_time - start_time)}")
-        delta_t = timedelta(seconds=end_time - start_time)
+        delta_t = datetime.timedelta(seconds=end_time - start_time)
+        print(f"\n\nElapsed time: {delta_t}")
 
         # Update the .dat filecontent
         tw.update_dat_with_fixed_cavities(lin.get('dat_filecontent'), lin.elts,

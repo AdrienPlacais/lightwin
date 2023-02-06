@@ -251,8 +251,8 @@ def compare_with_tracewin(linac, x_str='z_abs', **kwargs):
             kwargs[key] = val
 
     if kwargs["filepath_ref"] is None:
-        __f = os.path.join(
-            linac.get('project_folder'), 'results/energy_ref.txt')
+        __f = os.path.join(linac.get('orig_dat_folder'),
+                           'results/energy_ref.txt')
         assert os.path.exists(__f), f"""
         You need to run a TW reference simulation, go to Data > Save table to
         file. Default filename is {__f}.
