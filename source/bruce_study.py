@@ -133,11 +133,10 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_0]
-    l_wtf = [wtf_0]
+    l_failed = [failed_1, failed_2]
+    l_wtf = [wtf_1, wtf_2]
 
     lw_fit_evals = []
-    l_multipart_flags = []
 
 # =============================================================================
 # Run all simulations of the Project
@@ -191,23 +190,37 @@ if __name__ == '__main__':
 # =============================================================================
 # TraceWin
 # =============================================================================
+    l_multipart_flags = []
+    l_bruce = []
     if FLAG_TW:
-        lin = linacs[-1]
-        ini_path = FILEPATH.replace(".dat", ".ini")
-        os.makedirs(lin.get('out_tw'))
-        kwargs = {
-            'hide': None,
-            'path_cal': lin.get('out_tw'),
-            'dat_file': lin.get('dat_filepath')}
+        for lin in linacs:
+            if 'Fixed' not in lin.name:
+                continue
+            ini_path = FILEPATH.replace(".dat", ".ini")
+            os.makedirs(lin.get('out_tw'))
+            kwargs = {
+                'hide': None,
+                'path_cal': lin.get('out_tw'),
+                'dat_file': lin.get('dat_filepath'),
+                # 'current1': 0,
+            }
 
-        tw.run_tw(lin, ini_path, **kwargs)
-        fix_folder = lin.get('out_tw')
-        ref_folder = '/home/placais/LightWin/data/JAEA/results'
+            tw.run_tw(lin, ini_path, **kwargs)
+            fix_folder = lin.get('out_tw')
+            ref_folder = '/home/placais/LightWin/data/JAEA/results'
 
-        multipart_flags = evaluate.multipart_flags_test(fix_folder, ref_folder)
-        l_multipart_flags.append(multipart_flags)
+            multipart_flags = evaluate.multipart_flags_test(fix_folder,
+                                                            ref_folder)
+            l_multipart_flags.append(multipart_flags)
 
-        d_bruce = evaluate.bruce_tests(fix_folder, ref_folder)
-        helper.printc(
-            "Bruce tests:",
-            opt_message=f"{pd.DataFrame.from_dict(d_bruce, orient='index')}")
+            d_bruce = evaluate.bruce_tests(fix_folder, ref_folder)
+            helper.printc(
+                "Bruce tests:",
+                opt_message=f"{pd.DataFrame.from_dict(d_bruce, orient='index')}")
+            l_bruce.append(d_bruce)
+
+        for _list, name in zip([l_multipart_flags, l_bruce],
+                               ['test_flags.csv', 'test_bruce.csv']):
+            out = pd.DataFrame(_list)
+            filepath = os.path.join(PROJECT_FOLDER, name)
+            out.to_csv(filepath)

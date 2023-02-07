@@ -86,7 +86,8 @@ class Accelerator():
                 "envelopes_zdelta": np.full((last_idx + 1, 2), np.NaN),
                 "envelopes_z": np.full((last_idx + 1, 2), np.NaN),
                 "envelopes_w": np.full((last_idx + 1, 2), np.NaN)},
-            "mismatch factor": np.full((last_idx + 1), np.NaN)
+            "mismatch factor": np.full((last_idx + 1), np.NaN),
+            "sigma matrix": np.full((last_idx + 1), np.NaN),
         }
         # Define some shortcuts
         self._d_special_getters = self._create_special_getters()
@@ -279,6 +280,7 @@ class Accelerator():
 
         # Save into Accelerator
         self.transf_mat['tm_cumul'][idx_in:idx_out] = results["tm_cumul"]
+        self.beam_param["sigma matrix"] = results["sigma matrix"]
 
         # Save into Particle
         self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))

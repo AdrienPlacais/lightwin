@@ -316,7 +316,7 @@ def output_data_in_tw_fashion(linac):
 def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin",
            **kwargs):
     """Prepare arguments and run TraceWin."""
-    l_keys = ["dat_file", "path_cel"]
+    l_keys = ["dat_file", "path_cal"]
     l_values = [os.path.abspath(linac.get("dat_filepath")),
                 os.path.abspath(linac.get("out_tw"))]
 
@@ -397,5 +397,6 @@ def get_transfer_matrices_new(folder, filename='Transfer_matrix1.dat',
             # Save transfer matrix
             if (i + 1) % 7 == 0:
                 t_m.append(data)
-
+    printc("tracewin_interface.get_transfer_matrices_new info: ",
+           opt_message=f"Successfully loaded {f_p}")
     return np.array(num), np.array(z_m), np.array(t_m)

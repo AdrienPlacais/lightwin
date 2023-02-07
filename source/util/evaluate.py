@@ -101,7 +101,7 @@ def _plot_multipart_flags_test(z_m, pow_lost, var_rms, eps_99, eps_99_ref):
         axx[i].grid(True)
 
 
-def bruce_tests(fix_folder, ref_folder, multipart=True, plot=True):
+def bruce_tests(fix_folder, ref_folder, multipart=True, plot=False):
     """Test the fixed linac using Bruce's paper."""
     source = "partran1.out"
     if not multipart:
@@ -147,6 +147,8 @@ def bruce_tests(fix_folder, ref_folder, multipart=True, plot=True):
             # Here, alpha beta and gamma are Twiss
             alpha = -lin[val[1]] / eps
             beta = lin[val[0]]**2 / eps
+            if key == 'zdp':
+                beta *= 10.
             gamma = (1. + alpha**2) / beta
 
             twiss[key + name] = np.column_stack((alpha, beta, gamma))
@@ -170,7 +172,8 @@ def _plot_bruce_tests(z_m, delta_eps, mismatch):
     ax.set_xlabel("z [m]")
     ax.set_ylabel(r"$\Delta\epsilon/\epsilon_0$ (RMS)")
     ax.plot(z_m, delta_eps["transv"], label="Transverse")
-    ax.plot(z_m, delta_eps["long"], label="Longitudinal")
+    line, = ax.plot(z_m, delta_eps["long"], label="Longitudinal")
+
     ax.legend()
     ax.grid(True)
 
@@ -180,6 +183,7 @@ def _plot_bruce_tests(z_m, delta_eps, mismatch):
     ax.set_ylabel(r"$M$")
     ax.plot(z_m, mismatch["xx'"], label="xx'")
     ax.plot(z_m, mismatch["yy'"], label="yy'")
-    ax.plot(z_m, mismatch["zdp"], label="zdp")
+    line1, = ax.plot(z_m, mismatch["zdp"], label="zdp")
+
     ax.legend()
     ax.grid(True)

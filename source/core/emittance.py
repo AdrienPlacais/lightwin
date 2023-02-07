@@ -54,12 +54,8 @@ def beam_parameters_zdelta(r_zz, sigma_in=SIGMA_ZDELTA):
     # Compute emittance and Twiss parameters in the z-delta plane.
     eps_zdelta = _emittance_zdelta(sigma)
     twiss_zdelta = _twiss_zdelta(sigma, eps_zdelta)
-    # envelopes_zdelta = _envelopes(twiss_zdelta, eps_zdelta)
-    # d_zdelta = {'twiss': twiss_zdelta,
-                # 'eps': eps_zdelta,
-                # 'envelopes': envelopes_zdelta}
 
-    return eps_zdelta, twiss_zdelta
+    return eps_zdelta, twiss_zdelta, sigma
 
 
 def beam_parameters_all(eps_zdelta, twiss_zdelta, gamma):

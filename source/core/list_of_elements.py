@@ -164,6 +164,7 @@ class ListOfElements(list):
             "rf_fields": [],        # List of dicts
             "eps_zdelta": None,
             "twiss_zdelta": None,
+            "sigma_matrix": None,
         }
 
         for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
@@ -185,7 +186,7 @@ class ListOfElements(list):
         results["tm_cumul"] = self._indiv_to_cumul_transf_mat(
             results["r_zz_elt"], len(results["w_kin"]))
 
-        results["eps_zdelta"], results['twiss_zdelta'] = \
+        results["eps_zdelta"], results['twiss_zdelta'], results["sigma matrix"] = \
             beam_parameters_zdelta(results["tm_cumul"])
         return results
 

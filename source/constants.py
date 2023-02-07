@@ -47,6 +47,8 @@ elif LINAC == "JAEA":
     # Input sigma beam matrix in [z-z'] plane
     SIGMA_ZDELTA = np.array(([1.6062234e-06, -2.7681764e-08],
                              [-2.7681764e-08, 3.8462377e-08]))
+    SIGMA_ZDELTA = np.array(([1.6062233e-06, -2.7681629e-08],
+                             [-2.7681629e-08, 3.8462344e-08]))
 
 # =============================================================================
 # Simulation constants -- user interface
