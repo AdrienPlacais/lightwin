@@ -338,15 +338,18 @@ def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin",
 
 def _tw_cmd(tw_path, ini_path, **kwargs):
     """Make the command line to launch TraceWin."""
-    cmd = tw_path + " " + ini_path + " hide"
+    cmd = [tw_path, ini_path]
     for key, value in kwargs.items():
-        cmd += " " + key + "=" + str(value)
+        if value is None:
+            cmd.append(key)
+            continue
+        cmd.append(key + "=" + str(value))
     return cmd
 
 
-def get_multipart_tw_results(project, filename='partran1.out'):
+def get_multipart_tw_results(folder, filename='partran1.out'):
     """Get the results."""
-    f_p = os.path.join(project, filename)
+    f_p = os.path.join(folder, filename)
     n_lines_header = 9
     d_out = {}
 
@@ -359,5 +362,40 @@ def get_multipart_tw_results(project, filename='partran1.out'):
     out = np.loadtxt(f_p, skiprows=n_lines_header)
     for i, key in enumerate(headers):
         d_out[key] = out[:, i]
-
+    printc("tracewin_interface.get_multipart_tw_results info: ",
+           opt_message=f"Successfully loaded {f_p}")
     return d_out
+
+
+def get_transfer_matrices_new(folder, filename='Transfer_matrix1.dat',
+                              high_def=False):
+    """Get the full transfer matrices calculated by TraceWin."""
+    if high_def:
+        raise IOError("High definition not implemented. Can only import"
+                      + "transfer matrices @ element positions.")
+    f_p = os.path.join(folder, filename)
+
+    data = None
+    num = []
+    z_m = []
+    t_m = []
+
+    with open(f_p) as file:
+        for i, line in enumerate(file):
+            if i % 7 == 0:
+                # Get element # and position
+                data = line.split()
+                num.append(int(data[1]))
+                z_m.append(float(data[3]))
+
+                # Re-initialize data
+                data = []
+                continue
+
+            data.append([float(dat) for dat in line.split()])
+
+            # Save transfer matrix
+            if (i + 1) % 7 == 0:
+                t_m.append(data)
+
+    return np.array(num), np.array(z_m), np.array(t_m)

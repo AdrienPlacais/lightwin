@@ -10,9 +10,11 @@ import os
 from copy import deepcopy
 import time
 import datetime
+import pandas as pd
+
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
-from util import debug, helper, output
+from util import debug, helper, output, evaluate
 import util.tracewin_interface as tw
 
 if __name__ == '__main__':
@@ -24,7 +26,7 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = False
+    FLAG_TW = True
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
@@ -134,13 +136,15 @@ if __name__ == '__main__':
     l_failed = [failed_0]
     l_wtf = [wtf_0]
 
+    lw_fit_evals = []
+    l_multipart_flags = []
+
+# =============================================================================
+# Run all simulations of the Project
+# =============================================================================
     for [wtf, failed] in zip(l_wtf, l_failed):
-        name = failed[0]
-        if isinstance(name, list):
-            name = name[0]
-        name = str(name)
         start_time = time.monotonic()
-        lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken " + name)
+        lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken")
         fail = mod_fs.FaultScenario(ref_linac, lin, failed, wtf=wtf)
         linacs.append(deepcopy(lin))
 
@@ -163,30 +167,47 @@ if __name__ == '__main__':
         data = tw.output_data_in_tw_fashion(lin)
 
         # Some measurables to evaluate how the fitting went
-        ranking = fail.evaluate_fit_quality(delta_t)
-        helper.printd(ranking, header='Fit evaluation')
+        lw_fit_eval = fail.evaluate_fit_quality(delta_t)
+        helper.printd(lw_fit_eval, header='Fit evaluation')
 
         if SAVE_FIX:
             lin.files['dat_filepath'] = os.path.join(
                 lin.get('out_lw'), os.path.basename(FILEPATH))
 
             # Save .dat file, plus other data that is given
-            output.save_files(lin, data=data, ranking=ranking)
+            output.save_files(lin, data=data, lw_fit_eval=lw_fit_eval)
 
+        lw_fit_evals.append(lw_fit_eval)
+
+# =============================================================================
+# Plot
+# =============================================================================
     for lin in linacs:
         for plot in PLOTS:
             kwargs = debug.DICT_PLOT_PRESETS[plot]
             kwargs['linac_ref'] = linacs[0]
             debug.compare_with_tracewin(lin, **kwargs)
 
+# =============================================================================
+# TraceWin
+# =============================================================================
     if FLAG_TW:
         lin = linacs[-1]
         ini_path = FILEPATH.replace(".dat", ".ini")
         os.makedirs(lin.get('out_tw'))
-        kwargs = {'path_cal': lin.get('out_tw'),
-                  'dat_file': lin.get('dat_filepath')}
+        kwargs = {
+            'hide': None,
+            'path_cal': lin.get('out_tw'),
+            'dat_file': lin.get('dat_filepath')}
 
         tw.run_tw(lin, ini_path, **kwargs)
-        # project = linac.get('out_tw')
-        project = '/home/placais/LightWin/data/JAEA/2023.02.02_16h25_56s_0/TW'
-        debug.compare_with_multiparticle_tw(project)
+        fix_folder = lin.get('out_tw')
+        ref_folder = '/home/placais/LightWin/data/JAEA/results'
+
+        multipart_flags = evaluate.multipart_flags_test(fix_folder, ref_folder)
+        l_multipart_flags.append(multipart_flags)
+
+        d_bruce = evaluate.bruce_tests(fix_folder, ref_folder)
+        helper.printc(
+            "Bruce tests:",
+            opt_message=f"{pd.DataFrame.from_dict(d_bruce, orient='index')}")

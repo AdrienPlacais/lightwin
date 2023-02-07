@@ -187,15 +187,15 @@ if __name__ == '__main__':
         data = tw.output_data_in_tw_fashion(lin)
 
         # Some measurables to evaluate how the fitting went
-        ranking = fail.evaluate_fit_quality(delta_t)
-        helper.printd(ranking, header='Fit evaluation')
+        lw_fit_eval = fail.evaluate_fit_quality(delta_t)
+        helper.printd(lw_fit_eval, header='Fit evaluation')
 
         if SAVE_FIX:
             lin.files['dat_filepath'] = os.path.join(
                 lin.get('out_lw'), os.path.basename(FILEPATH))
 
             # Save .dat file, plus other data that is given
-            output.save_files(lin, data=data, ranking=ranking)
+            output.save_files(lin, data=data, lw_fit_eval=lw_fit_eval)
 
     for lin in linacs:
         for plot in PLOTS:

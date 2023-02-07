@@ -92,6 +92,7 @@ def mismatch_factor(twiss_ref, twiss_fix, transp=False):
     mismatch = np.sqrt(.5 * (__r + np.sqrt(__r**2 - 4.))) - 1.
     return mismatch
 
+
 # =============================================================================
 # Private - sigma
 # =============================================================================
@@ -226,4 +227,3 @@ def _envelopes_all(twiss, eps):
              _envelopes(twiss['twiss' + key], eps['eps' + key])
              for key in spa}
     return d_env
-

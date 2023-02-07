@@ -47,6 +47,11 @@ class FaultScenario():
         self.l_info_other_sol = l_info_other_sol
 
         assert ref_linac.get('reference') and not broken_linac.get('reference')
+        name = l_fault_idx
+        # If wtf['strategy'] == 'manual'
+        if isinstance(name[0], list):
+            name = itertools.chain.from_iterable(name)
+        self.brok_lin.name += f" {str(name)}"
 
         ll_comp_cav, ll_fault_idx = self._sort_faults(l_fault_idx)
         l_obj = self._create_fault_objects(ll_fault_idx, ll_comp_cav)
