@@ -133,8 +133,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_1, failed_2]
-    l_wtf = [wtf_1, wtf_2]
+    l_failed = [failed_1]
+    l_wtf = [wtf_1]
 
     lw_fit_evals = []
 
@@ -194,29 +194,22 @@ if __name__ == '__main__':
     l_bruce = []
     if FLAG_TW:
         for lin in linacs:
-            if 'Fixed' not in lin.name:
+            # We get the data from a previously made TW simulation
+            if 'Working' in lin.name:
+                lin.store_tracewin_results()
                 continue
-            ini_path = FILEPATH.replace(".dat", ".ini")
-            os.makedirs(lin.get('out_tw'))
-            kwargs = {
-                'hide': None,
-                'path_cal': lin.get('out_tw'),
-                'dat_file': lin.get('dat_filepath'),
-                # 'current1': 0,
-            }
 
-            tw.run_tw(lin, ini_path, **kwargs)
-            fix_folder = lin.get('out_tw')
-            ref_folder = '/home/placais/LightWin/data/JAEA/results'
+            # It would be a loss of time to do these simulations
+            if 'Broken' in lin.name:
+                continue
+            ini_path = FILEPATH.replace('.dat', '.ini')
+            lin.simulate_in_tracewin(ini_path)
+            lin.store_tracewin_results()
 
-            multipart_flags = evaluate.multipart_flags_test(fix_folder,
-                                                            ref_folder)
+            multipart_flags = evaluate.multipart_flags_test(linacs[0], lin)
             l_multipart_flags.append(multipart_flags)
 
-            d_bruce = evaluate.bruce_tests(fix_folder, ref_folder)
-            helper.printc(
-                "Bruce tests:",
-                opt_message=f"{pd.DataFrame.from_dict(d_bruce, orient='index')}")
+            d_bruce = evaluate.bruce_tests(linacs[0], lin)
             l_bruce.append(d_bruce)
 
         for _list, name in zip([l_multipart_flags, l_bruce],

@@ -14,7 +14,6 @@ from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
 from util import helper
-import util.tracewin_interface as tw
 from core.emittance import mismatch_factor
 
 font = {'family': 'serif',
@@ -24,7 +23,7 @@ plt.rc('axes', prop_cycle=(cycler('color', Dark2_8.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
-def multipart_flags_test(fix_folder, ref_folder, plot=True):
+def multipart_flags_test(lin_ref, lin_fix, multipart=True, plot=True):
     """
     Check if the new settings are ok.
 
@@ -37,7 +36,11 @@ def multipart_flags_test(fix_folder, ref_folder, plot=True):
     This routine simply returns a dict containing a boolean telling if these
     tests´ were successfully passed or not.
     """
-    d_fix = tw.get_multipart_tw_results(fix_folder, filename="partran1.out")
+    source = "multipart"
+    if not multipart:
+        source = "envelope"
+    d_ref = lin_ref.tw_results[source]
+    d_fix = lin_fix.tw_results[source]
 
     d_valid = {'Powlost': True, 'e': True, 'e99': True}
     z_m = d_fix['z(m)']
@@ -56,8 +59,6 @@ def multipart_flags_test(fix_folder, ref_folder, plot=True):
         d_valid['e'] = False
 
     # 99% emittances test
-    d_ref = tw.get_multipart_tw_results(ref_folder, filename="partran1.out")
-
     eps99 = np.column_stack((d_fix['ex99'], d_fix['ey99'], d_fix['ep99']))
     eps99_ref = np.column_stack((d_ref['ex99'], d_ref['ey99'], d_ref['ep99']))
 
@@ -101,14 +102,14 @@ def _plot_multipart_flags_test(z_m, pow_lost, var_rms, eps_99, eps_99_ref):
         axx[i].grid(True)
 
 
-def bruce_tests(fix_folder, ref_folder, multipart=True, plot=False):
+def bruce_tests(lin_ref, lin_fix, multipart=True, plot=False):
     """Test the fixed linac using Bruce's paper."""
-    source = "partran1.out"
+    source = "multipart"
     if not multipart:
-        source = "tracewin.out"
+        source = "envelope"
 
-    d_fix = tw.get_multipart_tw_results(fix_folder, filename=source)
-    d_ref = tw.get_multipart_tw_results(ref_folder, filename=source)
+    d_ref = lin_ref.tw_results[source]
+    d_fix = lin_fix.tw_results[source]
 
     d_tests = {'var_eps_transv': None,
                'var_eps_long': None,

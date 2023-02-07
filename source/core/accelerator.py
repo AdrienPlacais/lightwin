@@ -96,6 +96,9 @@ class Accelerator():
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
+        self.tw_results = {'envelope': {}, 'multipart': {},
+                           'transf_mat': np.empty((0))}
+
     def has(self, key):
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
@@ -330,6 +333,36 @@ class Accelerator():
         self.beam_param["mismatch factor"] = \
             mismatch_factor(ref_linac.beam_param["twiss"]["twiss_z"],
                             self.beam_param["twiss"]["twiss_z"], transp=True)
+
+    def simulate_in_tracewin(self, ini_path):
+        """Compute this linac with TraceWin."""
+        assert 'Fixed' in self.name, "Useless to simulate reference or broken"
+        os.makedirs(self.get('out_tw'))
+        kwargs = {
+            'hide': None,
+            'path_cal': self.get('out_tw'),
+            'dat_file': self.get('dat_filepath'),
+            # 'current1': 0,
+        }
+        tw.run_tw(self, ini_path, **kwargs)
+
+    def store_tracewin_results(self):
+        """Take the results created by TraceWin."""
+        folder = self.get('out_tw')
+
+        # Currently, we do not run TW simulations for the reference linac every
+        # time. Just take from the results folder
+        if self.name == 'Working':
+            folder = os.path.join(self.get('orig_dat_folder'), 'results')
+
+        self.tw_results['envelope'] = tw.get_multipart_tw_results(
+            folder, filename='tracewin.out')
+
+        self.tw_results['multipart'] = tw.get_multipart_tw_results(
+            folder, filename='partran1.out')
+
+        _, _, self.tw_results['transf_mat'] = tw.get_transfer_matrices_new(
+            folder, filename='Transfer_matrix1.dat')
 
 
 def _sections_lattices(l_elts):
