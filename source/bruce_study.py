@@ -27,11 +27,11 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = False
+    FLAG_TW = True
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 5, 'l': 2, 'manual list': [],
+             'k': 1, 'l': 2, 'manual list': [],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
 
@@ -96,10 +96,10 @@ if __name__ == '__main__':
     # Outputs
     # =========================================================================
     PLOTS = [
-        "energy",
+        # "energy",
         # "phase",
         # "cav",
-        # "emittance",
+        "emittance",
         # "twiss",
         # "envelopes",
     ]
@@ -134,8 +134,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_1]
-    l_wtf = [wtf_1]
+    l_failed = [failed_0]
+    l_wtf = [wtf_0]
 
     lw_fit_evals = []
 
@@ -179,14 +179,6 @@ if __name__ == '__main__':
 
         lw_fit_evals.append(lw_fit_eval)
 
-# =============================================================================
-# Plot
-# =============================================================================
-    for lin in linacs:
-        for str_plot in PLOTS:
-            kwargs = plot.DICT_PLOT_PRESETS[str_plot]
-            kwargs['linac_ref'] = linacs[0]
-            plot.compare_with_tracewin(lin, **kwargs)
 
 # =============================================================================
 # TraceWin
@@ -203,18 +195,30 @@ if __name__ == '__main__':
             # It would be a loss of time to do these simulations
             if 'Broken' in lin.name:
                 continue
+
+            # FIXME to modify simulation flags, go to
+            # Accelerator.simulate_in_tracewin
             ini_path = FILEPATH.replace('.dat', '.ini')
             lin.simulate_in_tracewin(ini_path)
             lin.store_tracewin_results()
 
-            multipart_flags = evaluate.multipart_flags_test(linacs[0], lin)
-            l_multipart_flags.append(multipart_flags)
+        #     multipart_flags = evaluate.multipart_flags_test(linacs[0], lin)
+        #     l_multipart_flags.append(multipart_flags)
 
-            d_bruce = evaluate.bruce_tests(linacs[0], lin)
-            l_bruce.append(d_bruce)
+        #     d_bruce = evaluate.bruce_tests(linacs[0], lin)
+        #     l_bruce.append(d_bruce)
 
-        for _list, name in zip([l_multipart_flags, l_bruce],
-                               ['test_flags.csv', 'test_bruce.csv']):
-            out = pd.DataFrame(_list)
-            filepath = os.path.join(PROJECT_FOLDER, name)
-            out.to_csv(filepath)
+        # for _list, name in zip([l_multipart_flags, l_bruce],
+        #                        ['test_flags.csv', 'test_bruce.csv']):
+        #     out = pd.DataFrame(_list)
+        #     filepath = os.path.join(PROJECT_FOLDER, name)
+        #     out.to_csv(filepath)
+
+# =============================================================================
+# Plot
+# =============================================================================
+    kwargs = {'plot_tw': FLAG_TW, 'save_fig': SAVE_FIX}
+    for i in range(len(l_wtf)):
+        for str_plot in PLOTS:
+            args = (linacs[0], linacs[2 * i + 1], linacs[2 * i + 2])
+            plot.plot_preset(str_plot, *args, **kwargs)

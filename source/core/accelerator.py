@@ -343,6 +343,7 @@ class Accelerator():
             'path_cal': self.get('out_tw'),
             'dat_file': self.get('dat_filepath'),
             # 'current1': 0,
+            'nbr_part1': 100,
         }
         tw.run_tw(self, ini_path, **kwargs)
 

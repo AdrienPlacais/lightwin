@@ -22,7 +22,8 @@ import util.tracewin_interface as tw
 font = {'family': 'serif', 'size': 25}
 plt.rc('font', **font)
 plt.rcParams['axes.prop_cycle'] = cycler(color=Dark2_8.mpl_colors)
-plt.rcParams["figure.figsize"] = (6.4, 4.8)
+plt.rcParams["figure.figsize"] = (19.2, 11.24)
+plt.rcParams["figure.dpi"] = 100
 
 BASE_DICT = {'x_str': 'z_abs',
              'reference': 'LW', 'replot_lw': False,
@@ -57,7 +58,7 @@ DICT_PLOT_PRESETS = {
 # =============================================================================
 def plot_preset(str_preset, *args, **kwargs):
     """Plot a preset."""
-    # load kwargs dict
+    plt.close('all') # FIXME
     # From preset, add keys that are not already in kwargs
     for key, val in DICT_PLOT_PRESETS[str_preset].items():
         if key not in kwargs:
@@ -112,10 +113,18 @@ def plot_preset(str_preset, *args, **kwargs):
         axx[i].set_ylabel(d_markdown[y_str])
         axx[i].grid(True)
         # TODO handle linear vs log
-    axx[0].legend()
-    # TODO handle legend, maybe not necessary in every plot
 
-# TODO : maybe return a dict?
+    axx[0].legend()
+
+    if kwargs['save_fig']:
+        fig.tight_layout()
+        fixed_linac = args[-1]
+        file = os.path.join(fixed_linac.get('out_lw'), '..',
+                            f"{str_preset}.png")
+        fig.savefig(file)
+        helper.printc("plot.plot_preset info: ",
+                      opt_message=f"Fig. saved in {file}")
+
 def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
     """Get all the data that should be plotted."""
     x_data = []
