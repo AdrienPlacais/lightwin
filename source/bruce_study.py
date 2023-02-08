@@ -16,6 +16,7 @@ import core.accelerator as acc
 import core.fault_scenario as mod_fs
 from util import debug, helper, output, evaluate
 import util.tracewin_interface as tw
+from visualization import plot
 
 if __name__ == '__main__':
     # Select .dat file
@@ -182,10 +183,10 @@ if __name__ == '__main__':
 # Plot
 # =============================================================================
     for lin in linacs:
-        for plot in PLOTS:
-            kwargs = debug.DICT_PLOT_PRESETS[plot]
+        for str_plot in PLOTS:
+            kwargs = plot.DICT_PLOT_PRESETS[str_plot]
             kwargs['linac_ref'] = linacs[0]
-            debug.compare_with_tracewin(lin, **kwargs)
+            plot.compare_with_tracewin(lin, **kwargs)
 
 # =============================================================================
 # TraceWin

@@ -28,8 +28,8 @@ from pymoo.visualization.pcp import PCP
 
 from pymoo.core.callback import Callback
 
-from util.helper import printc, create_fig_if_not_exist
-from visualization import anim
+from util.helper import printc
+from visualization import anim, plot
 
 STR_ALGORITHM = "NSGA-III"
 # Messages from algorithm
@@ -226,7 +226,7 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
 
 def convergence_callback(callback, l_f_str):
     """Plot convergence info using the results of the callback."""
-    _, axx = create_fig_if_not_exist(58, [111])
+    _, axx = plot.create_fig_if_not_exist(58, [111])
     axx[0].set_title("Convergence")
     axx[0].plot(callback.n_evals, callback.opt, label=l_f_str)
     axx[0].set_xlabel('Number of evaluations')
@@ -266,7 +266,7 @@ def convergence_history(hist, d_approx, str_obj, lsq_f):
           "evaluations.")
 
     if FLAG_CV:
-        fig, axx = create_fig_if_not_exist(61, [211, 212])
+        fig, axx = plot.create_fig_if_not_exist(61, [211, 212])
 
         axx[0].plot(n_evals, hist_cv_avg, marker='o', c='k', lw=.7,
                     label="Avg. CV of pop.")
@@ -304,7 +304,7 @@ def convergence_design_space(hist, d_opti, lsq_x=None):
     n_cav = int(np.shape(hist[0].pop.get('X'))[1] / 2)
     # FIXME
     assert n_cav == 6, "Not designed for number of cavities different from 6."
-    fig, _ = create_fig_if_not_exist(63, range(231, 237),
+    fig, _ = plot.create_fig_if_not_exist(63, range(231, 237),
                                      **{'figsize': (15, 10)})
 
     # Plot solutions (fixed points)
@@ -339,7 +339,7 @@ def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj, lsq_f=None):
 
     h_v = [metric.do(_F) for _F in hist_f]
 
-    _, axx = create_fig_if_not_exist(60, [111])
+    _, axx = plot.create_fig_if_not_exist(60, [111])
     axx = axx[0]
 
     axx.plot(n_eval, h_v, lw=.7, marker='o', c='k')

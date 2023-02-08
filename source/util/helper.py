@@ -8,7 +8,6 @@ Created on Wed Sep 22 14:15:48 2021.
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as pat
 import pandas as pd
 from constants import c, E_REST_MEV
 
@@ -89,225 +88,252 @@ def printd(message, color_header='cyan', header=''):
 # =============================================================================
 # Plot functions
 # =============================================================================
-def simple_plot(dat_x, dat_y, label_x, label_y, fignum=33):
-    """Simplest plot."""
-    axnumlist = [111]
-    _, axlist = create_fig_if_not_exist(fignum, axnumlist)
-    axlist[0].plot(dat_x, dat_y)
-    axlist[0].set_xlabel(label_x)
-    axlist[0].set_ylabel(label_y)
-    axlist[0].grid(True)
+# def simple_plot(dat_x, dat_y, label_x, label_y, fignum=33):
+#     """Simplest plot."""
+#     axnumlist = [111]
+#     _, axlist = create_fig_if_not_exist(fignum, axnumlist)
+#     axlist[0].plot(dat_x, dat_y)
+#     axlist[0].set_xlabel(label_x)
+#     axlist[0].set_ylabel(label_y)
+#     axlist[0].grid(True)
 
 
-def create_fig_if_not_exist(fignum, axnum, sharex=False, **fkwargs):
+# def create_fig_if_not_exist(fignum, axnum, sharex=False, **fkwargs):
+#     """
+#     Check if figures were already created, create it if not.
+
+#     Parameters
+#     ----------
+#     fignum: int
+#         Number of the fignum.
+#     axnum: list of int
+#         Axes indexes as understood by fig.add_subplot
+#     """
+#     n_axes = len(axnum)
+#     axlist = []
+
+#     if plt.fignum_exists(fignum):
+#         fig = plt.figure(fignum)
+#         for i in range(n_axes):
+#             axlist.append(fig.axes[i])
+
+#     else:
+#         fig = plt.figure(fignum, **fkwargs)
+#         axlist.append(fig.add_subplot(axnum[0]))
+#         dict_sharex = {True: axlist[0], False: None}
+#         for i in axnum[1:]:
+#             axlist.append(fig.add_subplot(i, sharex=dict_sharex[sharex]))
+
+#     return fig, axlist
+
+
+# def clean_fig(fignumlist):
+#     """Clean axis of Figs in fignumlist."""
+#     for fignum in fignumlist:
+#         fig = plt.figure(fignum)
+#         for axx in fig.get_axes():
+#             axx.cla()
+
+
+# def empty_fig(fignum):
+#     """Return True if at least one axis of Fig(fignum) has no line."""
+#     out = False
+#     if plt.fignum_exists(fignum):
+#         fig = plt.figure(fignum)
+#         axlist = fig.get_axes()
+#         for axx in axlist:
+#             if axx.lines == []:
+#                 out = True
+#     return out
+
+
+# def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
+#     """
+#     Plot y vs x.
+
+#     Data at idx_list are magnified with bigger points and data tags.
+#     """
+#     line, = ax.plot(x, y)
+#     ax.scatter(x[idx_list], y[idx_list], color=line.get_color())
+
+#     if tags:
+#         n = len(idx_list)
+#         for i in range(n):
+#             txt = str(np.round(x[idx_list][i], 4)) + ',' \
+#                 + str(np.round(y[idx_list][i], 4))
+#             ax.annotate(txt,
+#                         (x[idx_list][i], y[idx_list[i]]),
+#                         size=8)
+
+
+# def plot_structure(linac, ax, x_axis='s'):
+#     """Plot a structure of the linac under study."""
+#     dict_elem_plot = {
+#         'DRIFT': _plot_drift,
+#         'QUAD': _plot_quad,
+#         'FIELD_MAP': _plot_field_map,
+#     }
+#     dict_x_axis = {  # first element is patch dimension. second is x limits
+#         'z_abs': lambda elt, i: [
+#             {'x0': elt.get('abs_mesh')[0], 'width': elt.length_m},
+#             [linac.elts[0].get('abs_mesh')[0],
+#              linac.elts[-1].get('abs_mesh')[-1]]
+#         ],
+#         'elt': lambda elt, i: [
+#             {'x0': i, 'width': 1},
+#             [0, i]
+#         ]
+#     }
+
+#     for i, elt in enumerate(linac.elts):
+#         kwargs = dict_x_axis[x_axis](elt, i)[0]
+#         ax.add_patch(dict_elem_plot[elt.get('nature', to_numpy=False)](elt, **kwargs))
+
+#     ax.set_xlim(dict_x_axis[x_axis](elt, i)[1])
+#     ax.set_yticklabels([])
+#     ax.set_yticks([])
+#     ax.set_ylim([-.05, 1.05])
+
+
+# def _plot_drift(drift, x0, width):
+#     """Add a little rectangle to show a drift."""
+#     height = .4
+#     y0 = .3
+#     patch = pat.Rectangle((x0, y0), width, height, fill=False, lw=0.5)
+#     return patch
+
+
+# def _plot_quad(quad, x0, width):
+#     """Add a crossed large rectangle to show a quad."""
+#     height = 1.
+#     y0 = 0.
+#     path = np.array(([x0, y0], [x0 + width, y0], [x0 + width, y0 + height],
+#                      [x0, y0 + height], [x0, y0], [x0 + width, y0 + height],
+#                      [np.NaN, np.NaN], [x0, y0 + height], [x0 + width, y0]))
+#     patch = pat.Polygon(path, closed=False, fill=False, lw=0.5)
+#     return patch
+
+
+# def _plot_field_map(field_map, x0, width):
+#     """Add an ellipse to show a field_map."""
+#     height = 1.
+#     y0 = height * .5
+#     dict_colors = {
+#         'nominal': 'green',
+#         'rephased (in progress)': 'yellow',
+#         'rephased (ok)': 'yellow',
+#         'failed': 'red',
+#         'compensate (in progress)': 'orange',
+#         'compensate (ok)': 'orange',
+#         'compensate (not ok)': 'orange',
+#     }
+#     patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
+#                         lw=0.5, fc=dict_colors[field_map.get('status',
+#                                                              to_numpy=False)],
+#                         ec='k')
+#     return patch
+
+
+# def plot_section(linac, ax, x_axis='s'):
+#     """Add light grey rectangles behind the plot to show the sections."""
+#     dict_x_axis = {
+#         'last_elt_of_sec': lambda sec: sec[-1][-1],
+#         'z_abs': lambda elt: linac.synch.pos['z_abs'][elt.idx['s_out']],
+#         'elt': lambda elt: elt.idx['element'] + 1,
+#     }
+#     x_ax = [0]
+#     for i, section in enumerate(linac.elements['l_sections']):
+#         elt = dict_x_axis['last_elt_of_sec'](section)
+#         x_ax.append(dict_x_axis[x_axis](elt))
+
+#     for i in range(len(x_ax) - 1):
+#         if i % 2 == 1:
+#             ax.axvspan(x_ax[i], x_ax[i + 1], ymin=-1e8, ymax=1e8, fill=True,
+#                        alpha=.1, fc='k')
+
+
+# def _compute_ellipse_parameters(d_eq):
+#     """
+#     Compute the ellipse parameters so as to plot the ellipse.
+
+#     Parameters
+#     ----------
+#     d_eq : dict
+#         Holds ellipe equations parameters, defined as:
+#             Ax**2 + Bxy + Cy**2 + Dx + Ey + F = 0
+
+#     Return
+#     ------
+#     d_plot : dict
+#         Holds semi axis, center of ellipse, angle.
+#     """
+#     delta = d_eq["B"]**2 - 4. * d_eq["A"] * d_eq["C"]
+#     tmp1 = d_eq["A"] * d_eq["E"]**2 - d_eq["C"] * d_eq["D"]**2 \
+#         - d_eq["B"] * d_eq["D"] * d_eq["E"] + delta * d_eq["F"]
+#     tmp2 = np.sqrt((d_eq["A"] - d_eq["C"])**2 + d_eq["B"]**2)
+
+#     if np.abs(d_eq["B"]) < 1e-8:
+#         if d_eq["A"] < d_eq["C"]:
+#             theta = 0.
+#         else:
+#             theta = np.pi/2.
+#     else:
+#         theta = np.arctan((d_eq["C"] - d_eq["A"] - tmp2) / d_eq["B"])
+
+#     d_plot = {
+#         "a": -np.sqrt(2. * tmp1 * (d_eq["A"] + d_eq["C"] + tmp2)) / delta,
+#         "b": -np.sqrt(2. * tmp1 * (d_eq["A"] + d_eq["C"] - tmp2)) / delta,
+#         "x0": (2. * d_eq["C"] * d_eq["D"] - d_eq["B"] * d_eq["E"]) / delta,
+#         "y0": (2. * d_eq["A"] * d_eq["E"] - d_eq["B"] * d_eq["D"]) / delta,
+#         "theta": theta,
+#     }
+#     return d_plot
+
+
+# def plot_ellipse(axx, d_eq, **plot_kwargs):
+#     """The proper ellipse plotting."""
+#     d_plot = _compute_ellipse_parameters(d_eq)
+#     n_points = 10001
+#     var = np.linspace(0., 2. * np.pi, n_points)
+#     ellipse = np.array([d_plot["a"] * np.cos(var), d_plot["b"] * np.sin(var)])
+#     rotation = np.array([[np.cos(d_plot["theta"]), -np.sin(d_plot["theta"])],
+#                          [np.sin(d_plot["theta"]),  np.cos(d_plot["theta"])]])
+#     ellipse_rot = np.empty((2, n_points))
+
+#     for i in range(n_points):
+#         ellipse_rot[:, i] = np.dot(rotation, ellipse[:, i])
+
+#     axx.plot(d_plot["x0"] + ellipse_rot[0, :],
+#              d_plot["y0"] + ellipse_rot[1, :],
+#              lw=0., marker='o', ms=.5, **plot_kwargs)
+def reformat(x_data, y_data, elts_indexes):
     """
-    Check if figures were already created, create it if not.
+    Downsample x_data or y_data if it has more points than the other.
 
     Parameters
     ----------
-    fignum: int
-        Number of the fignum.
-    axnum: list of int
-        Axes indexes as understood by fig.add_subplot
+    x_data : np.array
+        Data to plot in x-axis.
+    y_data : TYPE
+        Data to plot on y-axis.
+
+    Returns
+    -------
+    x_data : np.array
+        Same array, downsampled to elements position if necessary.
+    y_data : np.array
+        Same array, downsampled to elements position if necessary.
     """
-    n_axes = len(axnum)
-    axlist = []
-
-    if plt.fignum_exists(fignum):
-        fig = plt.figure(fignum)
-        for i in range(n_axes):
-            axlist.append(fig.axes[i])
-
-    else:
-        fig = plt.figure(fignum, **fkwargs)
-        axlist.append(fig.add_subplot(axnum[0]))
-        dict_sharex = {True: axlist[0], False: None}
-        for i in axnum[1:]:
-            axlist.append(fig.add_subplot(i, sharex=dict_sharex[sharex]))
-
-    return fig, axlist
-
-
-def clean_fig(fignumlist):
-    """Clean axis of Figs in fignumlist."""
-    for fignum in fignumlist:
-        fig = plt.figure(fignum)
-        for axx in fig.get_axes():
-            axx.cla()
-
-
-def empty_fig(fignum):
-    """Return True if at least one axis of Fig(fignum) has no line."""
-    out = False
-    if plt.fignum_exists(fignum):
-        fig = plt.figure(fignum)
-        axlist = fig.get_axes()
-        for axx in axlist:
-            if axx.lines == []:
-                out = True
-    return out
-
-
-def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
-    """
-    Plot y vs x.
-
-    Data at idx_list are magnified with bigger points and data tags.
-    """
-    line, = ax.plot(x, y)
-    ax.scatter(x[idx_list], y[idx_list], color=line.get_color())
-
-    if tags:
-        n = len(idx_list)
-        for i in range(n):
-            txt = str(np.round(x[idx_list][i], 4)) + ',' \
-                + str(np.round(y[idx_list][i], 4))
-            ax.annotate(txt,
-                        (x[idx_list][i], y[idx_list[i]]),
-                        size=8)
-
-
-def plot_structure(linac, ax, x_axis='s'):
-    """Plot a structure of the linac under study."""
-    dict_elem_plot = {
-        'DRIFT': _plot_drift,
-        'QUAD': _plot_quad,
-        'FIELD_MAP': _plot_field_map,
-    }
-    dict_x_axis = {  # first element is patch dimension. second is x limits
-        'z_abs': lambda elt, i: [
-            {'x0': elt.get('abs_mesh')[0], 'width': elt.length_m},
-            [linac.elts[0].get('abs_mesh')[0],
-             linac.elts[-1].get('abs_mesh')[-1]]
-        ],
-        'elt': lambda elt, i: [
-            {'x0': i, 'width': 1},
-            [0, i]
-        ]
-    }
-
-    for i, elt in enumerate(linac.elts):
-        kwargs = dict_x_axis[x_axis](elt, i)[0]
-        ax.add_patch(dict_elem_plot[elt.get('nature', to_numpy=False)](elt, **kwargs))
-
-    ax.set_xlim(dict_x_axis[x_axis](elt, i)[1])
-    ax.set_yticklabels([])
-    ax.set_yticks([])
-    ax.set_ylim([-.05, 1.05])
-
-
-def _plot_drift(drift, x0, width):
-    """Add a little rectangle to show a drift."""
-    height = .4
-    y0 = .3
-    patch = pat.Rectangle((x0, y0), width, height, fill=False, lw=0.5)
-    return patch
-
-
-def _plot_quad(quad, x0, width):
-    """Add a crossed large rectangle to show a quad."""
-    height = 1.
-    y0 = 0.
-    path = np.array(([x0, y0], [x0 + width, y0], [x0 + width, y0 + height],
-                     [x0, y0 + height], [x0, y0], [x0 + width, y0 + height],
-                     [np.NaN, np.NaN], [x0, y0 + height], [x0 + width, y0]))
-    patch = pat.Polygon(path, closed=False, fill=False, lw=0.5)
-    return patch
-
-
-def _plot_field_map(field_map, x0, width):
-    """Add an ellipse to show a field_map."""
-    height = 1.
-    y0 = height * .5
-    dict_colors = {
-        'nominal': 'green',
-        'rephased (in progress)': 'yellow',
-        'rephased (ok)': 'yellow',
-        'failed': 'red',
-        'compensate (in progress)': 'orange',
-        'compensate (ok)': 'orange',
-        'compensate (not ok)': 'orange',
-    }
-    patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
-                        lw=0.5, fc=dict_colors[field_map.get('status',
-                                                             to_numpy=False)],
-                        ec='k')
-    return patch
-
-
-def plot_section(linac, ax, x_axis='s'):
-    """Add light grey rectangles behind the plot to show the sections."""
-    dict_x_axis = {
-        'last_elt_of_sec': lambda sec: sec[-1][-1],
-        'z_abs': lambda elt: linac.synch.pos['z_abs'][elt.idx['s_out']],
-        'elt': lambda elt: elt.idx['element'] + 1,
-    }
-    x_ax = [0]
-    for i, section in enumerate(linac.elements['l_sections']):
-        elt = dict_x_axis['last_elt_of_sec'](section)
-        x_ax.append(dict_x_axis[x_axis](elt))
-
-    for i in range(len(x_ax) - 1):
-        if i % 2 == 1:
-            ax.axvspan(x_ax[i], x_ax[i + 1], ymin=-1e8, ymax=1e8, fill=True,
-                       alpha=.1, fc='k')
-
-
-def _compute_ellipse_parameters(d_eq):
-    """
-    Compute the ellipse parameters so as to plot the ellipse.
-
-    Parameters
-    ----------
-    d_eq : dict
-        Holds ellipe equations parameters, defined as:
-            Ax**2 + Bxy + Cy**2 + Dx + Ey + F = 0
-
-    Return
-    ------
-    d_plot : dict
-        Holds semi axis, center of ellipse, angle.
-    """
-    delta = d_eq["B"]**2 - 4. * d_eq["A"] * d_eq["C"]
-    tmp1 = d_eq["A"] * d_eq["E"]**2 - d_eq["C"] * d_eq["D"]**2 \
-        - d_eq["B"] * d_eq["D"] * d_eq["E"] + delta * d_eq["F"]
-    tmp2 = np.sqrt((d_eq["A"] - d_eq["C"])**2 + d_eq["B"]**2)
-
-    if np.abs(d_eq["B"]) < 1e-8:
-        if d_eq["A"] < d_eq["C"]:
-            theta = 0.
-        else:
-            theta = np.pi/2.
-    else:
-        theta = np.arctan((d_eq["C"] - d_eq["A"] - tmp2) / d_eq["B"])
-
-    d_plot = {
-        "a": -np.sqrt(2. * tmp1 * (d_eq["A"] + d_eq["C"] + tmp2)) / delta,
-        "b": -np.sqrt(2. * tmp1 * (d_eq["A"] + d_eq["C"] - tmp2)) / delta,
-        "x0": (2. * d_eq["C"] * d_eq["D"] - d_eq["B"] * d_eq["E"]) / delta,
-        "y0": (2. * d_eq["A"] * d_eq["E"] - d_eq["B"] * d_eq["D"]) / delta,
-        "theta": theta,
-    }
-    return d_plot
-
-
-def plot_ellipse(axx, d_eq, **plot_kwargs):
-    """The proper ellipse plotting."""
-    d_plot = _compute_ellipse_parameters(d_eq)
-    n_points = 10001
-    var = np.linspace(0., 2. * np.pi, n_points)
-    ellipse = np.array([d_plot["a"] * np.cos(var), d_plot["b"] * np.sin(var)])
-    rotation = np.array([[np.cos(d_plot["theta"]), -np.sin(d_plot["theta"])],
-                         [np.sin(d_plot["theta"]),  np.cos(d_plot["theta"])]])
-    ellipse_rot = np.empty((2, n_points))
-
-    for i in range(n_points):
-        ellipse_rot[:, i] = np.dot(rotation, ellipse[:, i])
-
-    axx.plot(d_plot["x0"] + ellipse_rot[0, :],
-             d_plot["y0"] + ellipse_rot[1, :],
-             lw=0., marker='o', ms=.5, **plot_kwargs)
-
+    # Check the shapes
+    if x_data.shape[0] < y_data.shape[0]:
+        y_data = y_data[elts_indexes]
+    elif x_data.shape[0] > y_data.shape[0]:
+        x_data = x_data[elts_indexes]
+    # Check the NaN values
+    valid_idx = np.where(~np.isnan(y_data))
+    x_data = x_data[valid_idx]
+    y_data = y_data[valid_idx]
+    return x_data, y_data
 
 # =============================================================================
 # Files functions
