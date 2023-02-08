@@ -16,7 +16,7 @@ from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
 from util import helper
-from util.dicts_output import d_markdown, d_plot_kwargs, d_lw_to_tw
+from util.dicts_output import d_markdown, d_plot_kwargs, d_lw_to_tw, d_scale_tw_to_lw
 import util.tracewin_interface as tw
 
 font = {'family': 'serif', 'size': 25}
@@ -51,7 +51,6 @@ DICT_PLOT_PRESETS = {
                         'l_y_str': ["mismatch factor", "struct"],
                         'num': 27},
 }
-
 
 # =============================================================================
 # Front end
@@ -95,11 +94,20 @@ def plot_preset(str_preset, *args, **kwargs):
         # Load what should be plotted
         x_data, y_data, l_kwargs = \
             _concatenate_all_data(x_str, y_str, *args, plot_tw=plot_tw)
+
         # Plot what was succesfully loaded
+        line = None
+        prev_label = None
         for x, y, kw in zip(x_data, y_data, l_kwargs):
             if y is None:
                 continue
-            axx[i].plot(x, y, **kw)
+
+            if prev_label is not None and 'TW ' + prev_label == kw['label']:
+                kw['color'] = line.get_color()
+                kw['ls'] = '--'
+
+            line, = axx[i].plot(x, y, **kw)
+            prev_label = kw['label']
 
         axx[i].set_ylabel(d_markdown[y_str])
         axx[i].grid(True)
@@ -113,7 +121,6 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
     x_data = []
     y_data = []
     l_kwargs = []
-    # d_loader = {True: _data_from_tw, False: _data_from_lw}
 
     plot_error = y_str[:3] == 'err'
     if plot_error:
@@ -122,7 +129,10 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
     for arg in args:
         x_data.append(_data_from_lw(arg, x_str))
         y_data.append(_data_from_lw(arg, y_str))
-        l_kwargs.append({'label': arg.name})
+
+        kw = d_plot_kwargs[y_str].copy()
+        kw['label'] = arg.name
+        l_kwargs.append(kw)
 
         # TODO handle multipart or envelope
         if plot_tw:
@@ -131,26 +141,41 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
                 continue
             x_data.append(_data_from_tw(d_tw, x_str))
             y_data.append(_data_from_tw(d_tw, y_str))
-            l_kwargs.append({'label': f"TW {arg.name}"})
+
+            kw = d_plot_kwargs[y_str].copy()
+            kw['label'] = f"TW {arg.name}"
+            l_kwargs.append(kw)
+
     return x_data, y_data, l_kwargs
 
 
 def _data_from_lw(linac, data_str):
     """Get the data calculated by LightWin."""
-    data = linac.get(data_str)
+    data = linac.get(data_str, to_deg=True)
     return data
 
 
 def _data_from_tw(d_tw, data_str, warn_missing=True):
     """Get the data calculated by TraceWin, already loaded."""
+    # Data recomputed from TW simulation
+    if data_str in d_tw.keys():
+        return d_tw[data_str]
+
+    # Not implemented
     if data_str not in d_lw_to_tw.keys():
         if warn_missing:
             helper.printc("plot._data_from_tw warning: ",
                           opt_message=f"{data_str} not found for TW.")
         return None
 
+    # Raw data from TW simulation
     key = d_lw_to_tw[data_str]
     data = d_tw[key]
+
+    # Handle conversion issues
+    if data_str in d_scale_tw_to_lw.keys():
+        return d_scale_tw_to_lw[data_str] * data
+
     return data
 
 # =============================================================================

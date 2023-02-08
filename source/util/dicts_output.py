@@ -52,6 +52,8 @@ d_markdown = {
     'err_rel': "Rel. error",
     'err_log': "log of rel. error",
     # ListOfElements
+    # TraceWin
+    'lost power': "Lost power [W]"
 }
 
 d_plot_kwargs = {
@@ -90,7 +92,14 @@ d_plot_kwargs = {
 }
 
 d_lw_to_tw = {
-    'elt number': '##',
     'z_abs': 'z(m)',
-    'eps_zdelta': 'ep',
+    'elt number': '##',
+    'eps_zdelta': 'ezdp',
+    'lost power': 'Powlost',
+    'envelope_pos_w': 'SizeP',
+    'envelope_energy_w': 'spW',
+    }
+
+d_scale_tw_to_lw = {
+    'eps_zdelta': 1e-6, # pi.mm.mrad to pi.m.rad # FIXME I have pbs of units somewhere
     }
