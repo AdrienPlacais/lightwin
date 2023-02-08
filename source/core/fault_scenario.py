@@ -50,7 +50,8 @@ class FaultScenario():
         name = l_fault_idx
         # If wtf['strategy'] == 'manual'
         if isinstance(name[0], list):
-            name = itertools.chain.from_iterable(name)
+            name = list(itertools.chain.from_iterable(name))
+
         self.brok_lin.name += f" {str(name)}"
 
         ll_comp_cav, ll_fault_idx = self._sort_faults(l_fault_idx)

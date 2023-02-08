@@ -26,7 +26,7 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = True
+    FLAG_TW = False
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
