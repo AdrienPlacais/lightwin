@@ -56,7 +56,7 @@ d_markdown = {
 
 d_plot_kwargs = {
     'z_abs': {'marker': None},
-    'element number': {'marker': None},
+    'elt number': {'marker': None},
     'w_kin': {'marker': None},
     'phi_abs_array': {'marker': None},
     'beta': {'marker': None},
@@ -88,3 +88,9 @@ d_plot_kwargs = {
     'err_rel': {'marker': None},
     'err_log': {'marker': None},
 }
+
+d_lw_to_tw = {
+    'elt number': '##',
+    'z_abs': 'z(m)',
+    'eps_zdelta': 'ep',
+    }

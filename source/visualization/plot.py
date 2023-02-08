@@ -16,70 +16,190 @@ from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
 from util import helper
-from util.dicts_output import d_markdown, d_plot_kwargs
+from util.dicts_output import d_markdown, d_plot_kwargs, d_lw_to_tw
 import util.tracewin_interface as tw
 
 font = {'family': 'serif', 'size': 25}
 plt.rc('font', **font)
 plt.rcParams['axes.prop_cycle'] = cycler(color=Dark2_8.mpl_colors)
+plt.rcParams["figure.figsize"] = (6.4, 4.8)
 
-BASE_DICT = {'x_str': 'z_abs', 'filepath_ref': None, 'linac_ref': None,
-             'reference': 'LW', 'plot_section': True, 'replot_lw': False}
+BASE_DICT = {'x_str': 'z_abs',
+             'reference': 'LW', 'replot_lw': False,
+             'plot_section': True, 'plot_tw': False,
+             'sharex': True}
 DICT_PLOT_PRESETS = {
     "energy": {'x_str': 'z_abs',
                'l_y_str': ["w_kin", "err_abs", "struct"],
-               'fignum': 21},
+               'num': 21},
     "phase": {'x_str': 'z_abs',
               'l_y_str': ["phi_abs_array", "err_abs", "struct"],
-              'fignum': 22},
+              'num': 22},
     "cav": {'x_str': 'z_abs',
             'l_y_str': ["v_cav_mv", "k_e", "phi_s", "struct"],
-            'fignum': 23},
+            'num': 23},
     "emittance": {'x_str': 'z_abs',
-                  'l_y_str': ["eps_w", "eps_zdelta", "struct"],
-                  'fignum': 24},
+                  'l_y_str': ["eps_zdelta", "struct"],
+                  'num': 24},
     "twiss": {'x_str': 'z_abs',
               'l_y_str': ["alpha_w", "beta_w", "gamma_w"],
-              'fignum': 25},
+              'num': 25},
     "envelopes": {'x_str': 'z_abs',
                   'l_y_str': ["envelope_pos_w", "envelope_energy_w", "struct"],
-                  'fignum': 26},
+                  'num': 26},
     "mismatch factor": {'x_str': 'z_abs',
                         'l_y_str': ["mismatch factor", "struct"],
-                        'fignum': 27},
+                        'num': 27},
 }
+
+
+# =============================================================================
+# Front end
+# =============================================================================
+def plot_preset(str_preset, *args, **kwargs):
+    """Plot a preset."""
+    # load kwargs dict
+    # From preset, add keys that are not already in kwargs
+    for key, val in DICT_PLOT_PRESETS[str_preset].items():
+        if key not in kwargs:
+            kwargs[key] = val
+    # From base dict, add keys that are not already in kwargs
+    for key, val in BASE_DICT.items():
+        if key not in kwargs:
+            kwargs[key] = val
+
+    # Extract data used everywhere
+    x_str = kwargs['x_str']
+    l_y_str = kwargs['l_y_str']
+    plot_tw = kwargs['plot_tw']
+
+    fig, axx = create_fig_if_not_exists(len(l_y_str), sharex=True,
+                                        num=kwargs['num'])
+    axx[-1].set_xlabel(d_markdown[x_str])
+
+    for i, y_str in enumerate(l_y_str):
+        # Special treatments
+        section_already_plotted = False
+        for arg in args:
+            if kwargs["plot_section"] and not section_already_plotted:
+                plot_section(arg, axx[i], x_axis=x_str)
+                section_already_plotted = True
+
+            if y_str == 'struct':
+                # Each structure plot overwrites the previous one
+                # classic order is: [linac 'Working', 'Broken', 'Fixed']
+                # and we see the Fixed
+                plot_structure(arg, axx[i], x_axis=x_str)
+                continue
+
+        # Load what should be plotted
+        x_data, y_data, l_kwargs = \
+            _concatenate_all_data(x_str, y_str, *args, plot_tw=plot_tw)
+        # Plot what was succesfully loaded
+        for x, y, kw in zip(x_data, y_data, l_kwargs):
+            if y is None:
+                continue
+            axx[i].plot(x, y, **kw)
+
+        axx[i].set_ylabel(d_markdown[y_str])
+        axx[i].grid(True)
+        # TODO handle linear vs log
+    axx[0].legend()
+    # TODO handle legend, maybe not necessary in every plot
+
+# TODO : maybe return a dict?
+def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
+    """Get all the data that should be plotted."""
+    x_data = []
+    y_data = []
+    l_kwargs = []
+    # d_loader = {True: _data_from_tw, False: _data_from_lw}
+
+    plot_error = y_str[:3] == 'err'
+    if plot_error:
+        raise IOError('Error plot to implement.')
+
+    for arg in args:
+        x_data.append(_data_from_lw(arg, x_str))
+        y_data.append(_data_from_lw(arg, y_str))
+        l_kwargs.append({'label': arg.name})
+
+        # TODO handle multipart or envelope
+        if plot_tw:
+            d_tw = arg.tw_results['multipart']
+            if len(d_tw) == 0:
+                continue
+            x_data.append(_data_from_tw(d_tw, x_str))
+            y_data.append(_data_from_tw(d_tw, y_str))
+            l_kwargs.append({'label': f"TW {arg.name}"})
+    return x_data, y_data, l_kwargs
+
+
+def _data_from_lw(linac, data_str):
+    """Get the data calculated by LightWin."""
+    data = linac.get(data_str)
+    return data
+
+
+def _data_from_tw(d_tw, data_str, warn_missing=True):
+    """Get the data calculated by TraceWin, already loaded."""
+    if data_str not in d_lw_to_tw.keys():
+        if warn_missing:
+            helper.printc("plot._data_from_tw warning: ",
+                          opt_message=f"{data_str} not found for TW.")
+        return None
+
+    key = d_lw_to_tw[data_str]
+    data = d_tw[key]
+    return data
 
 # =============================================================================
 # Basic helpers
 # =============================================================================
 def create_fig_if_not_exist(fignum, axnum, sharex=False, **kwargs):
+    printc("plot.create_fig_if_not_exist warning: ", opt_message='deprecated.')
+    kwargs['num'] = fignum
+    return create_fig_if_not_exists(axnum, sharex, **kwargs)
+
+
+def create_fig_if_not_exists(axnum, sharex=False, num=1):
     """
     Check if figures were already created, create it if not.
 
     Parameters
     ----------
-    fignum : int
-        Number of the fignum.
-    axnum : list of int
-        Axes indexes as understood by fig.add_subplot
+    axnum : list of int or int
+        Axes indexes as understood by fig.add_subplot or number of desired
+        axes.
+    sharex : boolean, opt
+        If x axis should be shared.
+    num : int, opt
+        Fig number.
     """
+    if isinstance(axnum, int):
+        # We make a one-column, axnum rows figure
+        axnum = range(100 * axnum + 11, 101 * axnum + 11)
     n_axes = len(axnum)
     axlist = []
 
-    if plt.fignum_exists(fignum):
-        fig = plt.figure(fignum)
+    if plt.fignum_exists(num):
+        fig = plt.figure(num)
         for i in range(n_axes):
             axlist.append(fig.axes[i])
         return fig, axlist
 
-    fig = plt.figure(fignum, **kwargs)
+    fig = plt.figure(num)
     axlist.append(fig.add_subplot(axnum[0]))
-    dict_sharex = {True: axlist[0], False: None}
+
+    d_sharex = {True: axlist[0], False: None}
+
     for i in axnum[1:]:
-        axlist.append(fig.add_subplot(i, sharex=dict_sharex[sharex]))
+        axlist.append(fig.add_subplot(i, sharex=d_sharex[sharex]))
+
     return fig, axlist
 
 
+# TODO still used?
 def clean_fig(fignumlist):
     """Clean axis of Figs in fignumlist."""
     for fignum in fignumlist:
@@ -88,6 +208,7 @@ def clean_fig(fignumlist):
             axx.cla()
 
 
+# TODO still used?
 def empty_fig(fignum):
     """Return True if at least one axis of Fig(fignum) has no line."""
     out = False
@@ -272,14 +393,14 @@ def _err(linac, y_str, diff='abs', **kwargs):
 # =============================================================================
 # Specific plots: structure
 # =============================================================================
-def plot_structure(linac, ax, x_axis='s'):
+def plot_structure(linac, ax, x_axis='z_abs'):
     """Plot a structure of the linac under study."""
-    dict_elem_plot = {
+    d_elem_plot = {
         'DRIFT': _plot_drift,
         'QUAD': _plot_quad,
         'FIELD_MAP': _plot_field_map,
     }
-    dict_x_axis = {  # first element is patch dimension. second is x limits
+    d_x_axis = {  # first element is patch dimension. second is x limits
         'z_abs': lambda elt, i: [
             {'x0': elt.get('abs_mesh')[0], 'width': elt.length_m},
             [linac.elts[0].get('abs_mesh')[0],
@@ -292,11 +413,11 @@ def plot_structure(linac, ax, x_axis='s'):
     }
 
     for i, elt in enumerate(linac.elts):
-        kwargs = dict_x_axis[x_axis](elt, i)[0]
-        ax.add_patch(dict_elem_plot[elt.get('nature', to_numpy=False)](
+        kwargs = d_x_axis[x_axis](elt, i)[0]
+        ax.add_patch(d_elem_plot[elt.get('nature', to_numpy=False)](
             elt,**kwargs))
 
-    ax.set_xlim(dict_x_axis[x_axis](elt, i)[1])
+    ax.set_xlim(d_x_axis[x_axis](elt, i)[1])
     ax.set_yticklabels([])
     ax.set_yticks([])
     ax.set_ylim([-.05, 1.05])
@@ -325,7 +446,7 @@ def _plot_field_map(field_map, x0, width):
     """Add an ellipse to show a field_map."""
     height = 1.
     y0 = height * .5
-    dict_colors = {
+    d_colors = {
         'nominal': 'green',
         'rephased (in progress)': 'yellow',
         'rephased (ok)': 'yellow',
@@ -335,13 +456,13 @@ def _plot_field_map(field_map, x0, width):
         'compensate (not ok)': 'orange',
     }
     patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
-                        lw=0.5, fc=dict_colors[field_map.get('status',
-                                                             to_numpy=False)],
+                        lw=0.5, fc=d_colors[field_map.get('status',
+                                                          to_numpy=False)],
                         ec='k')
     return patch
 
 
-def plot_section(linac, ax, x_axis='s'):
+def plot_section(linac, ax, x_axis='z_abs'):
     """Add light grey rectangles behind the plot to show the sections."""
     dict_x_axis = {
         'last_elt_of_sec': lambda sec: sec[-1][-1],
