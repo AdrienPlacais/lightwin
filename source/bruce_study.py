@@ -14,9 +14,12 @@ import pandas as pd
 
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
-from util import debug, helper, output, evaluate
+import util.debug as debug
+import util.helper as helper
+import util.output as output
+import util.evaluate as evaluate
 import util.tracewin_interface as tw
-from visualization import plot
+import visualization.plot as plot
 
 if __name__ == '__main__':
     # Select .dat file

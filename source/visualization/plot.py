@@ -11,13 +11,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as pat
+from collections import OrderedDict
 
 from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
-from util import helper
-from util.dicts_output import d_markdown, d_plot_kwargs, d_lw_to_tw, d_scale_tw_to_lw
+import util.helper as helper
 import util.tracewin_interface as tw
+from util.dicts_output import d_markdown, d_plot_kwargs, d_lw_to_tw, d_scale_tw_to_lw
 
 font = {'family': 'serif', 'size': 25}
 plt.rc('font', **font)
@@ -25,8 +26,7 @@ plt.rcParams['axes.prop_cycle'] = cycler(color=Dark2_8.mpl_colors)
 plt.rcParams["figure.figsize"] = (19.2, 11.24)
 plt.rcParams["figure.dpi"] = 100
 
-BASE_DICT = {'x_str': 'z_abs',
-             'reference': 'LW', 'replot_lw': False,
+BASE_DICT = {'x_str': 'z_abs', 'reference': 'LW', 'replot_lw': False,
              'plot_section': True, 'plot_tw': False,
              'sharex': True}
 DICT_PLOT_PRESETS = {
@@ -81,47 +81,31 @@ def plot_preset(str_preset, *args, **kwargs):
             kwargs[key] = val
 
     # Extract data used everywhere
-    x_str, l_y_str, plot_tw = kwargs['x_str'], kwargs['l_y_str']
+    x_str, l_y_str = kwargs['x_str'], kwargs['l_y_str']
     plot_tw = kwargs['plot_tw']
 
     fig, axx = create_fig_if_not_exists(len(l_y_str), sharex=True,
                                         num=kwargs['num'])
     axx[-1].set_xlabel(d_markdown[x_str])
 
-    for i, y_str in enumerate(l_y_str):
-        # Special treatments
+    d_colors = {}
+    for ax, y_str in zip(axx, l_y_str):
         section_already_plotted = False
-
         for arg in args:
             if kwargs["plot_section"] and not section_already_plotted:
-                _plot_section(arg, axx[i], x_axis=x_str)
+                _plot_section(arg, ax, x_axis=x_str)
                 section_already_plotted = True
 
             if y_str == 'struct':
-                _plot_structure(arg, axx[i], x_axis=x_str)
+                _plot_structure(arg, ax, x_axis=x_str)
                 continue
 
-        # Load what should be plotted
-        x_data, y_data, l_kwargs = \
-            _concatenate_all_data(x_str, y_str, *args, plot_tw=plot_tw)
+        x_data, y_data, l_kwargs =  _concatenate_all_data(x_str, y_str, *args,
+                                                          plot_tw=plot_tw)
+        d_colors = _plot_all_data(ax, x_data, y_data, l_kwargs, d_colors)
 
-        # Plot what was succesfully loaded
-        line = None
-        prev_label = None
-
-        for x, y, kw in zip(x_data, y_data, l_kwargs):
-            if y is None:
-                continue
-
-            if prev_label is not None and 'TW ' + prev_label == kw['label']:
-                kw['color'] = line.get_color()
-                kw['ls'] = '--'
-
-            line, = axx[i].plot(x, y, **kw)
-            prev_label = kw['label']
-
-        axx[i].set_ylabel(d_markdown[y_str])
-        axx[i].grid(True)
+        ax.set_ylabel(d_markdown[y_str])
+        ax.grid(True)
         # TODO handle linear vs log
 
     axx[0].legend()
@@ -132,6 +116,9 @@ def plot_preset(str_preset, *args, **kwargs):
         _savefig(fig, file)
 
 
+# =============================================================================
+# Used in plot_preset
+# =============================================================================
 def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
     """Get all the data that should be plotted."""
     x_data = []
@@ -143,24 +130,32 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
         raise IOError('Error plot to implement.')
 
     for arg in args:
+        key = arg.name
         x_data.append(_data_from_lw(arg, x_str))
         y_data.append(_data_from_lw(arg, y_str))
 
         kw = d_plot_kwargs[y_str].copy()
-        kw['label'] = arg.name
+        kw['label'] = key
         l_kwargs.append(kw)
 
         # TODO handle multipart or envelope
         if plot_tw:
-            d_tw = arg.tw_results['multipart']
-            if len(d_tw) == 0:
-                continue
-            x_data.append(_data_from_tw(d_tw, x_str))
-            y_data.append(_data_from_tw(d_tw, y_str))
+            key = f"TW {arg.name}"
+            tw_results = arg.tw_results['multipart']
+
+            x_data.append(None)
+            y_data.append(None)
 
             kw = d_plot_kwargs[y_str].copy()
-            kw['label'] = f"TW {arg.name}"
+            kw['label'], kw['ls'] = key, '--'
             l_kwargs.append(kw)
+
+            if len(tw_results) == 0:
+                continue
+
+            x_data[-1] = _data_from_tw(tw_results, x_str)
+            y_data[-1] = _data_from_tw(tw_results, y_str)
+
 
     return x_data, y_data, l_kwargs
 
@@ -195,10 +190,28 @@ def _data_from_tw(d_tw, data_str, warn_missing=True):
     return data
 
 
+def _plot_all_data(axx, x_data, y_data, l_kwargs, d_colors):
+    """Plot given data on give axis. Keep same colors for LW and TW data."""
+    for x, y, kw in zip(x_data, y_data, l_kwargs):
+        key_color = kw['label'].removeprefix('TW ')
+
+        if key_color in d_colors.keys():
+            kw['color'] = d_colors[key_color]
+
+        if y is None:
+            continue
+        line, = axx.plot(x, y, **kw)
+
+        if key_color not in d_colors.keys():
+            d_colors[key_color] = line.get_color()
+
+    return d_colors
+
+
 def _savefig(fig, filepath):
     """Saves the figure."""
     fig.tight_layout()
-    fig.savefig(file)
+    fig.savefig(filepath)
     helper.printc("plot._savefig info: ",
                   opt_message=f"Fig. saved in {filepath}")
 
@@ -409,35 +422,6 @@ def compare_with_tracewin(linac, x_str='z_abs', **kwargs):
 
     axx[0].legend()
     axx[-1].set_xlabel(d_markdown[x_str])
-
-
-def _err(linac, y_str, diff='abs', **kwargs):
-    """Calculate error between two linacs."""
-    assert kwargs["reference"] in ['LW', 'TW']
-    elts_indexes = linac.get('s_out')
-    if kwargs["reference"] == 'TW':
-        assert kwargs["filepath_ref"] is not None
-        assert y_str in tw.d_tw_data_table
-        y_data_ref = tw.load_tw_results(kwargs["filepath_ref"], y_str)
-
-    elif kwargs["reference"] == 'LW':
-        assert kwargs["linac_ref"] is not None
-        y_data_ref = kwargs["linac_ref"].get(y_str)[elts_indexes]
-
-    # Set up a scale (for example if the error is very small)
-    d_err_scales = {
-        'example': 1e3,
-    }
-    scale = d_err_scales.get(y_str, 1.)
-    # 1. is the default value
-
-    d_diff = {'abs': lambda ref, new: scale * np.abs(ref - new),
-              'rel': lambda ref, new: scale * (ref - new),
-              'log': lambda ref, new: scale * np.log10(np.abs(new / ref)),
-              }
-
-    y_data_new = linac.get(y_str)[elts_indexes]
-    return d_diff[diff](y_data_ref, y_data_new)
 
 
 # =============================================================================
