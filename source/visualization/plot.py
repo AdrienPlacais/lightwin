@@ -31,10 +31,10 @@ BASE_DICT = {'x_str': 'z_abs', 'reference': 'LW', 'replot_lw': False,
              'sharex': True}
 DICT_PLOT_PRESETS = {
     "energy": {'x_str': 'z_abs',
-               'l_y_str': ["w_kin", "err_abs", "struct"],
+               'l_y_str': ["w_kin", "w_kin_err", "struct"],
                'num': 21},
     "phase": {'x_str': 'z_abs',
-              'l_y_str': ["phi_abs_array", "err_abs", "struct"],
+              'l_y_str': ["phi_abs_array", "phi_abs_err", "struct"],
               'num': 22},
     "cav": {'x_str': 'z_abs',
             'l_y_str': ["v_cav_mv", "k_e", "phi_s", "struct"],
@@ -52,6 +52,10 @@ DICT_PLOT_PRESETS = {
                         'l_y_str': ["mismatch factor", "struct"],
                         'num': 27},
 }
+DICT_ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'abs'},
+                      'phi_abs_err': {'scale': 1., 'diff': 'abs'},
+                      }
+
 
 # =============================================================================
 # Front end
@@ -70,7 +74,7 @@ def plot_preset(str_preset, *args, **kwargs):
     kwargs : dict
         Keys overriding DICT_PLOT_PRESETS and BASE_DICT.
     """
-    plt.close('all') # FIXME
+    # plt.close('all') # FIXME
     # From preset, add keys that are not already in kwargs
     for key, val in DICT_PLOT_PRESETS[str_preset].items():
         if key not in kwargs:
@@ -102,12 +106,17 @@ def plot_preset(str_preset, *args, **kwargs):
         if y_str == 'struct':   # FIXME
             continue
 
-        x_data, y_data, l_kwargs =  _concatenate_all_data(x_str, y_str, *args,
-                                                          plot_tw=plot_tw)
+        x_data, y_data, l_kwargs =  \
+            _concatenate_all_data(x_str, y_str, *args, plot_tw=plot_tw,
+                                  reference=kwargs['reference'])
         d_colors = _plot_all_data(ax, x_data, y_data, l_kwargs, d_colors)
 
-        ax.set_ylabel(d_markdown[y_str])
         ax.grid(True)
+        if y_str[-3:] == 'err':
+            diff = DICT_ERROR_PRESETS[y_str]['diff']
+            ax.set_ylabel(d_markdown['err_' + diff])
+            continue
+        ax.set_ylabel(d_markdown[y_str])
         # TODO handle linear vs log
 
     axx[0].legend()
@@ -121,42 +130,39 @@ def plot_preset(str_preset, *args, **kwargs):
 # =============================================================================
 # Used in plot_preset
 # =============================================================================
-def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
+def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
     """Get all the data that should be plotted."""
     x_data = []
     y_data = []
     l_kwargs = []
 
-    plot_error = y_str[:3] == 'err'
+    plot_error = y_str[-3:] == 'err'
     if plot_error:
-        raise IOError('Error plot to implement.')
+        x_data, y_data, l_kwargs = _err2(x_str, y_str, *args, plot_tw=plot_tw, reference=reference)
+        return x_data, y_data, l_kwargs
 
     for arg in args:
-        x_dat, y_dat, kw = _data_from(arg, x_str, y_str)
-        x_data.append(x_dat)
-        y_data.append(y_dat)
-        l_kwargs.append(kw)
+        x_dat, y_dat, kw = _data_from(x_str, y_str, arg)
+        x_data.append(x_dat), y_data.append(y_dat), l_kwargs.append(kw)
 
         # TODO handle multipart or envelope
         if plot_tw:
-            x_dat, y_dat, kw = _data_from(arg, x_str, y_str,
+            x_dat, y_dat, kw = _data_from(x_str, y_str, arg,
                                           tw_source='multipart')
-            x_data.append(x_dat)
-            y_data.append(y_dat)
-            l_kwargs.append(kw)
+            x_data.append(x_dat), y_data.append(y_dat), l_kwargs.append(kw)
 
     return x_data, y_data, l_kwargs
 
 
-def _data_from(arg, x_str, y_str, tw_source=None):
+def _data_from(x_str, y_str, arg, tw_source=None):
     """Get data."""
     from_lw = tw_source is None
     d_getter = {
-        False: lambda arg, x: _data_from_tw(arg.tw_results[tw_source], x),
-        True: lambda arg, x: _data_from_lw(arg, x)}
+        False: lambda x, arg: _data_from_tw(x, arg.tw_results[tw_source]),
+        True: lambda x, arg: _data_from_lw(x, arg)}
     getter = d_getter[from_lw]
 
-    x_dat, y_dat = getter(arg, x_str), getter(arg, y_str)
+    x_dat, y_dat = getter(x_str, arg), getter(y_str, arg)
 
     kw = d_plot_kwargs[y_str].copy()
     kw['label'] = arg.name
@@ -165,28 +171,28 @@ def _data_from(arg, x_str, y_str, tw_source=None):
         kw['label'] = 'TW ' + kw['label']
     return x_dat, y_dat, kw
 
-def _data_from_lw(linac, data_str):
+def _data_from_lw(data_str, linac):
     """Get the data calculated by LightWin."""
     data = linac.get(data_str, to_deg=True)
     return data
 
 
-def _data_from_tw(d_tw, data_str, warn_missing=True):
+def _data_from_tw(data_str, d_tw, warn_missing=True):
     """Get the data calculated by TraceWin, already loaded."""
+    # Handle conversion issues
+    scale = 1.
+    if data_str in d_scale_tw_to_lw.keys():
+        scale = d_scale_tw_to_lw[data_str]
+
     # Data recomputed from TW simulation
     if data_str in d_tw.keys():
-        return d_tw[data_str]
+        return d_tw[data_str] * scale
 
     # Raw data from TW simulation
     key = d_lw_to_tw[data_str]
     if key in d_tw.keys():
-        return d_tw[key]
+        return d_tw[key] * scale
 
-    # FIXME
-    # Handle conversion issues
-    # if data_str in d_scale_tw_to_lw.keys():
-    #     return d_scale_tw_to_lw[data_str] * data
-    # return data
 
     # Not implemented
     if warn_missing:
@@ -195,52 +201,48 @@ def _data_from_tw(d_tw, data_str, warn_missing=True):
     return None
 
 
+def _err2(x_str, y_str, *args, plot_tw=False, reference=None):
+    """Calculate error with a reference calculation."""
+    # We expect the first arg to be the reference Accelerator
+    assert args[0].get('name') == 'Working'
 
-# def _err2(x_str, y_str, *args, diff='abs', **kwargs):
-#     """Calculate error with a reference calculation."""
-#     # We expect the first arg to be the reference Accelerator
-#     assert args[0].get('name') == 'Working'
+    d_ref = {'LW': None,
+             'TW': 'multipart',
+             'self': None} # TODO
+    assert reference in d_ref.keys()
 
-#     d_ref = {'LW': lambda arg: arg,
-#              'TW': lambda arg: arg.tw_results['multipart'],
-#              'self': None} # TODO
-#     ref = kwargs['reference']
-#     assert ref in d_ref.keys()
+    # Set up a scale (for example if the error is very small)
+    scale = DICT_ERROR_PRESETS[y_str]['scale']
+    d_diff = {
+        'abs': lambda y_ref, y_lin: scale * np.abs(y_ref - y_lin),
+        'rel': lambda y_ref, y_lin: scale * (y_ref - y_lin),
+        'log': lambda y_ref, y_lin: scale * np.log10(np.abs(y_lin / y_ref)),
+        }
+    fun_diff = d_diff[DICT_ERROR_PRESETS[y_str]['diff']]
 
-#     # Set up a scale (for example if the error is very small)
-#     d_err_scales = {
-#         'example': 1e3,
-#     }
-#     scale = d_err_scales.get(y_str, 1.)
-#     # 1. is the default value
+    x_data, y_data, l_kwargs = [], [], []
+    key = y_str[:-4]
+    for arg in args[1:]:
+        # Get reference data
+        x_ref, y_ref, _ = _data_from(x_str, key, args[0],
+                                     tw_source=d_ref[reference])
+        __x, __y, kw = _data_from(x_str, key, arg)
+        if __y is None:
+            continue
 
-#     d_diff = {'abs': lambda y_ref, y_lin:
-#                   scale * np.abs(y_ref - y_lin),
-#               'rel': lambda y_ref, y_lin:
-#                   scale * (y_ref - y_lin),
-#               'log': lambda y_ref, y_lin:
-#                   scale * np.log10(np.abs(y_lin / y_ref)),
-#               }
-#     fun_diff = d_diff[kwargs[y_str[3:]]]
+        if __y.shape != y_ref.shape:
+            # Upsample or downsample
+            # __x, __y = resample(x_ref, y_ref, __x, __y)
+            raise IOError("not implemented")
 
-#     x_data, y_data = [], []
-#     for arg in args[1:]:
-#         # Get reference data
-#         x_ref, y_ref = d_ref[ref](args[0], arg)
+        x_data.append(__x)
+        y_data.append(fun_diff(y_ref, __y))
+        l_kwargs.append(kw)
 
-#         ___x, __y = get_data(arg, data_str)
-#         if __y is None:
-#             continue
+        if plot_tw:
+            raise IOError("not implemented")
 
-#         if __y.shape != y_ref.shape:
-#             # Upsample or downsample
-#             __x, __y = resample(x_ref, y_ref, __x, __y)
-
-#         x_data.append(__x)
-#         y_data.append(fun_diff(y_ref, __y))
-
-#     y_data_new = linac.get(data_str)[elts_indexes]
-#     return x_data, y_data
+    return x_data, y_data, l_kwargs
 
 
 def _plot_all_data(axx, x_data, y_data, l_kwargs, d_colors):

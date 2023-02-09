@@ -57,16 +57,7 @@ d_markdown = {
 }
 
 d_plot_kwargs = {
-    'z_abs': {'marker': None},
-    'elt number': {'marker': None},
-    'w_kin': {'marker': None},
-    'phi_abs_array': {'marker': None},
-    'beta': {'marker': None},
-    'beta_err': {'marker': None},
-    'struct': {'marker': None},
-    'v_cav_mv': {'marker': 'o'},
-    'phi_s': {'marker': 'o'},
-    'k_e': {'marker': 'o'},
+    # Accelerator
     'eps_zdelta': {'marker': None},
     'eps_z': {'marker': None},
     'eps_w': {'marker': None},
@@ -86,9 +77,24 @@ d_plot_kwargs = {
     'envelope_energy_z': {'marker': None},
     'envelope_energy_w': {'marker': None},
     'mismatch factor': {'marker': None},
+    # Element
+    'elt number': {'marker': None},
+    # RfField
+    'v_cav_mv': {'marker': 'o'},
+    'phi_s': {'marker': 'o'},
+    'k_e': {'marker': 'o'},
+    # Particle
+    'z_abs': {'marker': None},
+    'w_kin': {'marker': None},
+    'phi_abs_array': {'marker': None},
+    'beta': {'marker': None},
+    # Misc
+    'struct': {'marker': None},
     'err_abs': {'marker': None},
     'err_rel': {'marker': None},
     'err_log': {'marker': None},
+    # ListOfElements
+    # TraceWin
 }
 
 d_lw_to_tw = {
