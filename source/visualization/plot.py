@@ -57,7 +57,19 @@ DICT_PLOT_PRESETS = {
 # Front end
 # =============================================================================
 def plot_preset(str_preset, *args, **kwargs):
-    """Plot a preset."""
+    """
+    Plot a preset.
+
+    Parameters
+    ----------
+    str_preset : string
+        Key of DICT_PLOT_PRESETS.
+    args : Accelerators
+        Accelerators to plot. In typical usage, *args = (Working, Broken,
+                                                         Fixed.)
+    kwargs : dict
+        Keys overriding DICT_PLOT_PRESETS and BASE_DICT.
+    """
     plt.close('all') # FIXME
     # From preset, add keys that are not already in kwargs
     for key, val in DICT_PLOT_PRESETS[str_preset].items():
@@ -69,8 +81,7 @@ def plot_preset(str_preset, *args, **kwargs):
             kwargs[key] = val
 
     # Extract data used everywhere
-    x_str = kwargs['x_str']
-    l_y_str = kwargs['l_y_str']
+    x_str, l_y_str, plot_tw = kwargs['x_str'], kwargs['l_y_str']
     plot_tw = kwargs['plot_tw']
 
     fig, axx = create_fig_if_not_exists(len(l_y_str), sharex=True,
@@ -80,15 +91,13 @@ def plot_preset(str_preset, *args, **kwargs):
     for i, y_str in enumerate(l_y_str):
         # Special treatments
         section_already_plotted = False
+
         for arg in args:
             if kwargs["plot_section"] and not section_already_plotted:
                 plot_section(arg, axx[i], x_axis=x_str)
                 section_already_plotted = True
 
             if y_str == 'struct':
-                # Each structure plot overwrites the previous one
-                # classic order is: [linac 'Working', 'Broken', 'Fixed']
-                # and we see the Fixed
                 plot_structure(arg, axx[i], x_axis=x_str)
                 continue
 
@@ -117,13 +126,10 @@ def plot_preset(str_preset, *args, **kwargs):
     axx[0].legend()
 
     if kwargs['save_fig']:
-        fig.tight_layout()
-        fixed_linac = args[-1]
-        file = os.path.join(fixed_linac.get('out_lw'), '..',
-                            f"{str_preset}.png")
-        fig.savefig(file)
-        helper.printc("plot.plot_preset info: ",
-                      opt_message=f"Fig. saved in {file}")
+        fixed_lin = args[-1]
+        file = os.path.join(fixed_lin.get('out_lw'), '..', f"{str_preset}.png")
+        _savefig(fig, file)
+
 
 def _concatenate_all_data(x_str, y_str, *args, plot_tw=False):
     """Get all the data that should be plotted."""
@@ -186,6 +192,14 @@ def _data_from_tw(d_tw, data_str, warn_missing=True):
         return d_scale_tw_to_lw[data_str] * data
 
     return data
+
+def _savefig(fig, filepath):
+    """Saves the figure."""
+    fig.tight_layout()
+    fig.savefig(file)
+    helper.printc("plot._savefig info: ",
+                  opt_message=f"Fig. saved in {filepath}")
+
 
 # =============================================================================
 # Basic helpers
