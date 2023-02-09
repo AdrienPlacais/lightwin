@@ -220,5 +220,7 @@ if __name__ == '__main__':
     kwargs = {'plot_tw': FLAG_TW, 'save_fig': SAVE_FIX}
     for i in range(len(l_wtf)):
         for str_plot in PLOTS:
+            # Plot the reference linac, i-th broken linac and corresponding
+            # fixed linac
             args = (linacs[0], linacs[2 * i + 1], linacs[2 * i + 2])
             plot.plot_preset(str_plot, *args, **kwargs)

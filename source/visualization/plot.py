@@ -94,11 +94,11 @@ def plot_preset(str_preset, *args, **kwargs):
 
         for arg in args:
             if kwargs["plot_section"] and not section_already_plotted:
-                plot_section(arg, axx[i], x_axis=x_str)
+                _plot_section(arg, axx[i], x_axis=x_str)
                 section_already_plotted = True
 
             if y_str == 'struct':
-                plot_structure(arg, axx[i], x_axis=x_str)
+                _plot_structure(arg, axx[i], x_axis=x_str)
                 continue
 
         # Load what should be plotted
@@ -108,6 +108,7 @@ def plot_preset(str_preset, *args, **kwargs):
         # Plot what was succesfully loaded
         line = None
         prev_label = None
+
         for x, y, kw in zip(x_data, y_data, l_kwargs):
             if y is None:
                 continue
@@ -192,6 +193,7 @@ def _data_from_tw(d_tw, data_str, warn_missing=True):
         return d_scale_tw_to_lw[data_str] * data
 
     return data
+
 
 def _savefig(fig, filepath):
     """Saves the figure."""
@@ -441,7 +443,7 @@ def _err(linac, y_str, diff='abs', **kwargs):
 # =============================================================================
 # Specific plots: structure
 # =============================================================================
-def plot_structure(linac, ax, x_axis='z_abs'):
+def _plot_structure(linac, ax, x_axis='z_abs'):
     """Plot a structure of the linac under study."""
     d_elem_plot = {
         'DRIFT': _plot_drift,
@@ -510,7 +512,7 @@ def _plot_field_map(field_map, x0, width):
     return patch
 
 
-def plot_section(linac, ax, x_axis='z_abs'):
+def _plot_section(linac, ax, x_axis='z_abs'):
     """Add light grey rectangles behind the plot to show the sections."""
     dict_x_axis = {
         'last_elt_of_sec': lambda sec: sec[-1][-1],
