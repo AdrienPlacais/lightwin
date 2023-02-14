@@ -100,11 +100,12 @@ if __name__ == '__main__':
     # =========================================================================
     PLOTS = [
         "energy",
-        "phase",
+        # "phase",
         # "cav", # TODO
         # "emittance",
-        # "twiss",
-        "envelopes",
+        # "twiss",  # TODO
+        # "envelopes", # FIXME
+        # "transfer matrices", # TODO
     ]
 
     SAVES = [

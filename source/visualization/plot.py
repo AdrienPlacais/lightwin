@@ -101,7 +101,6 @@ def plot_preset(str_preset, *args, **kwargs):
             if kwargs["plot_section"] and not section_already_plotted:
                 _plot_section(arg, ax, x_axis=x_str)
                 section_already_plotted = True
-
             if y_str == 'struct':
                 _plot_structure(arg, ax, x_axis=x_str)
                 continue
@@ -282,7 +281,7 @@ def _plot_all_data(axx, x_data, y_data, l_kwargs, d_colors):
 
 def _savefig(fig, filepath):
     """Saves the figure."""
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.savefig(filepath)
     helper.printc("plot._savefig info: ",
                   opt_message=f"Fig. saved in {filepath}")
@@ -291,12 +290,6 @@ def _savefig(fig, filepath):
 # =============================================================================
 # Basic helpers
 # =============================================================================
-def create_fig_if_not_exist(fignum, axnum, sharex=False, **kwargs):
-    printc("plot.create_fig_if_not_exist warning: ", opt_message='deprecated.')
-    kwargs['num'] = fignum
-    return create_fig_if_not_exists(axnum, sharex, **kwargs)
-
-
 def create_fig_if_not_exists(axnum, sharex=False, num=1):
     """
     Check if figures were already created, create it if not.
@@ -315,22 +308,20 @@ def create_fig_if_not_exists(axnum, sharex=False, num=1):
         # We make a one-column, axnum rows figure
         axnum = range(100 * axnum + 11, 101 * axnum + 11)
     n_axes = len(axnum)
-    axlist = []
 
     if plt.fignum_exists(num):
         fig = plt.figure(num)
-        for i in range(n_axes):
-            axlist.append(fig.axes[i])
+        axlist = fig.get_axes()
         return fig, axlist
 
     fig = plt.figure(num)
+    axlist = []
     axlist.append(fig.add_subplot(axnum[0]))
 
     d_sharex = {True: axlist[0], False: None}
 
     for i in axnum[1:]:
         axlist.append(fig.add_subplot(i, sharex=d_sharex[sharex]))
-
     return fig, axlist
 
 
