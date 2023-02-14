@@ -142,7 +142,7 @@ def bruce_tests(lin_ref, lin_fix, multipart=True, plot=False):
             # We need to unnormalize emittances
             eps = lin[val[2]].copy()
             gamma_lorentz = lin['gama-1'] + 1.
-            beta_lorentz = helper.gamma_to_beta(gamma_lorentz)
+            beta_lorentz = lin['beta']
             eps /= (beta_lorentz * gamma_lorentz)
 
             # Here, alpha beta and gamma are Twiss

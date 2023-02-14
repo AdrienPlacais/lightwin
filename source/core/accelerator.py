@@ -200,9 +200,9 @@ class Accelerator():
             'gamma_w': lambda self:
                 self.beam_param['twiss']['twiss_w'][:, 2],
             'envelope_pos_zdelta': lambda self:
-                self.beam_param['envelopes']['zdelta'][:, 0],
+                self.beam_param['envelopes']['envelopes_zdelta'][:, 0],
             'envelope_energy_zdelta': lambda self:
-                self.beam_param['envelopes']['zdelta'][:, 1],
+                self.beam_param['envelopes']['envelopes_zdelta'][:, 1],
             'envelope_pos_z': lambda self:
                 self.beam_param['envelopes']['envelopes_z'][:, 0],
             'envelope_energy_z': lambda self:
@@ -343,7 +343,7 @@ class Accelerator():
             'hide': None,
             'path_cal': self.get('out_tw'),
             'dat_file': self.get('dat_filepath'),
-            # 'current1': 0,
+            'current1': 0,
             'nbr_part1': 100,
         }
         tw.run_tw(self, ini_path, **kwargs)

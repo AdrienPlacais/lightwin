@@ -99,12 +99,12 @@ if __name__ == '__main__':
     # Outputs
     # =========================================================================
     PLOTS = [
-        "energy",
-        "phase",
-        # "cav",
+        # "energy",
+        # "phase",
+        # "cav", # TODO
         # "emittance",
         # "twiss",
-        # "envelopes",
+        "envelopes",
     ]
 
     SAVES = [

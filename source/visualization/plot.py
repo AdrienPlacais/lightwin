@@ -46,9 +46,10 @@ DICT_PLOT_PRESETS = {
     "twiss": {'x_str': 'z_abs',
               'l_y_str': ["alpha_w", "beta_w", "gamma_w"],
               'num': 25},
-    "envelopes": {'x_str': 'z_abs',
-                  'l_y_str': ["envelope_pos_w", "envelope_energy_w", "struct"],
-                  'num': 26},
+    "envelopes": {
+        'x_str': 'z_abs',
+        'l_y_str': ["envelope_pos_zdelta", "envelope_energy_zdelta", "struct"],
+        'num': 26},
     "mismatch factor": {'x_str': 'z_abs',
                         'l_y_str': ["mismatch factor", "struct"],
                         'num': 27},

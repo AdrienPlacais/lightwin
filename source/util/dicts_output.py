@@ -99,11 +99,17 @@ d_plot_kwargs = {
 d_lw_to_tw = {
     # Accelerator
     'eps_zdelta': 'ezdp',
+    'envelope_pos_z': 'SizeZ',
+    'envelope_pos_zdelta': 'SizeZ',
     'envelope_pos_w': 'SizeP',
     'envelope_energy_w': 'spW',
+    'envelope_energy_zdelta': 'szdp',
     # Element
     'elt number': '##',
-    # RfField
+    # TODO RfField
+    # 'v_cav_mv':,
+    # 'phi_s':,
+    # 'k_e':
     # Particle
     'z_abs': 'z(m)',
     # 'w_kin': Computed in Accelerator.precompute_some_tracewin_results,
@@ -116,4 +122,6 @@ d_lw_to_tw = {
 
 d_lw_to_tw_func = {
     'eps_zdelta': lambda x: x * 1e-6,
+    'envelope_pos_zdelta': lambda x: x * 1e-3,
+    'envelope_energy_zdelta': lambda x: x * 1e-3,
     }
