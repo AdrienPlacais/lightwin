@@ -337,13 +337,13 @@ class Accelerator():
 
     def simulate_in_tracewin(self, ini_path):
         """Compute this linac with TraceWin."""
-        assert 'Fixed' in self.name, "Useless to simulate reference or broken"
+        assert 'Broken' not in self.name, "Useless to simulate or broken"
         os.makedirs(self.get('out_tw'))
         kwargs = {
             'hide': None,
             'path_cal': self.get('out_tw'),
             'dat_file': self.get('dat_filepath'),
-            'current1': 0,
+            # 'current1': 0,
             'nbr_part1': 100,
         }
         tw.run_tw(self, ini_path, **kwargs)
@@ -354,8 +354,8 @@ class Accelerator():
 
         # Currently, we do not run TW simulations for the reference linac every
         # time. Just take from the results folder
-        if self.name == 'Working':
-            folder = os.path.join(self.get('orig_dat_folder'), 'results')
+        # if self.name == 'Working':
+            # folder = os.path.join(self.get('orig_dat_folder'), 'results')
 
         self.tw_results['envelope'] = tw.get_multipart_tw_results(
             folder, filename='tracewin.out')
@@ -366,12 +366,11 @@ class Accelerator():
         _, _, self.tw_results['transf_mat'] = tw.get_transfer_matrices_new(
             folder, filename='Transfer_matrix1.dat')
 
-        self._precompute_some_tracewin_results()
-
-    def _precompute_some_tracewin_results(self):
+    def precompute_some_tracewin_results(self):
         for dic in [self.tw_results['envelope'], self.tw_results['multipart']]:
             dic['w_kin'] = dic['gama-1'] * E_REST_MEV
             dic['beta'] = kin_to_beta(dic['w_kin'])
+            dic['gamma'] = 1. + dic['gama-1']
             dic['lambda'] = c / 162e6
 
             n = dic['beta'].shape[0]
@@ -382,6 +381,33 @@ class Accelerator():
                 delta_phi = 2. * np.pi * delta_z / (dic['lambda'] * beta_i)
                 dic['phi_abs_array'][i] = dic['phi_abs_array'][i - 1] \
                     + np.rad2deg(delta_phi)
+
+            # Transverse emittance, used in evaluate
+            dic['et'] = 0.5 * (dic['ex'] + dic['ey'])
+
+            # Twiss parameters, used in evaluate
+            for _eps, size, disp, twi in zip(
+                    ['ex', 'ey', 'ezdp'],
+                    ['SizeX', 'SizeY', 'SizeZ'],
+                    ["sxx'", "syy'", 'szdp'],
+                    ['twiss_x', 'twiss_y', 'twiss_zdp']):
+                eps = dic[_eps] / (dic['gamma'] * dic['beta'])
+                alpha = -dic[disp] / eps
+                beta = dic[size]**2 / eps
+                if _eps == 'ezdp':
+                    beta /= 10.
+                gamma = (1. + alpha**2) / beta
+                dic[twi] = np.column_stack((alpha, beta, gamma))
+
+    def resample_tw_results(self, ref_linac):
+        """Re-evaluate all quantities at the same z as the ref linac."""
+        d_tw = self.tw_results['multipart']
+        z_fix = d_tw['z(m)'].copy()
+
+        z_ref = ref_linac.tw_results['multipart']['z(m)']
+
+        for key in d_tw.keys():
+            d_tw[key] = np.interp(z_ref, z_fix, d_tw[key])
 
 
 def _sections_lattices(l_elts):

@@ -192,9 +192,9 @@ if __name__ == '__main__':
     if FLAG_TW:
         for lin in linacs:
             # We get the data from a previously made TW simulation
-            if 'Working' in lin.name:
-                lin.store_tracewin_results()
-                continue
+            # if 'Working' in lin.name:
+            #     lin.store_tracewin_results()
+            #     continue
 
             # It would be a loss of time to do these simulations
             if 'Broken' in lin.name:
@@ -206,11 +206,16 @@ if __name__ == '__main__':
             lin.simulate_in_tracewin(ini_path)
             lin.store_tracewin_results()
 
+            if 'Fixed' in lin.name:
+                lin.resample_tw_results(linacs[0])
+
+            lin.precompute_some_tracewin_results()
+
         #     multipart_flags = evaluate.multipart_flags_test(linacs[0], lin)
         #     l_multipart_flags.append(multipart_flags)
-
-        #     d_bruce = evaluate.bruce_tests(linacs[0], lin)
-        #     l_bruce.append(d_bruce)
+            if 'Fixed' in lin.name:
+                d_bruce = evaluate.bruce_tests(linacs[0], lin)
+                l_bruce.append(d_bruce)
 
         # for _list, name in zip([l_multipart_flags, l_bruce],
         #                        ['test_flags.csv', 'test_bruce.csv']):
