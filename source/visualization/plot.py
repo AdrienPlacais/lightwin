@@ -140,8 +140,8 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
 
     plot_error = y_str[-3:] == 'err'
     if plot_error:
-        x_data, y_data, l_kwargs = _err2(x_str, y_str, *args, plot_tw=plot_tw,
-                                         reference=reference)
+        x_data, y_data, l_kwargs = _err(x_str, y_str, *args, plot_tw=plot_tw,
+                                        reference=reference)
         return x_data, y_data, l_kwargs
 
     for arg in args:
@@ -206,7 +206,7 @@ def _data_from_tw(data_str, d_tw, warn_missing=False):
     return out
 
 
-def _err2(x_str, y_str, *args, plot_tw=False, reference=None):
+def _err(x_str, y_str, *args, plot_tw=False, reference=None):
     """Calculate error with a reference calculation."""
     # We expect the first arg to be the reference Accelerator
     assert args[0].get('name') == 'Working'
@@ -382,118 +382,6 @@ def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
             txt = str(np.round(x[idx_list][i], 4)) + ',' \
                 + str(np.round(y[idx_list][i], 4))
             ax.annotate(txt, (x[idx_list][i], y[idx_list[i]]), size=8)
-
-
-def compare_with_tracewin(linac, x_str='z_abs', **kwargs):
-    """
-    Plot data calculated by TraceWin and LightWin.
-
-    Parameters
-    ----------
-    linac : Accelerator
-        Linac under study.
-    x_str : str, opt
-        To designate what the x axis should be.
-    l_y_str : list, opt
-        List of str to designate what y axis should be.
-    filepath_ref : str, opt
-        Path to the results of the TW project for error plots.
-    linac_ref : Accelerator
-        Reference linac for error plots.
-    fignum : int, opt
-        Num of fig.
-    reference : str, opt
-        To tell what is the reference in the error plots.
-    plot_section : bool, opt
-        To separate different linac sections.
-    replot_lw : bool, opt
-        To replot Working and Broken data every time (deactivate if you want to
-        study different retuning settings on a fixed error.)
-    """
-    for key, val in BASE_DICT.items():
-        if key not in kwargs:
-            kwargs[key] = val
-
-    if kwargs["filepath_ref"] is None:
-        __f = os.path.join(linac.get('orig_dat_folder'),
-                           'results/energy_ref.txt')
-        assert os.path.exists(__f), f"""
-        You need to run a TW reference simulation, go to Data > Save table to
-        file. Default filename is {__f}.
-        """
-        kwargs["filepath_ref"] = __f
-
-    # Prep some data common to all plots
-    x_dat = linac.get(x_str, to_deg=True)
-    elts_indexes = linac.get('s_out')
-
-    # Prep figure and axes
-    n_plots = len(kwargs["l_y_str"])
-    axnum = 100 * n_plots + 11
-    axnum = range(axnum, axnum + n_plots)
-    _, axx = create_fig_if_not_exist(kwargs["fignum"], axnum, sharex=True)
-
-    # Get data and kwargs
-    for i, y_str in enumerate(kwargs["l_y_str"]):
-        if kwargs["plot_section"]:
-            plot_section(linac, axx[i], x_axis=x_str)
-
-        if y_str == 'struct':
-            plot_structure(linac, axx[i], x_axis=x_str)
-            continue
-
-        l_y_dat = []
-        l_kwargs = []
-
-        # Plot error data?
-        plot_error = y_str[:3] == 'err'
-
-        # Plot TW data?
-        label_tw = 'TW'
-        plot_tw = not plot_error and y_str in tw.d_tw_data_table \
-            and label_tw not in axx[i].get_legend_handles_labels()[1]
-
-        # Replot Working and Broken every time?
-        label_lw = 'LW ' + linac.name
-        plot_lw = not plot_error \
-            and (kwargs["replot_lw"]
-                 or linac.name not in ['Working', 'Broken']
-                 or label_lw not in axx[i].get_legend_handles_labels()[1])
-
-        if plot_error:
-            diff = y_str[4:]
-            l_y_dat.append(_err(linac, kwargs["l_y_str"][i - 1], diff=diff,
-                                **kwargs))
-            l_kwargs.append(
-                dic.d_plot_kwargs[kwargs["l_y_str"][i - 1]] | {
-                    'label': linac.name + 'err. w/ TW'}
-            )
-
-        if plot_tw:
-            l_y_dat.append(tw.load_tw_results(kwargs["filepath_ref"], y_str))
-            l_kwargs.append(
-                dic.d_plot_kwargs[y_str] | {'label': label_tw, 'c': 'k', 'lw': 2.,
-                                        'ls': '--'}
-            )
-
-        if plot_lw:
-            # LightWin
-            l_y_dat.append(linac.get(y_str, to_deg=True))
-            l_kwargs.append(
-                dic.d_plot_kwargs[y_str] | {'label': label_lw}
-            )
-
-        for y_dat, other_kwargs in zip(l_y_dat, l_kwargs):
-            # Downsample x or y if necessary
-            x_plot, y_plot = helper.reformat(x_dat, y_dat, elts_indexes)
-
-            axx[i].plot(x_plot, y_plot, **other_kwargs)
-
-        axx[i].set_ylabel(dic.d_markdown[y_str])
-        axx[i].grid(True)
-
-    axx[0].legend()
-    axx[-1].set_xlabel(dic.d_markdown[x_str])
 
 
 # =============================================================================
