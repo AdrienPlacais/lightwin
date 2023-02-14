@@ -306,34 +306,48 @@ def printd(message, color_header='cyan', header=''):
 #     axx.plot(d_plot["x0"] + ellipse_rot[0, :],
 #              d_plot["y0"] + ellipse_rot[1, :],
 #              lw=0., marker='o', ms=.5, **plot_kwargs)
-def reformat(x_data, y_data, elts_indexes):
-    """
-    Downsample x_data or y_data if it has more points than the other.
 
-    Parameters
-    ----------
-    x_data : np.array
-        Data to plot in x-axis.
-    y_data : TYPE
-        Data to plot on y-axis.
+def resample(x_1, y_1, x_2, y_2):
+    """Downsample y_highres(olution) to x_1 or x_2 (the one with low res)."""
+    assert x_1.shape == y_1.shape
+    assert x_2.shape == y_2.shape
 
-    Returns
-    -------
-    x_data : np.array
-        Same array, downsampled to elements position if necessary.
-    y_data : np.array
-        Same array, downsampled to elements position if necessary.
-    """
-    # Check the shapes
-    if x_data.shape[0] < y_data.shape[0]:
-        y_data = y_data[elts_indexes]
-    elif x_data.shape[0] > y_data.shape[0]:
-        x_data = x_data[elts_indexes]
-    # Check the NaN values
-    valid_idx = np.where(~np.isnan(y_data))
-    x_data = x_data[valid_idx]
-    y_data = y_data[valid_idx]
-    return x_data, y_data
+    if x_1.shape > x_2.shape:
+        y_1 = np.interp(x_2, x_1, y_1)
+        x_1 = x_2
+    else:
+        y_2 = np.interp(x_1, x_2, y_2)
+        x_2 = x_1
+    return x_1, y_1, x_2, y_2
+
+# def reformat(x_data, y_data, elts_indexes):
+#     """
+#     Downsample x_data or y_data if it has more points than the other.
+
+#     Parameters
+#     ----------
+#     x_data : np.array
+#         Data to plot in x-axis.
+#     y_data : TYPE
+#         Data to plot on y-axis.
+
+#     Returns
+#     -------
+#     x_data : np.array
+#         Same array, downsampled to elements position if necessary.
+#     y_data : np.array
+#         Same array, downsampled to elements position if necessary.
+#     """
+#     # Check the shapes
+#     if x_data.shape[0] < y_data.shape[0]:
+#         y_data = y_data[elts_indexes]
+#     elif x_data.shape[0] > y_data.shape[0]:
+#         x_data = x_data[elts_indexes]
+#     # Check the NaN values
+#     valid_idx = np.where(~np.isnan(y_data))
+#     x_data = x_data[valid_idx]
+#     y_data = y_data[valid_idx]
+#     return x_data, y_data
 
 # =============================================================================
 # Files functions

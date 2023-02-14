@@ -12,12 +12,13 @@ at the end
 import os.path
 import numpy as np
 import util.tracewin_interface as tw
-from constants import E_MEV, FLAG_PHI_ABS
+from constants import E_MEV, FLAG_PHI_ABS, E_REST_MEV, c
 from core import particle
 from core import elements
 from core.list_of_elements import ListOfElements
 from core.emittance import beam_parameters_all, mismatch_factor
-from util.helper import kin_to_gamma, printc, recursive_items, recursive_getter
+from util.helper import kin_to_gamma, printc, recursive_items, \
+    recursive_getter, kin_to_beta
 
 
 class Accelerator():
@@ -364,6 +365,23 @@ class Accelerator():
 
         _, _, self.tw_results['transf_mat'] = tw.get_transfer_matrices_new(
             folder, filename='Transfer_matrix1.dat')
+
+        self._precompute_some_tracewin_results()
+
+    def _precompute_some_tracewin_results(self):
+        for dic in [self.tw_results['envelope'], self.tw_results['multipart']]:
+            dic['w_kin'] = dic['gama-1'] * E_REST_MEV
+            dic['beta'] = kin_to_beta(dic['w_kin'])
+            dic['lambda'] = c / 162e6
+
+            n = dic['beta'].shape[0]
+            dic['phi_abs_array'] = np.full((n), 0.)
+            for i in range(1, n):
+                delta_z = dic['z(m)'][i] - dic['z(m)'][i - 1]
+                beta_i = dic['beta'][i]
+                delta_phi = 2. * np.pi * delta_z / (dic['lambda'] * beta_i)
+                dic['phi_abs_array'][i] = dic['phi_abs_array'][i - 1] \
+                    + np.rad2deg(delta_phi)
 
 
 def _sections_lattices(l_elts):

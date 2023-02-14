@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = False
+    FLAG_TW = True
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
@@ -100,9 +100,9 @@ if __name__ == '__main__':
     # =========================================================================
     PLOTS = [
         "energy",
-        # "phase",
+        "phase",
         # "cav",
-        "emittance",
+        # "emittance",
         # "twiss",
         # "envelopes",
     ]

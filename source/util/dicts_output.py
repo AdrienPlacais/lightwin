@@ -5,7 +5,6 @@ Created on Tue Nov 29 12:01:01 2022.
 
 @author: placais
 """
-
 # NB: all phi are in radians. The reason why they all have unit [deg] is that
 # they are always converted to degrees when outputed.
 d_markdown = {
@@ -98,14 +97,23 @@ d_plot_kwargs = {
 }
 
 d_lw_to_tw = {
-    'z_abs': 'z(m)',
-    'elt number': '##',
+    # Accelerator
     'eps_zdelta': 'ezdp',
-    'lost power': 'Powlost',
     'envelope_pos_w': 'SizeP',
     'envelope_energy_w': 'spW',
+    # Element
+    'elt number': '##',
+    # RfField
+    # Particle
+    'z_abs': 'z(m)',
+    # 'w_kin': Computed in Accelerator.precompute_some_tracewin_results,
+    # 'phi_abs_array': Computed in Accelerator.precompute_some_tracewin_results,
+    # Misc
+    # List OfElements
+    # TraceWin
+    'lost power': 'Powlost',
     }
 
-d_scale_tw_to_lw = {
-    'eps_zdelta': 1e-6, # pi.mm.mrad to pi.m.rad # FIXME I have pbs of units somewhere
+d_lw_to_tw_func = {
+    'eps_zdelta': lambda x: x * 1e-6,
     }

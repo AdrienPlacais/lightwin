@@ -18,7 +18,8 @@ from cycler import cycler
 
 import util.helper as helper
 import util.tracewin_interface as tw
-from util.dicts_output import d_markdown, d_plot_kwargs, d_lw_to_tw, d_scale_tw_to_lw
+import util.dicts_output as dic
+# from util.dicts_output import dic.d_markdown, dic.d_plot_kwargs, dic.d_lw_to_tw, dic.d_scale_tw_to_lw
 
 font = {'family': 'serif', 'size': 25}
 plt.rc('font', **font)
@@ -34,7 +35,7 @@ DICT_PLOT_PRESETS = {
                'l_y_str': ["w_kin", "w_kin_err", "struct"],
                'num': 21},
     "phase": {'x_str': 'z_abs',
-              'l_y_str': ["phi_abs_array", "phi_abs_err", "struct"],
+              'l_y_str': ["phi_abs_array", "phi_abs_array_err", "struct"],
               'num': 22},
     "cav": {'x_str': 'z_abs',
             'l_y_str': ["v_cav_mv", "k_e", "phi_s", "struct"],
@@ -53,7 +54,7 @@ DICT_PLOT_PRESETS = {
                         'num': 27},
 }
 DICT_ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'abs'},
-                      'phi_abs_err': {'scale': 1., 'diff': 'abs'},
+                      'phi_abs_array_err': {'scale': 1., 'diff': 'abs'},
                       }
 
 
@@ -69,8 +70,8 @@ def plot_preset(str_preset, *args, **kwargs):
     str_preset : string
         Key of DICT_PLOT_PRESETS.
     args : Accelerators
-        Accelerators to plot. In typical usage, *args = (Working, Broken,
-                                                         Fixed.)
+        Accelerators to plot. In typical usage,
+        *args = (Working, Broken, Fixed.)
     kwargs : dict
         Keys overriding DICT_PLOT_PRESETS and BASE_DICT.
     """
@@ -90,7 +91,7 @@ def plot_preset(str_preset, *args, **kwargs):
 
     fig, axx = create_fig_if_not_exists(len(l_y_str), sharex=True,
                                         num=kwargs['num'])
-    axx[-1].set_xlabel(d_markdown[x_str])
+    axx[-1].set_xlabel(dic.d_markdown[x_str])
 
     d_colors = {}
     for ax, y_str in zip(axx, l_y_str):
@@ -114,9 +115,9 @@ def plot_preset(str_preset, *args, **kwargs):
         ax.grid(True)
         if y_str[-3:] == 'err':
             diff = DICT_ERROR_PRESETS[y_str]['diff']
-            ax.set_ylabel(d_markdown['err_' + diff])
+            ax.set_ylabel(dic.d_markdown['err_' + diff])
             continue
-        ax.set_ylabel(d_markdown[y_str])
+        ax.set_ylabel(dic.d_markdown[y_str])
         # TODO handle linear vs log
 
     axx[0].legend()
@@ -138,7 +139,8 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
 
     plot_error = y_str[-3:] == 'err'
     if plot_error:
-        x_data, y_data, l_kwargs = _err2(x_str, y_str, *args, plot_tw=plot_tw, reference=reference)
+        x_data, y_data, l_kwargs = _err2(x_str, y_str, *args, plot_tw=plot_tw,
+                                         reference=reference)
         return x_data, y_data, l_kwargs
 
     for arg in args:
@@ -164,12 +166,13 @@ def _data_from(x_str, y_str, arg, tw_source=None):
 
     x_dat, y_dat = getter(x_str, arg), getter(y_str, arg)
 
-    kw = d_plot_kwargs[y_str].copy()
+    kw = dic.d_plot_kwargs[y_str].copy()
     kw['label'] = arg.name
     if not from_lw:
         kw['ls'] = '--'
         kw['label'] = 'TW ' + kw['label']
     return x_dat, y_dat, kw
+
 
 def _data_from_lw(data_str, linac):
     """Get the data calculated by LightWin."""
@@ -177,28 +180,29 @@ def _data_from_lw(data_str, linac):
     return data
 
 
-def _data_from_tw(data_str, d_tw, warn_missing=True):
+def _data_from_tw(data_str, d_tw, warn_missing=False):
     """Get the data calculated by TraceWin, already loaded."""
-    # Handle conversion issues
-    scale = 1.
-    if data_str in d_scale_tw_to_lw.keys():
-        scale = d_scale_tw_to_lw[data_str]
+    out = None
 
     # Data recomputed from TW simulation
     if data_str in d_tw.keys():
-        return d_tw[data_str] * scale
+        out = d_tw[data_str]
 
     # Raw data from TW simulation
-    key = d_lw_to_tw[data_str]
-    if key in d_tw.keys():
-        return d_tw[key] * scale
+    if data_str in dic.d_lw_to_tw.keys():
+        key = dic.d_lw_to_tw[data_str]
+        if key in d_tw.keys():
+            out = d_tw[key]
 
+    # If need to be rescaled or modified
+    if out is not None and data_str in dic.d_lw_to_tw_func.keys():
+        out = dic.d_lw_to_tw_func[data_str](out)
 
     # Not implemented
-    if warn_missing:
+    if warn_missing and out is None:
         helper.printc("plot._data_from_tw warning: ",
                       opt_message=f"{data_str} not found for TW.")
-    return None
+    return out
 
 
 def _err2(x_str, y_str, *args, plot_tw=False, reference=None):
@@ -227,20 +231,32 @@ def _err2(x_str, y_str, *args, plot_tw=False, reference=None):
         x_ref, y_ref, _ = _data_from(x_str, key, args[0],
                                      tw_source=d_ref[reference])
         __x, __y, kw = _data_from(x_str, key, arg)
-        if __y is None:
-            continue
-
-        if __y.shape != y_ref.shape:
-            # Upsample or downsample
-            # __x, __y = resample(x_ref, y_ref, __x, __y)
-            raise IOError("not implemented")
 
         x_data.append(__x)
-        y_data.append(fun_diff(y_ref, __y))
+        diff = None
+        if __y is not None:
+            if __y.shape != y_ref.shape:
+                x_ref, y_ref, __x, __y = helper.resample(x_ref, y_ref,
+                                                         __x, __y)
+            diff = fun_diff(y_ref, __y)
+        y_data.append(diff)
         l_kwargs.append(kw)
 
         if plot_tw:
-            raise IOError("not implemented")
+            # Get reference data
+            x_ref, y_ref, _ = _data_from(x_str, key, args[0],
+                                         tw_source=d_ref[reference])
+            __x, __y, kw = _data_from(x_str, key, arg, tw_source='multipart')
+
+            x_data.append(__x)
+            diff = None
+            if __y is not None:
+                if __y.shape != y_ref.shape:
+                    x_ref, y_ref, __x, __y = helper.resample(x_ref, y_ref,
+                                                             __x, __y)
+                diff = fun_diff(y_ref, __y)
+            y_data.append(diff)
+            l_kwargs.append(kw)
 
     return x_data, y_data, l_kwargs
 
@@ -448,14 +464,14 @@ def compare_with_tracewin(linac, x_str='z_abs', **kwargs):
             l_y_dat.append(_err(linac, kwargs["l_y_str"][i - 1], diff=diff,
                                 **kwargs))
             l_kwargs.append(
-                d_plot_kwargs[kwargs["l_y_str"][i - 1]] | {
+                dic.d_plot_kwargs[kwargs["l_y_str"][i - 1]] | {
                     'label': linac.name + 'err. w/ TW'}
             )
 
         if plot_tw:
             l_y_dat.append(tw.load_tw_results(kwargs["filepath_ref"], y_str))
             l_kwargs.append(
-                d_plot_kwargs[y_str] | {'label': label_tw, 'c': 'k', 'lw': 2.,
+                dic.d_plot_kwargs[y_str] | {'label': label_tw, 'c': 'k', 'lw': 2.,
                                         'ls': '--'}
             )
 
@@ -463,7 +479,7 @@ def compare_with_tracewin(linac, x_str='z_abs', **kwargs):
             # LightWin
             l_y_dat.append(linac.get(y_str, to_deg=True))
             l_kwargs.append(
-                d_plot_kwargs[y_str] | {'label': label_lw}
+                dic.d_plot_kwargs[y_str] | {'label': label_lw}
             )
 
         for y_dat, other_kwargs in zip(l_y_dat, l_kwargs):
@@ -472,11 +488,11 @@ def compare_with_tracewin(linac, x_str='z_abs', **kwargs):
 
             axx[i].plot(x_plot, y_plot, **other_kwargs)
 
-        axx[i].set_ylabel(d_markdown[y_str])
+        axx[i].set_ylabel(dic.d_markdown[y_str])
         axx[i].grid(True)
 
     axx[0].legend()
-    axx[-1].set_xlabel(d_markdown[x_str])
+    axx[-1].set_xlabel(dic.d_markdown[x_str])
 
 
 # =============================================================================
