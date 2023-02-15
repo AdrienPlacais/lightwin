@@ -19,7 +19,6 @@ from cycler import cycler
 import util.helper as helper
 import util.tracewin_interface as tw
 import util.dicts_output as dic
-# from util.dicts_output import dic.d_markdown, dic.d_plot_kwargs, dic.d_lw_to_tw, dic.d_scale_tw_to_lw
 
 font = {'family': 'serif', 'size': 25}
 plt.rc('font', **font)
@@ -28,7 +27,7 @@ plt.rcParams["figure.figsize"] = (19.2, 11.24)
 plt.rcParams["figure.dpi"] = 100
 
 BASE_DICT = {'x_str': 'z_abs', 'reference': 'LW', 'replot_lw': False,
-             'plot_section': True, 'plot_tw': False,
+             'plot_section': True, 'plot_tw': False, 'clean_fig': False,
              'sharex': True}
 DICT_PLOT_PRESETS = {
     "energy": {'x_str': 'z_abs',
@@ -91,7 +90,8 @@ def plot_preset(str_preset, *args, **kwargs):
     plot_tw = kwargs['plot_tw']
 
     fig, axx = create_fig_if_not_exists(len(l_y_str), sharex=True,
-                                        num=kwargs['num'])
+                                        num=kwargs['num'],
+                                        kwargs['clean_fig']=True)
     axx[-1].set_xlabel(dic.d_markdown[x_str])
 
     d_colors = {}
@@ -290,7 +290,7 @@ def _savefig(fig, filepath):
 # =============================================================================
 # Basic helpers
 # =============================================================================
-def create_fig_if_not_exists(axnum, sharex=False, num=1):
+def create_fig_if_not_exists(axnum, sharex=False, num=1, clean=False):
     """
     Check if figures were already created, create it if not.
 
@@ -312,6 +312,9 @@ def create_fig_if_not_exists(axnum, sharex=False, num=1):
     if plt.fignum_exists(num):
         fig = plt.figure(num)
         axlist = fig.get_axes()
+
+        if clean:
+            _clean_fig([num])
         return fig, axlist
 
     fig = plt.figure(num)
@@ -326,7 +329,7 @@ def create_fig_if_not_exists(axnum, sharex=False, num=1):
 
 
 # TODO still used?
-def clean_fig(fignumlist):
+def _clean_fig(fignumlist):
     """Clean axis of Figs in fignumlist."""
     for fignum in fignumlist:
         fig = plt.figure(fignum)
@@ -335,7 +338,7 @@ def clean_fig(fignumlist):
 
 
 # TODO still used?
-def empty_fig(fignum):
+def _empty_fig(fignum):
     """Return True if at least one axis of Fig(fignum) has no line."""
     out = False
     if plt.fignum_exists(fignum):

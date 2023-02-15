@@ -37,6 +37,11 @@ if __name__ == '__main__':
              'k': 1, 'l': 2, 'manual list': [],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
+    failed_0a = [14]
+    wtf_0a = {'opti method': 'least_squares', 'strategy': 'k out of n',
+             'k': 1, 'l': 2, 'manual list': [],
+             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'position': 'end_mod', 'phi_s fit': True}
 
     failed_1 = [[12]]
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
@@ -100,9 +105,9 @@ if __name__ == '__main__':
     # =========================================================================
     PLOTS = [
         "energy",
-        # "phase",
+        "phase",
         # "cav", # TODO
-        # "emittance",
+        "emittance",
         # "twiss",  # TODO
         # "envelopes", # FIXME
         # "transfer matrices", # TODO
@@ -138,8 +143,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_0]
-    l_wtf = [wtf_0]
+    l_failed = [failed_0, failed_0a]
+    l_wtf = [wtf_0, wtf_0a]
 
     lw_fit_evals = []
 
@@ -162,7 +167,7 @@ if __name__ == '__main__':
         # Output some info onthe quality of the fit
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
-        print(f"\n\nElapsed time: {delta_t}")
+        print(f"\n\nElapsed time: {delta_t}\n")
 
         # Update the .dat filecontent
         tw.update_dat_with_fixed_cavities(lin.get('dat_filecontent'), lin.elts,
@@ -191,12 +196,7 @@ if __name__ == '__main__':
     l_bruce = []
     if FLAG_TW:
         for lin in linacs:
-            # We get the data from a previously made TW simulation
-            # if 'Working' in lin.name:
-            #     lin.store_tracewin_results()
-            #     continue
-
-            # It would be a loss of time to do these simulations
+            # It would be a loss of time to do these simulation
             if 'Broken' in lin.name:
                 continue
 
@@ -226,7 +226,7 @@ if __name__ == '__main__':
 # =============================================================================
 # Plot
 # =============================================================================
-    kwargs = {'plot_tw': FLAG_TW, 'save_fig': SAVE_FIX}
+    kwargs = {'plot_tw': FLAG_TW, 'save_fig': SAVE_FIX, 'clean_fig': True}
     for i in range(len(l_wtf)):
         for str_plot in PLOTS:
             # Plot the reference linac, i-th broken linac and corresponding
