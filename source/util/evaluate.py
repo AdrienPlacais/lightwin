@@ -15,6 +15,7 @@ from cycler import cycler
 
 from util import helper
 from core.emittance import mismatch_factor
+import visualization.plot
 
 font = {'family': 'serif',
         'size': 20}
@@ -42,21 +43,36 @@ def fred_tests(lin_ref, lin_fix, multipart=True, plot=True):
     d_ref = lin_ref.tw_results[source]
     d_fix = lin_fix.tw_results[source]
 
+    l_d_ref = []
+    l_d_fix = []
+    l_d_lim = []
+
     d_tests = {'Powlost': True, 'ex': True, 'ey': True, 'ep': True,
                'ex99': True, 'ey99': True, 'ep99': True}
-    z_m = d_fix['z(m)']
 
     # Power loss test
     pow_lost = d_fix['Powlost']
     if pow_lost[-1] > 1e-10:
         d_tests['Powlost'] = False
+    l_d_ref.append({'Powlost': d_ref['Powlost']})
+    l_d_fix.append({'Powlost': d_fix['Powlost']})
+    l_d_lim.append({'Powlost': {'max': None, 'min': None}})
 
     # RMS emittances test
     eps_rms = np.column_stack((d_fix['ex'], d_fix['ey'], d_fix['ep']))
     var_rms = 100. * (eps_rms - eps_rms[0, :]) / eps_rms[0, :]
+    tmp_ref = {}
+    tmp_fix = {}
+    tmp_lim = {}
     for i, key in enumerate(['ex', 'ey', 'ep']):
+        tmp_ref[key] = d_ref[key]
+        tmp_fix[key] = d_fix[key]
+        tmp_lim[key] = {'max': 1.2 * d_ref[key], 'min': None}
         if np.any(var_rms[:, i] > 20.):
             d_tests[key] = False
+    l_d_ref.append(tmp_ref)
+    l_d_fix.append(tmp_fix)
+    l_d_lim.append(tmp_lim)
 
     # 99% emittances test
     eps99_fix = np.max(
@@ -64,12 +80,22 @@ def fred_tests(lin_ref, lin_fix, multipart=True, plot=True):
     eps99_ref = np.max(
         np.column_stack((d_ref['ex99'], d_ref['ey99'], d_ref['ep99'])), axis=0)
 
+    tmp_ref = {}
+    tmp_fix = {}
+    tmp_lim = {}
     for i, key in enumerate(['ex99', 'ey99', 'ep99']):
+        tmp_ref[key] = d_ref[key]
+        tmp_fix[key] = d_fix[key]
+        tmp_lim[key] = {'max': 1.3 * np.max(d_ref[key]), 'min': None}
         if eps99_fix[i] > 1.3 * eps99_ref[i]:
             d_tests[key] = False
+    l_d_ref.append(tmp_ref)
+    l_d_fix.append(tmp_fix)
+    l_d_lim.append(tmp_lim)
 
-    # if plot:
-    #     _plot_fred_tests(z_m, pow_lost, var_rms, eps99, eps99_ref)
+    if plot:
+        z_m = d_fix['z(m)']
+        visualization.plot.plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, save_fig=True)
 
     return d_tests
 

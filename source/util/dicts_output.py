@@ -52,7 +52,9 @@ d_markdown = {
     'err_log': "log of rel. error",
     # ListOfElements
     # TraceWin
-    'lost power': "Lost power [W]"
+    'Powlost': "Lost power [W]",
+    'ex': r"TODO", 'ey': r"TODO", 'ep': r"TODO",
+    'ex99': r"TODO", 'ey99': r"TODO", 'ep99': r"TODO",
 }
 
 d_plot_kwargs = {

@@ -143,8 +143,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_0, failed_0a]
-    l_wtf = [wtf_0, wtf_0a]
+    l_failed = [failed_0]#, failed_0a]
+    l_wtf = [wtf_0]#, wtf_0a]
 
     lw_fit_evals = []
 

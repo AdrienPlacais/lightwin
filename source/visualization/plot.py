@@ -128,6 +128,42 @@ def plot_preset(str_preset, *args, **kwargs):
         _savefig(fig, file)
 
 
+def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim=None, save_fig=True):
+    """Plot data from util.evaluate."""
+    num = 60
+    x_str = 'z_abs'
+
+    for i, (d_ref, d_fix, d_lim) in enumerate(zip(l_d_ref, l_d_fix, l_d_lim)):
+        n_axes = len(d_ref)
+        num += 1
+        fig, axx = create_fig_if_not_exists(n_axes, sharex=True, num=num,
+                                            clean_fig=True)
+        axx[-1].set_xlabel(dic.d_markdown[x_str])
+        # TODO : structure plot (needs a linac)
+
+        for ax, (key, ref), fix, lim in zip(axx, d_ref.items(), d_fix.values(),
+                                            d_lim.values()):
+            ax.set_ylabel(dic.d_markdown[key])
+            ax.grid(True)
+            ax.plot(z_m, fix, label="TW ref")
+            ax.plot(z_m, ref, label="TW fix")
+
+            for key_lim in ['max', 'min']:
+                if key_lim in lim.keys() and lim[key_lim] is not None:
+                    dat = lim[key_lim]
+                    if isinstance(dat, float):
+                        ax.axhline(dat, c='r', ls='--')
+                        continue
+
+                    ax.plot(z_m, dat, c='r', ls='--')
+
+        axx[0].legend()
+
+        if save_fig:
+            print("implement a save fig in plot_evaluate")
+
+
+
 # =============================================================================
 # Used in plot_preset
 # =============================================================================
