@@ -97,7 +97,7 @@ class Accelerator():
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
-        self.tw_results = {'envelope': {}, 'multipart': {},
+        self.tw_results = {'envelope': {}, 'multipart': {}, 'cav_param': {},
                            'transf_mat': np.empty((0))}
 
     def has(self, key):
@@ -353,19 +353,17 @@ class Accelerator():
         """Take the results created by TraceWin."""
         folder = self.get('out_tw')
 
-        # Currently, we do not run TW simulations for the reference linac every
-        # time. Just take from the results folder
-        # if self.name == 'Working':
-            # folder = os.path.join(self.get('orig_dat_folder'), 'results')
-
         self.tw_results['envelope'] = tw.get_multipart_tw_results(
             folder, filename='tracewin.out')
 
         self.tw_results['multipart'] = tw.get_multipart_tw_results(
             folder, filename='partran1.out')
 
-        _, _, self.tw_results['transf_mat'] = tw.get_transfer_matrices_new(
+        _, _, self.tw_results['transf_mat'] = tw.get_transfer_matrices(
             folder, filename='Transfer_matrix1.dat')
+
+        self.tw_results['cav_param'] = tw.get_tw_cav_param(
+            folder, filename='Cav_set_point_res.dat')
 
     def precompute_some_tracewin_results(self):
         for dic in [self.tw_results['envelope'], self.tw_results['multipart']]:

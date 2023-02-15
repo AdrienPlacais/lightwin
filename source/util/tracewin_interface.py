@@ -313,8 +313,7 @@ def output_data_in_tw_fashion(linac):
     return data
 
 
-def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin",
-           **kwargs):
+def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin", **kwargs):
     """Prepare arguments and run TraceWin."""
     l_keys = ["dat_file", "path_cal"]
     l_values = [os.path.abspath(linac.get("dat_filepath")),
@@ -367,7 +366,7 @@ def get_multipart_tw_results(folder, filename='partran1.out'):
     return d_out
 
 
-def get_transfer_matrices_new(folder, filename='Transfer_matrix1.dat',
+def get_transfer_matrices(folder, filename='Transfer_matrix1.dat',
                               high_def=False):
     """Get the full transfer matrices calculated by TraceWin."""
     if high_def:
@@ -397,6 +396,26 @@ def get_transfer_matrices_new(folder, filename='Transfer_matrix1.dat',
             # Save transfer matrix
             if (i + 1) % 7 == 0:
                 t_m.append(data)
-    printc("tracewin_interface.get_transfer_matrices_new info: ",
+    printc("tracewin_interface.get_transfer_matrices info: ",
            opt_message=f"Successfully loaded {f_p}")
     return np.array(num), np.array(z_m), np.array(t_m)
+
+
+def get_tw_cav_param(folder, filename='Cav_set_point_res.dat'):
+    """Get the cavity parameters."""
+    f_p = os.path.join(folder, filename)
+    n_lines_header = 1
+    d_out = {}
+
+    with open(f_p) as file:
+        for i, line in enumerate(file):
+            if i == n_lines_header - 1:
+                headers = line.strip().split()
+                break
+
+    out = np.loadtxt(f_p, skiprows=n_lines_header)
+    for i, key in enumerate(headers):
+        d_out[key] = out[:, i]
+    printc("tracewin_interface.get_tw_cav_param info: ",
+           opt_message=f"Successfully loaded {f_p}")
+    return d_out

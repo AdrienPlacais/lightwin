@@ -33,6 +33,7 @@ d_markdown = {
     'envelope_energy_w': r"$\sigma_\phi$ [MeV]",
     'mismatch factor': r"$M$",
     # Element
+    'elt_idx': "Element index",
     'elt number': "Element number",
     # RfField
     'v_cav_mv': "Acc. field [MV]",
@@ -89,7 +90,7 @@ d_plot_kwargs = {
     'envelope_energy_w': {'marker': None},
     'mismatch factor': {'marker': None},
     # Element
-    'elt number': {'marker': None},
+    'elt_idx': {'marker': None},
     # RfField
     'v_cav_mv': {'marker': 'o'},
     'phi_s': {'marker': 'o'},
@@ -117,10 +118,11 @@ d_lw_to_tw = {
     'envelope_energy_w': 'spW',
     'envelope_energy_zdelta': 'szdp',
     # Element
+    'elt_idx': 'Cav#',
     'elt number': '##',
-    # TODO RfField
-    # 'v_cav_mv':,
-    # 'phi_s':,
+    # RfField
+    'v_cav_mv': 'Voltage[MV]',
+    'phi_s': 'SyncPhase[°]',
     # 'k_e':
     # Particle
     'z_abs': 'z(m)',

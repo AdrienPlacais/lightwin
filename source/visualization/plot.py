@@ -36,8 +36,8 @@ DICT_PLOT_PRESETS = {
     "phase": {'x_str': 'z_abs',
               'l_y_str': ["phi_abs_array", "phi_abs_array_err", "struct"],
               'num': 22},
-    "cav": {'x_str': 'z_abs',
-            'l_y_str': ["v_cav_mv", "k_e", "phi_s", "struct"],
+    "cav": {'x_str': 'elt_idx',
+            'l_y_str': ["v_cav_mv", "phi_s", "struct"],
             'num': 23},
     "emittance": {'x_str': 'z_abs',
                   'l_y_str': ["eps_zdelta", "struct"],
@@ -166,7 +166,6 @@ def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
             _savefig(fig, file)
 
 
-
 # =============================================================================
 # Used in plot_preset
 # =============================================================================
@@ -175,6 +174,10 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
     x_data = []
     y_data = []
     l_kwargs = []
+
+    tw_source = 'multipart'
+    if y_str in ['v_cav_mv', 'phi_s']:  # FIXME
+        tw_source = 'cav_param'
 
     plot_error = y_str[-3:] == 'err'
     if plot_error:
@@ -188,8 +191,7 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
 
         # TODO handle multipart or envelope
         if plot_tw:
-            x_dat, y_dat, kw = _data_from(x_str, y_str, arg,
-                                          tw_source='multipart')
+            x_dat, y_dat, kw = _data_from(x_str, y_str, arg, tw_source=tw_source)
             x_data.append(x_dat), y_data.append(y_dat), l_kwargs.append(kw)
 
     return x_data, y_data, l_kwargs
@@ -198,6 +200,7 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
 def _data_from(x_str, y_str, arg, tw_source=None):
     """Get data."""
     from_lw = tw_source is None
+    print(tw_source)
     d_getter = {
         False: lambda x, arg: _data_from_tw(x, arg.tw_results[tw_source]),
         True: lambda x, arg: _data_from_lw(x, arg)}
@@ -219,7 +222,7 @@ def _data_from_lw(data_str, linac):
     return data
 
 
-def _data_from_tw(data_str, d_tw, warn_missing=False):
+def _data_from_tw(data_str, d_tw, warn_missing=True):
     """Get the data calculated by TraceWin, already loaded."""
     out = None
 
@@ -433,7 +436,7 @@ def _plot_structure(linac, ax, x_axis='z_abs'):
             [linac.elts[0].get('abs_mesh')[0],
              linac.elts[-1].get('abs_mesh')[-1]]
         ],
-        'elt': lambda elt, i: [
+        'elt_idx': lambda elt, i: [
             {'x0': i, 'width': 1},
             [0, i]
         ]
@@ -493,8 +496,8 @@ def _plot_section(linac, ax, x_axis='z_abs'):
     """Add light grey rectangles behind the plot to show the sections."""
     dict_x_axis = {
         'last_elt_of_sec': lambda sec: sec[-1][-1],
-        'z_abs': lambda elt: linac.synch.pos['z_abs'][elt.idx['s_out']],
-        'elt': lambda elt: elt.idx['element'] + 1,
+        'z_abs': lambda elt: linac.get('z_abs')[elt.idx['s_out']],
+        'elt_idx': lambda elt: elt.get('elt_idx') + 1,
     }
     x_ax = [0]
     for i, section in enumerate(linac.elements['l_sections']):
