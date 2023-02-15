@@ -128,7 +128,8 @@ def plot_preset(str_preset, *args, **kwargs):
         _savefig(fig, file)
 
 
-def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim=None, save_fig=True):
+def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
+                  save_fig=True):
     """Plot data from util.evaluate."""
     num = 60
     x_str = 'z_abs'
@@ -146,7 +147,7 @@ def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim=None, save_fig=True):
             ax.set_ylabel(dic.d_markdown[key])
             ax.grid(True)
             ax.plot(z_m, fix, label="TW ref")
-            ax.plot(z_m, ref, label="TW fix")
+            ax.plot(z_m, ref, label=lin_fix.name)
 
             for key_lim in ['max', 'min']:
                 if key_lim in lim.keys() and lim[key_lim] is not None:
@@ -160,7 +161,9 @@ def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim=None, save_fig=True):
         axx[0].legend()
 
         if save_fig:
-            print("implement a save fig in plot_evaluate")
+            file = os.path.join(lin_fix.get('out_lw'), '..',
+                                f"{evaluation}_{i}.png")
+            _savefig(fig, file)
 
 
 

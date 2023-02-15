@@ -95,37 +95,10 @@ def fred_tests(lin_ref, lin_fix, multipart=True, plot=True):
 
     if plot:
         z_m = d_fix['z(m)']
-        visualization.plot.plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, save_fig=True)
+        visualization.plot.plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim,
+                                         lin_fix, 'fred', save_fig=True)
 
     return d_tests
-
-
-def _plot_fred_tests(z_m, pow_lost, var_rms, eps_99, eps_99_ref):
-    """Plot quantities and their limits for flags test."""
-    fig, axx = plt.subplots(3, 1)
-    axx[0].set_ylabel('Lost power [%]')
-    axx[1].set_ylabel(r'$\Delta\epsilon_{RMS}/\epsilon_{RMS}^{z_0}$ [%]')
-    axx[2].set_ylabel(r'$\epsilon_{99}$')
-    axx[-1].set_xlabel('Position [m]')
-
-    axx[0].plot(z_m, pow_lost)
-
-    lab = ['ex', 'ey', 'ep']
-    for i in range(3):
-        axx[1].plot(z_m, var_rms[:, i], label=lab[i])
-    axx[1].axhline(20, xmin=z_m[0], xmax=z_m[-1], c='r', lw=4)
-    axx[1].legend()
-
-    for i in range(3):
-        line, = axx[2].plot(z_m, eps_99_ref[:, i], label='ref', ls='--')
-        axx[2].plot(z_m, eps_99[:, i], label='fix', color=line.get_color())
-        axx[2].axhline(1.3 * np.max(eps_99_ref[:, i]),
-                       xmin=z_m[0], xmax=z_m[-1], lw=4, color=line.get_color())
-        if i == 0:
-            axx[2].legend()
-
-    for i in range(3):
-        axx[i].grid(True)
 
 
 def bruce_tests(lin_ref, lin_fix, multipart=True, plot=False):
