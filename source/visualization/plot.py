@@ -89,9 +89,9 @@ def plot_preset(str_preset, *args, **kwargs):
     x_str, l_y_str = kwargs['x_str'], kwargs['l_y_str']
     plot_tw = kwargs['plot_tw']
 
-    fig, axx = create_fig_if_not_exists(len(l_y_str), sharex=True,
-                                        num=kwargs['num'],
-                                        kwargs['clean_fig']=True)
+    fig, axx = create_fig_if_not_exists(
+        len(l_y_str), sharex=True, num=kwargs['num'],
+        clean_fig=kwargs['clean_fig'])
     axx[-1].set_xlabel(dic.d_markdown[x_str])
 
     d_colors = {}
@@ -290,7 +290,7 @@ def _savefig(fig, filepath):
 # =============================================================================
 # Basic helpers
 # =============================================================================
-def create_fig_if_not_exists(axnum, sharex=False, num=1, clean=False):
+def create_fig_if_not_exists(axnum, sharex=False, num=1, clean_fig=False):
     """
     Check if figures were already created, create it if not.
 
@@ -313,7 +313,7 @@ def create_fig_if_not_exists(axnum, sharex=False, num=1, clean=False):
         fig = plt.figure(num)
         axlist = fig.get_axes()
 
-        if clean:
+        if clean_fig:
             _clean_fig([num])
         return fig, axlist
 

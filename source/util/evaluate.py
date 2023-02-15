@@ -23,7 +23,7 @@ plt.rc('axes', prop_cycle=(cycler('color', Dark2_8.mpl_colors)))
 plt.rc('mathtext', fontset='cm')
 
 
-def multipart_flags_test(lin_ref, lin_fix, multipart=True, plot=True):
+def fred_tests(lin_ref, lin_fix, multipart=True, plot=True):
     """
     Check if the new settings are ok.
 
@@ -42,39 +42,39 @@ def multipart_flags_test(lin_ref, lin_fix, multipart=True, plot=True):
     d_ref = lin_ref.tw_results[source]
     d_fix = lin_fix.tw_results[source]
 
-    d_valid = {'Powlost': True, 'e': True, 'e99': True}
+    d_tests = {'Powlost': True, 'ex': True, 'ey': True, 'ep': True,
+               'ex99': True, 'ey99': True, 'ep99': True}
     z_m = d_fix['z(m)']
 
     # Power loss test
     pow_lost = d_fix['Powlost']
     if pow_lost[-1] > 1e-10:
-        print("Loss of power!")
-        d_valid['Powlost'] = False
+        d_tests['Powlost'] = False
 
     # RMS emittances test
     eps_rms = np.column_stack((d_fix['ex'], d_fix['ey'], d_fix['ep']))
     var_rms = 100. * (eps_rms - eps_rms[0, :]) / eps_rms[0, :]
-    if np.any(np.where(var_rms > 20.)):
-        print("The RMS emittance is too damn high!")
-        d_valid['e'] = False
+    for i, key in enumerate(['ex', 'ey', 'ep']):
+        if np.any(var_rms[:, i] > 20.):
+            d_tests[key] = False
 
     # 99% emittances test
-    eps99 = np.column_stack((d_fix['ex99'], d_fix['ey99'], d_fix['ep99']))
-    eps99_ref = np.column_stack((d_ref['ex99'], d_ref['ey99'], d_ref['ep99']))
+    eps99_fix = np.max(
+        np.column_stack((d_fix['ex99'], d_fix['ey99'], d_fix['ep99'])), axis=0)
+    eps99_ref = np.max(
+        np.column_stack((d_ref['ex99'], d_ref['ey99'], d_ref['ep99'])), axis=0)
 
-    var_max_99 = 100. * (np.max(eps99, axis=0) - np.max(eps99_ref, axis=0)) \
-        / np.max(eps99, axis=0)
-    if np.any(var_max_99 > 30.):
-        print("The 99% emittance is too damn high!")
-        d_valid['e99'] = False
+    for i, key in enumerate(['ex99', 'ey99', 'ep99']):
+        if eps99_fix[i] > 1.3 * eps99_ref[i]:
+            d_tests[key] = False
 
-    if plot:
-        _plot_multipart_flags_test(z_m, pow_lost, var_rms, eps99, eps99_ref)
+    # if plot:
+    #     _plot_fred_tests(z_m, pow_lost, var_rms, eps99, eps99_ref)
 
-    return d_valid
+    return d_tests
 
 
-def _plot_multipart_flags_test(z_m, pow_lost, var_rms, eps_99, eps_99_ref):
+def _plot_fred_tests(z_m, pow_lost, var_rms, eps_99, eps_99_ref):
     """Plot quantities and their limits for flags test."""
     fig, axx = plt.subplots(3, 1)
     axx[0].set_ylabel('Lost power [%]')

@@ -192,7 +192,7 @@ if __name__ == '__main__':
 # =============================================================================
 # TraceWin
 # =============================================================================
-    l_multipart_flags = []
+    l_fred = []
     l_bruce = []
     if FLAG_TW:
         for lin in linacs:
@@ -211,17 +211,18 @@ if __name__ == '__main__':
 
             lin.precompute_some_tracewin_results()
 
-        #     multipart_flags = evaluate.multipart_flags_test(linacs[0], lin)
-        #     l_multipart_flags.append(multipart_flags)
             if 'Fixed' in lin.name:
+                d_fred = evaluate.fred_tests(linacs[0], lin)
+                l_fred.append(d_fred)
+
                 d_bruce = evaluate.bruce_tests(linacs[0], lin)
                 l_bruce.append(d_bruce)
 
-        # for _list, name in zip([l_multipart_flags, l_bruce],
-        #                        ['test_flags.csv', 'test_bruce.csv']):
-        #     out = pd.DataFrame(_list)
-        #     filepath = os.path.join(PROJECT_FOLDER, name)
-        #     out.to_csv(filepath)
+        for _list, name in zip([l_fred, l_bruce],
+                                ['fred_tests.csv', 'bruce_tests.csv']):
+            out = pd.DataFrame(_list)
+            filepath = os.path.join(PROJECT_FOLDER, name)
+            out.to_csv(filepath)
 
 # =============================================================================
 # Plot
