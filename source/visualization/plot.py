@@ -146,8 +146,8 @@ def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
                                             d_fix.values(), d_lim.values()):
             ax.set_ylabel(dic.d_markdown[key])
             ax.grid(True)
-            ax.plot(z_m, fix, label="TW ref")
-            ax.plot(z_m, ref, label=lin_fix.name)
+            ax.plot(z_m, ref, label="TW ref")
+            ax.plot(z_m, fix, label=lin_fix.name)
 
             for key_lim in ['max', 'min']:
                 if key_lim in lim.keys() and lim[key_lim] is not None:

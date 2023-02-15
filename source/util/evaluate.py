@@ -75,10 +75,10 @@ def fred_tests(lin_ref, lin_fix, multipart=True, plot=True):
     l_d_lim.append(tmp_lim)
 
     # 99% emittances test
-    eps99_fix = np.max(
-        np.column_stack((d_fix['ex99'], d_fix['ey99'], d_fix['ep99'])), axis=0)
     eps99_ref = np.max(
         np.column_stack((d_ref['ex99'], d_ref['ey99'], d_ref['ep99'])), axis=0)
+    eps99_fix = np.max(
+        np.column_stack((d_fix['ex99'], d_fix['ey99'], d_fix['ep99'])), axis=0)
 
     tmp_ref = {}
     tmp_fix = {}
