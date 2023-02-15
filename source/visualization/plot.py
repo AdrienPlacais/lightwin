@@ -135,15 +135,15 @@ def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
     x_str = 'z_abs'
 
     for i, (d_ref, d_fix, d_lim) in enumerate(zip(l_d_ref, l_d_fix, l_d_lim)):
-        n_axes = len(d_ref)
+        n_axes = len(d_ref) + 1
         num += 1
         fig, axx = create_fig_if_not_exists(n_axes, sharex=True, num=num,
                                             clean_fig=True)
         axx[-1].set_xlabel(dic.d_markdown[x_str])
         # TODO : structure plot (needs a linac)
 
-        for ax, (key, ref), fix, lim in zip(axx, d_ref.items(), d_fix.values(),
-                                            d_lim.values()):
+        for ax, (key, ref), fix, lim in zip(axx[:-1], d_ref.items(),
+                                            d_fix.values(), d_lim.values()):
             ax.set_ylabel(dic.d_markdown[key])
             ax.grid(True)
             ax.plot(z_m, fix, label="TW ref")
@@ -159,6 +159,7 @@ def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
                     ax.plot(z_m, dat, c='r', ls='--')
 
         axx[0].legend()
+        _plot_structure(lin_fix, axx[-1], x_axis=x_str)
 
         if save_fig:
             file = os.path.join(lin_fix.get('out_lw'), '..',
