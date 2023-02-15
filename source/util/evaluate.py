@@ -91,12 +91,13 @@ def fred_tests(lin_ref, lin_fix, multipart=True, plot=True):
 
         z_m = d_fix['z(m)']
         visualization.plot.plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim,
-                                         lin_fix, 'fred', save_fig=True)
+                                         lin_fix, 'fred', save_fig=True,
+                                         num=60)
 
     return d_tests
 
 
-def bruce_tests(lin_ref, lin_fix, multipart=True, plot=False):
+def bruce_tests(lin_ref, lin_fix, multipart=True, plot=True):
     """Test the fixed linac using Bruce's paper."""
     source = "multipart"
     if not multipart:
@@ -104,6 +105,7 @@ def bruce_tests(lin_ref, lin_fix, multipart=True, plot=False):
 
     d_ref = lin_ref.tw_results[source]
     d_fix = lin_fix.tw_results[source]
+    l_d_fix = []
 
     d_tests = {'relative_var_et': None,
                'relative_var_ep': None,
@@ -111,12 +113,14 @@ def bruce_tests(lin_ref, lin_fix, multipart=True, plot=False):
                'mismatch_zdp': None,
                'max_retuned_power': None}
 
-    z_m = d_fix['z(m)']
     base = 'relative_var_'
+    tmp = {}
     for key in ['et', 'ep']:
         delta = 100. * (d_fix[key] - d_ref[key]) / d_ref[key]
         d_fix[base + key] = delta
         d_tests[base + key] = delta[-1]
+        tmp[base + key] = delta
+    l_d_fix.append(tmp)
 
     # Mismatch test
     mismatch = {'x': None, 'y': None, 'zdp': None}
@@ -128,34 +132,26 @@ def bruce_tests(lin_ref, lin_fix, multipart=True, plot=False):
 
     d_fix['mismatch_t'] = .5 * (mismatch['x'] + mismatch['y'])
     d_fix['mismatch_zdp'] = mismatch['zdp']
+    tmp = {}
     for key in ['mismatch_t', 'mismatch_zdp']:
         d_tests[key] = d_fix[key][-1]
+        tmp[key] = d_fix[key]
+    l_d_fix.append(tmp)
 
     if plot:
-        _plot_bruce_tests(z_m, delta, mismatch)
+        z_m = d_fix['z(m)']
+
+        l_d_ref = []
+        l_d_lim = []
+        for dic in l_d_fix:
+            tmp1, tmp2 = {}, {}
+            for key, val in dic.items():
+                tmp1[key] = val * np.NaN
+                tmp2[key] = {'max': None, 'min': None}
+            l_d_ref.append(tmp1)
+            l_d_lim.append(tmp2)
+        visualization.plot.plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim,
+                                         lin_fix, 'bruce', save_fig=True,
+                                         num=70)
 
     return d_tests
-
-
-def _plot_bruce_tests(z_m, delta_eps, mismatch):
-    """Output what is calculated."""
-    fig = plt.figure(50)
-    ax = fig.add_subplot(111)
-    ax.set_xlabel("z [m]")
-    ax.set_ylabel(r"$\Delta\epsilon/\epsilon_0$ (RMS)")
-    ax.plot(z_m, delta_eps["transv"], label="Transverse")
-    line, = ax.plot(z_m, delta_eps["long"], label="Longitudinal")
-
-    ax.legend()
-    ax.grid(True)
-
-    fig = plt.figure(51)
-    ax = fig.add_subplot(111)
-    ax.set_xlabel("z [m]")
-    ax.set_ylabel(r"$M$")
-    ax.plot(z_m, mismatch["xx'"], label="xx'")
-    ax.plot(z_m, mismatch["yy'"], label="yy'")
-    line1, = ax.plot(z_m, mismatch["zdp"], label="zdp")
-
-    ax.legend()
-    ax.grid(True)

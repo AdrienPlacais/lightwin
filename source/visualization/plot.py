@@ -129,9 +129,8 @@ def plot_preset(str_preset, *args, **kwargs):
 
 
 def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
-                  save_fig=True):
+                  save_fig=True, num=0):
     """Plot data from util.evaluate."""
-    num = 60
     x_str = 'z_abs'
 
     for i, (d_ref, d_fix, d_lim) in enumerate(zip(l_d_ref, l_d_fix, l_d_lim)):

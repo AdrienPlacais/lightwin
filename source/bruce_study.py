@@ -38,10 +38,6 @@ if __name__ == '__main__':
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
     failed_0a = [14]
-    wtf_0a = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 1, 'l': 2, 'manual list': [],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
 
     failed_1 = [[12]]
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
@@ -143,8 +139,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_0]#, failed_0a]
-    l_wtf = [wtf_0]#, wtf_0a]
+    l_failed = [failed_0, failed_0a]
+    l_wtf = [wtf_0, wtf_0]
 
     lw_fit_evals = []
 

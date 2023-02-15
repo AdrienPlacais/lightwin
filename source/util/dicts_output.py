@@ -60,6 +60,11 @@ d_markdown = {
     'ex99': r"Norm. 99% $\epsilon_{xx'}$ [$\pi$mm mrad]",
     'ey99': r"Norm. 99% $\epsilon_{yy'}$ [$\pi$mm mrad]",
     'ep99': r"Norm. 99% $\epsilon_{zz'}$ [$\pi$mm mrad]",  # NOT epsilon z dp/p
+    # util.evaluate
+    'relative_var_et': r'$\Delta\epsilon_t / \epsilon_{t, 0}$ [%]',
+    'relative_var_ep': r'$\Delta\epsilon_{\phi W} / \epsilon_{\phi W, 0}$ [%]',
+    'mismatch_t': r'$M_t$',
+    'mismatch_zdp': r'$M_l$',
 }
 
 d_plot_kwargs = {
