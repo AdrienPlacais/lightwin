@@ -53,8 +53,13 @@ d_markdown = {
     # ListOfElements
     # TraceWin
     'Powlost': "Lost power [W]",
-    'ex': r"TODO", 'ey': r"TODO", 'ep': r"TODO",
-    'ex99': r"TODO", 'ey99': r"TODO", 'ep99': r"TODO",
+    'ex': r"Norm. RMS $\epsilon_{xx'}$ [$\pi$mm mrad]",
+    'ey': r"Norm. RMS $\epsilon_{yy'}$ [$\pi$mm mrad]",
+    'ezdp': r"Norm. RMS $\epsilon_{zz'}$ [$\pi$mm mrad]",   # NOT epsilon z dp/p !!
+    'ep': r"Norm. RMS $\epsilon_{\phi W}$ [$\pi$deg MeV]",
+    'ex99': r"Norm. 99% $\epsilon_{xx'}$ [$\pi$mm mrad]",
+    'ey99': r"Norm. 99% $\epsilon_{yy'}$ [$\pi$mm mrad]",
+    'ep99': r"Norm. 99% $\epsilon_{zz'}$ [$\pi$mm mrad]",  # NOT epsilon z dp/p
 }
 
 d_plot_kwargs = {

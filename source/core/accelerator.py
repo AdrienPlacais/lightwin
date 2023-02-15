@@ -345,6 +345,7 @@ class Accelerator():
             'dat_file': self.get('dat_filepath'),
             # 'current1': 0,
             'nbr_part1': 100,
+            'random_seed': 23111993,
         }
         tw.run_tw(self, ini_path, **kwargs)
 
