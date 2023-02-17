@@ -40,7 +40,7 @@ if __name__ == '__main__':
     FLAG_FIX = True
     SAVE_FIX = True
     FLAG_TW = True
-    FLAG_EVALUATE = True
+    FLAG_EVALUATE = False
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
@@ -109,10 +109,10 @@ if __name__ == '__main__':
     # Outputs
     # =========================================================================
     PLOTS = [
-        "energy",
-        "phase",
+        # "energy",
+        # "phase",
         "cav",
-        "emittance",
+        # "emittance",
         # "twiss",  # TODO
         # "envelopes", # FIXME
         # "transfer matrices", # TODO
@@ -148,8 +148,8 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_0]#, failed_0a]
-    l_wtf = [wtf_0]#, wtf_0]
+    l_failed = [failed_1]#, failed_0a]
+    l_wtf = [wtf_1]#, wtf_0]
 
     lw_fit_evals = []
 

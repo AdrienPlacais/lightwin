@@ -119,6 +119,9 @@ def plot_preset(str_preset, *args, **kwargs):
         ax.set_ylabel(dic.d_markdown[y_str])
         # TODO handle linear vs log
 
+        # Rescale
+        _autoscale_based_on(ax, str_ignore='Broken')
+
     axx[0].legend()
 
     if kwargs['save_fig']:
@@ -368,7 +371,6 @@ def create_fig_if_not_exists(axnum, sharex=False, num=1, clean_fig=False):
     return fig, axlist
 
 
-# TODO still used?
 def _clean_fig(fignumlist):
     """Clean axis of Figs in fignumlist."""
     for fignum in fignumlist:
@@ -390,7 +392,10 @@ def _empty_fig(fignum):
     return out
 
 
-def _autoscale_based_on(axx, lines):
+def _autoscale_based_on(axx, str_ignore):
+    """Rescale axis, ignoring Lines with str_ignore in their label."""
+    lines = [line for line in axx.get_lines()
+             if str_ignore not in line.get_label()]
     axx.dataLim = mtransforms.Bbox.unit()
     for line in lines:
         datxy = np.vstack(line.get_data()).T
