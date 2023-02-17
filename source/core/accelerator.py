@@ -335,18 +335,14 @@ class Accelerator():
             mismatch_factor(ref_linac.beam_param["twiss"]["twiss_z"],
                             self.beam_param["twiss"]["twiss_z"], transp=True)
 
-    def simulate_in_tracewin(self, ini_path):
+    def simulate_in_tracewin(self, ini_path, **kwargs):
         """Compute this linac with TraceWin."""
         assert 'Broken' not in self.name, "Useless to simulate or broken"
         os.makedirs(self.get('out_tw'))
-        kwargs = {
-            'hide': None,
-            'path_cal': self.get('out_tw'),
-            'dat_file': self.get('dat_filepath'),
-            # 'current1': 0,
-            'nbr_part1': 100,
-            'random_seed': 23111993,
-        }
+        if kwargs['path_cal'] == 'default':
+            kwargs['path_cal'] = self.get('out_tw')
+        if kwargs['dat_file'] == 'default':
+            kwargs['dat_file'] = self.get('dat_filepath')
         tw.run_tw(self, ini_path, **kwargs)
 
     def store_tracewin_results(self):

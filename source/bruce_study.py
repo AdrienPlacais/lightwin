@@ -25,20 +25,28 @@ if __name__ == '__main__':
     # Select .dat file
     FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 
+    kwargs_tw = {
+        'hide': None,
+        'path_cal': 'default',
+        'dat_file': 'default',
+        # 'current1': 0,
+        'nbr_part1': int(1e2),
+        # 'random_seed': 23111993,
+    }
+
     # =========================================================================
     # Fault compensation
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
     FLAG_TW = True
-    FLAG_EVALUATE = False
+    FLAG_EVALUATE = True
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 1, 'l': 2, 'manual list': [],
+             'k': 1, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
-    failed_0a = [14]
 
     failed_1 = [[12]]
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
@@ -94,17 +102,17 @@ if __name__ == '__main__':
                                               23, 25, 27, 29, 31,
                                               57, 59, 61, 63, 65,
                                               74, 76, 78, 80, 82]],
-             'objective': ['w_kin', 'phi_abs_array'],  # , 'mismatch factor'],
+             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
 
     # =========================================================================
     # Outputs
     # =========================================================================
     PLOTS = [
-        # "energy",
-        # "phase",
+        "energy",
+        "phase",
         "cav",
-        # "emittance",
+        "emittance",
         # "twiss",  # TODO
         # "envelopes", # FIXME
         # "transfer matrices", # TODO
@@ -200,7 +208,7 @@ if __name__ == '__main__':
             # FIXME to modify simulation flags, go to
             # Accelerator.simulate_in_tracewin
             ini_path = FILEPATH.replace('.dat', '.ini')
-            lin.simulate_in_tracewin(ini_path)
+            lin.simulate_in_tracewin(ini_path, **kwargs_tw)
             lin.store_tracewin_results()
 
             if 'Fixed' in lin.name:

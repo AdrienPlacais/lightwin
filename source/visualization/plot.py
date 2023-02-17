@@ -75,7 +75,6 @@ def plot_preset(str_preset, *args, **kwargs):
     kwargs : dict
         Keys overriding DICT_PLOT_PRESETS and BASE_DICT.
     """
-    # plt.close('all') # FIXME
     # From preset, add keys that are not already in kwargs
     for key, val in DICT_PLOT_PRESETS[str_preset].items():
         if key not in kwargs:
@@ -200,7 +199,6 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
 def _data_from(x_str, y_str, arg, tw_source=None):
     """Get data."""
     from_lw = tw_source is None
-    print(tw_source)
     d_getter = {
         False: lambda x, arg: _data_from_tw(x, arg.tw_results[tw_source]),
         True: lambda x, arg: _data_from_lw(x, arg)}
