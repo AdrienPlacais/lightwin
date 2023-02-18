@@ -40,7 +40,7 @@ if __name__ == '__main__':
     FLAG_FIX = True
     SAVE_FIX = True
     FLAG_TW = True
-    FLAG_EVALUATE = False
+    FLAG_EVALUATE = True
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
@@ -48,6 +48,9 @@ if __name__ == '__main__':
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
 
+# =============================================================================
+# Manual entry of BYR study cases
+# =============================================================================
     failed_1 = [[12]]
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
              'k': 6, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
@@ -96,23 +99,48 @@ if __name__ == '__main__':
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
 
-    failed_9 = [[40, 42, 44, 46, 48]]
-    wtf_9 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 3, 'l': 2, 'manual list': [[6, 8, 10, 12, 14,
-                                              23, 25, 27, 29, 31,
-                                              57, 59, 61, 63, 65,
-                                              74, 76, 78, 80, 82]],
+# =============================================================================
+#     Complete module study
+# =============================================================================
+    failed_9 = [40, 42, 44, 46, 48]
+    wtf_9a = {'opti method': 'least_squares', 'strategy': 'k out of n',
+             'k': 3, 'l': 2, 'manual list': [0],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'position': 'end_mod', 'phi_s fit': True}
+    wtf_9b = {'opti method': 'least_squares', 'strategy': 'k out of n',
+             'k': 4, 'l': 2, 'manual list': [0],
+             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'position': 'end_mod', 'phi_s fit': True}
+    wtf_9c = {'opti method': 'least_squares', 'strategy': 'k out of n',
+         'k': 5, 'l': 2, 'manual list': [0],
+         'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+         'position': 'end_mod', 'phi_s fit': True}
+
+# =============================================================================
+# Systematic study of all faults
+# =============================================================================
+    all_cavs = [6, 8, 10, 12, 14,
+                23, 25, 27, 29, 31,
+                40, 42, 44, 46, 48,
+                57, 59, 61, 63, 65,
+                74, 76, 78, 80, 82,
+                91, 93, 95, 97, 99,
+                108, 110, 112, 114, 116,
+                125, 127, 129, 131, 133,
+                ]
+    wtf_classic = {'opti method': 'least_squares', 'strategy': 'k out of n',
+                   'k': 1, 'l': 2, 'manual list': [0],
+                   'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+                   'position': 'end_mod', 'phi_s fit': True}
 
     # =========================================================================
     # Outputs
     # =========================================================================
     PLOTS = [
-        # "energy",
-        # "phase",
+        "energy",
+        "phase",
         "cav",
-        # "emittance",
+        "emittance",
         # "twiss",  # TODO
         # "envelopes", # FIXME
         # "transfer matrices", # TODO
@@ -148,8 +176,12 @@ if __name__ == '__main__':
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-    l_failed = [failed_1]#, failed_0a]
-    l_wtf = [wtf_1]#, wtf_0]
+
+    # l_failed = [failed_9, failed_9, failed_9]
+    # l_wtf = [wtf_9a, wtf_9b, wtf_9c]
+
+    l_failed = [[all_cavs[i]] for i in range(0, 1)]
+    l_wtf = [wtf_classic for i in range(0, 1)]
 
     lw_fit_evals = []
 
