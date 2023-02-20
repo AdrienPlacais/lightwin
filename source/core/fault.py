@@ -38,7 +38,7 @@ from optimisation import pso
 debugs = {
     'fit_complete': False,
     'fit_compact': False,
-    'fit_progression': False,    # Print evolution of error on objectives
+    'fit_progression': True,    # Print evolution of error on objectives
     'plot_progression': False,   # Plot evolution of error on objectives
     'cav': False,
     'verbose': 0,
@@ -267,8 +267,7 @@ class Fault():
             kwargs = {}
         else:
             solver = least_squares
-            x_lim = (self.info['X_lim'][:, 0],
-                     self.info['X_lim'][:, 1])
+            x_lim = (self.info['X_lim'][:, 0], self.info['X_lim'][:, 1])
             kwargs = {'jac': '2-point',     # Default
                       # 'trf' not ideal as jac is not sparse. 'dogbox' may have
                       # difficulties with rank-defficient jacobian.
@@ -280,8 +279,7 @@ class Fault():
                       'xtol': 1e-8,
                       'diff_step': None, 'tr_solver': None, 'tr_options': {},
                       'jac_sparsity': None,
-                      'verbose': debugs['verbose']
-                      }
+                      'verbose': debugs['verbose']}
         sol = solver(fun=wrapper_lsq, x0=self.info['X_0'], bounds=x_lim,
                      args=wrapper_args, **kwargs)
 
@@ -469,7 +467,7 @@ class Fault():
         exceptions = ['mismatch factor']
 
         # List of strings to output the objective names and positions
-        l_f_str = [f"idx={i_r}, " + d_markdown[key].replace("[deg]", "[rad]")
+        l_f_str = [f"{d_markdown[key].replace('[deg]', '[rad]')} @idx{i_r}"
                    for i_r in idx_ref
                    for key in l_objectives]
 

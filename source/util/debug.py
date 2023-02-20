@@ -211,23 +211,28 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
 
 def output_fit_progress(count, obj, l_label, final=False):
     """Output the evolution of the objective, etc."""
-    single_width = 10
+    single_width = 30
     precision = 3
-    total_width = (len(obj) + 1) * (single_width + precision)
+    str_iter = ' iter.'
+    width_separation = 3
+    end = " " * width_separation
+    lengths = [len(label) + width_separation for label in l_label]
+    total_width = len(str_iter) + sum(lengths)
+
+    n_param = len(l_label)
+    n_cav = len(obj) // n_param
 
     if count == 0:
-        n_param = len(l_label)
-        n_cav = len(obj) // n_param
-        print(''.center(total_width, '='))
-        print(" iteration", end=' ')
+        print('=' * total_width)
+        print(str_iter, end=end)
         for i in range(n_cav):
             for header in l_label:
-                print(f"{header: >{single_width}}", end=' ')
-        print('\n' + ''.center(total_width, '='))
+                print(f"{header: >{len(header)}}", end=end)
+        print('\n' + '=' * total_width)
 
-    print(f"{count: {single_width}}", end=' ')
-    for num in obj:
-        print(f"{num: {single_width}.{precision}e}", end=' ')
+    print(f"{count: {len(str_iter)}}", end=end)
+    for num, length in zip(obj, lengths):
+        print(f"{num: {length - precision - width_separation + 3}.{precision}e}", end=end)
     print(' ')
     if final:
         print(''.center(total_width, '='))
