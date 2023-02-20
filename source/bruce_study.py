@@ -165,8 +165,8 @@ if __name__ == '__main__':
 
     # Broken linac
     # lsq_info = None
-    l_failed = [failed_0]
-    l_wtf = [wtf_0]
+    l_failed = [failed_1]
+    l_wtf = [wtf_1]
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]

@@ -250,15 +250,15 @@ def _data_from_tw(data_str, d_tw, warn_missing=False):
     return out
 
 
-def _err(x_str, y_str, *args, plot_tw=False, reference='LW'):
+def _err(x_str, y_str, *args, plot_tw=False, reference='TW'):
     """Calculate error with a reference calculation."""
     # We expect the first arg to be the reference Accelerator
     assert args[0].get('name') == 'Working'
 
-    d_ref = {'LW': 'LW',
-             'TW': 'multipart',
-             'self': None} # TODO
-    assert reference in d_ref.keys()
+    d_ref = {
+        'LW': lambda source: 'LW',          # Error calculated w.r.t LW
+        'multipart': lambda source: 'multipart',   # Error calculated w.r.t TW
+        'self': lambda source: source}      # LW error w.r.t LW, TW w.r.t TW
 
     # Set up a scale (for example if the error is very small)
     scale = DICT_ERROR_PRESETS[y_str]['scale']
@@ -272,10 +272,10 @@ def _err(x_str, y_str, *args, plot_tw=False, reference='LW'):
     x_data, y_data, l_kwargs = [], [], []
     key = y_str[:-4]
     for arg in args[1:]:
-        # Get reference data
-        x_ref, y_ref, _ = _data_from(x_str, key, args[0],
-                                     source=d_ref[reference])
-        __x, __y, kw = _data_from(x_str, key, arg)
+        source = 'LW'
+        ref = d_ref[source](reference)
+        x_ref, y_ref, _ = _data_from(x_str, key, args[0], source=ref)
+        __x, __y, kw = _data_from(x_str, key, arg, source=source)
 
         x_data.append(__x)
         diff = None
@@ -288,10 +288,10 @@ def _err(x_str, y_str, *args, plot_tw=False, reference='LW'):
         l_kwargs.append(kw)
 
         if plot_tw:
-            # Get reference data
-            x_ref, y_ref, _ = _data_from(x_str, key, args[0],
-                                         source=d_ref[reference])
-            __x, __y, kw = _data_from(x_str, key, arg, source='multipart')
+            source = 'multipart'
+            ref = d_ref[source](reference)
+            x_ref, y_ref, _ = _data_from(x_str, key, args[0], source=ref)
+            __x, __y, kw = _data_from(x_str, key, arg, source=source)
 
             x_data.append(__x)
             diff = None
