@@ -61,13 +61,13 @@ DICT_ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'abs'},
 # =============================================================================
 # Front end
 # =============================================================================
-def plot_preset(str_preset, *args, **kwargs):
+def plot_preset(str_preset: str, *args, **kwargs):
     """
     Plot a preset.
 
     Parameters
     ----------
-    str_preset : string
+    str_preset : str
         Key of DICT_PLOT_PRESETS.
     args : Accelerators
         Accelerators to plot. In typical usage,
@@ -173,14 +173,41 @@ def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
 # =============================================================================
 # Used in plot_preset
 # =============================================================================
-def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
-    """Get all the data that should be plotted."""
+def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool=False,
+                          reference: str='self'):
+    """
+    Get all the data that should be plotted.
+
+
+    Parameters
+    ----------
+    x_str : str
+        Name of x data.
+    y_str : str
+        Name of y data.
+    *args : Accelerators
+        Tuple of linacs which data should be gathered.
+    plot_tw : bool, optional
+        If TW data should be shown. The default is False.
+    reference : str, optional
+        How error is calculated, see d_ref in _err. The default is 'self'.
+
+    Returns
+    -------
+    x_data : list of np.ndarray
+        All x data.
+    y_data : list of np.ndarray
+        All y_data.
+    l_kwargs : list of dict
+        matplotlib kwargs for every dataset.
+
+    """
     x_data = []
     y_data = []
     l_kwargs = []
 
     source = 'multipart'
-    if y_str in ['v_cav_mv', 'phi_s']:  # FIXME
+    if y_str in ['v_cav_mv', 'phi_s']:  # FIXME Get all the data that should be plotted.
         source = 'cav_param'
 
     plot_error = y_str[-3:] == 'err'
@@ -250,7 +277,7 @@ def _data_from_tw(data_str, d_tw, warn_missing=False):
     return out
 
 
-def _err(x_str, y_str, *args, plot_tw=False, reference='TW'):
+def _err(x_str, y_str, *args, plot_tw=False, reference='self'):
     """Calculate error with a reference calculation."""
     # We expect the first arg to be the reference Accelerator
     assert args[0].get('name') == 'Working'
