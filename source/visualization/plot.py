@@ -111,16 +111,18 @@ def plot_preset(str_preset, *args, **kwargs):
                                   reference=kwargs['reference'])
         d_colors = _plot_all_data(ax, x_data, y_data, l_kwargs, d_colors)
 
+        # Rescale
+        _autoscale_based_on(ax, str_ignore='Broken')
+
         ax.grid(True)
         if y_str[-3:] == 'err':
             diff = DICT_ERROR_PRESETS[y_str]['diff']
             ax.set_ylabel(dic.d_markdown['err_' + diff])
             continue
+
         ax.set_ylabel(dic.d_markdown[y_str])
         # TODO handle linear vs log
 
-        # Rescale
-        _autoscale_based_on(ax, str_ignore='Broken')
 
     axx[0].legend()
 
@@ -223,7 +225,7 @@ def _data_from_lw(data_str, linac):
     return data
 
 
-def _data_from_tw(data_str, d_tw, warn_missing=True):
+def _data_from_tw(data_str, d_tw, warn_missing=False):
     """Get the data calculated by TraceWin, already loaded."""
     out = None
 

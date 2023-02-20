@@ -339,10 +339,14 @@ class Accelerator():
         """Compute this linac with TraceWin."""
         assert 'Broken' not in self.name, "Useless to simulate or broken"
         os.makedirs(self.get('out_tw'))
+
         if kwargs['path_cal'] == 'default':
+            print(f'simulate_in_tracewin default path_cal')
             kwargs['path_cal'] = self.get('out_tw')
         if kwargs['dat_file'] == 'default':
             kwargs['dat_file'] = self.get('dat_filepath')
+            print(f'simulate_in_tracewin default dat_filepath')
+
         tw.run_tw(self, ini_path, **kwargs)
 
     def store_tracewin_results(self):
