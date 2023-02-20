@@ -179,9 +179,9 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
     y_data = []
     l_kwargs = []
 
-    tw_source = 'multipart'
+    source = 'multipart'
     if y_str in ['v_cav_mv', 'phi_s']:  # FIXME
-        tw_source = 'cav_param'
+        source = 'cav_param'
 
     plot_error = y_str[-3:] == 'err'
     if plot_error:
@@ -195,17 +195,17 @@ def _concatenate_all_data(x_str, y_str, *args, plot_tw=False, reference=None):
 
         # TODO handle multipart or envelope
         if plot_tw:
-            x_dat, y_dat, kw = _data_from(x_str, y_str, arg, tw_source=tw_source)
+            x_dat, y_dat, kw = _data_from(x_str, y_str, arg, source=source)
             x_data.append(x_dat), y_data.append(y_dat), l_kwargs.append(kw)
 
     return x_data, y_data, l_kwargs
 
 
-def _data_from(x_str, y_str, arg, tw_source=None):
+def _data_from(x_str, y_str, arg, source='LW'):
     """Get data."""
-    from_lw = tw_source is None
+    from_lw = source is 'LW'
     d_getter = {
-        False: lambda x, arg: _data_from_tw(x, arg.tw_results[tw_source]),
+        False: lambda x, arg: _data_from_tw(x, arg.tw_results[source]),
         True: lambda x, arg: _data_from_lw(x, arg)}
     getter = d_getter[from_lw]
 
@@ -250,12 +250,12 @@ def _data_from_tw(data_str, d_tw, warn_missing=False):
     return out
 
 
-def _err(x_str, y_str, *args, plot_tw=False, reference=None):
+def _err(x_str, y_str, *args, plot_tw=False, reference='LW'):
     """Calculate error with a reference calculation."""
     # We expect the first arg to be the reference Accelerator
     assert args[0].get('name') == 'Working'
 
-    d_ref = {'LW': None,
+    d_ref = {'LW': 'LW',
              'TW': 'multipart',
              'self': None} # TODO
     assert reference in d_ref.keys()
@@ -274,7 +274,7 @@ def _err(x_str, y_str, *args, plot_tw=False, reference=None):
     for arg in args[1:]:
         # Get reference data
         x_ref, y_ref, _ = _data_from(x_str, key, args[0],
-                                     tw_source=d_ref[reference])
+                                     source=d_ref[reference])
         __x, __y, kw = _data_from(x_str, key, arg)
 
         x_data.append(__x)
@@ -290,8 +290,8 @@ def _err(x_str, y_str, *args, plot_tw=False, reference=None):
         if plot_tw:
             # Get reference data
             x_ref, y_ref, _ = _data_from(x_str, key, args[0],
-                                         tw_source=d_ref[reference])
-            __x, __y, kw = _data_from(x_str, key, arg, tw_source='multipart')
+                                         source=d_ref[reference])
+            __x, __y, kw = _data_from(x_str, key, arg, source='multipart')
 
             x_data.append(__x)
             diff = None
