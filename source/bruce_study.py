@@ -30,7 +30,7 @@ if __name__ == '__main__':
         'path_cal': 'default',
         'dat_file': 'default',
         # 'current1': 0,
-        'nbr_part1': int(1e6),
+        'nbr_part1': int(1e2),
         # 'random_seed': 23111993,
     }
 
@@ -100,21 +100,13 @@ if __name__ == '__main__':
              'position': 'end_mod', 'phi_s fit': True}
 
 # =============================================================================
-#     Complete module study
+#     FullPer V
 # =============================================================================
-    failed_9 = [40, 42, 44, 46, 48]
-    wtf_9a = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 3, 'l': 2, 'manual list': [0],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
-    wtf_9b = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 4, 'l': 2, 'manual list': [0],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
-    wtf_9c = {'opti method': 'least_squares', 'strategy': 'k out of n',
-         'k': 5, 'l': 2, 'manual list': [0],
-         'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-         'position': 'end_mod', 'phi_s fit': True}
+    failed_9 = [125, 127, 129, 131, 133]
+    wtf_9 = {'opti method': 'least_squares', 'strategy': 'k out of n',
+            'k': 5, 'l': 2, 'manual list': [0],
+            'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+            'position': 'end_mod', 'phi_s fit': True}
 
 # =============================================================================
 # Systematic study of all faults

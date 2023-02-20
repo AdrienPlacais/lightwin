@@ -338,14 +338,19 @@ class Accelerator():
     def simulate_in_tracewin(self, ini_path, **kwargs):
         """Compute this linac with TraceWin."""
         assert 'Broken' not in self.name, "Useless to simulate or broken"
+
+        recompute_reference = False
+        if not recompute_reference and 'Working' in self.name:
+            print("We do not recompute reference linac.")
+            self.files['out_tw'] = '/home/placais/LightWin/data/JAEA/ref/'
+            return
+
         os.makedirs(self.get('out_tw'))
 
         if kwargs['path_cal'] == 'default':
-            print(f'simulate_in_tracewin default path_cal')
             kwargs['path_cal'] = self.get('out_tw')
         if kwargs['dat_file'] == 'default':
             kwargs['dat_file'] = self.get('dat_filepath')
-            print(f'simulate_in_tracewin default dat_filepath')
 
         tw.run_tw(self, ini_path, **kwargs)
 

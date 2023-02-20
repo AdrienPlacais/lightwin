@@ -291,14 +291,19 @@ class Fault():
         if debugs['plot_progression']:
             self.info["hist_F"].append(sol.fun)
 
+        print("-"*80)
+        print(f"Objective functions results:")
+        for i, fun in enumerate(sol.fun):
+            print(f"{i}: {' ':>35} | {fun}")
+        print("-"*80)
         print(
-            f"message: {sol.message}"
-            f"nfev: {sol.nfev}\tnjev: {sol.njev}"
-            f"optimality: {sol.optimality}"
-            f"status: {sol.status}"
-            f"success: {sol.success}"
-            f"solution: {sol.x}\n\n")
-
+            f"message: {sol.message}\n"
+            f"nfev: {sol.nfev}\tnjev: {sol.njev}\n"
+            f"optimality: {sol.optimality}\n"
+            f"status: {sol.status}\n"
+            f"success: {sol.success}\n"
+            f"solution: {sol.x}")
+        print("-"*80 + "\n\n")
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
     def _proper_fix_pso(self, wrapper_args, info_other_sol=None):
@@ -427,7 +432,7 @@ class Fault():
         phi_s_limits = np.array(x_lim[2 * n_cav:])
         x_lim = np.array(x_lim[:2 * n_cav])
 
-        print(f"Initial_guess:\n{x_0}"
+        print(f"Initial_guess:\n{x_0}\n"
               f"Bounds:\n{x_lim}")
 
         return x_0, x_lim, phi_s_limits, l_x_str
@@ -475,7 +480,8 @@ class Fault():
                  for i_r in idx_ref
                  for key in l_objectives]
 
-        print("\nObjectives:")
+        print("\n" + "-"*80)
+        print("Objectives:")
         for i, (f_str, ref) in enumerate(zip(l_f_str, l_ref)):
             print(f"{i}: {f_str:>35} | {ref}")
 
@@ -489,11 +495,13 @@ class Fault():
 
                     # mismatch factor
                     if key == 'mismatch factor':
-                        residues.append(
-                            mismatch_factor(
-                                l_ref[i], results['twiss_zdelta'][i_b]
-                            )[0]
-                        )
+                        mism = mismatch_factor(l_ref[i],
+                                               results['twiss_zdelta'][i_b])[0]
+                        residues.append(mism)
+                        #     mismatch_factor(
+                        #         l_ref[i], results['twiss_zdelta'][i_b]
+                        #     )[0]
+                        # )
                         continue
 
                     # all other keys
