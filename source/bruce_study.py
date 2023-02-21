@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 1, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
+             'k': 5, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'scale_objective': [1., 1., 1.],
              'position': 'end_mod', 'phi_s fit': True}

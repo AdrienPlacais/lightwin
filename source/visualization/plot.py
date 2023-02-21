@@ -656,10 +656,13 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
     axx.grid(True)
 
 
-def plot_fit_progress(hist_f, l_label):
+def plot_fit_progress(hist_f, l_label, nature='Relative'):
     """Plot the evolution of the objective functions w/ each iteration."""
     _, axx = create_fig_if_not_exists(1, num=32)
     axx = axx[0]
+
+    scales = {'Relative': lambda x: x / x[0],
+              'Absolute': lambda x: x,}
 
     # Number of objectives, number of evaluations
     n_f = len(l_label)
@@ -668,8 +671,7 @@ def plot_fit_progress(hist_f, l_label):
 
     __f = np.empty([n_f, n_iter])
     for i in range(n_iter):
-        # __f[:, i] = np.abs(hist_f[i] / hist_f[0])
-        __f[:, i] = hist_f[i]
+        __f[:, i] = scales[nature](hist_f)[i]
 
     for j, label in enumerate(l_label):
         axx.plot(iteration, __f[j], label=label)
@@ -677,5 +679,5 @@ def plot_fit_progress(hist_f, l_label):
     axx.grid(True)
     axx.legend()
     axx.set_xlabel("Iteration #")
-    axx.set_ylabel("Relative variation of error")
+    axx.set_ylabel(f"{nature} variation of error")
     axx.set_yscale('log')

@@ -37,10 +37,10 @@ import visualization.plot
 
 
 debugs = {
-    'fit_complete': False,
+    'fit_complete': True,
     'fit_compact': False,
-    'fit_progression': True,    # Print evolution of error on objectives
-    'plot_progression': True,   # Plot evolution of error on objectives
+    'fit_progression': False,    # Print evolution of error on objectives
+    'plot_progression': False,   # Plot evolution of error on objectives
     'cav': True,
     'verbose': 0,
 }
@@ -290,7 +290,7 @@ class Fault():
                       # termination condition, while settings are clearly not
                       #  optimized
                       'xtol': 1e-8,
-                      # 'x_scale': 'jac',
+                      'x_scale': 'jac',
                       # 'loss': 'arctan',
                       'diff_step': None, 'tr_solver': None, 'tr_options': {},
                       'jac_sparsity': None,
@@ -436,8 +436,10 @@ class Fault():
                 else:
                     b_up = np.nanmin((d_x_lim_abs[__x][1],
                                       d_x_lim_rel[__x][1] * ref_value))
+
+                _x_0 = d_init_g[__x](ref_value)
                 x_lim.append((b_down, b_up))
-                x_0.append(d_init_g[__x](ref_value))
+                x_0.append(_x_0)
                 l_x_str.append(' '.join((cav.get('elt_name', to_numpy=False),
                                          d_markdown[__x])))
         n_cav = len(self.comp['l_cav'])
@@ -516,7 +518,7 @@ class Fault():
 
                     # all other keys
                     residues.append((l_ref[i] - results[key][i_b]) * scale)
-            return np.abs(residues)
+            return np.array(residues)
         return fun_residual, l_f_str
 
 
