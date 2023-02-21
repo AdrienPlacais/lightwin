@@ -14,8 +14,8 @@ from util import helper
 def save_files(lin, data=None, lw_fit_eval=None, flags=None):
     """Save a new dat with the new linac settings, as well as eval. files."""
     os.makedirs(lin.get('out_lw'))
-    helper.printc("output.save_files info: ",
-                  opt_message=f"new dat saved in {lin.get('dat_filepath')}\n")
+    helper.printc("output.save_files info:",
+                  f"new dat saved in {lin.get('dat_filepath')}")
 
     if data is not None:
         out = os.path.join(lin.get('out_lw'), 'data.csv')

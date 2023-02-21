@@ -353,10 +353,8 @@ def _plot_all_data(axx, x_data, y_data, l_kwargs, d_colors):
 
 def _savefig(fig, filepath):
     """Saves the figure."""
-    # fig.tight_layout()
     fig.savefig(filepath)
-    helper.printc("plot._savefig info: ",
-                  opt_message=f"Fig. saved in {filepath}")
+    helper.printc("plot._savefig info:", f"Fig. saved in {filepath}")
 
 
 # =============================================================================

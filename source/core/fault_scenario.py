@@ -190,9 +190,9 @@ class FaultScenario():
         the first failed one are rephased.
         """
         printc("fault_scenario._update_status_of_cavities_to_rephase warning:",
-               opt_message=" the phases in the broken linac are relative."
-               + " It may be more relatable to use absolute phases, as"
-               + " it would avoid the rephasing of the linac at each cavity.")
+               "the phases in the broken linac are relative. It may be more",
+               "relatable to use absolute phases, as it would avoid the",
+               "rephasing of the linac at each cavity.")
         idx_first_failed = self.faults['l_idx'][0][0]
 
         to_rephase_cavities = [cav for cav in self.brok_lin.elts[idx_first_failed:]
@@ -309,7 +309,7 @@ class FaultScenario():
         "rephased (ok)" between this fault and the next one.
         """
         printc("fault_scenario._reupdate_status_of_rephased_cavities warning:",
-               opt_message=" changed the way of defining idx1 and idx2.")
+               "changed the way of defining idx1 and idx2.")
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elts
 

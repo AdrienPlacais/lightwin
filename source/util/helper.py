@@ -54,7 +54,7 @@ def recursive_getter(key, dictionary, **kwargs):
 # =============================================================================
 # TODO: transform inputs into strings if they are not already strings
 # TODO: use args to avoid lenghty 'opt_message=' each time
-def printc(message, color='cyan', opt_message=''):
+def printc(*args, color='cyan'):
     """Print colored messages."""
     dict_c = {
         'red': '\x1B[31m',
@@ -64,7 +64,10 @@ def printc(message, color='cyan', opt_message=''):
         'cyan': '\x1b[36m',
         'normal': '\x1b[0m',
     }
-    print(dict_c[color] + message + dict_c['normal'] + opt_message)
+    print(dict_c[color] + args[0] + dict_c['normal'], end=' ')
+    for arg in args[1:]:
+        print(arg, end=' ')
+    print('')
 
 
 # TODO: replace nan by ' ' when there is a \n in a pd DataFrame header
@@ -79,7 +82,7 @@ def printd(message, color_header='cyan', header=''):
 
     print('\n' + '=' * tot_width)
     if len(header) > 0:
-        printc(header, color_header)
+        printc(header, color=color_header)
 
     # Output multi-line for headers
     if isinstance(message, pd.DataFrame):
@@ -140,8 +143,7 @@ def save_vcav_and_phis(lin):
     accelerator: Accelerator object
         Object of corresponding to desired output.
     """
-    printc("helper.save_vcav_and_phis warning: ", opt_message="s [m] not "
-           + "saved.")
+    printc("helper.save_vcav_and_phis warning:", "s [m] not saved.")
     # data = lin.get('abs', 'v_cav_mv', 'phi_s', to_deg=True)
     data = lin.get('v_cav_mv', 'phi_s', to_deg=True)
     data = np.column_stack((data[0], data[1]))

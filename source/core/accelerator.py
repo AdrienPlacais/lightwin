@@ -244,17 +244,17 @@ class Accelerator():
             flags_absolute.append(cav.get('abs_phase_flag'))
 
         if FLAG_PHI_ABS and False in flags_absolute:
-            printc("Accelerator._check_consistency_phases warning: ",
-                   opt_message="you asked LW a simulation in absolute phase,"
-                   + " while there is at least one cavity in relative phase in"
-                   + " the .dat file used by TW. Results won't match if there"
-                   + " are faulty cavities.\n")
+            printc("Accelerator._check_consistency_phases warning:",
+                   "you asked LW a simulation in absolute phase, while there",
+                   "is at least one cavity in relative phase in the .dat file",
+                   "used by TW. Results won't match if there are faulty",
+                   "cavities.")
         elif not FLAG_PHI_ABS and True in flags_absolute:
-            printc("Accelerator._check_consistency_phases warning: ",
-                   opt_message="you asked LW a simulation in relative phase,"
-                   + " while there is at least one cavity in absolute phase in"
-                   + " the .dat file used by TW. Results won't match if there"
-                   + " are faulty cavities.\n")
+            printc("Accelerator._check_consistency_phases warning:",
+                   "you asked LW a simulation in relative phase, while there",
+                   "is at least one cavity in absolute phase in the .dat file",
+                   "used by TW. Results won't match if there are faulty",
+                   "cavities.")
 
     def store_results(self, results, l_elts):
         """

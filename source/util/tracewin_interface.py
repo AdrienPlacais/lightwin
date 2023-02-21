@@ -227,8 +227,8 @@ def load_tw_results(filepath, prop):
         Array containing the desired property.
     """
     if not os.path.isfile(filepath):
-        __s = "Filepath to results is incorrect. Provide another one."
-        printc("tracewin_interface.load_tw_results warning: ", opt_message=__s)
+        printc("tracewin_interface.load_tw_results warning:",
+               "filepath to results is incorrect. Provide another one.")
         Tk().withdraw()
         filepath = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
@@ -321,18 +321,17 @@ def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin", **kwargs):
 
     for key, val in zip(l_keys, l_values):
         if key not in kwargs.keys():
-            __s = f"The key {key} was not found in kwargs. Used the default"
-            __s += f" value {val} instead."
-            printc("tracewin_interface.run_tw info: ", opt_message=__s)
+            printc("tracewin_interface.run_tw info:", f"the key {key} was not",
+                   f"found in kwargs. Used the default value {val} instead.")
 
     cmd = _tw_cmd(tw_path, ini_path, **kwargs)
-    printc("tracewin_interface.run_tw info: ",
-           opt_message=f"Running TW with command {cmd}.")
+    printc("tracewin_interface.run_tw info:",
+           f"running TW with command {cmd}.")
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     process.wait()
     for line in process.stdout:
         print(line)
-    printc("tracewin_interface.run_tw info: ", opt_message="TW finished!")
+    printc("tracewin_interface.run_tw info:", "TW finished!")
 
 
 def _tw_cmd(tw_path, ini_path, **kwargs):
@@ -361,8 +360,8 @@ def get_multipart_tw_results(folder, filename='partran1.out'):
     out = np.loadtxt(f_p, skiprows=n_lines_header)
     for i, key in enumerate(headers):
         d_out[key] = out[:, i]
-    printc("tracewin_interface.get_multipart_tw_results info: ",
-           opt_message=f"Successfully loaded {f_p}")
+    printc("tracewin_interface.get_multipart_tw_results info:",
+           f"successfully loaded {f_p}")
     return d_out
 
 
@@ -396,8 +395,8 @@ def get_transfer_matrices(folder, filename='Transfer_matrix1.dat',
             # Save transfer matrix
             if (i + 1) % 7 == 0:
                 t_m.append(data)
-    printc("tracewin_interface.get_transfer_matrices info: ",
-           opt_message=f"Successfully loaded {f_p}")
+    printc("tracewin_interface.get_transfer_matrices info:",
+           f"successfully loaded {f_p}")
     return np.array(num), np.array(z_m), np.array(t_m)
 
 
@@ -416,6 +415,6 @@ def get_tw_cav_param(folder, filename='Cav_set_point_res.dat'):
     out = np.loadtxt(f_p, skiprows=n_lines_header)
     for i, key in enumerate(headers):
         d_out[key] = out[:, i]
-    printc("tracewin_interface.get_tw_cav_param info: ",
-           opt_message=f"Successfully loaded {f_p}")
+    printc("tracewin_interface.get_tw_cav_param info:",
+           f"successfully loaded {f_p}")
     return d_out

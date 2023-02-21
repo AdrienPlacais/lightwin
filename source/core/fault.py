@@ -166,13 +166,12 @@ class Fault():
                 + " same cavity for their compensation?"
 
             if current_status in ["compensate (ok)", "compensate (not ok)"]:
-                printc("fault.prepare_cavities_for_compensation warning: ",
-                       opt_message="you want to update the status of a"
-                       + " cavity that is already used for compensation."
-                       + " Check"
-                       + "fault_scenario._gather_and_create_fault_objects."
-                       + " Maybe two faults want to use the same cavity for"
-                       + " compensation?")
+                printc("fault.prepare_cavities_for_compensation warning:",
+                       "you want to update the status of a cavity that is",
+                       "already used for compensation. Check",
+                       "fault_scenario._gather_and_create_fault_objects.",
+                       "Maybe two faults want to use the same cavity for",
+                       "compensation?")
 
             cav.update_status(new_status)
 

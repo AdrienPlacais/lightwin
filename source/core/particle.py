@@ -58,9 +58,8 @@ class Particle():
         self._init_phi(idx=0)
 
         if not self.part_info["synchronous"]:
-            printc("Particle.__init__ warning: ", opt_message="the "
-                   + "absolute position of a non synchrous particle "
-                   + "is not initialized.")
+            printc("Particle.__init__ warning:", "the absolute position of a",
+                   "non synchronous particle is not initialized.")
 
     def has(self, key):
         """Tell if the required attribute is in this class."""

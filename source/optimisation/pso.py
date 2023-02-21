@@ -443,8 +443,8 @@ def _plot_variables_final_sol(fig, d_opti, n_cav, lsq_x=None):
     axx[0].legend()
     axx[3].set_ylabel(r'$k_e$')
     axx[4].set_xlabel(r'$\phi_0$')
-    printc("Warning PSO._space_design_exploration: ", opt_message="Limits "
-           + "manually entered.")
+    printc("Warning PSO._space_design_exploration:",
+           "limits manually entered.")
 
 
 def set_weights(l_obj_str):
