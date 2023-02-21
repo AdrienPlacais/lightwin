@@ -70,19 +70,21 @@ def printc(message, color='cyan', opt_message=''):
 # TODO: replace nan by ' ' when there is a \n in a pd DataFrame header
 def printd(message, color_header='cyan', header=''):
     """Print delimited message."""
-    pd.options.display.float_format = '{:.4e}'.format
+    pd.options.display.float_format = '{:.6f}'.format
     pd.options.display.max_columns = 10
-    pd.options.display.max_colwidth = 65
+    pd.options.display.max_colwidth = 18
     pd.options.display.width = 250
 
-    line = '=================================================================='
-    print(line, '\n')
+    tot_width = 100
+
+    print('\n' + '=' * tot_width)
     if len(header) > 0:
         printc(header, color_header)
+
     # Output multi-line for headers
     if isinstance(message, pd.DataFrame):
         message.columns = message.columns.str.split("\n", expand=True)
-    print(message, '\n\n' + line, '\n')
+    print(message, '\n' + '=' * tot_width, '\n')
 
 
 def resample(x_1, y_1, x_2, y_2):

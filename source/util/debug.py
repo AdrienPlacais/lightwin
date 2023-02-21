@@ -114,8 +114,7 @@ def output_cavities(linac, out=False):
     full_list_of_cav = linac.elements_of(nature='FIELD_MAP')
 
     for i, cav in enumerate(full_list_of_cav):
-        df_cav.loc[i] = cav.get(*columns, to_deg=True)
-    df_cav.round(decimals=3)
+        df_cav.loc[i] = cav.get(*columns, to_deg=True, to_numpy=False)
 
     # Output only the cavities that have changed
     if 'Fixed' in linac.name:
