@@ -210,7 +210,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
 
 
 def output_fit_progress(count, obj, l_label, final=False):
-    """Output the evolution of the objective, etc."""
+    """Output the evolution of the objectives."""
     single_width = 30
     precision = 3
     str_iter = ' iter.'
@@ -232,7 +232,8 @@ def output_fit_progress(count, obj, l_label, final=False):
 
     print(f"{count: {len(str_iter)}}", end=end)
     for num, length in zip(obj, lengths):
-        print(f"{num: {length - precision - width_separation + 3}.{precision}e}", end=end)
+        out = f"{num: {length - precision - width_separation + 3}.{precision}e}"
+        print(out, end=end)
     print(' ')
     if final:
         print(''.center(total_width, '='))

@@ -230,7 +230,7 @@ def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool=False,
 
 def _data_from(x_str, y_str, arg, source='LW'):
     """Get data."""
-    from_lw = source is 'LW'
+    from_lw = source == 'LW'
     d_getter = {
         False: lambda x, arg: _data_from_tw(x, arg.tw_results[source]),
         True: lambda x, arg: _data_from_lw(x, arg)}
@@ -658,7 +658,7 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
 
 def plot_fit_progress(hist_f, l_label):
     """Plot the evolution of the objective functions w/ each iteration."""
-    _, axx = create_fig_if_not_exist(32, [111])
+    _, axx = create_fig_if_not_exists(1, num=32)
     axx = axx[0]
 
     # Number of objectives, number of evaluations
@@ -668,7 +668,8 @@ def plot_fit_progress(hist_f, l_label):
 
     __f = np.empty([n_f, n_iter])
     for i in range(n_iter):
-        __f[:, i] = np.abs(hist_f[i] / hist_f[0])
+        # __f[:, i] = np.abs(hist_f[i] / hist_f[0])
+        __f[:, i] = hist_f[i]
 
     for j, label in enumerate(l_label):
         axx.plot(iteration, __f[j], label=label)

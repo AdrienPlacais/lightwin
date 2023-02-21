@@ -46,6 +46,7 @@ if __name__ == '__main__':
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
              'k': 1, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'scale_objective': [1., 1., 1.],
              'position': 'end_mod', 'phi_s fit': True}
 
 # =============================================================================
@@ -55,6 +56,7 @@ if __name__ == '__main__':
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
              'k': 6, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'scale_objective': [1., 100., 1.],
              'position': 'end_mod', 'phi_s fit': True}
 
     failed_2 = [[14]]

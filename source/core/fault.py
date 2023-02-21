@@ -33,14 +33,15 @@ from util import debug
 from util.dicts_output import d_markdown
 from util.helper import printc
 from optimisation import pso
+import visualization.plot
 
 
 debugs = {
     'fit_complete': False,
     'fit_compact': False,
     'fit_progression': True,    # Print evolution of error on objectives
-    'plot_progression': False,   # Plot evolution of error on objectives
-    'cav': False,
+    'plot_progression': True,   # Plot evolution of error on objectives
+    'cav': True,
     'verbose': 0,
 }
 
@@ -112,9 +113,12 @@ class Fault():
             tm_cumul=self.brok_lin.get('tm_cumul')[idx])
         # FIXME would be better of at Fault initialization
 
-        # fun_residual, l_f_str = _select_objective(self.wtf['objective'])
-        fun_residual, l_f_str = self._select_objective(self.wtf['objective'],
-                                                       **d_idx)
+        if 'scale_objective' not in self.wtf.keys():
+            scale = [1. for obj in self.wtf['objective']]
+            self.wtf['scale_objective'] = scale
+
+        fun_residual, l_f_str = self._select_objective(
+            self.wtf['objective'], self.wtf['scale_objective'], **d_idx)
 
         # Save some data for debug and output purposes
         self.info.update({
@@ -136,7 +140,8 @@ class Fault():
                 wrapper_args, info_other_sol=info_other_sol)
 
         if debugs['plot_progression']:
-            debug.plot_fit_progress(self.info['hist_F'], self.info['l_F_str'])
+            visualization.plot.plot_fit_progress(self.info['hist_F'],
+                                                 self.info['l_F_str'])
         self.info['X'] = opti_sol['X']
         self.info['F'] = opti_sol['F']
 
@@ -268,6 +273,14 @@ class Fault():
         else:
             solver = least_squares
             x_lim = (self.info['X_lim'][:, 0], self.info['X_lim'][:, 1])
+
+            # x_scale = np.array(
+            #     [2 * np.pi, 2 * np.pi, 2 * np.pi, 2 * np.pi, 2 * np.pi,
+            #      0.9304272, 0.9304272, 0.9304272, 0.9304272, 0.9304272]
+            # )
+            # printc("fault._proper_fix_lsq warning: ",
+            #        opt_message="x_scale manually set")
+
             kwargs = {'jac': '2-point',     # Default
                       # 'trf' not ideal as jac is not sparse. 'dogbox' may have
                       # difficulties with rank-defficient jacobian.
@@ -277,9 +290,12 @@ class Fault():
                       # termination condition, while settings are clearly not
                       #  optimized
                       'xtol': 1e-8,
+                      # 'x_scale': 'jac',
+                      # 'loss': 'arctan',
                       'diff_step': None, 'tr_solver': None, 'tr_options': {},
                       'jac_sparsity': None,
                       'verbose': debugs['verbose']}
+
         sol = solver(fun=wrapper_lsq, x0=self.info['X_0'], bounds=x_lim,
                      args=wrapper_args, **kwargs)
 
@@ -294,13 +310,12 @@ class Fault():
         for i, fun in enumerate(sol.fun):
             print(f"{i}: {' ':>35} | {fun}")
         print("-"*80)
-        print(
-            f"message: {sol.message}\n"
-            f"nfev: {sol.nfev}\tnjev: {sol.njev}\n"
-            f"optimality: {sol.optimality}\n"
-            f"status: {sol.status}\n"
-            f"success: {sol.success}\n"
-            f"solution: {sol.x}")
+        print(f"message: {sol.message}\n"
+              f"nfev: {sol.nfev}\tnjev: {sol.njev}\n"
+              f"optimality: {sol.optimality}\n"
+              f"status: {sol.status}\n"
+              f"success: {sol.success}\n"
+              f"solution: {sol.x}")
         print("-"*80 + "\n\n")
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
@@ -457,7 +472,7 @@ class Fault():
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase
 
-    def _select_objective(self, l_objectives, **d_idx):
+    def _select_objective(self, l_objectives, l_scales, **d_idx):
         """Select the objective to fit."""
         # List of indexes for ref_lin object and results dictionary
         idx_ref, idx_brok = d_idx.values()
@@ -479,31 +494,28 @@ class Fault():
                  for key in l_objectives]
 
         print("\n" + "-"*80)
-        print("Objectives:")
-        for i, (f_str, ref) in enumerate(zip(l_f_str, l_ref)):
-            print(f"{i}: {f_str:>35} | {ref}")
+        print(f"   {'Objective:':>35} | {'Scale:':>6} | {'Initial value'}")
+        for i, (f_str, f_scale, ref) in enumerate(zip(l_f_str, l_scales,
+                                                      l_ref)):
+            print(f"{i}: {f_str:>35} | {f_scale:>6} | {ref}")
 
         def fun_residual(results):
             """Compute difference between ref value and results dictionary."""
             i = -1
             residues = []
             for i_b in idx_brok:
-                for key in l_objectives:
+                for key, scale in zip(l_objectives, l_scales):
                     i += 1
 
                     # mismatch factor
                     if key == 'mismatch factor':
                         mism = mismatch_factor(l_ref[i],
                                                results['twiss_zdelta'][i_b])[0]
-                        residues.append(mism)
-                        #     mismatch_factor(
-                        #         l_ref[i], results['twiss_zdelta'][i_b]
-                        #     )[0]
-                        # )
+                        residues.append(mism * scale)
                         continue
 
                     # all other keys
-                    residues.append(l_ref[i] - results[key][i_b])
+                    residues.append((l_ref[i] - results[key][i_b]) * scale)
             return np.abs(residues)
         return fun_residual, l_f_str
 
@@ -536,7 +548,7 @@ def wrapper_lsq(arr_cav_prop, fault, fun_residual, phi_s_fit):
     results = fault.elts.compute_transfer_matrices(d_fits, transfer_data=False)
     arr_f = fun_residual(results)
 
-    if debugs['fit_progression'] and fault.count % 20 == 0:
+    if debugs['fit_progression'] and fault.count % 100 == 0:
         debug.output_fit_progress(fault.count, arr_f, fault.info["l_F_str"])
     if debugs['plot_progression']:
         fault.info['hist_F'].append(arr_f)
