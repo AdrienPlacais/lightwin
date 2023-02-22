@@ -75,6 +75,7 @@ class Fault():
         # We directly break the proper cavities
         for cav in fail_cav:
             cav.update_status('failed')
+        self.fail = {'l_cav': fail_cav}
 
         # We create the list of compensating cavities. We update their status
         # to 'compensate (in progress)' in fix when the optimisatin
@@ -229,22 +230,28 @@ class Fault():
 
     def _indexes_start_end_comp_zone(self, str_position):
         """Get indexes delimiting compensation zone."""
-        l_comp_cav = self.comp['l_cav']
+        # We get altered cavities (compensating or failed) (unsorted)
+        l_altered_cav = self.comp['l_cav'] + self.fail['l_cav']
 
-        # We need the list of compensating cavities to be ordered for this
-        # routine to work
-        l_idx = [cav.get('s_in', to_numpy=False) for cav in l_comp_cav]
+        # We need the list of altered cavities to be ordered for this routine
+        l_idx = [cav.get('s_in', to_numpy=False) for cav in l_altered_cav]
+        sort = np.argsort(l_idx)
+
+        l_altered_cav = [l_altered_cav[idx] for idx in sort.tolist()]
+        l_idx = [cav.get('s_in', to_numpy=False) for cav in l_altered_cav]
         assert l_idx == sorted(l_idx)
+        del l_idx, sort
+        # Now the list of altered cavities is sorted!
 
         lattices = self.brok_lin.get('lattice')
 
         # Lattice of first and last compensating cavity
         # First elt of first lattice
-        lattice1 = l_comp_cav[0].get('lattice')
+        lattice1 = l_altered_cav[0].get('lattice')
         idx1 = np.where(lattices == lattice1)[0][0]
 
         # last elt of last lattice
-        lattice2 = l_comp_cav[-1].get('lattice')
+        lattice2 = l_altered_cav[-1].get('lattice')
         idx2 = np.where(lattices == lattice2)[0][-1]
 
         if lattice2 == lattices[-1]:
@@ -254,6 +261,7 @@ class Fault():
                 + "of the linac."
             return idx1, idx2, idx2
 
+        # One lattice after (used for 1_mod_after and both)
         lattice3 = lattice2 + 1
         idx3 = np.where(lattices == lattice3)[0][-1]
         return idx1, idx2, idx3
@@ -290,7 +298,7 @@ class Fault():
                       # termination condition, while settings are clearly not
                       #  optimized
                       'xtol': 1e-8,
-                      'x_scale': 'jac',
+                      # 'x_scale': 'jac',
                       # 'loss': 'arctan',
                       'diff_step': None, 'tr_solver': None, 'tr_options': {},
                       'jac_sparsity': None,
@@ -395,6 +403,7 @@ class Fault():
                        'phi_0_rel': [0., 4. * np.pi],
                        'phi_0_abs': [0., 4. * np.pi],
                        'phi_s': [-.5 * np.pi, 0.]}
+
         d_x_lim_rel = {'k_e': [.5, np.NaN],
                        'phi_0_rel': [np.NaN, np.NaN],
                        'phi_0_abs': [np.NaN, np.NaN],
@@ -406,7 +415,7 @@ class Fault():
             # MYRRHA)
             d_tech_n = {0: np.NaN}
             d_x_lim_rel['k_e'] = [.5, 1.2]
-            d_x_lim_rel['phi_s'] = [np.NaN, 1. - 5]
+            d_x_lim_rel['phi_s'] = [np.NaN, 1. - .5]
 
         # Set a list of properties that will be fitted
         if self.wtf['phi_s fit']:
@@ -446,9 +455,7 @@ class Fault():
         x_0 = np.array(x_0[:2 * n_cav])
         phi_s_limits = np.array(x_lim[2 * n_cav:])
         x_lim = np.array(x_lim[:2 * n_cav])
-
-        print(f"Initial_guess:\n{x_0}\n"
-              f"Bounds:\n{x_lim}")
+        print(f"Initial_guess:\n{x_0}\nBounds:\n{x_lim}")
 
         return x_0, x_lim, phi_s_limits, l_x_str
 

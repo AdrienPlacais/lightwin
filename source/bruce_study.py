@@ -30,7 +30,7 @@ if __name__ == '__main__':
         'path_cal': 'default',
         'dat_file': 'default',
         # 'current1': 0,
-        'nbr_part1': int(1e2),
+        'nbr_part1': int(1e6),
         # 'random_seed': 23111993,
     }
 
@@ -39,12 +39,12 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = True
+    FLAG_TW = False
     FLAG_EVALUATE = True
 
     failed_0 = [12]
     wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 5, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
+             'k': 6, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'scale_objective': [1., 1., 1.],
              'position': 'end_mod', 'phi_s fit': True}
@@ -167,14 +167,11 @@ if __name__ == '__main__':
 
     # Broken linac
     # lsq_info = None
-    l_failed = [failed_0]
-    l_wtf = [wtf_0]
+    l_failed = [failed_9]
+    l_wtf = [wtf_9]
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-
-    # l_failed = [failed_9, failed_9, failed_9]
-    # l_wtf = [wtf_9a, wtf_9b, wtf_9c]
 
     # l_failed = [[all_cavs[i]] for i in range(0, 40)]
     # l_wtf = [wtf_classic for i in range(0, 40)]
