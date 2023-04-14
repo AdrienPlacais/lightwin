@@ -11,6 +11,7 @@ from copy import deepcopy
 import time
 import datetime
 import pandas as pd
+import logging as log
 
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
@@ -19,6 +20,7 @@ import util.output as output
 import util.evaluate as evaluate
 import util.tracewin_interface as tw
 import visualization.plot as plot
+
 
 if __name__ == '__main__':
     # Select .dat file
@@ -169,6 +171,12 @@ if __name__ == '__main__':
     PROJECT_FOLDER = os.path.join(
         os.path.dirname(FILEPATH),
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
+    os.makedirs(PROJECT_FOLDER)
+
+    log.basicConfig(filename=os.path.join(PROJECT_FOLDER, 'log.log'),
+                    level=log.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
+    log.error("oh la la")
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")

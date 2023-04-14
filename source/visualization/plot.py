@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as pat
+import logging as log
 
 from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
@@ -354,6 +355,7 @@ def _savefig(fig, filepath):
     """Saves the figure."""
     fig.savefig(filepath)
     helper.printc("plot._savefig info:", f"Fig. saved in {filepath}")
+    log.info(f"plot._savefig info: Fig. saved in {filepath}")
 
 
 # =============================================================================

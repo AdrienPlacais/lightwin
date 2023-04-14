@@ -10,6 +10,7 @@ source/untitled*.py
 *.cal
 *.gif
 *.html
+*.log
 *.old.ini
 *.pdf
 *.png
