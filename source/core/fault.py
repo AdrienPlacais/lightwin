@@ -315,7 +315,7 @@ class Fault():
         info_string += f"nfev: {sol.nfev}\tnjev: {sol.njev}\n"
         info_string += f"optimality: {sol.optimality}\nstatus: {sol.status}\n"
         info_string += f"success: {sol.success}\nsolution: {sol.x}\n"
-        logging.info(info_string)
+        logging.debug(info_string)
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
     def _proper_fix_pso(self, wrapper_args, info_other_sol=None):

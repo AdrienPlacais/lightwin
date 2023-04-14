@@ -5,7 +5,7 @@ Created on Wed Sep 22 14:15:48 2021.
 
 @author: placais
 """
-
+import logging
 import numpy as np
 import pandas as pd
 from constants import c, E_REST_MEV
@@ -77,16 +77,19 @@ def printd(message, color_header='cyan', header=''):
     pd.options.display.max_colwidth = 18
     pd.options.display.width = 250
 
-    tot_width = 100
+    # Legacy
+    tot = 100
+    # print('\n' + '=' * tot)
+    # if len(header) > 0:
+        # printc(header, color=color_header)
 
-    print('\n' + '=' * tot_width)
-    if len(header) > 0:
-        printc(header, color=color_header)
-
-    # Output multi-line for headers
-    if isinstance(message, pd.DataFrame):
-        message.columns = message.columns.str.split("\n", expand=True)
-    print(message, '\n' + '=' * tot_width, '\n')
+    # # Output multi-line for headers
+    # if isinstance(message, pd.DataFrame):
+        # message.columns = message.columns.str.split("\n", expand=True)
+    # print(message, '\n' + '=' * tot, '\n')
+    my_output = header + "\n" + "-" * tot + "\n" + message.to_string()
+    my_output += "\n" + "-" * tot
+    logging.info(my_output)
 
 
 def resample(x_1, y_1, x_2, y_2):
