@@ -5,6 +5,7 @@ Created on Thu Nov 10 15:11:55 2022.
 
 @author: placais
 """
+import logging
 import numpy as np
 from util.helper import recursive_items, recursive_getter
 from core.emittance import beam_parameters_zdelta
@@ -15,8 +16,8 @@ class ListOfElements(list):
 
     def __init__(self, l_elts, w_kin, phi_abs, idx_in=None, tm_cumul=None):
         super().__init__(l_elts)
-        print(f"Init list from {l_elts[0].get('elt_name')} to "
-              f"{l_elts[-1].get('elt_name')}.")
+        logging.info(f"Init list from {l_elts[0].get('elt_name')} to "
+                     f"{l_elts[-1].get('elt_name')}.")
 
         if idx_in is None:
             idx_in = l_elts[0].idx['s_in']
