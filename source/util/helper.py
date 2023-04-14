@@ -7,7 +7,6 @@ Created on Wed Sep 22 14:15:48 2021.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 from constants import c, E_REST_MEV
 
@@ -121,8 +120,8 @@ def save_energy_phase_tm(lin):
     n_z = lin.get('z_abs').shape[0]
     data = np.column_stack((lin.get('z_abs'), lin.get('w_kin'),
                             lin.get('phi_abs_array'),
-        np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
-    ))
+                            np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
+                            ))
     filepath = lin.files['results_folder'] + lin.name \
         + '_energy_phase_tm.txt'
     filepath = filepath.replace(' ', '_')
