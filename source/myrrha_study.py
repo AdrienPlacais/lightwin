@@ -22,15 +22,15 @@ import visualization.plot as plot
 
 if __name__ == '__main__':
     # Select .dat file
-    FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
+    FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
 
     kwargs_tw = {
         'hide': None,
         'path_cal': 'default',
         'dat_file': 'default',
         # 'current1': 0,
-        'nbr_part1': int(1e6),
-        'dst_file1': '/home/placais/LightWin/data/JAEA_resend/EllipR2_2_A.dst'
+        # 'nbr_part1': int(1e2),
+        # 'dst_file1': '/home/placais/LightWin/data/JAEA_resend/EllipR2_2_A.dst'
         # 'random_seed': 23111993,
     }
 
@@ -42,102 +42,13 @@ if __name__ == '__main__':
     FLAG_TW = False
     FLAG_EVALUATE = False
 
-    failed_0 = [12]
+    failed_0 = [297]
     wtf_0 = {'opti method': 'least_squares',
              'strategy': 'k out of n',
-             'k': 5, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
+             'k': 5, 'l': 2, 'manual list': [[145, 147, 157, 165, 167]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'scale_objective': [1., 1., 1.],
              'position': 'end_mod', 'phi_s fit': True}
-
-# =============================================================================
-# Manual entry of BYR study cases
-# =============================================================================
-    failed_1 = [[12]]
-    wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 6, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             # 'scale_objective': [1., 100., 1.],
-             'position': 'end_mod', 'phi_s fit': True}
-
-    failed_2 = [[14]]
-    wtf_2 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 6, 'l': 2, 'manual list': [[8, 10, 12, 23, 25]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
-
-    failed_3 = [[125]]
-    wtf_3 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 6, 'l': 2, 'manual list': [[114, 116, 127, 129, 131]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
-
-    failed_4 = [[127]]
-    wtf_4 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 6, 'l': 2, 'manual list': [[114, 116, 125, 129, 131]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
-
-    failed_5 = [[129]]
-    wtf_5 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 6, 'l': 2, 'manual list': [[116, 125, 127, 131, 133]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
-
-    failed_6 = [[131]]
-    wtf_6 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 6, 'l': 2, 'manual list': [[116, 125, 127, 129, 133]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
-
-    failed_7 = [[133]]
-    wtf_7 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 6, 'l': 2, 'manual list': [[116, 125, 127, 129, 131]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'scale_objective': [1., 1., 1.],
-             'position': 'end_mod', 'phi_s fit': True}
-
-    failed_8 = [[25]]
-    wtf_8 = {'opti method': 'least_squares', 'strategy': 'manual',
-             'k': 6, 'l': 2, 'manual list': [[12, 14, 23, 27, 29, 31]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'position': 'end_mod', 'phi_s fit': True}
-
-# =============================================================================
-#     FullPer V
-# =============================================================================
-    failed_9 = [125, 127, 129, 131, 133]
-    wtf_9 = {'opti method': 'PSO', 'strategy': 'k out of n',
-             'k': 5, 'l': 2, 'manual list': [0],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'scale_objective': [1., 1., 1.],
-             'position': 'end_mod', 'phi_s fit': True}
-
-# =============================================================================
-#     FullPer other
-# =============================================================================
-    failed_10 = [40, 42, 44, 46, 48]
-    wtf_10 = {'opti method': 'least_squares', 'strategy': 'k out of n',
-              'k': 5, 'l': 2, 'manual list': [0],
-              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-              'position': 'end_mod', 'phi_s fit': True}
-
-# =============================================================================
-# Systematic study of all faults
-# =============================================================================
-    all_cavs = [6, 8, 10, 12, 14,
-                23, 25, 27, 29, 31,
-                40, 42, 44, 46, 48,
-                57, 59, 61, 63, 65,
-                74, 76, 78, 80, 82,
-                91, 93, 95, 97, 99,
-                108, 110, 112, 114, 116,
-                125, 127, 129, 131, 133,
-                ]
-    wtf_classic = {'opti method': 'least_squares', 'strategy': 'k out of n',
-                   'k': 5, 'l': 2, 'manual list': [0],
-                   'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-                   'position': 'end_mod', 'phi_s fit': True}
 
     # =========================================================================
     # Outputs
@@ -180,8 +91,8 @@ if __name__ == '__main__':
     # Broken linac
     # lsq_info = None
 
-    l_failed = [failed_9]
-    l_wtf = [wtf_9]
+    l_failed = [failed_0]
+    l_wtf = [wtf_0]
 
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
@@ -247,6 +158,7 @@ if __name__ == '__main__':
             # FIXME to modify simulation flags, go to
             # Accelerator.simulate_in_tracewin
             ini_path = FILEPATH.replace('.dat', '.ini')
+            ini_path = "/home/placais/LightWin/data/faultcomp22/working/MYRRHA_Transi-100MeV.ini"
             lin.simulate_in_tracewin(ini_path, **kwargs_tw)
             lin.store_tracewin_results()
 
@@ -264,7 +176,7 @@ if __name__ == '__main__':
 
         if FLAG_EVALUATE:
             for _list, name in zip([l_fred, l_bruce],
-                                   ['fred_tests.csv', 'bruce_tests.csv']):
+                                    ['fred_tests.csv', 'bruce_tests.csv']):
                 out = pd.DataFrame(_list)
                 filepath = os.path.join(PROJECT_FOLDER, name)
                 out.to_csv(filepath)

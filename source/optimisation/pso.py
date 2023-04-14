@@ -33,16 +33,16 @@ from visualization import anim, plot
 
 STR_ALGORITHM = "NSGA-III"
 # Messages from algorithm
-FLAG_VERBOSE = False
+FLAG_VERBOSE = True
 # Needed by most debug tools
-SAVE_HISTORY = False
+SAVE_HISTORY = True
 # Convergence criterion. Needs a reference point.
 FLAG_HYPERVOLUME = False
 # Show evolution of objective evaluations with number of generations
-FLAG_RUNNING = False
+FLAG_RUNNING = True
 FLAG_CONVERGENCE_CALLBACK = False
 # Show evolution of Constraint Violation with number of generations
-FLAG_CV = False
+FLAG_CV = True
 # Show the cavity parameters that were tried, discriminating feasible solutions
 # from unfeasible
 FLAG_DESIGN_SPACE = False

@@ -53,8 +53,8 @@ DICT_PLOT_PRESETS = {
                         'l_y_str': ["mismatch factor", "struct"],
                         'num': 27},
 }
-DICT_ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'abs'},
-                      'phi_abs_array_err': {'scale': 1., 'diff': 'abs'},
+DICT_ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'simple'},
+                      'phi_abs_array_err': {'scale': 1., 'diff': 'simple'},
                       }
 
 
@@ -173,8 +173,8 @@ def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
 # =============================================================================
 # Used in plot_preset
 # =============================================================================
-def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool=False,
-                          reference: str='self'):
+def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool = False,
+                          reference: str = 'self'):
     """
     Get all the data that should be plotted.
 
@@ -290,8 +290,9 @@ def _err(x_str, y_str, *args, plot_tw=False, reference='self'):
     # Set up a scale (for example if the error is very small)
     scale = DICT_ERROR_PRESETS[y_str]['scale']
     d_diff = {
+        'simple': lambda y_ref, y_lin: scale * (y_ref - y_lin),
         'abs': lambda y_ref, y_lin: scale * np.abs(y_ref - y_lin),
-        'rel': lambda y_ref, y_lin: scale * (y_ref - y_lin),
+        'rel': lambda y_ref, y_lin: scale * (y_ref - y_lin) / y_ref,
         'log': lambda y_ref, y_lin: scale * np.log10(np.abs(y_lin / y_ref)),
         }
     fun_diff = d_diff[DICT_ERROR_PRESETS[y_str]['diff']]

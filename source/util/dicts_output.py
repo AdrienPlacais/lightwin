@@ -48,6 +48,7 @@ d_markdown = {
     'beta': r"Synch. $\beta$ [1]",
     # Misc
     'struct': "Structure",
+    'err_simple': "Error",
     'err_abs': "Abs. error",
     'err_rel': "Rel. error",
     'err_log': "log of rel. error",

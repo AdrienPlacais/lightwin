@@ -339,7 +339,7 @@ class Accelerator():
         """Compute this linac with TraceWin."""
         assert 'Broken' not in self.name, "Useless to simulate or broken"
 
-        recompute_reference = False
+        recompute_reference = True
         if not recompute_reference and 'Working' in self.name:
             print("We do not recompute reference linac.")
             self.files['out_tw'] = '/home/placais/LightWin/data/JAEA/ref/'
@@ -416,31 +416,32 @@ class Accelerator():
 
 def _sections_lattices(l_elts):
     """Gather elements by section and lattice."""
-    l_elts, dict_struct = _prepare_sections_and_lattices(l_elts)
+    l_elts, d_struct = _prepare_sections_and_lattices(l_elts)
 
     lattices = []
     sections = []
     j = 0
-    for i in range(dict_struct['n_sections']):
+    for i in range(d_struct['n_sections']):
         lattices = []
-        n_lattice = dict_struct['lattices'][i].n_lattice
-        while j < dict_struct['indices'][i]:
+        n_lattice = d_struct['lattices'][i].n_lattice
+        while j < d_struct['indices'][i]:
             lattices.append(l_elts[j:j + n_lattice])
             j += n_lattice
         sections.append(lattices)
 
     shift_lattice = 0
+    j = 0
     for i, sec in enumerate(sections):
         for j, lattice in enumerate(sec):
             for elt in lattice:
                 elt.idx['section'] = i
-                elt.idx['lattice'] = j
+                elt.idx['lattice'] = j + shift_lattice
                 elt.idx['elt_idx'] = l_elts.index(elt)
         shift_lattice += j + 1
     lattices = []
     for sec in sections:
         lattices += sec
-    return l_elts, sections, lattices, dict_struct['frequencies']
+    return l_elts, sections, lattices, d_struct['frequencies']
 
 
 def _prepare_sections_and_lattices(l_elts):
