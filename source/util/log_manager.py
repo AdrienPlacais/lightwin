@@ -49,8 +49,9 @@ class LogFormatter(logging.Formatter):
 
 
 def set_up_logging(console_log_output='stdout', console_log_level='INFO', console_log_color=True,
+                   console_log_line_template="%(color_on)s[%(levelname)-8s] [%(filename)-20s]%(color_off)s %(message)s",
                    logfile_file='lightwin.log', logfile_log_level='INFO', logfile_log_color=False,
-                   log_line_template="%(color_on)s[%(asctime)s] [%(filename)-15s] [%(levelname)-8s]%(color_off)s %(message)s"):
+                   logfile_line_template="%(color_on)s[%(asctime)s] [%(levelname)-8s] [%(filename)-20s]%(color_off)s %(message)s"):
     """Set up logging."""
     # Remove previous logger
     del logging.root.handlers[:]
@@ -87,7 +88,7 @@ def set_up_logging(console_log_output='stdout', console_log_level='INFO', consol
 
     # Create and set formatter, add console handler to logger
     console_formatter = LogFormatter(
-        fmt=log_line_template, color=console_log_color)
+        fmt=console_log_line_template, color=console_log_color)
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
 
@@ -109,7 +110,7 @@ def set_up_logging(console_log_output='stdout', console_log_level='INFO', consol
 
     # Create and set formatter, add log file handler to logger
     logfile_formatter = LogFormatter(
-        fmt=log_line_template, color=logfile_log_color)
+        fmt=logfile_line_template, color=logfile_log_color)
     logfile_handler.setFormatter(logfile_formatter)
     logger.addHandler(logfile_handler)
 
@@ -121,9 +122,11 @@ def main():
 
     # Set up logging
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-    if (not set_up_logging(console_log_output="stdout", console_log_level="warning", console_log_color=True,
-                           logfile_file=script_name + ".log", logfile_log_level="debug", logfile_log_color=False,
-                           log_line_template="%(color_on)s[%(created)d] [%(threadName)s] [%(levelname)-8s] %(message)s%(color_off)s")):
+    if (not set_up_logging(
+            console_log_output="stdout", console_log_level="warning", console_log_color=True,
+            console_log_line_template="%(color_on)s[%(levelname)-8s] [%(filename)-20s]%(color_off)s %(message)s",
+            logfile_file='lightwin.log', logfile_log_level='INFO', logfile_log_color=False,
+            logfile_line_template="%(color_on)s[%(asctime)s] [%(levelname)-8s] [%(filename)-20s]%(color_off)s %(message)s")):
         print("Failed to set up logging, aborting.")
         return 1
 
@@ -139,53 +142,3 @@ def main():
 if (__name__ == "__main__"):
     sys.exit(main())
 
-
-# import os
-# import logging.config
-# LOGGING_CONFIG = {
-# 'version': 1,
-# 'disable_existing_loggers': True,
-# 'formatters': {
-    # 'console': {
-    # 'format': "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
-    # },
-    # 'file': {
-    # 'format': "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
-    # },
-# },
-# 'handlers': {
-    # 'console': {
-    # 'level': 'INFO',
-    # 'formatter': 'console',
-    # 'class': 'logging.StreamHandler',
-    # 'stream': 'ext://sys.stdout',  # Default is stderr
-    # },
-    # 'file': {
-    # 'level': 'INFO',
-    # 'formatter': 'file',
-    # 'class': 'logging.FileHandler',
-    # 'encoding': 'utf-8',
-    # 'filename': 'lightwin.log',
-    # },
-# },
-# 'loggers': {
-    # '': {  # root logger
-    # 'handlers': ['console', 'file'],
-    # 'level': 'WARNING',
-    # 'propagate': False
-    # },
-    # 'default': {
-    # 'handlers': ['console', 'file'],
-    # 'level': 'INFO',
-    # 'propagate': False
-    # },
-# }
-# }
-
-# def set_up(project_dir: str = None):
-# """Set up the logger."""
-# if project_dir is not None:
-    # LOGGING_CONFIG['handlers']['file']['filename'] = os.path.join(
-    # project_dir, LOGGING_CONFIG['handlers']['file']['filename'])
-
-# logging.config.dictConfig(LOGGING_CONFIG)
