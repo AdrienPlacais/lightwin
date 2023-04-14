@@ -39,7 +39,7 @@ import visualization.plot
 debugs = {
     'fit_complete': True,
     'fit_compact': False,
-    'fit_progression': False,    # Print evolution of error on objectives
+    'fit_progression': True,    # Print evolution of error on objectives
     'plot_progression': False,   # Plot evolution of error on objectives
     'cav': True,
     'verbose': 0,
@@ -576,7 +576,7 @@ def wrapper_pso(arr_cav_prop, fault, fun_residual):
     results = fault.elts.compute_transfer_matrices(d_fits, transfer_data=False)
     arr_f = fun_residual(results)
 
-    if debugs['fit_progression'] and fault.count % 20 == 0:
+    if debugs['fit_progression'] and fault.count % 200 == 0:
         debug.output_fit_progress(fault.count, arr_f, fault.info["l_F_str"])
     if debugs['plot_progression']:
         fault.info['hist_F'].append(arr_f)
