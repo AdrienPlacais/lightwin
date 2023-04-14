@@ -10,15 +10,17 @@ TODO : compute_transfer_matrices: simplify, add a calculation of missing phi_0
 at the end
 """
 import os.path
+import logging
 import numpy as np
+
 import util.tracewin_interface as tw
 from constants import E_MEV, FLAG_PHI_ABS, E_REST_MEV, c
 from core import particle
 from core import elements
 from core.list_of_elements import ListOfElements
 from core.emittance import beam_parameters_all, mismatch_factor
-from util.helper import kin_to_gamma, printc, recursive_items, \
-    recursive_getter, kin_to_beta
+from util.helper import kin_to_gamma, recursive_items, recursive_getter, \
+    kin_to_beta
 
 
 class Accelerator():
@@ -244,17 +246,17 @@ class Accelerator():
             flags_absolute.append(cav.get('abs_phase_flag'))
 
         if FLAG_PHI_ABS and False in flags_absolute:
-            printc("Accelerator._check_consistency_phases warning:",
-                   "you asked LW a simulation in absolute phase, while there",
-                   "is at least one cavity in relative phase in the .dat file",
-                   "used by TW. Results won't match if there are faulty",
-                   "cavities.")
+            logging.warning(
+                "You asked LW a simulation in absolute phase, while there " +
+                "is at least one cavity in relative phase in the .dat file " +
+                "used by TW. Results won't match if there are faulty " +
+                "cavities.")
         elif not FLAG_PHI_ABS and True in flags_absolute:
-            printc("Accelerator._check_consistency_phases warning:",
-                   "you asked LW a simulation in relative phase, while there",
-                   "is at least one cavity in absolute phase in the .dat file",
-                   "used by TW. Results won't match if there are faulty",
-                   "cavities.")
+            logging.warning(
+                "You asked LW a simulation in relative phase, while there " +
+                "is at least one cavity in absolute phase in the .dat file " +
+                "used by TW. Results won't match if there are faulty " +
+                "cavities.")
 
     def store_results(self, results, l_elts):
         """
@@ -341,7 +343,7 @@ class Accelerator():
 
         recompute_reference = True
         if not recompute_reference and 'Working' in self.name:
-            print("We do not recompute reference linac.")
+            logging.info("We do not recompute reference linac.")
             self.files['out_tw'] = '/home/placais/LightWin/data/JAEA/ref/'
             return
 

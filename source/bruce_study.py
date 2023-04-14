@@ -11,7 +11,7 @@ from copy import deepcopy
 import time
 import datetime
 import pandas as pd
-import logging as log
+import logging
 
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
@@ -20,6 +20,7 @@ import util.output as output
 import util.evaluate as evaluate
 import util.tracewin_interface as tw
 import visualization.plot as plot
+from util.log_manager import set_up_logging
 
 
 if __name__ == '__main__':
@@ -173,10 +174,8 @@ if __name__ == '__main__':
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
     os.makedirs(PROJECT_FOLDER)
 
-    log.basicConfig(filename=os.path.join(PROJECT_FOLDER, 'log.log'),
-                    level=log.INFO,
-                    format="%(asctime)s - %(levelname)s - %(message)s")
-    log.error("oh la la")
+    # my_log.set_up(PROJECT_FOLDER)
+    set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
@@ -219,7 +218,7 @@ if __name__ == '__main__':
         # Output some info onthe quality of the fit
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
-        print(f"\n\nElapsed time: {delta_t}\n")
+        logging.info(f"Elapsed time: {delta_t}")
 
         # Update the .dat filecontent
         tw.update_dat_with_fixed_cavities(lin.get('dat_filecontent'), lin.elts,

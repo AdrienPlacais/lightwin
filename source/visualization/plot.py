@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as pat
-import logging as log
+import logging
 
 from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
@@ -271,8 +271,7 @@ def _data_from_tw(data_str, d_tw, warn_missing=False):
 
     # Not implemented
     if warn_missing and out is None:
-        helper.printc("plot._data_from_tw warning: ",
-                      opt_message=f"{data_str} not found for TW.")
+        logging.warning(f"{data_str} not found for TW.")
     return out
 
 
@@ -354,8 +353,7 @@ def _plot_all_data(axx, x_data, y_data, l_kwargs, d_colors):
 def _savefig(fig, filepath):
     """Saves the figure."""
     fig.savefig(filepath)
-    helper.printc("plot._savefig info:", f"Fig. saved in {filepath}")
-    log.info(f"plot._savefig info: Fig. saved in {filepath}")
+    logging.info(f"Fig. saved in {filepath}")
 
 
 # =============================================================================
