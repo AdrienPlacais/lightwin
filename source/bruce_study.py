@@ -14,7 +14,6 @@ import pandas as pd
 
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
-import util.debug as debug
 import util.helper as helper
 import util.output as output
 import util.evaluate as evaluate
@@ -31,6 +30,7 @@ if __name__ == '__main__':
         'dat_file': 'default',
         # 'current1': 0,
         'nbr_part1': int(1e6),
+        'dst_file1': '/home/placais/LightWin/data/JAEA_resend/EllipR2_2_A.dst'
         # 'random_seed': 23111993,
     }
 
@@ -40,11 +40,12 @@ if __name__ == '__main__':
     FLAG_FIX = True
     SAVE_FIX = True
     FLAG_TW = False
-    FLAG_EVALUATE = True
+    FLAG_EVALUATE = False
 
     failed_0 = [12]
-    wtf_0 = {'opti method': 'least_squares', 'strategy': 'k out of n',
-             'k': 6, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
+    wtf_0 = {'opti method': 'least_squares',
+             'strategy': 'k out of n',
+             'k': 5, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
              'scale_objective': [1., 1., 1.],
              'position': 'end_mod', 'phi_s fit': True}
@@ -56,7 +57,7 @@ if __name__ == '__main__':
     wtf_1 = {'opti method': 'least_squares', 'strategy': 'manual',
              'k': 6, 'l': 2, 'manual list': [[6, 8, 10, 14, 23]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'scale_objective': [1., 100., 1.],
+             # 'scale_objective': [1., 100., 1.],
              'position': 'end_mod', 'phi_s fit': True}
 
     failed_2 = [[14]]
@@ -93,6 +94,7 @@ if __name__ == '__main__':
     wtf_7 = {'opti method': 'least_squares', 'strategy': 'manual',
              'k': 6, 'l': 2, 'manual list': [[116, 125, 127, 129, 131]],
              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'scale_objective': [1., 1., 1.],
              'position': 'end_mod', 'phi_s fit': True}
 
     failed_8 = [[25]]
@@ -105,10 +107,20 @@ if __name__ == '__main__':
 #     FullPer V
 # =============================================================================
     failed_9 = [125, 127, 129, 131, 133]
-    wtf_9 = {'opti method': 'least_squares', 'strategy': 'k out of n',
-            'k': 5, 'l': 2, 'manual list': [0],
-            'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-            'position': 'end_mod', 'phi_s fit': True}
+    wtf_9 = {'opti method': 'PSO', 'strategy': 'k out of n',
+             'k': 5, 'l': 2, 'manual list': [0],
+             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'scale_objective': [1., 1., 1.],
+             'position': 'end_mod', 'phi_s fit': True}
+
+# =============================================================================
+#     FullPer other
+# =============================================================================
+    failed_10 = [40, 42, 44, 46, 48]
+    wtf_10 = {'opti method': 'least_squares', 'strategy': 'k out of n',
+              'k': 5, 'l': 2, 'manual list': [0],
+              'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+              'position': 'end_mod', 'phi_s fit': True}
 
 # =============================================================================
 # Systematic study of all faults
@@ -167,8 +179,10 @@ if __name__ == '__main__':
 
     # Broken linac
     # lsq_info = None
+
     l_failed = [failed_9]
     l_wtf = [wtf_9]
+
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]
     # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
@@ -250,7 +264,7 @@ if __name__ == '__main__':
 
         if FLAG_EVALUATE:
             for _list, name in zip([l_fred, l_bruce],
-                                    ['fred_tests.csv', 'bruce_tests.csv']):
+                                   ['fred_tests.csv', 'bruce_tests.csv']):
                 out = pd.DataFrame(_list)
                 filepath = os.path.join(PROJECT_FOLDER, name)
                 out.to_csv(filepath)
