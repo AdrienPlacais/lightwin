@@ -180,8 +180,8 @@ if __name__ == '__main__':
     # Broken linac
     # lsq_info = None
 
-    l_failed = [failed_9]
-    l_wtf = [wtf_9]
+    l_failed = [failed_0]
+    l_wtf = [wtf_0]
 
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]

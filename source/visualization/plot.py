@@ -11,13 +11,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as pat
-from collections import OrderedDict
 
 from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
 import util.helper as helper
-import util.tracewin_interface as tw
 import util.dicts_output as dic
 
 font = {'family': 'serif', 'size': 25}
@@ -123,7 +121,6 @@ def plot_preset(str_preset: str, *args, **kwargs):
         ax.set_ylabel(dic.d_markdown[y_str])
         # TODO handle linear vs log
 
-
     axx[0].legend()
 
     if kwargs['save_fig']:
@@ -207,7 +204,8 @@ def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool = False,
     l_kwargs = []
 
     source = 'multipart'
-    if y_str in ['v_cav_mv', 'phi_s']:  # FIXME Get all the data that should be plotted.
+    # FIXME Get all the data that should be plotted.
+    if y_str in ['v_cav_mv', 'phi_s']:
         source = 'cav_param'
 
     plot_error = y_str[-3:] == 'err'
@@ -378,7 +376,6 @@ def create_fig_if_not_exists(axnum, sharex=False, num=1, clean_fig=False):
     if isinstance(axnum, int):
         # We make a one-column, axnum rows figure
         axnum = range(100 * axnum + 11, 101 * axnum + 11)
-    n_axes = len(axnum)
 
     if plt.fignum_exists(num):
         fig = plt.figure(num)
@@ -476,7 +473,7 @@ def _plot_structure(linac, ax, x_axis='z_abs'):
     for i, elt in enumerate(linac.elts):
         kwargs = d_x_axis[x_axis](elt, i)[0]
         ax.add_patch(d_elem_plot[elt.get('nature', to_numpy=False)](
-            elt,**kwargs))
+            elt, **kwargs))
 
     ax.set_xlim(d_x_axis[x_axis](elt, i)[1])
     ax.set_yticklabels([])
@@ -661,7 +658,7 @@ def plot_fit_progress(hist_f, l_label, nature='Relative'):
     axx = axx[0]
 
     scales = {'Relative': lambda x: x / x[0],
-              'Absolute': lambda x: x,}
+              'Absolute': lambda x: x, }
 
     # Number of objectives, number of evaluations
     n_f = len(l_label)

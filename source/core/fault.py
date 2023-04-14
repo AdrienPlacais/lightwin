@@ -37,9 +37,9 @@ import visualization.plot
 
 
 debugs = {
-    'fit_complete': True,
+    'fit_complete': False,
     'fit_compact': False,
-    'fit_progression': True,    # Print evolution of error on objectives
+    'fit_progression': False,    # Print evolution of error on objectives
     'plot_progression': False,   # Plot evolution of error on objectives
     'cav': True,
     'verbose': 0,
