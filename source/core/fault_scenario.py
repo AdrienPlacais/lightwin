@@ -25,6 +25,7 @@ TODO option to minimize the power of compensating cavities
 
 TODO remake a small fit after the first one?
 """
+import logging
 import itertools
 import math
 import numpy as np
@@ -33,7 +34,6 @@ from constants import FLAG_PHI_ABS
 import core.fault as mod_f
 from core.list_of_elements import ListOfElements
 from util import debug
-from util.helper import printc
 
 
 class FaultScenario():
@@ -189,10 +189,10 @@ class FaultScenario():
         If the calculation is in relative phase, all cavities that are after
         the first failed one are rephased.
         """
-        printc("fault_scenario._update_status_of_cavities_to_rephase warning:",
-               "the phases in the broken linac are relative. It may be more",
-               "relatable to use absolute phases, as it would avoid the",
-               "rephasing of the linac at each cavity.")
+        logging.warning(
+            "The phases in the broken linac are relative. It may be more " +
+            "relatable to use absolute phases, as it would avoid the " +
+            "rephasing of the linac at each cavity.")
         idx_first_failed = self.faults['l_idx'][0][0]
 
         to_rephase_cavities = [cav for cav in self.brok_lin.elts[idx_first_failed:]
@@ -308,8 +308,7 @@ class FaultScenario():
         Change the cavities with status "rephased (in progress)" to
         "rephased (ok)" between this fault and the next one.
         """
-        printc("fault_scenario._reupdate_status_of_rephased_cavities warning:",
-               "changed the way of defining idx1 and idx2.")
+        logging.warning("Changed the way of defining idx1 and idx2.")
         l_faults = self.faults['l_obj']
         l_elts = self.brok_lin.elts
 

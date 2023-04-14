@@ -5,9 +5,10 @@ Created on Thu Dec  2 13:44:00 2021.
 
 @author: placais
 """
+import logging
 import numpy as np
 import pandas as pd
-from util.helper import recursive_items, recursive_getter, printc, \
+from util.helper import recursive_items, recursive_getter, \
     kin_to_gamma, kin_to_beta, gamma_to_beta, gamma_and_beta_to_p, z_to_phi
 from constants import E_REST_MEV, OMEGA_0_BUNCH
 
@@ -58,8 +59,8 @@ class Particle():
         self._init_phi(idx=0)
 
         if not self.part_info["synchronous"]:
-            printc("Particle.__init__ warning:", "the absolute position of a",
-                   "non synchronous particle is not initialized.")
+            logging.warning("The absolute position of a non synchronous " +
+                            "particle is not initialized.")
 
     def has(self, key):
         """Tell if the required attribute is in this class."""

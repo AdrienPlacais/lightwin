@@ -6,6 +6,7 @@ Created on Tue Apr 26 16:44:53 2022.
 @author: placais
 """
 
+import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -28,7 +29,6 @@ from pymoo.visualization.pcp import PCP
 
 from pymoo.core.callback import Callback
 
-from util.helper import printc
 from visualization import anim, plot
 
 STR_ALGORITHM = "NSGA-III"
@@ -76,15 +76,15 @@ class MyProblem(ElementwiseProblem):
         _xu = info['X_lim'][:, 1]
         n_obj = len(self.fault.wtf['objective'])
         # n_constr = 2 * info['G'].shape[0]
-        printc("Warning! k_e constraint manually added.")
+        logging.warning("k_e constraint manually added.")
         n_constr = 2 * info['G'].shape[0] + 1
         self.phi_s_limits = info['G']
 
-        print(f"Number of objectives: {n_obj}")
+        logging.info(f"Number of objectives: {n_obj}")
         super().__init__(n_var=n_var, n_obj=n_obj, n_constr=n_constr,
                          xl=_xl, xu=_xu, **kwargs)
         if n_constr > 0:
-            print(f"{n_constr} constraints on phi_s:\n{info['G']}")
+            logging.info(f"{n_constr} constraints on phi_s:\n{info['G']}")
 
     def _evaluate(self, x, out, *args, **kwargs):
         """
@@ -178,7 +178,7 @@ def mcdm(res, weights, fault_info, compare=None):
     """Perform Multi-Criteria Decision Making."""
     d_approx = {'ideal': res.F.min(axis=0),
                 'nadir': res.F.max(axis=0)}
-    print(f"Nadir and ideal: {d_approx}")
+    logging.info(f"Nadir and ideal: {d_approx}")
 
     n_f = (res.F - d_approx['ideal']) / (d_approx['nadir'] - d_approx['ideal'])
     pd_best_sol, d_asf, d_pw = _best_solutions(res, n_f, weights, fault_info,
@@ -215,8 +215,7 @@ def _best_solutions(res, n_f, weights, fault_info, compare=None):
     for col in pd_best_sol:
         if 'phi' in col:
             pd_best_sol[col] = np.rad2deg(pd_best_sol[col])
-    print(f"\n\n{pd_best_sol[['Criteria', 'i'] + fault_info['l_F_str']]}"
-          + '\n\n')
+    logging.info(f"{pd_best_sol[['Criteria', 'i'] + fault_info['l_F_str']]}")
 
     # Viualize solutions
     _plot_solutions(res.F, d_opti, fault_info['l_F_str'], compare)
@@ -255,15 +254,15 @@ def convergence_history(hist, d_approx, str_obj, lsq_f):
         hist_f.append(opt.get("F")[feas])
 
     k = np.where(np.array(hist_cv) <= 0.)[0].min()
-    print(f"At least one feasible solution in Generation {k} after",
-          f"{n_evals[k]} evaluations.")
+    logging.info(f"At least one feasible solution in Generation {k} after " +
+                 f"{n_evals[k]} evaluations.")
     vals = hist_cv_avg
     # Can be replaced by hist_cv to analyse the least feasible optimal solution
     # instead of the population
 
     k = np.where(np.array(vals) <= 0.)[0].min()
-    print(f"Whole population feasible in Generation {k} after {n_evals[k]}",
-          "evaluations.")
+    logging.info(f"Whole population feasible in Generation {k} after " +
+                 f"{n_evals[k]} evaluations.")
 
     if FLAG_CV:
         fig, axx = plot.create_fig_if_not_exist(61, [211, 212])
@@ -443,8 +442,7 @@ def _plot_variables_final_sol(fig, d_opti, n_cav, lsq_x=None):
     axx[0].legend()
     axx[3].set_ylabel(r'$k_e$')
     axx[4].set_xlabel(r'$\phi_0$')
-    printc("Warning PSO._space_design_exploration:",
-           "limits manually entered.")
+    logging.warning("Limits manually entered.")
 
 
 def set_weights(l_obj_str):

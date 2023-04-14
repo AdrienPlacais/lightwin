@@ -9,6 +9,7 @@ TODO : check FLAG_PHI_S_FIT
 TODO : rf_param should also return phi_rf_rel. Will be necessary
 for non-synch particles.
 """
+import logging
 import numpy as np
 from scipy.optimize import minimize_scalar
 from core.electric_field import RfField, compute_param_cav, convert_phi_0
@@ -27,7 +28,7 @@ except ModuleNotFoundError:
     if FLAG_CYTHON:
         raise ModuleNotFoundError('Error' + MESSAGE)
     # Else, only issue a Warning.
-    print('Warning' + MESSAGE)
+    logging.warning(MESSAGE)
     # Load Python version as Cython to allow the execution of the code.
     # It will not be used.
     import core.transfer_matrices_p as tm_c
@@ -376,7 +377,7 @@ class FieldMap(_Element):
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)
         if not res.success:
-            print('match synch phase not found')
+            logging.error('Synch phase not found')
         phi_0_rel = res.x
 
         return phi_0_rel
