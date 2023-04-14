@@ -7,11 +7,11 @@ Created on Tue Dec  6 14:33:39 2022.
 """
 
 import os
+import logging
 from copy import deepcopy
 import time
 import datetime
 import pandas as pd
-import logging
 
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
@@ -173,8 +173,6 @@ if __name__ == '__main__':
         os.path.dirname(FILEPATH),
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
     os.makedirs(PROJECT_FOLDER)
-
-    # my_log.set_up(PROJECT_FOLDER)
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
     # Reference linac

@@ -15,6 +15,7 @@ General TODO list:
     - raise error when the failed_cav is not a list of list (when manual)
 """
 import os
+import logging
 from copy import deepcopy
 import time
 import datetime
@@ -25,6 +26,7 @@ import core.accelerator as acc
 import core.fault_scenario as mod_fs
 from util import debug, helper, output
 import util.tracewin_interface as tw
+from util.log_manager import set_up_logging
 
 if __name__ == '__main__':
     # Select .dat file
@@ -131,11 +133,6 @@ if __name__ == '__main__':
         "Vcav and phis": helper.save_vcav_and_phis,
     }
 
-    if abs(I_MILLI_A) > 1e-10:
-        helper.printc("main.py warning: ", opt_message="I_MILLI_A is not zero,"
-                      " but LW does not take space charge forces into"
-                      " account.")
-
     # =========================================================================
     # Start
     # =========================================================================
@@ -143,6 +140,14 @@ if __name__ == '__main__':
     PROJECT_FOLDER = os.path.join(
         os.path.dirname(FILEPATH),
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
+
+    os.makedirs(PROJECT_FOLDER)
+    set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
+
+    if abs(I_MILLI_A) > 1e-10:
+        logging.warning("I_MILLI_A is not zero, " +
+                        "but LW does not take space charge forces into " +
+                        "account.")
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
@@ -178,7 +183,7 @@ if __name__ == '__main__':
         # Output some info onthe quality of the fit
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
-        print(f"\n\nElapsed time: {delta_t}")
+        logging.info(f"Elapsed time: {delta_t}")
 
         # Update the .dat filecontent
         tw.update_dat_with_fixed_cavities(lin.get('dat_filecontent'), lin.elts,
