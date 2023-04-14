@@ -1,29 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# -------------------------------------------------------------------------------
-#                                                                               -
-#  Python dual-logging setup (console and log file),                            -
-#  supporting different log levels and colorized output                         -
-#                                                                               -
-#  Created by Fonic <https://github.com/fonic>                                  -
-#  Date: 04/05/20 - 02/07/23                                                    -
-#                                                                               -
-#  Based on:                                                                    -
-#  https://stackoverflow.com/a/13733863/1976617                                 -
-#  https://uran198.github.io/en/python/2016/07/12/colorful-python-logging.html  -
-#  https://en.wikipedia.org/wiki/ANSI_escape_code#Colors                        -
-#                                                                               -
-# -------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+#                                                                             -
+#  Python dual-logging setup (console and log file),                          -
+#  supporting different log levels and colorized output                       -
+#                                                                             -
+#  Created by Fonic <https://github.com/fonic>                                -
+#  Date: 04/05/20 - 02/07/23                                                  -
+#                                                                             -
+#  Based on:                                                                  -
+#  https://stackoverflow.com/a/13733863/1976617                               -
+#  https://uran198.github.io/en/python/2016/07/12/colorful-python-logging.html-
+#  https://en.wikipedia.org/wiki/ANSI_escape_code#Colors                      -
+#                                                                             -
+# -----------------------------------------------------------------------------
 # Imports
 import os
 import sys
 import logging
 
 
-# Logging formatter supporting colorized output
 class LogFormatter(logging.Formatter):
-
+    """Logging formatter supporting colorized output."""
     COLOR_CODES = {
         logging.CRITICAL: "\033[1;35m",  # bright/bold magenta
         logging.ERROR:    "\033[1;31m",  # bright/bold red
@@ -47,11 +46,14 @@ class LogFormatter(logging.Formatter):
             record.color_off = ""
         return super(LogFormatter, self).format(record, *args, **kwargs)
 
-# Set up logging
 
 
-def set_up_logging(console_log_output, console_log_level, console_log_color, logfile_file, logfile_log_level, logfile_log_color, log_line_template):
-
+def set_up_logging(console_log_output='stdout', console_log_level='INFO', console_log_color=True,
+                   logfile_file='lightwin.log', logfile_log_level='INFO', logfile_log_color=False,
+                   log_line_template="%(color_on)s[%(asctime)s] [%(filename)-15s] [%(levelname)-8s]%(color_off)s %(message)s"):
+    """Set up logging."""
+    # Remove previous logger
+    del logging.root.handlers[:]
     # Create logger
     # For simplicity, we use the root logger, i.e. call 'logging.getLogger()'
     # without name argument. This way we can simply use module methods for
@@ -64,9 +66,9 @@ def set_up_logging(console_log_output, console_log_level, console_log_color, log
 
     # Create console handler
     console_log_output = console_log_output.lower()
-    if (console_log_output == "stdout"):
+    if console_log_output == "stdout":
         console_log_output = sys.stdout
-    elif (console_log_output == "stderr"):
+    elif console_log_output == "stderr":
         console_log_output = sys.stderr
     else:
         print("Failed to set console output: invalid output: '%s'" %
@@ -114,10 +116,8 @@ def set_up_logging(console_log_output, console_log_level, console_log_color, log
     # Success
     return True
 
-# Main function
-
-
 def main():
+    """Main function."""
 
     # Set up logging
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
