@@ -23,6 +23,7 @@ TODO : _set_design_space could be cleaner
 """
 # from multiprocessing.pool import ThreadPool
 # import multiprocessing
+import logging
 import numpy as np
 from scipy.optimize import minimize, least_squares
 
@@ -31,7 +32,6 @@ from core.list_of_elements import ListOfElements
 from core.emittance import mismatch_factor
 from util import debug
 from util.dicts_output import d_markdown
-from util.helper import printc
 from optimisation import pso
 import visualization.plot
 
@@ -167,12 +167,12 @@ class Fault():
                 + " same cavity for their compensation?"
 
             if current_status in ["compensate (ok)", "compensate (not ok)"]:
-                printc("fault.prepare_cavities_for_compensation warning:",
-                       "you want to update the status of a cavity that is",
-                       "already used for compensation. Check",
-                       "fault_scenario._gather_and_create_fault_objects.",
-                       "Maybe two faults want to use the same cavity for",
-                       "compensation?")
+                logging.warning(
+                    "You want to update the status of a cavity that is " +
+                    "already used for compensation. Check " +
+                    "fault_scenario._gather_and_create_fault_objects. " +
+                    "Maybe two faults want to use the same cavity for " +
+                    "compensation?")
 
             cav.update_status(new_status)
 
@@ -221,9 +221,9 @@ class Fault():
             # will return None if idx is the last index of the linac
             if elt is None:
                 elt = self.brok_lin.where_is_this_index(idx - 1)
-            print(f"\nWe try to match at mesh index {idx}.")
-            print(f"Info: {elt.get('elt_info')}.")
-            print(f"Full indexes: {elt.get('idx')}.\n")
+            logging.info(f"We try to match at mesh index {idx}.")
+            logging.info(f"Info: {elt.get('elt_info')}.")
+            logging.info(f"Full indexes: {elt.get('idx')}.")
 
         return l_elts, d_idx
 
@@ -281,13 +281,6 @@ class Fault():
             solver = least_squares
             x_lim = (self.info['X_lim'][:, 0], self.info['X_lim'][:, 1])
 
-            # x_scale = np.array(
-            #     [2 * np.pi, 2 * np.pi, 2 * np.pi, 2 * np.pi, 2 * np.pi,
-            #      0.9304272, 0.9304272, 0.9304272, 0.9304272, 0.9304272]
-            # )
-            # printc("fault._proper_fix_lsq warning: ",
-            #        opt_message="x_scale manually set")
-
             kwargs = {'jac': '2-point',     # Default
                       # 'trf' not ideal as jac is not sparse. 'dogbox' may have
                       # difficulties with rank-defficient jacobian.
@@ -312,18 +305,17 @@ class Fault():
         if debugs['plot_progression']:
             self.info["hist_F"].append(sol.fun)
 
-        print("-"*80)
-        print(f"Objective functions results:")
+        # FIXME may be moved to util/output
+        info_string = "Objective functions results:\n"
         for i, fun in enumerate(sol.fun):
-            print(f"{i}: {' ':>35} | {fun}")
-        print("-"*80)
-        print(f"message: {sol.message}\n"
-              f"nfev: {sol.nfev}\tnjev: {sol.njev}\n"
-              f"optimality: {sol.optimality}\n"
-              f"status: {sol.status}\n"
-              f"success: {sol.success}\n"
-              f"solution: {sol.x}")
-        print("-"*80 + "\n\n")
+            info_string += f"{i}: {' ':>35} | {fun}\n"
+        logging.info(info_string)
+        info_string = "least_squares algorithm output:"
+        info_string += f"\nmessage: {sol.message}\n"
+        info_string += f"nfev: {sol.nfev}\tnjev: {sol.njev}\n"
+        info_string += f"optimality: {sol.optimality}\nstatus: {sol.status}\n"
+        info_string += f"success: {sol.success}\nsolution: {sol.x}\n"
+        logging.info(info_string)
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
     def _proper_fix_pso(self, wrapper_args, info_other_sol=None):
@@ -454,8 +446,9 @@ class Fault():
         x_0 = np.array(x_0[:2 * n_cav])
         phi_s_limits = np.array(x_lim[2 * n_cav:])
         x_lim = np.array(x_lim[:2 * n_cav])
-        print(f"Initial_guess:\n{x_0}\nBounds:\n{x_lim}")
 
+        logging.info(f"Initial_guess:\n{x_0}")
+        logging.info(f"Bounds:\n{x_lim}")
         return x_0, x_lim, phi_s_limits, l_x_str
 
     def get_x_sol_in_real_phase(self):
@@ -501,11 +494,14 @@ class Fault():
                  for i_r in idx_ref
                  for key in l_objectives]
 
-        print("\n" + "-"*80)
-        print(f"   {'Objective:':>35} | {'Scale:':>6} | {'Initial value'}")
+        # TODO move to util/output
+        info_str = "Objectives:\n"
+        info_str +=\
+                f"   {'Objective:':>35} | {'Scale:':>6} | {'Initial value'}\n"
         for i, (f_str, f_scale, ref) in enumerate(zip(l_f_str, l_scales,
                                                       l_ref)):
-            print(f"{i}: {f_str:>35} | {f_scale:>6} | {ref}")
+            info_str += f"{i}: {f_str:>35} | {f_scale:>6} | {ref}\n"
+        logging.info(info_str)
 
         def fun_residual(results):
             """Compute difference between ref value and results dictionary."""
