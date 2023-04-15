@@ -21,12 +21,13 @@ try:
     import core.transfer_matrices_c as tm_c
 
 except ModuleNotFoundError:
-    MESSAGE = ', Cython module not compilated. Check elements.py and setup.py'\
+    MESSAGE = 'Cython module not compilated. Check setup.py and elements.py'\
         + ' for more information.'
 
     # If Cython was asked, raise Error.
     if FLAG_CYTHON:
-        raise ModuleNotFoundError('Error' + MESSAGE)
+        logging.error(MESSAGE)
+        raise ModuleNotFoundError(MESSAGE)
     # Else, only issue a Warning.
     logging.warning(MESSAGE)
     # Load Python version as Cython to allow the execution of the code.
