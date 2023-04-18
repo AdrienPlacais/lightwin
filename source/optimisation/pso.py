@@ -23,7 +23,7 @@ from pymoo.decomposition.asf import ASF
 from pymoo.mcdm.pseudo_weights import PseudoWeights
 
 from pymoo.indicators.hv import Hypervolume
-from pymoo.util.running_metric import RunningMetricAnimation
+# from pymoo.util.running_metric import RunningMetricAnimation
 
 from pymoo.visualization.pcp import PCP
 
@@ -357,14 +357,15 @@ def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj, lsq_f=None):
 
 def _convergence_running_metrics(hist):
     """Study convergence using running metrics."""
-    running = RunningMetricAnimation(
-        delta_gen=10,
-        n_plots=10,
-        # only_if_n_plots=True,
-        key_press=True,
-        do_show=True,)
-    for algorithm in hist:
-        running.update(algorithm)
+    raise IOError('func not available anymore')
+    # running = RunningMetricAnimation(
+    #     delta_gen=10,
+    #     n_plots=10,
+    #     # only_if_n_plots=True,
+    #     key_press=True,
+    #     do_show=True,)
+    # for algorithm in hist:
+    #     running.update(algorithm)
 
 
 def _plot_solutions(res_f, d_opti, labels, compare=None):
