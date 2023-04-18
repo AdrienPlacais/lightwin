@@ -127,6 +127,9 @@ class Accelerator():
         # Convert to list, and to numpy array if necessary
         out = [val[key] for key in keys]
         if to_numpy:
+            # VisibleDeprecationWarning with Python < 3.11?
+            # Error with Python >= 3.11?
+            # Try setting to_numpy to False.
             out = [np.array(val) if isinstance(val, list)
                    else val
                    for val in out]

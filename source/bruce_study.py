@@ -219,8 +219,10 @@ if __name__ == '__main__':
         logging.info(f"Elapsed time: {delta_t}")
 
         # Update the .dat filecontent
-        tw.update_dat_with_fixed_cavities(lin.get('dat_filecontent'), lin.elts,
-                                          lin.get('field_map_folder'))
+        tw.update_dat_with_fixed_cavities(
+            lin.get('dat_filecontent', to_numpy=False), lin.elts,
+            lin.get('field_map_folder'))
+
         # Reproduce TW's Data tab
         data = tw.output_data_in_tw_fashion(lin)
 
