@@ -31,9 +31,15 @@ def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf'
         }
     )
     config.read(config_path)
-
-    # Run all config tests
     _test_config(config, key_wtf=key_wtf)
+
+    # Remove unused Sections, save resulting file
+    (config.remove_section(key) for key in list(config.keys())
+     if key not in ['DEFAULT', key_wtf])
+    with open(os.path.join(project_path, 'lighwin.ini'),
+              'w', encoding='utf-8') as file:
+        config.write(file)
+
     wtf = _config_to_dict(config, key_wtf=key_wtf)
     return wtf
 
