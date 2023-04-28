@@ -34,8 +34,8 @@ def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf'
     _test_config(config, key_wtf=key_wtf)
 
     # Remove unused Sections, save resulting file
-    (config.remove_section(key) for key in list(config.keys())
-     if key not in ['DEFAULT', key_wtf])
+    [config.remove_section(key) for key in list(config.keys())
+     if key not in ['DEFAULT', key_wtf]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
@@ -227,6 +227,10 @@ def _test_objective(wtf: configparser.SectionProxy) -> bool:
                           + "you must provide a list of scale factors (one "
                           + "scale factor per objective.")
             return False
+    else:
+        l_scales = [1. for obj in l_obj]
+        wtf['scale objective'] = ', '.join(map(str, l_scales))
+        logging.warning("Scale of objectives not specified. Use default.")
 
     return True
 

@@ -114,12 +114,8 @@ class Fault():
             tm_cumul=self.brok_lin.get('tm_cumul')[idx])
         # FIXME would be better of at Fault initialization
 
-        if 'scale_objective' not in self.wtf.keys():
-            scale = [1. for obj in self.wtf['objective']]
-            self.wtf['scale_objective'] = scale
-
         fun_residual, l_f_str = self._select_objective(
-            self.wtf['objective'], self.wtf['scale_objective'], **d_idx)
+            self.wtf['objective'], self.wtf['scale objective'], **d_idx)
 
         # Save some data for debug and output purposes
         self.info.update({
