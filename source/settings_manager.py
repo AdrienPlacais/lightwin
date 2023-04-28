@@ -10,22 +10,33 @@ Handle simulation parameters. In particular:
     - how should they be fixed?
 """
 import logging
+import os
 import json
 
 
-class SettingsManager():
-    """Surpisingly, a manager for your settings."""
+class ConfigManager():
+    """Surpisingly, a manager for your config."""
 
-    def __init__(self, settings_path: str) -> None:
-        """Reads a settings file."""
-        # settings = json.load(open(settings_path))
+    def __init__(self, config_path: str, project_path: str) -> None:
+        """Reads a config file."""
+        self.config = json.load(open(config_path, encoding='utf-8'))
+        self.project_path = project_path
 
     def generate_wtf(self) -> list | dict:
         """Generate a proper wtf (list of) dict."""
         wtf = None
         return wtf
 
-    def test_wtf(self, l_wtf: list | dict) -> None:
+    def test_config(self) -> None:
+        """Run all the config dic tests, and save the config if ok."""
+        self._test_wtf(self.config['l_wtf'])
+
+        save_path = os.path.join(self.project_path, 'config.json')
+        with open(save_path, encoding='utf-8') as file:
+            json.dump(self.config, file)
+
+
+    def _test_wtf(self, l_wtf: list | dict) -> None:
         """Test the 'what_to_fit' dictionaries."""
         if isinstance(l_wtf, dict):
             logging.info("A single wtf dict was provided and will be used "
