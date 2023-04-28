@@ -40,8 +40,8 @@ if __name__ == '__main__':
     # =========================================================================
     # Fault compensation
     # =========================================================================
-    FLAG_FIX = True
-    SAVE_FIX = True
+    FLAG_FIX = False
+    SAVE_FIX = False
     FLAG_TW = False
     FLAG_EVALUATE = False
 
@@ -110,9 +110,12 @@ if __name__ == '__main__':
 #     FullPer V
 # =============================================================================
     failed_9 = [125, 127, 129, 131, 133]
-    wtf_9 = {'opti method': 'PSO', 'strategy': 'k out of n',
+    wtf_9 = {'opti method': 'least_squares', 'strategy': 'k out of n',
              'k': 5, 'l': 2, 'manual list': [0],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
+             'objective': [
+                 'w_kin',
+                 # 'phi_abs_array',
+                 'mismatch factor'],
              'scale_objective': [1., 1., 1.],
              'position': 'end_mod', 'phi_s fit': True}
 
@@ -185,8 +188,8 @@ if __name__ == '__main__':
     # Broken linac
     # lsq_info = None
 
-    l_failed = [failed_0]
-    l_wtf = [wtf_0]
+    l_failed = [failed_9]
+    l_wtf = [wtf_9]
 
     # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
     #             failed_7]

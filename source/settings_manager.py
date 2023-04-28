@@ -8,61 +8,44 @@ Created on Tue Feb 21 13:36:08 2023.
 Handle simulation parameters. In particular:
     - which cavities are broken?
     - how should they be fixed?
+
+TODO: allow for different wtf for every fault. Maybe use different .ini?
 """
 import logging
 import os
-import json
+import configparser
 
 
-class ConfigManager():
-    """Surpisingly, a manager for your config."""
-
-    def __init__(self, config_path: str, project_path: str) -> None:
-        """Reads a config file."""
-        self.config = json.load(open(config_path, encoding='utf-8'))
-        self.project_path = project_path
-
-    def generate_wtf(self) -> list | dict:
-        """Generate a proper wtf (list of) dict."""
-        wtf = None
-        return wtf
-
-    def test_config(self) -> None:
-        """Run all the config dic tests, and save the config if ok."""
-        self._test_wtf(self.config['l_wtf'])
-
-        save_path = os.path.join(self.project_path, 'config.json')
-        with open(save_path, encoding='utf-8') as file:
-            json.dump(self.config, file)
+def test_config(config, key_wtf='wtf') -> None:
+    """Run all the config dic tests, and save the config if ok."""
+    _test_wtf(config[key_wtf])
 
 
-    def _test_wtf(self, l_wtf: list | dict) -> None:
-        """Test the 'what_to_fit' dictionaries."""
-        if isinstance(l_wtf, dict):
-            logging.info("A single wtf dict was provided and will be used "
-                         + "for all the faults.")
-            l_wtf = [l_wtf]
+def generate_list_of_faults():
+    """Generate a proper (list of) faults."""
+    failed = None
+    return failed
 
-        for wtf in l_wtf:
-            if not _test_strategy(wtf):
-                raise IOError("Wrong argument in wtf['strategy'].")
 
-            if not _test_objective(wtf):
-                raise IOError("Wrong argument in wtf['objective'].")
+# =============================================================================
+# Testing of wtf (what to fit)
+# =============================================================================
+def _test_wtf(wtf: dict) -> None:
+    """Test the 'what_to_fit' dictionaries."""
+    if not _test_strategy(wtf):
+        raise IOError("Wrong argument in wtf['strategy'].")
 
-            if not _test_opti_method(wtf):
-                raise IOError("Wrong argument in wtf['opti method'].")
+    if not _test_objective(wtf):
+        raise IOError("Wrong argument in wtf['objective'].")
 
-            if not _test_position(wtf):
-                raise IOError("Wrong argument in wtf['position'].")
+    if not _test_opti_method(wtf):
+        raise IOError("Wrong argument in wtf['opti method'].")
 
-            assert 'phi_s fit' in wtf.keys() and isinstance(
-                wtf['phi_s fit'], bool)
+    if not _test_position(wtf):
+        raise IOError("Wrong argument in wtf['position'].")
 
-    def generate_list_of_faults(self):
-        """Generate a proper (list of) faults."""
-        failed = None
-        return failed
+    if not _test_misc(wtf):
+        raise IOError("Check _test_misc.")
 
 
 # =============================================================================
@@ -86,14 +69,14 @@ def _test_strategy(wtf: dict) -> bool:
     # in a sublist are fixed together with the provided sublist of
     # compensating cavities.
     # example:
-    # failed = [
+    # failed =
     #   [12, 14], -> two cavities that will be fixed together
     #   [155]     -> a single error, fixed after [12, 14] is dealt with
-    # ]
-    # manual_list = [
+    #
+    # manual_list =
     #   [8, 10, 16, 18],    -> compensate errors at idx 12 & 14
     #   [153, 157]          -> compensate error at 155
-    # ]
+    #
     if wtf['strategy'] == 'manual':
         return _test_strategy_manual(wtf)
 
@@ -114,7 +97,9 @@ def _test_strategy_k_out_of_n(wtf: dict) -> bool:
                       + "cavities per failed cavity.")
         return False
 
-    if not isinstance(wtf['k'], int):
+    try:
+        wtf.getint('k')
+    except ValueError:
         logging.error("k must be an integer.")
         return False
 
@@ -123,12 +108,12 @@ def _test_strategy_k_out_of_n(wtf: dict) -> bool:
 
 def _test_strategy_manual(wtf: dict) -> bool:
     """Even more specific test for manual strategy."""
-    test = 'manual list' in wtf.keys() and isinstance(wtf['manual list'], list)
-    if not test:
+    if 'manual list' not in wtf.keys():
         logging.error("You must provide a list of lists of compensating "
                       + "cavities corresponding to each list of failed "
                       + "cavities.")
         return False
+
     logging.info("You must insure that all the elements in manual list are "
                  + "cavities.")
     return True
@@ -136,10 +121,17 @@ def _test_strategy_manual(wtf: dict) -> bool:
 
 def _test_strategy_l_neighboring_lattices(wtf: dict) -> bool:
     """Even more specific test for l neighboring lattices strategy."""
-    if not ('l' in wtf.keys() and isinstance(wtf['l'], int)):
+    if 'l' not in wtf.keys():
         logging.error("You must provide l, the number of compensating "
                       + "lattices.")
         return False
+
+    try:
+        wtf.getint('l')
+    except ValueError:
+        logging.error("l must be an integer.")
+        return False
+
     return True
 
 
@@ -153,12 +145,7 @@ def _test_objective(wtf: dict) -> bool:
                       + "should fit.")
         return False
 
-    l_obj = wtf['objective']
-    if not isinstance(l_obj, list):
-        logging.error("You must provide a list of objective, even if there is "
-                      + "only one.")
-        return False
-
+    l_obj = wtf.getlist('objective')
     implemented = [
         'w_kin', 'phi_abs_array', 'mismatch factor',
         'eps_zdelta', 'beta_zdelta', 'gamma_zdelta', 'alpha_zdelta',
@@ -172,9 +159,9 @@ def _test_objective(wtf: dict) -> bool:
                      3. it is in the above 'implemented' dict.""")
         return False
 
-    if 'scale_objective' in wtf.keys():
-        if not isinstance(len(wtf['scale objective']), list) \
-           or len(wtf['scale_objective']) != len(wtf['objective']):
+    if 'scale objective' in wtf.keys():
+        l_scales = wtf.getlist('scale objective')
+        if len(l_scales) != len(l_obj):
             logging.error("If you want to scale the objectives by a factor, "
                           + "you must provide a list of scale factors (one "
                           + "scale factor per objective.")
@@ -222,3 +209,49 @@ def _test_position(wtf: dict) -> bool:
         logging.error("Position not implemented.")
         return False
     return True
+
+
+# =============================================================================
+# Misc test
+# =============================================================================
+def _test_misc(wtf) -> bool:
+    """Some other tests."""
+    if 'phi_s fit' not in wtf.keys():
+        logging.error("Please explicitely precise if you want to fit synch "
+                      + "phases (recommended for least squares, which do not "
+                      + "handle constraints) or not (for algorithms that can "
+                      + "handle it).")
+        return False
+
+    try:
+        wtf.getboolean("phi_s fit")
+    except ValueError:
+        logging.error("Not a boolean.")
+        return False
+    return True
+
+
+# =============================================================================
+# Main func
+# =============================================================================
+if __name__ == '__main__':
+    # Init paths
+    CONFIG_PATH = 'jaea_default.ini'
+    PROJECT_PATH = 'bla/'
+
+    # Load config
+    config = configparser.ConfigParser(
+        # Allow to use the getlist method
+        converters={'list': lambda x: [i.strip() for i in x.split(',')]}
+    )
+    config.read(CONFIG_PATH)
+
+    # Run all config tests
+    test_config(config, key_wtf='wtf.k_out_of_n')
+    test_config(config, key_wtf='wtf.manual')
+    test_config(config, key_wtf='wtf.l_neighboring_lattices')
+
+    # Save a copy
+    # save_path = os.path.join(PROJECT_PATH, 'config.ini')
+    # with open(save_path, 'w', encoding='utf-8') as configfile:
+        # config.write(configfile)
