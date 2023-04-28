@@ -16,7 +16,8 @@ import os
 import configparser
 
 
-def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf'
+def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf',
+                   key_tw: str = 'tracewin',
                    ) -> dict:
     """Frontend for config: load .ini, test it, return its content as dicts."""
     # Load config
@@ -31,7 +32,7 @@ def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf'
         }
     )
     config.read(config_path)
-    _test_config(config, key_wtf=key_wtf)
+    _test_config(config, key_wtf, key_tw)
 
     # Remove unused Sections, save resulting file
     [config.remove_section(key) for key in list(config.keys())
@@ -44,10 +45,11 @@ def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf'
     return wtf
 
 
-def _test_config(config: configparser.ConfigParser, key_wtf: str = 'wtf'
+def _test_config(config: configparser.ConfigParser, key_wtf: str, key_tw: str,
                  ) -> None:
     """Run all the config dic tests, and save the config if ok."""
     _test_wtf(config[key_wtf])
+    _test_tw(config[key_tw])
 
 
 def generate_list_of_faults():
@@ -56,7 +58,7 @@ def generate_list_of_faults():
     return failed
 
 
-def _config_to_dict(config: configparser.ConfigParser, key_wtf='wtf') -> dict:
+def _config_to_dict(config: configparser.ConfigParser, key_wtf) -> dict:
     """To convert the configparser into the formats required by LightWin."""
     wtf = _config_to_dict_wtf(config[key_wtf])
     return wtf
@@ -295,6 +297,13 @@ def _test_misc(wtf: configparser.SectionProxy) -> bool:
         return False
     return True
 
+# =============================================================================
+# Test TW
+# =============================================================================
+def _test_tw(tw: configparser.SectionProxy) -> bool:
+    """Test for the TraceWin simulation parameters."""
+    logging.warning("Not implemented.")
+    return True
 
 # =============================================================================
 # Main func
