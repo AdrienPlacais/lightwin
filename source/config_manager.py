@@ -76,7 +76,7 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     }
 
     for key in c_wtf.keys():
-        if key in getter.keys():
+        if key in getter:
             d_wtf[key] = getter[key](key)
             continue
 
