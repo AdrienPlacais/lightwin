@@ -48,9 +48,6 @@ class SettingsManager():
             assert 'phi_s fit' in wtf.keys() and isinstance(
                 wtf['phi_s fit'], bool)
 
-            if 'scale_objective' in wtf.keys():
-                assert len(wtf['scale_objective']) == len(wtf['objective'])
-
     def generate_list_of_faults(self):
         """Generate a proper (list of) faults."""
         failed = None
@@ -138,7 +135,7 @@ def _test_strategy_l_neighboring_lattices(wtf: dict) -> bool:
 # =============================================================================
 # Testing of wtf objective
 # =============================================================================
-def _test_objective(wtf):
+def _test_objective(wtf: dict) -> bool:
     """Specific test for the key 'objective' of what_to_fit."""
     if 'objective' not in wtf.keys():
         logging.error("You must provide 'objective' to tell LightWin what it "
@@ -164,13 +161,21 @@ def _test_objective(wtf):
                      3. it is in the above 'implemented' dict.""")
         return False
 
+    if 'scale_objective' in wtf.keys():
+        if not isinstance(len(wtf['scale objective']), list) \
+           or len(wtf['scale_objective']) != len(wtf['objective']):
+            logging.error("If you want to scale the objectives by a factor, "
+                          + "you must provide a list of scale factors (one "
+                          + "scale factor per objective.")
+            return False
+
     return True
 
 
 # =============================================================================
 # Testing of wtf optimisation method
 # =============================================================================
-def _test_opti_method(wtf):
+def _test_opti_method(wtf: dict) -> bool:
     """Test the optimisation method."""
     if 'opti method' not in wtf.keys():
         logging.error("You must provide 'opti method' to tell LightWin what "
@@ -188,7 +193,7 @@ def _test_opti_method(wtf):
 # =============================================================================
 # Testing of wtf position
 # =============================================================================
-def _test_position(wtf):
+def _test_position(wtf: dict) -> bool:
     """Test where the objectives are evaluated."""
     if 'position' not in wtf.keys():
         logging.error("You must provide 'position' to tell LightWin where "
