@@ -16,7 +16,8 @@ import os
 import configparser
 
 
-def test_config(config, key_wtf='wtf') -> None:
+def test_config(config: configparser.ConfigParser, key_wtf: str = 'wtf'
+                ) -> None:
     """Run all the config dic tests, and save the config if ok."""
     _test_wtf(config[key_wtf])
 
@@ -27,10 +28,49 @@ def generate_list_of_faults():
     return failed
 
 
+def config_to_dict(config: configparser.ConfigParser, key_wtf='wtf') -> dict:
+    """To convert the configparser into the formats required by LightWin."""
+    wtf = _config_to_dict_wtf(config[key_wtf])
+    return wtf
+
+
+def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
+    """Convert wtf configparser into a dict."""
+    d_wtf = {}
+    keys_liststr = ['objective']
+    keys_listfloat = ['scale objective']
+    keys_listint = ['manual list']
+    keys_int = ['k', 'l']
+    keys_bool = ['phi_s fit']
+    for key in c_wtf.keys():
+        if key in keys_liststr:
+            d_wtf[key] = c_wtf.getliststr(key)
+            continue
+
+        if key in keys_listfloat:
+            d_wtf[key] = c_wtf.getlistfloat(key)
+            continue
+
+        if key in keys_listint:
+            d_wtf[key] = c_wtf.getlistint(key)
+            continue
+
+        if key in keys_int:
+            d_wtf[key] = c_wtf.getint(key)
+            continue
+
+        if key in keys_bool:
+            d_wtf[key] = c_wtf.getboolean(key)
+            continue
+
+        d_wtf[key] = c_wtf.get(key)
+
+    return d_wtf
+
 # =============================================================================
 # Testing of wtf (what to fit)
 # =============================================================================
-def _test_wtf(wtf: dict) -> None:
+def _test_wtf(wtf: configparser.SectionProxy) -> None:
     """Test the 'what_to_fit' dictionaries."""
     if not _test_strategy(wtf):
         raise IOError("Wrong argument in wtf['strategy'].")
@@ -47,11 +87,13 @@ def _test_wtf(wtf: dict) -> None:
     if not _test_misc(wtf):
         raise IOError("Check _test_misc.")
 
+    logging.info(f"what to fit {wtf.name} tested with success.")
+
 
 # =============================================================================
 # Testing of wtf strategy
 # =============================================================================
-def _test_strategy(wtf: dict) -> bool:
+def _test_strategy(wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'strategy' of what_to_fit."""
     if 'strategy' not in wtf.keys():
         logging.error("You must provide 'strategy' to tell LightWin how "
@@ -90,7 +132,7 @@ def _test_strategy(wtf: dict) -> bool:
     return False
 
 
-def _test_strategy_k_out_of_n(wtf: dict) -> bool:
+def _test_strategy_k_out_of_n(wtf: configparser.SectionProxy) -> bool:
     """Even more specific test for k out of n strategy."""
     if 'k' not in wtf.keys():
         logging.error("You must provide k, the number of compensating "
@@ -106,7 +148,7 @@ def _test_strategy_k_out_of_n(wtf: dict) -> bool:
     return True
 
 
-def _test_strategy_manual(wtf: dict) -> bool:
+def _test_strategy_manual(wtf: configparser.SectionProxy) -> bool:
     """Even more specific test for manual strategy."""
     if 'manual list' not in wtf.keys():
         logging.error("You must provide a list of lists of compensating "
@@ -114,12 +156,13 @@ def _test_strategy_manual(wtf: dict) -> bool:
                       + "cavities.")
         return False
 
-    logging.info("You must insure that all the elements in manual list are "
+    logging.info("You must ensure that all the elements in manual list are "
                  + "cavities.")
     return True
 
 
-def _test_strategy_l_neighboring_lattices(wtf: dict) -> bool:
+def _test_strategy_l_neighboring_lattices(wtf: configparser.SectionProxy
+                                          ) -> bool:
     """Even more specific test for l neighboring lattices strategy."""
     if 'l' not in wtf.keys():
         logging.error("You must provide l, the number of compensating "
@@ -138,14 +181,14 @@ def _test_strategy_l_neighboring_lattices(wtf: dict) -> bool:
 # =============================================================================
 # Testing of wtf objective
 # =============================================================================
-def _test_objective(wtf: dict) -> bool:
+def _test_objective(wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'objective' of what_to_fit."""
     if 'objective' not in wtf.keys():
         logging.error("You must provide 'objective' to tell LightWin what it "
                       + "should fit.")
         return False
 
-    l_obj = wtf.getlist('objective')
+    l_obj = wtf.getliststr('objective')
     implemented = [
         'w_kin', 'phi_abs_array', 'mismatch factor',
         'eps_zdelta', 'beta_zdelta', 'gamma_zdelta', 'alpha_zdelta',
@@ -160,7 +203,7 @@ def _test_objective(wtf: dict) -> bool:
         return False
 
     if 'scale objective' in wtf.keys():
-        l_scales = wtf.getlist('scale objective')
+        l_scales = wtf.getlistfloat('scale objective')
         if len(l_scales) != len(l_obj):
             logging.error("If you want to scale the objectives by a factor, "
                           + "you must provide a list of scale factors (one "
@@ -173,7 +216,7 @@ def _test_objective(wtf: dict) -> bool:
 # =============================================================================
 # Testing of wtf optimisation method
 # =============================================================================
-def _test_opti_method(wtf: dict) -> bool:
+def _test_opti_method(wtf: configparser.SectionProxy) -> bool:
     """Test the optimisation method."""
     if 'opti method' not in wtf.keys():
         logging.error("You must provide 'opti method' to tell LightWin what "
@@ -191,7 +234,7 @@ def _test_opti_method(wtf: dict) -> bool:
 # =============================================================================
 # Testing of wtf position
 # =============================================================================
-def _test_position(wtf: dict) -> bool:
+def _test_position(wtf: configparser.SectionProxy) -> bool:
     """Test where the objectives are evaluated."""
     if 'position' not in wtf.keys():
         logging.error("You must provide 'position' to tell LightWin where "
@@ -214,7 +257,7 @@ def _test_position(wtf: dict) -> bool:
 # =============================================================================
 # Misc test
 # =============================================================================
-def _test_misc(wtf) -> bool:
+def _test_misc(wtf: configparser.SectionProxy) -> bool:
     """Some other tests."""
     if 'phi_s fit' not in wtf.keys():
         logging.error("Please explicitely precise if you want to fit synch "
@@ -242,7 +285,11 @@ if __name__ == '__main__':
     # Load config
     config = configparser.ConfigParser(
         # Allow to use the getlist method
-        converters={'list': lambda x: [i.strip() for i in x.split(',')]}
+        converters={
+            'liststr': lambda x: [i.strip() for i in x.split(',')],
+            'listint': lambda x: [int(i.strip()) for i in x.split(',')],
+            'listfloat': lambda x: [float(i.strip()) for i in x.split(',')],
+        }
     )
     config.read(CONFIG_PATH)
 
@@ -250,6 +297,8 @@ if __name__ == '__main__':
     test_config(config, key_wtf='wtf.k_out_of_n')
     test_config(config, key_wtf='wtf.manual')
     test_config(config, key_wtf='wtf.l_neighboring_lattices')
+
+    wtf = config_to_dict(config, key_wtf='wtf.k_out_of_n')
 
     # Save a copy
     # save_path = os.path.join(PROJECT_PATH, 'config.ini')
