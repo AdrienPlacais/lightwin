@@ -7,6 +7,7 @@ Created on Thu Feb 17 15:52:37 2022.
 
 TODO insert line skip at each section change in the output.dat
 """
+import logging
 import os.path
 import subprocess
 from tkinter import Tk
@@ -16,17 +17,16 @@ import numpy as np
 from constants import FLAG_PHI_ABS, FLAG_CYTHON, F_BUNCH_MHZ
 from core.electric_field import load_field_map_file
 from core import elements
-from util.helper import printc
 
 
 try:
     import core.transfer_matrices_c as tm_c
 except ModuleNotFoundError:
-    MESSAGE = ', Cython module not compilated. Check elements.py and setup.py'\
+    MESSAGE = 'Cython module not compilated. Check elements.py and setup.py'\
         + ' for more information.'
     if FLAG_CYTHON:
-        raise ModuleNotFoundError('Error' + MESSAGE)
-    print('Warning' + MESSAGE)
+        raise ModuleNotFoundError(MESSAGE)
+    logging.warning(MESSAGE)
     # Load Python version as Cython to allow the execution of the code.
     import core.transfer_matrices_p as tm_c
 
@@ -77,7 +77,7 @@ def load_dat_file(dat_filepath):
 
             # We check that the current line is not empty or that it is not
             # reduced to a comment only
-            if(len(line) == 0 or line[0] == ';'):
+            if len(line) == 0 or line[0] == ';':
                 continue
 
             # Remove any trailing comment
@@ -227,8 +227,8 @@ def load_tw_results(filepath, prop):
         Array containing the desired property.
     """
     if not os.path.isfile(filepath):
-        printc("tracewin_interface.load_tw_results warning:",
-               "filepath to results is incorrect. Provide another one.")
+        logging.warning(
+            "Filepath to results is incorrect. Provide another one.")
         Tk().withdraw()
         filepath = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
@@ -321,17 +321,16 @@ def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin", **kwargs):
 
     for key, val in zip(l_keys, l_values):
         if key not in kwargs.keys():
-            printc("tracewin_interface.run_tw info:", f"the key {key} was not",
-                   f"found in kwargs. Used the default value {val} instead.")
+            logging.info(f"The key {key} was not found in kwargs. Used the " +
+                         f"default value {val} instead.")
 
     cmd = _tw_cmd(tw_path, ini_path, **kwargs)
-    printc("tracewin_interface.run_tw info:",
-           f"running TW with command {cmd}.")
+    logging.info(f"Running TW with command {cmd}.")
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     process.wait()
     for line in process.stdout:
         print(line)
-    printc("tracewin_interface.run_tw info:", "TW finished!")
+    logging.info("TW finished!")
 
 
 def _tw_cmd(tw_path, ini_path, **kwargs):
@@ -360,8 +359,7 @@ def get_multipart_tw_results(folder, filename='partran1.out'):
     out = np.loadtxt(f_p, skiprows=n_lines_header)
     for i, key in enumerate(headers):
         d_out[key] = out[:, i]
-    printc("tracewin_interface.get_multipart_tw_results info:",
-           f"successfully loaded {f_p}")
+    logging.info(f"successfully loaded {f_p}")
     return d_out
 
 
@@ -395,8 +393,7 @@ def get_transfer_matrices(folder, filename='Transfer_matrix1.dat',
             # Save transfer matrix
             if (i + 1) % 7 == 0:
                 t_m.append(data)
-    printc("tracewin_interface.get_transfer_matrices info:",
-           f"successfully loaded {f_p}")
+    logging.info(f"successfully loaded {f_p}")
     return np.array(num), np.array(z_m), np.array(t_m)
 
 
@@ -415,6 +412,5 @@ def get_tw_cav_param(folder, filename='Cav_set_point_res.dat'):
     out = np.loadtxt(f_p, skiprows=n_lines_header)
     for i, key in enumerate(headers):
         d_out[key] = out[:, i]
-    printc("tracewin_interface.get_tw_cav_param info:",
-           f"successfully loaded {f_p}")
+    logging.info(f"successfully loaded {f_p}")
     return d_out
