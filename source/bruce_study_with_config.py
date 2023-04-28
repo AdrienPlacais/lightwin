@@ -46,11 +46,6 @@ if __name__ == '__main__':
     FLAG_TW = False
     FLAG_EVALUATE = False
 
-    CONFIG_PATH = 'jaea_default.ini'
-    wtf_0 = conf_man.process_config(CONFIG_PATH, './',
-                                    key_wtf='wtf.k_out_of_n')
-    failed_0 = [12]
-
     # =========================================================================
     # Outputs
     # =========================================================================
@@ -81,8 +76,14 @@ if __name__ == '__main__':
     PROJECT_FOLDER = os.path.join(
         os.path.dirname(FILEPATH),
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
+    CONFIG_PATH = 'jaea_default.ini'
     os.makedirs(PROJECT_FOLDER)
+
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
+
+    wtf_0 = conf_man.process_config(CONFIG_PATH, PROJECT_FOLDER,
+                                    key_wtf='wtf.k_out_of_n')
+    failed_0 = [12]
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
