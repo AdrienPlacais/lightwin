@@ -313,19 +313,30 @@ def output_data_in_tw_fashion(linac):
     return data
 
 
-def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin", **kwargs):
-    """Prepare arguments and run TraceWin."""
-    l_keys = ["dat_file", "path_cal"]
-    l_values = [os.path.abspath(linac.get("dat_filepath")),
-                os.path.abspath(linac.get("out_tw"))]
+def run_tw(ini_path: str, path_cal: str, dat_file: str,
+           tw_path: str = "/usr/local/bin/./TraceWin", **kwargs) -> None:
+    """
+    Run TraceWin.
 
-    for key, val in zip(l_keys, l_values):
-        if key not in kwargs.keys():
-            logging.info(f"The key {key} was not found in kwargs. Used the " +
-                         f"default value {val} instead.")
+    Parameters
+    ----------
+    ini_path : str
+        Path to the .ini TraceWin file.
+    path_cal : str
+        Path to the output folder, where TW results will be stored. Overrides
+        the path_cal defined in .ini.
+    dat_file : str
+        Path to the TraceWin .dat file, with accelerator structure. Overrides
+        the dat_file defined in .ini.
+    tw_path : str, optional
+        Path to the TraceWin command. The default is
+        "/usr/local/bin/./TraceWin".
+    **kwargs : dict
+        TraceWin optional arguments. Override what is defined in .ini.
 
-    cmd = _tw_cmd(tw_path, ini_path, **kwargs)
-    logging.info(f"Running TW with command {cmd}.")
+    """
+    cmd = _tw_cmd(tw_path, ini_path, path_cal, dat_file, **kwargs)
+    logging.info(f"Running TW with command {cmd}...")
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     process.wait()
     for line in process.stdout:
@@ -333,9 +344,10 @@ def run_tw(linac, ini_path, tw_path="/usr/local/bin/./TraceWin", **kwargs):
     logging.info("TW finished!")
 
 
-def _tw_cmd(tw_path, ini_path, **kwargs):
+def _tw_cmd(tw_path: str, ini_path: str, path_cal: str, dat_file: str,
+            **kwargs) -> str:
     """Make the command line to launch TraceWin."""
-    cmd = [tw_path, ini_path]
+    cmd = [tw_path, ini_path, f"path_cal={path_cal}", f"dat_file={dat_file}"]
     for key, value in kwargs.items():
         if value is None:
             cmd.append(key)

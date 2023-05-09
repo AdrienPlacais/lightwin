@@ -28,22 +28,13 @@ if __name__ == '__main__':
     # Select .dat file
     FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
 
-    kwargs_tw = {
-        'hide': None,
-        'path_cal': 'default',
-        'dat_file': 'default',
-        # 'current1': 0,
-        'nbr_part1': int(1e6),
-        'dst_file1': '/home/placais/LightWin/data/JAEA_resend/EllipR2_2_A.dst'
-        # 'random_seed': 23111993,
-    }
-
     # =========================================================================
     # Fault compensation
     # =========================================================================
     FLAG_FIX = True
-    SAVE_FIX = False
-    FLAG_TW = False
+    SAVE_FIX = True
+    FLAG_TW = True
+    RECOMPUTE_REFERENCE = True
     FLAG_EVALUATE = False
 
     # =========================================================================
@@ -81,8 +72,9 @@ if __name__ == '__main__':
 
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
-    wtf_0 = conf_man.process_config(CONFIG_PATH, PROJECT_FOLDER,
-                                    key_wtf='wtf.k_out_of_n')
+    wtf_0, d_tw = conf_man.process_config(CONFIG_PATH, PROJECT_FOLDER,
+                                          key_wtf='wtf.k_out_of_n',
+                                          key_tw='tracewin')
     failed_0 = [12]
 
     # Reference linac
@@ -151,10 +143,16 @@ if __name__ == '__main__':
             if 'Broken' in lin.name:
                 continue
 
-            # FIXME to modify simulation flags, go to
-            # Accelerator.simulate_in_tracewin
+            if 'Working' in lin.name and not RECOMPUTE_REFERENCE:
+                lin.files["out_tw"] = '/home/placais/LightWin/data/JAEA/ref/'
+                logging.info(
+                    "we do not TW recompute reference linac. "
+                    + f"We take TW results from {lin.files['out_tw']}.")
+                continue
+
             ini_path = FILEPATH.replace('.dat', '.ini')
-            lin.simulate_in_tracewin(ini_path, **kwargs_tw)
+            lin.simulate_in_tracewin(ini_path, **d_tw)
+            # TODO transfer ini path elsewhere
             lin.store_tracewin_results()
 
             if 'Fixed' in lin.name:

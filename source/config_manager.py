@@ -10,6 +10,7 @@ Handle simulation parameters. In particular:
     - how should they be fixed?
 
 TODO: allow for different wtf for every fault. Maybe use different .ini?
+TODO: maybe make test and config to dict more compact?
 """
 import logging
 import os
@@ -17,53 +18,90 @@ import configparser
 
 
 def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf',
-                   key_tw: str = 'tracewin',
-                   ) -> dict:
-    """Frontend for config: load .ini, test it, return its content as dicts."""
+                   key_tw: str = 'tracewin') -> dict:
+    """
+    Frontend for config: load .ini, test it, return its content as dicts.
+
+    Parameters
+    ----------
+    config_path : str
+        Path to the .ini file.
+    project_path : str
+        Path to the project folder, to keep a copy of the used .ini.
+    key_wtf : str, optional
+        Name of the Section containing wtf parameters in the .ini file. The
+        default is 'wtf'.
+    key_tw : str, optional
+        Name of the Section containing the TraceWin simulation parameters in
+        the .ini file. The default is 'tracewin'.
+
+    Returns
+    -------
+    d_wtf : dict
+        Dictionary holding all wtf parameters.
+    d_tw : dict
+        Holds the TW arguments. Overrides what is defined in the TW .ini file.
+        Path to .ini, .dat and to results folder are defined in
+        Accelerator.files dict.
+    constants : dict
+        TODO
+
+    """
     # Load config
+    # the converters key allows to have methods to directly convert the strings
+    # in the .ini to the proper type
     config = configparser.ConfigParser(
-        # Allow to use the getlist method
         converters={
             'liststr': lambda x: [i.strip() for i in x.split(',')],
             'listint': lambda x: [int(i.strip()) for i in x.split(',')],
             'listfloat': lambda x: [float(i.strip()) for i in x.split(',')],
             'listlistint': lambda x: [[int(i.strip()) for i in y.split(',')]
                                       for y in x.split(',\n')],
-        }
+        },
+        allow_no_value=True,
     )
     config.read(config_path)
     _test_config(config, key_wtf, key_tw)
 
+    # Transform to dict
+    d_wtf, d_tw = _config_to_dict(config, key_wtf=key_wtf, key_tw=key_tw)
+
     # Remove unused Sections, save resulting file
     [config.remove_section(key) for key in list(config.keys())
-     if key not in ['DEFAULT', key_wtf]]
+     if key not in ['DEFAULT', key_wtf, key_tw]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 
-    wtf = _config_to_dict(config, key_wtf=key_wtf)
-    return wtf
+    return d_wtf, d_tw
 
 
 def _test_config(config: configparser.ConfigParser, key_wtf: str, key_tw: str,
                  ) -> None:
-    """Run all the config dic tests, and save the config if ok."""
+    """Run all the configuration tests, and save the config if ok."""
     _test_wtf(config[key_wtf])
     _test_tw(config[key_tw])
 
 
+def _config_to_dict(config: configparser.ConfigParser, key_wtf: str,
+                    key_tw: str) -> dict:
+    """To convert the configparser into the formats required by LightWin."""
+    d_wtf = _config_to_dict_wtf(config[key_wtf])
+    d_tw = _config_to_dict_tw(config[key_tw])
+    return d_wtf, d_tw
+
+
+# TODO
 def generate_list_of_faults():
     """Generate a proper (list of) faults."""
     failed = None
     return failed
 
 
-def _config_to_dict(config: configparser.ConfigParser, key_wtf) -> dict:
-    """To convert the configparser into the formats required by LightWin."""
-    wtf = _config_to_dict_wtf(config[key_wtf])
-    return wtf
-
-
+# =============================================================================
+# Everything related to wtf (what to fit) dicts
+# =============================================================================
+# Still a question: single config to dict? Or one per Section?
 def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     """Convert wtf configparser into a dict."""
     d_wtf = {}
@@ -87,9 +125,6 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     return d_wtf
 
 
-# =============================================================================
-# Testing of wtf (what to fit)
-# =============================================================================
 def _test_wtf(wtf: configparser.SectionProxy) -> None:
     """Test the 'what_to_fit' dictionaries."""
     if not _test_strategy(wtf):
@@ -110,9 +145,6 @@ def _test_wtf(wtf: configparser.SectionProxy) -> None:
     logging.info(f"what to fit {wtf.name} tested with success.")
 
 
-# =============================================================================
-# Testing of wtf strategy
-# =============================================================================
 def _test_strategy(wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'strategy' of what_to_fit."""
     if 'strategy' not in wtf.keys():
@@ -198,9 +230,6 @@ def _test_strategy_l_neighboring_lattices(wtf: configparser.SectionProxy
     return True
 
 
-# =============================================================================
-# Testing of wtf objective
-# =============================================================================
 def _test_objective(wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'objective' of what_to_fit."""
     if 'objective' not in wtf.keys():
@@ -237,9 +266,6 @@ def _test_objective(wtf: configparser.SectionProxy) -> bool:
     return True
 
 
-# =============================================================================
-# Testing of wtf optimisation method
-# =============================================================================
 def _test_opti_method(wtf: configparser.SectionProxy) -> bool:
     """Test the optimisation method."""
     if 'opti method' not in wtf.keys():
@@ -255,9 +281,6 @@ def _test_opti_method(wtf: configparser.SectionProxy) -> bool:
     return True
 
 
-# =============================================================================
-# Testing of wtf position
-# =============================================================================
 def _test_position(wtf: configparser.SectionProxy) -> bool:
     """Test where the objectives are evaluated."""
     if 'position' not in wtf.keys():
@@ -278,9 +301,6 @@ def _test_position(wtf: configparser.SectionProxy) -> bool:
     return True
 
 
-# =============================================================================
-# Misc test
-# =============================================================================
 def _test_misc(wtf: configparser.SectionProxy) -> bool:
     """Some other tests."""
     if 'phi_s fit' not in wtf.keys():
@@ -297,13 +317,48 @@ def _test_misc(wtf: configparser.SectionProxy) -> bool:
         return False
     return True
 
+
 # =============================================================================
-# Test TW
+# Everything related to TraceWin configuration
 # =============================================================================
-def _test_tw(tw: configparser.SectionProxy) -> bool:
+def _test_tw(tw: configparser.SectionProxy) -> None:
     """Test for the TraceWin simulation parameters."""
     logging.warning("Not implemented.")
-    return True
+    # min keys to test:
+    # hide path_cal dat_file current1 nbr_part1 dst_file1
+    # not necessary, but must be kept in the .ini anyway:
+    # hide random_seed
+    passed = True
+    if not passed:
+        raise IOError("Wrong value in tw.")
+    logging.info("tw arguments tested with success.")
+
+
+def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
+    """Convert tw configparser into a dict."""
+    d_tw = {}
+    # Special getters
+    getter = {
+        'current1': c_tw.getfloat,
+        'current2': c_tw.getfloat,
+        'nbr_part1': c_tw.getint,
+        'nbr_part2': c_tw.getint,
+        'random_seed': c_tw.getint,
+    }
+    # TODO
+    logging.warning("the TraceWin arguments are not all implemented yet. "
+                    + "By default, keys that are not in the getter dict are "
+                    + "interpreted as strings.")
+
+    for key in c_tw.keys():
+        if key in getter:
+            d_tw[key] = getter[key](key)
+            continue
+
+        d_tw[key] = c_tw.get(key)
+
+    return d_tw
+
 
 # =============================================================================
 # Main func

@@ -342,22 +342,15 @@ class Accelerator():
 
     def simulate_in_tracewin(self, ini_path, **kwargs):
         """Compute this linac with TraceWin."""
-        assert 'Broken' not in self.name, "Useless to simulate or broken"
-
-        recompute_reference = True
-        if not recompute_reference and 'Working' in self.name:
-            logging.info("We do not recompute reference linac.")
-            self.files['out_tw'] = '/home/placais/LightWin/data/JAEA/ref/'
-            return
+        if 'Broken' in self.name:
+            logging.warning("simulating broken linac in TW useless.")
 
         os.makedirs(self.get('out_tw'))
-
-        if kwargs['path_cal'] == 'default':
-            kwargs['path_cal'] = self.get('out_tw')
-        if kwargs['dat_file'] == 'default':
-            kwargs['dat_file'] = self.get('dat_filepath')
-
-        tw.run_tw(self, ini_path, **kwargs)
+        path_cal = self.get("out_tw")
+        dat_file = self.get("dat_filepath")
+        for path in [ini_path, path_cal, dat_file]:
+            path = os.path.abspath(path)
+        tw.run_tw(ini_path, path_cal, dat_file, **kwargs)
 
     def store_tracewin_results(self):
         """Take the results created by TraceWin."""
