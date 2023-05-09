@@ -323,12 +323,28 @@ def _test_misc(wtf: configparser.SectionProxy) -> bool:
 # =============================================================================
 def _test_tw(tw: configparser.SectionProxy) -> None:
     """Test for the TraceWin simulation parameters."""
-    logging.warning("Not implemented.")
-    # min keys to test:
-    # hide path_cal dat_file current1 nbr_part1 dst_file1
-    # not necessary, but must be kept in the .ini anyway:
-    # hide random_seed
     passed = True
+
+    # TODO: implement all TW options
+    for key in tw.keys():
+        if "Ele" in key:
+            logging.error("Are you trying to use the Ele[n][v] key? It is not "
+                          + "implemented and may clash with LightWin.")
+            passed = False
+            continue
+
+        if key == "Synoptic_file":
+            logging.error("Not implemented as I am not sure how this should "
+                          + "work.")
+            passed = False
+            continue
+
+        if key in ['partran', 'toutatis']:
+            if tw.get(key) not in ['0', '1']:
+                logging.error("partran and toutatis keys should be 0 or 1.")
+                passed = False
+            continue
+
     if not passed:
         raise IOError("Wrong value in tw.")
     logging.info("tw arguments tested with success.")
@@ -337,25 +353,73 @@ def _test_tw(tw: configparser.SectionProxy) -> None:
 def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
     """Convert tw configparser into a dict."""
     d_tw = {}
-    # Special getters
+    # Getters. If a key is not in this dict, it won't be transferred to TW
     getter = {
+        'hide': c_tw.get,
+        'tab_file': c_tw.get,
+        'nbr_thread': c_tw.getint,
+        'dst_file1': c_tw.get,
+        'dst_file2': c_tw.get,
         'current1': c_tw.getfloat,
         'current2': c_tw.getfloat,
         'nbr_part1': c_tw.getint,
         'nbr_part2': c_tw.getint,
+        'energy1': c_tw.getfloat,
+        'energy2': c_tw.getfloat,
+        'etnx1': c_tw.getfloat,
+        'etnx2': c_tw.getfloat,
+        'etny1': c_tw.getfloat,
+        'etny2': c_tw.getfloat,
+        'eln1': c_tw.getfloat,
+        'eln2': c_tw.getfloat,
+        'freq1': c_tw.getfloat,
+        'freq2': c_tw.getfloat,
+        'duty1': c_tw.getfloat,
+        'duty2': c_tw.getfloat,
+        'mass1': c_tw.getfloat,
+        'mass2': c_tw.getfloat,
+        'charge1': c_tw.getfloat,
+        'charge2': c_tw.getfloat,
+        'alpx1': c_tw.getfloat,
+        'alpx2': c_tw.getfloat,
+        'alpy1': c_tw.getfloat,
+        'alpy2': c_tw.getfloat,
+        'alpz1': c_tw.getfloat,
+        'alpz2': c_tw.getfloat,
+        'alpx1': c_tw.getfloat,
+        'alpx2': c_tw.getfloat,
+        'betx1': c_tw.getfloat,
+        'betx2': c_tw.getfloat,
+        'bety1': c_tw.getfloat,
+        'bety2': c_tw.getfloat,
+        'betz1': c_tw.getfloat,
+        'betz2': c_tw.getfloat,
+        'x1': c_tw.getfloat,
+        'x2': c_tw.getfloat,
+        'y1': c_tw.getfloat,
+        'y2': c_tw.getfloat,
+        'z1': c_tw.getfloat,
+        'z2': c_tw.getfloat,
+        'xp1': c_tw.getfloat,
+        'xp2': c_tw.getfloat,
+        'yp1': c_tw.getfloat,
+        'yp2': c_tw.getfloat,
+        'zp1': c_tw.getfloat,
+        'zp2': c_tw.getfloat,
+        'dw1': c_tw.getfloat,
+        'dw2': c_tw.getfloat,
+        'spreadw1': c_tw.getfloat,
+        'spreadw2': c_tw.getfloat,
+        'part_step': c_tw.getint,
+        'vfac': c_tw.getfloat,
         'random_seed': c_tw.getint,
+        'partran': c_tw.getint,
+        'toutatis': c_tw.getint,
     }
-    # TODO
-    logging.warning("the TraceWin arguments are not all implemented yet. "
-                    + "By default, keys that are not in the getter dict are "
-                    + "interpreted as strings.")
-
     for key in c_tw.keys():
         if key in getter:
             d_tw[key] = getter[key](key)
             continue
-
-        d_tw[key] = c_tw.get(key)
 
     return d_tw
 
