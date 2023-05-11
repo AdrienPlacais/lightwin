@@ -33,8 +33,8 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = True
-    RECOMPUTE_REFERENCE = True
+    FLAG_TW = False
+    RECOMPUTE_REFERENCE = False
     FLAG_EVALUATE = False
 
     # =========================================================================
