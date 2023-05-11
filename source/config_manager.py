@@ -15,10 +15,11 @@ TODO: maybe make test and config to dict more compact?
 import logging
 import os
 import configparser
+import numpy as np
 
 
-def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf',
-                   key_tw: str = 'tracewin') -> dict:
+def process_config(config_path: str, project_path: str, key_beam: str = 'beam',
+                   key_wtf: str = 'wtf', key_tw: str = 'tracewin') -> dict:
     """
     Frontend for config: load .ini, test it, return its content as dicts.
 
@@ -28,6 +29,9 @@ def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf',
         Path to the .ini file.
     project_path : str
         Path to the project folder, to keep a copy of the used .ini.
+    key_beam : str, optional
+        Name of the Section containing beam parameters in the .ini file. The
+        default is 'beam'.
     key_wtf : str, optional
         Name of the Section containing wtf parameters in the .ini file. The
         default is 'wtf'.
@@ -37,14 +41,14 @@ def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf',
 
     Returns
     -------
+    d_beam : dict
+        Dictionary holding all beam parameters.
     d_wtf : dict
         Dictionary holding all wtf parameters.
     d_tw : dict
         Holds the TW arguments. Overrides what is defined in the TW .ini file.
         Path to .ini, .dat and to results folder are defined in
         Accelerator.files dict.
-    constants : dict
-        TODO
 
     """
     # Load config
@@ -57,38 +61,46 @@ def process_config(config_path: str, project_path: str, key_wtf: str = 'wtf',
             'listfloat': lambda x: [float(i.strip()) for i in x.split(',')],
             'listlistint': lambda x: [[int(i.strip()) for i in y.split(',')]
                                       for y in x.split(',\n')],
+            'matrixfloat': lambda x: np.array(
+                [[float(i.strip()) for i in y.split(',')]
+                 for y in x.split(',\n')]),
         },
         allow_no_value=True,
     )
+    # FIXME listlistint and matrixfloat: same kind of input, but very different
+    # outputs!!
     config.read(config_path)
-    _test_config(config, key_wtf, key_tw)
+    _test_config(config, key_beam, key_wtf, key_tw)
 
     # Transform to dict
-    d_wtf, d_tw = _config_to_dict(config, key_wtf=key_wtf, key_tw=key_tw)
+    d_beam, d_wtf, d_tw = _config_to_dict(config, key_beam=key_beam,
+                                          key_wtf=key_wtf, key_tw=key_tw)
 
     # Remove unused Sections, save resulting file
     [config.remove_section(key) for key in list(config.keys())
-     if key not in ['DEFAULT', key_wtf, key_tw]]
+     if key not in ['DEFAULT', key_beam, key_wtf, key_tw]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 
-    return d_wtf, d_tw
+    return d_beam, d_wtf, d_tw
 
 
-def _test_config(config: configparser.ConfigParser, key_wtf: str, key_tw: str,
-                 ) -> None:
+def _test_config(config: configparser.ConfigParser, key_beam: str,
+                 key_wtf: str, key_tw: str) -> None:
     """Run all the configuration tests, and save the config if ok."""
+    _test_beam(config[key_beam])
     _test_wtf(config[key_wtf])
     _test_tw(config[key_tw])
 
 
-def _config_to_dict(config: configparser.ConfigParser, key_wtf: str,
-                    key_tw: str) -> dict:
+def _config_to_dict(config: configparser.ConfigParser, key_beam: str,
+                    key_wtf: str, key_tw: str) -> dict:
     """To convert the configparser into the formats required by LightWin."""
+    d_beam = _config_to_dict_beam(config[key_beam])
     d_wtf = _config_to_dict_wtf(config[key_wtf])
     d_tw = _config_to_dict_tw(config[key_tw])
-    return d_wtf, d_tw
+    return d_beam, d_wtf, d_tw
 
 
 # TODO
@@ -96,6 +108,63 @@ def generate_list_of_faults():
     """Generate a proper (list of) faults."""
     failed = None
     return failed
+
+
+# =============================================================================
+# Everything related to beam parameters
+# =============================================================================
+def _test_beam(beam: configparser.SectionProxy) -> None:
+    """Test the the beam parameters."""
+    passed = True
+
+    # Test that all mandatory keys are here
+    mandatory = ["LINAC", "E_REST_MEV", "Q_ADIM", "E_MEV",
+                 "F_BUNCH_MHZ", "I_MILLI_A", "SIGMA_ZDELTA"]
+    for key in mandatory:
+        if key not in beam.keys():
+            logging.error(f"{key} is mandatory and missing.")
+            passed = False
+
+    # Test the values of the keys in beam
+    for key in beam.keys():
+        if key == "I_MILLI_A":
+            if np.abs(beam.getfloat(key)) > 1e-10:
+                logging.warning("You asked LW a beam current different from "
+                                + "0mA. Space-charge, transverse dynamics are "
+                                + "not implemented yet, so this parameter "
+                                + "will be ignored.")
+
+    if not passed:
+        raise IOError("Wrong value in beam.")
+
+    logging.info(f"beam parameters {beam.name} tested with success.")
+
+
+def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
+    """Convert beam configparser into a dict."""
+    d_beam = {}
+    # Special getters
+    getter = {
+        'E_REST_MEV': c_beam.getfloat,
+        'Q_ADIM': c_beam.getfloat,
+        'E_MEV': c_beam.getfloat,
+        'F_BUNCH_MEV': c_beam.getfloat,
+        'I_MILLI_A': c_beam.getfloat,
+        'SIGMA_ZDELTA': c_beam.getmatrixfloat,
+    }
+
+    for key in c_beam.keys():
+        key = key.upper()
+        if key in getter:
+            d_beam[key] = getter[key](key)
+            continue
+
+        d_beam[key] = c_beam.get(key)
+
+    # Add some useful keys
+    d_beam["INV_E_REST_MEV"] = 1. / d_beam["E_REST_MEV"]
+
+    return d_beam
 
 
 # =============================================================================
