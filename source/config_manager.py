@@ -16,6 +16,7 @@ import logging
 import os
 import configparser
 import numpy as np
+from constants import c
 
 
 def process_config(config_path: str, project_path: str, key_beam: str = 'beam',
@@ -148,7 +149,7 @@ def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
         'E_REST_MEV': c_beam.getfloat,
         'Q_ADIM': c_beam.getfloat,
         'E_MEV': c_beam.getfloat,
-        'F_BUNCH_MEV': c_beam.getfloat,
+        'F_BUNCH_MHZ': c_beam.getfloat,
         'I_MILLI_A': c_beam.getfloat,
         'SIGMA_ZDELTA': c_beam.getmatrixfloat,
     }
@@ -163,6 +164,9 @@ def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
 
     # Add some useful keys
     d_beam["INV_E_REST_MEV"] = 1. / d_beam["E_REST_MEV"]
+    # in constants I also had GAMMA_INIT, do not know if used or not
+    d_beam["OMEGA_0_BUNCH"] = 2e6 * np.pi * d_beam["F_BUNCH_MHZ"]
+    d_beam["LAMBDA_BUNCH"] = c / d_beam["F_BUNCH_MHZ"]
 
     return d_beam
 
