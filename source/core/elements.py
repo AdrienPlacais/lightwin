@@ -13,7 +13,7 @@ import logging
 import numpy as np
 from scipy.optimize import minimize_scalar
 from core.electric_field import RfField, compute_param_cav, convert_phi_0
-from constants import OMEGA_0_BUNCH, N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
+from constants import N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
 from util.helper import recursive_items, recursive_getter, kin_to_gamma, \
     gamma_to_kin
 
@@ -182,7 +182,7 @@ class _Element():
             r_zz, gamma_phi, itg_field = \
                 self._tm_func(d_z, gamma, n_steps, rf_field_kwargs)
 
-            gamma_phi[:, 1] *= OMEGA_0_BUNCH / rf_field_kwargs['omega0_rf']
+            gamma_phi[:, 1] /= rf_field_kwargs['n_cell']
             cav_params = compute_param_cav(itg_field, self.get('status'))
 
         else:
@@ -318,6 +318,7 @@ class FieldMap(_Element):
             'omega0_rf': self.get('omega0_rf'),
             'e_spat': self.acc_field.e_spat,
             'section_idx': self.idx['section'],
+            'n_cell': self.get('n_cell'),
             'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
 
         # Set norm and phi_0 of the cavity
@@ -341,8 +342,7 @@ class FieldMap(_Element):
 
         # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
         # the cavity is rephased
-        phi_rf_abs = phi_bunch_abs * rf_field_kwargs['omega0_rf'] \
-            / OMEGA_0_BUNCH
+        phi_rf_abs = phi_bunch_abs * rf_field_kwargs['n_cell']
 
         rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
             convert_phi_0(phi_rf_abs, abs_to_rel, rf_field_kwargs)
