@@ -14,13 +14,13 @@ import logging
 import numpy as np
 
 import util.tracewin_interface as tw
-from constants import E_MEV, FLAG_PHI_ABS, E_REST_MEV, c
+from constants import E_MEV, FLAG_PHI_ABS, c
 from core import particle
 from core import elements
 from core.list_of_elements import ListOfElements
 from core.emittance import beam_parameters_all, mismatch_factor
-from util.helper import kin_to_gamma, recursive_items, recursive_getter, \
-    kin_to_beta
+from util.helper import kin_to_gamma, gamma_to_kin, kin_to_beta, \
+    recursive_items, recursive_getter
 
 
 class Accelerator():
@@ -370,9 +370,9 @@ class Accelerator():
 
     def precompute_some_tracewin_results(self):
         for dic in [self.tw_results['envelope'], self.tw_results['multipart']]:
-            dic['w_kin'] = dic['gama-1'] * E_REST_MEV
-            dic['beta'] = kin_to_beta(dic['w_kin'])
             dic['gamma'] = 1. + dic['gama-1']
+            dic['w_kin'] = gamma_to_kin(dic['gamma'])
+            dic['beta'] = kin_to_beta(dic['w_kin'])
             dic['lambda'] = c / 162e6
 
             n = dic['beta'].shape[0]
