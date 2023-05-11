@@ -8,7 +8,7 @@ Created on Wed Sep 22 14:15:48 2021.
 import logging
 import numpy as np
 import pandas as pd
-from constants import c, E_REST_MEV
+from constants import c, E_REST_MEV, OMEGA_0_BUNCH
 
 
 # =============================================================================
@@ -222,7 +222,7 @@ def phi_to_z(phi, beta, omega):
     return -beta * c * phi / omega
 
 
-def z_to_phi(z, beta, omega):
+def z_to_phi(z, beta, omega=OMEGA_0_BUNCH):
     """Convert (delta) position into (delta) phase."""
     return -omega * z / (beta * c)
 
