@@ -14,7 +14,7 @@ import logging
 import numpy as np
 
 import util.tracewin_interface as tw
-from constants import E_MEV, FLAG_PHI_ABS, c
+from constants import E_MEV, FLAG_PHI_ABS, c, F_BUNCH_MHZ
 from core import particle
 from core import elements
 from core.list_of_elements import ListOfElements
@@ -57,7 +57,8 @@ class Accelerator():
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 
-        tw.load_filemaps(self.files, self.elements['l_sections'], freqs)
+        tw.load_filemaps(self.files, self.elements['l_sections'], freqs,
+                         F_BUNCH_MHZ)
         tw.give_name(l_elts)
         self.files['dat_filecontent'] = dat_filecontent
 
