@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from util.helper import recursive_items, recursive_getter, \
     kin_to_gamma, kin_to_beta, gamma_to_beta, gamma_and_beta_to_p, z_to_phi
-from constants import E_REST_MEV, OMEGA_0_BUNCH
 
 
 class Particle():
@@ -120,9 +119,9 @@ class Particle():
         else:
             self.energy['w_kin'][idx] = e_mev
 
-        gamma = kin_to_gamma(self.energy['w_kin'][idx], E_REST_MEV)
+        gamma = kin_to_gamma(self.energy['w_kin'][idx])
         beta = gamma_to_beta(gamma)
-        p_mev = gamma_and_beta_to_p(gamma, beta, E_REST_MEV)
+        p_mev = gamma_and_beta_to_p(gamma, beta)
 
         self.energy['gamma'][idx] = gamma
         self.energy['beta'][idx] = beta
@@ -130,8 +129,7 @@ class Particle():
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
-        phi_abs = z_to_phi(self.pos['z_abs'][idx],
-                           self.energy['beta'][idx], OMEGA_0_BUNCH)
+        phi_abs = z_to_phi(self.pos['z_abs'][idx], self.energy['beta'][idx])
         self.phi['phi_abs'] = phi_abs
         self.phi['phi_abs_array'][idx] = phi_abs
         self.phi['phi_rel'] = phi_abs
