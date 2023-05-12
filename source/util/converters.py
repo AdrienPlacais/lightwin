@@ -7,18 +7,41 @@ Created on Fri May 12 20:27:54 2023
 
 All functions to change units.
 """
+import logging
 import numpy as np
-from constants import E_REST_MEV, LAMBDA_BUNCH
+from constants import E_REST_MEV, LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, E_REST_MEV
+
+
+def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=Q_OVER_M,
+           m_over_q: float=M_OVER_Q, e_rest: float=E_REST_MEV
+           ) -> float | np.ndarray:
+    """Convert energy or Lorentz factor into another related quantity."""
+    if "p" in key:
+        logging.warning("Check units!")
+
+    d_convert = {
+        "v to kin": lambda x: 0.5 * m_over_q * x**2 * 1e-6,
+        "kin to v": lambda x: np.sqrt(2e6 * q_over_m * x),
+        "kin to gamma": lambda x: 1. + x / e_rest,
+        "gamma to kin": lambda x: e_rest * (x - 1.),
+        "beta to gamma": lambda x: 1. / np.sqrt(1. - x**2),
+        "gamma to beta": lambda x: np.sqrt(1. - x**-2),
+        "kin to beta": lambda x: np.sqrt(1. - (e_rest / (x + e_rest)**2)),
+        "beta to kin": lambda x: None,
+        "kin to p": lambda x: np.sqrt((x + e_rest)**2 - e_rest**2),
+        "p to kin": lambda x: np.sqrt(x**2 + e_rest**2) - e_rest,
+        "gamma to p": lambda x: x * np.sqrt(1. - x**-2) * e_rest,
+        "beta to p": lambda x: x / np.sqrt(1. - x**2) * e_rest,
+    }
+    return d_convert[key](energy_in)
 
 
 # TODO may be possible to save some operations by using lambda func?
-def emittance(eps_orig: float | np.ndarray, str_convert: str,
-              gamma: float | np.ndarray, beta: float | np.ndarray=None,
-              lam: float | np.ndarray=LAMBDA_BUNCH,
+def emittance(eps_orig: float | np.ndarray, key: str,
+              gamma: float | np.ndarray, lam: float | np.ndarray=LAMBDA_BUNCH,
               e_0: float | np.ndarray=E_REST_MEV) -> float | np.ndarray:
     """Convert emittance from a phase space to another."""
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
+    beta = np.sqrt(1. - gamma**-2)
 
     # Lighten the dict
     gamma2 = gamma**2
@@ -34,16 +57,15 @@ def emittance(eps_orig: float | np.ndarray, str_convert: str,
         "z to zdelta": 1e-6 * gamma2,
         "zdelta to z": 1e6 / gamma2,
     }
-    eps_new = eps_orig * d_convert[str_convert]
+    eps_new = eps_orig * d_convert[key]
     return eps_new
 
 
-def twiss(twiss_orig: np.ndarray, str_convert: str, gamma: float | np.ndarray,
-          beta: float | np.ndarray=None, lam: float | np.ndarray=LAMBDA_BUNCH,
+def twiss(twiss_orig: np.ndarray, key: str, gamma: float | np.ndarray,
+          lam: float | np.ndarray=LAMBDA_BUNCH,
           e_0: float | np.ndarray=E_REST_MEV) -> np.ndarray:
     """Convert Twiss array from a phase space to another."""
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
+    beta = np.sqrt(1. - gamma**-2)
 
     # Lighten the dict
     k_1 = e_0 * (gamma * beta) * lam / 360.
@@ -59,7 +81,7 @@ def twiss(twiss_orig: np.ndarray, str_convert: str, gamma: float | np.ndarray,
         "z to zdelta": [1., 1e1 * gamma**-2],
         "zdelta to z": [1., 1e-1 * gamma**2],
     }
-    factors = d_convert[str_convert]
+    factors = d_convert[key]
 
     # New array of Twiss parameters in the desired phase space
     twiss_new = np.empty(twiss_orig.shape)

@@ -14,13 +14,13 @@ import logging
 import numpy as np
 
 import util.tracewin_interface as tw
+import util.converters as convert
+from util.helper import recursive_items, recursive_getter
 from constants import E_MEV, FLAG_PHI_ABS, c, F_BUNCH_MHZ
 from core import particle
 from core import elements
 from core.list_of_elements import ListOfElements
 from core.emittance import beam_parameters_all, mismatch_factor
-from util.helper import kin_to_gamma, gamma_to_kin, kin_to_beta, \
-    recursive_items, recursive_getter
 
 
 class Accelerator():
@@ -296,7 +296,7 @@ class Accelerator():
         self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))
 
         # Save into Accelerator
-        gamma = kin_to_gamma(np.array(results["w_kin"]))
+        gamma = convert.energy(np.array(results["w_kin"]), "kin to gamma")
         d_beam_param = beam_parameters_all(results['eps_zdelta'],
                                            results['twiss_zdelta'], gamma)
 
@@ -372,8 +372,8 @@ class Accelerator():
     def precompute_some_tracewin_results(self):
         for dic in [self.tw_results['envelope'], self.tw_results['multipart']]:
             dic['gamma'] = 1. + dic['gama-1']
-            dic['w_kin'] = gamma_to_kin(dic['gamma'])
-            dic['beta'] = kin_to_beta(dic['w_kin'])
+            dic['w_kin'] = convert.energy(dic['gamma'], "gamma to kin")
+            dic['beta'] = convert.energy(dic['w_kin'], "kin to beta")
             dic['lambda'] = c / 162e6
 
             n = dic['beta'].shape[0]

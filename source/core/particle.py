@@ -9,7 +9,8 @@ import logging
 import numpy as np
 import pandas as pd
 from util.helper import recursive_items, recursive_getter, \
-    kin_to_gamma, kin_to_beta, gamma_to_beta, gamma_and_beta_to_p, z_to_phi
+    gamma_and_beta_to_p, z_to_phi
+import util.converters as convert
 
 
 class Particle():
@@ -119,8 +120,8 @@ class Particle():
         else:
             self.energy['w_kin'][idx] = e_mev
 
-        gamma = kin_to_gamma(self.energy['w_kin'][idx])
-        beta = gamma_to_beta(gamma)
+        gamma = convert.energy(self.energy['w_kin'][idx], "kin to gamma")
+        beta = convert.energy(gamma, "gamma to beta")
         p_mev = gamma_and_beta_to_p(gamma, beta)
 
         self.energy['gamma'][idx] = gamma
@@ -173,8 +174,8 @@ class Particle():
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
         self.energy['w_kin'][idx_range] = w_kin
-        self.energy['gamma'][idx_range] = kin_to_gamma(w_kin)
-        self.energy['beta'][idx_range] = kin_to_beta(w_kin)
+        self.energy['gamma'][idx_range] = convert.energy(w_kin, "kin to gamma")
+        self.energy['beta'][idx_range] = convert.energy(w_kin, "kin to beta")
         self.phi['phi_abs_array'][idx_range] = np.array(results["phi_abs_array"])
 
 

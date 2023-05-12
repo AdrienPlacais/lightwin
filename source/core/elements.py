@@ -14,8 +14,8 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 from core.electric_field import RfField, compute_param_cav, convert_phi_0
 from constants import N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
-from util.helper import recursive_items, recursive_getter, kin_to_gamma, \
-    gamma_to_kin
+from util.helper import recursive_items, recursive_getter
+import util.converters as convert
 
 try:
     import core.transfer_matrices_c as tm_c
@@ -174,7 +174,7 @@ class _Element():
             For Cython implementation, also need section_idx.
         """
         n_steps, d_z = self.get('n_steps', 'd_z')
-        gamma = kin_to_gamma(w_kin_in)
+        gamma = convert.energy(w_kin_in, "kin to gamma")
 
         if self.get('nature') == 'FIELD_MAP' and \
                 self.get('status') != 'failed':
@@ -189,7 +189,7 @@ class _Element():
             r_zz, gamma_phi, _ = self._tm_func(d_z, gamma, n_steps)
             cav_params = None
 
-        w_kin = gamma_to_kin(gamma_phi[:, 0])
+        w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
 
         results = {'r_zz': r_zz, 'cav_params': cav_params,
                    'w_kin': w_kin, 'phi_rel': gamma_phi[:, 1]}

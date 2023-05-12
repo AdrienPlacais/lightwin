@@ -32,7 +32,7 @@ FIXME r_zz should be an argument instead of taking the linac attribute. Also
 
 import numpy as np
 
-from constants import E_REST_MEV, LAMBDA_BUNCH, SIGMA_ZDELTA
+from constants import SIGMA_ZDELTA
 import util.converters as convert
 
 

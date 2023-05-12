@@ -90,6 +90,8 @@ else:
 GAMMA_INIT = 1. + E_MEV / E_REST_MEV
 OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
 LAMBDA_BUNCH = c / F_BUNCH_MHZ
+Q_OVER_M = None
+M_OVER_Q = None
 
 DICT_STR_PHI = {True: 'abs', False: 'rel'}
 DICT_STR_PHI_RF = {True: 'abs_rf', False: 'rel'}

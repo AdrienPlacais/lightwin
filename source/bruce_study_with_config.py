@@ -75,7 +75,6 @@ if __name__ == '__main__':
     d_beam, wtf_0, d_tw = conf_man.process_config(
         CONFIG_PATH, PROJECT_FOLDER, key_beam='beam.jaea',
         key_wtf='wtf.k_out_of_n', key_tw='tracewin')
-    logging.critical(f"d_beam is {d_beam}")
     failed_0 = [12]
 
     # Reference linac
