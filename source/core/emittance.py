@@ -31,7 +31,9 @@ FIXME r_zz should be an argument instead of taking the linac attribute. Also
 """
 
 import numpy as np
+
 from constants import E_REST_MEV, LAMBDA_BUNCH, SIGMA_ZDELTA
+import util.converters as convert
 
 
 # =============================================================================
@@ -90,7 +92,7 @@ def mismatch_factor(twiss_ref, twiss_fix, transp=False):
 
 
 # =============================================================================
-# Private - sigma
+# Private
 # =============================================================================
 def _sigma_beam_matrices(arr_r_zz, sigma_in):
     """
@@ -107,9 +109,6 @@ def _sigma_beam_matrices(arr_r_zz, sigma_in):
     return np.array(l_sigma)
 
 
-# =============================================================================
-# Private - emittance
-# =============================================================================
 def _emittance_zdelta(arr_sigma):
     """Compute longitudinal emittance, unnormalized, in pi.m.rad."""
     l_epsilon_zdelta = [np.sqrt(np.linalg.det(arr_sigma[i]))
@@ -120,39 +119,11 @@ def _emittance_zdelta(arr_sigma):
 def _emittances_all(eps_zdelta, gamma):
     """Compute emittances in [phi-W] and [z-z']."""
     d_eps = {"eps_zdelta": eps_zdelta,
-             "eps_w": _convert_emittance(eps_zdelta, "zdelta to w", gamma),
-             "eps_z": _convert_emittance(eps_zdelta, "zdelta to z", gamma)}
+             "eps_w": convert.emittance(eps_zdelta, "zdelta to w", gamma),
+             "eps_z": convert.emittance(eps_zdelta, "zdelta to z", gamma)}
     return d_eps
 
 
-# TODO may be possible to save some operations by using lambda func?
-def _convert_emittance(eps_orig, str_convert, gamma, beta=None,
-                       lam=LAMBDA_BUNCH, e_0=E_REST_MEV):
-    """Convert emittance from a phase space to another."""
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-
-    # Lighten the dict
-    gamma2 = gamma**2
-    k_1 = 360. * e_0 * (gamma * beta) / lam
-    k_2 = k_1 * gamma2
-
-    # Dict of emittances conversion constants
-    d_convert = {
-        "w to z": 1. / k_2,
-        "z to w": k_2,
-        "w to zdelta": 1e-6 / k_1,
-        "zdelta to w": 1e6 * k_1,
-        "z to zdelta": 1e-6 * gamma2,
-        "zdelta to z": 1e6 / gamma2,
-    }
-    eps_new = eps_orig * d_convert[str_convert]
-    return eps_new
-
-
-# =============================================================================
-# Private - Twiss
-# =============================================================================
 def _twiss_zdelta(arr_sigma, arr_eps_zdelta):
     """Transport Twiss parameters along element(s) described by r_zz."""
     n_points = arr_sigma.shape[0]
@@ -171,45 +142,11 @@ def _twiss_zdelta(arr_sigma, arr_eps_zdelta):
 def _twiss_all(twiss_zdelta, gamma):
     """Compute Twiss parameters in [phi-W] and [z-z']."""
     d_twiss = {"twiss_zdelta": twiss_zdelta,
-               "twiss_w": _convert_twiss(twiss_zdelta, "zdelta to w", gamma),
-               "twiss_z": _convert_twiss(twiss_zdelta, "zdelta to z", gamma)}
+               "twiss_w": convert.twiss(twiss_zdelta, "zdelta to w", gamma),
+               "twiss_z": convert.twiss(twiss_zdelta, "zdelta to z", gamma)}
     return d_twiss
 
 
-# TODO may be possible to save some operations by using lambda func?
-def _convert_twiss(twiss_orig, str_convert, gamma, beta=None, lam=LAMBDA_BUNCH,
-                   e_0=E_REST_MEV):
-    """Convert Twiss array from a phase space to another."""
-    if beta is None:
-        beta = np.sqrt(1. - gamma**-2)
-
-    # Lighten the dict
-    k_1 = e_0 * (gamma * beta) * lam / 360.
-    k_2 = k_1 * beta**2
-    k_3 = k_2 * gamma**2
-
-    # Dict of emittances conversion constants
-    d_convert = {
-        "w to z": [-1., 1e-6 * k_3],
-        "z to w": [-1., 1e6 / k_3],
-        "w to zdelta": [-1., 1e-5 * k_2],
-        "zdelta to w": [-1., 1e5 / k_2],
-        "z to zdelta": [1., 1e1 * gamma**-2],
-        "zdelta to z": [1., 1e-1 * gamma**2],
-    }
-    factors = d_convert[str_convert]
-
-    # New array of Twiss parameters in the desired phase space
-    twiss_new = np.empty(twiss_orig.shape)
-    twiss_new[:, 0] = twiss_orig[:, 0] * factors[0]
-    twiss_new[:, 1] = twiss_orig[:, 1] * factors[1]
-    twiss_new[:, 2] = twiss_orig[:, 2] / factors[1]
-    return twiss_new
-
-
-# =============================================================================
-# Private - Beam envelopes
-# =============================================================================
 def _envelopes(twiss, eps):
     """Compute beam envelopes in a given plane."""
     env = np.sqrt(np.column_stack((twiss[:, 1], twiss[:, 2]) * eps))
