@@ -12,8 +12,9 @@ for non-synch particles.
 import logging
 import numpy as np
 from scipy.optimize import minimize_scalar
+
+import config_manager as con
 from core.electric_field import RfField, compute_param_cav, convert_phi_0
-from constants import N_STEPS_PER_CELL, METHOD, FLAG_CYTHON, FLAG_PHI_ABS
 from util.helper import recursive_items, recursive_getter
 import util.converters as convert
 
@@ -25,7 +26,7 @@ except ModuleNotFoundError:
         + ' for more information.'
 
     # If Cython was asked, raise Error.
-    if FLAG_CYTHON:
+    if con.FLAG_CYTHON:
         logging.error(MESSAGE)
         raise ModuleNotFoundError(MESSAGE)
     # Else, only issue a Warning.
@@ -37,12 +38,12 @@ except ModuleNotFoundError:
 import core.transfer_matrices_p as tm_p
 from util import helper
 
-# Force reload of the module constants, as a modification of METHOD between
+# Force reload of the module constants, as a modification of con.METHOD between
 # two executions is not taken into account (alternative is to restart kernel
 # each time):
 # import importlib
 # importlib.reload(constants)
-# print(f"METHOD: {METHOD}")
+# print(f"con.METHOD: {con.METHOD}")
 
 # =============================================================================
 # Module dictionaries
@@ -57,8 +58,8 @@ d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
 
 # Dict to select the proper number of steps for the transfer matrix, the
 # energy, the phase, etc
-d_n_steps = {'RK': lambda elt: N_STEPS_PER_CELL * elt.get('n_cell'),
-             'leapfrog': lambda elt: N_STEPS_PER_CELL * elt.get('n_cell'),
+d_n_steps = {'RK': lambda elt: con.N_STEPS_PER_CELL * elt.get('n_cell'),
+             'leapfrog': lambda elt: con.N_STEPS_PER_CELL * elt.get('n_cell'),
              'jm': lambda elt: elt.get('n_z'),
              'drift': lambda elt: 1}
 
@@ -135,7 +136,7 @@ class _Element():
 
     def init_solvers(self):
         """Initialize how transfer matrices will be calculated."""
-        l_method = METHOD.split('_')
+        l_method = con.METHOD.split('_')
 
         # Select proper module (Python or Cython)
         mod = d_mod[l_method[1]]
@@ -438,7 +439,7 @@ def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
     rf_field_kwargs['phi_0_rel'] = d_fit['phi']
     rf_field_kwargs['phi_0_abs'] = d_fit['phi']
 
-    abs_to_rel = FLAG_PHI_ABS
+    abs_to_rel = con.FLAG_PHI_ABS
 
     if d_fit['phi_s fit']:
         phi_0 = obj_cavity.match_synch_phase(

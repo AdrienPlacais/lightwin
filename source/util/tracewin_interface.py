@@ -14,7 +14,8 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import pandas as pd
 import numpy as np
-from constants import FLAG_PHI_ABS, FLAG_CYTHON
+
+import config_manager as con
 from core.electric_field import load_field_map_file
 from core import elements
 
@@ -24,7 +25,7 @@ try:
 except ModuleNotFoundError:
     MESSAGE = 'Cython module not compilated. Check elements.py and setup.py'\
         + ' for more information.'
-    if FLAG_CYTHON:
+    if con.FLAG_CYTHON:
         raise ModuleNotFoundError(MESSAGE)
     logging.warning(MESSAGE)
     # Load Python version as Cython to allow the execution of the code.
@@ -175,10 +176,10 @@ def load_filemaps(files, sections, freqs, freq_bunch):
                     a_f.init_freq_ncell(f_mhz, n_cell)
 
                     # For Cython, we need one filepath per section
-                    if FLAG_CYTHON and len(l_filepaths) == i:
+                    if con.FLAG_CYTHON and len(l_filepaths) == i:
                         l_filepaths.append(elt.field_map_file_name)
     # Init arrays
-    if FLAG_CYTHON:
+    if con.FLAG_CYTHON:
         tm_c.init_arrays(l_filepaths)
 
 
@@ -197,10 +198,10 @@ def update_dat_with_fixed_cavities(dat_filecontent, l_elts, fm_folder):
 
         if line[0] == 'FIELD_MAP':
             elt = l_elts[idx_elt]
-            line[3] = d_phi[FLAG_PHI_ABS](elt)
+            line[3] = d_phi[con.FLAG_PHI_ABS](elt)
             line[6] = str(elt.get('k_e'))
             # '1' if True, '0' if False
-            line[10] = str(int(FLAG_PHI_ABS))
+            line[10] = str(int(con.FLAG_PHI_ABS))
 
         elif line[0] == 'FIELD_MAP_PATH':
             line[1] = fm_folder

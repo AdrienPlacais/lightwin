@@ -13,7 +13,7 @@ import os.path
 import logging
 import numpy as np
 
-from constants import FLAG_PHI_ABS, c
+from constants import c
 import config_manager as con
 import util.tracewin_interface as tw
 import util.converters as convert
@@ -250,13 +250,13 @@ class Accelerator():
         for cav in cavities:
             flags_absolute.append(cav.get('abs_phase_flag'))
 
-        if FLAG_PHI_ABS and False in flags_absolute:
+        if con.FLAG_PHI_ABS and False in flags_absolute:
             logging.warning(
                 "You asked LW a simulation in absolute phase, while there " +
                 "is at least one cavity in relative phase in the .dat file " +
                 "used by TW. Results won't match if there are faulty " +
                 "cavities.")
-        elif not FLAG_PHI_ABS and True in flags_absolute:
+        elif not con.FLAG_PHI_ABS and True in flags_absolute:
             logging.warning(
                 "You asked LW a simulation in relative phase, while there " +
                 "is at least one cavity in absolute phase in the .dat file " +

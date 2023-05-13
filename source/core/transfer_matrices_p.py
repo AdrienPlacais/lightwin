@@ -18,7 +18,6 @@ But numpy is fast, no?
 import numpy as np
 from constants import c
 import config_manager as con
-# con.Q_ADIM, con.INV_E_REST_MEV, con.OMEGA_0_BUNCH, con.GAMMA_INIT
 
 
 # =============================================================================

@@ -30,7 +30,8 @@ import itertools
 import math
 import numpy as np
 import pandas as pd
-from constants import FLAG_PHI_ABS
+
+import config_manager as con
 import core.fault as mod_f
 from core.list_of_elements import ListOfElements
 from util import debug
@@ -76,7 +77,7 @@ class FaultScenario():
 
         # Change status of cavities after the first failed cavity to tell LW
         # that they must keep their relative entry phases, not their absolute
-        if not FLAG_PHI_ABS:
+        if not con.FLAG_PHI_ABS:
             self._update_status_of_cavities_to_rephase()
         self._transfer_phi0_from_ref_to_broken()
 
@@ -209,7 +210,7 @@ class FaultScenario():
 
         If the absolute initial phases are not kept between reference and
         broken linac, it comes down to rephasing the linac. This is what we
-        want to avoid when FLAG_PHI_ABS = True.
+        want to avoid when con.FLAG_PHI_ABS = True.
         """
         # Get CavitieS of REFerence and BROKen linacs
         ref_cs = self.ref_lin.elements_of('FIELD_MAP')
@@ -258,7 +259,7 @@ class FaultScenario():
             l_successes.append(success)
             self._compute_matrix_to_next_fault(fault, success)
 
-            if not FLAG_PHI_ABS:
+            if not con.FLAG_PHI_ABS:
                 # Tell LW to keep the new phase of the rephased cavities
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)

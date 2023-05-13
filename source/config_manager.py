@@ -24,10 +24,10 @@ from constants import c
 
 # Values that will be available everywhere
 FLAG_CYTHON, FLAG_PHI_ABS = bool, bool
-METHOD = str()
+METHOD = str
 N_STEPS_PER_CELL = int()
 
-LINAC = str()
+LINAC = str
 E_MEV, E_REST_MEV, INV_E_REST_MEV = float(), float(), float()
 GAMMA_INIT = float()
 F_BUNCH_MHZ, OMEGA_0_BUNCH, LAMBDA_BUNCH = float(), float(), float()
@@ -146,7 +146,26 @@ def generate_list_of_faults():
 # Everything related to solver
 # =============================================================================
 def _test_solver(solver: configparser.SectionProxy) -> None:
-    """Test consistency of the solver."""
+    """
+    Test consistency of the solver.
+
+    FLAF_PHI_ABS: to determine if the phases in the cavities are absolute or
+    relative.
+    If True, cavities keep their absolute phi_0 (!! relative phi_0 may be
+    changed though !!).
+    If False, cavities keep their relative phi_0; all cavities after the first
+    modified cavity change their status to 'rephased'.
+
+    METHOD: method to integrate the motion. leapfrog or RK (RK4)
+
+    N_STEPS_PER_CELL: number of spatial steps per RF cavity cell.
+
+    FLAG_CYTHON: to determine if transfer_matrices_c (Cython) should be use
+    instead of _p (pure Python). _c is ~2 to 4 times faster than _p.
+    Warning, you may have to relaod the kernel to force iPython to take the
+    change in FLAG_CYTHON into account.
+
+    """
     passed = True
 
     mandatory = ["FLAG_CYTHON", "METHOD", "FLAG_PHI_ABS"]
@@ -162,7 +181,7 @@ def _test_solver(solver: configparser.SectionProxy) -> None:
     if "N_STEPS_PER_CELL" not in solver.keys():
         logging.warning("Number of integration steps per cell not precised. "
                         + "Will use default values.")
-        d_default = {"leapfrog": "40", "RK": "20"}
+        d_default = {'leapfrog': '40', 'RK': '20'}
         solver["N_STEPS_PER_CELL"] = d_default["METHOD"]
 
     if solver["FLAG_CYTHON"]:
@@ -173,6 +192,15 @@ def _test_solver(solver: configparser.SectionProxy) -> None:
     if not passed:
         raise IOError("Wrong value in solver.")
 
+    # Still in use??
+    # DICT_STR_PHI = {True: 'abs', False: 'rel'}
+    # DICT_STR_PHI_RF = {True: 'abs_rf', False: 'rel'}
+    # DICT_STR_PHI_0 = {True: 'phi_0_abs', False: 'phi_0_rel'}
+
+    # STR_PHI_ABS = DICT_STR_PHI[FLAG_PHI_ABS]
+    # STR_PHI_ABS_RF = DICT_STR_PHI_RF[FLAG_PHI_ABS]
+    # STR_PHI_0_ABS = DICT_STR_PHI_0[FLAG_PHI_ABS]
+
     logging.info(f"solver parameters {solver.name} tested with success.")
 
 
@@ -182,14 +210,14 @@ def _config_to_dict_solver(c_solver: configparser.SectionProxy) -> dict:
     getter = {
         'FLAG_CYTHON': c_solver.getboolean,
         'FLAG_PHI_ABS': c_solver.getboolean,
-        'N_CELL_PER_CELL': c_solver.getint,
+        'N_STEPS_PER_CELL': c_solver.getint,
     }
     for key in c_solver.keys():
         key = key.upper()
         if key in getter:
             d_solver[key] = getter[key](key)
             continue
-        d_solver[key] = c_solver.get(key)
+        d_solver[key] = c_solver.get(key.lower())
 
     return d_solver
 

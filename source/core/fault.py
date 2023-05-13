@@ -27,7 +27,6 @@ import logging
 import numpy as np
 from scipy.optimize import minimize, least_squares
 
-from constants import FLAG_PHI_ABS
 import config_manager as con
 from core.list_of_elements import ListOfElements
 from core.emittance import mismatch_factor
@@ -409,7 +408,7 @@ class Fault():
         if self.wtf['phi_s fit']:
             l_x = ['phi_s']
         else:
-            if FLAG_PHI_ABS:
+            if con.FLAG_PHI_ABS:
                 l_x = ['phi_0_abs']
             else:
                 l_x = ['phi_0_rel']
@@ -462,7 +461,7 @@ class Fault():
         x_in_real_phase = self.info["X"].copy()
 
         key = 'phi_0_rel'
-        if FLAG_PHI_ABS:
+        if con.FLAG_PHI_ABS:
             key = 'phi_0_abs'
 
         for i, cav in enumerate(self.comp['l_cav']):
