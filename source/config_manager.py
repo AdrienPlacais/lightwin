@@ -167,6 +167,8 @@ def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
     # in constants I also had GAMMA_INIT, do not know if used or not
     d_beam["OMEGA_0_BUNCH"] = 2e6 * np.pi * d_beam["F_BUNCH_MHZ"]
     d_beam["LAMBDA_BUNCH"] = c / d_beam["F_BUNCH_MHZ"]
+    d_beam["Q_OVER_M"] = d_beam["Q_ADIM"] * d_beam["INV_E_REST_MEV"]
+    d_beam["M_OVER_Q"] = 1. / d_beam["Q_OVER_M"]
 
     return d_beam
 
