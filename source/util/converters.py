@@ -27,9 +27,6 @@ def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=Q_OVER_M,
            m_over_q: float=M_OVER_Q, e_rest: float=E_REST_MEV
            ) -> float | np.ndarray:
     """Convert energy or Lorentz factor into another related quantity."""
-    if "p" in key:
-        logging.warning("Check units!")
-
     d_convert = {
         "v to kin": lambda x: 0.5 * m_over_q * x**2 * 1e-6,
         "kin to v": lambda x: np.sqrt(2e6 * q_over_m * x),
@@ -45,6 +42,17 @@ def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=Q_OVER_M,
         "beta to p": lambda x: x / np.sqrt(1. - x**2) * e_rest,
     }
     return d_convert[key](energy_in)
+
+
+def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
+                 key: str, e_rest: float=E_REST_MEV) -> float | np.ndarray:
+    """Convert energies between longitudinal phase spaces."""
+    d_convert = {
+        "zprime gamma to zdelta": lambda zp, gam: zp * gam**-2 * 1e-1,
+        "zprime kin to zdelta": lambda zp, kin:
+            zp * (1. + kin / e_rest)**-2 * 1e-1,
+    }
+    return d_convert[key](long_in, ene)
 
 
 # TODO may be possible to save some operations by using lambda func?
