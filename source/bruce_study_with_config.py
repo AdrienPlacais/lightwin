@@ -72,9 +72,9 @@ if __name__ == '__main__':
 
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
-    d_flags, d_beam, wtf_0, d_tw = conf_man.process_config(
-        CONFIG_PATH, PROJECT_FOLDER, key_flags="flags", key_beam='beam.jaea',
-        key_wtf='wtf.k_out_of_n', key_tw='tracewin')
+    d_solver, d_beam, wtf_0, d_tw = conf_man.process_config(
+        CONFIG_PATH, PROJECT_FOLDER, key_solver="solver.envelope_longitudinal",
+        key_beam='beam.jaea', key_wtf='wtf.k_out_of_n', key_tw='tracewin')
     failed_0 = [12]
 
     # Reference linac
