@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
-    d_beam, wtf_0, d_tw = conf_man.process_config(
+    d_beam, d_flags, wtf_0, d_tw = conf_man.process_config(
         CONFIG_PATH, PROJECT_FOLDER, key_beam='beam.jaea',
         key_wtf='wtf.k_out_of_n', key_tw='tracewin')
     failed_0 = [12]
