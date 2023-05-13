@@ -16,7 +16,9 @@ But numpy is fast, no?
 """
 
 import numpy as np
-from constants import c, Q_ADIM, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT
+from constants import c
+import config_manager as con
+# con.Q_ADIM, con.INV_E_REST_MEV, con.OMEGA_0_BUNCH, con.GAMMA_INIT
 
 
 # =============================================================================
@@ -76,7 +78,7 @@ def z_drift(delta_s, gamma_in, n_steps=1):
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
                                               [0., 1.]]))
     beta_in = np.sqrt(1. - gamma_in_min2)
-    delta_phi = OMEGA_0_BUNCH * delta_s / (beta_in * c)
+    delta_phi = con.OMEGA_0_BUNCH * delta_s / (beta_in * c)
 
     # Two possibilites: second one is faster
     # l_gamman = [gamma for i in range(n_steps)]
@@ -102,7 +104,7 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, dict_rf_field):
 
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c
-    delta_gamma_norm = Q_ADIM * d_z * INV_E_REST_MEV
+    delta_gamma_norm = con.Q_ADIM * d_z * con.INV_E_REST_MEV
     k_k = delta_gamma_norm * k_e
 
     r_zz = np.empty((n_steps, 2, 2))
@@ -189,7 +191,7 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, dict_rf_field):
 
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c
-    delta_gamma_norm = Q_ADIM * d_z * INV_E_REST_MEV
+    delta_gamma_norm = con.Q_ADIM * d_z * con.INV_E_REST_MEV
     k_k = delta_gamma_norm * k_e
 
     r_zz = np.empty((n_steps, 2, 2))
@@ -197,7 +199,7 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, dict_rf_field):
     gamma_phi[0, 1] = 0.
     # Rewind energy from i=0 to i=-0.5 if we are at the first cavity:
     # FIXME must be cleaner
-    if gamma_in == GAMMA_INIT:
+    if gamma_in == con.GAMMA_INIT:
         gamma_phi[0, 0] = gamma_in - .5 * k_k * e_func(z_rel, e_spat,
                                                        gamma_phi[0, 1],
                                                        phi_0_rel)

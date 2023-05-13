@@ -22,28 +22,20 @@ from libc.math cimport sin, cos, sqrt, tan, floor
 import numpy as np
 cimport numpy as np
 np.import_array()
-from constants import c, E_REST_MEV, INV_E_REST_MEV, Q_ADIM, OMEGA_0_BUNCH, \
-    GAMMA_INIT
+from constants import c
+import config_manager as con
+
 
 # Must be changed to double if C float is replaced by double
 DTYPE = np.float64
-#  ctypedef np.float64_t DTYPE_t
-# DTYPE = double
 ctypedef double DTYPE_t
 
 cdef DTYPE_t c_cdef = c
-cdef DTYPE_t E_rest_MeV_cdef = E_REST_MEV
-cdef DTYPE_t inv_E_rest_MeV_cdef = INV_E_REST_MEV
-cdef DTYPE_t OMEGA_0_BUNCH_cdef = OMEGA_0_BUNCH
-cdef DTYPE_t q_adim_cdef = Q_ADIM
-cdef DTYPE_t GAMMA_cdef = GAMMA_INIT
-# cdef DTYPE_t c_cdef = 2.99792458e8
-# cdef DTYPE_t E_rest_MeV_cdef = 938.27203
-# cdef DTYPE_t inv_E_rest_MeV_cdef = 0.0010657889908537506
-# cdef DTYPE_t OMEGA_0_BUNCH_cdef = 1106468932.594325
-# cdef DTYPE_t q_adim_cdef = 1.
-# cdef DTYPE_t E_MEV_cdef = 16.6
-# cdef DTYPE_t GAMMA_cdef = 1. + E_MEV_cdef / E_rest_MeV_cdef
+cdef DTYPE_t E_rest_MeV_cdef = con.E_REST_MEV
+cdef DTYPE_t inv_E_rest_MeV_cdef = con.INV_E_REST_MEV
+cdef DTYPE_t OMEGA_0_BUNCH_cdef = con.OMEGA_0_BUNCH
+cdef DTYPE_t q_adim_cdef = con.Q_ADIM
+cdef DTYPE_t GAMMA_cdef = con.GAMMA_INIT
 
 
 cpdef init_arrays(list l_filepaths):
@@ -66,9 +58,21 @@ cpdef init_arrays(list l_filepaths):
                     e_z[i - 2] = float(line)
         l_d_ez.append({"e_z": e_z, "n_points": n_points, "inv_dz": inv_dz})
 
+    global c_cdef
+    c_cdef = c
+    global E_rest_MeV_cdef
+    E_rest_MeV_cdef = con.E_REST_MEV
+    global inv_E_rest_MeV_cdef
+    inv_E_rest_MeV_cdef = con.INV_E_REST_MEV
+    global OMEGA_0_BUNCH_cdef
+    OMEGA_0_BUNCH_cdef = con.OMEGA_0_BUNCH
+    global q_adim_cdef
+    q_adim_cdef = con.Q_ADIM
+    global GAMMA_cdef
+    GAMMA_cdef = con.GAMMA_INIT
 
-# =============================================================================
-# Helpers
+    # =============================================================================
+    # Helpers
 # =============================================================================
 cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e, int n_points_e):
     """Interpolation function."""

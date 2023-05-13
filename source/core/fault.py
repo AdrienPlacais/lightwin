@@ -27,7 +27,8 @@ import logging
 import numpy as np
 from scipy.optimize import minimize, least_squares
 
-from constants import FLAG_PHI_ABS, LINAC
+from constants import FLAG_PHI_ABS
+import config_manager as con
 from core.list_of_elements import ListOfElements
 from core.emittance import mismatch_factor
 from util import debug
@@ -396,7 +397,7 @@ class Fault():
                        'phi_0_abs': [np.NaN, np.NaN],
                        'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
 
-        if LINAC == 'JAEA':
+        if con.LINAC == 'JAEA':
             # In Bruce's paper, the maximum electric field is 20% above the
             # nominal electric field (not a single limit for each section as in
             # MYRRHA)

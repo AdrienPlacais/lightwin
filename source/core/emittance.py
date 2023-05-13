@@ -32,14 +32,14 @@ FIXME r_zz should be an argument instead of taking the linac attribute. Also
 
 import numpy as np
 
-from constants import SIGMA_ZDELTA
+import config_manager as con
 import util.converters as convert
 
 
 # =============================================================================
 # Public
 # =============================================================================
-def beam_parameters_zdelta(r_zz, sigma_in=SIGMA_ZDELTA):
+def beam_parameters_zdelta(r_zz, sigma_in=None):
     """
     Compute sigma beam matrix, emittance, Twiss parameters.
 
@@ -50,6 +50,8 @@ def beam_parameters_zdelta(r_zz, sigma_in=SIGMA_ZDELTA):
     sigma_in : numpy array
         (2, 2) sigma beam matrix at entry of linac.
     """
+    if sigma_in is None:
+        sigma_in = con.SIGMA_ZDELTA
     # Compute sigma beam matrices
     sigma = _sigma_beam_matrices(r_zz, sigma_in)
 

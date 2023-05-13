@@ -13,10 +13,11 @@ import os.path
 import logging
 import numpy as np
 
+from constants import FLAG_PHI_ABS, c
+import config_manager as con
 import util.tracewin_interface as tw
 import util.converters as convert
 from util.helper import recursive_items, recursive_getter
-from constants import E_MEV, FLAG_PHI_ABS, c, F_BUNCH_MHZ
 from core import particle
 from core import elements
 from core.list_of_elements import ListOfElements
@@ -53,12 +54,12 @@ class Accelerator():
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
 
         # Create a the list containing all the elements
-        self.elts = ListOfElements(l_elts, w_kin=E_MEV, phi_abs=0., idx_in=0)
+        self.elts = ListOfElements(l_elts, w_kin=con.E_MEV, phi_abs=0., idx_in=0)
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 
         tw.load_filemaps(self.files, self.elements['l_sections'], freqs,
-                         F_BUNCH_MHZ)
+                         con.F_BUNCH_MHZ)
         tw.give_name(l_elts)
         self.files['dat_filecontent'] = dat_filecontent
 
@@ -67,7 +68,7 @@ class Accelerator():
 
         # Create synchronous particle
         reference = bool(name == 'Working')
-        self.synch = particle.Particle(0., E_MEV, n_steps=last_idx,
+        self.synch = particle.Particle(0., con.E_MEV, n_steps=last_idx,
                                        synchronous=True, reference=reference)
 
         # Transfer matrices

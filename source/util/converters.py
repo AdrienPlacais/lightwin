@@ -9,13 +9,15 @@ All functions to change units.
 """
 import logging
 import numpy as np
-from constants import E_REST_MEV, LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, E_REST_MEV,\
-    OMEGA_0_BUNCH, c
+from constants import c
+import config_manager as con
 
 
 def position(pos_in : float | np.ndarray, beta: float | np.ndarray, key: str,
-             omega: float=OMEGA_0_BUNCH) -> float | np.ndarray:
+             omega: float=None) -> float | np.ndarray:
     """Phase/position converters."""
+    if omega is None:
+        omega = con.OMEGA_0_BUNCH
     d_convert = {
         "z to phi": lambda pos, bet: -omega * pos / (bet * c),
         "phi to z": lambda pos, bet: -pos * bet * c / omega,
@@ -23,10 +25,16 @@ def position(pos_in : float | np.ndarray, beta: float | np.ndarray, key: str,
     return d_convert[key](pos_in, beta)
 
 
-def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=Q_OVER_M,
-           m_over_q: float=M_OVER_Q, e_rest: float=E_REST_MEV
-           ) -> float | np.ndarray:
+def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=None,
+           m_over_q: float=None, e_rest: float=None) -> float | np.ndarray:
     """Convert energy or Lorentz factor into another related quantity."""
+    if q_over_m is None:
+        q_over_m = con.Q_OVER_M
+    if m_over_q is None:
+        m_over_q = con.M_OVER_Q
+    if e_rest is None:
+        e_rest = con.E_REST_MEV
+
     d_convert = {
         "v to kin": lambda x: 0.5 * m_over_q * x**2 * 1e-6,
         "kin to v": lambda x: np.sqrt(2e6 * q_over_m * x),
@@ -45,8 +53,10 @@ def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=Q_OVER_M,
 
 
 def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
-                 key: str, e_rest: float=E_REST_MEV) -> float | np.ndarray:
+                 key: str, e_rest: float=None) -> float | np.ndarray:
     """Convert energies between longitudinal phase spaces."""
+    if e_rest is None:
+        e_rest = con.E_REST_MEV
     d_convert = {
         "zprime gamma to zdelta": lambda zp, gam: zp * gam**-2 * 1e-1,
         "zprime kin to zdelta": lambda zp, kin:
@@ -57,9 +67,13 @@ def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
 
 # TODO may be possible to save some operations by using lambda func?
 def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
-              key: str, lam: float | np.ndarray=LAMBDA_BUNCH,
-              e_0: float | np.ndarray=E_REST_MEV) -> float | np.ndarray:
+              key: str, lam: float | np.ndarray=None,
+              e_0: float | np.ndarray=None) -> float | np.ndarray:
     """Convert emittance from a phase space to another."""
+    if lam is None:
+        lam = con.LAMBDA_BUNCH
+    if e_0 is None:
+        e_0 = con.E_REST_MEV
     beta = np.sqrt(1. - gamma**-2)
 
     # Lighten the dict
@@ -81,9 +95,13 @@ def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
 
 
 def twiss(twiss_orig: np.ndarray, gamma: float | np.ndarray, key: str,
-          lam: float | np.ndarray=LAMBDA_BUNCH,
-          e_0: float | np.ndarray=E_REST_MEV) -> np.ndarray:
+          lam: float | np.ndarray=None,
+          e_0: float | np.ndarray=None) -> np.ndarray:
     """Convert Twiss array from a phase space to another."""
+    if lam is None:
+        lam = con.LAMBDA_BUNCH
+    if e_0 is None:
+        e_0 = con.E_REST_MEV
     beta = np.sqrt(1. - gamma**-2)
 
     # Lighten the dict
@@ -108,5 +126,4 @@ def twiss(twiss_orig: np.ndarray, gamma: float | np.ndarray, key: str,
     twiss_new[:, 1] = twiss_orig[:, 1] * factors[1]
     twiss_new[:, 2] = twiss_orig[:, 2] / factors[1]
     return twiss_new
-
 

@@ -22,6 +22,20 @@ import configparser
 import numpy as np
 from constants import c, FLAG_PHI_ABS, METHOD, N_STEPS_PER_CELL, FLAG_CYTHON
 
+# Values that will be available everywhere
+Q_ADIM = float()
+E_MEV = float()
+E_REST_MEV = float()
+INV_E_REST_MEV = float()
+OMEGA_0_BUNCH = float()
+GAMMA_INIT = float()
+LAMBDA_BUNCH = float()
+Q_OVER_M = float()
+M_OVER_Q = float()
+F_BUNCH_MHZ = float()
+SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
+LINAC = str()
+
 
 def process_config(config_path: str, project_path: str,
                    key_flags: str = "flags", key_beam: str = 'beam',
@@ -44,7 +58,7 @@ def process_config(config_path: str, project_path: str,
     key_wtf : str, optional
         Name of the Section containing wtf parameters in the .ini file. The
         default is 'wtf'.
-    key_tw : str, optional
+    key_tw : str, optionaf
         Name of the Section containing the TraceWin simulation parameters in
         the .ini file. The default is 'tracewin'.
 
@@ -99,6 +113,9 @@ def process_config(config_path: str, project_path: str,
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
+
+    # Make some variables what we need to access everywhere global
+    _beam_make_global(d_beam)
 
     return d_flags, d_beam, d_wtf, d_tw
 
@@ -210,13 +227,34 @@ def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
 
     # Add some useful keys
     d_beam["INV_E_REST_MEV"] = 1. / d_beam["E_REST_MEV"]
-    # in constants I also had GAMMA_INIT, do not know if used or not
+    d_beam["GAMMA_INIT"] = 1. + d_beam["E_MEV"] / d_beam["E_REST_MEV"]
     d_beam["OMEGA_0_BUNCH"] = 2e6 * np.pi * d_beam["F_BUNCH_MHZ"]
     d_beam["LAMBDA_BUNCH"] = c / d_beam["F_BUNCH_MHZ"]
     d_beam["Q_OVER_M"] = d_beam["Q_ADIM"] * d_beam["INV_E_REST_MEV"]
     d_beam["M_OVER_Q"] = 1. / d_beam["Q_OVER_M"]
 
     return d_beam
+
+
+def _beam_make_global(d_beam: dict) -> None:
+    """Update the values of some variables so that they can be used everywhere.
+    """
+    global Q_ADIM, E_REST_MEV, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT, \
+        LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, F_BUNCH_MHZ, E_MEV, SIGMA_ZDELTA, \
+        LINAC
+
+    Q_ADIM = d_beam["Q_ADIM"]
+    E_REST_MEV = d_beam["E_REST_MEV"]
+    INV_E_REST_MEV = d_beam["INV_E_REST_MEV"]
+    OMEGA_0_BUNCH = d_beam["OMEGA_0_BUNCH"]
+    GAMMA_INIT = d_beam["GAMMA_INIT"]
+    LAMBDA_BUNCH = d_beam["LAMBDA_BUNCH"]
+    Q_OVER_M = d_beam["Q_OVER_M"]
+    M_OVER_Q = d_beam["M_OVER_Q"]
+    F_BUNCH_MHZ = d_beam["F_BUNCH_MHZ"]
+    E_MEV = d_beam["E_MEV"]
+    SIGMA_ZDELTA = d_beam["SIGMA_ZDELTA"]
+    LINAC = d_beam["LINAC"]
 
 
 # =============================================================================

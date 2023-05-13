@@ -8,7 +8,9 @@ Created on Wed Sep 22 14:15:48 2021.
 import logging
 import numpy as np
 import pandas as pd
-from constants import c, E_REST_MEV, OMEGA_0_BUNCH
+from constants import c
+import config_manager as con
+# , con.E_REST_MEV, con.OMEGA_0_BUNCH
 
 
 # =============================================================================

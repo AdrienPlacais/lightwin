@@ -13,42 +13,6 @@ import numpy as np
 # =============================================================================
 c = 2.99792458e8
 
-# =============================================================================
-# Proton
-# =============================================================================
-E_REST_MEV = 938.27203
-INV_E_REST_MEV = 1. / E_REST_MEV
-Q_ADIM = 1.
-
-# Warning, fit parameters that can change between the two linacs are also set
-# in fault._set_fit_parameters
-# LINAC = "MYRRHA"
-LINAC = "JAEA"
-
-# =============================================================================
-# MYRRHA
-# =============================================================================
-if LINAC == "MYRRHA":
-    E_MEV = 16.6
-    F_BUNCH_MHZ = 176.1
-    I_MILLI_A = 0.0
-    # Input sigma beam matrix in [z-z'] plane
-    SIGMA_ZDELTA = np.array(([2.9511603e-06, -1.9823111e-07],
-                             [-1.9823111e-07, 7.0530641e-07]))
-
-
-# =============================================================================
-# JAEA
-# =============================================================================
-elif LINAC == "JAEA":
-    E_MEV = 939.45813
-    F_BUNCH_MHZ = 162.
-    I_MILLI_A = 19.955719
-    # Input sigma beam matrix in [z-z'] plane
-    SIGMA_ZDELTA = np.array(([1.6062234e-06, -2.7681764e-08],
-                             [-2.7681764e-08, 3.8462377e-08]))
-    SIGMA_ZDELTA = np.array(([1.6062233e-06, -2.7681629e-08],
-                             [-2.7681629e-08, 3.8462344e-08]))
 
 # =============================================================================
 # Simulation constants -- user interface
@@ -87,12 +51,6 @@ else:
 # =============================================================================
 # Simulation constants -- end of user interface
 # =============================================================================
-GAMMA_INIT = 1. + E_MEV / E_REST_MEV
-OMEGA_0_BUNCH = 2e6 * np.pi * F_BUNCH_MHZ
-LAMBDA_BUNCH = c / F_BUNCH_MHZ
-Q_OVER_M = None
-M_OVER_Q = None
-
 DICT_STR_PHI = {True: 'abs', False: 'rel'}
 DICT_STR_PHI_RF = {True: 'abs_rf', False: 'rel'}
 DICT_STR_PHI_0 = {True: 'phi_0_abs', False: 'phi_0_rel'}
