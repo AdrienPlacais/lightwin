@@ -18,7 +18,7 @@ import logging
 import os
 import configparser
 import numpy as np
-from constants import c
+from constants import c, FLAG_PHI_ABS, METHOD, N_STEPS_PER_CELL, FLAG_CYTHON
 
 
 def process_config(config_path: str, project_path: str, key_beam: str = 'beam',
@@ -46,6 +46,8 @@ def process_config(config_path: str, project_path: str, key_beam: str = 'beam',
     -------
     d_beam : dict
         Dictionary holding all beam parameters.
+    d_flags : dict
+        Holds the flags used for simulation.
     d_wtf : dict
         Dictionary holding all wtf parameters.
     d_tw : dict
@@ -73,37 +75,44 @@ def process_config(config_path: str, project_path: str, key_beam: str = 'beam',
     # FIXME listlistint and matrixfloat: same kind of input, but very different
     # outputs!!
     config.read(config_path)
-    _test_config(config, key_beam, key_wtf, key_tw)
+    # FIXME flags taken from constants instead of .ini
+    key_flags = "flags"
+    _test_config(config, key_beam, key_flags, key_wtf, key_tw)
 
     # Transform to dict
-    d_beam, d_wtf, d_tw = _config_to_dict(config, key_beam=key_beam,
-                                          key_wtf=key_wtf, key_tw=key_tw)
+    d_beam, d_flags, d_wtf, d_tw = _config_to_dict(
+        config, key_beam=key_beam, key_flags=key_flags, key_wtf=key_wtf,
+        key_tw=key_tw)
+
+    config = _add_flags_to_config(config, key_flags)
 
     # Remove unused Sections, save resulting file
     [config.remove_section(key) for key in list(config.keys())
-     if key not in ['DEFAULT', key_beam, key_wtf, key_tw]]
+     if key not in ['DEFAULT', key_beam, key_flags, key_wtf, key_tw]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 
-    return d_beam, d_wtf, d_tw
+    return d_beam, d_flags, d_wtf, d_tw
 
 
 def _test_config(config: configparser.ConfigParser, key_beam: str,
-                 key_wtf: str, key_tw: str) -> None:
+                 key_flags: str, key_wtf: str, key_tw: str) -> None:
     """Run all the configuration tests, and save the config if ok."""
     _test_beam(config[key_beam])
+    _test_flags()
     _test_wtf(config[key_wtf])
     _test_tw(config[key_tw])
 
 
 def _config_to_dict(config: configparser.ConfigParser, key_beam: str,
-                    key_wtf: str, key_tw: str) -> dict:
+                    key_flags: str, key_wtf: str, key_tw: str) -> dict:
     """To convert the configparser into the formats required by LightWin."""
     d_beam = _config_to_dict_beam(config[key_beam])
+    d_flags = _config_to_dict_flags()
     d_wtf = _config_to_dict_wtf(config[key_wtf])
     d_tw = _config_to_dict_tw(config[key_tw])
-    return d_beam, d_wtf, d_tw
+    return d_beam, d_flags, d_wtf, d_tw
 
 
 # TODO
@@ -173,6 +182,33 @@ def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
     d_beam["M_OVER_Q"] = 1. / d_beam["Q_OVER_M"]
 
     return d_beam
+
+
+# =============================================================================
+# Everything related to flags
+# =============================================================================
+def _test_flags() -> None:
+    """Test consistency of the flags."""
+    logging.info("Not implemented.")
+
+
+def _config_to_dict_flags() -> dict:
+    """Save flags into a dict."""
+    logging.info("Not implemented.")
+
+
+def _add_flags_to_config(config: configparser.ConfigParser,
+                         key_flags: str) -> configparser.ConfigParser:
+    """Take all the simulation flags from constants, save it into config."""
+    config.add_section(key_flags)
+    d_flags = {"FLAG_PHI_ABS": FLAG_PHI_ABS,
+               "METHOD": METHOD,
+               "FLAG_CYTHON": FLAG_CYTHON,
+               }
+
+    for key, val in d_flags.items():
+        config.set(key_flags, key, str(val))
+    return config
 
 
 # =============================================================================
