@@ -20,26 +20,25 @@ import logging
 import os
 import configparser
 import numpy as np
-from constants import c, FLAG_PHI_ABS, METHOD, N_STEPS_PER_CELL, FLAG_CYTHON
+from constants import c
 
 # Values that will be available everywhere
-Q_ADIM = float()
-E_MEV = float()
-E_REST_MEV = float()
-INV_E_REST_MEV = float()
-OMEGA_0_BUNCH = float()
-GAMMA_INIT = float()
-LAMBDA_BUNCH = float()
-Q_OVER_M = float()
-M_OVER_Q = float()
-F_BUNCH_MHZ = float()
-SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
+FLAG_CYTHON, FLAG_PHI_ABS = bool, bool
+METHOD = str()
+N_STEPS_PER_CELL = int()
+
 LINAC = str()
+E_MEV, E_REST_MEV, INV_E_REST_MEV = float(), float(), float()
+GAMMA_INIT = float()
+F_BUNCH_MHZ, OMEGA_0_BUNCH, LAMBDA_BUNCH = float(), float(), float()
+Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
+SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
 
 
 def process_config(config_path: str, project_path: str,
-                   key_flags: str = "flags", key_beam: str = 'beam',
-                   key_wtf: str = 'wtf', key_tw: str = 'tracewin') -> dict:
+                   key_solver: str = "solver.envelope_longitudinal",
+                   key_beam: str = 'beam', key_wtf: str = 'wtf',
+                   key_tw: str = 'tracewin') -> dict:
     """
     Frontend for config: load .ini, test it, return its content as dicts.
 
@@ -49,9 +48,9 @@ def process_config(config_path: str, project_path: str,
         Path to the .ini file.
     project_path : str
         Path to the project folder, to keep a copy of the used .ini.
-    key_flags : str, optional
-        Name of the Section containing flags in the .ini file. The default is
-        "flags".
+    key_solver : str, optional
+        Name of the Section containing solver in the .ini file. The default is
+        "envelope_long".
     key_beam : str, optional
         Name of the Section containing beam parameters in the .ini file. The
         default is 'beam'.
@@ -64,8 +63,8 @@ def process_config(config_path: str, project_path: str,
 
     Returns
     -------
-    d_flags : dict
-        Holds the flags used for simulation.
+    d_solver : dict
+        Holds the solver used for simulation.
     d_beam : dict
         Dictionary holding all beam parameters.
     d_wtf : dict
@@ -96,47 +95,44 @@ def process_config(config_path: str, project_path: str,
     # outputs!!
     config.read(config_path)
 
-    # FIXME flags taken from constants instead of .ini
-    key_flags = "flags"
-    config = _add_flags_to_config(config, key_flags)
-
-    _test_config(config, key_flags, key_beam, key_wtf, key_tw)
+    _test_config(config, key_solver, key_beam, key_wtf, key_tw)
 
     # Transform to dict
-    d_flags, d_beam, d_wtf, d_tw = _config_to_dict(
-        config, key_flags=key_flags, key_beam=key_beam, key_wtf=key_wtf,
+    d_solver, d_beam, d_wtf, d_tw = _config_to_dict(
+        config, key_solver=key_solver, key_beam=key_beam, key_wtf=key_wtf,
         key_tw=key_tw)
 
     # Remove unused Sections, save resulting file
     [config.remove_section(key) for key in list(config.keys())
-     if key not in ['DEFAULT', key_flags, key_beam, key_wtf, key_tw]]
+     if key not in ['DEFAULT', key_solver, key_beam, key_wtf, key_tw]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 
     # Make some variables what we need to access everywhere global
+    _solver_make_global(d_solver)
     _beam_make_global(d_beam)
 
-    return d_flags, d_beam, d_wtf, d_tw
+    return d_solver, d_beam, d_wtf, d_tw
 
 
-def _test_config(config: configparser.ConfigParser, key_flags: str,
+def _test_config(config: configparser.ConfigParser, key_solver: str,
                  key_beam: str, key_wtf: str, key_tw: str) -> None:
     """Run all the configuration tests, and save the config if ok."""
-    _test_flags(config[key_flags])
+    _test_solver(config[key_solver])
     _test_beam(config[key_beam])
     _test_wtf(config[key_wtf])
     _test_tw(config[key_tw])
 
 
-def _config_to_dict(config: configparser.ConfigParser, key_flags: str,
+def _config_to_dict(config: configparser.ConfigParser, key_solver: str,
                     key_beam: str, key_wtf: str, key_tw: str) -> dict:
     """To convert the configparser into the formats required by LightWin."""
-    d_flags = _config_to_dict_flags(config[key_flags])
+    d_solver = _config_to_dict_solver(config[key_solver])
     d_beam = _config_to_dict_beam(config[key_beam])
     d_wtf = _config_to_dict_wtf(config[key_wtf])
     d_tw = _config_to_dict_tw(config[key_tw])
-    return d_flags, d_beam, d_wtf, d_tw
+    return d_solver, d_beam, d_wtf, d_tw
 
 
 # TODO
@@ -147,31 +143,65 @@ def generate_list_of_faults():
 
 
 # =============================================================================
-# Everything related to flags
+# Everything related to solver
 # =============================================================================
-# FIXME HACK
-def _add_flags_to_config(config: configparser.ConfigParser,
-                         key_flags: str) -> configparser.ConfigParser:
-    """Take all the simulation flags from constants, save it into config."""
-    config.add_section(key_flags)
-    d_flags = {"FLAG_PHI_ABS": FLAG_PHI_ABS,
-               "METHOD": METHOD,
-               "FLAG_CYTHON": FLAG_CYTHON,
-               }
+def _test_solver(solver: configparser.SectionProxy) -> None:
+    """Test consistency of the solver."""
+    passed = True
 
-    for key, val in d_flags.items():
-        config.set(key_flags, key, str(val))
-    return config
+    mandatory = ["FLAG_CYTHON", "METHOD", "FLAG_PHI_ABS"]
+    for key in mandatory:
+        if key not in solver.keys():
+            logging.error(f"{key} is mandatory and missing.")
+            passed = False
+
+    if solver["METHOD"] not in ["leapfrog", "RK"]:
+        logging.error("Wrong value for METHOD, solver not implemented.")
+        passed = False
+
+    if "N_STEPS_PER_CELL" not in solver.keys():
+        logging.warning("Number of integration steps per cell not precised. "
+                        + "Will use default values.")
+        d_default = {"leapfrog": "40", "RK": "20"}
+        solver["N_STEPS_PER_CELL"] = d_default["METHOD"]
+
+    if solver["FLAG_CYTHON"]:
+        solver["METHOD"] += "_c"
+    else:
+        solver["METHOD"] += "_p"
+
+    if not passed:
+        raise IOError("Wrong value in solver.")
+
+    logging.info(f"solver parameters {solver.name} tested with success.")
 
 
-def _test_flags(flags: configparser.SectionProxy) -> None:
-    """Test consistency of the flags."""
-    logging.info("Not implemented.")
+def _config_to_dict_solver(c_solver: configparser.SectionProxy) -> dict:
+    """Save solver info into a dict."""
+    d_solver = {}
+    getter = {
+        'FLAG_CYTHON': c_solver.getboolean,
+        'FLAG_PHI_ABS': c_solver.getboolean,
+        'N_CELL_PER_CELL': c_solver.getint,
+    }
+    for key in c_solver.keys():
+        key = key.upper()
+        if key in getter:
+            d_solver[key] = getter[key](key)
+            continue
+        d_solver[key] = c_solver.get(key)
+
+    return d_solver
 
 
-def _config_to_dict_flags(c_flags: configparser.SectionProxy) -> dict:
-    """Save flags into a dict."""
-    logging.info("Not implemented.")
+def _solver_make_global(d_solver: dict) -> None:
+    """Update the values of some variables so that they can be used everywhere.
+    """
+    global FLAG_CYTHON, FLAG_PHI_ABS, N_STEPS_PER_CELL, METHOD
+    FLAG_CYTHON = d_solver["FLAG_CYTHON"]
+    FLAG_PHI_ABS = d_solver["FLAG_PHI_ABS"]
+    N_STEPS_PER_CELL = d_solver["N_STEPS_PER_CELL"]
+    METHOD = d_solver["METHOD"]
 
 
 # =============================================================================
@@ -190,13 +220,11 @@ def _test_beam(beam: configparser.SectionProxy) -> None:
             passed = False
 
     # Test the values of the keys in beam
-    for key in beam.keys():
-        if key == "I_MILLI_A":
-            if np.abs(beam.getfloat(key)) > 1e-10:
-                logging.warning("You asked LW a beam current different from "
-                                + "0mA. Space-charge, transverse dynamics are "
-                                + "not implemented yet, so this parameter "
-                                + "will be ignored.")
+    if np.abs(beam.getfloat("I_MILLI_A")) > 1e-10:
+        logging.warning("You asked LW a beam current different from "
+                        + "0mA. Space-charge, transverse dynamics are "
+                        + "not implemented yet, so this parameter "
+                        + "will be ignored.")
 
     if not passed:
         raise IOError("Wrong value in beam.")
