@@ -9,7 +9,18 @@ All functions to change units.
 """
 import logging
 import numpy as np
-from constants import E_REST_MEV, LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, E_REST_MEV
+from constants import E_REST_MEV, LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, E_REST_MEV,\
+    OMEGA_0_BUNCH, c
+
+
+def position(pos_in : float | np.ndarray, beta: float | np.ndarray, key: str,
+             omega: float=OMEGA_0_BUNCH) -> float | np.ndarray:
+    """Phase/position converters."""
+    d_convert = {
+        "z to phi": lambda pos, bet: -omega * pos / (bet * c),
+        "phi to z": lambda pos, bet: -pos * bet * c / omega,
+    }
+    return d_convert[key](pos_in, beta)
 
 
 def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=Q_OVER_M,
@@ -37,8 +48,8 @@ def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=Q_OVER_M,
 
 
 # TODO may be possible to save some operations by using lambda func?
-def emittance(eps_orig: float | np.ndarray, key: str,
-              gamma: float | np.ndarray, lam: float | np.ndarray=LAMBDA_BUNCH,
+def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
+              key: str, lam: float | np.ndarray=LAMBDA_BUNCH,
               e_0: float | np.ndarray=E_REST_MEV) -> float | np.ndarray:
     """Convert emittance from a phase space to another."""
     beta = np.sqrt(1. - gamma**-2)
@@ -61,7 +72,7 @@ def emittance(eps_orig: float | np.ndarray, key: str,
     return eps_new
 
 
-def twiss(twiss_orig: np.ndarray, key: str, gamma: float | np.ndarray,
+def twiss(twiss_orig: np.ndarray, gamma: float | np.ndarray, key: str,
           lam: float | np.ndarray=LAMBDA_BUNCH,
           e_0: float | np.ndarray=E_REST_MEV) -> np.ndarray:
     """Convert Twiss array from a phase space to another."""

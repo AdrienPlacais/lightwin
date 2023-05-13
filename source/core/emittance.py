@@ -119,8 +119,8 @@ def _emittance_zdelta(arr_sigma):
 def _emittances_all(eps_zdelta, gamma):
     """Compute emittances in [phi-W] and [z-z']."""
     d_eps = {"eps_zdelta": eps_zdelta,
-             "eps_w": convert.emittance(eps_zdelta, "zdelta to w", gamma),
-             "eps_z": convert.emittance(eps_zdelta, "zdelta to z", gamma)}
+             "eps_w": convert.emittance(eps_zdelta, gamma, "zdelta to w"),
+             "eps_z": convert.emittance(eps_zdelta, gamma, "zdelta to z")}
     return d_eps
 
 
@@ -142,8 +142,8 @@ def _twiss_zdelta(arr_sigma, arr_eps_zdelta):
 def _twiss_all(twiss_zdelta, gamma):
     """Compute Twiss parameters in [phi-W] and [z-z']."""
     d_twiss = {"twiss_zdelta": twiss_zdelta,
-               "twiss_w": convert.twiss(twiss_zdelta, "zdelta to w", gamma),
-               "twiss_z": convert.twiss(twiss_zdelta, "zdelta to z", gamma)}
+               "twiss_w": convert.twiss(twiss_zdelta, gamma, "zdelta to w"),
+               "twiss_z": convert.twiss(twiss_zdelta, gamma, "zdelta to z")}
     return d_twiss
 
 
