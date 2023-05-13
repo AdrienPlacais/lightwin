@@ -6,8 +6,10 @@ Created on Tue Feb 21 13:36:08 2023.
 @author: placais
 
 Handle simulation parameters. In particular:
+    - what are the initial properties of the beam?
     - which cavities are broken?
     - how should they be fixed?
+    - simulation parameters to give to TW?
 
 TODO: allow for different wtf for every fault. Maybe use different .ini?
 TODO: maybe make test and config to dict more compact?
