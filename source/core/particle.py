@@ -8,8 +8,7 @@ Created on Thu Dec  2 13:44:00 2021.
 import logging
 import numpy as np
 import pandas as pd
-from util.helper import recursive_items, recursive_getter, \
-    gamma_and_beta_to_p, z_to_phi
+from util.helper import recursive_items, recursive_getter
 import util.converters as convert
 
 
@@ -122,7 +121,7 @@ class Particle():
 
         gamma = convert.energy(self.energy['w_kin'][idx], "kin to gamma")
         beta = convert.energy(gamma, "gamma to beta")
-        p_mev = gamma_and_beta_to_p(gamma, beta)
+        p_mev = convert.energy(gamma, "gamma to p")
 
         self.energy['gamma'][idx] = gamma
         self.energy['beta'][idx] = beta
@@ -130,7 +129,8 @@ class Particle():
 
     def _init_phi(self, idx=0):
         """Init phi by taking z_rel and beta."""
-        phi_abs = z_to_phi(self.pos['z_abs'][idx], self.energy['beta'][idx])
+        phi_abs = convert.position(self.pos['z_abs'][idx],
+                                   self.energy['beta'][idx], "z to phi")
         self.phi['phi_abs'] = phi_abs
         self.phi['phi_abs_array'][idx] = phi_abs
         self.phi['phi_rel'] = phi_abs
