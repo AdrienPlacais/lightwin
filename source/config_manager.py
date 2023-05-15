@@ -324,6 +324,7 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     getter = {
         'objective': c_wtf.getliststr,
         'scale objective': c_wtf.getlistfloat,
+        'failed': c_wtf.getlistlistint,
         'manual list': c_wtf.getlistlistint,
         'k': c_wtf.getint,
         'l': c_wtf.getint,
@@ -361,42 +362,47 @@ def _test_wtf(wtf: configparser.SectionProxy) -> None:
 
 
 def _test_strategy(wtf: configparser.SectionProxy) -> bool:
-    """Specific test for the key 'strategy' of what_to_fit."""
+    """
+    Specific test for the key 'strategy' of what_to_fit.
+
+    Three compensation strategies are implemented:
+        - k out of n:
+            k compensating cavities per fault. You must provide the number of
+            compensating cavities per faulty cavity k. Nearby broken cavities
+            are automatically gathered and fixed together.
+        - manual:
+            Manual association of faults and errors. In the .ini, 1st line of
+            manual list will compensate 1st line of failed cavities, etc.
+            example:
+            failed =
+              12, 14, -> two cavities that will be fixed together
+              155     -> a single error, fixed after [12, 14] is dealt with
+
+            manual_list =
+              8, 10, 16, 18,    -> compensate errors at idx 12 & 14
+              153, 157          -> compensate error at 155
+        - l neighboring lattices:
+            Every fault will be compensated by l full lattices, direct
+            neighbors of the errors. You must provide l.
+    """
     if 'strategy' not in wtf.keys():
         logging.error("You must provide 'strategy' to tell LightWin how "
                       + "compensating cavities are chosen.")
         return False
 
-    # You must provide the number of compensating cavities per faulty
-    # cavity. Nearby broken cavities are automatically gathered and fixed
-    #  together.
-    if wtf['strategy'] == 'k out of n':
-        return _test_strategy_k_out_of_n(wtf)
+    d_tests = {'k out of n': _test_strategy_k_out_of_n,
+               'manual': _test_strategy_manual,
+               'l neighboring lattices': _test_strategy_l_neighboring_lattices,
+              }
 
-    # You must provide a list of lists of broken cavities, and the
-    # corresponding list of lists of compensating cavities. Broken cavities
-    # in a sublist are fixed together with the provided sublist of
-    # compensating cavities.
-    # example:
-    # failed =
-    #   [12, 14], -> two cavities that will be fixed together
-    #   [155]     -> a single error, fixed after [12, 14] is dealt with
-    #
-    # manual_list =
-    #   [8, 10, 16, 18],    -> compensate errors at idx 12 & 14
-    #   [153, 157]          -> compensate error at 155
-    #
-    if wtf['strategy'] == 'manual':
-        return _test_strategy_manual(wtf)
+    key = wtf['strategy']
+    if key not in d_tests:
+        logging.error("The 'strategy' key did not match any authorized value "
+                      + f"({wtf['strategy']}).")
+        return False
 
-    # You must provide the number of compensating lattices per faulty
-    # cavity. Close broken cavities are gathered and fixed together.
-    if wtf['strategy'] == 'l neighboring lattices':
-        return _test_strategy_l_neighboring_lattices(wtf)
+    return d_tests[key](wtf)
 
-    logging.error("The 'strategy' key did not match any authorized value "
-                  + f"({wtf['strategy']}).")
-    return False
 
 
 def _test_strategy_k_out_of_n(wtf: configparser.SectionProxy) -> bool:
