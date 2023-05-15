@@ -581,7 +581,9 @@ def _test_position(c_wtf: configparser.SectionProxy) -> bool:
         # End of one lattice after last lattice with a compensating cavity
         '1_mod_after',
         # Both lattices
-        'both']
+        'both',
+        'end_linac',
+    ]
     if c_wtf['position'] not in implemented:
         logging.error("Position not implemented.")
         return False

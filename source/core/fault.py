@@ -172,7 +172,7 @@ class Fault():
 
             cav.update_status(new_status)
 
-    def _zone_to_recompute(self, str_position):
+    def _zone_to_recompute(self, str_position: str) -> (list, dict):
         """
         Determine zone to recompute and indexes of where objective is checked.
 
@@ -193,20 +193,21 @@ class Fault():
         # compensating lattice, end of following lattice.
         idx1, idx2, idx3 = self._indexes_start_end_comp_zone(str_position)
 
-        # We have the list of Elements that will be recomputed during
-        # optimisation
+        # List of elements in compensation zone
         d_elts = {
             'end_mod': self.brok_lin.elts[idx1:idx2 + 1],
             '1_mod_after': self.brok_lin.elts[idx1:idx3 + 1],
             'both': self.brok_lin.elts[idx1:idx3 + 1],
+            'end_linac': self.brok_lin.elts[idx1:],
         }
         l_elts = d_elts[str_position]
 
-        # Now get indexes
+        # Where objectives are evaluated
         s_out = self.ref_lin.get('s_out')
         d_position = {'end_mod': [s_out[idx2]],
                       '1_mod_after': [s_out[idx3]],
                       'both': [s_out[idx2], s_out[idx3]],
+                      'end_linac': [s_out[-1]],
                       }
         shift = l_elts[0].idx['s_in']
         d_idx = {'l_ref': d_position[str_position],
