@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     d_solver, d_beam, d_wtf, d_tw = conf_man.process_config(
         CONFIG_PATH, PROJECT_FOLDER, key_solver="solver.envelope_longitudinal",
-        key_beam='beam.jaea', key_wtf='wtf.k_out_of_n', key_tw='tracewin')
+        key_beam='beam.jaea', key_wtf='wtf.manual', key_tw='tracewin')
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")

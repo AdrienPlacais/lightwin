@@ -48,12 +48,7 @@ class FaultScenario():
         self.l_info_other_sol = l_info_other_sol
 
         assert ref_linac.get('reference') and not broken_linac.get('reference')
-        name = l_fault_idx
-        # If wtf['strategy'] == 'manual'
-        if isinstance(name[0], list):
-            name = list(itertools.chain.from_iterable(name))
-
-        self.brok_lin.name += f" {str(name)}"
+        self.brok_lin.name += f" {str(l_fault_idx)}"
 
         ll_comp_cav, ll_fault_idx = self._sort_faults(l_fault_idx)
         l_obj = self._create_fault_objects(ll_fault_idx, ll_comp_cav)
@@ -191,14 +186,15 @@ class FaultScenario():
         the first failed one are rephased.
         """
         logging.warning(
-            "The phases in the broken linac are relative. It may be more " +
-            "relatable to use absolute phases, as it would avoid the " +
-            "rephasing of the linac at each cavity.")
+            "The phases in the broken linac are relative. It may be more "
+            + "relatable to use absolute phases, as it would avoid the "
+            + "rephasing of the linac at each cavity.")
         idx_first_failed = self.faults['l_idx'][0][0]
 
-        to_rephase_cavities = [cav for cav in self.brok_lin.elts[idx_first_failed:]
-                               if cav.get('status') == 'nominal'
-                               and cav.get('nature') == 'FIELD_MAP']
+        to_rephase_cavities = [
+            cav for cav in self.brok_lin.elts[idx_first_failed:]
+            if cav.get('status') == 'nominal'
+            and cav.get('nature') == 'FIELD_MAP']
         # (the status of non-cavities is None, so they would be implicitely
         # excluded even without the nature checking)
         for cav in to_rephase_cavities:
@@ -286,6 +282,10 @@ class FaultScenario():
         idx1 = fault.elts[-1].idx['elt_idx']
 
         if fault is not l_faults[-1] and success:
+            # FIXME
+            logging.critical("Next Fault has no elts attribute yet, as it is "
+                             + "initialized when calling the fix method. "
+                             + "FIXME, please.")
             next_fault = l_faults[l_faults.index(fault) + 1]
             idx2 = next_fault.elts[0].idx('elt_idx') + 1
         else:

@@ -83,8 +83,11 @@ def process_config(config_path: str, project_path: str,
             'liststr': lambda x: [i.strip() for i in x.split(',')],
             'listint': lambda x: [int(i.strip()) for i in x.split(',')],
             'listfloat': lambda x: [float(i.strip()) for i in x.split(',')],
-            'listlistint': lambda x: [[int(i.strip()) for i in y.split(',')]
-                                      for y in x.split(',\n')],
+            'faults': lambda x: [[int(i.strip()) for i in y.split(',')]
+                                 for y in x.split(',\n')],
+            'groupedfaults': lambda x: [[[int(i.strip()) for i in z.split(',')]
+                                         for z in y.split('|')]
+                                        for y in x.split(',\n')],
             'matrixfloat': lambda x: np.array(
                 [[float(i.strip()) for i in y.split(',')]
                  for y in x.split(',\n')]),
@@ -143,7 +146,7 @@ def generate_list_of_faults():
 
 
 # =============================================================================
-# Everything related to solver
+# Everything related to solver (particles motion solver)
 # =============================================================================
 def _test_solver(c_solver: configparser.SectionProxy) -> None:
     """
@@ -316,7 +319,6 @@ def _beam_make_global(d_beam: dict) -> None:
 # =============================================================================
 # Everything related to wtf (what to fit) dicts
 # =============================================================================
-# Still a question: single config to dict? Or one per Section?
 def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     """Convert wtf configparser into a dict."""
     d_wtf = {}
@@ -324,12 +326,14 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     getter = {
         'objective': c_wtf.getliststr,
         'scale objective': c_wtf.getlistfloat,
-        'failed': c_wtf.getlistlistint,
-        'manual list': c_wtf.getlistlistint,
+        'failed': c_wtf.getfaults,
+        'manual list': c_wtf.getgroupedfaults,
         'k': c_wtf.getint,
         'l': c_wtf.getint,
         'phi_s fit': c_wtf.getboolean,
     }
+    if c_wtf.get('strategy') == 'manual':
+        getter['failed'] = c_wtf.getgroupedfaults
 
     for key in c_wtf.keys():
         if key in getter:
@@ -379,6 +383,13 @@ def _test_failed_and_idx(c_wtf: configparser.SectionProxy) -> bool:
             From LightWin's point of view: one line = one FaultScenario object.
             Each FaultScenario has a list of Fault objects. This is handled by
             the Faults are sorted by the FaultScenario._sort_faults method.
+            ! if strategy is manual, you must specify which cavities are fixed
+            together by adding semi-colons.
+            Example:
+                1, 2, 3| 98, 99
+            In this example, 1 2 and 3 are fixed together. The beam is then
+            propagated up to 98 and 99 (even if it is not perfectly matched),
+            and 98 and 99 are then fixed together.
     """
     for key in ['failed', 'idx']:
         if key not in c_wtf.keys():
@@ -409,11 +420,18 @@ def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
             Example (we consider that idx is 'element'):
             failed =
               12, 14, -> two cavities that will be fixed together
-              155     -> a single error, fixed after [12, 14] is dealt with
+              155,    -> a single error, fixed after [12, 14] is dealt with
+              12, 14 | 155 -> fix 12 and 14 and then 155 in the same simulation
+                              (if beam is not perfectly matched after the first
+                              error, the mismatch will propagate up to the next
+                              error).
 
             manual_list =
               8, 10, 16, 18,    -> compensate errors at idx 12 & 14
               153, 157          -> compensate error at 155
+              8, 10, 16, 18 | 153, 157 -> use 8 10 16 18 to compensate 12 and
+              14. Propagate beam up to next fault, which is 155, and compensate
+              if with 153 157.
         - l neighboring lattices:
             Every fault will be compensated by l full lattices, direct
             neighbors of the errors. You must provide l.
@@ -461,14 +479,23 @@ def _test_strategy_manual(c_wtf: configparser.SectionProxy) -> bool:
                       + "cavities.")
         return False
 
-    n_faultscenarios = len(c_wtf.getlistlistint('failed'))
-    n_groupcomp = len(c_wtf.getlistlistint('manual list'))
-    if n_faultscenarios != n_groupcomp:
+    scenarios = c_wtf.getgroupedfaults('failed')
+    groupcomp = c_wtf.getgroupedfaults('manual list')
+    if len(scenarios) != len(groupcomp):
         logging.error("Discrepancy between the number of FaultScenarios and "
-                      + "the number of corresponding compensating cavities. "
-                      + "'failed' and 'manual list' entries must have the "
-                      + "same number of lines.")
+                      + "the number of corresponding list of compensating "
+                      + "cavities. In other words: 'failed' and 'manual list' "
+                      + "entries must have the same number of lines.")
         return False
+
+    for scen, comp in zip(scenarios, groupcomp):
+        if len(scen) != len(comp):
+            logging.error("In a FaultScenario, discrepancy between the number "
+                          + "of fault groups and group of compensating "
+                          + "cavities. In other words: 'failed' and 'manual "
+                          + "list' entries must have the same number of "
+                          + "pipes on every line.")
+            return False
 
     return True
 
