@@ -13,6 +13,7 @@ import time
 import datetime
 import pandas as pd
 
+import config_manager as conf_man
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
 import util.helper as helper
@@ -26,31 +27,14 @@ if __name__ == '__main__':
     # Select .dat file
     FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
 
-    kwargs_tw = {
-        'hide': None,
-        'path_cal': 'default',
-        'dat_file': 'default',
-        # 'current1': 0,
-        # 'nbr_part1': int(1e2),
-        # 'dst_file1': '/home/placais/LightWin/data/JAEA_resend/EllipR2_2_A.dst'
-        # 'random_seed': 23111993,
-    }
-
     # =========================================================================
     # Fault compensation
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
     FLAG_TW = False
+    RECOMPUTE_REFERENCE = False
     FLAG_EVALUATE = False
-
-    failed_0 = [297]
-    wtf_0 = {'opti method': 'least_squares',
-             'strategy': 'k out of n',
-             'k': 5, 'l': 2, 'manual list': [[145, 147, 157, 165, 167]],
-             'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-             'scale_objective': [1., 1., 1.],
-             'position': 'end_mod', 'phi_s fit': True}
 
     # =========================================================================
     # Outputs
@@ -82,8 +66,14 @@ if __name__ == '__main__':
     PROJECT_FOLDER = os.path.join(
         os.path.dirname(FILEPATH),
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
+    CONFIG_PATH = 'myrrha_default.ini'
     os.makedirs(PROJECT_FOLDER)
+
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
+
+    d_solver, d_beam, d_wtf, d_tw = conf_man.process_config(
+        CONFIG_PATH, PROJECT_FOLDER, key_solver="solver.envelope_longitudinal",
+        key_beam='beam.myrrha', key_wtf='wtf.quick_debug', key_tw='tracewin')
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
@@ -92,28 +82,25 @@ if __name__ == '__main__':
 
     linacs = [ref_linac]
 
-    # Broken linac
-    # lsq_info = None
-
-    l_failed = [failed_0]
-    l_wtf = [wtf_0]
-
-    # l_failed = [failed_1, failed_2, failed_3, failed_4, failed_5, failed_6,
-    #             failed_7]
-    # l_wtf = [wtf_1, wtf_2, wtf_3, wtf_4, wtf_5, wtf_6, wtf_7]
-
-    # l_failed = [[all_cavs[i]] for i in range(0, 40)]
-    # l_wtf = [wtf_classic for i in range(0, 40)]
-
     lw_fit_evals = []
 
 # =============================================================================
 # Run all simulations of the Project
 # =============================================================================
-    for [wtf, failed] in zip(l_wtf, l_failed):
+    l_failed = d_wtf.pop('failed')
+    l_manual = None
+    manual = None
+    if 'manual list' in d_wtf:
+        l_manual = d_wtf.pop('manual list')
+
+    for i, failed in enumerate(l_failed):
         start_time = time.monotonic()
         lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken")
-        fail = mod_fs.FaultScenario(ref_linac, lin, failed, wtf=wtf)
+
+        if l_manual is not None:
+            manual = l_manual[i]
+        fail = mod_fs.FaultScenario(ref_linac, lin, wtf=d_wtf,
+                                    l_fault_idx=failed, l_comp_idx=manual)
         linacs.append(deepcopy(lin))
 
         if FLAG_FIX:
@@ -148,7 +135,6 @@ if __name__ == '__main__':
 
         lw_fit_evals.append(lw_fit_eval)
 
-
 # =============================================================================
 # TraceWin
 # =============================================================================
@@ -160,11 +146,16 @@ if __name__ == '__main__':
             if 'Broken' in lin.name:
                 continue
 
-            # FIXME to modify simulation flags, go to
-            # Accelerator.simulate_in_tracewin
+            if 'Working' in lin.name and not RECOMPUTE_REFERENCE:
+                lin.files['out_tw'] = '/home/placais/LightWin/data/faultcomp22/working/ref'
+                logging.info(
+                    "we do not TW recompute reference linac. "
+                    + f"We take TW results from {lin.files['out_tw']}.")
+                continue
+
             ini_path = FILEPATH.replace('.dat', '.ini')
-            ini_path = "/home/placais/LightWin/data/faultcomp22/working/MYRRHA_Transi-100MeV.ini"
-            lin.simulate_in_tracewin(ini_path, **kwargs_tw)
+            lin.simulate_in_tracewin(ini_path, **d_tw)
+            # TODO transfer ini path elsewhere
             lin.store_tracewin_results()
 
             if 'Fixed' in lin.name:
@@ -181,7 +172,7 @@ if __name__ == '__main__':
 
         if FLAG_EVALUATE:
             for _list, name in zip([l_fred, l_bruce],
-                                    ['fred_tests.csv', 'bruce_tests.csv']):
+                                   ['fred_tests.csv', 'bruce_tests.csv']):
                 out = pd.DataFrame(_list)
                 filepath = os.path.join(PROJECT_FOLDER, name)
                 out.to_csv(filepath)
@@ -190,7 +181,7 @@ if __name__ == '__main__':
 # Plot
 # =============================================================================
     kwargs = {'plot_tw': FLAG_TW, 'save_fig': SAVE_FIX, 'clean_fig': True}
-    for i in range(len(l_wtf)):
+    for i in range(len(l_failed)):
         for str_plot in PLOTS:
             # Plot the reference linac, i-th broken linac and corresponding
             # fixed linac
