@@ -145,7 +145,7 @@ def generate_list_of_faults():
 # =============================================================================
 # Everything related to solver
 # =============================================================================
-def _test_solver(solver: configparser.SectionProxy) -> None:
+def _test_solver(c_solver: configparser.SectionProxy) -> None:
     """
     Test consistency of the solver.
 
@@ -170,27 +170,27 @@ def _test_solver(solver: configparser.SectionProxy) -> None:
 
     mandatory = ["FLAG_CYTHON", "METHOD", "FLAG_PHI_ABS"]
     for key in mandatory:
-        if key not in solver.keys():
+        if key not in c_solver.keys():
             logging.error(f"{key} is mandatory and missing.")
             passed = False
 
-    if solver["METHOD"] not in ["leapfrog", "RK"]:
+    if c_solver["METHOD"] not in ["leapfrog", "RK"]:
         logging.error("Wrong value for METHOD, solver not implemented.")
         passed = False
 
-    if "N_STEPS_PER_CELL" not in solver.keys():
+    if "N_STEPS_PER_CELL" not in c_solver.keys():
         logging.warning("Number of integration steps per cell not precised. "
                         + "Will use default values.")
         d_default = {'leapfrog': '40', 'RK': '20'}
-        solver["N_STEPS_PER_CELL"] = d_default["METHOD"]
+        c_solver["N_STEPS_PER_CELL"] = d_default["METHOD"]
 
-    if solver["FLAG_CYTHON"]:
-        solver["METHOD"] += "_c"
+    if c_solver["FLAG_CYTHON"]:
+        c_solver["METHOD"] += "_c"
     else:
-        solver["METHOD"] += "_p"
+        c_solver["METHOD"] += "_p"
 
     if not passed:
-        raise IOError("Wrong value in solver.")
+        raise IOError("Wrong value in c_solver.")
 
     # Still in use??
     # DICT_STR_PHI = {True: 'abs', False: 'rel'}
@@ -201,7 +201,7 @@ def _test_solver(solver: configparser.SectionProxy) -> None:
     # STR_PHI_ABS_RF = DICT_STR_PHI_RF[FLAG_PHI_ABS]
     # STR_PHI_0_ABS = DICT_STR_PHI_0[FLAG_PHI_ABS]
 
-    logging.info(f"solver parameters {solver.name} tested with success.")
+    logging.info(f"solver parameters {c_solver.name} tested with success.")
 
 
 def _config_to_dict_solver(c_solver: configparser.SectionProxy) -> dict:
@@ -235,7 +235,7 @@ def _solver_make_global(d_solver: dict) -> None:
 # =============================================================================
 # Everything related to beam parameters
 # =============================================================================
-def _test_beam(beam: configparser.SectionProxy) -> None:
+def _test_beam(c_beam: configparser.SectionProxy) -> None:
     """Test the the beam parameters."""
     passed = True
 
@@ -243,21 +243,21 @@ def _test_beam(beam: configparser.SectionProxy) -> None:
     mandatory = ["LINAC", "E_REST_MEV", "Q_ADIM", "E_MEV",
                  "F_BUNCH_MHZ", "I_MILLI_A", "SIGMA_ZDELTA"]
     for key in mandatory:
-        if key not in beam.keys():
+        if key not in c_beam.keys():
             logging.error(f"{key} is mandatory and missing.")
             passed = False
 
     # Test the values of the keys in beam
-    if np.abs(beam.getfloat("I_MILLI_A")) > 1e-10:
+    if np.abs(c_beam.getfloat("I_MILLI_A")) > 1e-10:
         logging.warning("You asked LW a beam current different from "
                         + "0mA. Space-charge, transverse dynamics are "
                         + "not implemented yet, so this parameter "
                         + "will be ignored.")
 
     if not passed:
-        raise IOError("Wrong value in beam.")
+        raise IOError("Wrong value in c_beam.")
 
-    logging.info(f"beam parameters {beam.name} tested with success.")
+    logging.info(f"beam parameters {c_beam.name} tested with success.")
 
 
 def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
@@ -341,27 +341,60 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     return d_wtf
 
 
-def _test_wtf(wtf: configparser.SectionProxy) -> None:
+def _test_wtf(c_wtf: configparser.SectionProxy) -> None:
     """Test the 'what_to_fit' dictionaries."""
-    if not _test_strategy(wtf):
-        raise IOError("Wrong argument in wtf['strategy'].")
-
-    if not _test_objective(wtf):
-        raise IOError("Wrong argument in wtf['objective'].")
-
-    if not _test_opti_method(wtf):
-        raise IOError("Wrong argument in wtf['opti method'].")
-
-    if not _test_position(wtf):
-        raise IOError("Wrong argument in wtf['position'].")
-
-    if not _test_misc(wtf):
-        raise IOError("Check _test_misc.")
-
-    logging.info(f"what to fit {wtf.name} tested with success.")
+    d_tests = {'failed and idx': _test_failed_and_idx,
+               'strategy': _test_strategy,
+               'objective': _test_objective,
+               'opti method': _test_objective,
+               'position': _test_position,
+               'misc': _test_misc,
+               }
+    for key, test in d_tests.items():
+        if not test(c_wtf):
+            raise IOError(f"What to fit {c_wtf.name}: error in entry {key}.")
+    logging.info(f"what to fit {c_wtf.name} tested with success.")
 
 
-def _test_strategy(wtf: configparser.SectionProxy) -> bool:
+def _test_failed_and_idx(c_wtf: configparser.SectionProxy) -> bool:
+    """
+    Check that failed cavities are given.
+
+    Required keys are:
+        - idx:
+            If 'cavity', 'failed' and 'manual list' are cavity numbers.
+            If 'element', 'failed' and 'manual list' are element numbers. If
+            these indexes correspond to element that are not a cavity, an error
+            will be raised at the initialisaton of the Fault object.
+        - failed:
+            The indexes of the cavities that fail.
+            Example (we consider that idx is 'cavity'):
+                1, 2,   -> first, fix together 1st and 2nd cavity errors
+                8,      -> fix 8th cavity (cavity 1 and 2 work)
+                1, 2, 8 -> fix cavities 1 and 2, and 8 in a second time if they
+                           use different compensating cavities (two Fault
+                           objects). Fix them together if they need
+                           compensating cavities in common (a single Fault
+                           object).
+            From LightWin's point of view: one line = one FaultScenario object.
+            Each FaultScenario has a list of Fault objects. This is handled by
+            the Faults are sorted by the FaultScenario._sort_faults method.
+    """
+    for key in ['failed', 'idx']:
+        if key not in c_wtf.keys():
+            logging.error(f"You must provide {key}.")
+            return False
+
+    val = c_wtf.get('idx')
+    if val not in ['cavity', 'failed']:
+        logging.error(f"'idx' key is {val}, while it must be 'cavity' or "
+                      + "failed.")
+        return False
+
+    return True
+
+
+def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
     """
     Specific test for the key 'strategy' of what_to_fit.
 
@@ -373,7 +406,7 @@ def _test_strategy(wtf: configparser.SectionProxy) -> bool:
         - manual:
             Manual association of faults and errors. In the .ini, 1st line of
             manual list will compensate 1st line of failed cavities, etc.
-            example:
+            Example (we consider that idx is 'element'):
             failed =
               12, 14, -> two cavities that will be fixed together
               155     -> a single error, fixed after [12, 14] is dealt with
@@ -385,7 +418,7 @@ def _test_strategy(wtf: configparser.SectionProxy) -> bool:
             Every fault will be compensated by l full lattices, direct
             neighbors of the errors. You must provide l.
     """
-    if 'strategy' not in wtf.keys():
+    if 'strategy' not in c_wtf.keys():
         logging.error("You must provide 'strategy' to tell LightWin how "
                       + "compensating cavities are chosen.")
         return False
@@ -393,27 +426,26 @@ def _test_strategy(wtf: configparser.SectionProxy) -> bool:
     d_tests = {'k out of n': _test_strategy_k_out_of_n,
                'manual': _test_strategy_manual,
                'l neighboring lattices': _test_strategy_l_neighboring_lattices,
-              }
+               }
 
-    key = wtf['strategy']
+    key = c_wtf['strategy']
     if key not in d_tests:
         logging.error("The 'strategy' key did not match any authorized value "
-                      + f"({wtf['strategy']}).")
+                      + f"({c_wtf['strategy']}).")
         return False
 
-    return d_tests[key](wtf)
+    return d_tests[key](c_wtf)
 
 
-
-def _test_strategy_k_out_of_n(wtf: configparser.SectionProxy) -> bool:
+def _test_strategy_k_out_of_n(c_wtf: configparser.SectionProxy) -> bool:
     """Even more specific test for k out of n strategy."""
-    if 'k' not in wtf.keys():
+    if 'k' not in c_wtf.keys():
         logging.error("You must provide k, the number of compensating "
                       + "cavities per failed cavity.")
         return False
 
     try:
-        wtf.getint('k')
+        c_wtf.getint('k')
     except ValueError:
         logging.error("k must be an integer.")
         return False
@@ -421,29 +453,36 @@ def _test_strategy_k_out_of_n(wtf: configparser.SectionProxy) -> bool:
     return True
 
 
-def _test_strategy_manual(wtf: configparser.SectionProxy) -> bool:
+def _test_strategy_manual(c_wtf: configparser.SectionProxy) -> bool:
     """Even more specific test for manual strategy."""
-    if 'manual list' not in wtf.keys():
+    if 'manual list' not in c_wtf.keys():
         logging.error("You must provide a list of lists of compensating "
                       + "cavities corresponding to each list of failed "
                       + "cavities.")
         return False
 
-    logging.info("You must ensure that all the elements in manual list are "
-                 + "cavities.")
+    n_faultscenarios = len(c_wtf.getlistlistint('failed'))
+    n_groupcomp = len(c_wtf.getlistlistint('manual list'))
+    if n_faultscenarios != n_groupcomp:
+        logging.error("Discrepancy between the number of FaultScenarios and "
+                      + "the number of corresponding compensating cavities. "
+                      + "'failed' and 'manual list' entries must have the "
+                      + "same number of lines.")
+        return False
+
     return True
 
 
-def _test_strategy_l_neighboring_lattices(wtf: configparser.SectionProxy
+def _test_strategy_l_neighboring_lattices(c_wtf: configparser.SectionProxy
                                           ) -> bool:
     """Even more specific test for l neighboring lattices strategy."""
-    if 'l' not in wtf.keys():
+    if 'l' not in c_wtf.keys():
         logging.error("You must provide l, the number of compensating "
                       + "lattices.")
         return False
 
     try:
-        wtf.getint('l')
+        c_wtf.getint('l')
     except ValueError:
         logging.error("l must be an integer.")
         return False
@@ -451,14 +490,14 @@ def _test_strategy_l_neighboring_lattices(wtf: configparser.SectionProxy
     return True
 
 
-def _test_objective(wtf: configparser.SectionProxy) -> bool:
+def _test_objective(c_wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'objective' of what_to_fit."""
-    if 'objective' not in wtf.keys():
+    if 'objective' not in c_wtf.keys():
         logging.error("You must provide 'objective' to tell LightWin what it "
                       + "should fit.")
         return False
 
-    l_obj = wtf.getliststr('objective')
+    l_obj = c_wtf.getliststr('objective')
     implemented = [
         'w_kin', 'phi_abs_array', 'mismatch factor',
         'eps_zdelta', 'beta_zdelta', 'gamma_zdelta', 'alpha_zdelta',
@@ -472,8 +511,8 @@ def _test_objective(wtf: configparser.SectionProxy) -> bool:
                      3. it is in the above 'implemented' dict.""")
         return False
 
-    if 'scale objective' in wtf.keys():
-        l_scales = wtf.getlistfloat('scale objective')
+    if 'scale objective' in c_wtf.keys():
+        l_scales = c_wtf.getlistfloat('scale objective')
         if len(l_scales) != len(l_obj):
             logging.error("If you want to scale the objectives by a factor, "
                           + "you must provide a list of scale factors (one "
@@ -481,30 +520,30 @@ def _test_objective(wtf: configparser.SectionProxy) -> bool:
             return False
     else:
         l_scales = [1. for obj in l_obj]
-        wtf['scale objective'] = ', '.join(map(str, l_scales))
+        c_wtf['scale objective'] = ', '.join(map(str, l_scales))
         logging.warning("Scale of objectives not specified. Use default.")
 
     return True
 
 
-def _test_opti_method(wtf: configparser.SectionProxy) -> bool:
+def _test_opti_method(c_wtf: configparser.SectionProxy) -> bool:
     """Test the optimisation method."""
-    if 'opti method' not in wtf.keys():
+    if 'opti method' not in c_wtf.keys():
         logging.error("You must provide 'opti method' to tell LightWin what "
                       + "optimisation algorithm it should use.")
         return False
 
     implemented = ['least_squares', 'PSO']
     # TODO: specific testing for each method (look at the kwargs)
-    if wtf['opti method'] not in implemented:
+    if c_wtf['opti method'] not in implemented:
         logging.error("Algorithm not implemented.")
         return False
     return True
 
 
-def _test_position(wtf: configparser.SectionProxy) -> bool:
+def _test_position(c_wtf: configparser.SectionProxy) -> bool:
     """Test where the objectives are evaluated."""
-    if 'position' not in wtf.keys():
+    if 'position' not in c_wtf.keys():
         logging.error("You must provide 'position' to tell LightWin where "
                       + "objectives should be evaluated.")
         return False
@@ -516,15 +555,15 @@ def _test_position(wtf: configparser.SectionProxy) -> bool:
         '1_mod_after',
         # Both lattices
         'both']
-    if wtf['position'] not in implemented:
+    if c_wtf['position'] not in implemented:
         logging.error("Position not implemented.")
         return False
     return True
 
 
-def _test_misc(wtf: configparser.SectionProxy) -> bool:
+def _test_misc(c_wtf: configparser.SectionProxy) -> bool:
     """Some other tests."""
-    if 'phi_s fit' not in wtf.keys():
+    if 'phi_s fit' not in c_wtf.keys():
         logging.error("Please explicitely precise if you want to fit synch "
                       + "phases (recommended for least squares, which do not "
                       + "handle constraints) or not (for algorithms that can "
@@ -532,7 +571,7 @@ def _test_misc(wtf: configparser.SectionProxy) -> bool:
         return False
 
     try:
-        wtf.getboolean("phi_s fit")
+        c_wtf.getboolean("phi_s fit")
     except ValueError:
         logging.error("Not a boolean.")
         return False
@@ -542,12 +581,12 @@ def _test_misc(wtf: configparser.SectionProxy) -> bool:
 # =============================================================================
 # Everything related to TraceWin configuration
 # =============================================================================
-def _test_tw(tw: configparser.SectionProxy) -> None:
+def _test_tw(c_tw: configparser.SectionProxy) -> None:
     """Test for the TraceWin simulation parameters."""
     passed = True
 
     # TODO: implement all TW options
-    for key in tw.keys():
+    for key in c_tw.keys():
         if "Ele" in key:
             logging.error("Are you trying to use the Ele[n][v] key? It is not "
                           + "implemented and may clash with LightWin.")
@@ -561,14 +600,14 @@ def _test_tw(tw: configparser.SectionProxy) -> None:
             continue
 
         if key in ['partran', 'toutatis']:
-            if tw.get(key) not in ['0', '1']:
+            if c_tw.get(key) not in ['0', '1']:
                 logging.error("partran and toutatis keys should be 0 or 1.")
                 passed = False
             continue
 
     if not passed:
-        raise IOError("Wrong value in tw.")
-    logging.info("tw arguments tested with success.")
+        raise IOError("Wrong value in c_tw.")
+    logging.info("c_tw arguments tested with success.")
 
 
 def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
@@ -607,8 +646,6 @@ def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
         'alpy2': c_tw.getfloat,
         'alpz1': c_tw.getfloat,
         'alpz2': c_tw.getfloat,
-        'alpx1': c_tw.getfloat,
-        'alpx2': c_tw.getfloat,
         'betx1': c_tw.getfloat,
         'betx2': c_tw.getfloat,
         'bety1': c_tw.getfloat,
