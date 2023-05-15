@@ -194,13 +194,15 @@ class FaultScenario():
         l_faults_obj = []
         # Unpack the list of list of faulty indexes
         for l_idx, l_comp_cav in zip(ll_fault_idx, ll_comp_cav):
-            # Get faulty cavities
             l_faulty_cav = [self.brok_lin.elts[idx] for idx in l_idx]
-
-            # Check that they are all cavities
             set_nature = {cav.get('nature', to_numpy=False)
                           for cav in l_faulty_cav}
-            assert set_nature == {"FIELD_MAP"}
+
+            if not set_nature == {"FIELD_MAP"}:
+                logging.error("At least one required element is not a "
+                              + "FIELD_MAP.")
+                raise IOError("At least one required element is not a "
+                              + "FIELD_MAP.")
 
             # Create Fault object and append it to the list of Fault objects
             new_fault = mod_f.Fault(self.ref_lin, self.brok_lin, l_faulty_cav,
@@ -252,12 +254,7 @@ class FaultScenario():
             brok_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
     def fix_all(self):
-        """
-        Fix the linac.
-
-        First, fix all the Faults independently. Then, recompute the linac
-        and make small adjustments.
-        """
+        """Fix the linac."""
         l_successes = []
 
         # We fix all Faults individually
@@ -313,12 +310,8 @@ class FaultScenario():
         idx1 = fault.elts[-1].idx['elt_idx']
 
         if fault is not l_faults[-1] and success:
-            # FIXME
-            logging.critical("Next Fault has no elts attribute yet, as it is "
-                             + "initialized when calling the fix method. "
-                             + "FIXME, please.")
             next_fault = l_faults[l_faults.index(fault) + 1]
-            idx2 = next_fault.elts[0].idx('elt_idx') + 1
+            idx2 = next_fault.fail['l_cav'][0].idx['elt_idx'] + 1
         else:
             idx2 = len(l_elts)
 
