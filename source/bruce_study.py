@@ -13,6 +13,7 @@ import time
 import datetime
 import pandas as pd
 
+import config_manager as conf_man
 import core.accelerator as acc
 import core.fault_scenario as mod_fs
 import util.helper as helper
@@ -26,16 +27,6 @@ from util.log_manager import set_up_logging
 if __name__ == '__main__':
     # Select .dat file
     FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
-
-    kwargs_tw = {
-        'hide': None,
-        'path_cal': 'default',
-        'dat_file': 'default',
-        # 'current1': 0,
-        'nbr_part1': int(1e6),
-        'dst_file1': '/home/placais/LightWin/data/JAEA_resend/EllipR2_2_A.dst'
-        # 'random_seed': 23111993,
-    }
 
     # =========================================================================
     # Fault compensation

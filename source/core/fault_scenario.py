@@ -40,8 +40,32 @@ from util import debug
 class FaultScenario():
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_linac, broken_linac, l_fault_idx, wtf,
-                 l_info_other_sol=None):
+    def __init__(self, ref_linac, broken_linac, wtf: dict, l_fault_idx: list,
+                 l_comp_idx: list = None,
+                 l_info_other_sol: list = None) -> None:
+        """
+        Create the FaultScenario and the Faults.
+
+        Parameters
+        ----------
+        ref_linac : Accelerator
+            Reference linac.
+        broken_linac : Accelerator
+            Linac to fix.
+        wtf : dict
+            Holds what to fit.
+        l_fault_idx : list
+            List containing the position of the errors. If strategy is manual,
+            it is a list of lists (faults already gathered).
+        l_comp_idx : list, optional
+            List containing the position of the compensating cavities. If
+            strategy is manual, it must be provided. The default is None.
+        l_info_other_sol : list, optional
+            Contains information on another fit, for comparison purposes. The
+            default is None.
+
+        """
+
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
         self.wtf = wtf
@@ -50,7 +74,7 @@ class FaultScenario():
         assert ref_linac.get('reference') and not broken_linac.get('reference')
         self.brok_lin.name += f" {str(l_fault_idx)}"
 
-        ll_comp_cav, ll_fault_idx = self._sort_faults(l_fault_idx)
+        ll_comp_cav, ll_fault_idx = self._sort_faults(l_fault_idx, l_comp_idx)
         l_obj = self._create_fault_objects(ll_fault_idx, ll_comp_cav)
 
         self.faults = {
@@ -80,37 +104,44 @@ class FaultScenario():
         self.brok_lin.store_results(results, self.brok_lin.elts)
         self.brok_lin.compute_mismatch(self.ref_lin)
 
-    def _sort_faults(self, l_fault_idx):
+    def _sort_faults(self, l_fault_idx: list, l_comp_idx: list) -> list:
         """Gather faults that are close to each other."""
         lin = self.brok_lin
 
+        # Initialize list of list of faults indexes (provided by user if in
+        # manual strategy)
+        if self.wtf['strategy'] != 'manual':
+            l_fault_idx = [[idx] for idx in sorted(l_fault_idx)]
+
+        # Get the absolute position of the FIELD_MAPS
+        if self.wtf['idx'] == 'cavity':
+            l_cav = lin.elements_of(nature='FIELD_MAP')
+            l_fault_idx = [
+                [l_cav[cav].get('elt_idx', to_numpy=False) for cav in i]
+                for i in l_fault_idx]
+
+            if l_comp_idx is not None:
+                l_comp_idx = [
+                    [l_cav[cav].get('elt_idx', to_numpy=False) for cav in i]
+                    for i in l_comp_idx]
+
         # If in manual mode, faults should be already gathered
         if self.wtf['strategy'] == 'manual':
-            l_faulty_cav = [[lin.elts[idx]
-                             for idx in l_idx]
-                            for l_idx in l_fault_idx]
-            ll_idx_faults = l_fault_idx
-            ll_comp = manually_set_cavities(lin, l_fault_idx,
-                                            self.wtf['manual list'])
+            ll_comp = manually_set_cavities(lin, l_fault_idx, l_comp_idx)
 
         else:
-            l_faulty_cav = [lin.elts[idx]
-                            for idx in sorted(l_fault_idx)]
-
-            # Initialize list of list of faults indexes
-            ll_idx_faults = [[idx] for idx in sorted(l_fault_idx)]
             # Initialize list of list of corresp. faulty cavities
             ll_faults = [[lin.elts[idx]
                           for idx in l_idx]
-                         for l_idx in ll_idx_faults]
+                         for l_idx in l_fault_idx]
 
             # We go across all faults and determine the compensating cavities
             # they need. If two failed cavities need at least one compensating
             # cavity in common, we group them together.
             # In particular, it is the case when a full cryomodule fails.
-            ll_comp, ll_idx_faults = self._gather(ll_faults, ll_idx_faults)
+            ll_comp, l_fault_idx = self._gather(ll_faults, l_fault_idx)
 
-        return ll_comp, ll_idx_faults
+        return ll_comp, l_fault_idx
 
     def _gather(self, ll_faults, ll_idx_faults):
         """Proper method that gathers faults requiring the same compens cav."""

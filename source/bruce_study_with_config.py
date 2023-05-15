@@ -88,13 +88,20 @@ if __name__ == '__main__':
 # =============================================================================
 # Run all simulations of the Project
 # =============================================================================
-    for i, failed in enumerate(d_wtf['failed']):
-        this_wtf = d_wtf.copy()
-        if 'manual list' in this_wtf:
-            this_wtf['manual list'] = d_wtf['manual list'][i]
+    l_failed = d_wtf.pop('failed')
+    l_manual = None
+    manual = None
+    if 'manual list' in d_wtf:
+        l_manual = d_wtf.pop('manual list')
+
+    for i, failed in enumerate(l_failed):
         start_time = time.monotonic()
         lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken")
-        fail = mod_fs.FaultScenario(ref_linac, lin, failed, wtf=this_wtf)
+
+        if l_manual is not None:
+            manual = l_manual[i]
+        fail = mod_fs.FaultScenario(ref_linac, lin, wtf=d_wtf,
+                                    l_fault_idx=failed, l_comp_idx=manual)
         linacs.append(deepcopy(lin))
 
         if FLAG_FIX:
