@@ -72,10 +72,9 @@ if __name__ == '__main__':
 
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
-    d_solver, d_beam, wtf_0, d_tw = conf_man.process_config(
+    d_solver, d_beam, d_wtf, d_tw = conf_man.process_config(
         CONFIG_PATH, PROJECT_FOLDER, key_solver="solver.envelope_longitudinal",
         key_beam='beam.jaea', key_wtf='wtf.k_out_of_n', key_tw='tracewin')
-    failed_0 = [12]
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
@@ -84,18 +83,18 @@ if __name__ == '__main__':
 
     linacs = [ref_linac]
 
-    l_failed = [failed_0]
-    l_wtf = [wtf_0]
-
     lw_fit_evals = []
 
 # =============================================================================
 # Run all simulations of the Project
 # =============================================================================
-    for [wtf, failed] in zip(l_wtf, l_failed):
+    for i, failed in enumerate(d_wtf['failed']):
+        this_wtf = d_wtf.copy()
+        if 'manual list' in this_wtf:
+            this_wtf['manual list'] = d_wtf['manual list'][i]
         start_time = time.monotonic()
         lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken")
-        fail = mod_fs.FaultScenario(ref_linac, lin, failed, wtf=wtf)
+        fail = mod_fs.FaultScenario(ref_linac, lin, failed, wtf=this_wtf)
         linacs.append(deepcopy(lin))
 
         if FLAG_FIX:
@@ -178,7 +177,7 @@ if __name__ == '__main__':
 # Plot
 # =============================================================================
     kwargs = {'plot_tw': FLAG_TW, 'save_fig': SAVE_FIX, 'clean_fig': True}
-    for i in range(len(l_wtf)):
+    for i in range(len(d_wtf['failed'])):
         for str_plot in PLOTS:
             # Plot the reference linac, i-th broken linac and corresponding
             # fixed linac
