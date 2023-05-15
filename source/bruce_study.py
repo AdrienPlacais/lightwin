@@ -15,7 +15,7 @@ import pandas as pd
 
 import config_manager as conf_man
 import core.accelerator as acc
-import core.fault_scenario as mod_fs
+import optimisation.fault_scenario as mod_fs
 import util.helper as helper
 import util.output as output
 import util.evaluate as evaluate
