@@ -29,7 +29,7 @@ import numpy as np
 from scipy.optimize import minimize, least_squares
 
 import config_manager as con
-from core.list_of_elements import ListOfElements
+from core.list_of_elements import ListOfElements, equiv_elt
 from core.elements import FieldMap
 from core.emittance import mismatch_factor
 from core.accelerator import Accelerator
@@ -399,8 +399,7 @@ class Fault():
         x_0, x_lim, l_x_str = [], [], []
         for obj in l_x:
             for cav in self.comp['l_cav']:
-                equiv_idx = cav.idx['elt_idx']
-                ref_cav = ref_linac.elts[equiv_idx]
+                ref_cav = equiv_elt(ref_linac.elts, cav)
 
                 args = (con.LINAC, cav, ref_cav, ref_linac)
                 x_0.append(initial_value(obj, ref_cav))
@@ -410,8 +409,7 @@ class Fault():
         g_lim = []
         for const in l_g:
             for cav in self.comp['l_cav']:
-                equiv_idx = cav.idx['elt_idx']
-                ref_cav = ref_linac.elts[equiv_idx]
+                ref_cav = equiv_elt(ref_linac.elts, cav)
 
                 args = (con.LINAC, cav, ref_cav, ref_linac)
                 g_lim.append(constraints(const, *args))

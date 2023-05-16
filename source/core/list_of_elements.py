@@ -220,3 +220,46 @@ class ListOfElements(list):
         for i in range(1, n_steps):
             arr_tm_cumul[i] = l_r_zz_elt[i - 1] @ arr_tm_cumul[i - 1]
         return arr_tm_cumul
+
+
+def equiv_elt(elts: ListOfElements | list[_Element, ...],
+              elt: _Element | str, to_index: bool = False) -> _Element | int:
+    """
+    Return an element from elts that has the same name as elt.
+
+    Important: this routine uses the name of the element and not its adress. So
+    it will not complain if the _Element object that you asked for is not in
+    this list of elements.
+    In the contrary, it was meant to find equivalent cavities between different
+    lists of elements.
+
+    Parameters
+    ----------
+    elts : ListOfElements | list[_Element, ...]
+        List of elements where you want the position.
+    elt : _Element | str
+        Element of which you want the position. If you give a str, it should be
+        the name of an _Element. If it is an _Element, we take its name in the
+        routine.
+    to_index : bool, optional
+        If True, the function returns the index of the _Element instead of the
+        _Element itself.
+
+    Returns
+    -------
+    int
+        Position in ListOfElements.
+
+    """
+    if not isinstance(elt, str):
+        elt = elt.get("elt_name")
+
+    names = [x.get("elt_name") for x in elts]
+    if elt not in names:
+        logging.error("Element not present in this ListOfElements.")
+        return None
+
+    idx = names.index(elt)
+    if to_index:
+        return idx
+    return elts[idx]

@@ -114,7 +114,7 @@ class Accelerator():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: tuple[str], to_numpy: bool = True, **kwargs: dict
+    def get(self, *keys: tuple[str, ...], to_numpy: bool = True, **kwargs: dict
             ) -> Any:
         """Shorthand to get attributes."""
         val = {}
@@ -150,7 +150,7 @@ class Accelerator():
         return tuple(out)
 
     # TODO add linac name in the subproject folder name
-    def _handle_paths_and_folders(self, l_elts: list[elements._Element]
+    def _handle_paths_and_folders(self, l_elts: list[elements._Element, ...]
                                   ) -> list[elements._Element]:
         """Make paths absolute, create results folders."""
         # First we take care of where results will be stored
@@ -326,8 +326,8 @@ class Accelerator():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
 
     def elements_of(self, nature: str,
-                    sub_list: list[elements._Element] | None = None
-                    ) -> list[elements._Element]:
+                    sub_list: list[elements._Element, ...] | None = None
+                    ) -> list[elements._Element, ...]:
         """Return a list of elements of nature 'nature'."""
         if sub_list is None:
             sub_list = self.elts
@@ -426,9 +426,9 @@ class Accelerator():
             d_tw[key] = np.interp(z_ref, z_fix, d_tw[key])
 
 
-def _sections_lattices(l_elts: list[elements._Element]) -> tuple[
-        list[elements._Element], list[elements._Element],
-        list[elements._Element], dict]:
+def _sections_lattices(l_elts: list[elements._Element, ...]) -> tuple[
+        list[elements._Element, ...], list[elements._Element, ...],
+        list[elements._Element, ...], dict]:
     """Gather elements by section and lattice."""
     l_elts, d_struct = _prepare_sections_and_lattices(l_elts)
 
@@ -458,8 +458,9 @@ def _sections_lattices(l_elts: list[elements._Element]) -> tuple[
     return l_elts, sections, lattices, d_struct['frequencies']
 
 
-def _prepare_sections_and_lattices(l_elts: list[elements._Element]) -> tuple[
-        list[elements._Element], dict]:
+def _prepare_sections_and_lattices(l_elts: list[elements._Element, ...]
+                                   ) -> tuple[list[elements._Element, ...],
+                                              dict]:
     """
     Save info on the accelerator structure.
 
