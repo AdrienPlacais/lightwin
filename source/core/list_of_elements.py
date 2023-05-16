@@ -256,7 +256,8 @@ def equiv_elt(elts: ListOfElements | list[_Element, ...],
 
     names = [x.get("elt_name") for x in elts]
     if elt not in names:
-        logging.error("Element not present in this ListOfElements.")
+        logging.error(f"Element {elt} not found in this list of elements.")
+        logging.debug(f"List of elements is:\n{elts}")
         return None
 
     idx = names.index(elt)
