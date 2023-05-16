@@ -45,6 +45,7 @@ from util import helper
 # importlib.reload(constants)
 # print(f"con.METHOD: {con.METHOD}")
 
+
 # =============================================================================
 # Module dictionaries
 # =============================================================================
@@ -70,7 +71,7 @@ d_n_steps = {'RK': lambda elt: con.N_STEPS_PER_CELL * elt.get('n_cell'),
 class _Element():
     """Generic element. _ ensures that it is not called from another module."""
 
-    def __init__(self, elem):
+    def __init__(self, elem: [str]) -> None:
         """
         Init parameters common to all elements.
 
@@ -79,7 +80,7 @@ class _Element():
 
         Parameters
         ----------
-        elem: list of string
+        elem : list of string
             A valid line of the .dat file.
         """
         self.elt_info = {
@@ -101,11 +102,12 @@ class _Element():
         self.solver_param = {'n_steps': None, 'd_z': None,
                              'abs_mesh': None, 'rel_mesh': None}
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys, to_numpy=True, **kwargs):
+    def get(self, *keys: (str), to_numpy: bool = True, **kwargs: dict
+            ) -> np.ndarray | tuple | None:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -134,7 +136,7 @@ class _Element():
         # implicit else:
         return tuple(out)
 
-    def init_solvers(self):
+    def init_solvers(self) -> None:
         """Initialize how transfer matrices will be calculated."""
         l_method = con.METHOD.split('_')
 
@@ -160,7 +162,8 @@ class _Element():
 
         self._tm_func = d_func_tm[key_fun](mod)
 
-    def calc_transf_mat(self, w_kin_in, **rf_field_kwargs):
+    def calc_transf_mat(self, w_kin_in: float, **rf_field_kwargs: dict
+                        ) -> dict:
         """
         Compute longitudinal matrix.
 
@@ -173,6 +176,12 @@ class _Element():
                 omega0_rf, k_e, phi_0_rel
             For Python implementation, also need e_spat.
             For Cython implementation, also need section_idx.
+
+        Returns
+        -------
+        results : dict
+            Holds the results. Keys are 'r_zz', 'cav_params', 'w_kin' and
+            'phi_rel'.
         """
         n_steps, d_z = self.get('n_steps', 'd_z')
         gamma = convert.energy(w_kin_in, "kin to gamma")
@@ -197,7 +206,7 @@ class _Element():
 
         return results
 
-    def update_status(self, new_status):
+    def update_status(self, new_status: str) -> None:
         """
         Change the status of a cavity.
 
@@ -229,7 +238,7 @@ class _Element():
             self.acc_field.k_e = 0.
             self.init_solvers()
 
-    def keep_rf_field(self, rf_field, cav_params):
+    def keep_rf_field(self, rf_field: dict, cav_params: dict) -> None:
         """Save data calculated by Accelerator.compute_transfer_matrices."""
         if rf_field != {}:
             self.acc_field.cav_params = cav_params
@@ -237,7 +246,8 @@ class _Element():
             self.acc_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
             self.acc_field.k_e = rf_field['k_e']
 
-    def rf_param(self, phi_bunch_abs, w_kin_in, d_fit=None):
+    def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
+                 d_fit: dict | None = None) -> dict:
         """Set the properties of the rf field (returns {} by default)."""
         # Remove unused arguments warning:
         del phi_bunch_abs, w_kin_in, d_fit
@@ -252,7 +262,7 @@ class _Element():
 class Drift(_Element):
     """Sub-class of Element, with parameters specific to DRIFTs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem: [str]) -> None:
         n_attributes = len(elem) - 1
         assert n_attributes in [2, 3, 5]
         super().__init__(elem)
@@ -261,7 +271,7 @@ class Drift(_Element):
 class Quad(_Element):
     """Sub-class of Element, with parameters specific to QUADs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem: [str]) -> None:
         n_attributes = len(elem) - 1
         assert n_attributes in range(3, 10)
         super().__init__(elem)
@@ -271,7 +281,7 @@ class Quad(_Element):
 class Solenoid(_Element):
     """Sub-class of Element, with parameters specific to SOLENOIDs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem: [str]) -> None:
         n_attributes = len(elem) - 1
         assert n_attributes == 3
         super().__init__(elem)
@@ -280,7 +290,7 @@ class Solenoid(_Element):
 class FieldMap(_Element):
     """Sub-class of Element, with parameters specific to FIELD_MAPs."""
 
-    def __init__(self, elem):
+    def __init__(self, elem: [str]) -> None:
         n_attributes = len(elem) - 1
         assert n_attributes in [9, 10]
 
@@ -303,7 +313,8 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def rf_param(self, phi_bunch_abs, w_kin_in, d_fit=None):
+    def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
+                 d_fit: dict | None = None) -> dict:
         """Set the properties of the electric field."""
         if self.get('status') == 'failed':
             rf_field_kwargs = {}
@@ -350,7 +361,8 @@ class FieldMap(_Element):
 
         return rf_field_kwargs
 
-    def match_synch_phase(self, w_kin_in, phi_s_objective, **rf_field_kwargs):
+    def match_synch_phase(self, w_kin_in: float, phi_s_objective: float,
+                          **rf_field_kwargs: dict) -> float:
         """
         Sweeps phi_0_rel until the cavity synch phase matches phi_s.
 
@@ -388,25 +400,26 @@ class FieldMap(_Element):
 class Lattice():
     """Used to get the number of elements per lattice."""
 
-    def __init__(self, elem):
+    def __init__(self, elem: [str]) -> None:
         self.n_lattice = int(elem[1])
 
 
 class Freq():
     """Used to get the frequency of every Section."""
 
-    def __init__(self, elem):
+    def __init__(self, elem: [str]) -> None:
         self.f_rf_mhz = float(elem[1])
 
 
 class FieldMapPath():
     """Used to get the base path of field maps."""
 
-    def __init__(self, elem):
+    def __init__(self, elem: [str]) -> None:
         self.path = elem[1]
 
 
-def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
+def _take_parameters_from_rf_field_object(
+        a_f: RfField, **rf_field_kwargs: dict) -> (dict, bool):
     """Extract RfField object parameters."""
     rf_field_kwargs['k_e'] = a_f.get('k_e')
     rf_field_kwargs['phi_0_rel'] = None
@@ -423,7 +436,8 @@ def _take_parameters_from_rf_field_object(a_f, **rf_field_kwargs):
     return rf_field_kwargs, abs_to_rel
 
 
-def _find_new_absolute_entry_phase(a_f, **rf_field_kwargs):
+def _find_new_absolute_entry_phase(a_f: RfField, **rf_field_kwargs: dict
+                                   ) -> (dict, bool):
     """Extract RfField parameters, except phi_0_abs that is recalculated."""
     rf_field_kwargs['k_e'] = a_f.get('k_e')
     rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
@@ -432,7 +446,8 @@ def _find_new_absolute_entry_phase(a_f, **rf_field_kwargs):
     return rf_field_kwargs, abs_to_rel
 
 
-def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
+def _try_parameters_from_d_fit(d_fit: dict, w_kin: float, cav: FieldMap,
+                               **rf_field_kwargs: dict) -> (dict, bool):
     """Extract parameters from d_fit."""
     assert d_fit['flag'], "Inconsistency between cavity status and d_fit flag."
     rf_field_kwargs['k_e'] = d_fit['k_e']
@@ -442,8 +457,8 @@ def _try_parameters_from_d_fit(d_fit, w_kin, obj_cavity, **rf_field_kwargs):
     abs_to_rel = con.FLAG_PHI_ABS
 
     if d_fit['phi_s fit']:
-        phi_0 = obj_cavity.match_synch_phase(
-            w_kin, phi_s_objective=d_fit['phi'], **rf_field_kwargs)
+        phi_0 = cav.match_synch_phase(w_kin, phi_s_objective=d_fit['phi'],
+                                      **rf_field_kwargs)
         rf_field_kwargs['phi_0_rel'] = phi_0
         rf_field_kwargs['phi_0_abs'] = None
         abs_to_rel = False
