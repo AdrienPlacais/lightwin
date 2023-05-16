@@ -12,15 +12,30 @@ from core.accelerator import Accelerator
 from core.elements import FieldMap
 
 
-def initial_value(key: str, ref_cav: FieldMap) -> float:
+def initial_value(key: str, ref_cav: FieldMap) -> float | None:
     """Return initial guess for desired key."""
+    if key not in D_INITIAL:
+        logging.error(f"Initial value for variable {key} not implemented.")
+        return None
     return D_INITIAL[key](ref_cav)
 
 
 def limits(key: str, *args: tuple[str, FieldMap, FieldMap, Accelerator]
            ) -> tuple[float | None]:
     """Return optimisation limits for desired key."""
+    if key not in D_LIM:
+        logging.error(f"Limits for variable {key} not implemented.")
+        return (None, None)
     return D_LIM[key](*args)
+
+
+def constraints(key: str, *args: tuple[str, FieldMap, FieldMap, Accelerator]
+               ) -> tuple[float | None]:
+    """Return optimisation constraints for desired key."""
+    if key not in D_CONST:
+        logging.error(f"Constraint for variable {key} not implemented.")
+        return (None, None)
+    return D_CONST[key](*args)
 
 
 def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap, ref_linac:
@@ -66,7 +81,7 @@ def _limits_phi_0(preset: str, cav: FieldMap, ref_cav: FieldMap,
 
 def _limits_phi_s(preset: str, cav: FieldMap, ref_cav: FieldMap,
                   ref_linac: Accelerator) -> tuple[float | None]:
-    """Limits for the synchrous phase."""
+    """Limits for the synchrous phase; also used to set phi_s constraints."""
     ref_phi_s = ref_cav.get('phi_s', to_numpy=False)
     if preset == 'MYRRHA':
         # Minimum: -90deg
@@ -102,4 +117,8 @@ D_LIM = {
     'phi_0_rel': _limits_phi_0,
     'phi_0_abs': _limits_phi_0,
     'phi_s': _limits_phi_s,
+}
+
+D_CONST = {
+    'phi_s': _limits_phi_s
 }

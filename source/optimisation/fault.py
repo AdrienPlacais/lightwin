@@ -33,6 +33,7 @@ from core.emittance import mismatch_factor
 from util import debug
 from util.dicts_output import d_markdown
 from optimisation import pso
+from optimisation.linacs_design_space import initial_value, limits, constraints
 import visualization.plot
 
 
@@ -218,9 +219,9 @@ class Fault():
             # will return None if idx is the last index of the linac
             if elt is None:
                 elt = self.brok_lin.where_is_this_index(idx - 1)
-            logging.info(f"We try to match at mesh index {idx}.")
-            logging.info(f"Info: {elt.get('elt_info')}.")
-            logging.info(f"Full indexes: {elt.get('idx')}.")
+            logging.info(f"We try to match at mesh index {idx}.\n"
+                         + f"Info: {elt.get('elt_info')}.\n"
+                         + f"Full indexes: {elt.get('idx')}.")
 
         return l_elts, d_idx
 
@@ -356,7 +357,8 @@ class Fault():
         # Here we return the ASF sol
         return True, d_opti['asf']
 
-    def _set_design_space(self):
+    def _set_design_space(self) -> tuple[np.ndarray, np.ndarray, np.ndarray,
+                                         list[str]]:
         """
         Set initial conditions and boundaries for the fit.
 
@@ -374,79 +376,52 @@ class Fault():
         phi_s_limits : np.array of tuples
             Contains upper and lower synchronous phase limits for each cavity.
             Used to define constraints in PSO.
+        l_x_str : list of str
+            Name of cavities and properties.
         """
-        # FIXME find a cleaner way to set these limits, esp. when working with
-        # different linacs.
-        # Useful dicts
-        d_init_g = {'k_e': lambda ref_value: ref_value,
-                    'phi_0_rel': lambda ref_value: 0.,
-                    'phi_0_abs': lambda ref_value: 0.,
-                    'phi_s': lambda ref_value: ref_value}
-        # Maximum electric field, set as 30% above the section's max electric
-        # field
-        d_tech_n = {0: 1.3 * 3.03726,
-                    1: 1.3 * 4.45899,
-                    2: 1.3 * 6.67386}
-        d_x_lim_abs = {'k_e': [0., np.NaN],
-                       'phi_0_rel': [0., 4. * np.pi],
-                       'phi_0_abs': [0., 4. * np.pi],
-                       'phi_s': [-.5 * np.pi, 0.]}
-
-        d_x_lim_rel = {'k_e': [.5, np.NaN],
-                       'phi_0_rel': [np.NaN, np.NaN],
-                       'phi_0_abs': [np.NaN, np.NaN],
-                       'phi_s': [np.NaN, 1. - .4]}   # phi_s+40%, w/ phi_s<0
-
-        if con.LINAC == 'JAEA':
-            # In Bruce's paper, the maximum electric field is 20% above the
-            # nominal electric field (not a single limit for each section as in
-            # MYRRHA)
-            d_tech_n = {0: np.NaN}
-            d_x_lim_rel['k_e'] = [.5, 1.2]
-            d_x_lim_rel['phi_s'] = [np.NaN, 1. - .5]
-
-        # Set a list of properties that will be fitted
+        # List of objectives:
+        #   - first objective is always a phase
+        #   - second objective is always the electric field
+        l_x = ['phi_0_rel', 'k_e']
+        if con.FLAG_PHI_ABS:
+            l_x = ['phi_0_abs', 'k_e']
         if self.wtf['phi_s fit']:
-            l_x = ['phi_s']
-        else:
-            if con.FLAG_PHI_ABS:
-                l_x = ['phi_0_abs']
-            else:
-                l_x = ['phi_0_rel']
-        l_x += ['k_e', 'phi_s']
-        l_x_str = []
+            l_x = ['phi_s', 'k_e']
+        # List of constaints:
+        l_g = ['phi_s']
+        # FIXME should not be initialized if not used
 
-        # Get initial guess and bounds for every property of l_x and every
-        # compensating cavity
-        x_0, x_lim = [], []
-        for __x in l_x:
+        ref_linac = self.ref_lin
+        x_0, x_lim, l_x_str= [], [], []
+        for obj in l_x:
             for cav in self.comp['l_cav']:
                 equiv_idx = cav.idx['elt_idx']
-                equiv_cav = self.ref_lin.elts[equiv_idx]
-                ref_value = equiv_cav.get(__x)
+                ref_cav = ref_linac.elts[equiv_idx]
 
-                b_down = np.nanmax((d_x_lim_abs[__x][0],
-                                    d_x_lim_rel[__x][0] * ref_value))
-                if __x == 'k_e':
-                    b_up = np.nanmin((d_tech_n[cav.idx['section']],
-                                      d_x_lim_rel[__x][1] * ref_value))
-                else:
-                    b_up = np.nanmin((d_x_lim_abs[__x][1],
-                                      d_x_lim_rel[__x][1] * ref_value))
-
-                _x_0 = d_init_g[__x](ref_value)
-                x_lim.append((b_down, b_up))
-                x_0.append(_x_0)
+                args = (con.LINAC, cav, ref_cav, ref_linac)
+                x_0.append(initial_value(obj, ref_cav))
+                x_lim.append(limits(obj, *args))
                 l_x_str.append(' '.join((cav.get('elt_name', to_numpy=False),
-                                         d_markdown[__x])))
-        n_cav = len(self.comp['l_cav'])
-        x_0 = np.array(x_0[:2 * n_cav])
-        phi_s_limits = np.array(x_lim[2 * n_cav:])
-        x_lim = np.array(x_lim[:2 * n_cav])
+                                         d_markdown[obj])))
+        g_lim = []
+        for const in l_g:
+            for cav in self.comp['l_cav']:
+                equiv_idx = cav.idx['elt_idx']
+                ref_cav = ref_linac.elts[equiv_idx]
 
-        logging.info(f"Initial_guess:\n{x_0}")
-        logging.info(f"Bounds:\n{x_lim}")
-        return x_0, x_lim, phi_s_limits, l_x_str
+                args = (con.LINAC, cav, ref_cav, ref_linac)
+                g_lim.append(constraints(const, *args))
+
+        x_0 = np.array(x_0)
+        x_lim = np.array(x_lim)
+        g_lim = np.array(g_lim)
+
+        logging.info(f"Design space (handled in "
+                     + "optimisation.linacs_design_space, not .ini):\n"
+                     + f"Initial guess:\n{x_0}\n"
+                     + f"Bounds:\n{x_lim}\n"
+                     + f"Constraints (not necessarily used):\n{g_lim}")
+        return x_0, x_lim, g_lim, l_x_str
 
     def get_x_sol_in_real_phase(self):
         """
