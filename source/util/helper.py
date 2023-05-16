@@ -6,6 +6,7 @@ Created on Wed Sep 22 14:15:48 2021.
 @author: placais
 """
 import logging
+from typing import Iterator, Any
 import numpy as np
 import pandas as pd
 
@@ -13,7 +14,7 @@ import pandas as pd
 # =============================================================================
 # Misc
 # =============================================================================
-def recursive_items(dictionary):
+def recursive_items(dictionary: dict) -> Iterator[str]:
     """Recursively list all keys of a possibly nested dictionary."""
     for key, value in dictionary.items():
         if isinstance(value, dict):
@@ -29,7 +30,7 @@ def recursive_items(dictionary):
             yield key
 
 
-def recursive_getter(key, dictionary, **kwargs):
+def recursive_getter(key: str, dictionary: dict, **kwargs: dict) -> Any:
     """Get first key in a possibly nested dictionary."""
     for _key, _value in dictionary.items():
         if key == _key:
@@ -52,7 +53,7 @@ def recursive_getter(key, dictionary, **kwargs):
 # =============================================================================
 # TODO: transform inputs into strings if they are not already strings
 # TODO: use args to avoid lenghty 'opt_message=' each time
-def printc(*args, color='cyan'):
+def printc(*args: list[str], color: str = 'cyan') -> None:
     """Print colored messages."""
     dict_c = {
         'red': '\x1B[31m',
@@ -69,7 +70,7 @@ def printc(*args, color='cyan'):
 
 
 # TODO: replace nan by ' ' when there is a \n in a pd DataFrame header
-def printd(message, color_header='cyan', header=''):
+def printd(message: str, color_header: str = 'cyan', header: str = '') -> None:
     """Print delimited message."""
     pd.options.display.float_format = '{:.6f}'.format
     pd.options.display.max_columns = 10
@@ -91,7 +92,8 @@ def printd(message, color_header='cyan', header=''):
     logging.info(my_output)
 
 
-def resample(x_1, y_1, x_2, y_2):
+def resample(x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
+             ) -> tuple[np.ndarray]:
     """Downsample y_highres(olution) to x_1 or x_2 (the one with low res)."""
     assert x_1.shape == y_1.shape
     assert x_2.shape == y_2.shape
@@ -108,7 +110,7 @@ def resample(x_1, y_1, x_2, y_2):
 # =============================================================================
 # Files functions
 # =============================================================================
-def save_energy_phase_tm(lin):
+def save_energy_phase_tm(lin: object) -> None:
     """
     Save energy, phase, transfer matrix as a function of s.
 
@@ -130,10 +132,10 @@ def save_energy_phase_tm(lin):
     header = 's [m] \t W_kin [MeV] \t phi_abs [rad]' \
         + '\t M_11 \t M_12 \t M_21 \t M_22'
     np.savetxt(filepath, data, header=header)
-    print(f"Energy, phase and TM saved in {filepath}")
+    logging.info(f"Energy, phase and TM saved in {filepath}")
 
 
-def save_vcav_and_phis(lin):
+def save_vcav_and_phis(lin: object) -> None:
     """
     Output the Vcav and phi_s as a function of z.
 
@@ -154,50 +156,14 @@ def save_vcav_and_phis(lin):
 
     header = 's [m] \t V_cav [MV] \t phi_s [deg]'
     np.savetxt(filepath, data, header=header)
-    print(f"Cavities accelerating field and synch. phase saved in {filepath}")
+    logging.info("Cavities accelerating field and synch. phase saved in "
+                 + f"{filepath}")
 
 
-def diff_angle(phi_1, phi_2):
+def diff_angle(phi_1: float, phi_2: float) -> float:
     """Compute smallest difference between two angles."""
     delta_phi = np.arctan2(
         np.sin(phi_2 - phi_1),
         np.cos(phi_2 - phi_1)
     )
     return delta_phi
-
-
-# =============================================================================
-# Matrix manipulation
-# =============================================================================
-def individual_to_global_transfer_matrix(m_in, m_out, idxs=None):
-    """
-    Compute the transfer matrix of several elements.
-
-    For efficiency reasons, we compute transfer matrices only between idxs[0]
-    and idxs[1]. If idxs is not provided, or if it matches the full dimensions
-    of the linac, we recompute the full linac.
-
-    Parameters
-    ----------
-    m_in : np.array
-        Array of the form (n, 2, 2). Transfer matrices of INDIVIDUAL elements.
-    m_out : np.array
-        Array of the form (n, 2, 2). Transfer matrices of from the start of the
-        line.
-    idxs : list
-        First and last index of the matrix to recompute.
-
-    Return
-    ------
-    m_out : np.array
-        Array of the form (n, 2, 2). Transfer matrices of from the start of the
-        line.
-    """
-    if idxs is None:
-        idxs = [0, m_in.shape[0]]
-
-    if idxs == [0, m_in.shape[0]]:
-        m_out[0, :, :] = np.eye(2)
-
-    for i in range(idxs[0] + 1, idxs[1]):
-        m_out[i, :, :] = m_in[i, :, :] @ m_out[i - 1, :, :]
