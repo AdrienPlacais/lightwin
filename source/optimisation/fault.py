@@ -30,7 +30,7 @@ from scipy.optimize import minimize, least_squares
 
 import config_manager as con
 from core.list_of_elements import ListOfElements
-from core.elements import _Element, FieldMap
+from core.elements import FieldMap
 from core.emittance import mismatch_factor
 from core.accelerator import Accelerator
 from util import debug
@@ -525,7 +525,8 @@ class Fault():
 
 
 def wrapper_lsq(arr_cav_prop: np.ndarray, fault: Fault,
-                fun_residual: Callable[[dict]], phi_s_fit: bool) -> np.ndarray:
+                fun_residual: Callable[[dict], np.ndarray],
+                phi_s_fit: bool) -> np.ndarray:
     """
     Unpack arguments and compute proper residues at proper spot.
 

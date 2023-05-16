@@ -34,6 +34,7 @@ import pandas as pd
 import config_manager as con
 import optimisation.fault as mod_f
 from core.list_of_elements import ListOfElements
+from core.emittance import mismatch_factor
 from util import debug
 
 
@@ -65,7 +66,6 @@ class FaultScenario():
             default is None.
 
         """
-
         self.ref_lin = ref_linac
         self.brok_lin = broken_linac
         self.wtf = wtf
@@ -101,8 +101,8 @@ class FaultScenario():
         self._transfer_phi0_from_ref_to_broken()
 
         results = self.brok_lin.elts.compute_transfer_matrices()
+        results["mismatch factor"] = self._compute_mismatch()
         self.brok_lin.store_results(results, self.brok_lin.elts)
-        self.brok_lin.compute_mismatch(self.ref_lin)
 
     def _sort_faults(self, l_fault_idx: list, l_comp_idx: list) -> list:
         """Gather faults that are close to each other."""
@@ -291,8 +291,8 @@ class FaultScenario():
         # At the end we recompute the full transfer matrix
         # self.brok_lin.compute_transfer_matrices()
         results = self.brok_lin.elts.compute_transfer_matrices()
+        results["mismatch factor"] = self._compute_mismatch()
         self.brok_lin.store_results(results, self.brok_lin.elts)
-        self.brok_lin.compute_mismatch(self.ref_lin)
         self.brok_lin.name = f"Fixed ({str(l_successes.count(True))}" \
             + f" of {str(len(l_successes))})"
 
@@ -415,6 +415,17 @@ class FaultScenario():
             df_eval.loc[i + 1] = [key] + val[key]
 
         return df_eval
+
+    def _compute_mismatch(self) -> np.ndarray:
+        """
+        Compute the mismatch between reference abnd broken linac.
+
+        Also store it into the broken_linac.beam_param dictionary.
+        """
+        mism = mismatch_factor(self.ref_lin.get("twiss_z"),
+                               self.brok_lin.get("twiss_z"), transp=True)
+        return mism
+        # self.brok_lin.beam_param["mismatch factor"] = mism
 
 
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):

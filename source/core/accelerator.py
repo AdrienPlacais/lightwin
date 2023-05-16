@@ -22,7 +22,7 @@ from util.helper import recursive_items, recursive_getter
 from core import particle
 from core import elements
 from core.list_of_elements import ListOfElements
-from core.emittance import beam_parameters_all, mismatch_factor
+from core.emittance import beam_parameters_all
 
 
 _AccelT = TypeVar("_AccelT", bound="Accelerator")
@@ -271,7 +271,7 @@ class Accelerator():
                 + "used by TW. Results won't match if there are faulty "
                 + "cavities.")
 
-    def store_results(self, results: dict, l_elts: list[elements._Element]
+    def store_results(self, results: dict, l_elts: list[elements._Element, ...]
                       ) -> None:
         """
         We save data into the appropriate objects.
@@ -301,6 +301,13 @@ class Accelerator():
         # Save into Accelerator
         self.transf_mat['tm_cumul'][idx_in:idx_out] = results["tm_cumul"]
         self.beam_param["sigma matrix"] = results["sigma matrix"]
+        # Mismatch will be None straight out of
+        # ListOfElements._pack_into_single_dict method
+        # We add it manually to results dict during the fitting process
+        # (FaultScenario)
+        mism = results["mismatch factor"]
+        if mism is not None:
+            self.beam_param["mismatch factor"] = mism
 
         # Save into Particle
         self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))
@@ -345,14 +352,6 @@ class Accelerator():
             else:
                 print(f"Mesh index {idx} does not belong to any element.")
         return elt if found else None
-
-    def compute_mismatch(self, ref_linac: Type[_AccelT]) -> None:
-        """Compute mismatch factor between this non-nominal linac and a ref."""
-        assert self.name != 'Working'
-        assert ref_linac.name == 'Working'
-        self.beam_param["mismatch factor"] = \
-            mismatch_factor(ref_linac.beam_param["twiss"]["twiss_z"],
-                            self.beam_param["twiss"]["twiss_z"], transp=True)
 
     def simulate_in_tracewin(self, ini_path: str, **kwargs: str) -> None:
         """Compute this linac with TraceWin."""

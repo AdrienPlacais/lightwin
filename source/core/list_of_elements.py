@@ -181,7 +181,10 @@ class ListOfElements(list):
             "rf_fields": [],        # List of dicts
             "eps_zdelta": None,
             "twiss_zdelta": None,
-            "sigma_matrix": None,
+            "sigma matrix": None,
+            # Mismatch has to be computed in another function, as it is
+            # relative to another linac
+            "mismatch factor": None,
         }
 
         for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
