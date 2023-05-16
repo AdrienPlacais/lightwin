@@ -21,7 +21,8 @@ import util.converters as convert
 from util.helper import recursive_items, recursive_getter
 from core import particle
 from core import elements
-from core.list_of_elements import ListOfElements
+from core.list_of_elements import ListOfElements, where_is_this_s_idx, \
+    equiv_elt
 from core.emittance import beam_parameters_all
 
 
@@ -335,23 +336,15 @@ class Accelerator():
                               sub_list))
         return list_of
 
-    def where_is_this_index(self, idx: int, show_info: bool = False
+    def where_is_this_s_idx(self, s_idx: int, show_info: bool = False
                             ) -> elements._Element | None:
         """Give the element where the given index is."""
-        found, elt = False, None
+        return where_is_this_s_idx(self.elts, s_idx, show_info)
 
-        for elt in self.elts:
-            if idx in range(elt.idx['s_in'], elt.idx['s_out']):
-                found = True
-                break
-
-        if show_info:
-            if found:
-                print(f"Mesh index {idx} is in {elt.get('elt_info')}.")
-                print(f"Indexes of this elt: {elt.get('idx')}.\n")
-            else:
-                print(f"Mesh index {idx} does not belong to any element.")
-        return elt if found else None
+    def equiv_elt(self, elt: elements._Element | str, to_index: bool = False
+                  ) -> elements._Element | int | None:
+        """Return an element from self.elts with the same name."""
+        return equiv_elt(self.elts, elt, to_index)
 
     def simulate_in_tracewin(self, ini_path: str, **kwargs: str) -> None:
         """Compute this linac with TraceWin."""

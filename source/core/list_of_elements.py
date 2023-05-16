@@ -223,7 +223,8 @@ class ListOfElements(list):
 
 
 def equiv_elt(elts: ListOfElements | list[_Element, ...],
-              elt: _Element | str, to_index: bool = False) -> _Element | int:
+              elt: _Element | str, to_index: bool = False
+              ) -> _Element | int | None:
     """
     Return an element from elts that has the same name as elt.
 
@@ -247,8 +248,9 @@ def equiv_elt(elts: ListOfElements | list[_Element, ...],
 
     Returns
     -------
-    int
-        Position in ListOfElements.
+    _Element | int | None
+        Equivalent _Element, position in list of elements, or None if not
+        found.
 
     """
     if not isinstance(elt, str):
@@ -264,3 +266,19 @@ def equiv_elt(elts: ListOfElements | list[_Element, ...],
     if to_index:
         return idx
     return elts[idx]
+
+
+def where_is_this_s_idx(elts: ListOfElements | list[_Element, ...],
+                        s_idx: int, show_info: bool = False
+                        ) -> _Element | None:
+    """Give the element where the given index is."""
+    for elt in elts:
+        if s_idx in range(elt.idx['s_in'], elt.idx['s_out']):
+            if show_info:
+                logging.info(
+                    f"Mesh index {s_idx} is in {elt.get('elt_info')}.\n"
+                    + f"Indexes of this elt: {elt.get('idx')}.")
+            return elt
+
+    logging.warning(f"Mesh index {s_idx} not found.")
+    return None

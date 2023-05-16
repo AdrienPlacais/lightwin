@@ -219,10 +219,11 @@ class Fault():
                  'l_brok': [idx - shift for idx in d_position[str_position]],
                  }
         for idx in d_idx['l_ref']:
-            elt = self.brok_lin.where_is_this_index(idx)
+            elt = self.brok_lin.where_is_this_s_idx(idx)
             # will return None if idx is the last index of the linac
             if elt is None:
-                elt = self.brok_lin.where_is_this_index(idx - 1)
+                elt = self.brok_lin.where_is_this_s_idx(idx - 1)
+                logging.warning("We return _Element just before.")
             logging.info(f"We try to match at mesh index {idx}.\n"
                          + f"Info: {elt.get('elt_info')}.\n"
                          + f"Full indexes: {elt.get('idx')}.")
@@ -399,7 +400,7 @@ class Fault():
         x_0, x_lim, l_x_str = [], [], []
         for obj in l_x:
             for cav in self.comp['l_cav']:
-                ref_cav = equiv_elt(ref_linac.elts, cav)
+                ref_cav = ref_linac.equiv_elt(cav)
 
                 args = (con.LINAC, cav, ref_cav, ref_linac)
                 x_0.append(initial_value(obj, ref_cav))
@@ -409,7 +410,7 @@ class Fault():
         g_lim = []
         for const in l_g:
             for cav in self.comp['l_cav']:
-                ref_cav = equiv_elt(ref_linac.elts, cav)
+                ref_cav = ref_linac.equiv_elt(cav)
 
                 args = (con.LINAC, cav, ref_cav, ref_linac)
                 g_lim.append(constraints(const, *args))
