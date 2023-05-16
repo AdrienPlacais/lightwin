@@ -12,7 +12,7 @@ import pandas as pd
 
 
 # =============================================================================
-# Misc
+# For getter and setters
 # =============================================================================
 def recursive_items(dictionary: dict) -> Iterator[str]:
     """Recursively list all keys of a possibly nested dictionary."""

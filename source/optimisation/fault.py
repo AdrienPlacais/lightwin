@@ -24,6 +24,7 @@ TODO : _set_design_space could be cleaner
 # from multiprocessing.pool import ThreadPool
 # import multiprocessing
 import logging
+from typing import Callable
 import numpy as np
 from scipy.optimize import minimize, least_squares
 
@@ -31,6 +32,7 @@ import config_manager as con
 from core.list_of_elements import ListOfElements
 from core.elements import _Element, FieldMap
 from core.emittance import mismatch_factor
+from core.accelerator import Accelerator
 from util import debug
 from util.dicts_output import d_markdown
 from optimisation import pso
@@ -51,8 +53,9 @@ debugs = {
 class Fault():
     """A class to hold one or several close Faults."""
 
-    def __init__(self, ref_lin: object, brok_lin: object, fail_cav:
-                 list[FieldMap], comp_cav: list[FieldMap], wtf: dict) -> None:
+    def __init__(self, ref_lin: Accelerator, brok_lin: Accelerator,
+                 fail_cav: list[FieldMap], comp_cav: list[FieldMap], wtf: dict
+                 ) -> None:
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
         self.wtf = wtf
@@ -100,7 +103,6 @@ class Fault():
         for cav in self.comp['l_cav']:
             cav.update_status(new_status)
 
-    # FIXME check type of opti_sol
     def fix(self, info_other_sol: dict) -> tuple[bool, dict]:
         """Try to compensate the faulty cavities."""
         self._prepare_cavities_for_compensation()
@@ -145,10 +147,9 @@ class Fault():
                                                  self.info['l_F_str'])
         self.info['X'] = opti_sol['X']
         self.info['F'] = opti_sol['F']
-
         return success, opti_sol
 
-    def _prepare_cavities_for_compensation(self):
+    def _prepare_cavities_for_compensation(self) -> None:
         """
         Prepare the compensating cavities for the upcoming optimisation.
 
@@ -168,11 +169,11 @@ class Fault():
 
             if current_status in ["compensate (ok)", "compensate (not ok)"]:
                 logging.warning(
-                    "You want to update the status of a cavity that is " +
-                    "already used for compensation. Check " +
-                    "fault_scenario._gather_and_create_fault_objects. " +
-                    "Maybe two faults want to use the same cavity for " +
-                    "compensation?")
+                    "You want to update the status of a cavity that is "
+                    + "already used for compensation. Check "
+                    + "fault_scenario._gather_and_create_fault_objects. "
+                    + "Maybe two faults want to use the same cavity for "
+                    + "compensation?")
 
             cav.update_status(new_status)
 
@@ -228,7 +229,7 @@ class Fault():
 
         return l_elts, d_idx
 
-    def _indexes_start_end_comp_zone(self, str_position):
+    def _indexes_start_end_comp_zone(self, str_position: str) -> tuple[int]:
         """Get indexes delimiting compensation zone."""
         # We get altered cavities (compensating or failed) (unsorted)
         l_altered_cav = self.comp['l_cav'] + self.fail['l_cav']
@@ -266,7 +267,7 @@ class Fault():
         idx3 = np.where(lattices == lattice3)[0][-1]
         return idx1, idx2, idx3
 
-    def _proper_fix_lsq_opt(self, wrapper_args):
+    def _proper_fix_lsq_opt(self, wrapper_args) -> tuple[bool, dict]:
         """
         Fix with classic least_squares optimisation.
 
@@ -275,10 +276,9 @@ class Fault():
         directly optimise phi_s (FLAG_PHI_S_FIT == True) or use PSO algorithm
         (self.wtf['opti method'] == 'PSO').
         """
-        if self.info['X_0'].shape[0] == 1:
-            solver = minimize
-            kwargs = {}
-        else:
+        solver = minimize
+        kwargs = {}
+        if self.info['X_0'].shape[0] > 1:
             solver = least_squares
             x_lim = (self.info['X_lim'][:, 0], self.info['X_lim'][:, 1])
 
@@ -319,7 +319,8 @@ class Fault():
         logging.debug(info_string)
         return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
 
-    def _proper_fix_pso(self, wrapper_args, info_other_sol=None):
+    def _proper_fix_pso(self, wrapper_args, info_other_sol: dict | None = None
+                        ) -> tuple[bool, dict]:
         """Fix with multi-PSO algorithm."""
         if info_other_sol is None:
             info_other_sol = {'F': None, 'X_in_real_phase': None}
@@ -361,7 +362,7 @@ class Fault():
         return True, d_opti['asf']
 
     def _set_design_space(self) -> tuple[np.ndarray, np.ndarray, np.ndarray,
-                                         list[str]]:
+                                         list[str, ...]]:
         """
         Set initial conditions and boundaries for the fit.
 
@@ -395,7 +396,7 @@ class Fault():
         # FIXME should not be initialized if not used
 
         ref_linac = self.ref_lin
-        x_0, x_lim, l_x_str= [], [], []
+        x_0, x_lim, l_x_str = [], [], []
         for obj in l_x:
             for cav in self.comp['l_cav']:
                 equiv_idx = cav.idx['elt_idx']
@@ -419,14 +420,14 @@ class Fault():
         x_lim = np.array(x_lim)
         g_lim = np.array(g_lim)
 
-        logging.info(f"Design space (handled in "
+        logging.info("Design space (handled in "
                      + "optimisation.linacs_design_space, not .ini):\n"
                      + f"Initial guess:\n{x_0}\n"
                      + f"Bounds:\n{x_lim}\n"
                      + f"Constraints (not necessarily used):\n{g_lim}")
         return x_0, x_lim, g_lim, l_x_str
 
-    def get_x_sol_in_real_phase(self):
+    def get_x_sol_in_real_phase(self) -> None:
         """
         Get least-square solutions in rel/abs phases instead of synchronous.
 
@@ -448,8 +449,32 @@ class Fault():
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase
 
-    def _select_objective(self, l_objectives, l_scales, **d_idx):
-        """Select the objective to fit."""
+    def _select_objective(
+            self, l_objectives: list[str, ...], l_scales: list[float, ...],
+            **d_idx: dict[str, int]) -> tuple[Callable[[dict], np.ndarray],
+                                              list[str, ...]]:
+        """
+        Select the objective to fit.
+
+        Parameters
+        ----------
+        l_objectives : list of str
+            Name of the objectives.
+        l_scales : list of floats
+            Scaling factor for each objective.
+        **d_idx : dict[str, int]
+            Holds indices of reference and objective position, where objective
+            is evaluated.
+
+        Returns
+        -------
+        fun_residual : Callable
+            Takes a dict of results, returns the residuals between objective
+            and results.
+        l_f_str : list of str
+            To output name of objective as well as position of evaluation.
+
+        """
         # List of indexes for ref_lin object and results dictionary
         idx_ref, idx_brok = d_idx.values()
 
@@ -478,7 +503,7 @@ class Fault():
             info_str += f"{i}: {f_str:>35} | {f_scale:>6} | {ref}\n"
         logging.info(info_str)
 
-        def fun_residual(results):
+        def fun_residual(results: dict) -> np.ndarray:
             """Compute difference between ref value and results dictionary."""
             i = -1
             residues = []
@@ -499,7 +524,8 @@ class Fault():
         return fun_residual, l_f_str
 
 
-def wrapper_lsq(arr_cav_prop, fault, fun_residual, phi_s_fit):
+def wrapper_lsq(arr_cav_prop: np.ndarray, fault: Fault,
+                fun_residual: Callable[[dict]], phi_s_fit: bool) -> np.ndarray:
     """
     Unpack arguments and compute proper residues at proper spot.
 
