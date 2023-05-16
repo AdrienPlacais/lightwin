@@ -29,6 +29,7 @@ from scipy.optimize import minimize, least_squares
 
 import config_manager as con
 from core.list_of_elements import ListOfElements
+from core.elements import _Element, FieldMap
 from core.emittance import mismatch_factor
 from util import debug
 from util.dicts_output import d_markdown
@@ -50,7 +51,8 @@ debugs = {
 class Fault():
     """A class to hold one or several close Faults."""
 
-    def __init__(self, ref_lin, brok_lin, fail_cav, comp_cav, wtf):
+    def __init__(self, ref_lin: object, brok_lin: object, fail_cav:
+                 list[FieldMap], comp_cav: list[FieldMap], wtf: dict) -> None:
         self.ref_lin = ref_lin
         self.brok_lin = brok_lin
         self.wtf = wtf
@@ -86,7 +88,7 @@ class Fault():
                 self.comp['l_cav'].append(cav)
         self.comp['n_cav'] = len(self.comp['l_cav'])
 
-    def update_status(self, flag_success):
+    def update_status(self, flag_success: bool) -> None:
         """Update status of the compensating cavities."""
         if flag_success:
             new_status = "compensate (ok)"
@@ -98,7 +100,8 @@ class Fault():
         for cav in self.comp['l_cav']:
             cav.update_status(new_status)
 
-    def fix(self, info_other_sol):
+    # FIXME check type of opti_sol
+    def fix(self, info_other_sol: dict) -> tuple[bool, dict]:
         """Try to compensate the faulty cavities."""
         self._prepare_cavities_for_compensation()
 
