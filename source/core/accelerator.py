@@ -11,6 +11,7 @@ at the end
 """
 import os.path
 import logging
+from typing import TypeVar, Type
 import numpy as np
 
 from constants import c
@@ -24,10 +25,14 @@ from core.list_of_elements import ListOfElements
 from core.emittance import beam_parameters_all, mismatch_factor
 
 
+_AccelT = TypeVar("_AccelT", bound="Accelerator")
+
+
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, dat_filepath, project_folder, name):
+    def __init__(self, dat_filepath: str, project_folder: str,
+                 name: str) -> None:
         """
         Create Accelerator object.
 
@@ -54,7 +59,8 @@ class Accelerator():
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
 
         # Create a the list containing all the elements
-        self.elts = ListOfElements(l_elts, w_kin=con.E_MEV, phi_abs=0., idx_in=0)
+        self.elts = ListOfElements(l_elts, w_kin=con.E_MEV, phi_abs=0.,
+                                   idx_in=0)
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 
@@ -104,11 +110,12 @@ class Accelerator():
         self.tw_results = {'envelope': {}, 'multipart': {}, 'cav_param': {},
                            'transf_mat': np.empty((0))}
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys, to_numpy=True, **kwargs):
+    def get(self, *keys: str, to_numpy: bool = True,
+            **kwargs: dict) -> np.ndarray | list | tuple:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -143,7 +150,8 @@ class Accelerator():
         return tuple(out)
 
     # TODO add linac name in the subproject folder name
-    def _handle_paths_and_folders(self, l_elts):
+    def _handle_paths_and_folders(self, l_elts: list[elements._Element]
+                                  ) -> list[elements._Element]:
         """Make paths absolute, create results folders."""
         # First we take care of where results will be stored
         i = 0
@@ -226,7 +234,7 @@ class Accelerator():
         }
         return _d_special_getters
 
-    def _set_indexes_and_abs_positions(self):
+    def _set_indexes_and_abs_positions(self) -> int:
         """Init solvers, set indexes and absolute positions of elements."""
         pos = {'in': 0., 'out': 0.}
         idx = {'in': 0, 'out': 0}
@@ -243,7 +251,7 @@ class Accelerator():
             elt.idx['s_in'], elt.idx['s_out'] = idx['in'], idx['out']
         return idx['out']
 
-    def _check_consistency_phases(self):
+    def _check_consistency_phases(self) -> None:
         """Check that both TW and LW use absolute or relative phases."""
         cavities = self.elements_of(nature='FIELD_MAP')
         flags_absolute = []
@@ -252,18 +260,19 @@ class Accelerator():
 
         if con.FLAG_PHI_ABS and False in flags_absolute:
             logging.warning(
-                "You asked LW a simulation in absolute phase, while there " +
-                "is at least one cavity in relative phase in the .dat file " +
-                "used by TW. Results won't match if there are faulty " +
-                "cavities.")
+                "You asked LW a simulation in absolute phase, while there "
+                + "is at least one cavity in relative phase in the .dat file "
+                + "used by TW. Results won't match if there are faulty "
+                + "cavities.")
         elif not con.FLAG_PHI_ABS and True in flags_absolute:
             logging.warning(
-                "You asked LW a simulation in relative phase, while there " +
-                "is at least one cavity in absolute phase in the .dat file " +
-                "used by TW. Results won't match if there are faulty " +
-                "cavities.")
+                "You asked LW a simulation in relative phase, while there "
+                + "is at least one cavity in absolute phase in the .dat file "
+                + "used by TW. Results won't match if there are faulty "
+                + "cavities.")
 
-    def store_results(self, results, l_elts):
+    def store_results(self, results: dict, l_elts: list[elements._Element]
+                      ) -> None:
         """
         We save data into the appropriate objects.
 
@@ -309,7 +318,9 @@ class Accelerator():
             for item2 in item1[1].items():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
 
-    def elements_of(self, nature, sub_list=None):
+    def elements_of(self, nature: str,
+                    sub_list: list[elements._Element] | None = None
+                    ) -> list[elements._Element]:
         """Return a list of elements of nature 'nature'."""
         if sub_list is None:
             sub_list = self.elts
@@ -317,7 +328,8 @@ class Accelerator():
                               sub_list))
         return list_of
 
-    def where_is_this_index(self, idx, show_info=False):
+    def where_is_this_index(self, idx: int, show_info: bool = False
+                            ) -> elements._Element | None:
         """Give the element where the given index is."""
         found, elt = False, None
 
@@ -334,7 +346,7 @@ class Accelerator():
                 print(f"Mesh index {idx} does not belong to any element.")
         return elt if found else None
 
-    def compute_mismatch(self, ref_linac):
+    def compute_mismatch(self, ref_linac: Type[_AccelT]) -> None:
         """Compute mismatch factor between this non-nominal linac and a ref."""
         assert self.name != 'Working'
         assert ref_linac.name == 'Working'
@@ -342,7 +354,7 @@ class Accelerator():
             mismatch_factor(ref_linac.beam_param["twiss"]["twiss_z"],
                             self.beam_param["twiss"]["twiss_z"], transp=True)
 
-    def simulate_in_tracewin(self, ini_path, **kwargs):
+    def simulate_in_tracewin(self, ini_path: str, **kwargs: str) -> None:
         """Compute this linac with TraceWin."""
         if 'Broken' in self.name:
             logging.warning("simulating broken linac in TW useless.")
@@ -354,7 +366,7 @@ class Accelerator():
             path = os.path.abspath(path)
         tw.run_tw(ini_path, path_cal, dat_file, **kwargs)
 
-    def store_tracewin_results(self):
+    def store_tracewin_results(self) -> None:
         """Take the results created by TraceWin."""
         folder = self.get('out_tw')
 
@@ -370,16 +382,17 @@ class Accelerator():
         self.tw_results['cav_param'] = tw.get_tw_cav_param(
             folder, filename='Cav_set_point_res.dat')
 
-    def precompute_some_tracewin_results(self):
+    def precompute_some_tracewin_results(self) -> None:
+        """Use TW result dicts to compute other useful results."""
         for dic in [self.tw_results['envelope'], self.tw_results['multipart']]:
             dic['gamma'] = 1. + dic['gama-1']
             dic['w_kin'] = convert.energy(dic['gamma'], "gamma to kin")
             dic['beta'] = convert.energy(dic['w_kin'], "kin to beta")
             dic['lambda'] = c / 162e6
 
-            n = dic['beta'].shape[0]
-            dic['phi_abs_array'] = np.full((n), 0.)
-            for i in range(1, n):
+            num = dic['beta'].shape[0]
+            dic['phi_abs_array'] = np.full((num), 0.)
+            for i in range(1, num):
                 delta_z = dic['z(m)'][i] - dic['z(m)'][i - 1]
                 beta_i = dic['beta'][i]
                 delta_phi = 2. * np.pi * delta_z / (dic['lambda'] * beta_i)
@@ -403,18 +416,20 @@ class Accelerator():
                 gamma = (1. + alpha**2) / beta
                 dic[twi] = np.column_stack((alpha, beta, gamma))
 
-    def resample_tw_results(self, ref_linac):
+    def resample_tw_results(self, ref_linac: Type[_AccelT]) -> None:
         """Re-evaluate all quantities at the same z as the ref linac."""
         d_tw = self.tw_results['multipart']
         z_fix = d_tw['z(m)'].copy()
 
         z_ref = ref_linac.tw_results['multipart']['z(m)']
 
-        for key in d_tw.keys():
+        for key in d_tw:
             d_tw[key] = np.interp(z_ref, z_fix, d_tw[key])
 
 
-def _sections_lattices(l_elts):
+def _sections_lattices(l_elts: list[elements._Element]) -> (
+        list[elements._Element], list[elements._Element],
+        list[elements._Element], dict):
     """Gather elements by section and lattice."""
     l_elts, d_struct = _prepare_sections_and_lattices(l_elts)
 
@@ -444,7 +459,8 @@ def _sections_lattices(l_elts):
     return l_elts, sections, lattices, d_struct['frequencies']
 
 
-def _prepare_sections_and_lattices(l_elts):
+def _prepare_sections_and_lattices(l_elts: list[elements._Element]) -> (
+        list[elements._Element], dict):
     """
     Save info on the accelerator structure.
 
