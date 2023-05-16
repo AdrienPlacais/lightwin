@@ -9,12 +9,15 @@ import logging
 import numpy as np
 from util.helper import recursive_items, recursive_getter
 from core.emittance import beam_parameters_zdelta
+from core.elements import _Element
 
 
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
-    def __init__(self, l_elts, w_kin, phi_abs, idx_in=None, tm_cumul=None):
+    def __init__(self, l_elts: [_Element], w_kin: float, phi_abs: float,
+                 idx_in: int | None = None,
+                 tm_cumul: np.ndarray | None = None) -> None:
         super().__init__(l_elts)
         logging.info(f"Init list from {l_elts[0].get('elt_name')} to "
                      f"{l_elts[-1].get('elt_name')}.")
@@ -32,12 +35,14 @@ class ListOfElements(list):
                 "Previous transfer matrix was not calculated."
         self.tm_cumul_in = tm_cumul
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self)) or \
             key in recursive_items(vars(self[0]))
 
-    def get(self, *keys, to_numpy=True, remove_first=False, **kwargs):
+    def get(self, *keys: (str), to_numpy: bool = True,
+            remove_first: bool = False, **kwargs: dict
+            ) -> np.ndarray | tuple | None:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -76,18 +81,27 @@ class ListOfElements(list):
         return tuple(out)
 
     # FIXME transfer_data does not have the same meaning anymore
-    def compute_transfer_matrices(self, d_fits=None, transfer_data=True):
+    def compute_transfer_matrices(self, d_fits: dict | None = None,
+                                  transfer_data: bool = True) -> dict:
         """
         Compute the transfer matrices of Accelerator's elements.
 
         Parameters
         ----------
-        d_fits: dict, optional
+        d_fits : dict, optional
             Dict to where norms and phases of compensating cavities are stored.
             If the dict is None, we take norms and phases from cavity objects.
+            Default is None.
         transfer_data : boolean, optional
             If True, we save the energies, transfer matrices, etc that are
-            calculated in the routine.
+            calculated in the routine. Default is True.
+
+        Returns
+        -------
+        results : dict
+            Holds energy, phase, transfer matrices (among others) packed into a
+            single dict.
+
         """
         # Prepare lists to store each element's results
         l_elt_results = []
@@ -125,7 +139,8 @@ class ListOfElements(list):
         return results
 
     # FIXME I think it is possible to simplify all of this
-    def _proper_transf_mat(self, elt, phi_abs, w_kin, d_fits):
+    def _proper_transf_mat(self, elt: _Element, phi_abs: float, w_kin: float,
+                           d_fits: dict) -> (dict, dict):
         """Get the proper arguments and call the elt.calc_transf_mat."""
         d_fit_elt = None
         if elt.get('nature') == 'FIELD_MAP' and elt.get('status') != 'failed':
@@ -148,7 +163,8 @@ class ListOfElements(list):
         return elt_results, rf_field_kwargs
 
     # FIXME could be simpler
-    def _pack_into_single_dict(self, l_elt_results, l_rf_fields):
+    def _pack_into_single_dict(self, l_elt_results: [dict],
+                               l_rf_fields: [dict]) -> dict:
         """
         We store energy, transfer matrices, phase, etc into the results dict.
 
@@ -187,11 +203,13 @@ class ListOfElements(list):
         results["tm_cumul"] = self._indiv_to_cumul_transf_mat(
             results["r_zz_elt"], len(results["w_kin"]))
 
-        results["eps_zdelta"], results['twiss_zdelta'], results["sigma matrix"] = \
-            beam_parameters_zdelta(results["tm_cumul"])
+        results["eps_zdelta"], results['twiss_zdelta'], \
+            results["sigma matrix"] = beam_parameters_zdelta(
+                results["tm_cumul"])
         return results
 
-    def _indiv_to_cumul_transf_mat(self, l_r_zz_elt, n_steps):
+    def _indiv_to_cumul_transf_mat(self, l_r_zz_elt: [np.ndarray], n_steps: int
+                                   ) -> np.ndarray:
         """Compute cumulated transfer matrix."""
         # Compute transfer matrix of l_elts
         arr_tm_cumul = np.full((n_steps, 2, 2), np.NaN)
