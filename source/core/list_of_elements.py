@@ -6,6 +6,7 @@ Created on Thu Nov 10 15:11:55 2022.
 @author: placais
 """
 import logging
+from typing import Any
 import numpy as np
 from util.helper import recursive_items, recursive_getter
 from core.emittance import beam_parameters_zdelta
@@ -15,7 +16,7 @@ from core.elements import _Element
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
-    def __init__(self, l_elts: [_Element], w_kin: float, phi_abs: float,
+    def __init__(self, l_elts: list[_Element], w_kin: float, phi_abs: float,
                  idx_in: int | None = None,
                  tm_cumul: np.ndarray | None = None) -> None:
         super().__init__(l_elts)
@@ -40,9 +41,8 @@ class ListOfElements(list):
         return key in recursive_items(vars(self)) or \
             key in recursive_items(vars(self[0]))
 
-    def get(self, *keys: (str), to_numpy: bool = True,
-            remove_first: bool = False, **kwargs: dict
-            ) -> np.ndarray | tuple | None:
+    def get(self, *keys: tuple[str], to_numpy: bool = True,
+            remove_first: bool = False, **kwargs: dict) -> Any:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -140,7 +140,7 @@ class ListOfElements(list):
 
     # FIXME I think it is possible to simplify all of this
     def _proper_transf_mat(self, elt: _Element, phi_abs: float, w_kin: float,
-                           d_fits: dict) -> (dict, dict):
+                           d_fits: dict) -> tuple[dict, dict]:
         """Get the proper arguments and call the elt.calc_transf_mat."""
         d_fit_elt = None
         if elt.get('nature') == 'FIELD_MAP' and elt.get('status') != 'failed':
@@ -163,8 +163,8 @@ class ListOfElements(list):
         return elt_results, rf_field_kwargs
 
     # FIXME could be simpler
-    def _pack_into_single_dict(self, l_elt_results: [dict],
-                               l_rf_fields: [dict]) -> dict:
+    def _pack_into_single_dict(self, l_elt_results: list[dict],
+                               l_rf_fields: list[dict]) -> dict:
         """
         We store energy, transfer matrices, phase, etc into the results dict.
 
@@ -208,8 +208,8 @@ class ListOfElements(list):
                 results["tm_cumul"])
         return results
 
-    def _indiv_to_cumul_transf_mat(self, l_r_zz_elt: [np.ndarray], n_steps: int
-                                   ) -> np.ndarray:
+    def _indiv_to_cumul_transf_mat(self, l_r_zz_elt: list[np.ndarray],
+                                   n_steps: int) -> np.ndarray:
         """Compute cumulated transfer matrix."""
         # Compute transfer matrix of l_elts
         arr_tm_cumul = np.full((n_steps, 2, 2), np.NaN)

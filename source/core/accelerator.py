@@ -11,7 +11,7 @@ at the end
 """
 import os.path
 import logging
-from typing import TypeVar, Type
+from typing import TypeVar, Type, Any
 import numpy as np
 
 from constants import c
@@ -114,8 +114,8 @@ class Accelerator():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: str, to_numpy: bool = True,
-            **kwargs: dict) -> np.ndarray | list | tuple:
+    def get(self, *keys: tuple[str], to_numpy: bool = True, **kwargs: dict
+            ) -> Any:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -427,9 +427,9 @@ class Accelerator():
             d_tw[key] = np.interp(z_ref, z_fix, d_tw[key])
 
 
-def _sections_lattices(l_elts: list[elements._Element]) -> (
+def _sections_lattices(l_elts: list[elements._Element]) -> tuple[
         list[elements._Element], list[elements._Element],
-        list[elements._Element], dict):
+        list[elements._Element], dict]:
     """Gather elements by section and lattice."""
     l_elts, d_struct = _prepare_sections_and_lattices(l_elts)
 
@@ -459,8 +459,8 @@ def _sections_lattices(l_elts: list[elements._Element]) -> (
     return l_elts, sections, lattices, d_struct['frequencies']
 
 
-def _prepare_sections_and_lattices(l_elts: list[elements._Element]) -> (
-        list[elements._Element], dict):
+def _prepare_sections_and_lattices(l_elts: list[elements._Element]) -> tuple[
+        list[elements._Element], dict]:
     """
     Save info on the accelerator structure.
 

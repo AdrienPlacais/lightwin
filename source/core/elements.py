@@ -10,6 +10,7 @@ TODO : rf_param should also return phi_rf_rel. Will be necessary
 for non-synch particles.
 """
 import logging
+from typing import Any
 import numpy as np
 from scipy.optimize import minimize_scalar
 
@@ -70,7 +71,7 @@ d_n_steps = {'RK': lambda elt: con.N_STEPS_PER_CELL * elt.get('n_cell'),
 class _Element():
     """Generic element. _ ensures that it is not called from another module."""
 
-    def __init__(self, elem: [str]) -> None:
+    def __init__(self, elem: list[str]) -> None:
         """
         Init parameters common to all elements.
 
@@ -105,8 +106,8 @@ class _Element():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: (str), to_numpy: bool = True, **kwargs: dict
-            ) -> np.ndarray | tuple | None:
+    def get(self, *keys: tuple[str], to_numpy: bool = True, **kwargs: dict
+            ) -> Any:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -261,7 +262,7 @@ class _Element():
 class Drift(_Element):
     """Sub-class of Element, with parameters specific to DRIFTs."""
 
-    def __init__(self, elem: [str]) -> None:
+    def __init__(self, elem: list[str]) -> None:
         n_attributes = len(elem) - 1
         assert n_attributes in [2, 3, 5]
         super().__init__(elem)
@@ -270,7 +271,7 @@ class Drift(_Element):
 class Quad(_Element):
     """Sub-class of Element, with parameters specific to QUADs."""
 
-    def __init__(self, elem: [str]) -> None:
+    def __init__(self, elem: list[str]) -> None:
         n_attributes = len(elem) - 1
         assert n_attributes in range(3, 10)
         super().__init__(elem)
@@ -280,7 +281,7 @@ class Quad(_Element):
 class Solenoid(_Element):
     """Sub-class of Element, with parameters specific to SOLENOIDs."""
 
-    def __init__(self, elem: [str]) -> None:
+    def __init__(self, elem: list[str]) -> None:
         n_attributes = len(elem) - 1
         assert n_attributes == 3
         super().__init__(elem)
@@ -289,7 +290,7 @@ class Solenoid(_Element):
 class FieldMap(_Element):
     """Sub-class of Element, with parameters specific to FIELD_MAPs."""
 
-    def __init__(self, elem: [str]) -> None:
+    def __init__(self, elem: list[str]) -> None:
         n_attributes = len(elem) - 1
         assert n_attributes in [9, 10]
 
@@ -398,26 +399,26 @@ class FieldMap(_Element):
 class Lattice():
     """Used to get the number of elements per lattice."""
 
-    def __init__(self, elem: [str]) -> None:
+    def __init__(self, elem: list[str]) -> None:
         self.n_lattice = int(elem[1])
 
 
 class Freq():
     """Used to get the frequency of every Section."""
 
-    def __init__(self, elem: [str]) -> None:
+    def __init__(self, elem: list[str]) -> None:
         self.f_rf_mhz = float(elem[1])
 
 
 class FieldMapPath():
     """Used to get the base path of field maps."""
 
-    def __init__(self, elem: [str]) -> None:
+    def __init__(self, elem: list[str]) -> None:
         self.path = elem[1]
 
 
 def _take_parameters_from_rf_field_object(
-        a_f: RfField, **rf_field_kwargs: dict) -> (dict, bool):
+        a_f: RfField, **rf_field_kwargs: dict) -> tuple[dict, bool]:
     """Extract RfField object parameters."""
     rf_field_kwargs['k_e'] = a_f.get('k_e')
     rf_field_kwargs['phi_0_rel'] = None
@@ -435,7 +436,7 @@ def _take_parameters_from_rf_field_object(
 
 
 def _find_new_absolute_entry_phase(a_f: RfField, **rf_field_kwargs: dict
-                                   ) -> (dict, bool):
+                                   ) -> tuple[dict, bool]:
     """Extract RfField parameters, except phi_0_abs that is recalculated."""
     rf_field_kwargs['k_e'] = a_f.get('k_e')
     rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
@@ -445,7 +446,7 @@ def _find_new_absolute_entry_phase(a_f: RfField, **rf_field_kwargs: dict
 
 
 def _try_parameters_from_d_fit(d_fit: dict, w_kin: float, cav: FieldMap,
-                               **rf_field_kwargs: dict) -> (dict, bool):
+                               **rf_field_kwargs: dict) -> tuple[dict, bool]:
     """Extract parameters from d_fit."""
     assert d_fit['flag'], "Inconsistency between cavity status and d_fit flag."
     rf_field_kwargs['k_e'] = d_fit['k_e']
