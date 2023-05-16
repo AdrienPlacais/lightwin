@@ -15,7 +15,7 @@ from scipy.optimize import minimize_scalar
 
 import config_manager as con
 from core.electric_field import RfField, compute_param_cav, convert_phi_0
-from util.helper import recursive_items, recursive_getter
+from util.helper import recursive_items, recursive_getter, diff_angle
 import util.converters as convert
 
 try:
@@ -36,7 +36,6 @@ except ModuleNotFoundError:
     import core.transfer_matrices_p as tm_c
 
 import core.transfer_matrices_p as tm_p
-from util import helper
 
 # Force reload of the module constants, as a modification of con.METHOD between
 # two executions is not taken into account (alternative is to restart kernel
@@ -385,8 +384,7 @@ class FieldMap(_Element):
             rf_field_kwargs['phi_0_rel'] = phi_0_rel
             rf_field_kwargs['phi_0_abs'] = None
             results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
-            diff = helper.diff_angle(phi_s_objective,
-                                     results['cav_params']['phi_s'])
+            diff = diff_angle(phi_s_objective, results['cav_params']['phi_s'])
             return diff**2
 
         res = minimize_scalar(_wrapper_synch, bounds=bounds)
