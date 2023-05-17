@@ -21,7 +21,7 @@ import util.converters as convert
 from util.helper import recursive_items, recursive_getter
 from core import particle
 from core import elements
-from core.list_of_elements import ListOfElements, where_is_this_s_idx, \
+from core.list_of_elements import ListOfElements, elt_at_this_s_idx, \
     equiv_elt
 from core.emittance import beam_parameters_all
 
@@ -336,10 +336,10 @@ class Accelerator():
                               sub_list))
         return list_of
 
-    def where_is_this_s_idx(self, s_idx: int, show_info: bool = False
+    def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                             ) -> elements._Element | None:
         """Give the element where the given index is."""
-        return where_is_this_s_idx(self.elts, s_idx, show_info)
+        return elt_at_this_s_idx(self.elts, s_idx, show_info)
 
     def equiv_elt(self, elt: elements._Element | str, to_index: bool = False
                   ) -> elements._Element | int | None:

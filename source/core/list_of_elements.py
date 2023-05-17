@@ -268,9 +268,9 @@ def equiv_elt(elts: ListOfElements | list[_Element, ...],
     return elts[idx]
 
 
-def where_is_this_s_idx(elts: ListOfElements | list[_Element, ...],
-                        s_idx: int, show_info: bool = False
-                        ) -> _Element | None:
+def elt_at_this_s_idx(elts: ListOfElements | list[_Element, ...],
+                      s_idx: int, show_info: bool = False
+                      ) -> _Element | None:
     """Give the element where the given index is."""
     for elt in elts:
         if s_idx in range(elt.idx['s_in'], elt.idx['s_out']):
