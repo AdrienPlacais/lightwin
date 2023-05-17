@@ -30,7 +30,7 @@ def limits(key: str, *args: tuple[str, FieldMap, FieldMap, Accelerator]
 
 
 def constraints(key: str, *args: tuple[str, FieldMap, FieldMap, Accelerator]
-               ) -> tuple[float | None]:
+                ) -> tuple[float | None]:
     """Return optimisation constraints for desired key."""
     if key not in D_CONST:
         logging.error(f"Constraint for variable {key} not implemented.")
@@ -57,6 +57,10 @@ def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap, ref_linac:
                             for cav in cavs_this_section
                             if cav.idx['section'] == this_section]
         upper = np.max(k_e_this_section) * 1.3
+
+        logging.warning("Manually modified the k_e limits for global comp.")
+        lower = ref_k_e
+        upper = ref_k_e * 1.000001
 
         return (lower, upper)
 

@@ -35,6 +35,13 @@ class ListOfElements(list):
             assert ~np.isnan(tm_cumul).any(), \
                 "Previous transfer matrix was not calculated."
         self.tm_cumul_in = tm_cumul
+        self._l_cav = list(filter(lambda elt: elt.get('nature') == 'FIELD_MAP',
+                                  self))
+
+    @property
+    def l_cav(self):
+        """Easy access to the list of cavities."""
+        return self._l_cav
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -282,13 +289,3 @@ def elt_at_this_s_idx(elts: ListOfElements | list[_Element, ...],
 
     logging.warning(f"Mesh index {s_idx} not found.")
     return None
-
-
-def get_elts(elts: ListOfElements | list[_Element, ...],
-             key: str, val: Any) -> list[_Element, ...]:
-    """
-    Return a list of elements which key correspond to value.
-
-    Example: sort_elts(list_of_elts, key='nature', val='FIELD_MAP')
-    """
-    return list(filter(lambda elt: elt.get(key) == val, elts))

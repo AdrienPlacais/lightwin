@@ -19,7 +19,8 @@ TODO strategy:
     global_downstream
     global_section
     global_section_downstream
-TODO add position:
+    flag to select priority in k out of n when k odd
+TODO position:
     element name
     element number
     end_section

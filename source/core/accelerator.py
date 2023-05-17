@@ -22,7 +22,7 @@ from util.helper import recursive_items, recursive_getter
 from core import particle
 from core import elements
 from core.list_of_elements import ListOfElements, elt_at_this_s_idx, \
-    equiv_elt, get_elts
+    equiv_elt
 from core.emittance import beam_parameters_all
 
 
@@ -110,6 +110,12 @@ class Accelerator():
 
         self.tw_results = {'envelope': {}, 'multipart': {}, 'cav_param': {},
                            'transf_mat': np.empty((0))}
+        self._l_cav = self.elts.l_cav
+
+    @property
+    def l_cav(self):
+        """Shortcut to easily get list of cavities."""
+        return self.elts.l_cav
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -254,9 +260,8 @@ class Accelerator():
 
     def _check_consistency_phases(self) -> None:
         """Check that both TW and LW use absolute or relative phases."""
-        cavities = self.get_elts('nature', 'FIELD_MAP')
         flags_absolute = []
-        for cav in cavities:
+        for cav in self.l_cav:
             flags_absolute.append(cav.get('abs_phase_flag'))
 
         if con.FLAG_PHI_ABS and False in flags_absolute:
@@ -325,21 +330,6 @@ class Accelerator():
             # Go across phase spaces (z-z', z-delta, w-phi)
             for item2 in item1[1].items():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
-
-    # def elements_of(self, nature: str,
-                    # # sub_list: list[elements._Element, ...] | None = None
-                    # ) -> list[elements._Element, ...]:
-        # """Return a list of elements of nature 'nature'."""
-        # return self.get_elts('nature', nature)
-        # if sub_list is None:
-            # sub_list = self.elts
-        # list_of = list(filter(lambda elt: elt.get('nature') == nature,
-                              # sub_list))
-        # return list_of
-
-    def get_elts(self, key: str, val: Any) -> list[elements._Element, ...]:
-        """Return a list of elements which key correspond to value."""
-        return get_elts(self.elts, key, val)
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                             ) -> elements._Element | None:

@@ -146,14 +146,15 @@ class FaultScenario():
 
         # Get the absolute position of the FIELD_MAPS
         if self.wtf['idx'] == 'cavity':
-            l_cav = lin.get_elts('nature', 'FIELD_MAP')
+            # l_cav = lin.get_elts('nature', 'FIELD_MAP')
             ll_fault_idx = [
-                [l_cav[cav].get('elt_idx', to_numpy=False) for cav in i]
+                [lin.l_cav[cav].get('elt_idx', to_numpy=False) for cav in i]
                 for i in ll_fault_idx]
 
             if ll_comp_idx is not None:
                 ll_comp_idx = [
-                    [l_cav[cav].get('elt_idx', to_numpy=False) for cav in i]
+                    [lin.l_cav[cav].get('elt_idx', to_numpy=False)
+                     for cav in i]
                     for i in ll_comp_idx]
 
         # If in manual mode, faults should be already gathered
@@ -275,8 +276,8 @@ class FaultScenario():
         want to avoid when con.FLAG_PHI_ABS = True.
         """
         # Get CavitieS of REFerence and BROKen linacs
-        ref_cs = self.ref_lin.get_elts('nature', 'FIELD_MAP')
-        brok_cs = self.brok_lin.get_elts('nature', 'FIELD_MAP')
+        ref_cs = self.ref_lin.l_cav#.get_elts('nature', 'FIELD_MAP')
+        brok_cs = self.brok_lin.l_cav#get_elts('nature', 'FIELD_MAP')
 
         for ref_c, brok_c in zip(ref_cs, brok_cs):
             ref_a_f = ref_c.acc_field
@@ -462,14 +463,14 @@ class FaultScenario():
 
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
     """Select the cavities neighboring the failed one(s)."""
-    l_all_cav = lin.get_elts('nature', 'FIELD_MAP')
-    l_idx_faults = [l_all_cav.index(faulty_cav)
+    # l_all_cav = lin.get_elts('nature', 'FIELD_MAP')
+    l_idx_faults = [lin.l_cav.index(faulty_cav)
                     for faulty_cav in l_faulty_cav]
     distances = []
     for idx_f in l_idx_faults:
         # Distance between every cavity and the cavity under study
-        distance = np.array([idx_f - l_all_cav.index(cav)
-                             for cav in l_all_cav], dtype=np.float64)
+        distance = np.array([idx_f - lin.l_cav.index(cav)
+                             for cav in lin.l_cav], dtype=np.float64)
         distances.append(np.abs(distance))
 
     # Distance between every cavity and it's closest fault
@@ -479,14 +480,14 @@ def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
 
     # To favorise cavities near the start of the linac when there is an
     # equality in distance
-    sort_bis = np.linspace(1, len(l_all_cav), len(l_all_cav))
+    sort_bis = np.linspace(1, len(lin.l_cav), len(lin.l_cav))
 
     # To favorise the cavities near the end of the linac, just invert this
     # sort_bis = -sort_bis
 
     idx_compensating = np.lexsort((sort_bis, distance))[:n_cav_to_take]
     idx_compensating.sort()
-    l_comp_cav = [l_all_cav[idx] for idx in idx_compensating]
+    l_comp_cav = [lin.l_cav[idx] for idx in idx_compensating]
     return l_comp_cav
 
 

@@ -32,9 +32,9 @@ if __name__ == '__main__':
     # =========================================================================
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = False
-    RECOMPUTE_REFERENCE = False
-    FLAG_EVALUATE = False
+    FLAG_TW = True
+    RECOMPUTE_REFERENCE = True
+    FLAG_EVALUATE = True
 
     # =========================================================================
     # Outputs
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     d_solver, d_beam, d_wtf, d_tw = conf_man.process_config(
         CONFIG_PATH, PROJECT_FOLDER, key_solver="solver.envelope_longitudinal",
-        key_beam='beam.myrrha', key_wtf='wtf.quick_debug', key_tw='tracewin')
+        key_beam='beam.myrrha', key_wtf='wtf.global', key_tw='tracewin')
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
