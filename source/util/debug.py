@@ -111,7 +111,7 @@ def output_cavities(linac, out=False):
                'v_cav_mv', 'phi_s')
     df_cav = pd.DataFrame(columns=columns)
 
-    full_list_of_cav = linac.elements_of(nature='FIELD_MAP')
+    full_list_of_cav = linac.get_elts('nature', 'FIELD_MAP')
 
     for i, cav in enumerate(full_list_of_cav):
         df_cav.loc[i] = cav.get(*columns, to_deg=True, to_numpy=False)

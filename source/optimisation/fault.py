@@ -29,8 +29,8 @@ import numpy as np
 from scipy.optimize import minimize, least_squares
 
 import config_manager as con
-from core.list_of_elements import ListOfElements, equiv_elt
-from core.elements import FieldMap
+from core.list_of_elements import ListOfElements
+from core.elements import _Element, FieldMap
 from core.emittance import mismatch_factor
 from core.accelerator import Accelerator
 from util import debug
@@ -177,7 +177,8 @@ class Fault():
 
             cav.update_status(new_status)
 
-    def _zone_to_recompute(self, str_position: str) -> (list, dict):
+    def _zone_to_recompute(self, str_position: str
+                           ) -> tuple[list[_Element, ...], dict]:
         """
         Determine zone to recompute and indexes of where objective is checked.
 
@@ -219,10 +220,10 @@ class Fault():
                  'l_brok': [idx - shift for idx in d_position[str_position]],
                  }
         for idx in d_idx['l_ref']:
-            elt = self.brok_lin.where_is_this_s_idx(idx)
+            elt = self.brok_lin.elt_at_this_s_idx(idx)
             # will return None if idx is the last index of the linac
             if elt is None:
-                elt = self.brok_lin.where_is_this_s_idx(idx - 1)
+                elt = self.brok_lin.elt_at_this_s_idx(idx - 1)
                 logging.warning("We return _Element just before.")
             logging.info(f"We try to match at mesh index {idx}.\n"
                          + f"Info: {elt.get('elt_info')}.\n"

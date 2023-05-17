@@ -6,8 +6,7 @@ Created on Mon Jan 24 12:51:15 2022.
 @author: placais
 
 Module holding the FaultScenario, which holds the Faults. Each Fault object
-fixes himself (Fault.fix), and a second optimization is performed to
-smoothen the individual fixes. # TODO
+fixes himself (Fault.fix).
 
 brok_lin: holds for "broken_linac", the linac with faults.
 ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
@@ -33,17 +32,22 @@ import pandas as pd
 
 import config_manager as con
 import optimisation.fault as mod_f
+from core.accelerator import Accelerator
 from core.list_of_elements import ListOfElements
+from core.elements import FieldMap
 from core.emittance import mismatch_factor
 from util import debug
 
 
+# Clarify this shit
 class FaultScenario():
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_linac, broken_linac, wtf: dict, l_fault_idx: list,
-                 l_comp_idx: list = None,
-                 l_info_other_sol: list = None) -> None:
+    def __init__(self, ref_linac: Accelerator, broken_linac: Accelerator,
+                 wtf: dict,
+                 l_fault_idx: list[int, ...] | list[list[int, ...], ...],
+                 l_comp_idx: list[list[int, ...], ...] | None = None,
+                 l_info_other_sol: list[dict, ...] = None) -> None:
         """
         Create the FaultScenario and the Faults.
 
@@ -104,44 +108,71 @@ class FaultScenario():
         results["mismatch factor"] = self._compute_mismatch()
         self.brok_lin.store_results(results, self.brok_lin.elts)
 
-    def _sort_faults(self, l_fault_idx: list, l_comp_idx: list) -> list:
-        """Gather faults that are close to each other."""
+    # TODO clarify this shit also
+    def _sort_faults(self,
+                     l_fault_idx: list[int, ...] | list[list[int, ...], ...],
+                     ll_comp_idx: list[list[int, ...], ...] | None,
+                     ) -> tuple[list[list[FieldMap, ...], ...],
+                                list[list[int, ...], ...]]:
+        """
+        Gather faults that are close to each other.
+
+        Parameters
+        ----------
+        l_fault_idx : list[int, ...] | list[list[int, ...], ...]
+            List of the indexes of the faulty cavities. If strategy is manual,
+            they are already grouped.
+        ll_comp_idx : list[list[int, ...], ...] | None
+            If strategy is not manual, this is None. If strategy is manual,
+            this is the list of compensating cavities, grouped for l_fault_idx.
+
+        Returns
+        -------
+        ll_comp : list[list[FieldMap, ...], ...]
+            List of list of compensating cavities. The length of the outer list
+            is the same as l_fault_idx.
+        l_fault_idx : list[list[int, ...], ...]
+            List of list of faulty cavities. They are gathered by Faults to be
+            fixed by common compensating cavities.
+
+        """
         lin = self.brok_lin
 
         # Initialize list of list of faults indexes (provided by user if in
         # manual strategy)
+        ll_fault_idx = l_fault_idx
         if self.wtf['strategy'] != 'manual':
-            l_fault_idx = [[idx] for idx in sorted(l_fault_idx)]
+            ll_fault_idx = [[idx] for idx in sorted(l_fault_idx)]
 
         # Get the absolute position of the FIELD_MAPS
         if self.wtf['idx'] == 'cavity':
-            l_cav = lin.elements_of(nature='FIELD_MAP')
-            l_fault_idx = [
+            l_cav = lin.get_elts('nature', 'FIELD_MAP')
+            ll_fault_idx = [
                 [l_cav[cav].get('elt_idx', to_numpy=False) for cav in i]
-                for i in l_fault_idx]
+                for i in ll_fault_idx]
 
-            if l_comp_idx is not None:
-                l_comp_idx = [
+            if ll_comp_idx is not None:
+                ll_comp_idx = [
                     [l_cav[cav].get('elt_idx', to_numpy=False) for cav in i]
-                    for i in l_comp_idx]
+                    for i in ll_comp_idx]
 
         # If in manual mode, faults should be already gathered
         if self.wtf['strategy'] == 'manual':
-            ll_comp = manually_set_cavities(lin, l_fault_idx, l_comp_idx)
+            ll_comp = manually_set_cavities(lin, ll_fault_idx, ll_comp_idx)
 
         else:
             # Initialize list of list of corresp. faulty cavities
             ll_faults = [[lin.elts[idx]
                           for idx in l_idx]
-                         for l_idx in l_fault_idx]
+                         for l_idx in ll_fault_idx]
 
             # We go across all faults and determine the compensating cavities
             # they need. If two failed cavities need at least one compensating
             # cavity in common, we group them together.
             # In particular, it is the case when a full cryomodule fails.
-            ll_comp, l_fault_idx = self._gather(ll_faults, l_fault_idx)
+            ll_comp, ll_fault_idx = self._gather(ll_faults, ll_fault_idx)
 
-        return ll_comp, l_fault_idx
+        return ll_comp, ll_fault_idx
 
     def _gather(self, ll_faults, ll_idx_faults):
         """Proper method that gathers faults requiring the same compens cav."""
@@ -149,7 +180,9 @@ class FaultScenario():
             'k out of n': lambda l_cav:
                 neighboring_cavities(self.brok_lin, l_cav, self.wtf['k']),
             'l neighboring lattices': lambda l_cav:
-                neighboring_lattices(self.brok_lin, l_cav, self.wtf['l'])}
+                neighboring_lattices(self.brok_lin, l_cav, self.wtf['l']),
+            'global': lambda l_cav:
+                all_cavities_after_first_fault(self.brok_lin, l_cav)}
         flag_gathered = False
         r_comb = 2
 
@@ -242,8 +275,8 @@ class FaultScenario():
         want to avoid when con.FLAG_PHI_ABS = True.
         """
         # Get CavitieS of REFerence and BROKen linacs
-        ref_cs = self.ref_lin.elements_of('FIELD_MAP')
-        brok_cs = self.brok_lin.elements_of('FIELD_MAP')
+        ref_cs = self.ref_lin.get_elts('nature', 'FIELD_MAP')
+        brok_cs = self.brok_lin.get_elts('nature', 'FIELD_MAP')
 
         for ref_c, brok_c in zip(ref_cs, brok_cs):
             ref_a_f = ref_c.acc_field
@@ -425,12 +458,11 @@ class FaultScenario():
         mism = mismatch_factor(self.ref_lin.get("twiss_z"),
                                self.brok_lin.get("twiss_z"), transp=True)
         return mism
-        # self.brok_lin.beam_param["mismatch factor"] = mism
 
 
 def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
     """Select the cavities neighboring the failed one(s)."""
-    l_all_cav = lin.elements_of(nature='FIELD_MAP')
+    l_all_cav = lin.get_elts('nature', 'FIELD_MAP')
     l_idx_faults = [l_all_cav.index(faulty_cav)
                     for faulty_cav in l_faulty_cav]
     distances = []
@@ -505,4 +537,15 @@ def manually_set_cavities(lin, l_faulty_idx, l_comp_idx):
     l_comp_cav = [[lin.elts[idx]
                    for idx in l_idx]
                   for l_idx in l_comp_idx]
+    return l_comp_cav
+
+
+def all_cavities_after_first_fault(lin, l_faulty_cav):
+    """Return all the cavities after the failure."""
+    l_elts = lin.elts
+    l_idx_faults = [l_elts.index(cav) for cav in l_faulty_cav]
+    first = min(l_idx_faults)
+    l_elts = l_elts[first:]
+    l_comp_cav = [cav for cav in l_elts if cav.get('nature') == 'FIELD_MAP'
+                  and cav not in l_faulty_cav]
     return l_comp_cav

@@ -282,3 +282,13 @@ def elt_at_this_s_idx(elts: ListOfElements | list[_Element, ...],
 
     logging.warning(f"Mesh index {s_idx} not found.")
     return None
+
+
+def get_elts(elts: ListOfElements | list[_Element, ...],
+             key: str, val: Any) -> list[_Element, ...]:
+    """
+    Return a list of elements which key correspond to value.
+
+    Example: sort_elts(list_of_elts, key='nature', val='FIELD_MAP')
+    """
+    return list(filter(lambda elt: elt.get(key) == val, elts))
