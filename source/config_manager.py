@@ -11,10 +11,19 @@ Handle simulation parameters. In particular:
     - how should they be fixed?
     - simulation parameters to give to TW?
 
-TODO: allow for different wtf for every fault. Maybe use different .ini?
 TODO: maybe make test and config to dict more compact?
-TODO: handle the constants
-TODO: add the N_STEPS_PER_CELL
+
+TODO maybe some global strategy tests should be moved to position test??
+TODO strategy:
+    global
+    global_downstream
+    global_section
+    global_section_downstream
+TODO add position:
+    element name
+    element number
+    end_section
+    allow list of arguments, and remove 'both'
 """
 import logging
 import os
@@ -435,6 +444,8 @@ def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
         - l neighboring lattices:
             Every fault will be compensated by l full lattices, direct
             neighbors of the errors. You must provide l.
+        - global:
+            Use every cavity after the fault.
     """
     if 'strategy' not in c_wtf.keys():
         logging.error("You must provide 'strategy' to tell LightWin how "
@@ -444,6 +455,7 @@ def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
     d_tests = {'k out of n': _test_strategy_k_out_of_n,
                'manual': _test_strategy_manual,
                'l neighboring lattices': _test_strategy_l_neighboring_lattices,
+               'global': _test_strategy_global,
                }
 
     key = c_wtf['strategy']
@@ -516,6 +528,25 @@ def _test_strategy_l_neighboring_lattices(c_wtf: configparser.SectionProxy
 
     return True
 
+
+def _test_strategy_global(c_wtf: configparser.SectionProxy) -> bool:
+    """Even more specific test for global strategy."""
+    logging.warning("Option still under implementation.")
+    logging.warning("As for now, field amplitudes are always modified during "
+                    + "the fit. If you want the 'classic' global compensation,"
+                    + " you should manually set the bounds for k_e to a very "
+                    + "low value in optimisation/linacs_design_space.py.")
+
+    if 'position' not in c_wtf.keys():
+        c_wtf['position'] = 'global'
+
+    if c_wtf.get('position') != 'end_linac':
+        logging.warning("With global method, objectives are evaluated at "
+                        + "the end of the linac. 'position' key will be "
+                        + "modified accordingly.")
+        c_wtf['position'] = 'end_linac'
+
+    return True
 
 def _test_objective(c_wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'objective' of what_to_fit."""
