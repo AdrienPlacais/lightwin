@@ -6,6 +6,7 @@ Created on Wed Sep 22 14:15:48 2021.
 @author: placais
 """
 import logging
+from collections.abc import Iterable
 from typing import Iterator, Any
 import numpy as np
 import pandas as pd
@@ -49,8 +50,16 @@ def recursive_getter(key: str, dictionary: dict, **kwargs: dict) -> Any:
 
 
 # =============================================================================
-# Compare two accelerators
+# For lists manipulations
 # =============================================================================
+def flatten(nest: list[int | float, ...]) -> Iterator[int | float]:
+    """Flatten nested list of lists of..."""
+    for _in in nest:
+        if isinstance(_in, Iterable) and not isinstance(_in, (str, bytes)):
+            yield from flatten(_in)
+        else:
+            yield _in
+
 
 # =============================================================================
 # Messages functions
