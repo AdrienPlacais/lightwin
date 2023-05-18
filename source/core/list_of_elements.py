@@ -8,6 +8,8 @@ Created on Thu Nov 10 15:11:55 2022.
 import logging
 from typing import Any
 import numpy as np
+from functools import partial
+
 from util.helper import recursive_items, recursive_getter
 from core.emittance import beam_parameters_zdelta
 from core.elements import _Element
@@ -35,8 +37,7 @@ class ListOfElements(list):
             assert ~np.isnan(tm_cumul).any(), \
                 "Previous transfer matrix was not calculated."
         self.tm_cumul_in = tm_cumul
-        self._l_cav = list(filter(lambda elt: elt.get('nature') == 'FIELD_MAP',
-                                  self))
+        self._l_cav = filter_cav(self)
 
     @property
     def l_cav(self):
@@ -289,3 +290,12 @@ def elt_at_this_s_idx(elts: ListOfElements | list[_Element, ...],
 
     logging.warning(f"Mesh index {s_idx} not found.")
     return None
+
+
+def filter_elts(elts: ListOfElements | list[_Element, ...], key: str, val: Any
+                ) -> list[_Element, ...]:
+    """Shortcut for filtering elements according to (key, val)."""
+    return list(filter(lambda elt: elt.get(key) == val, elts))
+
+
+filter_cav = partial(filter_elts, key='nature', val='FIELD_MAP')
