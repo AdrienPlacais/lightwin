@@ -444,7 +444,7 @@ def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
               if with 153 157.
         - l neighboring lattices:
             Every fault will be compensated by l full lattices, direct
-            neighbors of the errors. You must provide l.
+            neighbors of the errors. You must provide l, which must be even.
         - global:
             Use every cavity after the fault.
     """
@@ -525,6 +525,10 @@ def _test_strategy_l_neighboring_lattices(c_wtf: configparser.SectionProxy
         c_wtf.getint('l')
     except ValueError:
         logging.error("l must be an integer.")
+        return False
+
+    if c_wtf.getint('l') % 2 != 0:
+        logging.error("l must be even.")
         return False
 
     return True
