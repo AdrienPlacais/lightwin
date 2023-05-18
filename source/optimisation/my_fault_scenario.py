@@ -26,20 +26,9 @@ TODO option to minimize the power of compensating cavities
 
 TODO remake a small fit after the first one?
 """
-import logging
-import itertools
-import math
-import numpy as np
-import pandas as pd
-
-import config_manager as con
-import optimisation.fault as mod_f
-from optimisation import strategy
+from optimisation.my_fault import MyFault
+from optimisation import strategy, position
 from core.accelerator import Accelerator
-from core.list_of_elements import ListOfElements
-from core.elements import FieldMap
-from core.emittance import mismatch_factor
-from util import debug
 
 
 class MyFaultScenario(list):
@@ -82,10 +71,22 @@ class MyFaultScenario(list):
             fix, wtf, l_fault_idx, l_comp_idx)
 
         l_faults = []
-        for l_fcav, l_ccav in zip(ll_fault_cav, ll_comp_cav):
-            # linked to position
-            l_elts = _zone_recomputed()
+        for l_fidx, l_cidx in zip(ll_fault_idx, ll_comp_idx):
+            # TODO Where should I change the status of the comp and fail cav?
+            # before the next Fault is fixed, at least (avoid mixing comp and
+            # failed cavities between independent faults)
+
+            l_elts, l_check = position.compensation_zone(fix, wtf, l_fidx,
+                                                         l_cidx)
+            # Here l_check is Element index
+            # Ultimately I'll need solver index (envelope) or Element index
+            # (TW)
+            # WARNING! mesh index will be different from ref to fix... Maybe it
+            # would be better to stick to the exit of an _Element name
+
+            # create the fault
             l_faults.append(Fault(self.ref, self.fix, l_fcav, l_ccav,
                                   self.wtf))
-            # Plus also l_elts, to initialize this at Fault creation
+            # warning: sometimes, a compensating cavity is in the compensation
+            # zone, but is is dedicated to another fault
 

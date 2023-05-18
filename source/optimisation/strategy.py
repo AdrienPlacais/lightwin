@@ -8,6 +8,8 @@ Created on Wed May 17 12:41:26 2023
 Here we define the function related to the 'strategy' key of the what_to_fit
 dictionary. In particular, it answers the question:
     Given this set of faults, which compensating cavities will be used?
+
+In this module, the indexes are CAVITY indexes, not element.
 """
 import logging
 import itertools
@@ -172,7 +174,12 @@ def _only_field_maps(lin: Accelerator,
 def _to_cavity_idx(lin: Accelerator,
                    l_idx: list[int, ...] | list[list[int, ...]] | None
                   ) -> list[int, ...] | list[list[int, ...]] | None:
-    """Convert i-th element to k_th cavity."""
+    """
+    Convert i-th element to k_th cavity.
+
+    Works with list of indexes (ungathered) and list of list of indexes
+    (gathered, which is when method = 'manual'.
+    """
     if l_idx is None:
         return None
 
