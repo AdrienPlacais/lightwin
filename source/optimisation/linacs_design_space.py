@@ -52,7 +52,7 @@ def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap, ref_linac:
 
         # Maximum: maximum of section + 30%
         this_section = cav.idx['section']
-        cavs_this_section = ref_linac.elements_of(nature='FIELD_MAP')
+        cavs_this_section = ref_linac.l_cav
         k_e_this_section = [cav.get('k_e', to_numpy=False)
                             for cav in cavs_this_section
                             if cav.idx['section'] == this_section]
