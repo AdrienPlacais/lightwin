@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 17 09:08:47 2023
+Created on Wed May 17 09:08:47 2023.
 
 @author: placais
 
@@ -35,9 +35,9 @@ class MyFaultScenario(list):
     """A class to hold all fault related data."""
 
     def __init__(self, ref_acc: Accelerator, fix_acc: Accelerator,
-                 wtf: dict, l_fault_idx: list[int] | list[list[int]],
-                 l_comp_idx: list[list[int]] | None = None,
-                 l_info_other_sol: list[dict] = None) -> None:
+                 wtf: dict, fault_idx: list[int] | list[list[int]],
+                 comp_idx: list[list[int]] | None = None,
+                 info_other_sol: list[dict] = None) -> None:
         """
         Create the FaultScenario and the Faults.
 
@@ -49,41 +49,42 @@ class MyFaultScenario(list):
             Linac to fix.
         wtf : dict
             Holds what to fit.
-        l_fault_idx : list
+        fault_idx : list
             List containing the position of the errors. If strategy is manual,
             it is a list of lists (faults already gathered).
-        l_comp_idx : list, optional
+        comp_idx : list, optional
             List containing the position of the compensating cavities. If
             strategy is manual, it must be provided. The default is None.
-        l_info_other_sol : list, optional
+        info_other_sol : list, optional
             Contains information on another fit, for comparison purposes. The
             default is None.
 
         """
         self.ref_acc, self.fix_acc = ref_acc, fix_acc
         self.wtf = wtf
-        self.l_info_other_sol = l_info_other_sol
+        self.info_other_sol = info_other_sol
 
         # Here, we gather faults that should be fixed together (in particular,
         # if they need the same compensating cavities)
-        ll_fault_idx, ll_comp_idx = strategy.sort_and_gather_faults(
-            fix_acc, wtf, l_fault_idx, l_comp_idx)
+        gathered_fault_idx, gathered_comp_idx = \
+                strategy.sort_and_gather_faults(fix_acc, wtf,
+                                                fault_idx, comp_idx)
 
-        l_faults = []
-        for l_fidx, l_cidx in zip(ll_fault_idx, ll_comp_idx):
-            l_elts, l_check = position.compensation_zone(fix_acc, wtf, l_fidx,
-                                                         l_cidx)
-            # Here l_check is Element index
+        faults = []
+        for fault, comp in zip(gathered_fault_idx, gathered_comp_idx):
+            elts_subset, objectives_positions = \
+                position.compensation_zone(fix_acc, wtf, fault, comp)
+            # Here objectives_positions is Element index
             # Ultimately I'll need solver index (envelope) or Element index
             # (TW)
             # WARNING! mesh index will be different from ref to fix... Maybe it
             # would be better to stick to the exit of an _Element name
-            l_fcav = [fix_acc.elts[i] for i in l_fidx]
-            l_ccav = [fix_acc.elts[i] for i in l_cidx]
-            l_faults.append(
-                MyFault(self.ref_acc, self.fix_acc, self.wtf, l_fcav, l_ccav,
-                        l_elts, l_check)
+            faulty_cavities = [fix_acc.elts[i] for i in fault]
+            compensating_cavities = [fix_acc.elts[i] for i in comp]
+            faults.append(
+                MyFault(self.ref_acc, self.fix_acc, self.wtf, faulty_cavities,
+                        compensating_cavities, elts_subset,
+                        objectives_positions)
             )
             # warning: sometimes, a compensating cavity is in the compensation
             # zone, but is is dedicated to another fault
-
