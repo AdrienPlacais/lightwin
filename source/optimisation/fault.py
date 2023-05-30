@@ -19,7 +19,6 @@ TODO : at init of Fault, say self.brok_lin = brok_lin.deepcopy() (or copy)
        AH no in fact, maybe plutôt self.fixed_linac = brok_lin after it is
        broken, end of __init__. And then fix only fixed?
        Or can the breakage be done at the init of the Accelerator?
-TODO : _set_design_space could be cleaner
 """
 # from multiprocessing.pool import ThreadPool
 # import multiprocessing
@@ -178,7 +177,7 @@ class Fault():
             cav.update_status(new_status)
 
     def _zone_to_recompute(self, str_position: str
-                           ) -> tuple[list[_Element, ...], dict]:
+                           ) -> tuple[list[_Element], dict]:
         """
         Determine zone to recompute and indexes of where objective is checked.
 
@@ -364,7 +363,7 @@ class Fault():
         return True, d_opti['asf']
 
     def _set_design_space(self) -> tuple[np.ndarray, np.ndarray, np.ndarray,
-                                         list[str, ...]]:
+                                         list[str]]:
         """
         Set initial conditions and boundaries for the fit.
 
@@ -450,9 +449,9 @@ class Fault():
         self.info['X_in_real_phase'] = x_in_real_phase
 
     def _select_objective(
-            self, l_objectives: list[str, ...], l_scales: list[float, ...],
+            self, l_objectives: list[str], l_scales: list[float],
             **d_idx: dict[str, int]) -> tuple[Callable[[dict], np.ndarray],
-                                              list[str, ...]]:
+                                              list[str]]:
         """
         Select the objective to fit.
 

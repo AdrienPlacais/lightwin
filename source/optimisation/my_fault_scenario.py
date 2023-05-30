@@ -34,19 +34,18 @@ from core.accelerator import Accelerator
 class MyFaultScenario(list):
     """A class to hold all fault related data."""
 
-    def __init__(self, ref: Accelerator, fix: Accelerator,
-                 wtf: dict,
-                 l_fault_idx: list[int, ...] | list[list[int, ...], ...],
-                 l_comp_idx: list[list[int, ...], ...] | None = None,
-                 l_info_other_sol: list[dict, ...] = None) -> None:
+    def __init__(self, ref_acc: Accelerator, fix_acc: Accelerator,
+                 wtf: dict, l_fault_idx: list[int] | list[list[int]],
+                 l_comp_idx: list[list[int]] | None = None,
+                 l_info_other_sol: list[dict] = None) -> None:
         """
         Create the FaultScenario and the Faults.
 
         Parameters
         ----------
-        ref : Accelerator
+        ref_acc : Accelerator
             Reference linac.
-        fix : Accelerator
+        fix_acc : Accelerator
             Linac to fix.
         wtf : dict
             Holds what to fit.
@@ -61,32 +60,30 @@ class MyFaultScenario(list):
             default is None.
 
         """
-        self.ref, self.fix = ref, fix
+        self.ref_acc, self.fix_acc = ref_acc, fix_acc
         self.wtf = wtf
         self.l_info_other_sol = l_info_other_sol
 
         # Here, we gather faults that should be fixed together (in particular,
         # if they need the same compensating cavities)
         ll_fault_idx, ll_comp_idx = strategy.sort_and_gather_faults(
-            fix, wtf, l_fault_idx, l_comp_idx)
+            fix_acc, wtf, l_fault_idx, l_comp_idx)
 
         l_faults = []
         for l_fidx, l_cidx in zip(ll_fault_idx, ll_comp_idx):
-            # TODO Where should I change the status of the comp and fail cav?
-            # before the next Fault is fixed, at least (avoid mixing comp and
-            # failed cavities between independent faults)
-
-            l_elts, l_check = position.compensation_zone(fix, wtf, l_fidx,
+            l_elts, l_check = position.compensation_zone(fix_acc, wtf, l_fidx,
                                                          l_cidx)
             # Here l_check is Element index
             # Ultimately I'll need solver index (envelope) or Element index
             # (TW)
             # WARNING! mesh index will be different from ref to fix... Maybe it
             # would be better to stick to the exit of an _Element name
-
-            # create the fault
-            l_faults.append(Fault(self.ref, self.fix, l_fcav, l_ccav,
-                                  self.wtf))
+            l_fcav = [fix_acc.elts[i] for i in l_fidx]
+            l_ccav = [fix_acc.elts[i] for i in l_cidx]
+            l_faults.append(
+                MyFault(self.ref_acc, self.fix_acc, self.wtf, l_fcav, l_ccav,
+                        l_elts, l_check)
+            )
             # warning: sometimes, a compensating cavity is in the compensation
             # zone, but is is dedicated to another fault
 
