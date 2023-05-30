@@ -8,6 +8,7 @@ Created on Wed Sep 22 10:26:19 2021.
 TODO : check FLAG_PHI_S_FIT
 TODO : rf_param should also return phi_rf_rel. Will be necessary
 for non-synch particles.
+FIXME : __repr__ won't work with retuned elements
 """
 import logging
 from typing import Any
@@ -83,6 +84,7 @@ class _Element():
         elem : list of string
             A valid line of the .dat file.
         """
+        self.__elem = elem
         self.elt_info = {
             'elt_name': None,
             'nature': elem[0],
@@ -101,6 +103,14 @@ class _Element():
             (np.empty([10, 2, 2]), np.empty([10, 2]), None)
         self.solver_param = {'n_steps': None, 'd_z': None,
                              'abs_mesh': None, 'rel_mesh': None}
+
+    def __str__(self) -> str:
+        return self.elt_info['elt_name']
+
+    def __repr__(self) -> str:
+        if self.elt_info['status'] not in ['none', 'nominal']:
+            logging.warning("Element properties where changed.")
+        return f"{self.__class__}(elem={self.__elem})"
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
