@@ -15,7 +15,7 @@ from core.elements import _Element, FieldMap
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.emittance import mismatch_factor
-from optimisation.linacs_design_space import initial_value, limits, constraints
+from optimisation.variables import initial_value, limits, constraints
 
 
 class MyFault:

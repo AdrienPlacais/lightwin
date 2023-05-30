@@ -67,8 +67,7 @@ class MyFaultScenario(list):
         # Here, we gather faults that should be fixed together (in particular,
         # if they need the same compensating cavities)
         gathered_fault_idx, gathered_comp_idx = \
-                strategy.sort_and_gather_faults(fix_acc, wtf,
-                                                fault_idx, comp_idx)
+            strategy.sort_and_gather_faults(fix_acc, wtf, fault_idx, comp_idx)
 
         faults = []
         for fault, comp in zip(gathered_fault_idx, gathered_comp_idx):

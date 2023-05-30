@@ -35,7 +35,7 @@ from core.accelerator import Accelerator
 from util import debug
 from util.dicts_output import d_markdown
 from optimisation import pso
-from optimisation.linacs_design_space import initial_value, limits, constraints
+from optimisation.variables import initial_value, limits, constraints
 import visualization.plot
 
 
