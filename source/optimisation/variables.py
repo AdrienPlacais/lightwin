@@ -87,6 +87,7 @@ class VariablesAndConstraints:
         out += ["=" * 80]
         return "\n".join(out)
 
+    # TODO legacy
     def to_least_squares_format(self) -> tuple[np.ndarray, np.ndarray,
                                                np.ndarray, list[str]]:
         """Return design space as expected by scipy.least_squares."""

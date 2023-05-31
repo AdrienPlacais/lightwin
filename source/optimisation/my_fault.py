@@ -58,7 +58,7 @@ class MyFault:
     def fix(self):
         """Fix the Fault."""
         self._update_cavities_status(optimisation='not started')
-        design_space = self._set_design_space()
+        variables_constraints = self._set_design_space()
         compute_residuals, info_objectives = self._select_objective()
 
         # self.fit_info.update({
@@ -109,7 +109,7 @@ class MyFault:
 
         Returns
         -------
-        design_space : VariablesAndConstraints
+        variables_constraints : VariablesAndConstraints
             Holds variables, their initial values, their limits, and
             constraints.
         """
@@ -122,12 +122,12 @@ class MyFault:
         constraints = ['phi_s']
         # FIXME should not be initialized if not used
 
-        design_space = VariablesAndConstraints(
+        variables_constraints = VariablesAndConstraints(
             con.LINAC, self.ref_acc, self.failed_cav, variables, constraints)
 
         logging.info("Design space (handled in optimisation.variables, not "
-                     f".ini):\n{design_space}")
-        return design_space
+                     f".ini):\n{variables_constraints}")
+        return variables_constraints
 
     def _select_objective(self) -> tuple[Callable, list[str]]:
         """Set optimisation objective."""
