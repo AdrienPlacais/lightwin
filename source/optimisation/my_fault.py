@@ -15,7 +15,7 @@ from core.elements import _Element, FieldMap
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.emittance import mismatch_factor
-from optimisation.variables import initial_value, limits, constraints
+from optimisation.variables import VariablesAndConstraints
 
 
 class MyFault:
@@ -58,16 +58,16 @@ class MyFault:
     def fix(self):
         """Fix the Fault."""
         self._init_status()
-        x_0, x_lim, constr, x_info = self._set_design_space()
+        design_space = self._set_design_space()
         compute_residuals, info_objectives = self._select_objective()
 
-        self.fit_info.update({
-            'X_0': x_0,
-            'X_lim': x_lim,
-            'X_info': x_info,
-            'F_info': info_objectives,
-            'G': constr,
-        })
+        # self.fit_info.update({
+            # 'X_0': x_0,
+            # 'X_lim': x_lim,
+            # 'X_info': x_info,
+            # 'F_info': info_objectives,
+            # 'G': constr,
+        # })
 
     def _init_status(self):
         """Update status of compensating and failed cavities."""
@@ -79,8 +79,7 @@ class MyFault:
             cav.update_status(status)
 
     # TODO may be simpler
-    def _set_design_space(self) -> tuple[np.ndarray, np.ndarray, np.ndarray,
-                                         list[str]]:
+    def _set_design_space(self) -> VariablesAndConstraints:
         """
         Set initial conditions and boundaries for the fit.
 
@@ -89,59 +88,25 @@ class MyFault:
 
         Returns
         -------
-        x_0 : np.array
-            Initial guess for the initial phase and norm of the compensating
-            cavities.
-        x_lim : np.array of tuples
-            Array of (min, max) bounds for the electric fields of the
-            compensating cavities.
-        phi_s_limits : np.array of tuples
-            Contains upper and lower synchronous phase limits for each cavity.
-            Used to define constraints in PSO.
-        x_info : list of str
-            Name of cavities and properties.
+        design_space : VariablesAndConstraints
+            Holds variables, their initial values, their limits, and
+            constraints.
         """
-        # List of variables:
-        #   - first variable is always a phase
-        #   - second variable is always the electric field
-        l_x = ['phi_0_rel', 'k_e']
+        variables = ['phi_0_rel', 'k_e']
         if con.FLAG_PHI_ABS:
-            l_x = ['phi_0_abs', 'k_e']
+            variables = ['phi_0_abs', 'k_e']
         if self.wtf['phi_s fit']:
-            l_x = ['phi_s', 'k_e']
-        # List of constaints:
-        l_g = ['phi_s']
+            variables = ['phi_s', 'k_e']
+
+        constraints = ['phi_s']
         # FIXME should not be initialized if not used
 
-        ref_acc = self.ref_acc
-        x_0, x_lim, x_info = [], [], []
-        for var in l_x:
-            for cav in self.comp_cav:
-                ref_cav = ref_acc.equiv_elt(cav)
+        design_space = VariablesAndConstraints(
+            con.LINAC, self.ref_acc, self.failed_cav, variables, constraints)
 
-                args = (con.LINAC, cav, ref_cav, ref_acc)
-                x_0.append(initial_value(var, ref_cav))
-                x_lim.append(limits(var, *args))
-                x_info.append(' '.join((cav.get('elt_name', to_numpy=False),
-                                        d_markdown[var])))
-        g_lim = []
-        for const in l_g:
-            for cav in self.comp_cav:
-                ref_cav = ref_acc.equiv_elt(cav)
-
-                args = (con.LINAC, cav, ref_cav, ref_acc)
-                g_lim.append(constraints(const, *args))
-
-        x_0 = np.array(x_0)
-        x_lim = np.array(x_lim)
-        g_lim = np.array(g_lim)
-
-        logging.info("Design space (handled in "
-                     + "optimisation.variables, not .ini):\n"
-                     + f"Initial guess:\n{x_0}\n"
-                     + f"Bounds:\n{x_lim}\n"
-                     + f"Constraints (not necessarily used):\n{g_lim}")
-        return x_0, x_lim, g_lim, x_info
+        logging.info("Design space (handled in optimisation.variables, not "
+                     f".ini):\n{design_space}")
+        return design_space
 
     def _select_objective(self) -> tuple[Callable, list[str]]:
         """Set optimisation objective."""
