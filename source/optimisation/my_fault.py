@@ -101,9 +101,9 @@ class MyFault:
         x_info : list of str
             Name of cavities and properties.
         """
-        # List of objectives:
-        #   - first objective is always a phase
-        #   - second objective is always the electric field
+        # List of variables:
+        #   - first variable is always a phase
+        #   - second variable is always the electric field
         l_x = ['phi_0_rel', 'k_e']
         if con.FLAG_PHI_ABS:
             l_x = ['phi_0_abs', 'k_e']
@@ -115,15 +115,15 @@ class MyFault:
 
         ref_acc = self.ref_acc
         x_0, x_lim, x_info = [], [], []
-        for obj in l_x:
+        for var in l_x:
             for cav in self.comp_cav:
                 ref_cav = ref_acc.equiv_elt(cav)
 
                 args = (con.LINAC, cav, ref_cav, ref_acc)
-                x_0.append(initial_value(obj, ref_cav))
-                x_lim.append(limits(obj, *args))
+                x_0.append(initial_value(var, ref_cav))
+                x_lim.append(limits(var, *args))
                 x_info.append(' '.join((cav.get('elt_name', to_numpy=False),
-                                        d_markdown[obj])))
+                                        d_markdown[var])))
         g_lim = []
         for const in l_g:
             for cav in self.comp_cav:
@@ -137,7 +137,7 @@ class MyFault:
         g_lim = np.array(g_lim)
 
         logging.info("Design space (handled in "
-                     + "optimisation.linacs_design_space, not .ini):\n"
+                     + "optimisation.variables, not .ini):\n"
                      + f"Initial guess:\n{x_0}\n"
                      + f"Bounds:\n{x_lim}\n"
                      + f"Constraints (not necessarily used):\n{g_lim}")

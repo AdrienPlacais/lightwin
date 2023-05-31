@@ -25,6 +25,8 @@ TODO position:
     element number
     end_section
     allow list of arguments, and remove 'both'
+
+TODO variable: maybe add this? Unnecessary at this point
 """
 import logging
 import os

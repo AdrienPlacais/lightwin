@@ -488,6 +488,7 @@ def neighboring_cavities(lin, l_faulty_cav, n_comp_per_fault):
     idx_compensating = np.lexsort((sort_bis, distance))[:n_cav_to_take]
     idx_compensating.sort()
     l_comp_cav = [lin.l_cav[idx] for idx in idx_compensating]
+    logging.warning("Faulty cav in l_comp_cav... Is this wanted?")
     return l_comp_cav
 
 

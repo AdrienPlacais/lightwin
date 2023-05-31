@@ -35,7 +35,7 @@ from core.accelerator import Accelerator
 from util import debug
 from util.dicts_output import d_markdown
 from optimisation import pso
-from optimisation.variables import initial_value, limits, constraints
+from optimisation.variables import VariablesAndConstraints
 import visualization.plot
 
 
@@ -107,7 +107,7 @@ class Fault():
         self._prepare_cavities_for_compensation()
 
         # Set the variables
-        x_0, x_lim, constr, l_x_str = self._set_design_space()
+        x_0, x_lim, constr, design_info = self._set_design_space()
         l_elts, d_idx = self._zone_to_recompute(self.wtf['position'])
 
         idx = l_elts[0].get('s_in')
@@ -126,7 +126,7 @@ class Fault():
         self.info.update({
             'X_0': x_0,
             'X_lim': x_lim,
-            'l_X_str': l_x_str,
+            'design_info': design_info,
             'l_F_str': l_f_str,
             'G': constr,
         })
@@ -396,35 +396,12 @@ class Fault():
         l_g = ['phi_s']
         # FIXME should not be initialized if not used
 
-        ref_linac = self.ref_lin
-        x_0, x_lim, l_x_str = [], [], []
-        for obj in l_x:
-            for cav in self.comp['l_cav']:
-                ref_cav = ref_linac.equiv_elt(cav)
-
-                args = (con.LINAC, cav, ref_cav, ref_linac)
-                x_0.append(initial_value(obj, ref_cav))
-                x_lim.append(limits(obj, *args))
-                l_x_str.append(' '.join((cav.get('elt_name', to_numpy=False),
-                                         d_markdown[obj])))
-        g_lim = []
-        for const in l_g:
-            for cav in self.comp['l_cav']:
-                ref_cav = ref_linac.equiv_elt(cav)
-
-                args = (con.LINAC, cav, ref_cav, ref_linac)
-                g_lim.append(constraints(const, *args))
-
-        x_0 = np.array(x_0)
-        x_lim = np.array(x_lim)
-        g_lim = np.array(g_lim)
-
-        logging.info("Design space (handled in "
-                     + "optimisation.linacs_design_space, not .ini):\n"
-                     + f"Initial guess:\n{x_0}\n"
-                     + f"Bounds:\n{x_lim}\n"
-                     + f"Constraints (not necessarily used):\n{g_lim}")
-        return x_0, x_lim, g_lim, l_x_str
+        design_space = VariablesAndConstraints(con.LINAC, self.ref_lin,
+                                               self.comp['l_cav'], l_x, l_g)
+        x_0, x_lim, g_lim, design_info = design_space.to_least_squares_format()
+        logging.info("Design space (handled in optimisation.variables, not "
+                     f".ini):\n{design_space}")
+        return x_0, x_lim, g_lim, design_info
 
     def get_x_sol_in_real_phase(self) -> None:
         """
