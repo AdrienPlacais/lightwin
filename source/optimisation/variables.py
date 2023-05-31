@@ -58,11 +58,8 @@ class Constraint:
 class VariablesAndConstraints:
     """Holds variables, constraints, bounds of the optimisation problem."""
 
-    def __init__(self,
-                 accelerator_name: str,
-                 ref_acc: Accelerator,
-                 comp_cav: list[FieldMap],
-                 variable_names: list[str],
+    def __init__(self, accelerator_name: str, ref_acc: Accelerator,
+                 comp_cav: list[FieldMap], variable_names: list[str],
                  constraint_names: list[str]) -> None:
         """Set the design space."""
         self.accelerator_name = accelerator_name
@@ -107,7 +104,6 @@ class VariablesAndConstraints:
         ref_cav = self.ref_acc.equiv_elt(cav)
         return INITIAL[key](ref_cav)
 
-
     def _set_limits(self, key: str, cav: FieldMap) -> tuple[float | None]:
         """Return optimisation limits for desired key."""
         if key not in LIM:
@@ -116,7 +112,6 @@ class VariablesAndConstraints:
         ref_cav = self.ref_acc.equiv_elt(cav)
         args = (self.accelerator_name, cav, ref_cav, self.ref_acc)
         return LIM[key](*args)
-
 
     def _set_constraints(self, key: str, cav: FieldMap) -> tuple[float | None]:
         """Return optimisation constraints for desired key."""

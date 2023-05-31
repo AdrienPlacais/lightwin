@@ -57,7 +57,7 @@ class MyFault:
 
     def fix(self):
         """Fix the Fault."""
-        self._init_status()
+        self._update_cavities_status(optimisation='not started')
         design_space = self._set_design_space()
         compute_residuals, info_objectives = self._select_objective()
 
@@ -68,17 +68,38 @@ class MyFault:
             # 'F_info': info_objectives,
             # 'G': constr,
         # })
+        self._update_cavities_status(optimisation='finished', success=True)
 
-    def _init_status(self):
+    def _update_cavities_status(self, optimisation: 'not started' | 'finished',
+                                success: bool | None = None) -> None:
         """Update status of compensating and failed cavities."""
-        for cav, status in zip([self.failed_cav, self.comp_cav],
-                               ['failed', 'compensate (in progress)']):
-            if cav.get('status') != 'nominal':
-                logging.warning(f"Cavity {cav} is already used for another "
-                                + "purpose. I will continue anyway...")
-            cav.update_status(status)
+        if optimisation not in ['not started', 'finished']:
+            logging.error("{optimisation =} not understood. Not changing any "
+                         + "status...")
+            return
 
-    # TODO may be simpler
+        if optimisation == 'not started':
+            cavities = self.failed_cav + self.comp_cav
+            status = ['failed' for cav in self.failed_cav]
+            status += ['compensate (in progress)' for cav in self.comp_cav]
+
+            if {cav.get('status') for cav in cavities} != {'nominal'}:
+                logging.error("At least one compensating or failed cavity is "
+                              + "already compensating or faulty, probably "
+                              + "in another Fault object. Updating its status "
+                              + "anyway...")
+
+        elif optimisation == 'finished':
+            assert success is not None
+
+            cavities = self.comp_cav
+            status = ['compensate (ok)' for cav in cavities]
+            if not success:
+                status = ['compensate (nok)' for cav in cavities]
+
+        for cav, stat in zip(cavities, status):
+            cav.update_status(stat)
+
     def _set_design_space(self) -> VariablesAndConstraints:
         """
         Set initial conditions and boundaries for the fit.
