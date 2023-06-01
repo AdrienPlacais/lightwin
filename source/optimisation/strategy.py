@@ -26,10 +26,10 @@ FACT = math.factorial
 
 def sort_and_gather_faults(
         fix: Accelerator, wtf: dict,
-        l_fault_idx: list[int, ...] | list[list[int, ...], ...],
-        l_comp_idx: list[list[int, ...], ...] | None = None,
-) -> tuple[list[int, ...] | list[list[int, ...], ...],
-           list[int, ...] | list[list[int, ...], ...]]:
+        fault_idx: list[int] | list[list[int]],
+        comp_idx: list[list[int]] | None = None,
+) -> tuple[list[int] | list[list[int]],
+           list[int] | list[list[int]]]:
     """
     Link faulty cavities with their compensating cavities.
 
@@ -37,7 +37,7 @@ def sort_and_gather_faults(
     compensating cavities are put in common and they will be fixed together.
     """
     # Check nature, convert to CAVITY index if necessary
-    for my_list in [l_fault_idx, l_comp_idx]:
+    for my_list in [fault_idx, comp_idx]:
         assert _only_field_maps(fix, my_list, idx=wtf['idx'])
 
         if wtf['idx'] == 'element':
@@ -45,15 +45,15 @@ def sort_and_gather_faults(
 
     # If manual, we are done
     if wtf['strategy'] == 'manual':
-        return l_fault_idx, l_comp_idx
+        return fault_idx, comp_idx
 
     # If not, gather and sort with proper method
-    ll_fault_idx, ll_comp_idx = _gather(fix, l_fault_idx, wtf)
-    return ll_fault_idx, ll_comp_idx
+    gathered_fault_idx, gathered_comp_idx = _gather(fix, fault_idx, wtf)
+    return gathered_fault_idx, gathered_comp_idx
 
 
-def _gather(fix: Accelerator, l_fault_idx: list[int, ...], wtf: dict
-            ) -> tuple[list[list[int, ...], ...], list[list[int, ...], ...]]:
+def _gather(fix: Accelerator, fault_idx: list[int], wtf: dict
+            ) -> tuple[list[list[int]], list[list[int]]]:
     """Gather faults to be fixed together and associated compensating cav."""
     if wtf['strategy'] not in D_SORT_AND_GATHER:
         logging.error('TMP: strategy not reimplemented.')
@@ -62,30 +62,32 @@ def _gather(fix: Accelerator, l_fault_idx: list[int, ...], wtf: dict
     r_comb = 2
 
     flag_gathered = False
-    ll_fault = [l_fault_idx]
+    gathered_faults = [fault_idx]
     while not flag_gathered:
         # List of list of corresp. compensating cavities
-        ll_comp = [fun_sort(fix, l_fault, wtf) for l_fault in ll_fault]
+        gathered_comp = [fun_sort(fix, faults, wtf)
+                         for faults in gathered_faults]
 
         # Set a counter to exit the 'for' loop when all faults are gathered
         i = 0
-        n_comb = len(ll_comp)
-        if n_comb <= 1:
+        n_combinations = len(gathered_comp)
+        if n_combinations <= 1:
             flag_gathered = True
             break
-        i_max = int(FACT(n_comb) / (FACT(r_comb) * FACT(n_comb - r_comb)))
+        i_max = int(FACT(n_combinations) / (
+            FACT(r_comb) * FACT(n_combinations - r_comb)))
 
         # Now we look every list of required compensating cavities, and
         # look for faults that require the same compensating cavities
         for ((idx1, l_comp1), (idx2, l_comp2)) \
-                in itertools.combinations(enumerate(ll_comp), r_comb):
+                in itertools.combinations(enumerate(gathered_comp), r_comb):
             i += 1
             common = list(set(l_comp1) & set(l_comp2))
             # If at least one cavity on common, gather the two
             # corresponding fault and restart the whole process
             if len(common) > 0:
-                ll_fault[idx1].extend(ll_fault.pop(idx2))
-                ll_comp[idx1].extend(ll_comp.pop(idx2))
+                gathered_faults[idx1].extend(gathered_faults.pop(idx2))
+                gathered_comp[idx1].extend(gathered_comp.pop(idx2))
                 break
 
             # If we reached this point, it means that there is no list of
@@ -93,18 +95,18 @@ def _gather(fix: Accelerator, l_fault_idx: list[int, ...], wtf: dict
             if i == i_max:
                 flag_gathered = True
 
-    return ll_fault, ll_comp
+    return gathered_faults, gathered_comp
 
 
-def _k_neighboring_cavities(lin: Accelerator, l_fault_idx: list[int, ...],
-                            wtf: dict) -> list[int, ...]:
+def _k_neighboring_cavities(lin: Accelerator, fault_idx: list[int],
+                            wtf: dict) -> list[int]:
     """Select the cavities neighboring the failed one(s)."""
-    n_comp_cav = len(l_fault_idx) * (wtf['k'] + 1)
+    n_comp_cav = len(fault_idx) * (wtf['k'] + 1)
 
     # List of distances between the failed cavities and the other ones
     distances = []
-    for idx_f in l_fault_idx:
-        distance = np.array([idx_f - lin.l_cav.index(cav)
+    for idx in fault_idx:
+        distance = np.array([idx - lin.l_cav.index(cav)
                              for cav in lin.l_cav], dtype=np.float64)
         distances.append(np.abs(distance))
     distances = np.array(distances)
@@ -122,49 +124,47 @@ def _k_neighboring_cavities(lin: Accelerator, l_fault_idx: list[int, ...],
     return list(idx_compensating.sort())
 
 
-def _l_neighboring_lattices(lin: Accelerator, l_faulty_idx: list[int, ...],
-                            wtf: dict) -> list[int, ...]:
+def _l_neighboring_lattices(lin: Accelerator, fault_idx: list[int],
+                            wtf: dict) -> list[int]:
     """Select full lattices neighboring the failed cavities."""
     # For this routine, we use list of faulty cavities instead of list of idx
-    l_faulty_cav = [lin.l_cav[idx] for idx in l_faulty_idx]
+    fault_cav = [lin.l_cav[idx] for idx in fault_idx]
 
-    # List of cavities, sorted by lattice
-    ll_all_latt = [filter_cav(lattice)
-                   for section in lin.get('l_sections', to_numpy=False)
-                   for lattice in section]
-    # List of lattices with a fault
-    ll_faulty_latt = [lattice
-                      for faulty_cav in l_faulty_cav
-                      for lattice in ll_all_latt
-                      if faulty_cav in lattice]
-    faulty_latt_idx = [ll_all_latt.index(lattice)
-                       for lattice in ll_faulty_latt]
+    cavities_by_lattice = [filter_cav(lattice)
+                           for section in lin.get('l_sections', to_numpy=False)
+                           for lattice in section]
+    lattices_with_a_fault = [lattice
+                             for cav in fault_cav
+                             for lattice in cavities_by_lattice
+                             if cav in lattice]
+    faulty_latt_idx = [cavities_by_lattice.index(lattice)
+                       for lattice in lattices_with_a_fault]
 
-    half_n_latt = int(len(l_faulty_idx) * wtf['l'] / 2)
-    # List of compensating lattices
-    l_comp_latt = ll_all_latt[faulty_latt_idx[0] - half_n_latt:
-                              faulty_latt_idx[-1] + half_n_latt + 1]
+    half_n_latt = int(len(fault_idx) * wtf['l'] / 2)
+    lattices_with_a_compensating_cavity = \
+        cavities_by_lattice[faulty_latt_idx[0] - half_n_latt:
+                            faulty_latt_idx[-1] + half_n_latt + 1]
 
     # List of cavities in the compensating lattices
     idx_compensating = [lin.l_cav.index(cav)
-                        for lattice in l_comp_latt
+                        for lattice in lattices_with_a_compensating_cavity
                         for cav in lattice]
     return idx_compensating
 
 
 def _only_field_maps(lin: Accelerator,
-                     ll_idx: list[int, ...] | list[list[int, ...], ...] | None,
+                     indexes: list[int] | list[list[int]] | None,
                      idx: str) -> bool:
     """Check that all the required elements are cavities."""
-    if ll_idx is None:
+    if indexes is None:
         return True
 
-    l_elts = lin.elts
+    elts = lin.elts
     if idx == 'cavity':
-        l_elts = lin.l_cav
+        elts = lin.l_cav
     # natures = {x.get('nature') for x in flatten(ll_cav)}
     # if natures != {'FIELD_MAP'}:
-    types = {type(l_elts[i]) for i in flatten(ll_idx)}
+    types = {type(elts[i]) for i in flatten(indexes)}
     if types != {FieldMap}:
         logging.error("Some elements are not cavities.")
         return False
@@ -172,33 +172,33 @@ def _only_field_maps(lin: Accelerator,
 
 
 def _to_cavity_idx(lin: Accelerator,
-                   l_idx: list[int, ...] | list[list[int, ...]] | None
-                  ) -> list[int, ...] | list[list[int, ...]] | None:
+                   indexes: list[int] | list[list[int]] | None
+                  ) -> list[int] | list[list[int]] | None:
     """
     Convert i-th element to k_th cavity.
 
     Works with list of indexes (ungathered) and list of list of indexes
     (gathered, which is when method = 'manual'.
     """
-    if l_idx is None:
+    if indexes is None:
         return None
 
-    set_types = {type(idx) for idx in l_idx}
+    set_types = {type(idx) for idx in indexes}
     list_in = lin.elts
     list_out = lin.l_cav
 
     if set_types == {int}:
-        l_elts = [list_in[i] for i in l_idx]
-        l_idx = [list_out.index(elt) for elt in l_elts]
-        return l_idx
+        elts = [list_in[i] for i in indexes]
+        indexes = [list_out.index(elt) for elt in elts]
+        return indexes
 
     if set_types == {list}:
-        ll_elts = [[list_in[i] for i in idx] for idx in l_idx]
-        ll_idx = [[list_out.index(elt) for elt in l_elts]
-                  for l_elts in ll_elts]
-        return ll_idx
+        grouped_elts = [[list_in[i] for i in idx] for idx in indexes]
+        grouped_indexes = [[list_out.index(elt) for elt in elts]
+                           for elts in grouped_elts]
+        return grouped_indexes
 
-    logging.error(f"{l_idx} data type was not recognized.")
+    logging.error(f"{indexes} data type was not recognized.")
     return None
 
 
