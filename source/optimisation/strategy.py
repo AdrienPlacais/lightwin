@@ -24,12 +24,11 @@ from core.elements import FieldMap
 FACT = math.factorial
 
 
-def sort_and_gather_faults(
-        fix: Accelerator, wtf: dict,
-        fault_idx: list[int] | list[list[int]],
-        comp_idx: list[list[int]] | None = None,
-) -> tuple[list[int] | list[list[int]],
-           list[int] | list[list[int]]]:
+def sort_and_gather_faults(fix: Accelerator, wtf: dict,
+                           fault_idx: list[int] | list[list[int]],
+                           comp_idx: list[list[int]] | None = None,
+                           ) -> tuple[list[int] | list[list[int]],
+                                      list[int] | list[list[int]]]:
     """
     Link faulty cavities with their compensating cavities.
 
@@ -101,7 +100,8 @@ def _gather(fix: Accelerator, fault_idx: list[int], wtf: dict
 def _k_neighboring_cavities(lin: Accelerator, fault_idx: list[int],
                             wtf: dict) -> list[int]:
     """Select the cavities neighboring the failed one(s)."""
-    n_comp_cav = len(fault_idx) * (wtf['k'] + 1)
+    # "altered" means compensating or failed cavity
+    n_altered_cav = len(fault_idx) * (wtf['k'] + 1)
 
     # List of distances between the failed cavities and the other ones
     distances = []
@@ -120,8 +120,10 @@ def _k_neighboring_cavities(lin: Accelerator, fault_idx: list[int],
     # sort_bis = -sort_bis
     # TODO: add a flag in wtf to select this
 
-    idx_compensating = np.lexsort((sort_bis, distance))[:n_comp_cav]
-    return list(idx_compensating.sort())
+    idx_altered = np.lexsort((sort_bis, distance))[:n_altered_cav]
+    idx_altered.sort()
+    idx_altered = list(idx_altered)
+    return idx_altered
 
 
 def _l_neighboring_lattices(lin: Accelerator, fault_idx: list[int],
@@ -173,7 +175,7 @@ def _only_field_maps(lin: Accelerator,
 
 def _to_cavity_idx(lin: Accelerator,
                    indexes: list[int] | list[list[int]] | None
-                  ) -> list[int] | list[list[int]] | None:
+                   ) -> list[int] | list[list[int]] | None:
     """
     Convert i-th element to k_th cavity.
 
