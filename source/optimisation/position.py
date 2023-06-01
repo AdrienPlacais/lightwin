@@ -22,10 +22,9 @@ import logging
 from core.accelerator import Accelerator
 from core.elements import _Element
 
-
-def compensation_zone(fix: Accelerator, wtf: dict, l_fault_idx: list[int],
-                      l_comp_idx: list[int]
-                     ) -> tuple[list[_Element], list[int]]:
+# !!! fault_idx is still in comp_idx!! FIXME
+def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
+                      comp_idx: list[int]) -> tuple[list[_Element], list[int]]:
     """Tell what is the zone to recompute."""
     position = wtf['position']
     # FIXME
@@ -33,43 +32,43 @@ def compensation_zone(fix: Accelerator, wtf: dict, l_fault_idx: list[int],
         position = [position]
 
     # We need ELEMENT indexes, not cavity.
-    for l_idx in [l_fault_idx, l_comp_idx]:
-        l_idx = _to_elt_idx(fix, l_idx)
+    fault_idx = _to_elt_idx(fix, fault_idx)
+    comp_idx = _to_elt_idx(fix, comp_idx)
 
-    l_check = []
+    check = []
     for pos in position:
-        l_check.append(_zone(pos))
+        check.append(_zone(pos, fix, fault_idx, comp_idx))
 
     # Take compensation zone that encompasses all individual comp zones
-    idx_in = min(l_fault_idx + l_comp_idx) - 1
-    idx_out = max(l_check) + 1
-    l_elts = fix.elts[idx_in, idx_out]
+    idx_in = min(fault_idx + comp_idx) - 1
+    idx_out = max(check) + 1
+    elts = fix.elts[idx_in:idx_out]
 
-    return l_elts, l_check
+    return elts, check
 
 
-def _zone(pos: str) -> int | None:
+def _zone(pos: str, *args) -> int | None:
     """Give compensation zone, and position where objectives are checked."""
     if pos not in D_POS:
         logging.error(f"Position {pos} not recognized.""")
         return None
-    return D_POS[pos]
+    return D_POS[pos](*args)
 
 
-def _end_mod(lin: Accelerator, l_fidx: list[int], l_cidx: list[int]) -> int:
-    """Evaluate objective at the end of the last lattice w/ an altered cavity.
-    """
-    idx_last = max(l_fidx + l_cidx)
+def _end_mod(lin: Accelerator, fault_idx: list[int],
+             comp_idx: list[int]) -> int:
+    """Evaluate obj at the end of the last lattice w/ an altered cavity."""
+    idx_last = max(fault_idx + comp_idx)
     idx_lattice_last = lin.elts[idx_last].get('lattice')
-    l_lattices = [lattice for section in lin.get('l_sections', to_numpy=False)
-                  for lattice in section]
-    return l_lattices[idx_lattice_last][-1].get('elt_idx')
+    lattices = [lattice for section in lin.get('l_sections', to_numpy=False)
+                for lattice in section]
+    return lattices[idx_lattice_last][-1].get('elt_idx', to_numpy=False)
 
 
-def _one_mod_after(lin: Accelerator, l_fidx: list[int],
-                   l_cidx: list[int]) -> int:
+def _one_mod_after(lin: Accelerator, fault_idx: list[int],
+                   comp_idx: list[int]) -> int:
     """Evaluate objective one lattice after the last comp or failed cav."""
-    idx_last = max(l_fidx + l_cidx)
+    idx_last = max(fault_idx + comp_idx)
     idx_lattice_last = lin.elts[idx_last].get('lattice') + 1
     l_lattices = [lattice for section in lin.get('l_sections', to_numpy=False)
                   for lattice in section]
@@ -78,18 +77,19 @@ def _one_mod_after(lin: Accelerator, l_fidx: list[int],
                         + "Revert back to previous lattice, i.e. end of "
                         + "linac.")
         idx_lattice_last -= 1
-    return l_lattices[idx_lattice_last][-1].get('elt_idx')
+    return l_lattices[idx_lattice_last][-1].get('elt_idx', to_numpy=False)
 
 
-def _end_linac(lin: Accelerator, l_fidx: list[int], l_cidx: list[int]) -> int:
+def _end_linac(lin: Accelerator, fault_idx: list[int],
+               comp_idx: list[int]) -> int:
     """Evaluate objective at the end of the linac."""
     return lin.elts[-1].get('elt_idx')
 
 
-def _to_elt_idx(lin: Accelerator, l_idx: list[int]) -> list[int]:
-    """Convert list of k-th cavity to list of i-th elements. """
-    l_idx = [lin.l_cav[i].get('elt_idx', to_numpy=False) for i in l_idx]
-    return l_idx
+def _to_elt_idx(lin: Accelerator, indexes: list[int]) -> list[int]:
+    """Convert list of k-th cavity to list of i-th elements."""
+    indexes = [lin.l_cav[i].get('elt_idx', to_numpy=False) for i in indexes]
+    return indexes
 
 
 D_POS = {
