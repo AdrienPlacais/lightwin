@@ -47,20 +47,42 @@ class LeastSquares(OptimisationAlgorithm):
                   # 'x_scale': 'jac',
                   # 'loss': 'arctan',
                   'diff_step': None, 'tr_solver': None, 'tr_options': {},
-                  'jac_sparsity': None,}
+                  'jac_sparsity': None}
                   # 'verbose': debugs['verbose']}
 
         x_0, bounds = self._format_variables_and_constraints()
 
-        sol = least_squares(fun=self._wrapper, x0=x_0, bounds=bounds,
-                            args=None, **kwargs)
-        self.solution = sol
+        # legacy:
+        # flag_phi_s_fit = True
+        # wrapper_args = (self, self.compute_residuals, flag_phi_s_fit)
 
+        self.solution = least_squares(
+            fun=self._wrapper_residuals,
+            x0=x_0, bounds=bounds,
+            # args=None,
+            **kwargs)
         self._output_some_info()
 
-        return sol.success, {'X': sol.x.tolist(), 'F': sol.fun.tolist()}
+        success = self.solution.success
+        info = {'X': self.solution.x.tolist(),
+                'F': self.solution.fun.tolist(),
+               }
+        return success, info
 
-    def _format_variables_and_constraints(self) -> tuple[np.ndarray, np.ndarray]:
+    def _wrapper_residuals(self, var: np.ndarray):
+        """Unpack arguments, compute residuals."""
+        # Unpack arguments
+        d_fits = {
+            'l_phi': var[:var.size // 2].tolist(),
+            'l_k_e': var[var.size // 2:].tolist(),
+            'phi_s_fit': True,
+        }
+        results = self.compute_beam_propagation(d_fits, transfer_data=False)
+        residuals = self.compute_residuals(results)
+        return residuals
+
+    def _format_variables_and_constraints(self
+                                          ) -> tuple[np.ndarray, np.ndarray]:
         """Return design space as expected by scipy.least_squares."""
         x_0 = np.array([var.x_0
                         for var in self.variables_constraints.variables])

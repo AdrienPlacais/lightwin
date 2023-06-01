@@ -16,7 +16,7 @@ from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.emittance import mismatch_factor
 from optimisation.variables import VariablesAndConstraints
-
+from algorithms.least_squares import LeastSquares
 
 class MyFault:
     """To handle and fix a single Fault."""
@@ -60,6 +60,14 @@ class MyFault:
         self._update_cavities_status(optimisation='not started')
         variables_constraints = self._set_design_space()
         compute_residuals, info_objectives = self._select_objective()
+        compute_beam_propagation = self.elts.compute_transfer_matrices
+
+        logging.error('phi_s fit not transfered, better check that')
+        algorithm = LeastSquares(
+            variables_constraints=variables_constraints,
+            compute_residuals=compute_residuals,
+            compute_beam_propagation=compute_beam_propagation)
+        success, info = algorithm.optimise()
 
         # self.fit_info.update({
             # 'X_0': x_0,
@@ -70,7 +78,7 @@ class MyFault:
         # })
         self._update_cavities_status(optimisation='finished', success=True)
 
-    def _update_cavities_status(self, optimisation: 'not started' | 'finished',
+    def _update_cavities_status(self, optimisation: str,
                                 success: bool | None = None) -> None:
         """Update status of compensating and failed cavities."""
         if optimisation not in ['not started', 'finished']:
