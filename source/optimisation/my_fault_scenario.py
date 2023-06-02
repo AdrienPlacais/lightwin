@@ -9,6 +9,7 @@ Refactoring FaultScenario
 """
 import logging
 import numpy as np
+import pandas as pd
 
 from optimisation.my_fault import MyFault
 from optimisation import strategy, position
@@ -82,12 +83,16 @@ class MyFaultScenario(list):
             info.append(_info)
 
             my_sol = _info['X']
-            self._compute_beam_parameters_in_compensation_zone_and_save_it(fault, my_sol)
+            self._compute_beam_parameters_in_compensation_zone_and_save_it(
+                fault, my_sol)
 
+            fault._update_cavities_status(optimisation='finished',
+                                          success=True)
             results, elts = \
                 self._compute_beam_parameters_up_to_next_fault(fault, my_sol)
             self.fix_acc.store_results(results, elts)
 
+            logging.error("removed some phi transfer here")
 
         results = self.fix_acc.elts.compute_transfer_matrices()
         results['mismatch factor'] = self._compute_mismatch()
@@ -123,8 +128,13 @@ class MyFaultScenario(list):
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
-    def _compute_beam_parameters_in_compensation_zone_and_save_it(self, fault: MyFault, d_fits: dict) -> None:
-        results = fault.elts.compute_transfer_matrices(d_fits=d_fits, transfer_data=True)
+    def _compute_beam_parameters_in_compensation_zone_and_save_it(
+            self, fault: MyFault, sol: list) -> None:
+        d_fits = {'l_phi': sol[:len(sol) // 2],
+                  'l_k_e': sol[len(sol) // 2:],
+                  'phi_s fit': True}
+        results = fault.elts.compute_transfer_matrices(d_fits=d_fits,
+                                                       transfer_data=True)
         self.fix_acc.store_results(results, fault.elts)
         fault.get_x_sol_in_real_phase()
 
@@ -166,3 +176,69 @@ class MyFaultScenario(list):
         mism = mismatch_factor(self.ref_acc.get("twiss_z"),
                                self.fix_acc.get("twiss_z"), transp=True)
         return mism
+
+    # FIXME
+    def evaluate_fit_quality(self, delta_t: float, user_idx: int = None
+                             ) -> pd.DataFrame:
+        """Compute some quantities on the whole linac to see if fit is good."""
+        keys = ['w_kin', 'phi_abs_array', 'envelope_pos_w',
+                'envelope_energy_w', 'mismatch factor', 'eps_w']
+        val = {}
+        for key in keys:
+            val[key] = []
+
+        # End of each compensation zone
+        l_idx = [fault.elts[-1].get('s_out') for fault in self]
+        str_columns = [f"end comp zone\n(idx {idx}) [%]"
+                       for idx in l_idx]
+
+        # If user provided more idx to check
+        if user_idx is not None:
+            l_idx += user_idx
+            str_columns += [f"user defined\n(idx {idx}) [%]"
+                            for idx in user_idx]
+
+        # End of linac
+        l_idx.append(-1)
+        str_columns.append("end linac [%]")
+
+        # First column labels
+        str_columns.insert(0, "Qty")
+
+        # Calculate relative errors in %
+        for idx in l_idx:
+            for key in keys:
+                ref = self.ref_acc.get(key)[idx]
+                fix = self.fix_acc.get(key)[idx]
+
+                if key == 'mismatch factor':
+                    val[key].append(fix)
+                    continue
+                val[key].append(1e2 * (ref - fix) / ref)
+
+        # Relative square difference sumed on whole linac
+        str_columns.append("sum error linac")
+        for key in keys:
+            ref = self.ref_acc.get(key)
+            ref[ref == 0.] = np.NaN
+            fix = self.fix_Acc.get(key)
+
+            if key == 'mismatch factor':
+                val[key].append(np.sum(fix))
+                continue
+            val[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
+
+        # Handle time
+        time_line = [None for n in range(len(val[keys[0]]))]
+        days, seconds = delta_t.days, delta_t.seconds
+        time_line[0] = f"{days * 24 + seconds // 3600} hrs"
+        time_line[1] = f"{seconds % 3600 // 60} min"
+        time_line[2] = f"{seconds % 60} sec"
+
+        # Now make it a pandas dataframe for sweet output
+        df_eval = pd.DataFrame(columns=str_columns)
+        df_eval.loc[0] = ['time'] + time_line
+        for i, key in enumerate(keys):
+            df_eval.loc[i + 1] = [key] + val[key]
+
+        return df_eval

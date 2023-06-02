@@ -81,7 +81,6 @@ class MyFault:
             # 'F_info': info_objectives,
             # 'G': constr,
         # })
-        self._update_cavities_status(optimisation='finished', success=True)
         return success, self.info
 
     def _update_cavities_status(self, optimisation: str,
@@ -109,7 +108,7 @@ class MyFault:
             cavities = self.comp_cav
             status = ['compensate (ok)' for cav in cavities]
             if not success:
-                status = ['compensate (nok)' for cav in cavities]
+                status = ['compensate (not ok)' for cav in cavities]
 
         for cav, stat in zip(cavities, status):
             cav.update_status(stat)
