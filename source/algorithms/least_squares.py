@@ -13,7 +13,7 @@ inherited from the parent OptimisationAlgorithm class:
 from dataclasses import dataclass
 import logging
 
-from scipy.optimize import least_squares
+from scipy.optimize import least_squares, Bounds
 import numpy as np
 
 from algorithms.algorithm import OptimisationAlgorithm
@@ -66,7 +66,7 @@ class LeastSquares(OptimisationAlgorithm):
         success = self.solution.success
         info = {'X': self.solution.x.tolist(),
                 'F': self.solution.fun.tolist(),
-               }
+                }
         return success, info
 
     def _wrapper_residuals(self, var: np.ndarray):
@@ -75,19 +75,20 @@ class LeastSquares(OptimisationAlgorithm):
         d_fits = {
             'l_phi': var[:var.size // 2].tolist(),
             'l_k_e': var[var.size // 2:].tolist(),
-            'phi_s_fit': True,
+            'phi_s fit': True,
         }
         results = self.compute_beam_propagation(d_fits, transfer_data=False)
         residuals = self.compute_residuals(results)
         return residuals
 
     def _format_variables_and_constraints(self
-                                          ) -> tuple[np.ndarray, np.ndarray]:
+                                          ) -> tuple[np.ndarray, Bounds]:
         """Return design space as expected by scipy.least_squares."""
         x_0 = np.array([var.x_0
                         for var in self.variables_constraints.variables])
-        bounds = np.array([var.limits
-                           for var in self.variables_constraints.variables])
+        _bounds = np.array([var.limits
+                            for var in self.variables_constraints.variables])
+        bounds = Bounds(_bounds[:, 0], _bounds[:, 1])
         return x_0, bounds
 
     def _output_some_info(self) -> None:
