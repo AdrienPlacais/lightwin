@@ -101,7 +101,7 @@ class MyFaultScenario(list):
             + f" of {str(len(success))})"
 
         logging.warning("Removed some debugs here.")
-        # for linac in [self.ref_acc, self.fix_Acc]:
+        # for linac in [self.ref_acc, self.fix_acc]:
             # self.info[linac.name + ' cav'] = \
                 # debug.output_cavities(linac, mod_f.debugs['cav'])
 
@@ -221,7 +221,7 @@ class MyFaultScenario(list):
         for key in keys:
             ref = self.ref_acc.get(key)
             ref[ref == 0.] = np.NaN
-            fix = self.fix_Acc.get(key)
+            fix = self.fix_acc.get(key)
 
             if key == 'mismatch factor':
                 val[key].append(np.sum(fix))
