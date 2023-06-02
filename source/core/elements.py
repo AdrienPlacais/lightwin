@@ -108,9 +108,10 @@ class _Element():
         return self.elt_info['elt_name']
 
     def __repr__(self) -> str:
-        if self.elt_info['status'] not in ['none', 'nominal']:
-            logging.warning("Element properties where changed.")
-        return f"{self.__class__}(elem={self.__elem})"
+    #     if self.elt_info['status'] not in ['none', 'nominal']:
+    #         logging.warning("Element properties where changed.")
+    #     return f"{self.__class__}(elem={self.__elem})"
+        return self.__str__()
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
