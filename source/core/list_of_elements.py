@@ -15,6 +15,7 @@ from core.emittance import beam_parameters_zdelta
 from core.elements import _Element
 
 
+# TODO allow for None for w_kin etc and just take it from l_elts[0]
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 

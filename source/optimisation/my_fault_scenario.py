@@ -6,29 +6,15 @@ Created on Wed May 17 09:08:47 2023.
 @author: placais
 
 Refactoring FaultScenario
-
-Module holding the FaultScenario, which holds the Faults. Each Fault object
-fixes himself (Fault.fix).
-
-brok_lin: holds for "broken_linac", the linac with faults.
-ref_lin: holds for "reference_linac", the ideal linac brok_lin should tend to.
-
-TODO in neighboring_cavities, allow for preference of cavities according to
-their section
-
-TODO allow for different strategies according to the section
-TODO raise explicit error when the format of error (list vs idx) is not
-appropriate, especially when manual mode.
-
-TODO tune the PSO
-TODO method to avoid big changes of acceptance
-TODO option to minimize the power of compensating cavities
-
-TODO remake a small fit after the first one?
 """
+import logging
+import numpy as np
+
 from optimisation.my_fault import MyFault
 from optimisation import strategy, position
 from core.accelerator import Accelerator
+from core.list_of_elements import ListOfElements
+from core.emittance import mismatch_factor
 
 
 class MyFaultScenario(list):
@@ -64,8 +50,6 @@ class MyFaultScenario(list):
         self.wtf = wtf
         self.info_other_sol = info_other_sol
 
-        # Here, we gather faults that should be fixed together (in particular,
-        # if they need the same compensating cavities)
         gathered_fault_idx, gathered_comp_idx = \
             strategy.sort_and_gather_faults(fix_acc, wtf, fault_idx, comp_idx)
 
@@ -78,12 +62,77 @@ class MyFaultScenario(list):
             # (TW)
             # WARNING! mesh index will be different from ref to fix... Maybe it
             # would be better to stick to the exit of an _Element name
-            faulty_cavities = [fix_acc.elts[i] for i in fault]
-            compensating_cavities = [fix_acc.elts[i] for i in comp]
+            faulty_cavities = [fix_acc.l_cav[i] for i in fault]
+            compensating_cavities = [fix_acc.l_cav[i] for i in comp]
             faults.append(
                 MyFault(self.ref_acc, self.fix_acc, self.wtf, faulty_cavities,
                         compensating_cavities, elts_subset,
                         objectives_positions)
             )
-            # warning: sometimes, a compensating cavity is in the compensation
-            # zone, but is is dedicated to another fault
+        super().__init__(faults)
+
+    def fix_all(self) -> None:
+        """Fix all the Faults."""
+        success, info = [], []
+        for fault in self:
+            _succ, _info = fault.fix()
+            success.append(_succ)
+            info.append(_info)
+
+            my_sol = _info['X']
+            results, elts = \
+                self._compute_beam_parameters_up_to_next_fault(fault, my_sol)
+            self.fix_acc.store_results(results, elts)
+
+        results = self.fix_acc.elts.compute_transfer_matrices()
+        results['mismatch factor'] = self._compute_mismatch()
+        self.fix_acc.store_results(results, self.fix_acc.elts)
+        self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
+            + f" of {str(len(success))})"
+
+        logging.warning("Removed some debugs here.")
+        # for linac in [self.ref_acc, self.fix_Acc]:
+            # self.info[linac.name + ' cav'] = \
+                # debug.output_cavities(linac, mod_f.debugs['cav'])
+
+        # self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
+                                            # mod_f.debugs['fit_compact'])
+
+    def _compute_beam_parameters_up_to_next_fault(
+            self, fault: MyFault, my_sol: dict) -> tuple[dict, ListOfElements]:
+        """Compute propagation up to last element of the next fault."""
+        first_elt = fault.elts[-1]
+        last_elt = self.fix_acc.elts[-1]
+        if fault is not self[-1]:
+            idx = self.index(fault)
+            last_elt = self[idx + 1].elts[-1]
+
+        __elts = self.fix_acc.elts[
+            first_elt.get('elt_idx', to_numpy=False):
+            last_elt.get('elt_idx', to_numpy=False) + 1]
+        idx_in = first_elt.get('s_in', to_numpy=False)
+        w_kin = self.fix_acc.get('w_kin')[idx_in]
+        phi_abs = self.fix_acc.get('phi_abs_array')[idx_in]
+        transf_mat = self.fix_acc.get('tm_cumul')[idx_in]
+
+        elts = ListOfElements(__elts, w_kin, phi_abs, idx_in, transf_mat)
+
+        # FIXME
+        d_fits = {'l_phi': my_sol[:my_sol.size // 2].tolist(),
+                  'l_k_e': my_sol[my_sol.size // 2:].tolist(),
+                  'phi_s fit': True}
+        logging.warning("Here again, phi_s_fit not handled.")
+
+        results = elts.compute_transfer_matrices(d_fits=d_fits,
+                                                 transfer_data=True)
+        return results, elts
+
+    def _compute_mismatch(self) -> np.ndarray:
+        """
+        Compute the mismatch between reference abnd broken linac.
+
+        Also store it into the broken_linac.beam_param dictionary.
+        """
+        mism = mismatch_factor(self.ref_acc.get("twiss_z"),
+                               self.fix_acc.get("twiss_z"), transp=True)
+        return mism

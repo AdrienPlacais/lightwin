@@ -277,7 +277,7 @@ class Accelerator():
                 + "used by TW. Results won't match if there are faulty "
                 + "cavities.")
 
-    def store_results(self, results: dict, l_elts: list[elements._Element, ...]
+    def store_results(self, results: dict, l_elts: list[elements._Element]
                       ) -> None:
         """
         We save data into the appropriate objects.
@@ -332,7 +332,7 @@ class Accelerator():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
-                            ) -> elements._Element | None:
+                          ) -> elements._Element | None:
         """Give the element where the given index is."""
         return elt_at_this_s_idx(self.elts, s_idx, show_info)
 
