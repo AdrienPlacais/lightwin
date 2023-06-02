@@ -25,6 +25,7 @@ class OptimisationAlgorithm(ABC):
     variables_constraints: VariablesAndConstraints
     compute_residuals: Callable[[dict], np.ndarray]
     compute_beam_propagation: Callable[[dict, bool], dict]
+    phi_s_fit: bool
 
     def __post_init__(self) -> None:
         """Set the output object."""

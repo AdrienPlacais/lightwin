@@ -52,10 +52,6 @@ class LeastSquares(OptimisationAlgorithm):
 
         x_0, bounds = self._format_variables_and_constraints()
 
-        # legacy:
-        # flag_phi_s_fit = True
-        # wrapper_args = (self, self.compute_residuals, flag_phi_s_fit)
-
         self.solution = least_squares(
             fun=self._wrapper_residuals,
             x0=x_0, bounds=bounds,
@@ -75,7 +71,7 @@ class LeastSquares(OptimisationAlgorithm):
         d_fits = {
             'l_phi': var[:var.size // 2].tolist(),
             'l_k_e': var[var.size // 2:].tolist(),
-            'phi_s fit': True,
+            'phi_s fit': self.phi_s_fit,
         }
         results = self.compute_beam_propagation(d_fits, transfer_data=False)
         residuals = self.compute_residuals(results)

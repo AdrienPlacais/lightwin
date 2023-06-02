@@ -116,9 +116,8 @@ class MyFaultScenario(list):
         broken linac, it comes down to rephasing the linac. This is what we
         want to avoid when con.FLAG_PHI_ABS = True.
         """
-        # Get CavitieS of REFerence and BROKen linacs
-        ref_cavities = self.ref_acc.l_cav#.get_elts('nature', 'FIELD_MAP')
-        fix_cavities = self.fix_acc.l_cav#get_elts('nature', 'FIELD_MAP')
+        ref_cavities = self.ref_acc.l_cav
+        fix_cavities = self.fix_acc.l_cav
 
         for ref_cavity, fix_cavity in zip(ref_cavities, fix_cavities):
             ref_a_f = ref_cavity.acc_field
@@ -132,7 +131,7 @@ class MyFaultScenario(list):
             self, fault: MyFault, sol: list) -> None:
         d_fits = {'l_phi': sol[:len(sol) // 2],
                   'l_k_e': sol[len(sol) // 2:],
-                  'phi_s fit': True}
+                  'phi_s fit': self.wtf['phi_s fit']}
         results = fault.elts.compute_transfer_matrices(d_fits=d_fits,
                                                        transfer_data=True)
         self.fix_acc.store_results(results, fault.elts)
@@ -160,8 +159,7 @@ class MyFaultScenario(list):
         # FIXME
         d_fits = {'l_phi': my_sol[:len(my_sol) // 2],
                   'l_k_e': my_sol[len(my_sol) // 2:],
-                  'phi_s fit': True}
-        logging.warning("Here again, phi_s_fit not handled.")
+                  'phi_s fit': self.wtf['phi_s fit']}
 
         results = elts.compute_transfer_matrices(d_fits=d_fits,
                                                  transfer_data=True)

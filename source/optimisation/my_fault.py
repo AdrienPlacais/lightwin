@@ -67,11 +67,11 @@ class MyFault:
         compute_residuals, info_objectives = self._select_objective()
         compute_beam_propagation = self.elts.compute_transfer_matrices
 
-        logging.error('phi_s fit not transfered, better check that')
         algorithm = LeastSquares(
             variables_constraints=variables_constraints,
             compute_residuals=compute_residuals,
-            compute_beam_propagation=compute_beam_propagation)
+            compute_beam_propagation=compute_beam_propagation,
+            phi_s_fit=self.wtf['phi_s fit'])
         success, self.info = algorithm.optimise()
 
         # self.fit_info.update({
