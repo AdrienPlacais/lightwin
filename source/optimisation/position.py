@@ -22,9 +22,11 @@ import logging
 from core.accelerator import Accelerator
 from core.elements import _Element
 
+
 # !!! fault_idx is still in comp_idx!! FIXME
 def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
-                      comp_idx: list[int]) -> tuple[list[_Element], list[int]]:
+                      comp_idx: list[int]) -> tuple[list[_Element],
+                                                    list[_Element]]:
     """Tell what is the zone to recompute."""
     position = wtf['position']
     # FIXME
@@ -35,16 +37,18 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
     fault_idx = _to_elt_idx(fix, fault_idx)
     comp_idx = _to_elt_idx(fix, comp_idx)
 
-    check = []
+    objectives_positions_idx = []
     for pos in position:
-        check.append(_zone(pos, fix, fault_idx, comp_idx))
+        objectives_positions_idx.append(_zone(pos, fix, fault_idx, comp_idx))
 
     # Take compensation zone that encompasses all individual comp zones
     idx_in = min(fault_idx + comp_idx) - 1
-    idx_out = max(check) + 1
-    elts = fix.elts[idx_in:idx_out]
+    idx_out = max(objectives_positions_idx) + 1
 
-    return elts, check
+    elts = fix.elts[idx_in:idx_out]
+    objectives_positions = [fix.elts[i] for i in objectives_positions_idx]
+
+    return elts, objectives_positions
 
 
 def _zone(pos: str, *args) -> int | None:
