@@ -70,6 +70,8 @@ class MyFaultScenario(list):
                         objectives_positions)
             )
         super().__init__(faults)
+        logging.warning('still a transfer phase to implement')
+        self._transfer_phi0_from_ref_to_broken()
 
     def fix_all(self) -> None:
         """Fix all the Faults."""
@@ -97,6 +99,26 @@ class MyFaultScenario(list):
 
         # self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
                                             # mod_f.debugs['fit_compact'])
+
+    def _transfer_phi0_from_ref_to_broken(self) -> None:
+        """
+        Transfer the entry phases from ref linac to broken.
+
+        If the absolute initial phases are not kept between reference and
+        broken linac, it comes down to rephasing the linac. This is what we
+        want to avoid when con.FLAG_PHI_ABS = True.
+        """
+        # Get CavitieS of REFerence and BROKen linacs
+        ref_cavities = self.ref_acc.l_cav#.get_elts('nature', 'FIELD_MAP')
+        fix_cavities = self.fix_acc.l_cav#get_elts('nature', 'FIELD_MAP')
+
+        for ref_cavity, fix_cavity in zip(ref_cavities, fix_cavities):
+            ref_a_f = ref_cavity.acc_field
+            fix_a_f = fix_cavity.acc_field
+
+            fix_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
+            fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
+            fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
     def _compute_beam_parameters_up_to_next_fault(
             self, fault: MyFault, my_sol: dict) -> tuple[dict, ListOfElements]:

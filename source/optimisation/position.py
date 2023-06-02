@@ -43,6 +43,8 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
 
     # Take compensation zone that encompasses all individual comp zones
     idx_in = min(fault_idx + comp_idx) - 1
+    idx_in = 0
+    logging.warning(f"Manually changed {idx_in =}")
     idx_out = max(objectives_positions_idx) + 1
 
     elts = fix.elts[idx_in:idx_out]

@@ -25,6 +25,7 @@ class ListOfElements(list):
         super().__init__(l_elts)
         logging.info(f"Init list from {l_elts[0].get('elt_name')} to "
                      f"{l_elts[-1].get('elt_name')}.")
+        logging.info(f" {w_kin = }, {phi_abs = }, {idx_in = }")
 
         if idx_in is None:
             idx_in = l_elts[0].idx['s_in']
