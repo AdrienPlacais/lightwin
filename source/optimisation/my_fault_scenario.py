@@ -82,9 +82,12 @@ class MyFaultScenario(list):
             info.append(_info)
 
             my_sol = _info['X']
+            self._compute_beam_parameters_in_compensation_zone_and_save_it(fault, my_sol)
+
             results, elts = \
                 self._compute_beam_parameters_up_to_next_fault(fault, my_sol)
             self.fix_acc.store_results(results, elts)
+
 
         results = self.fix_acc.elts.compute_transfer_matrices()
         results['mismatch factor'] = self._compute_mismatch()
@@ -120,6 +123,11 @@ class MyFaultScenario(list):
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
+    def _compute_beam_parameters_in_compensation_zone_and_save_it(self, fault: MyFault, d_fits: dict) -> None:
+        results = fault.elts.compute_transfer_matrices(d_fits=d_fits, transfer_data=True)
+        self.fix_acc.store_results(results, fault.elts)
+        fault.get_x_sol_in_real_phase()
+
     def _compute_beam_parameters_up_to_next_fault(
             self, fault: MyFault, my_sol: dict) -> tuple[dict, ListOfElements]:
         """Compute propagation up to last element of the next fault."""
@@ -140,8 +148,8 @@ class MyFaultScenario(list):
         elts = ListOfElements(__elts, w_kin, phi_abs, idx_in, transf_mat)
 
         # FIXME
-        d_fits = {'l_phi': my_sol[:my_sol.size // 2].tolist(),
-                  'l_k_e': my_sol[my_sol.size // 2:].tolist(),
+        d_fits = {'l_phi': my_sol[:len(my_sol) // 2],
+                  'l_k_e': my_sol[len(my_sol) // 2:],
                   'phi_s fit': True}
         logging.warning("Here again, phi_s_fit not handled.")
 

@@ -72,7 +72,7 @@ class MyFault:
             variables_constraints=variables_constraints,
             compute_residuals=compute_residuals,
             compute_beam_propagation=compute_beam_propagation)
-        success, info = algorithm.optimise()
+        success, self.info = algorithm.optimise()
 
         # self.fit_info.update({
             # 'X_0': x_0,
@@ -82,7 +82,7 @@ class MyFault:
             # 'G': constr,
         # })
         self._update_cavities_status(optimisation='finished', success=True)
-        return success, info
+        return success, self.info
 
     def _update_cavities_status(self, optimisation: str,
                                 success: bool | None = None) -> None:
@@ -203,3 +203,25 @@ class MyFault:
             return np.array(residues)
 
         return compute_residuals, info_objectives
+
+    def get_x_sol_in_real_phase(self) -> None:
+        """
+        Get least-square solutions in rel/abs phases instead of synchronous.
+
+        Least-squares fits the synchronous phase, while PSO fits the relative
+        or absolute entry phase. We get all in relative/absolute to ease
+        comparison between solutions.
+        """
+        # First half of X array: phase of cavities (relative or synchronous
+        # according to the value of wtf['phi_s fit']).
+        # Second half is the norms of cavities
+        x_in_real_phase = self.info["X"].copy()
+
+        key = 'phi_0_rel'
+        if con.FLAG_PHI_ABS:
+            key = 'phi_0_abs'
+
+        for i, cav in enumerate(self.comp_cav):
+            x_in_real_phase[i] = cav.acc_field.phi_0[key]
+            # second half of the array remains untouched
+        self.info['X_in_real_phase'] = x_in_real_phase
