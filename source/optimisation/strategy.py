@@ -164,10 +164,9 @@ def _only_field_maps(lin: Accelerator,
     elts = lin.elts
     if idx == 'cavity':
         elts = lin.l_cav
-    # natures = {x.get('nature') for x in flatten(ll_cav)}
-    # if natures != {'FIELD_MAP'}:
-    types = {type(elts[i]) for i in flatten(indexes)}
-    if types != {FieldMap}:
+
+    natures = set([elts[i].get('nature') for i in flatten(indexes)])
+    if natures != {'FIELD_MAP'}:
         logging.error("Some elements are not cavities.")
         return False
     return True
