@@ -80,6 +80,16 @@ def _one_lattice_after_last_altered_lattice(
     return l_lattices[idx_lattice_last][-1].get('elt_idx', to_numpy=False)
 
 
+def _end_last_failed_lattice(lin: Accelerator, fault_idx: list[int],
+                             comp_idx: list[int]) -> int:
+    """Evaluate obj at the end of the last lattice w/ a failed cavity."""
+    idx_last = max(fault_idx)
+    idx_lattice_last = lin.elts[idx_last].get('lattice')
+    lattices = [lattice for section in lin.get('l_sections', to_numpy=False)
+                for lattice in section]
+    return lattices[idx_lattice_last][-1].get('elt_idx', to_numpy=False)
+
+
 def _end_linac(lin: Accelerator, fault_idx: list[int],
                comp_idx: list[int]) -> int:
     """Evaluate objective at the end of the linac."""
@@ -96,5 +106,6 @@ D_POS = {
     'end of last altered lattice': _end_last_altered_lattice,
     'one lattice after last altered lattice':
         _one_lattice_after_last_altered_lattice,
+    'end of last failed lattice': _end_last_failed_lattice,
     'end of linac': _end_linac,
 }

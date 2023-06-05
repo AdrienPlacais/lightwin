@@ -610,16 +610,14 @@ def _test_position(c_wtf: configparser.SectionProxy) -> bool:
 
     positions = c_wtf.getliststr('position')
     implemented = [
-        # End of last lattice with a compensating cavity
+        # End of last lattice with a compensating or failed cavity
         'end of last altered lattice',
-        # End of one lattice after last lattice with a compensating cavity
+        # One lattice after last lattice with a compensating/failed cavity
         'one lattice after last altered lattice',
+        # End of last lattice with a failed cavity
+        'end of last failed lattice',
         # End of linac
         'end of linac',
-        # All cavities
-        'global',
-        # All cavities after the fault,
-        'global downstream'
     ]
     if not all(pos in implemented for pos in positions):
         logging.error("At least one position was not recognized. Allowed "
