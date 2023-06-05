@@ -13,14 +13,14 @@ import numpy as np
 from scipy.interpolate import interp1d
 import pandas as pd
 
-import util.tracewin_interface as tw
-from util.dicts_output import d_markdown, d_plot_kwargs
 from util import helper
-
+from core.accelerator import Accelerator
 
 
 # TODO modernize
-def compute_error_transfer_matrix(t_m, t_m_ref, output=False):
+def compute_error_transfer_matrix(t_m: np.ndarray, t_m_ref: np.ndarray,
+                                  output: bool = False) -> tuple[np.ndarray,
+                                                                 np.ndarray]:
     """Compute and output error between transfer matrix and ref."""
     n_z = t_m.shape[0]
     n_z_ref = t_m_ref.shape[0]
@@ -73,8 +73,7 @@ def compute_error_transfer_matrix(t_m, t_m_ref, output=False):
     return err, z_err
 
 
-
-def load_phase_space(accelerator):
+def load_phase_space(accelerator: Accelerator) -> list[np.ndarray]:
     """
     Load Partran phase-space data.
 
@@ -105,7 +104,7 @@ def load_phase_space(accelerator):
     return partran_data
 
 
-def output_cavities(linac, out=False):
+def output_cavities(linac: Accelerator, out: bool = False) -> pd.DataFrame:
     """Output relatable parameters of cavities in list_of_cav."""
     columns = ('elt_name', 'status', 'k_e', 'phi_0_abs', 'phi_0_rel',
                'v_cav_mv', 'phi_s')
@@ -129,7 +128,7 @@ def output_cavities(linac, out=False):
     return df_cav
 
 
-def _create_output_fit_dicts():
+def _create_output_fit_dicts() -> dict[str, dict]:
     col = ('Name', 'Status', 'Min.', 'Max.', 'Fixed', 'Orig.', '(var %)')
     d_pd = {'phi_0_rel': pd.DataFrame(columns=col),
             'phi_0_abs': pd.DataFrame(columns=col),
@@ -152,6 +151,7 @@ def _create_output_fit_dicts():
     return all_dicts
 
 
+# FIXME to redo with new Algorithm
 def output_fit(fault_scenario, out_detail=False, out_compact=True):
     """Output relatable parameters of fit."""
     dicts = _create_output_fit_dicts()
