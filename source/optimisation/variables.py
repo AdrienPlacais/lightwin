@@ -60,7 +60,7 @@ class VariablesAndConstraints:
 
     def __init__(self, accelerator_name: str, ref_acc: Accelerator,
                  comp_cav: list[FieldMap], variable_names: list[str],
-                 constraint_names: list[str]) -> None:
+                 constraint_names: list[str], **kwargs) -> None:
         """Set the design space."""
         self.accelerator_name = accelerator_name
         self.ref_acc = ref_acc
@@ -70,7 +70,7 @@ class VariablesAndConstraints:
 
         self.variables = [Variable(name=var, cavity_name=str(cav),
                                    x_0=self._set_initial_value(var, cav),
-                                   limits=self._set_limits(var, cav))
+                                   limits=self._set_limits(var, cav, **kwargs))
                           for var in self.variable_names
                           for cav in self.comp_cav]
         self.constraints = [Constraint(name=con, cavity_name=str(cav),
@@ -105,14 +105,15 @@ class VariablesAndConstraints:
         ref_cav = self.ref_acc.equiv_elt(cav)
         return INITIAL[key](ref_cav)
 
-    def _set_limits(self, key: str, cav: FieldMap) -> tuple[float | None]:
+    def _set_limits(self, key: str, cav: FieldMap, **kwargs
+                   ) -> tuple[float | None]:
         """Return optimisation limits for desired key."""
         if key not in LIM:
             logging.error(f"Limits for variable {key} not implemented.")
             return (None, None)
         ref_cav = self.ref_acc.equiv_elt(cav)
         args = (self.accelerator_name, cav, ref_cav, self.ref_acc)
-        return LIM[key](*args)
+        return LIM[key](*args, **kwargs)
 
     def _set_constraints(self, key: str, cav: FieldMap) -> tuple[float | None]:
         """Return optimisation constraints for desired key."""
@@ -124,10 +125,20 @@ class VariablesAndConstraints:
         return CONST[key](*args)
 
 
-def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap, ref_linac:
-                Accelerator) -> tuple[float | None]:
+def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap,
+                ref_linac: Accelerator, global_compensation: bool = False
+               ) -> tuple[float | None]:
     """Limits for electric field."""
     ref_k_e = ref_cav.get('k_e', to_numpy=False)
+
+    if global_compensation:
+        logging.warning("Limits for the electric field were manually set to "
+                        + "a very low value in order to be consistent with "
+                        + "the 'global' or 'global downstream' compensation "
+                        + "strategy that you asked for.")
+        lower = ref_k_e
+        upper = ref_k_e * 1.000001
+
     if preset == 'MYRRHA':
         if ref_linac is None:
             logging.error("The reference linac is required for MYRRHA preset.")
@@ -143,10 +154,6 @@ def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap, ref_linac:
                             for cav in cavs_this_section
                             if cav.idx['section'] == this_section]
         upper = np.max(k_e_this_section) * 1.3
-
-        logging.warning("Manually modified the k_e limits for global comp.")
-        lower = ref_k_e
-        upper = ref_k_e * 1.000001
 
         return (lower, upper)
 
@@ -164,13 +171,13 @@ def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap, ref_linac:
 
 
 def _limits_phi_0(preset: str, cav: FieldMap, ref_cav: FieldMap,
-                  ref_linac: Accelerator) -> tuple[float | None]:
+                  ref_linac: Accelerator, **kwargs) -> tuple[float | None]:
     """Limits for the relative or absolute cavity phase."""
     return (0, 4 * np.pi)
 
 
 def _limits_phi_s(preset: str, cav: FieldMap, ref_cav: FieldMap,
-                  ref_linac: Accelerator) -> tuple[float | None]:
+                  ref_linac: Accelerator, **kwargs) -> tuple[float | None]:
     """Limits for the synchrous phase; also used to set phi_s constraints."""
     ref_phi_s = ref_cav.get('phi_s', to_numpy=False)
     if preset == 'MYRRHA':

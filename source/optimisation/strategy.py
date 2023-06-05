@@ -19,7 +19,6 @@ import numpy as np
 from util.helper import flatten
 from core.accelerator import Accelerator
 from core.list_of_elements import filter_cav
-from core.elements import FieldMap
 
 FACT = math.factorial
 
@@ -154,6 +153,22 @@ def _l_neighboring_lattices(lin: Accelerator, fault_idx: list[int],
     return idx_compensating
 
 
+def _all_cavities(lin: Accelerator, fault_idx: list[int], wtf: dict
+                 ) -> list[int]:
+    """Select all the cavities of the linac."""
+    cavities = lin.l_cav
+    idx_altered = [idx for idx in range(len(cavities))]
+    return idx_altered
+
+
+def _all_cavities_after_first_failure(lin: Accelerator, fault_idx: list[int],
+                                      wtf: dict) -> list[int]:
+    """Select all the cavities after the first failed cavity."""
+    altered_cavities = lin.l_cav[min(fault_idx):]
+    idx_altered = [lin.l_cav.index(cav) for cav in altered_cavities]
+    return idx_altered
+
+
 def _only_field_maps(lin: Accelerator,
                      indexes: list[int] | list[list[int]] | None,
                      idx: str) -> bool:
@@ -206,4 +221,6 @@ def _to_cavity_idx(lin: Accelerator,
 D_SORT_AND_GATHER = {
     'k out of n': _k_neighboring_cavities,
     'l neighboring lattices': _l_neighboring_lattices,
+    'global': _all_cavities,
+    'global downstream': _all_cavities_after_first_failure,
 }

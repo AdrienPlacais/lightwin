@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 18 12:21:37 2023
+Created on Thu May 18 12:21:37 2023.
 
 @author: placais
 
@@ -14,7 +14,7 @@ In this module, the indexes are ELEMENT indexes, not cavity.
 In contrary to the optimisation.strategy module, here we do one fault at a time
 (a fault can encompass several faulty cavities that are to be fixed together).
 
-TODO (both), end_section, elt_name
+TODO end_section, elt_name
 """
 import logging
 
@@ -33,17 +33,15 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
     fault_idx = _to_elt_idx(fix, fault_idx)
     comp_idx = _to_elt_idx(fix, comp_idx)
 
-    objectives_positions_idx = []
-    for pos in position:
-        objectives_positions_idx.append(_zone(pos, fix, fault_idx, comp_idx))
+    objectives_positions_idx = [_zone(pos, fix, fault_idx, comp_idx)
+                                for pos in position]
 
-    # Take compensation zone that encompasses all individual comp zones
-    idx_in = min(fault_idx + comp_idx) - 1
-    idx_in = 0
-    logging.warning(f"Manually changed {idx_in =}")
-    idx_out = max(objectives_positions_idx) + 1
+    idx_start_compensation_zone = min(fault_idx + comp_idx)
+    # idx_start = 0
+    # logging.warning(f"manually modified the {idx_start = }")
+    idx_end_compensation_zone = max(objectives_positions_idx)
 
-    elts = fix.elts[idx_in:idx_out]
+    elts = fix.elts[idx_start_compensation_zone:idx_end_compensation_zone + 1]
     objectives_positions = [fix.elts[i] for i in objectives_positions_idx]
 
     return elts, objectives_positions

@@ -18,6 +18,7 @@ from core.emittance import mismatch_factor
 from optimisation.variables import VariablesAndConstraints
 from algorithms.least_squares import LeastSquares
 
+
 class Fault:
     """To handle and fix a single Fault."""
 
@@ -133,8 +134,12 @@ class Fault:
         constraints = ['phi_s']
         # FIXME should not be initialized if not used
 
+        global_compensation = 'global' in self.wtf['strategy']
+        kwargs = {'global_compensation': global_compensation}
+
         variables_constraints = VariablesAndConstraints(
-            con.LINAC, self.ref_acc, self.comp_cav, variables, constraints)
+            con.LINAC, self.ref_acc, self.comp_cav, variables, constraints,
+            **kwargs)
 
         logging.info("Design space (handled in optimisation.variables, not "
                      f".ini):\n{variables_constraints}")

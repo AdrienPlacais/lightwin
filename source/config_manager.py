@@ -13,10 +13,7 @@ Handle simulation parameters. In particular:
 
 TODO: maybe make test and config to dict more compact?
 
-TODO maybe some global strategy tests should be moved to position test??
 TODO strategy:
-    global
-    global_downstream
     global_section
     global_section_downstream
     flag to select priority in k out of n when k odd
@@ -24,7 +21,8 @@ TODO position:
     element name
     element number
     end_section
-    allow for different objectives at different positions
+TODO allow for different objectives at different positions.
+    quickfix for now: simply set some scales to 0.
 
 TODO variable: maybe add this? Unnecessary at this point
 """
@@ -358,12 +356,12 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
 def _test_wtf(c_wtf: configparser.SectionProxy) -> None:
     """Test the 'what_to_fit' dictionaries."""
     tests = {'failed and idx': _test_failed_and_idx,
-            'strategy': _test_strategy,
-            'objective': _test_objective,
-            'scale objective': _test_scale_objective,
-            'opti method': _test_objective,
-            'position': _test_position,
-            'misc': _test_misc,
+             'strategy': _test_strategy,
+             'objective': _test_objective,
+             'scale objective': _test_scale_objective,
+             'opti method': _test_objective,
+             'position': _test_position,
+             'misc': _test_misc,
             }
     for key, test in tests.items():
         if not test(c_wtf):
@@ -447,6 +445,8 @@ def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
             Every fault will be compensated by l full lattices, direct
             neighbors of the errors. You must provide l, which must be even.
         - global:
+            Use every cavity.
+        - global downstream:
             Use every cavity after the fault.
     """
     if 'strategy' not in c_wtf.keys():
@@ -458,6 +458,7 @@ def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
              'manual': _test_strategy_manual,
              'l neighboring lattices': _test_strategy_l_neighboring_lattices,
              'global': _test_strategy_global,
+             'global downstream': _test_strategy_global_downstream,
              }
 
     key = c_wtf['strategy']
@@ -549,11 +550,16 @@ def _test_strategy_global(c_wtf: configparser.SectionProxy) -> bool:
         return False
 
     if 'end_linac' not in c_wtf.getliststr('position'):
-        logging.warning("With global method, objectives should be evaluated at"
-                        + " the end of the linac. LW will run anyway and "
+        logging.warning("With global methods, objectives should be evaluated "
+                        + "at the end of the linac. LW will run anyway and "
                         + "'position' key will not be modified.")
 
     return True
+
+
+def _test_strategy_global_downstream(c_wtf: configparser.SectionProxy) -> bool:
+    """Even more specific test for global downstream strategy."""
+    return _test_strategy_global(c_wtf)
 
 
 def _test_objective(c_wtf: configparser.SectionProxy) -> bool:
@@ -610,6 +616,10 @@ def _test_position(c_wtf: configparser.SectionProxy) -> bool:
         '1_mod_after',
         # End of linac
         'end_linac',
+        # All cavities
+        'global',
+        # All cavities after the fault,
+        'global downstream'
     ]
     if not all(pos in implemented for pos in positions):
         logging.error("At least one position was not recognized. Allowed "

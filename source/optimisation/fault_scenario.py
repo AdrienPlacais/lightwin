@@ -72,8 +72,8 @@ class FaultScenario(list):
             compensating_cavities = [fix_acc.l_cav[i] for i in comp]
             faults.append(
                 Fault(self.ref_acc, self.fix_acc, self.wtf, faulty_cavities,
-                        compensating_cavities, elts_subset,
-                        objectives_positions)
+                      compensating_cavities, elts_subset,
+                      objectives_positions)
             )
         super().__init__(faults)
 
@@ -108,9 +108,9 @@ class FaultScenario(list):
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
 
-
         results = self.fix_acc.elts.compute_transfer_matrices()
-        results['mismatch factor'] = self._compute_mismatch()
+        results['mismatch factor'] = self._compute_mismatch(
+            results['twiss_zdelta'])
         self.fix_acc.store_results(results, self.fix_acc.elts)
         self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
             + f" of {str(len(success))})"
@@ -225,14 +225,16 @@ class FaultScenario(list):
                                                  transfer_data=True)
         return results, elts
 
-    def _compute_mismatch(self) -> np.ndarray:
+    def _compute_mismatch(self, fix_twiss_zdelta: np.ndarray) -> np.ndarray:
         """
         Compute the mismatch between reference abnd broken linac.
 
         Also store it into the broken_linac.beam_param dictionary.
         """
-        mism = mismatch_factor(self.ref_acc.get("twiss_z"),
-                               self.fix_acc.get("twiss_z"), transp=True)
+        mism = mismatch_factor(self.ref_acc.get("twiss_zdelta"),
+                               # self.fix_acc.get("twiss_z"),
+                               fix_twiss_zdelta,
+                               transp=True)
         return mism
 
     # FIXME
