@@ -1,127 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep 21 11:32:12 2021.
+Created on Tue Dec  6 14:33:39 2022.
 
 @author: placais
-
-General TODO list:
-    - Easy way to plot TW's solutions.
-    - Better way to compare various LW solutions?
-    - Reprofile to check where could be speed up.
-        Interpolation function could be replaced by pre-interpolated array?
-    - Recheck non synch particles.
-    - Replace flag phi_abs/phi_rel by a three positions switch: synch/abs/rel?
-    - raise error when the failed_cav is not a list of list (when manual)
 """
+
 import os
 import logging
 from copy import deepcopy
 import time
 import datetime
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
-from constants import I_MILLI_A
+import pandas as pd
+
+import config_manager as conf_man
 import core.accelerator as acc
-import core.fault_scenario as mod_fs
-from util import debug, helper, output
+from optimisation.fault_scenario import FaultScenario
+import util.helper as helper
+import util.output as output
+import util.evaluate as evaluate
 import util.tracewin_interface as tw
+import visualization.plot as plot
 from util.log_manager import set_up_logging
+
 
 if __name__ == '__main__':
     # Select .dat file
-    Tk().withdraw()
-
-    # FILEPATH = "../data/faultcomp22/working/MYRRHA_Transi-100MeV.dat"
     FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
-    if FILEPATH == "":
-        FILEPATH = askopenfilename(filetypes=[("TraceWin file", ".dat")])
 
     # =========================================================================
     # Fault compensation
     # =========================================================================
     FLAG_FIX = True
-    FLAG_TRY_OPTI_METHODS = True
-    SAVE_FIX = False
-
-    failed_cav = [
-        # 25,
-        155,  # 157, #167, # 295, 307, # 355, # 395, # 521, 523, 525, 527, # 583
-    ]
-
-    wtf_pso = {'opti method': 'PSO',
-               'strategy': 'k out of n',
-               'k': 6, 'l': 2, 'manual list': [],
-               'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-               'position': 'end_mod', 'phi_s fit': False}
-
-    wtf_lsq = {'opti method': 'least_squares',
-               'strategy': 'k out of n',
-               # 'k': 2, 'l': 2, 'manual list': [],
-               'k': 6, 'l': 2, 'manual list': [],
-               'objective': ['w_kin', 'phi_abs_array', 'mismatch factor'],
-               'position': 'end_mod', 'phi_s fit': True}
-    WHAT_TO_FIT = {
-        'opti method': 'least_squares',
-        # 'opti method': 'PSO',
-        # =====================================================================
-        # strategy: manual
-        # You must provide a list of lists of broken cavities, and the
-        # corresponding list of lists of compensating cavities. Broken cavities
-        # in a sublist are fixed together with the provided sublist of
-        # compensating cavities.
-        # =====================================================================
-        # 'strategy': 'manual',
-        'manual list': [
-            # [145, 147, 165, 175, 177]
-        ],
-        # =====================================================================
-        # strategy: k out of n
-        # You must provide a list of broken cavities, and the number of
-        # compensating cavities per faulty cavity. Close broken cavities are
-        # gathered and fixed together.
-        # =====================================================================
-        'strategy': 'k out of n',
-        'k': 6,
-        # =====================================================================
-        # strategy: l neighboring lattices
-        # You must provide a list of broken cavities, and the number of
-        # compensating lattices per faulty cavity. Close broken cavities are
-        # gathered and fixed together.
-        # =====================================================================
-        # 'strategy': 'l neighboring lattices',
-        'l': 2,
-        # =====================================================================
-        #     What should we fit?
-        # =====================================================================
-        'objective': [
-            'w_kin',
-            'phi_abs_array',
-            # 'eps_zdelta', 'beta_zdelta', 'gamma_zdelta',  # 'alpha_zdelta',
-            # 'M_11', 'M_12', 'M_22',  # 'M_21',
-            'mismatch factor',
-        ],
-        # =====================================================================
-        #     Where should we evaluate objective?
-        # =====================================================================
-        'position': 'end_mod',
-        # 'position': '1_mod_after',
-        # 'position': 'both',
-        'phi_s fit': True,
-    }
+    SAVE_FIX = True
+    FLAG_TW = False
+    RECOMPUTE_REFERENCE = False
+    FLAG_EVALUATE = False
 
     # =========================================================================
     # Outputs
     # =========================================================================
     PLOTS = [
         "energy",
-        # "phase",
-        # "cav",
-        # "emittance",
-        # "twiss",
-        # "envelopes",
+        "phase",
+        "cav",
+        "emittance",
+        # "twiss",  # TODO
+        # "envelopes", # FIXME
+        # "transfer matrices", # TODO
     ]
-    PLOT_TM = False
 
     SAVES = [
         "energy phase and mt",
@@ -140,14 +67,14 @@ if __name__ == '__main__':
     PROJECT_FOLDER = os.path.join(
         os.path.dirname(FILEPATH),
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
-
+    CONFIG_PATH = 'jaea_bruce.ini'
     os.makedirs(PROJECT_FOLDER)
+
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
-    if abs(I_MILLI_A) > 1e-10:
-        logging.warning("I_MILLI_A is not zero, " +
-                        "but LW does not take space charge forces into " +
-                        "account.")
+    d_solver, d_beam, d_wtf, d_tw = conf_man.process_config(
+        CONFIG_PATH, PROJECT_FOLDER, key_solver="solver.envelope_longitudinal",
+        key_beam='beam.jaea', key_wtf='wtf.quick_debug', key_tw='tracewin')
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
@@ -156,27 +83,34 @@ if __name__ == '__main__':
 
     linacs = [ref_linac]
 
-    # Broken linac
-    lsq_info = None
-    l_wtf = [
-        wtf_lsq,
-        # wtf_pso,
-    ]
+    lw_fit_evals = []
 
-    for wtf in l_wtf:
+# =============================================================================
+# Run all simulations of the Project
+# =============================================================================
+    l_failed = d_wtf.pop('failed')
+    l_manual = None
+    manual = None
+    if 'manual list' in d_wtf:
+        l_manual = d_wtf.pop('manual list')
+
+    for i, failed in enumerate(l_failed):
         start_time = time.monotonic()
         lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken")
-        fail = mod_fs.FaultScenario(ref_linac, lin, failed_cav,
-                                    wtf=wtf, l_info_other_sol=lsq_info)
+
+        if l_manual is not None:
+            manual = l_manual[i]
+        fault_scenario = FaultScenario(ref_acc=ref_linac,
+                                       fix_acc=lin,
+                                       wtf=d_wtf,
+                                       fault_idx=failed,
+                                       comp_idx=manual)
         linacs.append(deepcopy(lin))
 
         if FLAG_FIX:
-            fail.fix_all()
-            results = lin.elts.compute_transfer_matrices()
-            lin.store_results(results, lin.elts)
-
-            if wtf == wtf_lsq:
-                lsq_info = [f.info for f in fail.faults['l_obj']]
+            fault_scenario.fix_all()
+            results = lin.elts.compute_transfer_matrices()  # useful?
+            lin.store_results(results, lin.elts)  # useful?
 
         linacs.append(lin)
 
@@ -189,11 +123,12 @@ if __name__ == '__main__':
         tw.update_dat_with_fixed_cavities(
             lin.get('dat_filecontent', to_numpy=False), lin.elts,
             lin.get('field_map_folder'))
+
         # Reproduce TW's Data tab
         data = tw.output_data_in_tw_fashion(lin)
 
         # Some measurables to evaluate how the fitting went
-        lw_fit_eval = fail.evaluate_fit_quality(delta_t)
+        lw_fit_eval = fault_scenario.evaluate_fit_quality(delta_t)
         helper.printd(lw_fit_eval, header='Fit evaluation')
 
         if SAVE_FIX:
@@ -203,11 +138,57 @@ if __name__ == '__main__':
             # Save .dat file, plus other data that is given
             output.save_files(lin, data=data, lw_fit_eval=lw_fit_eval)
 
-    for lin in linacs:
-        for plot in PLOTS:
-            kwargs = debug.DICT_PLOT_PRESETS[plot]
-            kwargs['linac_ref'] = linacs[0]
-            debug.compare_with_tracewin(lin, **kwargs)
+        lw_fit_evals.append(lw_fit_eval)
 
-    if PLOT_TM:
-        debug.plot_transfer_matrices(ref_linac, ref_linac.transf_mat["cumul"])
+# =============================================================================
+# TraceWin
+# =============================================================================
+    l_fred = []
+    l_bruce = []
+    if FLAG_TW:
+        for lin in linacs:
+            # It would be a loss of time to do these simulation
+            if 'Broken' in lin.name:
+                continue
+
+            if 'Working' in lin.name and not RECOMPUTE_REFERENCE:
+                lin.files["out_tw"] = '/home/placais/LightWin/data/JAEA/ref/'
+                logging.info(
+                    "we do not TW recompute reference linac. "
+                    + f"We take TW results from {lin.files['out_tw']}.")
+                continue
+
+            ini_path = FILEPATH.replace('.dat', '.ini')
+            lin.simulate_in_tracewin(ini_path, **d_tw)
+            # TODO transfer ini path elsewhere
+            lin.store_tracewin_results()
+
+            if 'Fixed' in lin.name:
+                lin.resample_tw_results(linacs[0])
+
+            lin.precompute_some_tracewin_results()
+
+            if FLAG_EVALUATE and 'Fixed' in lin.name:
+                d_fred = evaluate.fred_tests(linacs[0], lin)
+                l_fred.append(d_fred)
+
+                d_bruce = evaluate.bruce_tests(linacs[0], lin)
+                l_bruce.append(d_bruce)
+
+        if FLAG_EVALUATE:
+            for _list, name in zip([l_fred, l_bruce],
+                                   ['fred_tests.csv', 'bruce_tests.csv']):
+                out = pd.DataFrame(_list)
+                filepath = os.path.join(PROJECT_FOLDER, name)
+                out.to_csv(filepath)
+
+# =============================================================================
+# Plot
+# =============================================================================
+    kwargs = {'plot_tw': FLAG_TW, 'save_fig': SAVE_FIX, 'clean_fig': True}
+    for i in range(len(l_failed)):
+        for str_plot in PLOTS:
+            # Plot the reference linac, i-th broken linac and corresponding
+            # fixed linac
+            args = (linacs[0], linacs[2 * i + 1], linacs[2 * i + 2])
+            plot.plot_preset(str_plot, *args, **kwargs)
