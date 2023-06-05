@@ -16,17 +16,19 @@ import pandas as pd
 import config_manager as conf_man
 import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
-import util.helper as helper
-import util.output as output
-import util.evaluate as evaluate
+from util import helper, output, evaluate
 import util.tracewin_interface as tw
-import visualization.plot as plot
 from util.log_manager import set_up_logging
+from visualization import plot
 
 
 if __name__ == '__main__':
-    # Select .dat file
     FILEPATH = "../data/JAEA/JAEA_ADS_026.dat"
+    CONFIG_PATH = 'jaea.ini'
+    KEY_SOLVER = 'solver.envelope_longitudinal'
+    KEY_BEAM = 'beam.jaea'
+    KEY_WTF = 'wtf.quick_debug'
+    KEY_TW = 'tracewin.quick_debug'
 
     # =========================================================================
     # Fault compensation
@@ -67,14 +69,12 @@ if __name__ == '__main__':
     PROJECT_FOLDER = os.path.join(
         os.path.dirname(FILEPATH),
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
-    CONFIG_PATH = 'jaea_bruce.ini'
     os.makedirs(PROJECT_FOLDER)
 
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
     d_solver, d_beam, d_wtf, d_tw = conf_man.process_config(
-        CONFIG_PATH, PROJECT_FOLDER, key_solver="solver.envelope_longitudinal",
-        key_beam='beam.jaea', key_wtf='wtf.quick_debug', key_tw='tracewin')
+        CONFIG_PATH, PROJECT_FOLDER, KEY_SOLVER, KEY_BEAM, KEY_WTF, KEY_TW)
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
@@ -152,7 +152,8 @@ if __name__ == '__main__':
                 continue
 
             if 'Working' in lin.name and not RECOMPUTE_REFERENCE:
-                lin.files["out_tw"] = '/home/placais/LightWin/data/JAEA/ref/'
+                lin.files["out_tw"] = os.path.join(os.path.dirname(FILEPATH),
+                                                   'ref')
                 logging.info(
                     "we do not TW recompute reference linac. "
                     + f"We take TW results from {lin.files['out_tw']}.")
