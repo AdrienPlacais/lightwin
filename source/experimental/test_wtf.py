@@ -6,6 +6,7 @@ Created on Thu Oct  6 13:50:45 2022.
 @author: placais
 """
 import os
+import logging
 import time
 from datetime import timedelta
 import numpy as np
@@ -91,4 +92,4 @@ for failed_cav in l_failed_cav:
     axx.legend()
     j += 1
 
-helper.printd(df_rank, header='bonjoure')
+logging.info(helper.pd_output(df_rank, header='bonjoure'))

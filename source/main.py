@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
         # Some measurables to evaluate how the fitting went
         lw_fit_eval = fault_scenario.evaluate_fit_quality(delta_t)
-        helper.printd(lw_fit_eval, header='Fit evaluation')
+        logging.info(helper.pd_output(lw_fit_eval, header='Fit evaluation'))
 
         if SAVE_FIX:
             lin.files['dat_filepath'] = os.path.join(

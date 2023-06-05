@@ -8,7 +8,7 @@ TODO merge dict entries for phase space, ie alpha['z'] instead of 'alpha_z'
 TODO ellipse plot could be better
 """
 import os
-
+import logging
 import numpy as np
 from scipy.interpolate import interp1d
 import pandas as pd
@@ -69,7 +69,7 @@ def compute_error_transfer_matrix(t_m: np.ndarray, t_m_ref: np.ndarray,
             Tot error:
             {np.linalg.norm(err)}
             """
-        helper.printd(message, header=header)
+        logging.info(helper.pd_output(message, header=header))
     return err, z_err
 
 
@@ -124,7 +124,7 @@ def output_cavities(linac: Accelerator, out: bool = False) -> pd.DataFrame:
                 i += 1
                 df_out.loc[i] = df_cav.loc[linac.l_cav.index(cav)]
         if out:
-            helper.printd(df_out, header=linac.name)
+            logging.info(helper.pd_output(df_out, header=linac.name))
     return df_cav
 
 
@@ -189,7 +189,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
 
     if out_detail:
         for key, val in d_pd.items():
-            helper.printd(val.round(3), header=key)
+            logging.info(helper.pd_output(val.round(3), header=key))
 
     compact = pd.DataFrame(columns=('Name', 'Status', 'k_e', '(var %)',
                                     'phi_0 (rel)', 'phi_0 (abs)'))
@@ -203,7 +203,8 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
             d_pd['phi_0_abs']['Fixed'][i],
         ]
     if out_compact:
-        helper.printd(compact.round(3), header='Fit compact resume')
+        logging.info(helper.pd_output(compact.round(3),
+                                      header='Fit compact resume'))
 
     return d_pd
 

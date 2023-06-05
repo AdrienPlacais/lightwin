@@ -65,7 +65,6 @@ def flatten(nest: list[int | float, ...]) -> Iterator[int | float]:
 # Messages functions
 # =============================================================================
 # TODO: transform inputs into strings if they are not already strings
-# TODO: use args to avoid lenghty 'opt_message=' each time
 def printc(*args: list[str], color: str = 'cyan') -> None:
     """Print colored messages."""
     dict_c = {
@@ -82,27 +81,27 @@ def printc(*args: list[str], color: str = 'cyan') -> None:
     print('')
 
 
-# TODO: replace nan by ' ' when there is a \n in a pd DataFrame header
-def printd(message: str, color_header: str = 'cyan', header: str = '') -> None:
-    """Print delimited message."""
-    pd.options.display.float_format = '{:.6f}'.format
-    pd.options.display.max_columns = 10
-    pd.options.display.max_colwidth = 18
-    pd.options.display.width = 250
-
-    # Legacy
+def pd_output(message: str, header: str = '') -> str:
+    """Give a string describing a pandas dataframe."""
     tot = 100
-    # print('\n' + '=' * tot)
-    # if len(header) > 0:
-        # printc(header, color=color_header)
-
-    # # Output multi-line for headers
-    # if isinstance(message, pd.DataFrame):
-        # message.columns = message.columns.str.split("\n", expand=True)
-    # print(message, '\n' + '=' * tot, '\n')
     my_output = header + "\n" + "-" * tot + "\n" + message.to_string()
     my_output += "\n" + "-" * tot
-    logging.info(my_output)
+    return my_output
+
+
+# TODO: replace nan by ' ' when there is a \n in a pd DataFrame header
+# def printd(message: str, header: str = '') -> None:
+    # """Print delimited message."""
+    # pd.options.display.float_format = '{:.6f}'.format
+    # pd.options.display.max_columns = 10
+    # pd.options.display.max_colwidth = 18
+    # pd.options.display.width = 250
+
+    # # tot = 100
+    # # my_output = header + "\n" + "-" * tot + "\n" + message.to_string()
+    # # my_output += "\n" + "-" * tot
+    # my_output = pd_output(message, header)
+    # logging.info(my_output)
 
 
 def resample(x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
