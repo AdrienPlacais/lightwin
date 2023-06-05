@@ -541,16 +541,17 @@ def _test_strategy_global(c_wtf: configparser.SectionProxy) -> bool:
     logging.warning("As for now, field amplitudes are always modified during "
                     + "the fit. If you want the 'classic' global compensation,"
                     + " you should manually set the bounds for k_e to a very "
-                    + "low value in optimisation/linacs_design_space.py.")
+                    + "low value in optimisation/variables.py.")
 
     if 'position' not in c_wtf.keys():
-        c_wtf['position'] = 'global'
+        logging.error("You must provide 'position' to tell LightWin where "
+                      + "objectives should be evaluated.")
+        return False
 
-    if c_wtf.get('position') != 'end_linac':
-        logging.warning("With global method, objectives are evaluated at "
-                        + "the end of the linac. 'position' key will be "
-                        + "modified accordingly.")
-        c_wtf['position'] = 'end_linac'
+    if 'end_linac' not in c_wtf.getliststr('position'):
+        logging.warning("With global method, objectives should be evaluated at"
+                        + " the end of the linac. LW will run anyway and "
+                        + "'position' key will not be modified.")
 
     return True
 
