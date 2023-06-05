@@ -27,7 +27,7 @@ if __name__ == '__main__':
     CONFIG_PATH = 'jaea.ini'
     KEY_SOLVER = 'solver.envelope_longitudinal'
     KEY_BEAM = 'beam.jaea'
-    KEY_WTF = 'wtf.quick_debug'
+    KEY_WTF = 'wtf.global'
     KEY_TW = 'tracewin.quick_debug'
 
     # =========================================================================
