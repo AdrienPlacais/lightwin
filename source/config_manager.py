@@ -357,15 +357,15 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
 
 def _test_wtf(c_wtf: configparser.SectionProxy) -> None:
     """Test the 'what_to_fit' dictionaries."""
-    d_tests = {'failed and idx': _test_failed_and_idx,
-               'strategy': _test_strategy,
-               'objective': _test_objective,
-               'scale objective': _test_scale_objective,
-               'opti method': _test_objective,
-               'position': _test_position,
-               'misc': _test_misc,
-               }
-    for key, test in d_tests.items():
+    tests = {'failed and idx': _test_failed_and_idx,
+            'strategy': _test_strategy,
+            'objective': _test_objective,
+            'scale objective': _test_scale_objective,
+            'opti method': _test_objective,
+            'position': _test_position,
+            'misc': _test_misc,
+            }
+    for key, test in tests.items():
         if not test(c_wtf):
             raise IOError(f"What to fit {c_wtf.name}: error in entry {key}.")
     logging.info(f"what to fit {c_wtf.name} tested with success.")
@@ -454,19 +454,19 @@ def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
                       + "compensating cavities are chosen.")
         return False
 
-    d_tests = {'k out of n': _test_strategy_k_out_of_n,
-               'manual': _test_strategy_manual,
-               'l neighboring lattices': _test_strategy_l_neighboring_lattices,
-               'global': _test_strategy_global,
-               }
+    tests = {'k out of n': _test_strategy_k_out_of_n,
+             'manual': _test_strategy_manual,
+             'l neighboring lattices': _test_strategy_l_neighboring_lattices,
+             'global': _test_strategy_global,
+             }
 
     key = c_wtf['strategy']
-    if key not in d_tests:
+    if key not in tests:
         logging.error("The 'strategy' key did not match any authorized value "
                       + f"({c_wtf['strategy']}).")
         return False
 
-    return d_tests[key](c_wtf)
+    return tests[key](c_wtf)
 
 
 def _test_strategy_k_out_of_n(c_wtf: configparser.SectionProxy) -> bool:
