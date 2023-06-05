@@ -11,11 +11,15 @@ import logging
 import numpy as np
 import pandas as pd
 
+import config_manager as con
 from optimisation.my_fault import MyFault
 from optimisation import strategy, position
 from core.accelerator import Accelerator
 from core.list_of_elements import ListOfElements
 from core.emittance import mismatch_factor
+from util import debug
+
+DISPLAY_CAVITIES_INFO = True
 
 
 class MyFaultScenario(list):
@@ -50,6 +54,7 @@ class MyFaultScenario(list):
         self.ref_acc, self.fix_acc = ref_acc, fix_acc
         self.wtf = wtf
         self.info_other_sol = info_other_sol
+        self.info = {}
 
         gathered_fault_idx, gathered_comp_idx = \
             strategy.sort_and_gather_faults(fix_acc, wtf, fault_idx, comp_idx)
@@ -71,13 +76,20 @@ class MyFaultScenario(list):
                         objectives_positions)
             )
         super().__init__(faults)
-        logging.warning('still a transfer phase to implement')
+
+        if not con.FLAG_PHI_ABS:
+            # Change status of cavities after the first one that is down. Idea
+            # is to keep relative phi_0 between ref and fix linacs (linac
+            # rephasing)
+            self._update_status_of_cavities_to_rephase()
+
         self._transfer_phi0_from_ref_to_broken()
 
     def fix_all(self) -> None:
         """Fix all the Faults."""
         success, info = [], []
         for fault in self:
+            fault.update_cavities_status(optimisation='not started')
             _succ, _info = fault.fix()
             success.append(_succ)
             info.append(_info)
@@ -86,8 +98,7 @@ class MyFaultScenario(list):
             self._compute_beam_parameters_in_compensation_zone_and_save_it(
                 fault, my_sol)
 
-            fault._update_cavities_status(optimisation='finished',
-                                          success=True)
+            fault.update_cavities_status(optimisation='finished', success=True)
             results, elts = \
                 self._compute_beam_parameters_up_to_next_fault(fault, my_sol)
             self.fix_acc.store_results(results, elts)
@@ -100,13 +111,33 @@ class MyFaultScenario(list):
         self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
             + f" of {str(len(success))})"
 
-        logging.warning("Removed some debugs here.")
-        # for linac in [self.ref_acc, self.fix_acc]:
-            # self.info[linac.name + ' cav'] = \
-                # debug.output_cavities(linac, mod_f.debugs['cav'])
+        for linac in [self.ref_acc, self.fix_acc]:
+            self.info[linac.name + ' cav'] = \
+                debug.output_cavities(linac, DISPLAY_CAVITIES_INFO)
 
-        # self.info['fit'] = debug.output_fit(self, mod_f.debugs['fit_complete'],
-                                            # mod_f.debugs['fit_compact'])
+        # Legacy, does not work anymore with the new implementation
+        # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
+
+    def _update_status_of_cavities_to_rephase(self) -> None:
+        """
+        Change the status of some cavities to 'rephased'.
+
+        If the calculation is in relative phase, all cavities that are after
+        the first failed one are rephased.
+        """
+        logging.warning(
+            "The phases in the broken linac are relative. It may be more "
+            + "relatable to use absolute phases, as it would avoid the "
+            + "rephasing of the linac at each cavity.")
+        cavities = self.fix_acc.l_cav
+        first_failed_cavity = self[0].failed_cav[0]
+        first_failed_index = cavities.index(first_failed_cavity)
+
+        cavities_to_rephase = [cav for cav in cavities[first_failed_index:]
+                               if cav.get('status') == 'nominal']
+
+        for cav in cavities_to_rephase:
+            cav.update_status('rephased (in progress)')
 
     def _transfer_phi0_from_ref_to_broken(self) -> None:
         """

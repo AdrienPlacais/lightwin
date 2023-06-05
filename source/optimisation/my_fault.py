@@ -18,7 +18,6 @@ from core.emittance import mismatch_factor
 from optimisation.variables import VariablesAndConstraints
 from algorithms.least_squares import LeastSquares
 
-
 class MyFault:
     """To handle and fix a single Fault."""
 
@@ -62,7 +61,6 @@ class MyFault:
 
     def fix(self):
         """Fix the Fault."""
-        self._update_cavities_status(optimisation='not started')
         variables_constraints = self._set_design_space()
         compute_residuals, info_objectives = self._select_objective()
         compute_beam_propagation = self.elts.compute_transfer_matrices
@@ -83,8 +81,8 @@ class MyFault:
         # })
         return success, self.info
 
-    def _update_cavities_status(self, optimisation: str,
-                                success: bool | None = None) -> None:
+    def update_cavities_status(self, optimisation: str,
+                               success: bool | None = None) -> None:
         """Update status of compensating and failed cavities."""
         if optimisation not in ['not started', 'finished']:
             logging.error("{optimisation =} not understood. Not changing any "
