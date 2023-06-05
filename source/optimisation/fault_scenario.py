@@ -17,7 +17,7 @@ from optimisation import strategy, position
 from core.accelerator import Accelerator
 from core.list_of_elements import ListOfElements
 from core.emittance import mismatch_factor
-from util import debug
+from util import debug, helper
 
 DISPLAY_CAVITIES_INFO = True
 
@@ -236,67 +236,65 @@ class FaultScenario(list):
         return mism
 
     # FIXME
-    def evaluate_fit_quality(self, delta_t: float, user_idx: int = None
+    def evaluate_fit_quality(self, delta_t: float,
+                             additional_idx: int | None = None
                              ) -> pd.DataFrame:
         """Compute some quantities on the whole linac to see if fit is good."""
-        keys = ['w_kin', 'phi_abs_array', 'envelope_pos_w',
-                'envelope_energy_w', 'mismatch factor', 'eps_w']
-        val = {}
-        for key in keys:
-            val[key] = []
+        quantities_to_evaluate = ['w_kin', 'phi_abs_array', 'envelope_pos_w',
+                                  'envelope_energy_w', 'mismatch factor',
+                                  'eps_w']
+        quantities = {}
+        for key in quantities_to_evaluate:
+            quantities[key] = []
 
-        # End of each compensation zone
-        l_idx = [fault.elts[-1].get('s_out') for fault in self]
-        str_columns = [f"end comp zone\n(idx {idx}) [%]"
-                       for idx in l_idx]
+        evaluation_idx = [fault.elts[-1].get('s_out') for fault in self]
+        headers = [f"end comp zone\n({idx = }) [%]" for idx in evaluation_idx]
 
-        # If user provided more idx to check
-        if user_idx is not None:
-            l_idx += user_idx
-            str_columns += [f"user defined\n(idx {idx}) [%]"
-                            for idx in user_idx]
+        if additional_idx is not None:
+            headers += [f"user defined\n({idx = }) [%]"
+                        for idx in additional_idx]
+            evaluation_idx += additional_idx
 
-        # End of linac
-        l_idx.append(-1)
-        str_columns.append("end linac [%]")
+        headers.append("end linac [%]")
+        evaluation_idx.append(-1)
 
-        # First column labels
-        str_columns.insert(0, "Qty")
+        headers.insert(0, "Qty")
 
         # Calculate relative errors in %
-        for idx in l_idx:
-            for key in keys:
+        for idx in evaluation_idx:
+            for key in quantities_to_evaluate:
                 ref = self.ref_acc.get(key)[idx]
                 fix = self.fix_acc.get(key)[idx]
 
                 if key == 'mismatch factor':
-                    val[key].append(fix)
+                    quantities[key].append(fix)
                     continue
-                val[key].append(1e2 * (ref - fix) / ref)
+                quantities[key].append(1e2 * (ref - fix) / ref)
 
-        # Relative square difference sumed on whole linac
-        str_columns.append("sum error linac")
-        for key in keys:
+        headers.append("sum error linac")
+        for key in quantities_to_evaluate:
             ref = self.ref_acc.get(key)
             ref[ref == 0.] = np.NaN
             fix = self.fix_acc.get(key)
 
             if key == 'mismatch factor':
-                val[key].append(np.sum(fix))
+                quantities[key].append(np.sum(fix))
                 continue
-            val[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
+            quantities[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
 
         # Handle time
-        time_line = [None for n in range(len(val[keys[0]]))]
+        time_line = [None
+                     for n in range(len(
+                         quantities[quantities_to_evaluate[0]]))]
         days, seconds = delta_t.days, delta_t.seconds
         time_line[0] = f"{days * 24 + seconds // 3600} hrs"
         time_line[1] = f"{seconds % 3600 // 60} min"
         time_line[2] = f"{seconds % 60} sec"
 
         # Now make it a pandas dataframe for sweet output
-        df_eval = pd.DataFrame(columns=str_columns)
+        df_eval = pd.DataFrame(columns=headers)
         df_eval.loc[0] = ['time'] + time_line
-        for i, key in enumerate(keys):
-            df_eval.loc[i + 1] = [key] + val[key]
-
+        for i, key in enumerate(quantities_to_evaluate):
+            df_eval.loc[i + 1] = [key] + quantities[key]
+        logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
         return df_eval
