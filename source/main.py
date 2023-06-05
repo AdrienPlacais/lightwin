@@ -123,15 +123,11 @@ if __name__ == '__main__':
             lin.get('dat_filecontent', to_numpy=False), lin.elts,
             lin.get('field_map_folder'))
         data_tab_from_tw = tw.output_data_in_tw_fashion(lin)
-
-        # Some measurables to evaluate how the fitting went
         lw_fit_eval = fault_scenario.evaluate_fit_quality(delta_t)
 
         if SAVE_FIX:
             lin.files['dat_filepath'] = os.path.join(
                 lin.get('out_lw'), os.path.basename(FILEPATH))
-
-            # Save .dat file, plus other data that is given
             output.save_files(lin, data=data_tab_from_tw,
                               lw_fit_eval=lw_fit_eval)
 
