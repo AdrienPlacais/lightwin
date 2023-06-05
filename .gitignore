@@ -11,6 +11,7 @@ source/untitled*.py
 *.gif
 *.html
 *.log
+*.old
 *.old.ini
 *.pdf
 *.png
