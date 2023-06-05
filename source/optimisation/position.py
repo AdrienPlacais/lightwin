@@ -15,7 +15,6 @@ In contrary to the optimisation.strategy module, here we do one fault at a time
 (a fault can encompass several faulty cavities that are to be fixed together).
 
 TODO (both), end_section, elt_name
-TODO remove the position list checking once it is implemented
 """
 import logging
 
@@ -29,9 +28,6 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
                                                     list[_Element]]:
     """Tell what is the zone to recompute."""
     position = wtf['position']
-    # FIXME
-    if isinstance(position, str):
-        position = [position]
 
     # We need ELEMENT indexes, not cavity.
     fault_idx = _to_elt_idx(fix, fault_idx)

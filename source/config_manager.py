@@ -24,7 +24,7 @@ TODO position:
     element name
     element number
     end_section
-    allow list of arguments, and remove 'both'
+    allow for different objectives at different positions
 
 TODO variable: maybe add this? Unnecessary at this point
 """
@@ -47,10 +47,9 @@ Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
 SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
 
 
-def process_config(config_path: str, project_path: str,
-                   key_solver: str = "solver.envelope_longitudinal",
-                   key_beam: str = 'beam', key_wtf: str = 'wtf',
-                   key_tw: str = 'tracewin') -> dict:
+def process_config(config_path: str, project_path: str, key_solver: str,
+                   key_beam: str, key_wtf: str, key_tw: str = 'tracewin'
+                  ) -> tuple[dict, dict, dict, dict]:
     """
     Frontend for config: load .ini, test it, return its content as dicts.
 
@@ -60,16 +59,13 @@ def process_config(config_path: str, project_path: str,
         Path to the .ini file.
     project_path : str
         Path to the project folder, to keep a copy of the used .ini.
-    key_solver : str, optional
-        Name of the Section containing solver in the .ini file. The default is
-        "envelope_long".
-    key_beam : str, optional
-        Name of the Section containing beam parameters in the .ini file. The
-        default is 'beam'.
-    key_wtf : str, optional
-        Name of the Section containing wtf parameters in the .ini file. The
-        default is 'wtf'.
-    key_tw : str, optionaf
+    key_solver : str
+        Name of the Section containing solver in the .ini file.
+    key_beam : str
+        Name of the Section containing beam parameters in the .ini file.
+    key_wtf : str
+        Name of the Section containing wtf parameters in the .ini file.
+    key_tw : str, optional
         Name of the Section containing the TraceWin simulation parameters in
         the .ini file. The default is 'tracewin'.
 
@@ -118,7 +114,7 @@ def process_config(config_path: str, project_path: str,
         key_tw=key_tw)
 
     # Remove unused Sections, save resulting file
-    [config.remove_section(key) for key in list(config.keys())
+    _ = [config.remove_section(key) for key in list(config.keys())
      if key not in ['DEFAULT', key_solver, key_beam, key_wtf, key_tw]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
@@ -153,6 +149,7 @@ def _config_to_dict(config: configparser.ConfigParser, key_solver: str,
 # TODO
 def generate_list_of_faults():
     """Generate a proper (list of) faults."""
+    logging.critical("Not implemented.")
     failed = None
     return failed
 
@@ -338,6 +335,7 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     getter = {
         'objective': c_wtf.getliststr,
         'scale objective': c_wtf.getlistfloat,
+        'position': c_wtf.getliststr,
         'failed': c_wtf.getfaults,
         'manual list': c_wtf.getgroupedfaults,
         'k': c_wtf.getint,
@@ -362,6 +360,7 @@ def _test_wtf(c_wtf: configparser.SectionProxy) -> None:
     d_tests = {'failed and idx': _test_failed_and_idx,
                'strategy': _test_strategy,
                'objective': _test_objective,
+               'scale objective': _test_scale_objective,
                'opti method': _test_objective,
                'position': _test_position,
                'misc': _test_misc,
@@ -555,6 +554,7 @@ def _test_strategy_global(c_wtf: configparser.SectionProxy) -> bool:
 
     return True
 
+
 def _test_objective(c_wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'objective' of what_to_fit."""
     if 'objective' not in c_wtf.keys():
@@ -562,31 +562,19 @@ def _test_objective(c_wtf: configparser.SectionProxy) -> bool:
                       + "should fit.")
         return False
 
-    l_obj = c_wtf.getliststr('objective')
+    objectives = c_wtf.getliststr('objective')
     implemented = [
         'w_kin', 'phi_abs_array', 'mismatch factor',
         'eps_zdelta', 'beta_zdelta', 'gamma_zdelta', 'alpha_zdelta',
         'M_11', 'M_12', 'M_22', 'M_21']
 
-    if not all(obj in implemented for obj in l_obj):
+    if not all(obj in implemented for obj in objectives):
         logging.error("At least one objective was not recognized.")
         logging.info("""To add your own objective, make sure that:
                      1. it can be returned by the Accelerator.get() method;
                      2. it is present in the util.d_output dictionaries;
                      3. it is in the above 'implemented' dict.""")
         return False
-
-    if 'scale objective' in c_wtf.keys():
-        l_scales = c_wtf.getlistfloat('scale objective')
-        if len(l_scales) != len(l_obj):
-            logging.error("If you want to scale the objectives by a factor, "
-                          + "you must provide a list of scale factors (one "
-                          + "scale factor per objective.")
-            return False
-    else:
-        l_scales = [1. for obj in l_obj]
-        c_wtf['scale objective'] = ', '.join(map(str, l_scales))
-        logging.warning("Scale of objectives not specified. Use default.")
 
     return True
 
@@ -613,18 +601,39 @@ def _test_position(c_wtf: configparser.SectionProxy) -> bool:
                       + "objectives should be evaluated.")
         return False
 
+    positions = c_wtf.getliststr('position')
     implemented = [
         # End of last lattice with a compensating cavity
         'end_mod',
         # End of one lattice after last lattice with a compensating cavity
         '1_mod_after',
-        # Both lattices
-        'both',
+        # End of linac
         'end_linac',
     ]
-    if c_wtf['position'] not in implemented:
-        logging.error("Position not implemented.")
+    if not all(pos in implemented for pos in positions):
+        logging.error("At least one position was not recognized. Allowed "
+                      + f"values are: {implemented}.")
         return False
+    return True
+
+
+def _test_scale_objective(c_wtf: configparser.SectionProxy) -> bool:
+    """Specific test for the key 'scale objective' of what_to_fit."""
+    objectives = c_wtf.getliststr('objective')
+    positions = c_wtf.getliststr('position')
+
+    if 'scale objective' in c_wtf.keys():
+        scales = c_wtf.getlistfloat('scale objective')
+        if len(scales) != len(objectives) * len(positions):
+            logging.error("If you want to scale the objectives by a factor, "
+                          + "you must provide a list of scale factors (one "
+                          + "scale factor per objective and per position).")
+            return False
+    else:
+        scales = [1. for x in range(len(objectives) * len(positions))]
+        c_wtf['scale objective'] = ', '.join(map(str, scales))
+        logging.warning("Scale of objectives not specified. Use default.")
+
     return True
 
 
@@ -754,16 +763,13 @@ def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
 # =============================================================================
 if __name__ == '__main__':
     # Init paths
-    CONFIG_PATH = 'jaea_default.ini'
+    CONFIG_PATH = 'jaea.ini'
     PROJECT_PATH = 'bla/'
 
     # Load config
-    wtf = process_config(CONFIG_PATH, PROJECT_PATH, key_wtf='wtf.k_out_of_n')
-    wtf = process_config(CONFIG_PATH, PROJECT_PATH,
-                         key_wtf='wtf.l_neighboring_lattices')
-    wtf = process_config(CONFIG_PATH, PROJECT_PATH, key_wtf='wtf.manual')
-
-    # Save a copy
-    # save_path = os.path.join(PROJECT_PATH, 'config.ini')
-    # with open(save_path, 'w', encoding='utf-8') as configfile:
-        # config.write(configfile)
+    wtfs = process_config(CONFIG_PATH, PROJECT_PATH,
+                          key_solver='solver.envelope_longitudinal',
+                          key_beam='beam.jaea',
+                          key_wtf='wtf.k_out_of_n',
+                          key_tw='tracewin.quick_debug')
+    print(f"{wtfs}")
