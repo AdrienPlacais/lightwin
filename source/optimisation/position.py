@@ -55,7 +55,7 @@ def _zone(pos: str, *args) -> int | None:
     return D_POS[pos](*args)
 
 
-def _end_mod(lin: Accelerator, fault_idx: list[int],
+def _end_last_altered_lattice(lin: Accelerator, fault_idx: list[int],
              comp_idx: list[int]) -> int:
     """Evaluate obj at the end of the last lattice w/ an altered cavity."""
     idx_last = max(fault_idx + comp_idx)
@@ -65,8 +65,8 @@ def _end_mod(lin: Accelerator, fault_idx: list[int],
     return lattices[idx_lattice_last][-1].get('elt_idx', to_numpy=False)
 
 
-def _one_mod_after(lin: Accelerator, fault_idx: list[int],
-                   comp_idx: list[int]) -> int:
+def _one_lattice_after_last_altered_lattice(
+    lin: Accelerator, fault_idx: list[int], comp_idx: list[int]) -> int:
     """Evaluate objective one lattice after the last comp or failed cav."""
     idx_last = max(fault_idx + comp_idx)
     idx_lattice_last = lin.elts[idx_last].get('lattice') + 1
@@ -93,7 +93,8 @@ def _to_elt_idx(lin: Accelerator, indexes: list[int]) -> list[int]:
 
 
 D_POS = {
-    'end_mod': _end_mod,
-    '1_mod_after': _end_mod,
-    'end_linac': _end_linac,
+    'end of last altered lattice': _end_last_altered_lattice,
+    'one lattice after last altered lattice':
+        _one_lattice_after_last_altered_lattice,
+    'end of linac': _end_linac,
 }

@@ -549,7 +549,7 @@ def _test_strategy_global(c_wtf: configparser.SectionProxy) -> bool:
                       + "objectives should be evaluated.")
         return False
 
-    if 'end_linac' not in c_wtf.getliststr('position'):
+    if 'end of linac' not in c_wtf.getliststr('position'):
         logging.warning("With global methods, objectives should be evaluated "
                         + "at the end of the linac. LW will run anyway and "
                         + "'position' key will not be modified.")
@@ -611,11 +611,11 @@ def _test_position(c_wtf: configparser.SectionProxy) -> bool:
     positions = c_wtf.getliststr('position')
     implemented = [
         # End of last lattice with a compensating cavity
-        'end_mod',
+        'end of last altered lattice',
         # End of one lattice after last lattice with a compensating cavity
-        '1_mod_after',
+        'one lattice after last altered lattice',
         # End of linac
-        'end_linac',
+        'end of linac',
         # All cavities
         'global',
         # All cavities after the fault,
