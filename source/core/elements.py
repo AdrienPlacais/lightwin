@@ -108,9 +108,9 @@ class _Element():
         return self.elt_info['elt_name']
 
     def __repr__(self) -> str:
-    #     if self.elt_info['status'] not in ['none', 'nominal']:
-    #         logging.warning("Element properties where changed.")
-    #     return f"{self.__class__}(elem={self.__elem})"
+        # if self.elt_info['status'] not in ['none', 'nominal']:
+        #     logging.warning("Element properties where changed.")
+        # return f"{self.__class__}(elem={self.__elem})"
         return self.__str__()
 
     def has(self, key: str) -> bool:
@@ -407,25 +407,32 @@ class FieldMap(_Element):
         return phi_0_rel
 
 
-class Lattice():
+class Lattice:
     """Used to get the number of elements per lattice."""
 
     def __init__(self, elem: list[str]) -> None:
         self.n_lattice = int(elem[1])
 
 
-class Freq():
+class Freq:
     """Used to get the frequency of every Section."""
 
     def __init__(self, elem: list[str]) -> None:
         self.f_rf_mhz = float(elem[1])
 
 
-class FieldMapPath():
+class FieldMapPath:
     """Used to get the base path of field maps."""
 
     def __init__(self, elem: list[str]) -> None:
         self.path = elem[1]
+
+
+class End:
+    """The end of the linac."""
+
+    def __init__(self, elem: list[str]) -> None:
+        pass
 
 
 def _take_parameters_from_rf_field_object(

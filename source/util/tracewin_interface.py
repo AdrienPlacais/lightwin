@@ -8,6 +8,7 @@ Created on Thu Feb 17 15:52:37 2022.
 TODO insert line skip at each section change in the output.dat
 """
 import logging
+import itertools
 import re
 import os.path
 import subprocess
@@ -18,7 +19,7 @@ import numpy as np
 
 import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
-                           Freq, FieldMapPath)
+                           Freq, FieldMapPath, End)
 from core.electric_field import load_field_map_file
 
 
@@ -41,7 +42,6 @@ to_be_implemented = [
     'DIAG_DENERGY', 'DIAG_ENERGY', 'DIAG_TWISS', 'DIAG_WAIST',
     'DIAG_POSITION', 'DIAG_DPHASE',
     'ERROR_CAV_NCPL_STAT', 'ERROR_CAV_NCPL_DYN',
-    'END',
     'SET_ADV', 'LATTICE_END', 'SHIFT', 'THIN_STEERING', 'APERTURE']
 not_an_element = ['LATTICE', 'FREQ']
 
@@ -126,15 +126,16 @@ def _create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
         'LATTICE': Lattice,
         'FREQ': Freq,
         'FIELD_MAP_PATH': FieldMapPath,
+        'END': End,
     }
 
-    # We look at each element in dat_filecontent, and according to the
-    # value of the 1st column string we create the appropriate Element
-    # subclass and store this instance in l_elts
-    elements_list = [subclasses_dispatcher[elem[0]](elem)
-                     for elem in dat_filecontent
-                     if elem[0] not in to_be_implemented]
-
+    elements_iterable = itertools.takewhile(
+        lambda elt: not isinstance(elt, End),
+        [subclasses_dispatcher[elem[0]](elem) for elem in dat_filecontent
+         if elem[0] not in to_be_implemented]
+    )
+    elements_list = [element for element in elements_iterable]
+    # Remove END
     return elements_list
 
 
