@@ -8,6 +8,7 @@ Created on Thu Feb 17 15:52:37 2022.
 TODO insert line skip at each section change in the output.dat
 """
 import logging
+import re
 import os.path
 import subprocess
 from tkinter import Tk
@@ -34,11 +35,13 @@ except ModuleNotFoundError:
 
 to_be_implemented = [
     'SPACE_CHARGE_COMP', 'SET_SYNC_PHASE', 'STEERER',
-    'ADJUST', 'ADJUST_STEERER',
-    'DIAG_DSIZE3', 'DIAG_ENERGY', 'DIAG_TWISS', 'DIAG_POSITION', 'DIAG_DPHASE',
-    'DIAG_DENERGY',
-    'ERROR_CAV_NCPL_STAT',
-    'END']
+    'ADJUST', 'ADJUST_STEERER', 'ADJUST_STEERER_BX', 'ADJUST_STEERER_BY',
+    'DIAG_SIZE', 'DIAG_DSIZE', 'DIAG_DSIZE2', 'DIAG_DSIZE3', 'DIAG_DSIZE4',
+    'DIAG_DENERGY', 'DIAG_ENERGY', 'DIAG_TWISS', 'DIAG_WAIST',
+    'DIAG_POSITION', 'DIAG_DPHASE',
+    'ERROR_CAV_NCPL_STAT', 'ERROR_CAV_NCPL_DYN',
+    'END',
+    'SET_ADV', 'LATTICE_END', 'SHIFT', 'THIN_STEERING', 'APERTURE']
 not_an_element = ['LATTICE', 'FREQ']
 
 # Dict of data that can be imported from TW's "Data" table.
@@ -54,7 +57,7 @@ d_tw_data_table = {
 }
 
 
-def load_dat_file(dat_filepath):
+def load_dat_file(dat_filepath: str) -> list[list[str]]:
     """
     Load the dat file and convert it into a list of lines.
 
@@ -65,10 +68,11 @@ def load_dat_file(dat_filepath):
 
     Return
     ------
-    dat_filecontent: list, opt
+    dat_filecontent: list[list[str]]
         List containing all the lines of dat_filepath.
     """
     dat_filecontent = []
+    logging.warning("Personalized name of elements not handled for now.")
 
     # Load and read data file
     with open(dat_filepath) as file:
@@ -83,13 +87,17 @@ def load_dat_file(dat_filepath):
 
             # Remove any trailing comment
             line = line.split(';')[0]
-            line = line.split()
+            # Remove element name
+            line = line.split(':')[-1]
+            # Remove everything between parenthesis
+            # https://stackoverflow.com/questions/14596884/remove-text-between-and
+            line = re.sub("([\(\[]).*?([\)\]])", "", line)
 
-            dat_filecontent.append(line)
+            dat_filecontent.append(line.split())
 
-    l_elts = _create_structure(dat_filecontent)
+    elts = _create_structure(dat_filecontent)
 
-    return dat_filecontent, l_elts
+    return dat_filecontent, elts
 
 
 def _create_structure(dat_filecontent):
@@ -98,12 +106,12 @@ def _create_structure(dat_filecontent):
 
     Parameters
     ----------
-    dat_filecontent : list of str
+    dat_filecontent : list[str]
         List containing all the lines of dat_filepath.
 
     Return
     ------
-    l_elts: list of Element
+    elements_list: list[_Element]
         List containing all the Element objects.
     """
     # Dictionnary linking element nature with correct sub-class
@@ -120,11 +128,11 @@ def _create_structure(dat_filecontent):
     # We look at each element in dat_filecontent, and according to the
     # value of the 1st column string we create the appropriate Element
     # subclass and store this instance in l_elts
-    l_elts = [subclasses_dispatcher[elem[0]](elem)
-              for elem in dat_filecontent
-              if elem[0] not in to_be_implemented]
+    elements_list = [subclasses_dispatcher[elem[0]](elem)
+                     for elem in dat_filecontent
+                     if elem[0] not in to_be_implemented]
 
-    return l_elts
+    return elements_list
 
 
 def give_name(l_elts):
