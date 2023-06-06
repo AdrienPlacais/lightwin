@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri May 12 20:27:54 2023
+Created on Fri May 12 20:27:54 2023.
 
 @author: placais
 
 All functions to change units.
 """
-import logging
 import numpy as np
 from constants import c
 import config_manager as con
 
 
-def position(pos_in : float | np.ndarray, beta: float | np.ndarray, key: str,
-             omega: float=None) -> float | np.ndarray:
+def position(pos_in: float | np.ndarray, beta: float | np.ndarray, key: str,
+             omega: float | None = None) -> float | np.ndarray:
     """Phase/position converters."""
     if omega is None:
         omega = con.OMEGA_0_BUNCH
@@ -25,8 +24,9 @@ def position(pos_in : float | np.ndarray, beta: float | np.ndarray, key: str,
     return d_convert[key](pos_in, beta)
 
 
-def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=None,
-           m_over_q: float=None, e_rest: float=None) -> float | np.ndarray:
+def energy(energy_in: float | np.ndarray, key: str,
+           q_over_m: float | None = None, m_over_q: float | None = None,
+           e_rest: float | None = None) -> float | np.ndarray:
     """Convert energy or Lorentz factor into another related quantity."""
     if q_over_m is None:
         q_over_m = con.Q_OVER_M
@@ -53,7 +53,7 @@ def energy(energy_in: float | np.ndarray, key: str, q_over_m: float=None,
 
 
 def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
-                 key: str, e_rest: float=None) -> float | np.ndarray:
+                 key: str, e_rest: float | None = None) -> float | np.ndarray:
     """Convert energies between longitudinal phase spaces."""
     if e_rest is None:
         e_rest = con.E_REST_MEV
@@ -67,8 +67,8 @@ def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
 
 # TODO may be possible to save some operations by using lambda func?
 def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
-              key: str, lam: float | np.ndarray=None,
-              e_0: float | np.ndarray=None) -> float | np.ndarray:
+              key: str, lam: float | np.ndarray | None = None,
+              e_0: float | np.ndarray | None = None) -> float | np.ndarray:
     """Convert emittance from a phase space to another."""
     if lam is None:
         lam = con.LAMBDA_BUNCH
@@ -95,8 +95,8 @@ def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
 
 
 def twiss(twiss_orig: np.ndarray, gamma: float | np.ndarray, key: str,
-          lam: float | np.ndarray=None,
-          e_0: float | np.ndarray=None) -> np.ndarray:
+          lam: float | np.ndarray | None = None,
+          e_0: float | np.ndarray | None = None) -> np.ndarray:
     """Convert Twiss array from a phase space to another."""
     if lam is None:
         lam = con.LAMBDA_BUNCH
@@ -126,4 +126,3 @@ def twiss(twiss_orig: np.ndarray, gamma: float | np.ndarray, key: str,
     twiss_new[:, 1] = twiss_orig[:, 1] * factors[1]
     twiss_new[:, 2] = twiss_orig[:, 2] / factors[1]
     return twiss_new
-

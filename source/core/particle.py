@@ -58,8 +58,8 @@ class Particle():
         self._init_phi(idx=0)
 
         if not self.part_info["synchronous"]:
-            logging.warning("The absolute position of a non synchronous " +
-                            "particle is not initialized.")
+            logging.warning("The absolute position of a non synchronous "
+                            + "particle is not initialized.")
 
     def has(self, key):
         """Tell if the required attribute is in this class."""
@@ -91,8 +91,8 @@ class Particle():
 
     def init_abs_z(self, abs_z_array):
         """Create the array of absolute positions."""
-        assert self.part_info["synchronous"], """This routine only works for the
-        synch particle I think."""
+        assert self.part_info["synchronous"], """This routine only works for
+        the synch particle I think."""
         self.pos['z_abs'] = abs_z_array
 
     def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
