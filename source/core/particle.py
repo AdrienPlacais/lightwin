@@ -5,6 +5,7 @@ Created on Thu Dec  2 13:44:00 2021.
 
 @author: placais
 """
+from typing import Any
 import logging
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ from util.helper import recursive_items, recursive_getter
 import util.converters as convert
 
 
-class Particle():
+class Particle:
     """
     Class to hold the position, energy, etc of a particle.
 
@@ -22,8 +23,8 @@ class Particle():
         phi = omega_0_rf * t
     """
 
-    def __init__(self, z_0, e_mev, n_steps=1, synchronous=False,
-                 reference=True):
+    def __init__(self, z_0: float, e_mev: float, n_steps: int = 1,
+                 synchronous: bool = False, reference: bool = True) -> None:
         self.part_info = {
             # Is this particle the generator?
             'synchronous': synchronous,
@@ -44,7 +45,7 @@ class Particle():
         self.energy = {
             'w_kin': np.full((n_steps + 1), np.NaN),
             'gamma': np.full((n_steps + 1), np.NaN),
-            'beta': np.full((n_steps + 1), np.NaN),   # Necessary? TODO
+            'beta': np.full((n_steps + 1), np.NaN),
             'p': np.full((n_steps + 1), np.NaN),  # Necessary? TODO
         }
         self.set_energy(e_mev, idx=0, delta_e=False)
@@ -61,11 +62,12 @@ class Particle():
             logging.warning("The absolute position of a non synchronous "
                             + "particle is not initialized.")
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys, to_deg=False, **kwargs):
+    def get(self, *keys: tuple[str], to_deg: bool = False, **kwargs: dict
+            ) -> tuple[Any]:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -89,26 +91,27 @@ class Particle():
         # implicit else:
         return tuple(out)
 
-    def init_abs_z(self, abs_z_array):
+    def init_abs_z(self, abs_z_array: np.ndarray) -> None:
         """Create the array of absolute positions."""
         assert self.part_info["synchronous"], """This routine only works for
         the synch particle I think."""
         self.pos['z_abs'] = abs_z_array
 
-    def set_energy(self, e_mev, idx=np.NaN, delta_e=False):
+    def set_energy(self, e_mev: float, idx: int | np.NaN = np.NaN,
+                   delta_e: bool = False) -> None:
         """
         Update the energy dict.
 
         Parameters
         ----------
-        e_mev: float
+        e_mev : float
             New energy in MeV.
-        idx: int, opt
+        idx : int | np.NaN, opt
             Index of the the energy concerned. If NaN, e_mev replaces the first
-            NaN element of w_kin.
-        delta_e: bool, opt
+            NaN element of w_kin. The default is np.NaN
+        delta_e : bool, opt
             If True, energy is increased by e_mev. If False, energy is set to
-            e_mev.
+            e_mev. The default is False.
         """
         if np.isnan(idx):
             idx = np.where(np.isnan(self.energy['w_kin']))[0][0]
@@ -127,7 +130,7 @@ class Particle():
         self.energy['beta'][idx] = beta
         self.energy['p'][idx] = p_mev
 
-    def _init_phi(self, idx=0):
+    def _init_phi(self, idx: int = 0) -> None:
         """Init phi by taking z_rel and beta."""
         phi_abs = convert.position(self.pos['z_abs'][idx],
                                    self.energy['beta'][idx], "z to phi")
@@ -140,9 +143,9 @@ class Particle():
             'phi_rel': [self.phi['phi_rel']],
         })
 
-
     # FIXME still used?
-    def advance_phi(self, delta_phi, idx=np.NaN, flag_rf=False):
+    def advance_phi(self, delta_phi: float, idx: int | np.Nan = np.NaN,
+                    flag_rf: bool = False) -> None:
         """
         Increase relative and absolute phase by delta_phi.
 
@@ -156,7 +159,7 @@ class Particle():
             when recomputing the transfer matrices.
         flag_rf : boolean, optional
             If False, delta_phi = omega_0_bunch * delta_t. Otherwise,
-            delta_phi = omega_0_rf * delta_t. Default is False.
+            delta_phi = omega_0_rf * delta_t. The default is False.
         """
         if np.isnan(idx):
             idx = np.where(np.isnan(self.phi['phi_abs_array']))[0][0]
@@ -168,35 +171,38 @@ class Particle():
             delta_phi *= self.frac_omega['rf_to_bunch']
 
         self.phi['phi_abs'] += delta_phi
-        self.phi['phi_abs_array'][idx] = self.phi['phi_abs_array'][idx - 1] + delta_phi
+        self.phi['phi_abs_array'][idx] = self.phi['phi_abs_array'][idx - 1] \
+            + delta_phi
 
-    def keep_energy_and_phase(self, results, idx_range):
+    def keep_energy_and_phase(self, results: dict[str, np.ndarray],
+                              idx_range: range) -> None:
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = np.array(results["w_kin"])
         self.energy['w_kin'][idx_range] = w_kin
         self.energy['gamma'][idx_range] = convert.energy(w_kin, "kin to gamma")
         self.energy['beta'][idx_range] = convert.energy(w_kin, "kin to beta")
-        self.phi['phi_abs_array'][idx_range] = np.array(results["phi_abs_array"])
+        self.phi['phi_abs_array'][idx_range] = np.array(results[
+            "phi_abs_array"])
 
 
-def create_rand_particles(e_0_mev):
-    """Create two random particles."""
-    delta_z = 1e-4
-    delta_E = 1e-4
+# def create_rand_particles(e_0_mev):
+#     """Create two random particles."""
+#     delta_z = 1e-4
+#     delta_E = 1e-4
 
-    rand_1 = Particle(-1.42801442802603928417e-04,
-                      1.66094219207764304258e+01,)
-    rand_2 = Particle(2.21221539793564048182e-03,
-                      1.65923664093018210508e+01,)
+#     rand_1 = Particle(-1.42801442802603928417e-04,
+#                       1.66094219207764304258e+01,)
+#     rand_2 = Particle(2.21221539793564048182e-03,
+#                       1.65923664093018210508e+01,)
 
-    # rand_1 = Particle(
-    #     random.uniform(0., delta_z * .5),
-    #     random.uniform(e_0_mev,  e_0_mev + delta_E * .5),
-    #     omega0_bunch)
+#     # rand_1 = Particle(
+#     #     random.uniform(0., delta_z * .5),
+#     #     random.uniform(e_0_mev,  e_0_mev + delta_E * .5),
+#     #     omega0_bunch)
 
-    # rand_2 = Particle(
-    #     random.uniform(-delta_z * .5, 0.),
-    #     random.uniform(e_0_mev - delta_E * .5, e_0_mev),
-    #     omega0_bunch)
+#     # rand_2 = Particle(
+#     #     random.uniform(-delta_z * .5, 0.),
+#     #     random.uniform(e_0_mev - delta_E * .5, e_0_mev),
+#     #     omega0_bunch)
 
-    return rand_1, rand_2
+#     return rand_1, rand_2
