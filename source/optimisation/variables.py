@@ -138,6 +138,7 @@ def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap,
                         + "strategy that you asked for.")
         lower = ref_k_e
         upper = ref_k_e * 1.000001
+        return (lower, upper)
 
     if preset == 'MYRRHA':
         if ref_linac is None:

@@ -17,8 +17,9 @@ import pandas as pd
 import numpy as np
 
 import config_manager as con
+from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
+                           Freq, FieldMapPath)
 from core.electric_field import load_field_map_file
-from core import elements
 
 
 try:
@@ -57,19 +58,21 @@ d_tw_data_table = {
 }
 
 
-def load_dat_file(dat_filepath: str) -> list[list[str]]:
+def load_dat_file(dat_filepath: str) -> tuple[list[list[str]], list[_Element]]:
     """
     Load the dat file and convert it into a list of lines.
 
     Parameters
     ----------
-    dat_filepath: string
+    dat_filepath : string
         Filepath to the .dat file, as understood by TraceWin.
 
     Return
     ------
-    dat_filecontent: list[list[str]]
+    dat_filecontent : list[list[str]]
         List containing all the lines of dat_filepath.
+    elts : list[_Element]
+        The _Element objects.
     """
     dat_filecontent = []
     logging.warning("Personalized name of elements not handled for now.")
@@ -100,13 +103,13 @@ def load_dat_file(dat_filepath: str) -> list[list[str]]:
     return dat_filecontent, elts
 
 
-def _create_structure(dat_filecontent):
+def _create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
     """
     Create structure using the loaded dat file.
 
     Parameters
     ----------
-    dat_filecontent : list[str]
+    dat_filecontent : list[list[str]]
         List containing all the lines of dat_filepath.
 
     Return
@@ -116,13 +119,13 @@ def _create_structure(dat_filecontent):
     """
     # Dictionnary linking element nature with correct sub-class
     subclasses_dispatcher = {
-        'QUAD': elements.Quad,
-        'DRIFT': elements.Drift,
-        'FIELD_MAP': elements.FieldMap,
-        'SOLENOID': elements.Solenoid,
-        'LATTICE': elements.Lattice,
-        'FREQ': elements.Freq,
-        'FIELD_MAP_PATH': elements.FieldMapPath,
+        'QUAD': Quad,
+        'DRIFT': Drift,
+        'FIELD_MAP': FieldMap,
+        'SOLENOID': Solenoid,
+        'LATTICE': Lattice,
+        'FREQ': Freq,
+        'FIELD_MAP_PATH': FieldMapPath,
     }
 
     # We look at each element in dat_filecontent, and according to the
@@ -135,7 +138,7 @@ def _create_structure(dat_filecontent):
     return elements_list
 
 
-def give_name(l_elts):
+def give_name(elts: list[_Element]) -> None:
     """Give a name (the same as TW) to every element."""
     civil_register = {
         'QUAD': 'QP',
@@ -145,7 +148,7 @@ def give_name(l_elts):
     }
     for key, value in civil_register.items():
         sub_list = [elt
-                    for elt in l_elts
+                    for elt in elts
                     if elt.get('nature') == key
                     ]
         for i, elt in enumerate(sub_list, start=1):
@@ -153,7 +156,8 @@ def give_name(l_elts):
 
 
 # TODO is it necessary to load all the electric fields when _p?
-def load_filemaps(files, sections, freqs, freq_bunch):
+def load_filemaps(files: dict, sections: list[list[_Element]],
+                  freqs: list[float], freq_bunch: float) -> None:
     """
     Load all the filemaps.
 
@@ -170,7 +174,7 @@ def load_filemaps(files, sections, freqs, freq_bunch):
     """
     assert len(sections) == len(freqs)
 
-    l_filepaths = []
+    filepaths = []
     for i, section in enumerate(sections):
         f_mhz = freqs[i].f_rf_mhz
         n_cell = int(f_mhz / freq_bunch)   # FIXME
@@ -184,18 +188,20 @@ def load_filemaps(files, sections, freqs, freq_bunch):
                     a_f.init_freq_ncell(f_mhz, n_cell)
 
                     # For Cython, we need one filepath per section
-                    if con.FLAG_CYTHON and len(l_filepaths) == i:
-                        l_filepaths.append(elt.field_map_file_name)
+                    if con.FLAG_CYTHON and len(filepaths) == i:
+                        filepaths.append(elt.field_map_file_name)
     # Init arrays
     if con.FLAG_CYTHON:
-        tm_c.init_arrays(l_filepaths)
+        tm_c.init_arrays(filepaths)
 
 
-def update_dat_with_fixed_cavities(dat_filecontent, l_elts, fm_folder):
+def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
+                                   elts: list[_Element], fm_folder: str
+                                   ) -> None:
     """Create a new dat containing the new linac settings."""
     idx_elt = 0
 
-    d_phi = {
+    phi = {
         True: lambda elt: str(elt.get('phi_0_abs', to_deg=True)),
         False: lambda elt: str(elt.get('phi_0_rel', to_deg=True)),
     }
@@ -205,8 +211,8 @@ def update_dat_with_fixed_cavities(dat_filecontent, l_elts, fm_folder):
             continue
 
         if line[0] == 'FIELD_MAP':
-            elt = l_elts[idx_elt]
-            line[3] = d_phi[con.FLAG_PHI_ABS](elt)
+            elt = elts[idx_elt]
+            line[3] = phi[con.FLAG_PHI_ABS](elt)
             line[6] = str(elt.get('k_e'))
             # '1' if True, '0' if False
             line[10] = str(int(con.FLAG_PHI_ABS))
@@ -218,16 +224,16 @@ def update_dat_with_fixed_cavities(dat_filecontent, l_elts, fm_folder):
         idx_elt += 1
 
 
-def load_tw_results(filepath, prop):
+def load_tw_results(filepath: str, prop: str) -> np.ndarray:
     """
     Load a property from TraceWin's "Data" table.
 
     Parameters
     ----------
-    filepath: string
+    filepath : string
         Path to results file. It must be saved from TraceWin:
             Data > Save table to file.
-    prop: string
+    prop : string
         Name of the desired property. Must be in d_property.
 
     Return
@@ -260,7 +266,7 @@ def load_tw_results(filepath, prop):
     return data_ref
 
 
-def load_transfer_matrices(filepath_list):
+def load_transfer_matrices(filepath_list: list[str]) -> np.ndarray:
     """Load transfer matrices saved in 4 files by components."""
     i = 0
     for path in filepath_list:
@@ -279,7 +285,9 @@ def load_transfer_matrices(filepath_list):
     return r_zz_tot_ref
 
 
-def output_data_in_tw_fashion(linac):
+# FIXME Cannot import Acclerator type (cricular import)
+# Maybe this routine would be better in Accelerator?
+def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     """Mimick TW's Data tab."""
     larousse = {
         '#': lambda lin, elt: elt.get('elt_idx', to_numpy=False),
@@ -287,7 +295,7 @@ def output_data_in_tw_fashion(linac):
         'Type': lambda lin, elt: elt.get('nature', to_numpy=False),
         'Length (mm)': lambda lin, elt: elt.length_m * 1e3,
         'Grad/Field/Amp': lambda lin, elt:
-            elt.grad if(elt.get('nature', to_numpy=False) == 'QUAD')
+            elt.grad if (elt.get('nature', to_numpy=False) == 'QUAD')
             else np.NaN,
         'EoT (MV/m)': lambda lin, elt: None,
         'EoTLc (MV)': lambda lin, elt: elt.get('v_cav_mv'),
@@ -365,7 +373,8 @@ def _tw_cmd(tw_path: str, ini_path: str, path_cal: str, dat_file: str,
     return cmd
 
 
-def get_multipart_tw_results(folder, filename='partran1.out'):
+def get_multipart_tw_results(folder: str, filename: str = 'partran1.out'
+                             ) -> dict:
     """Get the results."""
     f_p = os.path.join(folder, filename)
     n_lines_header = 9
@@ -384,8 +393,10 @@ def get_multipart_tw_results(folder, filename='partran1.out'):
     return d_out
 
 
-def get_transfer_matrices(folder, filename='Transfer_matrix1.dat',
-                              high_def=False):
+def get_transfer_matrices(folder: str, filename: str = 'Transfer_matrix1.dat',
+                          high_def: bool = False) -> tuple[np.ndarray,
+                                                           np.ndarray,
+                                                           np.ndarray]:
     """Get the full transfer matrices calculated by TraceWin."""
     if high_def:
         raise IOError("High definition not implemented. Can only import"
@@ -418,7 +429,8 @@ def get_transfer_matrices(folder, filename='Transfer_matrix1.dat',
     return np.array(num), np.array(z_m), np.array(t_m)
 
 
-def get_tw_cav_param(folder, filename='Cav_set_point_res.dat'):
+def get_tw_cav_param(folder: str, filename: str = 'Cav_set_point_res.dat'
+                     ) -> dict:
     """Get the cavity parameters."""
     f_p = os.path.join(folder, filename)
     n_lines_header = 1

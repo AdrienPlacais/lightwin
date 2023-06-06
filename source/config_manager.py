@@ -47,7 +47,7 @@ SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
 
 def process_config(config_path: str, project_path: str, key_solver: str,
                    key_beam: str, key_wtf: str, key_tw: str = 'tracewin'
-                  ) -> tuple[dict, dict, dict, dict]:
+                   ) -> tuple[dict, dict, dict, dict]:
     """
     Frontend for config: load .ini, test it, return its content as dicts.
 
@@ -113,7 +113,7 @@ def process_config(config_path: str, project_path: str, key_solver: str,
 
     # Remove unused Sections, save resulting file
     _ = [config.remove_section(key) for key in list(config.keys())
-     if key not in ['DEFAULT', key_solver, key_beam, key_wtf, key_tw]]
+         if key not in ['DEFAULT', key_solver, key_beam, key_wtf, key_tw]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
@@ -194,7 +194,7 @@ def _test_solver(c_solver: configparser.SectionProxy) -> None:
         d_default = {'leapfrog': '40', 'RK': '20'}
         c_solver["N_STEPS_PER_CELL"] = d_default["METHOD"]
 
-    if c_solver["FLAG_CYTHON"]:
+    if c_solver.getboolean("FLAG_CYTHON"):
         c_solver["METHOD"] += "_c"
     else:
         c_solver["METHOD"] += "_p"
