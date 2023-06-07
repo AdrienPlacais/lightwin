@@ -16,6 +16,8 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import pandas as pd
 import numpy as np
+import time
+import datetime
 
 import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
@@ -353,13 +355,18 @@ def run_tw(ini_path: str, path_cal: str, dat_file: str,
         TraceWin optional arguments. Override what is defined in .ini.
 
     """
+    start_time = time.monotonic()
+
     cmd = _tw_cmd(tw_path, ini_path, path_cal, dat_file, **kwargs)
     logging.info(f"Running TW with command {cmd}...")
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     process.wait()
     for line in process.stdout:
         print(line)
-    logging.info("TW finished!")
+
+    end_time = time.monotonic()
+    delta_t = datetime.timedelta(seconds=end_time - start_time)
+    logging.info(f"TW finished! It took {delta_t = }")
 
 
 def _tw_cmd(tw_path: str, ini_path: str, path_cal: str, dat_file: str,
