@@ -45,7 +45,6 @@ to_be_implemented = [
 not_an_element = ['LATTICE', 'FREQ']
 
 
-
 def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
     """
     Create structure using the loaded dat file.
@@ -77,7 +76,7 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
         [subclasses_dispatcher[elem[0]](elem) for elem in dat_filecontent
          if elem[0] not in to_be_implemented]
     )
-    elements_list = [element for element in elements_iterable]
+    elements_list = list(elements_iterable)
     # Remove END
     return elements_list
 
