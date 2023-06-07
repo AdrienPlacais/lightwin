@@ -23,22 +23,22 @@ from visualization import plot
 
 
 if __name__ == '__main__':
-    FILEPATH = "../data/SPIRAL2/my_spiral2_1d.dat"
-    CONFIG_PATH = 'spiral2.ini'
+    FILEPATH = "../data/MYRRHA/MYRRHA_Transi-100MeV.dat"
+    CONFIG_PATH = 'myrrha.ini'
     KEY_SOLVER = 'solver.envelope_longitudinal'
-    KEY_BEAM = 'beam.My_particle'
-    KEY_WTF = 'wtf.quick_debug'
-    KEY_TW = 'tracewin.quick_debug'
+    KEY_BEAM = 'beam.myrrha'
+    KEY_WTF = 'wtf.k_out_of_n'
+    KEY_TW = 'tracewin.precise'
 
     # =========================================================================
     # Fault compensation
     # =========================================================================
-    FLAG_BREAK = False
-    FLAG_FIX = False
-    SAVE_FIX = False
-    FLAG_TW = False
-    RECOMPUTE_REFERENCE = False
-    FLAG_EVALUATE = False
+    FLAG_BREAK = True
+    FLAG_FIX = True
+    SAVE_FIX = True
+    FLAG_TW = True
+    RECOMPUTE_REFERENCE = True
+    FLAG_EVALUATE = True
 
     # =========================================================================
     # Outputs

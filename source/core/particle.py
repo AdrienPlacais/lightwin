@@ -97,7 +97,7 @@ class Particle:
         the synch particle I think."""
         self.pos['z_abs'] = abs_z_array
 
-    def set_energy(self, e_mev: float, idx: int | np.NaN = np.NaN,
+    def set_energy(self, e_mev: float, idx: int | float = np.NaN,
                    delta_e: bool = False) -> None:
         """
         Update the energy dict.
@@ -144,7 +144,7 @@ class Particle:
         })
 
     # FIXME still used?
-    def advance_phi(self, delta_phi: float, idx: int | np.Nan = np.NaN,
+    def advance_phi(self, delta_phi: float, idx: int | float = np.NaN,
                     flag_rf: bool = False) -> None:
         """
         Increase relative and absolute phase by delta_phi.
