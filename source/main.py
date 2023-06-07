@@ -17,7 +17,7 @@ import config_manager as conf_man
 import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
 from util import helper, output, evaluate
-import tracewin.interface as tw_interface
+import tracewin.interface
 from util.log_manager import set_up_logging
 from visualization import plot
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
     results = ref_linac.elts.compute_transfer_matrices()
     ref_linac.store_results(results, ref_linac.elts)
-    data_tab_from_tw = tw_interface.output_data_in_tw_fashion(ref_linac)
+    data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(ref_linac)
     linacs = [ref_linac]
 
     lw_fit_evals = []
@@ -121,10 +121,11 @@ if __name__ == '__main__':
             delta_t = datetime.timedelta(seconds=end_time - start_time)
             logging.info(f"Elapsed time: {delta_t}")
 
-            tw_interface.update_dat_with_fixed_cavities(
+            tracewin.interface.update_dat_with_fixed_cavities(
                 lin.get('dat_filecontent', to_numpy=False), lin.elts,
                 lin.get('field_map_folder'))
-            data_tab_from_tw = tw_interface.output_data_in_tw_fashion(lin)
+            data_tab_from_tw = \
+                tracewin.interface.output_data_in_tw_fashion(lin)
             lw_fit_eval = fault_scenario.evaluate_fit_quality(delta_t)
 
             if SAVE_FIX:

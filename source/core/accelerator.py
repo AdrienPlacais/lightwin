@@ -17,8 +17,8 @@ import numpy as np
 
 from constants import c
 import config_manager as con
-import tracewin.interface as tw_interface
-import tracewin.load as tw_load
+import tracewin.interface
+import tracewin.load
 import util.converters as convert
 from util.helper import recursive_items, recursive_getter
 from core import particle
@@ -57,8 +57,8 @@ class Accelerator():
             'out_tw': None}
 
         # Load dat file, clean it up (remove comments, etc), load elements
-        dat_filecontent = tw_load.dat_file(dat_filepath)
-        l_elts = tw_interface.create_structure(dat_filecontent)
+        dat_filecontent = tracewin.load.dat_file(dat_filepath)
+        l_elts = tracewin.interface.create_structure(dat_filecontent)
         l_elts = self._handle_paths_and_folders(l_elts)
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
 
@@ -68,10 +68,9 @@ class Accelerator():
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 
-        tw_interface.set_all_electric_field_maps(self.files,
-                                                 self.elements['l_sections'],
-                                                 freqs, con.F_BUNCH_MHZ)
-        tw_interface.give_name(l_elts)
+        tracewin.interface.set_all_electric_field_maps(
+            self.files, self.elements['l_sections'], freqs, con.F_BUNCH_MHZ)
+        tracewin.interface.give_name(l_elts)
         self.files['dat_filecontent'] = dat_filecontent
 
         # Set indexes and absolute position of the different elements
@@ -355,22 +354,22 @@ class Accelerator():
         dat_file = self.get("dat_filepath")
         for path in [ini_path, path_cal, dat_file]:
             path = os.path.abspath(path)
-        tw_interface.run(ini_path, path_cal, dat_file, **kwargs)
+        tracewin.interface.run(ini_path, path_cal, dat_file, **kwargs)
 
     def store_tracewin_results(self) -> None:
         """Take the results created by TraceWin."""
         folder = self.get('out_tw')
 
-        self.tw_results['envelope'] = tw_interface.get_multipart_tw_results(
+        self.tw_results['envelope'] = tracewin.interface.get_multipart_tw_results(
             folder, filename='tracewin.out')
 
-        self.tw_results['multipart'] = tw_interface.get_multipart_tw_results(
+        self.tw_results['multipart'] = tracewin.interface.get_multipart_tw_results(
             folder, filename='partran1.out')
 
-        _, _, self.tw_results['transf_mat'] = tw_interface.get_transfer_matrices(
+        _, _, self.tw_results['transf_mat'] = tracewin.interface.get_transfer_matrices(
             folder, filename='Transfer_matrix1.dat')
 
-        self.tw_results['cav_param'] = tw_interface.get_tw_cav_param(
+        self.tw_results['cav_param'] = tracewin.interface.get_tw_cav_param(
             folder, filename='Cav_set_point_res.dat')
 
     def precompute_some_tracewin_results(self) -> None:
