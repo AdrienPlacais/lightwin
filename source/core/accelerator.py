@@ -68,8 +68,9 @@ class Accelerator():
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 
-        tw_interface.load_filemaps(self.files, self.elements['l_sections'],
-                                   freqs, con.F_BUNCH_MHZ)
+        tw_interface.set_all_electric_field_maps(self.files,
+                                                 self.elements['l_sections'],
+                                                 freqs, con.F_BUNCH_MHZ)
         tw_interface.give_name(l_elts)
         self.files['dat_filecontent'] = dat_filecontent
 

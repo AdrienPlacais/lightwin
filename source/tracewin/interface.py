@@ -5,12 +5,16 @@ Created on Thu Feb 17 15:52:37 2022.
 
 @author: placais
 
+This module holds all the functions to transfer and convert data between
+LightWin and TraceWin.
+
 TODO insert line skip at each section change in the output.dat
 """
 import logging
 import itertools
 import os.path
 import subprocess
+from typing import Callable
 import time
 import datetime
 import pandas as pd
@@ -19,7 +23,7 @@ import numpy as np
 import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
-from core.electric_field import load_field_map_file
+import tracewin.load
 
 
 try:
@@ -34,7 +38,7 @@ except ModuleNotFoundError:
     import core.transfer_matrices_p as tm_c
 
 
-to_be_implemented = [
+TO_BE_IMPLEMENTED = [
     'SPACE_CHARGE_COMP', 'SET_SYNC_PHASE', 'STEERER',
     'ADJUST', 'ADJUST_STEERER', 'ADJUST_STEERER_BX', 'ADJUST_STEERER_BY',
     'DIAG_SIZE', 'DIAG_DSIZE', 'DIAG_DSIZE2', 'DIAG_DSIZE3', 'DIAG_DSIZE4',
@@ -42,7 +46,7 @@ to_be_implemented = [
     'DIAG_POSITION', 'DIAG_DPHASE',
     'ERROR_CAV_NCPL_STAT', 'ERROR_CAV_NCPL_DYN',
     'SET_ADV', 'LATTICE_END', 'SHIFT', 'THIN_STEERING', 'APERTURE']
-not_an_element = ['LATTICE', 'FREQ']
+NOT_AN_ELEMENT = ['LATTICE', 'FREQ']
 
 
 def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
@@ -74,7 +78,7 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
     elements_iterable = itertools.takewhile(
         lambda elt: not isinstance(elt, End),
         [subclasses_dispatcher[elem[0]](elem) for elem in dat_filecontent
-         if elem[0] not in to_be_implemented]
+         if elem[0] not in TO_BE_IMPLEMENTED]
     )
     elements_list = list(elements_iterable)
     # Remove END
@@ -99,8 +103,8 @@ def give_name(elts: list[_Element]) -> None:
 
 
 # TODO is it necessary to load all the electric fields when _p?
-def load_filemaps(files: dict, sections: list[list[_Element]],
-                  freqs: list[float], freq_bunch: float) -> None:
+def set_all_electric_field_maps(files: dict, sections: list[list[_Element]],
+                                freqs: list[float], freq_bunch: float) -> None:
     """
     Load all the filemaps.
 
@@ -127,7 +131,7 @@ def load_filemaps(files: dict, sections: list[list[_Element]],
                     elt.field_map_file_name = os.path.join(
                         files['field_map_folder'], elt.field_map_file_name)
                     a_f = elt.acc_field
-                    a_f.e_spat, a_f.n_z = load_field_map_file(elt)
+                    a_f.e_spat, a_f.n_z = get_single_electric_field_map(elt)
                     a_f.init_freq_ncell(f_mhz, n_cell)
 
                     # For Cython, we need one filepath per section
@@ -136,6 +140,62 @@ def load_filemaps(files: dict, sections: list[list[_Element]],
     # Init arrays
     if con.FLAG_CYTHON:
         tm_c.init_arrays(filepaths)
+
+
+def get_single_electric_field_map(cav: FieldMap
+                                 ) -> tuple[Callable[[float | np.ndarray],
+                                                     float | np.ndarray],
+                                            int]:
+    """
+    Select the field map file and call the proper loading function.
+
+    Warning, filename is directly extracted from the .dat file used by
+    TraceWin. Thus, the relative filepath may be misunderstood by this
+    script.
+    Also check that the extension of the file is .edz, or manually change
+    this function.
+    Finally, only 1D electric field map are implemented.
+    """
+    # FIXME
+    cav.field_map_file_name += ".edz"
+    assert tracewin.load.is_loadable(cav.field_map_file_name, cav.geometry,
+                                     cav.aperture_flag), \
+            f"Error preparing {cav}'s field map."
+
+    _, extension = os.path.splitext(cav.field_map_file_name)
+    import_function = tracewin.load.FIELD_MAP_LOADERS[extension]
+
+    n_z, zmax, norm, f_z = import_function(cav.field_map_file_name)
+    assert is_a_valid_electric_field(n_z, zmax, norm, f_z, cav.length_m), \
+            f"Error loading {cav}'s field map."
+
+    z_cavity_array = np.linspace(0., zmax, n_z + 1) / norm
+
+    def e_spat(pos: float | np.ndarray) -> float | np.ndarray:
+        return np.interp(x=pos, xp=z_cavity_array, fp=f_z, left=0., right=0.)
+
+    return e_spat, n_z
+
+
+def is_a_valid_electric_field(n_z: int, zmax: float, norm: float,
+                              f_z: np.ndarray, cavity_length: float) -> bool:
+    """Assert that the electric field that we loaded is valid."""
+    if f_z.shape[0] != n_z + 1:
+        logging.error(f"The electric field file should have {n_z + 1} "
+                      + f"lines, but it is {f_z.shape[0]} lines long. ")
+        return False
+
+    tolerance = 1e-6
+    if abs(zmax - cavity_length) > tolerance:
+        logging.error(f"Mismatch between the length of the field map {zmax = }"
+                      + f" and {cavity_length = }.")
+        return False
+
+    if abs(norm - 1.) > tolerance:
+        logging.warning("Field map scaling factor (second line of the file) "
+                        " is different from unity. It may enter in conflict "
+                        + "with k_e (6th argument of FIELD_MAP in the .dat).")
+    return True
 
 
 def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
@@ -150,7 +210,7 @@ def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
     }
 
     for line in dat_filecontent:
-        if line[0] in to_be_implemented or line[0] in not_an_element:
+        if line[0] in TO_BE_IMPLEMENTED or line[0] in NOT_AN_ELEMENT:
             continue
 
         if line[0] == 'FIELD_MAP':
@@ -212,6 +272,9 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     return data
 
 
+# =============================================================================
+# To be moved to a specific Class
+# =============================================================================
 def run(ini_path: str, path_cal: str, dat_file: str,
         tw_path: str = "/usr/local/bin/./TraceWin", **kwargs) -> None:
     """
