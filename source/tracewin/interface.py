@@ -62,7 +62,7 @@ d_tw_data_table = {
 
 def load_dat_file(dat_filepath: str) -> tuple[list[list[str]], list[_Element]]:
     """
-    Load the dat file and convert it into a list of lines.
+    Load the dat file, convert it into a list of lines and a list of _Element.
 
     Parameters
     ----------
@@ -269,25 +269,6 @@ def load_tw_results(filepath: str, prop: str) -> np.ndarray:
     return data_ref
 
 
-def load_transfer_matrices(filepath_list: list[str]) -> np.ndarray:
-    """Load transfer matrices saved in 4 files by components."""
-    i = 0
-    for path in filepath_list:
-        assert os.path.isfile(path), \
-            'Incorrect filepath in plot_transfer_matrices.'
-
-        if i == 0:
-            r_zz_tot_ref = np.loadtxt(filepath_list[i])
-
-        else:
-            tmp = np.loadtxt(filepath_list[i])[:, 1]
-            tmp = np.expand_dims(tmp, axis=1)
-            r_zz_tot_ref = np.hstack((r_zz_tot_ref, tmp))
-        i += 1
-
-    return r_zz_tot_ref
-
-
 # FIXME Cannot import Acclerator type (cricular import)
 # Maybe this routine would be better in Accelerator?
 def output_data_in_tw_fashion(linac) -> pd.DataFrame:
@@ -366,7 +347,7 @@ def run_tw(ini_path: str, path_cal: str, dat_file: str,
 
     end_time = time.monotonic()
     delta_t = datetime.timedelta(seconds=end_time - start_time)
-    logging.info(f"TW finished! It took {delta_t = }")
+    logging.info(f"TW finished! It took {delta_t}")
 
 
 def _tw_cmd(tw_path: str, ini_path: str, path_cal: str, dat_file: str,

@@ -17,7 +17,7 @@ import numpy as np
 
 from constants import c
 import config_manager as con
-import util.tracewin_interface as tw
+import tracewin.interface as tw
 import util.converters as convert
 from util.helper import recursive_items, recursive_getter
 from core import particle

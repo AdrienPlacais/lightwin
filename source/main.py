@@ -17,7 +17,7 @@ import config_manager as conf_man
 import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
 from util import helper, output, evaluate
-import util.tracewin_interface as tw
+import tracewin.interface as tw
 from util.log_manager import set_up_logging
 from visualization import plot
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     KEY_SOLVER = 'solver.envelope_longitudinal'
     KEY_BEAM = 'beam.myrrha'
     KEY_WTF = 'wtf.k_out_of_n'
-    KEY_TW = 'tracewin.precise'
+    KEY_TW = 'tracewin.quick_debug'
 
     # =========================================================================
     # Fault compensation
