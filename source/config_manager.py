@@ -69,13 +69,13 @@ def process_config(config_path: str, project_path: str, key_solver: str,
 
     Returns
     -------
-    d_solver : dict
+    solver : dict
         Holds the solver used for simulation.
-    d_beam : dict
+    beam : dict
         Dictionary holding all beam parameters.
-    d_wtf : dict
+    wtf : dict
         Dictionary holding all wtf parameters.
-    d_tw : dict
+    tracew : dict
         Holds the TW arguments. Overrides what is defined in the TW .ini file.
         Path to .ini, .dat and to results folder are defined in
         Accelerator.files dict.
@@ -107,7 +107,7 @@ def process_config(config_path: str, project_path: str, key_solver: str,
     _test_config(config, key_solver, key_beam, key_wtf, key_tw)
 
     # Transform to dict
-    d_solver, d_beam, d_wtf, d_tw = _config_to_dict(
+    solver, beam, wtf, tracew = _config_to_dict(
         config, key_solver=key_solver, key_beam=key_beam, key_wtf=key_wtf,
         key_tw=key_tw)
 
@@ -119,10 +119,10 @@ def process_config(config_path: str, project_path: str, key_solver: str,
         config.write(file)
 
     # Make some variables what we need to access everywhere global
-    _solver_make_global(d_solver)
-    _beam_make_global(d_beam)
+    _solver_make_global(solver)
+    _beam_make_global(beam)
 
-    return d_solver, d_beam, d_wtf, d_tw
+    return solver, beam, wtf, tracew
 
 
 def _test_config(config: configparser.ConfigParser, key_solver: str,
@@ -137,11 +137,11 @@ def _test_config(config: configparser.ConfigParser, key_solver: str,
 def _config_to_dict(config: configparser.ConfigParser, key_solver: str,
                     key_beam: str, key_wtf: str, key_tw: str) -> dict:
     """To convert the configparser into the formats required by LightWin."""
-    d_solver = _config_to_dict_solver(config[key_solver])
-    d_beam = _config_to_dict_beam(config[key_beam])
-    d_wtf = _config_to_dict_wtf(config[key_wtf])
-    d_tw = _config_to_dict_tw(config[key_tw])
-    return d_solver, d_beam, d_wtf, d_tw
+    solver = _config_to_dict_solver(config[key_solver])
+    beam = _config_to_dict_beam(config[key_beam])
+    wtf = _config_to_dict_wtf(config[key_wtf])
+    tracew = _config_to_dict_tw(config[key_tw])
+    return solver, beam, wtf, tracew
 
 
 # TODO
@@ -191,8 +191,8 @@ def _test_solver(c_solver: configparser.SectionProxy) -> None:
     if "N_STEPS_PER_CELL" not in c_solver.keys():
         logging.warning("Number of integration steps per cell not precised. "
                         + "Will use default values.")
-        d_default = {'leapfrog': '40', 'RK': '20'}
-        c_solver["N_STEPS_PER_CELL"] = d_default["METHOD"]
+        default = {'leapfrog': '40', 'RK': '20'}
+        c_solver["N_STEPS_PER_CELL"] = default["METHOD"]
 
     if c_solver.getboolean("FLAG_CYTHON"):
         c_solver["METHOD"] += "_c"
@@ -216,7 +216,7 @@ def _test_solver(c_solver: configparser.SectionProxy) -> None:
 
 def _config_to_dict_solver(c_solver: configparser.SectionProxy) -> dict:
     """Save solver info into a dict."""
-    d_solver = {}
+    solver = {}
     getter = {
         'FLAG_CYTHON': c_solver.getboolean,
         'FLAG_PHI_ABS': c_solver.getboolean,
@@ -225,21 +225,20 @@ def _config_to_dict_solver(c_solver: configparser.SectionProxy) -> dict:
     for key in c_solver.keys():
         key = key.upper()
         if key in getter:
-            d_solver[key] = getter[key](key)
+            solver[key] = getter[key](key)
             continue
-        d_solver[key] = c_solver.get(key.lower())
+        solver[key] = c_solver.get(key.lower())
 
-    return d_solver
+    return solver
 
 
-def _solver_make_global(d_solver: dict) -> None:
-    """Update the values of some variables so that they can be used everywhere.
-    """
+def _solver_make_global(solver: dict) -> None:
+    """Update the values of some variables so they can be used everywhere."""
     global FLAG_CYTHON, FLAG_PHI_ABS, N_STEPS_PER_CELL, METHOD
-    FLAG_CYTHON = d_solver["FLAG_CYTHON"]
-    FLAG_PHI_ABS = d_solver["FLAG_PHI_ABS"]
-    N_STEPS_PER_CELL = d_solver["N_STEPS_PER_CELL"]
-    METHOD = d_solver["METHOD"]
+    FLAG_CYTHON = solver["FLAG_CYTHON"]
+    FLAG_PHI_ABS = solver["FLAG_PHI_ABS"]
+    N_STEPS_PER_CELL = solver["N_STEPS_PER_CELL"]
+    METHOD = solver["METHOD"]
 
 
 # =============================================================================
@@ -272,7 +271,7 @@ def _test_beam(c_beam: configparser.SectionProxy) -> None:
 
 def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
     """Convert beam configparser into a dict."""
-    d_beam = {}
+    beam = {}
     # Special getters
     getter = {
         'E_REST_MEV': c_beam.getfloat,
@@ -286,41 +285,40 @@ def _config_to_dict_beam(c_beam: configparser.SectionProxy) -> dict:
     for key in c_beam.keys():
         key = key.upper()
         if key in getter:
-            d_beam[key] = getter[key](key)
+            beam[key] = getter[key](key)
             continue
 
-        d_beam[key] = c_beam.get(key)
+        beam[key] = c_beam.get(key)
 
     # Add some useful keys
-    d_beam["INV_E_REST_MEV"] = 1. / d_beam["E_REST_MEV"]
-    d_beam["GAMMA_INIT"] = 1. + d_beam["E_MEV"] / d_beam["E_REST_MEV"]
-    d_beam["OMEGA_0_BUNCH"] = 2e6 * np.pi * d_beam["F_BUNCH_MHZ"]
-    d_beam["LAMBDA_BUNCH"] = c / d_beam["F_BUNCH_MHZ"]
-    d_beam["Q_OVER_M"] = d_beam["Q_ADIM"] * d_beam["INV_E_REST_MEV"]
-    d_beam["M_OVER_Q"] = 1. / d_beam["Q_OVER_M"]
+    beam["INV_E_REST_MEV"] = 1. / beam["E_REST_MEV"]
+    beam["GAMMA_INIT"] = 1. + beam["E_MEV"] / beam["E_REST_MEV"]
+    beam["OMEGA_0_BUNCH"] = 2e6 * np.pi * beam["F_BUNCH_MHZ"]
+    beam["LAMBDA_BUNCH"] = c / beam["F_BUNCH_MHZ"]
+    beam["Q_OVER_M"] = beam["Q_ADIM"] * beam["INV_E_REST_MEV"]
+    beam["M_OVER_Q"] = 1. / beam["Q_OVER_M"]
 
-    return d_beam
+    return beam
 
 
-def _beam_make_global(d_beam: dict) -> None:
-    """Update the values of some variables so that they can be used everywhere.
-    """
+def _beam_make_global(beam: dict) -> None:
+    """Update the values of some variables so they can be used everywhere."""
     global Q_ADIM, E_REST_MEV, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT, \
         LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, F_BUNCH_MHZ, E_MEV, SIGMA_ZDELTA, \
         LINAC
 
-    Q_ADIM = d_beam["Q_ADIM"]
-    E_REST_MEV = d_beam["E_REST_MEV"]
-    INV_E_REST_MEV = d_beam["INV_E_REST_MEV"]
-    OMEGA_0_BUNCH = d_beam["OMEGA_0_BUNCH"]
-    GAMMA_INIT = d_beam["GAMMA_INIT"]
-    LAMBDA_BUNCH = d_beam["LAMBDA_BUNCH"]
-    Q_OVER_M = d_beam["Q_OVER_M"]
-    M_OVER_Q = d_beam["M_OVER_Q"]
-    F_BUNCH_MHZ = d_beam["F_BUNCH_MHZ"]
-    E_MEV = d_beam["E_MEV"]
-    SIGMA_ZDELTA = d_beam["SIGMA_ZDELTA"]
-    LINAC = d_beam["LINAC"]
+    Q_ADIM = beam["Q_ADIM"]
+    E_REST_MEV = beam["E_REST_MEV"]
+    INV_E_REST_MEV = beam["INV_E_REST_MEV"]
+    OMEGA_0_BUNCH = beam["OMEGA_0_BUNCH"]
+    GAMMA_INIT = beam["GAMMA_INIT"]
+    LAMBDA_BUNCH = beam["LAMBDA_BUNCH"]
+    Q_OVER_M = beam["Q_OVER_M"]
+    M_OVER_Q = beam["M_OVER_Q"]
+    F_BUNCH_MHZ = beam["F_BUNCH_MHZ"]
+    E_MEV = beam["E_MEV"]
+    SIGMA_ZDELTA = beam["SIGMA_ZDELTA"]
+    LINAC = beam["LINAC"]
 
 
 # =============================================================================
@@ -328,7 +326,7 @@ def _beam_make_global(d_beam: dict) -> None:
 # =============================================================================
 def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
     """Convert wtf configparser into a dict."""
-    d_wtf = {}
+    wtf = {}
     # Special getters
     getter = {
         'objective': c_wtf.getliststr,
@@ -345,12 +343,12 @@ def _config_to_dict_wtf(c_wtf: configparser.SectionProxy) -> dict:
 
     for key in c_wtf.keys():
         if key in getter:
-            d_wtf[key] = getter[key](key)
+            wtf[key] = getter[key](key)
             continue
 
-        d_wtf[key] = c_wtf.get(key)
+        wtf[key] = c_wtf.get(key)
 
-    return d_wtf
+    return wtf
 
 
 def _test_wtf(c_wtf: configparser.SectionProxy) -> None:
@@ -362,7 +360,7 @@ def _test_wtf(c_wtf: configparser.SectionProxy) -> None:
              'opti method': _test_objective,
              'position': _test_position,
              'misc': _test_misc,
-            }
+             }
     for key, test in tests.items():
         if not test(c_wtf):
             raise IOError(f"What to fit {c_wtf.name}: error in entry {key}.")
@@ -381,24 +379,29 @@ def _test_failed_and_idx(c_wtf: configparser.SectionProxy) -> bool:
             will be raised at the initialisaton of the Fault object.
         - failed:
             The indexes of the cavities that fail.
-            Example (we consider that idx is 'cavity'):
-                1, 2,   -> first, fix together 1st and 2nd cavity errors
-                8,      -> fix 8th cavity (cavity 1 and 2 work)
-                1, 2, 8 -> fix cavities 1 and 2, and 8 in a second time if they
-                           use different compensating cavities (two Fault
-                           objects). Fix them together if they need
-                           compensating cavities in common (a single Fault
-                           object).
-            From LightWin's point of view: one line = one FaultScenario object.
-            Each FaultScenario has a list of Fault objects. This is handled by
-            the Faults are sorted by the FaultScenario._sort_faults method.
-            ! if strategy is manual, you must specify which cavities are fixed
-            together by adding semi-colons.
-            Example:
-                1, 2, 3| 98, 99
-            In this example, 1 2 and 3 are fixed together. The beam is then
-            propagated up to 98 and 99 (even if it is not perfectly matched),
-            and 98 and 99 are then fixed together.
+
+    Example
+    -------
+    (we consider that idx is 'cavity')
+        1, 2,
+        8,
+        1, 2, 8
+    In this case, LW will first fix the linac with the 1st and 2nd cavity
+    failed. In a second time, LW will fix an error with the 8th failed cavity.
+    In the last simulation, it will fix together the 1st, 2nd and 8th cavity.
+    From LightWin's point of view: one line = one FaultScenario object.
+    Each FaultScenario has a list of Fault objects. This is handled by
+    the Faults are sorted by the FaultScenario._sort_faults method.
+
+    Example for manual
+    ------------------
+    If strategy is manual, you must specify which cavities are fixed
+    together by adding pipes.
+        1, 2, 3 | 98, 99
+    In this example, 1 2 and 3 are fixed together. The beam is then propagated
+    up to 98 and 99 (even if it is not perfectly matched), and 98 and 99 are
+    then fixed together.
+
     """
     for key in ['failed', 'idx']:
         if key not in c_wtf.keys():
@@ -647,7 +650,7 @@ def _test_scale_objective(c_wtf: configparser.SectionProxy) -> bool:
 
 
 def _test_misc(c_wtf: configparser.SectionProxy) -> bool:
-    """Some other tests."""
+    """Perform some other tests."""
     if 'phi_s fit' not in c_wtf.keys():
         logging.error("Please explicitely precise if you want to fit synch "
                       + "phases (recommended for least squares, which do not "
@@ -697,7 +700,7 @@ def _test_tw(c_tw: configparser.SectionProxy) -> None:
 
 def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
     """Convert tw configparser into a dict."""
-    d_tw = {}
+    tracew = {}
     # Getters. If a key is not in this dict, it won't be transferred to TW
     getter = {
         'hide': c_tw.get,
@@ -761,10 +764,10 @@ def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
     }
     for key in c_tw.keys():
         if key in getter:
-            d_tw[key] = getter[key](key)
+            tracew[key] = getter[key](key)
             continue
 
-    return d_tw
+    return tracew
 
 
 # =============================================================================
