@@ -7,8 +7,12 @@ Created on Tue Nov 30 15:43:39 2021.
 
 TODO : phi_s_rad_objective should not be used too
 """
+import os.path
+import logging
+from typing import Callable
 import cmath
 import numpy as np
+
 from util.helper import recursive_items, recursive_getter
 
 
@@ -105,7 +109,9 @@ class RfField():
 # =============================================================================
 # Helper functions dedicated to electric fields
 # =============================================================================
-def load_field_map_file(elt):
+def load_field_map_file(cav) -> tuple[Callable[[float | np.ndarray],
+                                               float | np.ndarray],
+                                                int]:
     """
     Select the field map file and call the proper loading function.
 
@@ -116,82 +122,84 @@ def load_field_map_file(elt):
     this function.
     Finally, only 1D electric field map are implemented.
     """
-    # Check nature and geometry of the field map, and select proper file
-    # extension and import function
-    extension, import_function = _check_geom(elt)
-    elt.field_map_file_name = elt.field_map_file_name + extension
+    # FIXME
+    cav.field_map_file_name += ".edz"
+    assert is_loadable(cav.field_map_file_name, cav.geometry,
+                       cav.aperture_flag), \
+            f"Error preparing {cav}'s field map."
 
-    # Load the field map
-    n_z, zmax, k_e, f_z = import_function(elt.field_map_file_name)
-    assert abs(zmax - elt.length_m) < 1e-6
-    assert abs(k_e - 1.) < 1e-6, 'Warning, imported electric field ' \
-        + 'different from 1. Conflict with electric_field_factor?'
+    _, extension = os.path.splitext(cav.field_map_file_name)
+    import_function = FIELD_MAP_LOADERS[extension]
 
-    # Interpolation
-    z_cavity_array = np.linspace(0., zmax, n_z + 1)
+    n_z, zmax, norm, f_z = import_function(cav.field_map_file_name)
+    assert is_a_valid_electric_field(n_z, zmax, norm, f_z, cav.length_m), \
+            f"Error loading {cav}'s field map."
 
-    def e_spat(pos):
+    z_cavity_array = np.linspace(0., zmax, n_z + 1) / norm
+
+    def e_spat(pos: float | np.ndarray) -> float | np.ndarray:
         return np.interp(x=pos, xp=z_cavity_array, fp=f_z, left=0., right=0.)
+
     return e_spat, n_z
 
 
-def _check_geom(elt):
-    """
-    Verify that the file can be correctly imported.
+def is_loadable(field_map_file_name: str, geometry: int, aperture_flag: int
+               ) -> bool:
+    """Assert that the options for the FIELD_MAP in the .dat are ok."""
+    _, extension = os.path.splitext(field_map_file_name)
+    if extension not in FIELD_MAP_LOADERS:
+        logging.error(f"Field map file extension is {extension}, "
+                      + f"while only {FIELD_MAP_LOADERS.keys()} are "
+                      + "implemented.")
+        return False
 
-    Returns
-    -------
-    extension: str
-        Extension of the file to load. See TraceWin documentation.
-    import_function: fun
-        Function adapted to the nature and geometry of the field.
-    """
-    # TODO: autodetect extensions
-    # First, we check the nature of the given file
-    assert elt.geometry >= 0, \
-        "Second order off-axis development not implemented."
+    if geometry < 0:
+        logging.error("Second order off-axis development not implemented.")
+        return False
 
-    field_nature = int(np.log10(elt.geometry))
-    field_geometry = int(str(elt.geometry)[0])
+    field_nature = int(np.log10(geometry))
+    if field_nature != 2:
+        logging.error("Only RF electric fields implemented.")
+        return False
 
-    assert field_nature == 2, "Only RF electric fields implemented."
-    assert field_geometry == 1, "Only 1D field implemented."
-    assert elt.aperture_flag <= 0, \
-        "Warning! Space charge compensation maps not implemented."
+    field_geometry = int(str(geometry)[0])
+    if field_geometry != 1:
+        logging.error("Only 1D field implemented.")
+        return False
 
-    extension = ".edz"
-    import_function = _load_electric_field_1d
-    return extension, import_function
+    if aperture_flag > 0:
+        logging.warning("Space charge compensation maps not implemented.")
+
+    return True
 
 
-def _load_electric_field_1d(path):
+def _load_electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
     """
     Load a 1D electric field (.edz extension).
 
     Parameters
     ----------
-    path: string
+    path : string
         The path to the .edz file to load.
 
     Returns
     -------
-    f_z: np.array
-        Array of electric field in MV/m.
-    zmax: float
+    n_z : int
+        Number of steps in the array.
+    zmax : float
         z position of the filemap end.
-    k_e: float
-        norm of the electric field.
+    norm : float
+        Electric field normalisation factor. It is different from k_e (6th
+        argument of the FIELD_MAP command). Electric fields are normalised by
+        k_e/norm, hence norm should be unity by default.
+    f_z : np.ndarray
+        Array of electric field in MV/m.
 
-    Currently not returned
-    ----------------------
-    n_z: int
-        Number of points in the array minus one.
     """
-    i = 0
-    k = 0
+    f_z = []
 
-    with open(path) as file:
-        for line in file:
+    with open(path, 'r', encoding='utf-8') as file:
+        for i, line in enumerate(file):
             if i == 0:
                 line_splitted = line.split(' ')
 
@@ -202,19 +210,35 @@ def _load_electric_field_1d(path):
                 n_z = int(line_splitted[0])
                 # Sometimes there are several spaces or tabs between numbers
                 zmax = float(line_splitted[-1])
-                f_z = np.full((n_z + 1), np.NaN)
+                continue
 
-            elif i == 1:
-                k_e = float(line)
+            if i == 1:
+                norm = float(line)
+                continue
 
-            else:
-                f_z[k] = float(line)
-                k += 1
+            f_z.append(float(line))
 
-            i += 1
+    return n_z, zmax, norm, np.array(f_z)
 
-    return n_z, zmax, k_e, f_z
+def is_a_valid_electric_field(n_z: int, zmax: float, norm: float,
+                              f_z: np.ndarray, cavity_length: float) -> bool:
+    """Assert that the electric field that we loaded is valid."""
+    if f_z.shape[0] != n_z + 1:
+        logging.error(f"The electric field file should have {n_z + 1} "
+                      + f"lines, but it is {f_z.shape[0]} lines long. ")
+        return False
 
+    tolerance = 1e-6
+    if abs(zmax - cavity_length) > tolerance:
+        logging.error(f"Mismatch between the length of the field map {zmax = }"
+                      + f" and {cavity_length = }.")
+        return False
+
+    if abs(norm - 1.) > tolerance:
+        logging.warning("Field map scaling factor (second line of the file) "
+                        " is different from unity. It may enter in conflict "
+                        + "with k_e (6th argument of FIELD_MAP in the .dat).")
+    return True
 
 def convert_phi_0(phi_rf_abs, abs_to_rel, rf_field_dict):
     """
@@ -248,3 +272,8 @@ def convert_phi_0(phi_rf_abs, abs_to_rel, rf_field_dict):
         assert phi_0_rel is not None
         phi_0_abs = np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
     return phi_0_rel, phi_0_abs
+
+
+FIELD_MAP_LOADERS = {
+    ".edz": _load_electric_field_1d
+}
