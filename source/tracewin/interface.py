@@ -297,6 +297,7 @@ def run(ini_path: str, path_cal: str, dat_file: str,
         TraceWin optional arguments. Override what is defined in .ini.
 
     """
+    logging.critical('shall be removed')
     start_time = time.monotonic()
 
     cmd = _tw_cmd(tw_path, ini_path, path_cal, dat_file, **kwargs)
@@ -314,6 +315,7 @@ def run(ini_path: str, path_cal: str, dat_file: str,
 def _tw_cmd(tw_path: str, ini_path: str, path_cal: str, dat_file: str,
             **kwargs) -> str:
     """Make the command line to launch TraceWin."""
+    logging.critical('shall be removed')
     cmd = [tw_path, ini_path, f"path_cal={path_cal}", f"dat_file={dat_file}"]
     for key, value in kwargs.items():
         if value is None:
@@ -326,6 +328,7 @@ def _tw_cmd(tw_path: str, ini_path: str, path_cal: str, dat_file: str,
 def get_multipart_tw_results(folder: str, filename: str = 'partran1.out'
                              ) -> dict:
     """Get the results."""
+    logging.critical('shall be removed')
     f_p = os.path.join(folder, filename)
     n_lines_header = 9
     d_out = {}
@@ -348,6 +351,7 @@ def get_transfer_matrices(folder: str, filename: str = 'Transfer_matrix1.dat',
                                                            np.ndarray,
                                                            np.ndarray]:
     """Get the full transfer matrices calculated by TraceWin."""
+    logging.critical('shall be removed')
     if high_def:
         raise IOError("High definition not implemented. Can only import"
                       + "transfer matrices @ element positions.")
@@ -382,6 +386,7 @@ def get_transfer_matrices(folder: str, filename: str = 'Transfer_matrix1.dat',
 def get_tw_cav_param(folder: str, filename: str = 'Cav_set_point_res.dat'
                      ) -> dict:
     """Get the cavity parameters."""
+    logging.critical('shall be removed')
     f_p = os.path.join(folder, filename)
     n_lines_header = 1
     d_out = {}

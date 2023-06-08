@@ -378,7 +378,7 @@ class Accelerator():
             dic['gamma'] = 1. + dic['gama-1']
             dic['w_kin'] = convert.energy(dic['gamma'], "gamma to kin")
             dic['beta'] = convert.energy(dic['w_kin'], "kin to beta")
-            dic['lambda'] = c / 162e6
+            dic['lambda'] = c / 162e6   # FIXME
 
             num = dic['beta'].shape[0]
             dic['phi_abs_array'] = np.full((num), 0.)
