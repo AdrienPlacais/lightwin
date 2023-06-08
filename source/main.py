@@ -28,7 +28,7 @@ if __name__ == '__main__':
     CONFIG_PATH = 'myrrha.ini'
     KEY_SOLVER = 'solver.lightwin.envelope_longitudinal'
     KEY_BEAM = 'beam.myrrha'
-    KEY_WTF = 'wtf.quick_debug'
+    KEY_WTF = 'wtf.k_out_of_n'
     KEY_TW = 'post_tracewin.quick_debug'
 
     # =========================================================================
