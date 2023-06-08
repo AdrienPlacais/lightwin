@@ -24,6 +24,7 @@ import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
 import tracewin.load
+from tracewin.simulation import TraceWinSimulation
 
 
 try:
@@ -272,133 +273,20 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     return data
 
 
-# =============================================================================
-# To be moved to a specific Class
-# =============================================================================
-def run(ini_path: str, path_cal: str, dat_file: str,
-        tw_path: str = "/usr/local/bin/./TraceWin", **kwargs) -> None:
-    """
-    Run TraceWin.
+def resample_tracewin_results(ref: TraceWinSimulation,
+                              fix: TraceWinSimulation) -> None:
+    """Interpolate the `fix` results @ `ref` positions."""
+    ref_results = ref.results_multipart
+    fix_results = fix.results_multipart
 
-    Parameters
-    ----------
-    ini_path : str
-        Path to the .ini TraceWin file.
-    path_cal : str
-        Path to the output folder, where TW results will be stored. Overrides
-        the path_cal defined in .ini.
-    dat_file : str
-        Path to the TraceWin .dat file, with accelerator structure. Overrides
-        the dat_file defined in .ini.
-    tw_path : str, optional
-        Path to the TraceWin command. The default is
-        "/usr/local/bin/./TraceWin".
-    **kwargs : dict
-        TraceWin optional arguments. Override what is defined in .ini.
+    if ref_results is None or fix_results is None:
+        logging.error("At least one multiparticle simulation was not "
+                      + "performed (or not loaded).")
+        return
 
-    """
-    logging.critical('shall be removed')
-    start_time = time.monotonic()
+    z_ref = ref_results['z(m)']
+    z_fix = fix_results['z(m)'].copy()
+    for key in fix_results:
+        fix_results[key] = np.interp(z_ref, z_fix, fix_results[key])
 
-    cmd = _tw_cmd(tw_path, ini_path, path_cal, dat_file, **kwargs)
-    logging.info(f"Running TW with command {cmd}...")
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    process.wait()
-    for line in process.stdout:
-        print(line)
-
-    end_time = time.monotonic()
-    delta_t = datetime.timedelta(seconds=end_time - start_time)
-    logging.info(f"TW finished! It took {delta_t}")
-
-
-def _tw_cmd(tw_path: str, ini_path: str, path_cal: str, dat_file: str,
-            **kwargs) -> str:
-    """Make the command line to launch TraceWin."""
-    logging.critical('shall be removed')
-    cmd = [tw_path, ini_path, f"path_cal={path_cal}", f"dat_file={dat_file}"]
-    for key, value in kwargs.items():
-        if value is None:
-            cmd.append(key)
-            continue
-        cmd.append(key + "=" + str(value))
-    return cmd
-
-
-def get_multipart_tw_results(folder: str, filename: str = 'partran1.out'
-                             ) -> dict:
-    """Get the results."""
-    logging.critical('shall be removed')
-    f_p = os.path.join(folder, filename)
-    n_lines_header = 9
-    d_out = {}
-
-    with open(f_p) as file:
-        for i, line in enumerate(file):
-            if i == n_lines_header:
-                headers = line.strip().split()
-                break
-
-    out = np.loadtxt(f_p, skiprows=n_lines_header)
-    for i, key in enumerate(headers):
-        d_out[key] = out[:, i]
-    logging.info(f"successfully loaded {f_p}")
-    return d_out
-
-
-def get_transfer_matrices(folder: str, filename: str = 'Transfer_matrix1.dat',
-                          high_def: bool = False) -> tuple[np.ndarray,
-                                                           np.ndarray,
-                                                           np.ndarray]:
-    """Get the full transfer matrices calculated by TraceWin."""
-    logging.critical('shall be removed')
-    if high_def:
-        raise IOError("High definition not implemented. Can only import"
-                      + "transfer matrices @ element positions.")
-    f_p = os.path.join(folder, filename)
-
-    data = None
-    num = []
-    z_m = []
-    t_m = []
-
-    with open(f_p) as file:
-        for i, line in enumerate(file):
-            if i % 7 == 0:
-                # Get element # and position
-                data = line.split()
-                num.append(int(data[1]))
-                z_m.append(float(data[3]))
-
-                # Re-initialize data
-                data = []
-                continue
-
-            data.append([float(dat) for dat in line.split()])
-
-            # Save transfer matrix
-            if (i + 1) % 7 == 0:
-                t_m.append(data)
-    logging.info(f"successfully loaded {f_p}")
-    return np.array(num), np.array(z_m), np.array(t_m)
-
-
-def get_tw_cav_param(folder: str, filename: str = 'Cav_set_point_res.dat'
-                     ) -> dict:
-    """Get the cavity parameters."""
-    logging.critical('shall be removed')
-    f_p = os.path.join(folder, filename)
-    n_lines_header = 1
-    d_out = {}
-
-    with open(f_p) as file:
-        for i, line in enumerate(file):
-            if i == n_lines_header - 1:
-                headers = line.strip().split()
-                break
-
-    out = np.loadtxt(f_p, skiprows=n_lines_header)
-    for i, key in enumerate(headers):
-        d_out[key] = out[:, i]
-    logging.info(f"successfully loaded {f_p}")
-    return d_out
+    fix.results_multipart = fix_results

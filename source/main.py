@@ -18,6 +18,7 @@ import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
 from util import helper, output, evaluate
 import tracewin.interface
+from tracewin.simulation import TraceWinSimulation
 from util.log_manager import set_up_logging
 from visualization import plot
 
@@ -156,14 +157,27 @@ if __name__ == '__main__':
                 continue
 
             ini_path = FILEPATH.replace('.dat', '.ini')
-            lin.simulate_in_tracewin(ini_path, **post_tw)
             # TODO transfer ini path elsewhere
-            lin.store_tracewin_results()
+            tw_simu = TraceWinSimulation(post_tw['executable'],
+                                         ini_path,
+                                         lin.get('out_tw'),
+                                         lin.get('dat_filepath'),
+                                         post_tw)
+            tw_simu.run(store_all_outputs=True)
+            lin.tracewin_simulation = tw_simu
 
             if 'Fixed' in lin.name:
-                lin.resample_tw_results(linacs[0])
+                tracewin.interface.resample_tracewin_results(
+                    ref=linacs[0].tracewin_simulation,
+                    fix=lin.tracewin_simulation)
 
-            lin.precompute_some_tracewin_results()
+            tw_simu.post_treat_the_stored_results()
+
+            # interface with old
+            lin.tw_results['envelope'] = tw_simu.results_envelope
+            lin.tw_results['multipart'] = tw_simu.results_multipart
+            lin.tw_results['transf_mat'] = tw_simu.transfer_matrices
+            lin.tw_results['cav_param'] = tw_simu.cavity_parameters
 
             if FLAG_EVALUATE and 'Fixed' in lin.name:
                 d_fred = evaluate.fred_tests(linacs[0], lin)
