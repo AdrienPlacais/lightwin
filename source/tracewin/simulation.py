@@ -9,6 +9,8 @@ Different use cases, from easiest to hardest:
     - run it, get its results
     - no run, but get results anyway
     - use it to fit
+
+TODO: put the testings in the config manager
 """
 from dataclasses import dataclass
 import os.path

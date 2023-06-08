@@ -44,9 +44,16 @@ F_BUNCH_MHZ, OMEGA_0_BUNCH, LAMBDA_BUNCH = float(), float(), float()
 Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
 SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
 
+TRACEWIN_EXECUTABLES = {
+    "X11 full": "/usr/local/bin/./TraceWin",
+    "noX11 full": "/usr/local/bin/./TraceWin_noX11",
+    "noX11 minimal": "/home/placais/TraceWin/exe/./tracelx64",
+    "no run": None
+}
+
 
 def process_config(config_path: str, project_path: str, key_solver: str,
-                   key_beam: str, key_wtf: str, key_tw: str = 'tracewin'
+                   key_beam: str, key_wtf: str, key_post_tw: str | None = None,
                    ) -> tuple[dict, dict, dict, dict]:
     """
     Frontend for config: load .ini, test it, return its content as dicts.
@@ -63,9 +70,10 @@ def process_config(config_path: str, project_path: str, key_solver: str,
         Name of the Section containing beam parameters in the .ini file.
     key_wtf : str
         Name of the Section containing wtf parameters in the .ini file.
-    key_tw : str, optional
+    key_post_tw : str | None, optional
         Name of the Section containing the TraceWin simulation parameters in
-        the .ini file. The default is 'tracewin'.
+        the .ini file. This simulation is performed once the new settings are
+        found. The default is None.
 
     Returns
     -------
@@ -75,7 +83,7 @@ def process_config(config_path: str, project_path: str, key_solver: str,
         Dictionary holding all beam parameters.
     wtf : dict
         Dictionary holding all wtf parameters.
-    tracew : dict
+    post_tw : dict
         Holds the TW arguments. Overrides what is defined in the TW .ini file.
         Path to .ini, .dat and to results folder are defined in
         Accelerator.files dict.
@@ -104,44 +112,41 @@ def process_config(config_path: str, project_path: str, key_solver: str,
     # outputs!!
     config.read(config_path)
 
-    _test_config(config, key_solver, key_beam, key_wtf, key_tw)
+    _test_config(config, key_solver, key_beam, key_wtf, key_post_tw)
 
-    # Transform to dict
-    solver, beam, wtf, tracew = _config_to_dict(
+    solver, beam, wtf, post_tw = _config_to_dict(
         config, key_solver=key_solver, key_beam=key_beam, key_wtf=key_wtf,
-        key_tw=key_tw)
+        key_post_tw=key_post_tw)
 
     # Remove unused Sections, save resulting file
     _ = [config.remove_section(key) for key in list(config.keys())
-         if key not in ['DEFAULT', key_solver, key_beam, key_wtf, key_tw]]
+         if key not in ['DEFAULT', key_solver, key_beam, key_wtf, key_post_tw]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 
-    # Make some variables what we need to access everywhere global
     _solver_make_global(solver)
     _beam_make_global(beam)
-
-    return solver, beam, wtf, tracew
+    return solver, beam, wtf, post_tw
 
 
 def _test_config(config: configparser.ConfigParser, key_solver: str,
-                 key_beam: str, key_wtf: str, key_tw: str) -> None:
+                 key_beam: str, key_wtf: str, key_post_tw: str) -> None:
     """Run all the configuration tests, and save the config if ok."""
     _test_solver(config[key_solver])
     _test_beam(config[key_beam])
     _test_wtf(config[key_wtf])
-    _test_tw(config[key_tw])
+    _test_post_tw(config[key_post_tw])
 
 
 def _config_to_dict(config: configparser.ConfigParser, key_solver: str,
-                    key_beam: str, key_wtf: str, key_tw: str) -> dict:
+                    key_beam: str, key_wtf: str, key_post_tw: str) -> dict:
     """To convert the configparser into the formats required by LightWin."""
     solver = _config_to_dict_solver(config[key_solver])
     beam = _config_to_dict_beam(config[key_beam])
     wtf = _config_to_dict_wtf(config[key_wtf])
-    tracew = _config_to_dict_tw(config[key_tw])
-    return solver, beam, wtf, tracew
+    post_tw = _config_to_dict_tw(config[key_post_tw])
+    return solver, beam, wtf, post_tw
 
 
 # TODO
@@ -153,11 +158,33 @@ def generate_list_of_faults():
 
 
 # =============================================================================
-# Everything related to solver (particles motion solver)
+# Everything related to solver (particles motion solver) (TraceWin @ bottom)
 # =============================================================================
 def _test_solver(c_solver: configparser.SectionProxy) -> None:
+    """Test the appropriate solver (LightWin or TraceWin)."""
+    passed = True
+    mandatory = ["TOOL"]
+    for key in mandatory:
+        if key not in c_solver.keys():
+            logging.error(f"Key {key} is mandatory and missing.")
+            passed = False
+
+    valid_tools = {'LightWin': _test_solver_lightwin,
+                   'TraceWin': _test_tracewin}
+    my_tool = c_solver["TOOL"]
+    if my_tool not in valid_tools:
+        logging.error(f"{my_tool} is an invalid value for TOOL. "
+                      + f"Authorized values are: {valid_tools.keys()}.")
+        passed = False
+
+    if not passed or not valid_tools[my_tool](c_solver):
+        raise IOError("Error treating the solver parameters.")
+    logging.info(f"solver parameters {c_solver.name} tested with success.")
+
+
+def _test_solver_lightwin(c_solver: configparser.SectionProxy) -> bool:
     """
-    Test consistency of the solver.
+    Test consistency of the LightWin solver.
 
     FLAF_PHI_ABS: to determine if the phases in the cavities are absolute or
     relative.
@@ -176,17 +203,15 @@ def _test_solver(c_solver: configparser.SectionProxy) -> None:
     change in FLAG_CYTHON into account.
 
     """
-    passed = True
-
     mandatory = ["FLAG_CYTHON", "METHOD", "FLAG_PHI_ABS"]
     for key in mandatory:
         if key not in c_solver.keys():
             logging.error(f"{key} is mandatory and missing.")
-            passed = False
+            return False
 
     if c_solver["METHOD"] not in ["leapfrog", "RK"]:
         logging.error("Wrong value for METHOD, solver not implemented.")
-        passed = False
+        return False
 
     if "N_STEPS_PER_CELL" not in c_solver.keys():
         logging.warning("Number of integration steps per cell not precised. "
@@ -199,19 +224,7 @@ def _test_solver(c_solver: configparser.SectionProxy) -> None:
     else:
         c_solver["METHOD"] += "_p"
 
-    if not passed:
-        raise IOError("Wrong value in c_solver.")
-
-    # Still in use??
-    # DICT_STR_PHI = {True: 'abs', False: 'rel'}
-    # DICT_STR_PHI_RF = {True: 'abs_rf', False: 'rel'}
-    # DICT_STR_PHI_0 = {True: 'phi_0_abs', False: 'phi_0_rel'}
-
-    # STR_PHI_ABS = DICT_STR_PHI[FLAG_PHI_ABS]
-    # STR_PHI_ABS_RF = DICT_STR_PHI_RF[FLAG_PHI_ABS]
-    # STR_PHI_0_ABS = DICT_STR_PHI_0[FLAG_PHI_ABS]
-
-    logging.info(f"solver parameters {c_solver.name} tested with success.")
+    return True
 
 
 def _config_to_dict_solver(c_solver: configparser.SectionProxy) -> dict:
@@ -667,35 +680,59 @@ def _test_misc(c_wtf: configparser.SectionProxy) -> bool:
 
 
 # =============================================================================
-# Everything related to TraceWin configuration
+# Everything related to TraceWin simulations
 # =============================================================================
-def _test_tw(c_tw: configparser.SectionProxy) -> None:
-    """Test for the TraceWin simulation parameters."""
-    passed = True
+def _test_tracewin(c_solver: configparser.SectionProxy) -> bool:
+    """Specific test for the TraceWin simulations."""
+    mandatory = ["SIMULATION TYPE"]
+    for key in mandatory:
+        if key not in c_solver.keys():
+            logging.error(f"{key} is mandatory and missing.")
+            return False
+
+    simulation_type = c_solver["SIMULATION TYPE"]
+    if simulation_type not in TRACEWIN_EXECUTABLES:
+        logging.error(f"The simulation type {simulation_type} was not "
+                      + "recognized. Authorized values: "
+                      + f"{TRACEWIN_EXECUTABLES.keys()}")
+        return False
+
+    tw_exe = TRACEWIN_EXECUTABLES[simulation_type]
+    if tw_exe is None:
+        logging.warning("No TraceWin simulation. May clash with other things "
+                        "as the executable is None.")
+        return True
+
+    if not os.path.isfile(tw_exe):
+        logging.error(f"The TraceWin executable was not found: {tw_exe}. You "
+                      + "should update the TRACEWIN_EXECUTABLES dictionary in "
+                      + "config_manager.py.")
+        return False
+    c_solver["EXECUTABLE"] = tw_exe
 
     # TODO: implement all TW options
-    for key in c_tw.keys():
+    for key in c_solver.keys():
         if "Ele" in key:
             logging.error("Are you trying to use the Ele[n][v] key? It is not "
                           + "implemented and may clash with LightWin.")
-            passed = False
-            continue
+            return False
 
         if key == "Synoptic_file":
             logging.error("Not implemented as I am not sure how this should "
                           + "work.")
-            passed = False
-            continue
+            return False
 
         if key in ['partran', 'toutatis']:
-            if c_tw.get(key) not in ['0', '1']:
+            if c_solver.get(key) not in ['0', '1']:
                 logging.error("partran and toutatis keys should be 0 or 1.")
-                passed = False
-            continue
+                return False
+    return True
 
-    if not passed:
-        raise IOError("Wrong value in c_tw.")
-    logging.info("c_tw arguments tested with success.")
+
+def _test_post_tw(c_tw: configparser.SectionProxy) -> None:
+    """Test for the TraceWin simulation parameters."""
+    if not _test_tracewin(c_tw):
+        raise IOError("Error when testing the TW configuration.")
 
 
 def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
@@ -703,6 +740,7 @@ def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
     tracew = {}
     # Getters. If a key is not in this dict, it won't be transferred to TW
     getter = {
+        'EXECUTABLE': c_tw.get,
         'hide': c_tw.get,
         'tab_file': c_tw.get,
         'nbr_thread': c_tw.getint,
@@ -780,8 +818,8 @@ if __name__ == '__main__':
 
     # Load config
     wtfs = process_config(CONFIG_PATH, PROJECT_PATH,
-                          key_solver='solver.envelope_longitudinal',
+                          key_solver='solver.lightwin.envelope_longitudinal',
                           key_beam='beam.jaea',
                           key_wtf='wtf.k_out_of_n',
-                          key_tw='tracewin.quick_debug')
+                          key_post_tw='post_tracewin.quick_debug')
     print(f"{wtfs}")

@@ -25,10 +25,10 @@ from visualization import plot
 if __name__ == '__main__':
     FILEPATH = "../data/MYRRHA/MYRRHA_Transi-100MeV.dat"
     CONFIG_PATH = 'myrrha.ini'
-    KEY_SOLVER = 'solver.envelope_longitudinal'
+    KEY_SOLVER = 'solver.lightwin.envelope_longitudinal'
     KEY_BEAM = 'beam.myrrha'
     KEY_WTF = 'wtf.k_out_of_n'
-    KEY_TW = 'tracewin.quick_debug'
+    KEY_TW = 'post_tracewin.quick_debug'
 
     # =========================================================================
     # Fault compensation
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
-    d_solver, d_beam, d_wtf, d_tw = conf_man.process_config(
+    solver, beam, wtf, post_tw = conf_man.process_config(
         CONFIG_PATH, PROJECT_FOLDER, KEY_SOLVER, KEY_BEAM, KEY_WTF, KEY_TW)
 
     # Reference linac
@@ -89,11 +89,11 @@ if __name__ == '__main__':
 # =============================================================================
 # Run all simulations of the Project
 # =============================================================================
-    l_failed = d_wtf.pop('failed')
+    l_failed = wtf.pop('failed')
     l_manual = None
     manual = None
-    if 'manual list' in d_wtf:
-        l_manual = d_wtf.pop('manual list')
+    if 'manual list' in wtf:
+        l_manual = wtf.pop('manual list')
 
     if FLAG_BREAK:
         for i, failed in enumerate(l_failed):
@@ -104,7 +104,7 @@ if __name__ == '__main__':
                 manual = l_manual[i]
             fault_scenario = FaultScenario(ref_acc=ref_linac,
                                            fix_acc=lin,
-                                           wtf=d_wtf,
+                                           wtf=wtf,
                                            fault_idx=failed,
                                            comp_idx=manual)
             linacs.append(deepcopy(lin))
@@ -156,7 +156,7 @@ if __name__ == '__main__':
                 continue
 
             ini_path = FILEPATH.replace('.dat', '.ini')
-            lin.simulate_in_tracewin(ini_path, **d_tw)
+            lin.simulate_in_tracewin(ini_path, **post_tw)
             # TODO transfer ini path elsewhere
             lin.store_tracewin_results()
 
