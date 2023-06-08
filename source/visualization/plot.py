@@ -7,16 +7,17 @@ Created on Wed Feb  8 09:35:54 2023.
 """
 
 import os
+import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as pat
-import logging
 
 from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
-import util.helper as helper
+from util import helper
+from core.accelerator import Accelerator
 import util.dicts_output as dic
 
 font = {'family': 'serif', 'size': 25}
@@ -130,21 +131,25 @@ def plot_preset(str_preset: str, *args, **kwargs):
         _savefig(fig, file)
 
 
-def plot_evaluate(z_m, l_d_ref, l_d_fix, l_d_lim, lin_fix, evaluation='test',
-                  save_fig=True, num=0):
+def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
+                  fixed_values: list[dict], acceptable_values: list[dict],
+                  lin_fix: Accelerator, evaluation: str = 'test',
+                  save_fig: bool = True, num: int = 0) -> None:
     """Plot data from util.evaluate."""
     x_str = 'z_abs'
 
-    for i, (d_ref, d_fix, d_lim) in enumerate(zip(l_d_ref, l_d_fix, l_d_lim)):
-        n_axes = len(d_ref) + 1
+    for i, (ref, fix, limits) in enumerate(zip(reference_values,
+                                               fixed_values,
+                                               acceptable_values)):
+        n_axes = len(ref) + 1
         num += 1
         fig, axx = create_fig_if_not_exists(n_axes, sharex=True, num=num,
                                             clean_fig=True)
         axx[-1].set_xlabel(dic.d_markdown[x_str])
         # TODO : structure plot (needs a linac)
 
-        for ax, (key, ref), fix, lim in zip(axx[:-1], d_ref.items(),
-                                            d_fix.values(), d_lim.values()):
+        for ax, (key, ref), fix, lim in zip(axx[:-1], ref.items(),
+                                            fix.values(), limits.values()):
             ax.set_ylabel(dic.d_markdown[key])
             ax.grid(True)
             ax.plot(z_m, ref, label="TW ref")
