@@ -11,7 +11,7 @@ Different use cases, from easiest to hardest:
     - use it to fit
 """
 from dataclasses import dataclass
-import os, os.path
+import os
 import logging
 import subprocess
 from functools import partial
@@ -22,6 +22,7 @@ import numpy as np
 
 from constants import c
 import util.converters as convert
+
 
 @dataclass
 class TraceWinSimulation:
@@ -47,6 +48,7 @@ class TraceWinSimulation:
         overriden by specific_arguments in the self.run method.
 
     """
+
     executable: str
     ini_path: str
     path_cal: str
@@ -65,7 +67,8 @@ class TraceWinSimulation:
         self.transfer_matrices: np.ndarray
         self.cavity_parameters: dict
 
-    def run(self, store_all_outputs: bool = True, **specific_kwargs) -> None:
+    def run(self, store_all_outputs: bool = True, post_treat: bool = True,
+            **specific_kwargs) -> None:
         """
         Run TraceWin.
 
@@ -73,6 +76,9 @@ class TraceWinSimulation:
         ----------
         store_all_outputs : bool, optional
             Save all the outputs from TraceWin. The default is True.
+        post_treat : bool, optional
+            Compute quantities that will be required later in results (both
+            multipart and envelope). The default is True.
         **specific_kwargs : dict
             TraceWin optional arguments. Overrides what is defined in
             base_kwargs and .ini.
@@ -102,9 +108,11 @@ class TraceWinSimulation:
         logging.info(f"TW finished! It took {delta_t}")
 
         if store_all_outputs:
-            self.results_envelope = self.get_results_envelope()
-            self.results_multipart = self.get_results_multipart() \
-                    if self._is_a_multiparticle_simulation(kwargs) else None
+            self.results_envelope = \
+                self.get_results_envelope(post_treat=post_treat)
+            self.results_multipart = \
+                self.get_results_multipart(post_treat=post_treat) \
+                if self._is_a_multiparticle_simulation(kwargs) else None
             _, _, self.transfer_matrices = self.get_transfer_matrices()
             self.cavity_parameters = self.get_cavity_parameters()
 
@@ -130,7 +138,8 @@ class TraceWinSimulation:
             return kwargs['partran'] == 1
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
 
-    def get_results(self, filename: str) -> dict[[str], np.ndarray]:
+    def get_results(self, filename: str, post_treat: bool = True
+                    ) -> dict[[str], np.ndarray]:
         """
         Get the TraceWin results.
 
@@ -158,11 +167,14 @@ class TraceWinSimulation:
         for i, key in enumerate(headers):
             results[key] = out[:, i]
             logging.debug(f"successfully loaded {f_p}")
+
+        if post_treat:
+            return _post_treat(results)
         return results
 
     def get_transfer_matrices(self, filename: str = 'Transfer_matrix1.dat',
                               high_def: bool = False
-                             ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+                              ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Get the full transfer matrices calculated by TraceWin.
 
@@ -220,7 +232,7 @@ class TraceWinSimulation:
         return element_number, position_in_m, transfer_matrix
 
     def get_cavity_parameters(self, filename: str = 'Cav_set_point_res.dat'
-                             ) -> dict[[str], np.ndarray]:
+                              ) -> dict[[str], np.ndarray]:
         """
         Get the cavity parameters calculated by TraceWin.
 
@@ -252,38 +264,37 @@ class TraceWinSimulation:
         logging.debug(f"successfully loaded {f_p}")
         return cavity_param
 
-    def post_treat_the_stored_results(self) -> None:
-        """Compute and store the missing quantities."""
-        for dic in [self.results_envelope, self.results_multipart]:
-            if dic is None:
-                continue
-            dic['gamma'] = 1. + dic['gama-1']
-            dic['w_kin'] = convert.energy(dic['gamma'], "gamma to kin")
-            dic['beta'] = convert.energy(dic['w_kin'], "kin to beta")
-            dic['lambda'] = c / 162e6   # FIXME
 
-            num = dic['beta'].shape[0]
-            dic['phi_abs_array'] = np.full((num), 0.)
-            for i in range(1, num):
-                delta_z = dic['z(m)'][i] - dic['z(m)'][i - 1]
-                beta_i = dic['beta'][i]
-                delta_phi = 2. * np.pi * delta_z / (dic['lambda'] * beta_i)
-                dic['phi_abs_array'][i] = dic['phi_abs_array'][i - 1] \
-                    + np.rad2deg(delta_phi)
+def _post_treat(results: dict) -> dict:
+    """Compute and store the missing quantities (envelope or multipart)."""
+    results['gamma'] = 1. + results['gama-1']
+    results['w_kin'] = convert.energy(results['gamma'], "gamma to kin")
+    results['beta'] = convert.energy(results['w_kin'], "kin to beta")
+    results['lambda'] = c / 162e6   # FIXME
 
-            # Transverse emittance, used in evaluate
-            dic['et'] = 0.5 * (dic['ex'] + dic['ey'])
+    num = results['beta'].shape[0]
+    results['phi_abs_array'] = np.full((num), 0.)
+    for i in range(1, num):
+        delta_z = results['z(m)'][i] - results['z(m)'][i - 1]
+        beta_i = results['beta'][i]
+        delta_phi = 2. * np.pi * delta_z / (results['lambda'] * beta_i)
+        results['phi_abs_array'][i] = results['phi_abs_array'][i - 1] \
+            + np.rad2deg(delta_phi)
 
-            # Twiss parameters, used in evaluate
-            for _eps, size, disp, twi in zip(
-                    ['ex', 'ey', 'ezdp'],
-                    ['SizeX', 'SizeY', 'SizeZ'],
-                    ["sxx'", "syy'", 'szdp'],
-                    ['twiss_x', 'twiss_y', 'twiss_zdp']):
-                eps = dic[_eps] / (dic['gamma'] * dic['beta'])
-                alpha = -dic[disp] / eps
-                beta = dic[size]**2 / eps
-                if _eps == 'ezdp':
-                    beta /= 10.
-                gamma = (1. + alpha**2) / beta
-                dic[twi] = np.column_stack((alpha, beta, gamma))
+    # Transverse emittance, used in evaluate
+    results['et'] = 0.5 * (results['ex'] + results['ey'])
+
+    # Twiss parameters, used in evaluate
+    for _eps, size, disp, twi in zip(
+            ['ex', 'ey', 'ezdp'],
+            ['SizeX', 'SizeY', 'SizeZ'],
+            ["sxx'", "syy'", 'szdp'],
+            ['twiss_x', 'twiss_y', 'twiss_zdp']):
+        eps = results[_eps] / (results['gamma'] * results['beta'])
+        alpha = -results[disp] / eps
+        beta = results[size]**2 / eps
+        if _eps == 'ezdp':
+            beta /= 10.
+        gamma = (1. + alpha**2) / beta
+        results[twi] = np.column_stack((alpha, beta, gamma))
+    return results

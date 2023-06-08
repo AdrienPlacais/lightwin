@@ -286,7 +286,17 @@ def resample_tracewin_results(ref: TraceWinSimulation,
 
     z_ref = ref_results['z(m)']
     z_fix = fix_results['z(m)'].copy()
-    for key in fix_results:
+
+    for key, val in fix_results.items():
+        if isinstance(val, float):
+            continue
+
+        if val.ndim == 2:
+            for axis in range(val.shape[1]):
+                fix_results[key][:, axis] = np.interp(
+                    z_ref, z_fix, fix_results[key][:, axis])
+            continue
+
         fix_results[key] = np.interp(z_ref, z_fix, fix_results[key])
 
     fix.results_multipart = fix_results

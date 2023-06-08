@@ -28,7 +28,7 @@ if __name__ == '__main__':
     CONFIG_PATH = 'myrrha.ini'
     KEY_SOLVER = 'solver.lightwin.envelope_longitudinal'
     KEY_BEAM = 'beam.myrrha'
-    KEY_WTF = 'wtf.k_out_of_n'
+    KEY_WTF = 'wtf.quick_debug'
     KEY_TW = 'post_tracewin.quick_debug'
 
     # =========================================================================
@@ -170,8 +170,6 @@ if __name__ == '__main__':
                 tracewin.interface.resample_tracewin_results(
                     ref=linacs[0].tracewin_simulation,
                     fix=lin.tracewin_simulation)
-
-            tw_simu.post_treat_the_stored_results()
 
             # interface with old
             lin.tw_results['envelope'] = tw_simu.results_envelope
