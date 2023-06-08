@@ -8,6 +8,7 @@ Created on Wed Feb  8 09:35:54 2023.
 
 import os
 import logging
+from typing import Any
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
@@ -181,7 +182,6 @@ def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool = False,
     """
     Get all the data that should be plotted.
 
-
     Parameters
     ----------
     x_str : str
@@ -209,7 +209,7 @@ def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool = False,
     y_data = []
     l_kwargs = []
 
-    source = 'multipart'
+    source = 'TW.multipart'
     # FIXME Get all the data that should be plotted.
     if y_str in ['v_cav_mv', 'phi_s']:
         source = 'cav_param'
@@ -232,51 +232,62 @@ def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool = False,
     return x_data, y_data, l_kwargs
 
 
-def _data_from(x_str, y_str, arg, source='LW'):
+def _data_from(x_str: str, y_str: str, arg: tuple[Accelerator | dict],
+               source: str = 'LW') -> tuple[np.ndarray, np.ndarray, dict]:
     """Get data."""
-    from_lw = source == 'LW'
-    d_getter = {
-        False: lambda x, arg: _data_from_tw(x, arg.tw_results[source]),
-        True: lambda x, arg: _data_from_lw(x, arg)}
-    getter = d_getter[from_lw]
+    if source == 'cav_params':
+        logging.critical("Legacy cav_params. How was this supposed to work?")
+    getters = {
+        'TW.envelope': lambda x, arg:
+            _data_from_tw(x, arg.tracewin_simulation.results_envelope),
+        'TW.multipart': lambda x, arg:
+            _data_from_tw(x, arg.tracewin_simulation.results_multipart),
+        'LW': lambda x, arg: _data_from_lw(x, arg)
+    }
+    getter = getters[source]
 
-    x_dat, y_dat = getter(x_str, arg), getter(y_str, arg)
+    try:
+        x_dat, y_dat = getter(x_str, arg), getter(y_str, arg)
+    except AttributeError:
+        logging.error(f"Data {x_str} and/or {y_str} not found in {arg}.")
+        x_dat, y_dat = np.full((10, 1), np.NaN), np.full((10, 1), np.NaN)
 
     kw = dic.d_plot_kwargs[y_str].copy()
     kw['label'] = arg.name
-    if not from_lw:
+    if source != 'LW':
         kw['ls'] = '--'
         kw['label'] = 'TW ' + kw['label']
     return x_dat, y_dat, kw
 
 
-def _data_from_lw(data_str, linac):
+def _data_from_lw(data_name: str, linac: Accelerator) -> Any:
     """Get the data calculated by LightWin."""
-    data = linac.get(data_str, to_deg=True)
+    data = linac.get(data_name, to_deg=True)
     return data
 
 
-def _data_from_tw(data_str, d_tw, warn_missing=False):
+def _data_from_tw(data_name: str, tracewin_results: dict,
+                  warn_missing: bool = False) -> Any:
     """Get the data calculated by TraceWin, already loaded."""
     out = None
 
     # Data recomputed from TW simulation
-    if data_str in d_tw.keys():
-        out = d_tw[data_str]
+    if data_name in tracewin_results.keys():
+        out = tracewin_results[data_name]
 
     # Raw data from TW simulation
-    if data_str in dic.d_lw_to_tw.keys():
-        key = dic.d_lw_to_tw[data_str]
-        if key in d_tw.keys():
-            out = d_tw[key]
+    if data_name in dic.d_lw_to_tw.keys():
+        key = dic.d_lw_to_tw[data_name]
+        if key in tracewin_results.keys():
+            out = tracewin_results[key]
 
     # If need to be rescaled or modified
-    if out is not None and data_str in dic.d_lw_to_tw_func.keys():
-        out = dic.d_lw_to_tw_func[data_str](out)
+    if out is not None and data_name in dic.d_lw_to_tw_func.keys():
+        out = dic.d_lw_to_tw_func[data_name](out)
 
     # Not implemented
     if warn_missing and out is None:
-        logging.warning(f"{data_str} not found for TW.")
+        logging.warning(f"{data_name} not found for TW.")
     return out
 
 
@@ -287,7 +298,7 @@ def _err(x_str, y_str, *args, plot_tw=False, reference='self'):
 
     d_ref = {
         'LW': lambda source: 'LW',          # Error calculated w.r.t LW
-        'multipart': lambda source: 'multipart',   # Error calculated w.r.t TW
+        'TW.multipart': lambda source: 'TW.multipart',   # Error calculated w.r.t TW
         'self': lambda source: source}      # LW error w.r.t LW, TW w.r.t TW
 
     # Set up a scale (for example if the error is very small)
@@ -319,7 +330,7 @@ def _err(x_str, y_str, *args, plot_tw=False, reference='self'):
         l_kwargs.append(kw)
 
         if plot_tw:
-            source = 'multipart'
+            source = 'TW.multipart'
             ref = d_ref[source](reference)
             x_ref, y_ref, _ = _data_from(x_str, key, args[0], source=ref)
             __x, __y, kw = _data_from(x_str, key, arg, source=source)

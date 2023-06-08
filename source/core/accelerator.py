@@ -111,8 +111,6 @@ class Accelerator():
         # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
-        self.tw_results = {'envelope': {}, 'multipart': {}, 'cav_param': {},
-                           'transf_mat': np.empty((0))}
         self._l_cav = self.elts.l_cav
 
     @property

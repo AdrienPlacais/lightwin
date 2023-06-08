@@ -47,7 +47,7 @@ if __name__ == '__main__':
     PLOTS = [
         "energy",
         "phase",
-        "cav",
+        # "cav",
         "emittance",
         # "twiss",  # TODO
         # "envelopes", # FIXME
@@ -170,12 +170,6 @@ if __name__ == '__main__':
                 tracewin.interface.resample_tracewin_results(
                     ref=linacs[0].tracewin_simulation,
                     fix=lin.tracewin_simulation)
-
-            # interface with old
-            lin.tw_results['envelope'] = tw_simu.results_envelope
-            lin.tw_results['multipart'] = tw_simu.results_multipart
-            lin.tw_results['transf_mat'] = tw_simu.transfer_matrices
-            lin.tw_results['cav_param'] = tw_simu.cavity_parameters
 
             if FLAG_EVALUATE and 'Fixed' in lin.name:
                 d_fred = evaluate.fred_tests(linacs[0], lin)
