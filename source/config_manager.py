@@ -708,7 +708,7 @@ def _test_tracewin(c_solver: configparser.SectionProxy) -> bool:
                       + "should update the TRACEWIN_EXECUTABLES dictionary in "
                       + "config_manager.py.")
         return False
-    c_solver["EXECUTABLE"] = tw_exe
+    c_solver["executable"] = tw_exe
 
     # TODO: implement all TW options
     for key in c_solver.keys():
@@ -740,7 +740,7 @@ def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
     tracew = {}
     # Getters. If a key is not in this dict, it won't be transferred to TW
     getter = {
-        'EXECUTABLE': c_tw.get,
+        'executable': c_tw.get,
         'hide': c_tw.get,
         'tab_file': c_tw.get,
         'nbr_thread': c_tw.getint,
