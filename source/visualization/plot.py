@@ -351,9 +351,9 @@ def _plot_all_data(axx, x_data, y_data, l_kwargs, d_colors):
 
 
 def _savefig(fig, filepath):
-    """Saves the figure."""
+    """Save the figure."""
     fig.savefig(filepath)
-    logging.info(f"Fig. saved in {filepath}")
+    logging.debug(f"Fig. saved in {filepath}")
 
 
 # =============================================================================
