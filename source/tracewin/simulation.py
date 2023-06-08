@@ -19,13 +19,6 @@ import subprocess
 import time
 import datetime
 
-EXECUTABLES = {
-    "X11 full": "/usr/local/bin/./TraceWin",
-    "noX11 full": "/usr/local/bin/./TraceWin_noX11",
-    "noX11 minimal": "/home/placais/TraceWin/exe/./tracelx64",
-    "no run": None
-}
-
 
 @dataclass
 class TraceWinSimulation:
@@ -51,20 +44,11 @@ class TraceWinSimulation:
         overriden by specific_arguments in the self.run method.
 
     """
-    simulation_type: str
+    executable: str
     ini_path: str
     path_cal: str
     dat_file: str
     base_kwargs: dict[[str], str]
-
-    def __post_init__(self) -> None:
-        """Set additional parameters."""
-        if not _is_valid_executable(self.simulation_type):
-            self.simulation_type = "no run"
-            logging.warning("No valid TraceWin executable was found. LightWin "
-                            + "will try to run anyway and skip any TraceWin "
-                            + "simulation.")
-        self.executable = EXECUTABLES[self.simulation_type]
 
     def run(self, **specific_kwargs) -> None:
         """
@@ -102,7 +86,9 @@ class TraceWinSimulation:
 
     def _set_command(self, **kwargs) -> str:
         """Creat the command line to launch TraceWin."""
-        command = [self.executable, self.ini_path, f"path_cal={self.path_cal}",
+        command = [self.executable,
+                   self.ini_path,
+                   f"path_cal={self.path_cal}",
                    f"dat_file={self.dat_file}"]
         for key, value in kwargs.items():
             if value is None:
@@ -110,24 +96,4 @@ class TraceWinSimulation:
                 continue
             command.append(key + "=" + str(value))
             return command
-
-
-def _is_valid_executable(simulation_type: str) -> bool:
-    """Test if the executable exists."""
-    if simulation_type == "no run":
-        return True
-
-    if simulation_type not in EXECUTABLES:
-        logging.error(f"The simulation type {simulation_type} was not "
-                      + f"recognized. Authorized values: {EXECUTABLES.keys()}")
-        return False
-
-    tw_exe = EXECUTABLES[simulation_type]
-    if not os.path.isfile(tw_exe):
-        logging.error(f"The TraceWin executable was not found: {tw_exe}. You "
-                      + "should update the EXECUTABLES dictionary in "
-                      + "source/LightWin/tracewin/simulation.py.")
-        return False
-
-    return True
 
