@@ -87,16 +87,6 @@ class VariablesAndConstraints:
         out += ["=" * 80]
         return "\n".join(out)
 
-    # TODO legacy
-    def to_least_squares_format(self) -> tuple[np.ndarray, np.ndarray,
-                                               np.ndarray, list[str]]:
-        """Return design space as expected by scipy.least_squares."""
-        x_0 = np.array([var.x_0 for var in self.variables])
-        x_lim = np.array([var.limits for var in self.variables])
-        g_lim = np.array([con.limits for con in self.constraints])
-        l_x_str = str(self)
-        return x_0, x_lim, g_lim, l_x_str
-
     def _set_initial_value(self, key: str, cav: FieldMap) -> float | None:
         """Return initial guess for desired key."""
         if key not in INITIAL:
