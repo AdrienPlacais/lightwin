@@ -146,10 +146,9 @@ class ListOfElements(list):
 
         # We store all relevant data in results: evolution of energy, phase,
         # transfer matrices, emittances, etc
-        results = self._pack_into_single_dict(l_elt_results, l_rf_fields)
         simulation_output = self._create_simulation_output(l_elt_results,
                                                            l_rf_fields)
-        return results
+        return simulation_output
 
     # FIXME I think it is possible to simplify all of this
     def _proper_transf_mat(self, elt: _Element, phi_abs: float, w_kin: float,
@@ -175,55 +174,6 @@ class ListOfElements(list):
         elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
         return elt_results, rf_field_kwargs
 
-    # FIXME could be simpler
-    def _pack_into_single_dict(self, l_elt_results: list[dict],
-                               l_rf_fields: list[dict]) -> dict:
-        """
-        We store energy, transfer matrices, phase, etc into the results dict.
-
-        This dict is used in the fitting process.
-        """
-        # To store results
-        results = {
-            "phi_s": [],
-            "cav_params": [],
-            "w_kin": [self.w_kin_in],
-            "phi_abs_array": [self.phi_abs_in],
-            "r_zz_elt": [],         # List of numpy arrays
-            "tm_cumul": None,     # (n, 2, 2) numpy array
-            "rf_fields": [],        # List of dicts
-            "eps_zdelta": None,
-            "twiss_zdelta": None,
-            "sigma_matrix": None,
-            # Mismatch has to be computed in another function, as it is
-            # relative to another linac
-            "mismatch_factor": None,
-        }
-
-        for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
-            results["rf_fields"].append(rf_field)
-            results["cav_params"].append(elt_results["cav_params"])
-            if rf_field != {}:
-                results["phi_s"].append(elt_results['cav_params']['phi_s'])
-
-            r_zz_elt = [elt_results['r_zz'][i, :, :]
-                        for i in range(elt_results['r_zz'].shape[0])]
-            results["r_zz_elt"].extend(r_zz_elt)
-
-            l_phi_abs = [phi_rel + results["phi_abs_array"][-1]
-                         for phi_rel in elt_results['phi_rel']]
-            results["phi_abs_array"].extend(l_phi_abs)
-
-            results["w_kin"].extend(elt_results['w_kin'].tolist())
-
-        results["tm_cumul"] = self._indiv_to_cumul_transf_mat(
-            results["r_zz_elt"], len(results["w_kin"]))
-
-        results["eps_zdelta"], results['twiss_zdelta'], \
-            results["sigma_matrix"] = beam_parameters_zdelta(
-                results["tm_cumul"])
-        return results
-
     # TODO only return what is needed for the fit?
     def _create_simulation_output(
             self, individual_elements_results: list[dict],
@@ -245,7 +195,7 @@ class ListOfElements(list):
                          for phi_rel in elt_results['phi_rel']]
             phi_abs_array.extend(l_phi_abs)
 
-        mismatch_factor = [None for results in individual_elements_results]
+        mismatch_factor = None #for results in individual_elements_results]
 
         cav_params = [results['cav_params']
                              for results in individual_elements_results]

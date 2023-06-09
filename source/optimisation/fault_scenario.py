@@ -11,6 +11,7 @@ import logging
 import numpy as np
 import pandas as pd
 
+from simulation.output import SimulationOutput
 import config_manager as con
 from optimisation.fault import Fault
 from optimisation import strategy, position
@@ -99,19 +100,21 @@ class FaultScenario(list):
                 fault, my_sol)
 
             fault.update_cavities_status(optimisation='finished', success=True)
-            results, elts = \
+            simulation_output, elts = \
                 self._compute_beam_parameters_up_to_next_fault(fault, my_sol)
-            self.fix_acc.store_results(results, elts)
+            self.fix_acc.keep_this(simulation_output=simulation_output,
+                                   l_elts=elts)
 
             if not con.FLAG_PHI_ABS:
                 # Tell LW to keep the new phase of the rephased cavities
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
 
-        results = self.fix_acc.elts.compute_transfer_matrices()
-        results['mismatch_factor'] = self._compute_mismatch(
-            results['twiss_zdelta'])
-        self.fix_acc.store_results(results, self.fix_acc.elts)
+        simulation_output = self.fix_acc.elts.compute_transfer_matrices()
+        simulation_output.mismatch_factor = self._compute_mismatch(
+            simulation_output.get('twiss_zdelta'))
+        self.fix_acc.keep_this(simulation_output=simulation_output,
+                               l_elts=self.fix_acc.elts)
         self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
             + f" of {str(len(success))})"
 
@@ -192,13 +195,15 @@ class FaultScenario(list):
         d_fits = {'l_phi': sol[:len(sol) // 2],
                   'l_k_e': sol[len(sol) // 2:],
                   'phi_s fit': self.wtf['phi_s fit']}
-        results = fault.elts.compute_transfer_matrices(d_fits=d_fits,
-                                                       transfer_data=True)
-        self.fix_acc.store_results(results, fault.elts)
+        simulation_output = fault.elts.compute_transfer_matrices(
+            d_fits=d_fits, transfer_data=True)
+        self.fix_acc.keep_this(simulation_output=simulation_output,
+                               l_elts=fault.elts)
         fault.get_x_sol_in_real_phase()
 
     def _compute_beam_parameters_up_to_next_fault(
-            self, fault: Fault, my_sol: dict) -> tuple[dict, ListOfElements]:
+            self, fault: Fault, my_sol: dict) -> tuple[SimulationOutput,
+                                                       ListOfElements]:
         """Compute propagation up to last element of the next fault."""
         first_elt = fault.elts[-1]
         last_elt = self.fix_acc.elts[-1]
@@ -221,9 +226,9 @@ class FaultScenario(list):
                   'l_k_e': my_sol[len(my_sol) // 2:],
                   'phi_s fit': self.wtf['phi_s fit']}
 
-        results = elts.compute_transfer_matrices(d_fits=d_fits,
-                                                 transfer_data=True)
-        return results, elts
+        simulation_output = elts.compute_transfer_matrices(d_fits=d_fits,
+                                                           transfer_data=True)
+        return simulation_output, elts
 
     def _compute_mismatch(self, fix_twiss_zdelta: np.ndarray) -> np.ndarray:
         """

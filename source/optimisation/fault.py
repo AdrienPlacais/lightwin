@@ -9,6 +9,7 @@ import logging
 from typing import Callable
 import numpy as np
 
+from simulation.output import SimulationOutput
 import config_manager as con
 from util.dicts_output import d_markdown
 from core.elements import _Element, FieldMap
@@ -183,7 +184,8 @@ class Fault:
             output += f"{i}: {info:>35} | {scale:>6} | {objective}\n"
         logging.info(output)
 
-        def compute_residuals(results: dict) -> np.ndarray:
+        def compute_residuals(simulation_output: SimulationOutput
+                              ) -> np.ndarray:
             """Compute difference between ref value and results dictionary."""
             i_ref = -1
             residues = []
@@ -195,13 +197,13 @@ class Fault:
                     if key == 'mismatch_factor':
                         mism = mismatch_factor(
                             objectives_values[i_ref],
-                            results['twiss_zdelta'][i_fix])[0]
+                            simulation_output.get('twiss_zdelta')[i_fix])[0]
                         residues.append(mism * scale)
                         continue
 
                     residues.append(
                         (objectives_values[i_ref]
-                         - results[key][i_fix]) * scale)
+                         - simulation_output.get(key)[i_fix]) * scale)
             return np.array(residues)
 
         return compute_residuals, info_objectives

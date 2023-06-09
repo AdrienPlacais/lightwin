@@ -18,6 +18,7 @@ import numpy as np
 import config_manager as con
 import tracewin.interface
 import tracewin.load
+from simulation.output import SimulationOutput
 import util.converters as convert
 from util.helper import recursive_items, recursive_getter
 from core import particle
@@ -274,8 +275,8 @@ class Accelerator():
                 + "used by TW. Results won't match if there are faulty "
                 + "cavities.")
 
-    def store_results(self, results: dict, l_elts: list[elements._Element]
-                      ) -> None:
+    def keep_this(self, simulation_output: SimulationOutput,
+                  l_elts: list[elements._Element]) -> None:
         """
         We save data into the appropriate objects.
 
@@ -291,34 +292,37 @@ class Accelerator():
         idx_out = l_elts[-1].idx['s_out'] + 1
 
         # Go across elements
-        for elt, rf_field, cav_params in zip(l_elts, results['rf_fields'],
-                                             results["cav_params"]):
+        for elt, rf_field, cav_params in zip(l_elts,
+                                             simulation_output.rf_fields,
+                                             simulation_output.cav_params):
             idx_abs = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
             idx_rel = range(elt.idx['s_in'] + 1 - idx_in,
                             elt.idx['s_out'] + 1 - idx_in)
-            transf_mat_elt = results["tm_cumul"][idx_rel]
+            transf_mat_elt = simulation_output.tm_cumul[idx_rel]
 
             self.transf_mat['tm_indiv'][idx_abs] = transf_mat_elt
             elt.keep_rf_field(rf_field, cav_params)
 
         # Save into Accelerator
-        self.transf_mat['tm_cumul'][idx_in:idx_out] = results["tm_cumul"]
-        self.beam_param["sigma_matrix"] = results["sigma_matrix"]
+        self.transf_mat['tm_cumul'][idx_in:idx_out] = simulation_output.tm_cumul
+        self.beam_param["sigma_matrix"] = simulation_output.sigma_matrix
         # Mismatch will be None straight out of
         # ListOfElements._pack_into_single_dict method
         # We add it manually to results dict during the fitting process
         # (FaultScenario)
-        mism = results["mismatch_factor"]
+        mism = simulation_output.mismatch_factor
         if mism is not None:
             self.beam_param["mismatch_factor"] = mism
 
         # Save into Particle
-        self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))
+        self.synch.keep_energy_and_phase(simulation_output,
+                                         range(idx_in, idx_out))
 
         # Save into Accelerator
-        gamma = convert.energy(np.array(results["w_kin"]), "kin to gamma")
-        d_beam_param = beam_parameters_all(results['eps_zdelta'],
-                                           results['twiss_zdelta'], gamma)
+        gamma = convert.energy(simulation_output.get('w_kin'), "kin to gamma")
+        d_beam_param = beam_parameters_all(simulation_output.eps_zdelta,
+                                           simulation_output.twiss_zdelta,
+                                           gamma)
 
         # Go across beam parameters (Twiss, emittance, long. envelopes)
         for item1 in self.beam_param.items():
@@ -327,7 +331,6 @@ class Accelerator():
             # Go across phase spaces (z-z', z-delta, w-phi)
             for item2 in item1[1].items():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
-
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                           ) -> elements._Element | None:
         """Give the element where the given index is."""

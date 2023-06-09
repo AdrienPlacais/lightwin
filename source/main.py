@@ -80,8 +80,9 @@ if __name__ == '__main__':
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
-    results = ref_linac.elts.compute_transfer_matrices()
-    ref_linac.store_results(results, ref_linac.elts)
+    simulation_output = ref_linac.elts.compute_transfer_matrices()
+    ref_linac.keep_this(simulation_output=simulation_output,
+                        l_elts=ref_linac.elts)
     data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(ref_linac)
     linacs = [ref_linac]
 
@@ -112,8 +113,9 @@ if __name__ == '__main__':
 
             if FLAG_FIX:
                 fault_scenario.fix_all()
-                results = lin.elts.compute_transfer_matrices()  # useful?
-                lin.store_results(results, lin.elts)  # useful?
+                simulation_output = lin.elts.compute_transfer_matrices()  # useful?
+                lin.keep_this(simulation_output=simulation_output,
+                              l_elts=lin.elts)  # useful?
 
             linacs.append(lin)
 

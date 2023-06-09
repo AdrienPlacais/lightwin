@@ -9,9 +9,10 @@ from typing import Any
 import logging
 import numpy as np
 import pandas as pd
+
 from util.helper import recursive_items, recursive_getter
 import util.converters as convert
-
+from simulation.output import SimulationOutput
 
 class Particle:
     """
@@ -174,15 +175,16 @@ class Particle:
         self.phi['phi_abs_array'][idx] = self.phi['phi_abs_array'][idx - 1] \
             + delta_phi
 
-    def keep_energy_and_phase(self, results: dict[str, np.ndarray],
+    def keep_energy_and_phase(self,
+                              simulation_output: SimulationOutput,
                               idx_range: range) -> None:
         """Assign the energy and phase data to synch after MT calculation."""
-        w_kin = np.array(results["w_kin"])
+        w_kin = simulation_output.get('w_kin')
+        self.phi['phi_abs_array'][idx_range] = \
+                simulation_output.get('phi_abs_array')
         self.energy['w_kin'][idx_range] = w_kin
         self.energy['gamma'][idx_range] = convert.energy(w_kin, "kin to gamma")
         self.energy['beta'][idx_range] = convert.energy(w_kin, "kin to beta")
-        self.phi['phi_abs_array'][idx_range] = np.array(results[
-            "phi_abs_array"])
 
 
 # def create_rand_particles(e_0_mev):
