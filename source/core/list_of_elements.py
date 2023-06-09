@@ -224,6 +224,7 @@ class ListOfElements(list):
                 results["tm_cumul"])
         return results
 
+    # TODO only return what is needed for the fit?
     def _create_simulation_output(
         self, individual_elements_results: list[dict],
         rf_fields: list[dict | None]) -> SimulationOutput:

@@ -20,15 +20,15 @@ import numpy as np
 class SimulationOutput:
     """Stores the information that is needed for a fit."""
 
-    w_kin: list[float]
-    phi_abs_array: list[float]
-    mismatch_factor: list[float | None]
+    w_kin: list[float] | None = None
+    phi_abs_array: list[float] | None = None
+    mismatch_factor: list[float | None] | None = None
 
-    cavity_parameters: dict | None = None
-    phi_s: list | None = None
-    individual_transfer_matrices: np.ndarray | None = None
-    cumulated_transfer_matrices: np.ndarray | None = None
-    rf_fields: list[dict | None] | None = None
-    eps_zdelta: np.ndarray | None = None
-    twiss_zdelta: np.ndarray | None = None
-    sigma_matrix: np.ndarray | None = None
+    cavity_parameters: list[dict | None] | None = None
+    phi_s: list[float] | None = None
+    individual_transfer_matrices: list[np.ndarray(2)] | None = None
+    cumulated_transfer_matrices: np.ndarray(3) | None = None
+    rf_fields: list[dict] | None = None
+    eps_zdelta: np.ndarray(1) | None = None
+    twiss_zdelta: np.ndarray(2) | None = None
+    sigma_matrix: np.ndarray(3) | None = None
