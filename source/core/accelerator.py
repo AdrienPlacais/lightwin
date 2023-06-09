@@ -11,11 +11,10 @@ at the end
 """
 import os.path
 import logging
-from typing import TypeVar, Type, Any
+from typing import Any
 import numpy as np
 
 
-from constants import c
 import config_manager as con
 import tracewin.interface
 import tracewin.load
@@ -26,9 +25,6 @@ from core import elements
 from core.list_of_elements import ListOfElements, elt_at_this_s_idx, \
     equiv_elt
 from core.emittance import beam_parameters_all
-
-
-_AccelT = TypeVar("_AccelT", bound="Accelerator")
 
 
 class Accelerator():
