@@ -17,6 +17,8 @@ from scipy.optimize import least_squares, Bounds
 import numpy as np
 
 from algorithms.algorithm import OptimisationAlgorithm
+from optimisation.set_of_cavity_settings import (SetOfCavitySettings,
+                                                 SingleCavitySettings)
 
 
 @dataclass
@@ -65,8 +67,25 @@ class LeastSquares(OptimisationAlgorithm):
                 }
         return success, info
 
+    def _format_variables_and_constraints(self
+                                          ) -> tuple[np.ndarray, Bounds]:
+        """Return design space as expected by scipy.least_squares."""
+        x_0 = np.array([var.x_0
+                        for var in self.variables_constraints.variables])
+        _bounds = np.array([var.limits
+                            for var in self.variables_constraints.variables])
+        bounds = Bounds(_bounds[:, 0], _bounds[:, 1])
+        return x_0, bounds
+
     def _wrapper_residuals(self, var: np.ndarray):
         """Unpack arguments, compute residuals."""
+        if True:
+            cav_settings = self._create_set_of_cavity_settings(var)
+            simulation_output = self.compute_beam_propagation(
+                cav_settings, transfer_data=False)
+            residuals = self.compute_residuals(simulation_output)
+            return residuals
+
         # Unpack arguments
         d_fits = {
             'l_phi': var[:var.size // 2].tolist(),
@@ -78,15 +97,13 @@ class LeastSquares(OptimisationAlgorithm):
         residuals = self.compute_residuals(simulation_output)
         return residuals
 
-    def _format_variables_and_constraints(self
-                                          ) -> tuple[np.ndarray, Bounds]:
-        """Return design space as expected by scipy.least_squares."""
-        x_0 = np.array([var.x_0
-                        for var in self.variables_constraints.variables])
-        _bounds = np.array([var.limits
-                            for var in self.variables_constraints.variables])
-        bounds = Bounds(_bounds[:, 0], _bounds[:, 1])
-        return x_0, bounds
+    def _create_set_of_cavity_settings(self, var: np.ndarray
+                                      ) -> SetOfCavitySettings:
+        """Transform the array given by least_squares to a generic object."""
+        my_set = SetOfCavitySettings()
+        for i, cavity in enumerate(['a', 'a']):
+            my_setting = SingleCavitySettings(k_e=5., phi_s=3.)
+            my_set[cavity] = my_setting
 
     def _output_some_info(self) -> None:
         """Show the most useful data from least_squares."""

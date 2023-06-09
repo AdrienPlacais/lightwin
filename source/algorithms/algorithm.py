@@ -16,6 +16,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from optimisation.variables import VariablesAndConstraints
+from optimisation.set_of_cavity_settings import SetOfCavitySettings
 from simulation.output import SimulationOutput
 
 
@@ -25,7 +26,8 @@ class OptimisationAlgorithm(ABC):
 
     variables_constraints: VariablesAndConstraints
     compute_residuals: Callable[[SimulationOutput], np.ndarray]
-    compute_beam_propagation: Callable[[dict, bool], SimulationOutput]
+    compute_beam_propagation: Callable[[SetOfCavitySettings, bool],
+                                       SimulationOutput]
     phi_s_fit: bool
 
     def __post_init__(self) -> None:
@@ -59,11 +61,21 @@ class OptimisationAlgorithm(ABC):
         """
 
     @abstractmethod
-    def _wrapper_residuals(self):
+    def _wrapper_residuals(self, var: np.ndarray) -> np.ndarray:
         """
         Compute the residuals.
 
         In particular: allow the optimisation algorithm to communicate with the
         beam propagation function (compute_transfer_matrices), and convert the
         results of the beam propagation function to residuals.
+        """
+
+    @abstractmethod
+    def _create_set_of_cavity_settings(self, var: np.ndarray
+                                       ) -> SetOfCavitySettings:
+        """
+        Make generic the `var`, specific to each optimisation algorithm.
+
+        Also very useful to avoid mixing up the norms and phases between the
+        different cavities.
         """
