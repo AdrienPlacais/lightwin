@@ -13,10 +13,7 @@ TODO insert line skip at each section change in the output.dat
 import logging
 import itertools
 import os.path
-import subprocess
 from typing import Callable
-import time
-import datetime
 import pandas as pd
 import numpy as np
 
@@ -24,7 +21,7 @@ import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
 import tracewin.load
-from tracewin.simulation import TraceWinSimulation
+from simulation.tracewin import TraceWinSimulator
 
 
 try:
@@ -273,8 +270,8 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     return data
 
 
-def resample_tracewin_results(ref: TraceWinSimulation,
-                              fix: TraceWinSimulation) -> None:
+def resample_tracewin_results(ref: TraceWinSimulator,
+                              fix: TraceWinSimulator) -> None:
     """Interpolate the `fix` results @ `ref` positions."""
     ref_results = ref.results_multipart
     fix_results = fix.results_multipart
