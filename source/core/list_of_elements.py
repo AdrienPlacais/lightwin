@@ -13,6 +13,7 @@ from functools import partial
 from util.helper import recursive_items, recursive_getter
 from core.emittance import beam_parameters_zdelta
 from core.elements import _Element
+from simulation.output import SimulationOutput
 
 
 # TODO allow for None for w_kin etc and just take it from l_elts[0]
@@ -146,6 +147,8 @@ class ListOfElements(list):
         # We store all relevant data in results: evolution of energy, phase,
         # transfer matrices, emittances, etc
         results = self._pack_into_single_dict(l_elt_results, l_rf_fields)
+        simulation_output = self._create_simulation_output(l_elt_results,
+                                                           l_rf_fields)
         return results
 
     # FIXME I think it is possible to simplify all of this
@@ -220,6 +223,58 @@ class ListOfElements(list):
             results["sigma matrix"] = beam_parameters_zdelta(
                 results["tm_cumul"])
         return results
+
+    def _create_simulation_output(
+        self, individual_elements_results: list[dict],
+        rf_fields: list[dict | None]) -> SimulationOutput:
+        """
+        We store energy, transfer matrices, phase, etc into a dedicated object.
+
+        This object is used in the fitting process.
+        """
+        w_kin = [energy
+                 for results in individual_elements_results
+                 for energy in results['w_kin']
+                 ]
+        w_kin.insert(0, self.w_kin_in)
+
+        phi_abs_array = [self.phi_abs_in]
+        for elt_results in individual_elements_results:
+            l_phi_abs = [phi_rel + phi_abs_array[-1]
+                         for phi_rel in elt_results['phi_rel']]
+            phi_abs_array.extend(l_phi_abs)
+
+        mismatch_factor = [None for results in individual_elements_results]
+
+        cavity_parameters = [results['cav_params']
+                             for results in individual_elements_results]
+        phi_s = [cav_param['phi_s']
+                 for cav_param in cavity_parameters if cav_param is not None]
+
+        individual_transfer_matrices = [
+            results['r_zz'][i, :, :]
+            for results in individual_elements_results
+            for i in range(results['r_zz'].shape[0])
+        ]
+        cumulated_transfer_matrices = self._indiv_to_cumul_transf_mat(
+            individual_transfer_matrices, len(w_kin))
+
+        beam_params = beam_parameters_zdelta(cumulated_transfer_matrices)
+
+        simulation_output = SimulationOutput(
+            w_kin=w_kin,
+            phi_abs_array=phi_abs_array,
+            mismatch_factor=mismatch_factor,
+            cavity_parameters=cavity_parameters,
+            phi_s=phi_s,
+            individual_transfer_matrices=individual_transfer_matrices,
+            cumulated_transfer_matrices=cumulated_transfer_matrices,
+            rf_fields=rf_fields,
+            eps_zdelta=beam_params[0],
+            twiss_zdelta=beam_params[1],
+            sigma_matrix=beam_params[2]
+        )
+        return simulation_output
 
     def _indiv_to_cumul_transf_mat(self, l_r_zz_elt: list[np.ndarray],
                                    n_steps: int) -> np.ndarray:
