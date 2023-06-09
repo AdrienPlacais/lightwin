@@ -149,7 +149,7 @@ class ListOfElements(list):
         results = self._pack_into_single_dict(l_elt_results, l_rf_fields)
         simulation_output = self._create_simulation_output(l_elt_results,
                                                            l_rf_fields)
-        return results
+        return simulation_output
 
     # FIXME I think it is possible to simplify all of this
     def _proper_transf_mat(self, elt: _Element, phi_abs: float, w_kin: float,
@@ -226,8 +226,8 @@ class ListOfElements(list):
 
     # TODO only return what is needed for the fit?
     def _create_simulation_output(
-        self, individual_elements_results: list[dict],
-        rf_fields: list[dict | None]) -> SimulationOutput:
+            self, individual_elements_results: list[dict],
+            rf_fields: list[dict | None]) -> SimulationOutput:
         """
         We store energy, transfer matrices, phase, etc into a dedicated object.
 
@@ -247,29 +247,29 @@ class ListOfElements(list):
 
         mismatch_factor = [None for results in individual_elements_results]
 
-        cavity_parameters = [results['cav_params']
+        cav_params = [results['cav_params']
                              for results in individual_elements_results]
         phi_s = [cav_param['phi_s']
-                 for cav_param in cavity_parameters if cav_param is not None]
+                 for cav_param in cav_params if cav_param is not None]
 
-        individual_transfer_matrices = [
+        r_zz_elt = [
             results['r_zz'][i, :, :]
             for results in individual_elements_results
             for i in range(results['r_zz'].shape[0])
         ]
-        cumulated_transfer_matrices = self._indiv_to_cumul_transf_mat(
-            individual_transfer_matrices, len(w_kin))
+        tm_cumul = self._indiv_to_cumul_transf_mat(
+            r_zz_elt, len(w_kin))
 
-        beam_params = beam_parameters_zdelta(cumulated_transfer_matrices)
+        beam_params = beam_parameters_zdelta(tm_cumul)
 
         simulation_output = SimulationOutput(
             w_kin=w_kin,
             phi_abs_array=phi_abs_array,
             mismatch_factor=mismatch_factor,
-            cavity_parameters=cavity_parameters,
+            cav_params=cav_params,
             phi_s=phi_s,
-            individual_transfer_matrices=individual_transfer_matrices,
-            cumulated_transfer_matrices=cumulated_transfer_matrices,
+            r_zz_elt=r_zz_elt,
+            tm_cumul=tm_cumul,
             rf_fields=rf_fields,
             eps_zdelta=beam_params[0],
             twiss_zdelta=beam_params[1],
