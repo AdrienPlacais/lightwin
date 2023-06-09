@@ -73,8 +73,9 @@ class LeastSquares(OptimisationAlgorithm):
             'l_k_e': var[var.size // 2:].tolist(),
             'phi_s fit': self.phi_s_fit,
         }
-        results = self.compute_beam_propagation(d_fits, transfer_data=False)
-        residuals = self.compute_residuals(results)
+        simulation_output = self.compute_beam_propagation(d_fits,
+                                                          transfer_data=False)
+        residuals = self.compute_residuals(simulation_output)
         return residuals
 
     def _format_variables_and_constraints(self
