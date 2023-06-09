@@ -16,7 +16,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from optimisation.variables import VariablesAndConstraints
-from solver.output import SolverOutput
+from simulation.output import SimulationOutput
 
 
 @dataclass
@@ -24,8 +24,8 @@ class OptimisationAlgorithm(ABC):
     """Holds the optimisation parameters, the methods to optimize."""
 
     variables_constraints: VariablesAndConstraints
-    compute_residuals: Callable[[SolverOutput], np.ndarray]
-    compute_beam_propagation: Callable[[dict, bool], SolverOutput]
+    compute_residuals: Callable[[SimulationOutput], np.ndarray]
+    compute_beam_propagation: Callable[[dict, bool], SimulationOutput]
     phi_s_fit: bool
 
     def __post_init__(self) -> None:
