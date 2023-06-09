@@ -14,6 +14,7 @@ from util.helper import recursive_items, recursive_getter
 from core.emittance import beam_parameters_zdelta
 from core.elements import _Element
 from simulation.output import SimulationOutput
+from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
 
 # TODO allow for None for w_kin etc and just take it from l_elts[0]
@@ -92,8 +93,10 @@ class ListOfElements(list):
         return tuple(out)
 
     # FIXME transfer_data does not have the same meaning anymore
-    def compute_transfer_matrices(self, d_fits: dict | None = None,
-                                  transfer_data: bool = True) -> dict:
+    # TODO doc is important
+    def compute_transfer_matrices(
+        self, d_fits: dict | SetOfCavitySettings | None = None, transfer_data: bool = True
+         ) -> SimulationOutput:
         """
         Compute the transfer matrices of Accelerator's elements.
 
@@ -115,6 +118,9 @@ class ListOfElements(list):
 
         """
         # Prepare lists to store each element's results
+        if isinstance(d_fits, SetOfCavitySettings):
+            return self.new_compute_transfer_matrices(d_fits,
+                                                      transfer_data=transfer_data)
         l_elt_results = []
         l_rf_fields = []
 
@@ -173,6 +179,38 @@ class ListOfElements(list):
         # Compute transf mat, acceleration, phase, etc
         elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
         return elt_results, rf_field_kwargs
+
+    def new_compute_transfer_matrices(
+        self, cavities_settings: SetOfCavitySettings | None = None,
+        transfer_data: bool = True) -> SimulationOutput:
+        """Compute the transfer matrices of Accelerator's elements."""
+        # Prepare lists to store each element's results
+        l_elt_results = []
+        l_rf_fields = []
+
+        # Initial phase and energy values:
+        w_kin = self.w_kin_in
+        phi_abs = self.phi_abs_in
+
+        # Compute transfer matrix and acceleration in each element
+        for elt in self:
+            cavity_settings = None
+            if elt in cavities_settings:
+                cavity_settings = cavities_settings[elt]
+
+            rf_field_kwargs = elt.new_rf_param(phi_abs, w_kin, cavity_settings)
+            elt_results = elt.calc_transf_mat(w_kin, phi_abs,
+                                              **rf_field_kwargs)
+
+            l_elt_results.append(elt_results)
+            l_rf_fields.append(rf_field_kwargs)
+
+            phi_abs += elt_results["phi_rel"][-1]
+            w_kin = elt_results["w_kin"][-1]
+
+        simulation_output = self._create_simulation_output(l_elt_results,
+                                                           l_rf_fields)
+        return simulation_output
 
     # TODO only return what is needed for the fit?
     def _create_simulation_output(
