@@ -97,8 +97,8 @@ class Accelerator():
                 "envelopes_zdelta": np.full((last_idx + 1, 2), np.NaN),
                 "envelopes_z": np.full((last_idx + 1, 2), np.NaN),
                 "envelopes_w": np.full((last_idx + 1, 2), np.NaN)},
-            "mismatch factor": np.full((last_idx + 1), np.NaN),
-            "sigma matrix": np.full((last_idx + 1), np.NaN),
+            "mismatch_factor": np.full((last_idx + 1), np.NaN),
+            "sigma_matrix": np.full((last_idx + 1), np.NaN),
         }
         # Define some shortcuts
         self._d_special_getters = self._create_special_getters()
@@ -303,14 +303,14 @@ class Accelerator():
 
         # Save into Accelerator
         self.transf_mat['tm_cumul'][idx_in:idx_out] = results["tm_cumul"]
-        self.beam_param["sigma matrix"] = results["sigma matrix"]
+        self.beam_param["sigma_matrix"] = results["sigma_matrix"]
         # Mismatch will be None straight out of
         # ListOfElements._pack_into_single_dict method
         # We add it manually to results dict during the fitting process
         # (FaultScenario)
-        mism = results["mismatch factor"]
+        mism = results["mismatch_factor"]
         if mism is not None:
-            self.beam_param["mismatch factor"] = mism
+            self.beam_param["mismatch_factor"] = mism
 
         # Save into Particle
         self.synch.keep_energy_and_phase(results, range(idx_in, idx_out))

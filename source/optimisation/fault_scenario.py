@@ -109,7 +109,7 @@ class FaultScenario(list):
                 self._reupdate_status_of_rephased_cavities(fault)
 
         results = self.fix_acc.elts.compute_transfer_matrices()
-        results['mismatch factor'] = self._compute_mismatch(
+        results['mismatch_factor'] = self._compute_mismatch(
             results['twiss_zdelta'])
         self.fix_acc.store_results(results, self.fix_acc.elts)
         self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
@@ -243,7 +243,7 @@ class FaultScenario(list):
                              ) -> pd.DataFrame:
         """Compute some quantities on the whole linac to see if fit is good."""
         quantities_to_evaluate = ['w_kin', 'phi_abs_array', 'envelope_pos_w',
-                                  'envelope_energy_w', 'mismatch factor',
+                                  'envelope_energy_w', 'mismatch_factor',
                                   'eps_w']
         quantities = {}
         for key in quantities_to_evaluate:
@@ -268,7 +268,7 @@ class FaultScenario(list):
                 ref = self.ref_acc.get(key)[idx]
                 fix = self.fix_acc.get(key)[idx]
 
-                if key == 'mismatch factor':
+                if key == 'mismatch_factor':
                     quantities[key].append(fix)
                     continue
                 quantities[key].append(1e2 * (ref - fix) / ref)
@@ -279,7 +279,7 @@ class FaultScenario(list):
             ref[ref == 0.] = np.NaN
             fix = self.fix_acc.get(key)
 
-            if key == 'mismatch factor':
+            if key == 'mismatch_factor':
                 quantities[key].append(np.sum(fix))
                 continue
             quantities[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))

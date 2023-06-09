@@ -161,7 +161,7 @@ class Fault:
             for key in objectives]
 
         # We evaluate all the desired objectives
-        exceptions = ['mismatch factor']
+        exceptions = ['mismatch_factor']
         objectives_values = [self.ref_acc.get(key)[i]
                              if key not in exceptions
                              else self.ref_acc.get('twiss_zdelta')[i]
@@ -191,8 +191,8 @@ class Fault:
                 for key, scale in zip(objectives, scales):
                     i_ref += 1
 
-                    # mismatch factor
-                    if key == 'mismatch factor':
+                    # mismatch_factor
+                    if key == 'mismatch_factor':
                         mism = mismatch_factor(
                             objectives_values[i_ref],
                             results['twiss_zdelta'][i_fix])[0]

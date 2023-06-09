@@ -149,7 +149,7 @@ class ListOfElements(list):
         results = self._pack_into_single_dict(l_elt_results, l_rf_fields)
         simulation_output = self._create_simulation_output(l_elt_results,
                                                            l_rf_fields)
-        return simulation_output
+        return results
 
     # FIXME I think it is possible to simplify all of this
     def _proper_transf_mat(self, elt: _Element, phi_abs: float, w_kin: float,
@@ -194,10 +194,10 @@ class ListOfElements(list):
             "rf_fields": [],        # List of dicts
             "eps_zdelta": None,
             "twiss_zdelta": None,
-            "sigma matrix": None,
+            "sigma_matrix": None,
             # Mismatch has to be computed in another function, as it is
             # relative to another linac
-            "mismatch factor": None,
+            "mismatch_factor": None,
         }
 
         for elt_results, rf_field in zip(l_elt_results, l_rf_fields):
@@ -220,7 +220,7 @@ class ListOfElements(list):
             results["r_zz_elt"], len(results["w_kin"]))
 
         results["eps_zdelta"], results['twiss_zdelta'], \
-            results["sigma matrix"] = beam_parameters_zdelta(
+            results["sigma_matrix"] = beam_parameters_zdelta(
                 results["tm_cumul"])
         return results
 

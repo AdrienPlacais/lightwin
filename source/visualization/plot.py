@@ -50,8 +50,8 @@ DICT_PLOT_PRESETS = {
         'x_str': 'z_abs',
         'l_y_str': ["envelope_pos_zdelta", "envelope_energy_zdelta", "struct"],
         'num': 26},
-    "mismatch factor": {'x_str': 'z_abs',
-                        'l_y_str': ["mismatch factor", "struct"],
+    "mismatch_factor": {'x_str': 'z_abs',
+                        'l_y_str': ["mismatch_factor", "struct"],
                         'num': 27},
 }
 DICT_ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'simple'},

@@ -31,7 +31,7 @@ d_markdown = {
     'envelope_energy_zdelta': r"$\sigma_\delta$ [rad]",
     'envelope_energy_z': r"$\sigma_{z'}$ [mrad]",
     'envelope_energy_w': r"$\sigma_\phi$ [MeV]",
-    'mismatch factor': r"$M$",
+    'mismatch_factor': r"$M$",
     # Element
     'elt_idx': "Element index",
     'elt number': "Element number",
@@ -89,7 +89,7 @@ d_plot_kwargs = {
     'envelope_energy_zdelta': {'marker': None},
     'envelope_energy_z': {'marker': None},
     'envelope_energy_w': {'marker': None},
-    'mismatch factor': {'marker': None},
+    'mismatch_factor': {'marker': None},
     # Element
     'elt_idx': {'marker': None},
     # RfField

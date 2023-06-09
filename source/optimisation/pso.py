@@ -319,7 +319,7 @@ def _convergence_hypervolume(n_eval, hist_f, d_approx, str_obj, lsq_f=None):
     d_ref = {
         'w_kin': 70.,
         'phi_abs_array': 0.5,
-        'mismatch factor': 1.,
+        'mismatch_factor': 1.,
         'M_11': None,
         'M_12': None,
         'M_21': None,
@@ -458,7 +458,7 @@ def set_weights(l_obj_str):
                  'M_12': 1.,
                  'M_21': 1.,
                  'M_22': 1.,
-                 'mismatch factor': 1,
+                 'mismatch_factor': 1,
                  }
     weights = [d_weights[obj] for obj in l_obj_str]
     return np.array(weights)
