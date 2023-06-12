@@ -11,10 +11,7 @@ from functools import partial
 import numpy as np
 
 from util.helper import recursive_items, recursive_getter
-from core.emittance import beam_parameters_zdelta
 from core.elements import _Element
-from beam_calculation.output import SimulationOutput
-from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
 
 # TODO allow for None for w_kin etc and just take it from l_elts[0]
