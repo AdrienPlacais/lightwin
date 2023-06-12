@@ -95,8 +95,8 @@ class ListOfElements(list):
     # FIXME transfer_data does not have the same meaning anymore
     # TODO doc is important
     def compute_transfer_matrices(
-        self, d_fits: dict | SetOfCavitySettings | None = None, transfer_data: bool = True
-         ) -> SimulationOutput:
+        self, d_fits: dict | SetOfCavitySettings | None = None,
+        transfer_data: bool = True) -> SimulationOutput:
         """
         Compute the transfer matrices of Accelerator's elements.
 
@@ -119,8 +119,9 @@ class ListOfElements(list):
         """
         # Prepare lists to store each element's results
         if isinstance(d_fits, SetOfCavitySettings):
-            return self.new_compute_transfer_matrices(d_fits,
-                                                      transfer_data=transfer_data)
+            return self.new_compute_transfer_matrices_with_this(
+                d_fits, transfer_data=transfer_data)
+        logging.critical(f'old compute_transfer_matrices {type(d_fits)}')
         l_elt_results = []
         l_rf_fields = []
 
@@ -180,7 +181,7 @@ class ListOfElements(list):
         elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
         return elt_results, rf_field_kwargs
 
-    def new_compute_transfer_matrices(
+    def new_compute_transfer_matrices_with_this(
         self, cavities_settings: SetOfCavitySettings | None = None,
         transfer_data: bool = True) -> SimulationOutput:
         """Compute the transfer matrices of Accelerator's elements."""
@@ -199,8 +200,34 @@ class ListOfElements(list):
                 cavity_settings = cavities_settings[elt]
 
             rf_field_kwargs = elt.new_rf_param(phi_abs, w_kin, cavity_settings)
-            elt_results = elt.calc_transf_mat(w_kin, phi_abs,
-                                              **rf_field_kwargs)
+            elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
+
+            l_elt_results.append(elt_results)
+            l_rf_fields.append(rf_field_kwargs)
+
+            phi_abs += elt_results["phi_rel"][-1]
+            w_kin = elt_results["w_kin"][-1]
+
+        simulation_output = self._create_simulation_output(l_elt_results,
+                                                           l_rf_fields)
+        return simulation_output
+
+    def new_compute_transfer_matrices(self, transfer_data: bool = True
+                                     ) -> SimulationOutput:
+        """Compute the transfer matrices of Accelerator's elements."""
+        # Prepare lists to store each element's results
+        l_elt_results = []
+        l_rf_fields = []
+
+        # Initial phase and energy values:
+        w_kin = self.w_kin_in
+        phi_abs = self.phi_abs_in
+
+        # Compute transfer matrix and acceleration in each element
+        for elt in self:
+            cavity_settings = None
+            rf_field_kwargs = elt.new_rf_param(phi_abs, w_kin, cavity_settings)
+            elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
 
             l_elt_results.append(elt_results)
             l_rf_fields.append(rf_field_kwargs)
