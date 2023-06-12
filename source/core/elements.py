@@ -581,7 +581,7 @@ def _try_parameters_from_d_fit(d_fit: dict, w_kin: float, cav: FieldMap,
 
 
 def _get_from(rf_field: RfField, force_rephasing: bool = False
-             ) -> tuple[dict, bool]:
+              ) -> tuple[dict, bool]:
     """Get norms and phases from RfField object."""
     norm_and_phases = {
         'k_e': rf_field.get('k_e'),

@@ -6,9 +6,8 @@ Created on Mon Jun 12 08:24:37 2023.
 @author: placais
 
 TODO: access to listofelements._indiv_to_cumul_transf_mat
+TODO: run and run_with_this have too much in common, should mutualize
 """
-import logging
-
 from core.elements import _Element
 from core.list_of_elements import ListOfElements
 from core.emittance import beam_parameters_zdelta
@@ -58,32 +57,6 @@ class Envelope1D(BeamCalculator):
             elts, single_elts_results, rf_fields)
         return simulation_output
 
-    # FIXME I think it is possible to simplify all of this
-    def _proper_transf_mat(
-        self, elt: _Element, phi_abs: float, w_kin: float,
-        set_of_cavity_settings: SetOfCavitySettings | None = None,
-    ) -> tuple[dict, dict]:
-        """Get the proper arguments and call the elt.calc_transf_mat."""
-        d_fit_elt = None
-        if elt.get('nature') == 'FIELD_MAP' and elt.get('status') != 'failed':
-            # General case: take the nominal cavity parameters
-            d_fit_elt = set_of_cavity_settings
-
-            # Specific case of fit under process: extract new cavity parameters
-            if set_of_cavity_settings is not None \
-               and elt.get('status') == 'compensate (in progress)':
-                d_fit_elt = {'flag': True,
-                             'phi': set_of_cavity_settings['l_phi'].pop(0),
-                             'k_e': set_of_cavity_settings['l_k_e'].pop(0),
-                             'phi_s fit': set_of_cavity_settings['phi_s fit']}
-
-        # Create an rf_field dict with data from d_fit_elt or element according
-        # to the case
-        rf_field_kwargs = elt.rf_param(phi_abs, w_kin, d_fit_elt)
-        # Compute transf mat, acceleration, phase, etc
-        elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
-        return elt_results, rf_field_kwargs
-
     def run_with_this(self,
                       set_of_cavity_settings: SetOfCavitySettings,
                       elts: ListOfElements,
@@ -113,6 +86,27 @@ class Envelope1D(BeamCalculator):
         simulation_output = self._generate_simulation_output(
             elts, single_elts_results, rf_fields)
         return simulation_output
+
+    # FIXME I think it is possible to simplify all of this
+    def _proper_transf_mat(
+        self, elt: _Element, phi_abs: float, w_kin: float,
+        set_of_cavity_settings: SetOfCavitySettings | None = None,
+    ) -> tuple[dict, dict]:
+        """Get the proper arguments and call the elt.calc_transf_mat."""
+        d_fit_elt = None
+        if elt.get('nature') == 'FIELD_MAP' and elt.get('status') != 'failed':
+            d_fit_elt = set_of_cavity_settings
+
+            if set_of_cavity_settings is not None \
+               and elt.get('status') == 'compensate (in progress)':
+                d_fit_elt = {'flag': True,
+                             'phi': set_of_cavity_settings['l_phi'].pop(0),
+                             'k_e': set_of_cavity_settings['l_k_e'].pop(0),
+                             'phi_s fit': set_of_cavity_settings['phi_s fit']}
+
+        rf_field_kwargs = elt.rf_param(phi_abs, w_kin, d_fit_elt)
+        elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
+        return elt_results, rf_field_kwargs
 
     # TODO only return what is needed for the fit?
     # maybe: a second specific _generate_simulation_output for fit only? This

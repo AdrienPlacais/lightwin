@@ -52,8 +52,9 @@ class LeastSquares(OptimisationAlgorithm):
                   # 'x_scale': 'jac',
                   # 'loss': 'arctan',
                   'diff_step': None, 'tr_solver': None, 'tr_options': {},
-                  'jac_sparsity': None}
-                  # 'verbose': debugs['verbose']}
+                  'jac_sparsity': None
+                  # 'verbose': debugs['verbose']
+                  }
 
         x_0, bounds = self._format_variables_and_constraints()
         solution = least_squares(
@@ -63,7 +64,7 @@ class LeastSquares(OptimisationAlgorithm):
 
         self.solution = solution
         optimized_cavity_settings = \
-                self._create_set_of_cavity_settings(solution.x)
+            self._create_set_of_cavity_settings(solution.x)
         # TODO: output some info could be much more clear by using the __str__
         # methods of the various objects.
 
@@ -91,7 +92,6 @@ class LeastSquares(OptimisationAlgorithm):
         simulation_output = self.compute_beam_propagation(cav_settings)
         residuals = self.compute_residuals(simulation_output)
         return residuals
-
 
     def _create_set_of_cavity_settings(self, var: np.ndarray
                                        ) -> SetOfCavitySettings:

@@ -198,12 +198,25 @@ class FaultScenario(list):
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
     def _compute_beam_parameters_in_compensation_zone_and_save_it(
-            self, fault: Fault, optimized_cavity_settings: SetOfCavitySettings
-        ) -> None:
+            self, fault: Fault,
+            optimized_cavity_settings: SetOfCavitySettings) -> None:
+        """
+        Recompute the propagation of the beam, once optimisation is finished.
+
+        Parameters
+        ----------
+        fault : Fault
+            The Fault that was just fixed.
+        optimized_cavity_settings : SetOfCavitySettings
+            The (possibly not so) optimized settings found.
+
+        """
         simulation_output = self.beam_calculator.run_with_this(
             optimized_cavity_settings, fault.elts)
+
         self.fix_acc.keep_this(simulation_output=simulation_output,
                                l_elts=fault.elts)
+
         fault.get_x_sol_in_real_phase()
 
     def _compute_beam_parameters_up_to_next_fault(
