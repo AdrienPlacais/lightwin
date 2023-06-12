@@ -110,7 +110,7 @@ class FaultScenario(list):
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
 
-        simulation_output = self.fix_acc.elts.new_compute_transfer_matrices()
+        simulation_output = self.fix_acc.elts.compute_transfer_matrices()
         simulation_output.mismatch_factor = self._compute_mismatch(
             simulation_output.get('twiss_zdelta'))
         self.fix_acc.keep_this(simulation_output=simulation_output,
