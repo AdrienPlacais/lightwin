@@ -17,9 +17,9 @@ import config_manager as conf_man
 import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
 from util import helper, output, evaluate
-import tracewin.interface
-from simulation.tracewin import TraceWinSimulator
 from util.log_manager import set_up_logging
+import tracewin.interface
+from beam_calculation.tracewin import TraceWinBeamCalculator
 from visualization import plot
 
 
@@ -160,11 +160,11 @@ if __name__ == '__main__':
 
             ini_path = FILEPATH.replace('.dat', '.ini')
             # TODO transfer ini path elsewhere
-            tw_simu = TraceWinSimulator(post_tw['executable'],
-                                        ini_path,
-                                        lin.get('out_tw'),
-                                        lin.get('dat_filepath'),
-                                        post_tw)
+            tw_simu = TraceWinBeamCalculator(post_tw['executable'],
+                                             ini_path,
+                                             lin.get('out_tw'),
+                                             lin.get('dat_filepath'),
+                                             post_tw)
             tw_simu.run(store_all_outputs=True)
             lin.tracewin_simulation = tw_simu
 

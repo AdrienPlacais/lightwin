@@ -12,7 +12,7 @@ import pandas as pd
 
 from util.helper import recursive_items, recursive_getter
 import util.converters as convert
-from simulation.output import SimulationOutput
+from beam_calculation.output import SimulationOutput
 
 class Particle:
     """

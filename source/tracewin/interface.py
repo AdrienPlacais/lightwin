@@ -21,7 +21,7 @@ import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
 import tracewin.load
-from simulation.tracewin import TraceWinSimulator
+from beam_calculation.tracewin import TraceWinBeamCalculator
 
 
 try:
@@ -270,8 +270,8 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     return data
 
 
-def resample_tracewin_results(ref: TraceWinSimulator,
-                              fix: TraceWinSimulator) -> None:
+def resample_tracewin_results(ref: TraceWinBeamCalculator,
+                              fix: TraceWinBeamCalculator) -> None:
     """Interpolate the `fix` results @ `ref` positions."""
     ref_results = ref.results_multipart
     fix_results = fix.results_multipart

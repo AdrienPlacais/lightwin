@@ -13,7 +13,7 @@ from functools import partial
 from util.helper import recursive_items, recursive_getter
 from core.emittance import beam_parameters_zdelta
 from core.elements import _Element
-from simulation.output import SimulationOutput
+from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
 

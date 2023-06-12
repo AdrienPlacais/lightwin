@@ -18,7 +18,7 @@ import numpy as np
 import config_manager as con
 import tracewin.interface
 import tracewin.load
-from simulation.output import SimulationOutput
+from beam_calculation.output import SimulationOutput
 import util.converters as convert
 from util.helper import recursive_items, recursive_getter
 from core import particle

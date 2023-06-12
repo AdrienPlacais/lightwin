@@ -25,7 +25,7 @@ import util.converters as convert
 
 
 @dataclass
-class TraceWinSimulator:
+class TraceWinBeamCalculator:
     """
     A class to hold a TW simulation and its results.
 

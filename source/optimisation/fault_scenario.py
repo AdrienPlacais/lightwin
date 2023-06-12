@@ -11,7 +11,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from simulation.output import SimulationOutput
+from beam_calculation.output import SimulationOutput
 import config_manager as con
 from optimisation.fault import Fault
 from optimisation import strategy, position

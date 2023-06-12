@@ -9,7 +9,7 @@ import logging
 from typing import Callable
 import numpy as np
 
-from simulation.output import SimulationOutput
+from beam_calculation.output import SimulationOutput
 import config_manager as con
 from util.dicts_output import d_markdown
 from core.elements import _Element, FieldMap

@@ -17,7 +17,7 @@ import numpy as np
 
 from optimisation.variables import VariablesAndConstraints
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
-from simulation.output import SimulationOutput
+from beam_calculation.output import SimulationOutput
 from core.elements import FieldMap
 
 
