@@ -11,13 +11,14 @@ from abc import ABC, abstractmethod
 
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
+from core.list_of_elements import ListOfElements
 
 # @dataclass
 class BeamCalculator(ABC):
     """A generic class to store a beam dynamics solver and its results."""
 
     @abstractmethod
-    def run(self, *args: Any) -> SimulationOutput:
+    def run(self, elts: ListOfElements) -> SimulationOutput:
         """
         Perform a simulation with default settings.
 
@@ -31,8 +32,8 @@ class BeamCalculator(ABC):
 
     @abstractmethod
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | dict,
-                      *args: Any,
-                      transfer_data: bool = True) -> SimulationOutput:
+                      elts: ListOfElements, transfer_data: bool = True
+                      ) -> SimulationOutput:
         """
         Perform a simulation with new cavity settings.
 
@@ -40,6 +41,8 @@ class BeamCalculator(ABC):
         ----------
         set_of_cavity_settings : SetOfCavitySettings | dict
             Holds the norms and phases of the compensating cavities.
+        elts: ListOfElements
+            List of elements in which the beam should be propagated.
         transfer_data : bool, optional
             Legacy FIXME
 

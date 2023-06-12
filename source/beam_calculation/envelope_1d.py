@@ -16,6 +16,7 @@ from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
+
 class Envelope1D(BeamCalculator):
     """The fastest beam calculator, adapted to high energies."""
 
@@ -61,10 +62,9 @@ class Envelope1D(BeamCalculator):
                       elts: ListOfElements,
                       transfer_data: bool = True) -> SimulationOutput:
         """Perform a simulation with new cavity settings."""
-        if set_of_cavity_settings is None:
-            logging.critical("set_of_cavity_settings is None.")
-        elif isinstance(set_of_cavity_settings, SetOfCavitySettings):
+        if isinstance(set_of_cavity_settings, SetOfCavitySettings):
             return self.new_run_with_this(set_of_cavity_settings, elts)
+        logging.critical(f"old, {transfer_data = }")
 
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
@@ -80,8 +80,8 @@ class Envelope1D(BeamCalculator):
             single_elts_results.append(elt_results)
             rf_fields.append(rf_field)
 
-            if (not transfer_data) and (set_of_cavity_settings is not None) \
-               and (elt.get('status') == 'nominal'):
+            if (not transfer_data) and (elt.get('status') == 'nominal'):
+                logging.critical('sa arrive sa des fois?')
                 single_elts_results[-1]['phi_s'] = None
                 rf_fields[-1] = {}
 
@@ -149,6 +149,8 @@ class Envelope1D(BeamCalculator):
         return simulation_output
 
     # TODO only return what is needed for the fit?
+    # maybe: a second specific _generate_simulation_output for fit only? This
+    # is secondary for now...
     def _generate_simulation_output(self, elts: ListOfElements,
                                     single_elts_results: list[dict],
                                     rf_fields: list[dict | None]
@@ -166,7 +168,8 @@ class Envelope1D(BeamCalculator):
                        for phi_rel in elt_results['phi_rel']]
             phi_abs_array.extend(phi_abs)
 
-        mismatch_factor = None #for results in single_elts_results]
+        # FIXME
+        mismatch_factor = None  # for results in single_elts_results]
 
         cav_params = [results['cav_params']
                       for results in single_elts_results]
@@ -203,4 +206,3 @@ class Envelope1D(BeamCalculator):
         """Transform `set_of_cavity_settings` for this BeamCalculator."""
         d_fit_elt = {}
         return d_fit_elt
-
