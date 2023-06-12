@@ -7,8 +7,8 @@ Created on Thu Nov 10 15:11:55 2022.
 """
 import logging
 from typing import Any
-import numpy as np
 from functools import partial
+import numpy as np
 
 from util.helper import recursive_items, recursive_getter
 from core.emittance import beam_parameters_zdelta
@@ -119,6 +119,7 @@ class ListOfElements(list):
         """
         # Prepare lists to store each element's results
         if isinstance(d_fits, SetOfCavitySettings):
+            logging.critical(f'new compute_transfer_matrices {type(d_fits)}')
             return self.new_compute_transfer_matrices_with_this(
                 d_fits, transfer_data=transfer_data)
         logging.critical(f'old compute_transfer_matrices {type(d_fits)}')

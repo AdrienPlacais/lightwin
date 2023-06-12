@@ -14,12 +14,13 @@ import datetime
 import pandas as pd
 
 import config_manager as conf_man
+from beam_calculation.envelope_1d import Envelope1D
 import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
-from util import helper, output, evaluate
-from util.log_manager import set_up_logging
 import tracewin.interface
 from beam_calculation.tracewin import TraceWinBeamCalculator
+from util import helper, output, evaluate
+from util.log_manager import set_up_logging
 from visualization import plot
 
 
@@ -80,7 +81,10 @@ if __name__ == '__main__':
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
-    simulation_output = ref_linac.elts.compute_transfer_matrices()
+
+    beam_calculator = Envelope1D()
+    # simulation_output = ref_linac.elts.compute_transfer_matrices()
+    simulation_output = beam_calculator.run(ref_linac.elts)
     ref_linac.keep_this(simulation_output=simulation_output,
                         l_elts=ref_linac.elts)
     data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(ref_linac)
