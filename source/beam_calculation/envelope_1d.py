@@ -63,8 +63,8 @@ class Envelope1D(BeamCalculator):
         """Perform a simulation with new cavity settings."""
         if set_of_cavity_settings is None:
             logging.critical("set_of_cavity_settings is None.")
-        if not isinstance(set_of_cavity_settings, dict):
-            logging.critical("Does not work yet with SetOfCavitySettings.")
+        elif isinstance(set_of_cavity_settings, SetOfCavitySettings):
+            return self.new_run_with_this(set_of_cavity_settings, elts)
 
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
@@ -117,6 +117,36 @@ class Envelope1D(BeamCalculator):
         # Compute transf mat, acceleration, phase, etc
         elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
         return elt_results, rf_field_kwargs
+
+    def new_run_with_this(self,
+                          cavities_settings: SetOfCavitySettings,
+                          elts: ListOfElements,
+                          ) -> SimulationOutput:
+        """Compute the transfer matrices of Accelerator's elements."""
+        single_elts_results = []
+        rf_fields = []
+
+        w_kin = elts.w_kin_in
+        phi_abs = elts.phi_abs_in
+
+        # Compute transfer matrix and acceleration in each element
+        for elt in elts:
+            cavity_settings = None
+            if elt in cavities_settings:
+                cavity_settings = cavities_settings[elt]
+
+            rf_field_kwargs = elt.new_rf_param(phi_abs, w_kin, cavity_settings)
+            elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
+
+            single_elts_results.append(elt_results)
+            rf_fields.append(rf_field_kwargs)
+
+            phi_abs += elt_results["phi_rel"][-1]
+            w_kin = elt_results["w_kin"][-1]
+
+        simulation_output = self._generate_simulation_output(
+            elts, single_elts_results, rf_fields)
+        return simulation_output
 
     # TODO only return what is needed for the fit?
     def _generate_simulation_output(self, elts: ListOfElements,

@@ -11,8 +11,9 @@ import logging
 import numpy as np
 import pandas as pd
 
-from beam_calculation.output import SimulationOutput
 import config_manager as con
+from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.output import SimulationOutput
 from optimisation.fault import Fault
 from optimisation import strategy, position
 from core.accelerator import Accelerator
@@ -27,6 +28,7 @@ class FaultScenario(list):
     """A class to hold all fault related data."""
 
     def __init__(self, ref_acc: Accelerator, fix_acc: Accelerator,
+                 beam_calculator: BeamCalculator,
                  wtf: dict, fault_idx: list[int] | list[list[int]],
                  comp_idx: list[list[int]] | None = None,
                  info_other_sol: list[dict] = None) -> None:
@@ -53,6 +55,7 @@ class FaultScenario(list):
 
         """
         self.ref_acc, self.fix_acc = ref_acc, fix_acc
+        self.beam_calculator = beam_calculator
         self.wtf = wtf
         self.info_other_sol = info_other_sol
         self.info = {}
@@ -91,7 +94,8 @@ class FaultScenario(list):
         success, info = [], []
         for fault in self:
             fault.update_cavities_status(optimisation='not started')
-            _succ, _info = fault.fix()
+            _succ, _info = fault.fix(
+                beam_calculator_run_with_this=self.beam_calculator.run_with_this)
             success.append(_succ)
             info.append(_info)
 
@@ -110,7 +114,7 @@ class FaultScenario(list):
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
 
-        simulation_output = self.fix_acc.elts.compute_transfer_matrices()
+        simulation_output = self.beam_calculator.run(self.fix_acc.elts)
         simulation_output.mismatch_factor = self._compute_mismatch(
             simulation_output.get('twiss_zdelta'))
         self.fix_acc.keep_this(simulation_output=simulation_output,
@@ -193,12 +197,14 @@ class FaultScenario(list):
     def _compute_beam_parameters_in_compensation_zone_and_save_it(
             self, fault: Fault, sol: list) -> None:
         # FIXME: should be included elsewhere
-        logging.critical('_compute_beam_parameters_in_compensation_zone_and_save_it')
         d_fits = {'l_phi': sol[:len(sol) // 2],
                   'l_k_e': sol[len(sol) // 2:],
                   'phi_s fit': self.wtf['phi_s fit']}
-        simulation_output = fault.elts.compute_transfer_matrices(
-            d_fits=d_fits, transfer_data=True)
+        simulation_output = self.beam_calculator.run_with_this(
+            set_of_cavity_settings=d_fits, elts=fault.elts, transfer_data=True)
+        logging.critical('_compute_beam_parameters_in_compensation_zone_and_save_it'
+                        + ' is shit en boite')
+
         self.fix_acc.keep_this(simulation_output=simulation_output,
                                l_elts=fault.elts)
         fault.get_x_sol_in_real_phase()
@@ -229,9 +235,10 @@ class FaultScenario(list):
                   'phi_s fit': self.wtf['phi_s fit']}
 
         # FIXME: should be included elsewhere
-        logging.critical('_compute_beam_parameters_up_to_next_fault')
-        simulation_output = elts.compute_transfer_matrices(d_fits=d_fits,
-                                                           transfer_data=True)
+        logging.critical('_compute_beam_parameters_up_to_next_fault is shit '
+                        + ' en boite')
+        simulation_output = self.beam_calculator.run_with_this(
+            set_of_cavity_settings=d_fits, elts=elts, transfer_data=True)
         return simulation_output, elts
 
     def _compute_mismatch(self, fix_twiss_zdelta: np.ndarray) -> np.ndarray:

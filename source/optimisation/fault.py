@@ -7,6 +7,7 @@ Created on Thu May 18 15:46:38 2023.
 """
 import logging
 from typing import Callable
+from functools import partial
 import numpy as np
 
 from beam_calculation.output import SimulationOutput
@@ -16,8 +17,9 @@ from core.elements import _Element, FieldMap
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.emittance import mismatch_factor
-from optimisation.variables import VariablesAndConstraints
 from algorithms.least_squares import LeastSquares
+from optimisation.variables import VariablesAndConstraints
+from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
 
 class Fault:
@@ -61,11 +63,31 @@ class Fault:
                               tm_cumul=tm_cumul)
         return elts
 
-    def fix(self):
-        """Fix the Fault."""
+    def fix(self, beam_calculator_run_with_this: Callable[
+            [SetOfCavitySettings, ListOfElements, bool],
+            SimulationOutput]) -> tuple[bool, dict]:
+        """
+        Fix the Fault.
+
+        Parameters
+        ----------
+        beam_calculator_run_with_this : Callable[[
+                SetOfCavitySettings, ListOfElements, bool], SimulationOutput]
+            The run_with_this method from a `BeamCalculator` object. We use
+            `partial` function to always use the same argument for the `elts`
+            `ListOfElements`.
+
+        Returns
+        -------
+        success : bool
+            Indicates convergence of the optimisation `Algorithm`.
+        self.info : dict
+            Useful information, such as the best solution.
+        """
         variables_constraints = self._set_design_space()
         compute_residuals, info_objectives = self._select_objective()
-        compute_beam_propagation = self.elts.compute_transfer_matrices
+        compute_beam_propagation = partial(beam_calculator_run_with_this,
+                                           elts=self.elts)
 
         algorithm = LeastSquares(
             variables_constraints=variables_constraints,

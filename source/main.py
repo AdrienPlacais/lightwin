@@ -83,7 +83,6 @@ if __name__ == '__main__':
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
 
     beam_calculator = Envelope1D()
-    # simulation_output = ref_linac.elts.compute_transfer_matrices()
     simulation_output = beam_calculator.run(ref_linac.elts)
     ref_linac.keep_this(simulation_output=simulation_output,
                         l_elts=ref_linac.elts)
@@ -110,6 +109,7 @@ if __name__ == '__main__':
                 manual = l_manual[i]
             fault_scenario = FaultScenario(ref_acc=ref_linac,
                                            fix_acc=lin,
+                                           beam_calculator=beam_calculator,
                                            wtf=wtf,
                                            fault_idx=failed,
                                            comp_idx=manual)
@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
             if FLAG_FIX:
                 fault_scenario.fix_all()
-                simulation_output = lin.elts.compute_transfer_matrices()  # useful?
+                simulation_output = beam_calculator.run(lin.elts)
                 lin.keep_this(simulation_output=simulation_output,
                               l_elts=lin.elts)  # useful?
 
