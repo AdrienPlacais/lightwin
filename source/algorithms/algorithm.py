@@ -18,6 +18,7 @@ import numpy as np
 from optimisation.variables import VariablesAndConstraints
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 from simulation.output import SimulationOutput
+from core.elements import FieldMap
 
 
 @dataclass
@@ -28,11 +29,13 @@ class OptimisationAlgorithm(ABC):
     compute_residuals: Callable[[SimulationOutput], np.ndarray]
     compute_beam_propagation: Callable[[SetOfCavitySettings, bool],
                                        SimulationOutput]
+    compensating_cavities: list[FieldMap]
+    variable_names: list[str]
     phi_s_fit: bool
 
     def __post_init__(self) -> None:
         """Set the output object."""
-        self.solution: object
+        self.solution: SetOfCavitySettings
 
     @abstractmethod
     def optimise(self) -> tuple[bool, dict[str, list[float] | None]]:

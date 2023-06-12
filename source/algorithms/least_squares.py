@@ -54,11 +54,17 @@ class LeastSquares(OptimisationAlgorithm):
 
         x_0, bounds = self._format_variables_and_constraints()
 
-        self.solution = least_squares(
+        solution = least_squares(
             fun=self._wrapper_residuals,
             x0=x_0, bounds=bounds,
             # args=None,
             **kwargs)
+        self.solution = solution
+        # in the future:
+        # self.solution = self._create_set_of_cavity_settings(self.solution)
+        # for consistency: solution has always same format!
+        # TODO
+
         self._output_some_info()
 
         success = self.solution.success
@@ -98,12 +104,32 @@ class LeastSquares(OptimisationAlgorithm):
         return residuals
 
     def _create_set_of_cavity_settings(self, var: np.ndarray
-                                      ) -> SetOfCavitySettings:
+                                       ) -> SetOfCavitySettings:
         """Transform the array given by least_squares to a generic object."""
-        my_set = SetOfCavitySettings()
-        for i, cavity in enumerate(['a', 'a']):
-            my_setting = SingleCavitySettings(k_e=5., phi_s=3.)
-            my_set[cavity] = my_setting
+        # FIXME
+        my_phi = list(var[:var.shape[0] // 2])
+        my_ke = list(var[var.shape[0] // 2:])
+
+        if 'phi_s' in self.variable_names:
+            my_set = [SingleCavitySettings(cavity=cavity, k_e=k_e, phi_s=phi)
+                      for cavity, k_e, phi in zip(self.compensating_cavities,
+                                                  my_ke, my_phi)]
+        elif 'phi_0_abs' in self.variable_names:
+            my_set = [
+                SingleCavitySettings(cavity=cavity, k_e=k_e, phi_0_abs=phi)
+                for cavity, k_e, phi in zip(self.compensating_cavities,
+                                            my_ke, my_phi)]
+        elif 'phi_0_rel' in self.variable_names:
+            my_set = [
+                SingleCavitySettings(cavity=cavity, k_e=k_e, phi_0_rel=phi)
+                for cavity, k_e, phi in zip(self.compensating_cavities,
+                                            my_ke, my_phi)]
+        else:
+            logging.critical("Error in the _create_set_of_cavity_settings")
+            return None
+
+        my_set = SetOfCavitySettings(my_set)
+        return my_set
 
     def _output_some_info(self) -> None:
         """Show the most useful data from least_squares."""
