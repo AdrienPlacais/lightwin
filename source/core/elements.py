@@ -269,6 +269,15 @@ class _Element():
         rf_field_kwargs = {}
         return rf_field_kwargs
 
+    def new_rf_param(self, phi_bunch_abs: float, w_kin_in: float,
+                     d_fit: dict | SingleCavitySettings | None = None) -> dict:
+        """Set the properties of the rf field (returns {} by default)."""
+        # Remove unused arguments warning:
+        del phi_bunch_abs, w_kin_in, d_fit
+
+        rf_field_kwargs = {}
+        return rf_field_kwargs
+
 
 # =============================================================================
 # More specific classes
