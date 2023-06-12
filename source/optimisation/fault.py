@@ -65,7 +65,7 @@ class Fault:
 
     def fix(self, beam_calculator_run_with_this: Callable[
             [SetOfCavitySettings, ListOfElements, bool],
-            SimulationOutput]) -> tuple[bool, dict]:
+            SimulationOutput]) -> tuple[bool, SetOfCavitySettings, dict]:
         """
         Fix the Fault.
 
@@ -81,6 +81,8 @@ class Fault:
         -------
         success : bool
             Indicates convergence of the optimisation `Algorithm`.
+        optimized_cavity_settings : SetOfCavitySettings
+            Best cavity settings found by the optimization `Algorithm`.
         self.info : dict
             Useful information, such as the best solution.
         """
@@ -96,8 +98,8 @@ class Fault:
             compensating_cavities=self.comp_cav,
             variable_names=self.variable_names,
             phi_s_fit=self.wtf['phi_s fit'])
-        success, self.info = algorithm.optimise()
-        return success, self.info
+        success, optimized_cavity_settings, self.info = algorithm.optimise()
+        return success, optimized_cavity_settings, self.info
 
     def update_cavities_status(self, optimisation: str,
                                success: bool | None = None) -> None:

@@ -35,10 +35,12 @@ class OptimisationAlgorithm(ABC):
 
     def __post_init__(self) -> None:
         """Set the output object."""
-        self.solution: SetOfCavitySettings
+        self.solution: dict
 
     @abstractmethod
-    def optimise(self) -> tuple[bool, dict[str, list[float] | None]]:
+    def optimise(self) -> tuple[bool,
+                                SetOfCavitySettings,
+                                dict[str, list[float] | None]]:
         """
         Set up optimisation parameters and solve the problem.
 
@@ -46,13 +48,12 @@ class OptimisationAlgorithm(ABC):
         -------
         success : bool
             Tells if the optimisation algorithm managed to converge.
+        optimized_cavity_settings : SetOfCavitySettings
+            Best solution found by the optimization algorithm.
         info : dict[str, list[float]]] | None
             Gives list of solutions, corresponding objective, convergence
             violation if applicable, etc.
         """
-        success = False
-        info = {'X': None, 'F': None, 'G': None}
-        return success, info
 
     @abstractmethod
     def _format_variables_and_constraints(self) -> Any:

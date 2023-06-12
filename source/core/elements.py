@@ -390,7 +390,9 @@ class FieldMap(_Element):
                      cavity_settings: SingleCavitySettings | None = None
                      ) -> dict | None:
         """Set the properties of the electric field."""
-        if cavity_settings is None:
+        status = self.elt_info['status']
+
+        if status in ['none', 'failed']:
             rf_parameters = {}
             return rf_parameters
 
@@ -402,7 +404,6 @@ class FieldMap(_Element):
             'n_cell': self.get('n_cell'),
             'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
 
-        status = self.elt_info['status']
         if status in ['nominal', 'rephased (ok)', 'compensate (ok)',
                       'compensate (not ok)']:
             norm_and_phases, abs_to_rel = _get_from(self.acc_field)
@@ -427,7 +428,7 @@ class FieldMap(_Element):
             norm_and_phases['phi_0_abs'] = phi_0_abs_corresponding_to(
                 norm_and_phases['phi_0_rel'], phi_rf_abs)
 
-        # Merge the two dictionaries
+        # '|' merges the two dictionaries
         rf_parameters = rf_parameters | norm_and_phases
         return rf_parameters
 

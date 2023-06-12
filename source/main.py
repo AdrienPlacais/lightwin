@@ -194,7 +194,7 @@ if __name__ == '__main__':
 # =============================================================================
 # Plot
 # =============================================================================
-    kwargs = {'plot_tw': FLAG_TW, 'save_fig': SAVE_FIX, 'clean_fig': True}
+    kwargs = {'plot_tw': FLAG_TW, 'save_fig': False, 'clean_fig': True}
     for i in range(len(l_failed)):
         for str_plot in PLOTS:
             # Plot the reference linac, i-th broken linac and corresponding

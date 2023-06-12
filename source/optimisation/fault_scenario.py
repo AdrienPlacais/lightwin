@@ -15,6 +15,7 @@ import config_manager as con
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
 from optimisation.fault import Fault
+from optimisation.set_of_cavity_settings import SetOfCavitySettings
 from optimisation import strategy, position
 from core.accelerator import Accelerator
 from core.list_of_elements import ListOfElements
@@ -94,18 +95,20 @@ class FaultScenario(list):
         success, info = [], []
         for fault in self:
             fault.update_cavities_status(optimisation='not started')
-            _succ, _info = fault.fix(
-                beam_calculator_run_with_this=self.beam_calculator.run_with_this)
+            _succ, optimized_cavity_settings, _info = fault.fix(
+                self.beam_calculator.run_with_this)
+
             success.append(_succ)
             info.append(_info)
 
-            my_sol = _info['X']
             self._compute_beam_parameters_in_compensation_zone_and_save_it(
-                fault, my_sol)
+                fault, optimized_cavity_settings)
 
             fault.update_cavities_status(optimisation='finished', success=True)
+
             simulation_output, elts = \
-                self._compute_beam_parameters_up_to_next_fault(fault, my_sol)
+                self._compute_beam_parameters_up_to_next_fault(
+                    fault, optimized_cavity_settings)
             self.fix_acc.keep_this(simulation_output=simulation_output,
                                    l_elts=elts)
 
@@ -195,23 +198,17 @@ class FaultScenario(list):
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
     def _compute_beam_parameters_in_compensation_zone_and_save_it(
-            self, fault: Fault, sol: list) -> None:
-        # FIXME: should be included elsewhere
-        d_fits = {'l_phi': sol[:len(sol) // 2],
-                  'l_k_e': sol[len(sol) // 2:],
-                  'phi_s fit': self.wtf['phi_s fit']}
+            self, fault: Fault, optimized_cavity_settings: SetOfCavitySettings
+        ) -> None:
         simulation_output = self.beam_calculator.run_with_this(
-            set_of_cavity_settings=d_fits, elts=fault.elts, transfer_data=True)
-        logging.critical('_compute_beam_parameters_in_compensation_zone_and_save_it'
-                        + ' is shit en boite')
-
+            optimized_cavity_settings, fault.elts)
         self.fix_acc.keep_this(simulation_output=simulation_output,
                                l_elts=fault.elts)
         fault.get_x_sol_in_real_phase()
 
     def _compute_beam_parameters_up_to_next_fault(
-            self, fault: Fault, my_sol: dict) -> tuple[SimulationOutput,
-                                                       ListOfElements]:
+        self, fault: Fault, optimized_cavity_settings: SetOfCavitySettings
+    ) -> tuple[SimulationOutput, ListOfElements]:
         """Compute propagation up to last element of the next fault."""
         first_elt = fault.elts[-1]
         last_elt = self.fix_acc.elts[-1]
@@ -228,17 +225,8 @@ class FaultScenario(list):
         transf_mat = self.fix_acc.get('tm_cumul')[idx_in]
 
         elts = ListOfElements(__elts, w_kin, phi_abs, idx_in, transf_mat)
-
-        # FIXME
-        d_fits = {'l_phi': my_sol[:len(my_sol) // 2],
-                  'l_k_e': my_sol[len(my_sol) // 2:],
-                  'phi_s fit': self.wtf['phi_s fit']}
-
-        # FIXME: should be included elsewhere
-        logging.critical('_compute_beam_parameters_up_to_next_fault is shit '
-                        + ' en boite')
         simulation_output = self.beam_calculator.run_with_this(
-            set_of_cavity_settings=d_fits, elts=elts, transfer_data=True)
+            optimized_cavity_settings, elts)
         return simulation_output, elts
 
     def _compute_mismatch(self, fix_twiss_zdelta: np.ndarray) -> np.ndarray:

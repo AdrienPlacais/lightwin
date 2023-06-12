@@ -25,7 +25,8 @@ from optimisation.set_of_cavity_settings import (SetOfCavitySettings,
 class LeastSquares(OptimisationAlgorithm):
     """Plain least-squares method, efficient for small problems."""
 
-    def optimise(self) -> tuple[bool, dict[str, list[float]]]:
+    def optimise(self) -> tuple[bool, SetOfCavitySettings, dict[str,
+                                                                list[float]]]:
         """
         Set up the optimisation and solve the problem.
 
@@ -33,6 +34,8 @@ class LeastSquares(OptimisationAlgorithm):
         -------
         success : bool
             Tells if the optimisation algorithm managed to converge.
+        optimized_cavity_settings : SetOfCavitySettings
+            Best solution found by the optimization algorithm.
         info : dict[str, list[float]]] | None
             Gives list of solutions, corresponding objective, convergence
             violation if applicable, etc.
@@ -53,17 +56,16 @@ class LeastSquares(OptimisationAlgorithm):
                   # 'verbose': debugs['verbose']}
 
         x_0, bounds = self._format_variables_and_constraints()
-
         solution = least_squares(
             fun=self._wrapper_residuals,
             x0=x_0, bounds=bounds,
-            # args=None,
             **kwargs)
+
         self.solution = solution
-        # in the future:
-        # self.solution = self._create_set_of_cavity_settings(self.solution)
-        # for consistency: solution has always same format!
-        # TODO
+        optimized_cavity_settings = \
+                self._create_set_of_cavity_settings(solution.x)
+        # TODO: output some info could be much more clear by using the __str__
+        # methods of the various objects.
 
         self._output_some_info()
 
@@ -71,7 +73,7 @@ class LeastSquares(OptimisationAlgorithm):
         info = {'X': self.solution.x.tolist(),
                 'F': self.solution.fun.tolist(),
                 }
-        return success, info
+        return success, optimized_cavity_settings, info
 
     def _format_variables_and_constraints(self
                                           ) -> tuple[np.ndarray, Bounds]:
@@ -85,23 +87,11 @@ class LeastSquares(OptimisationAlgorithm):
 
     def _wrapper_residuals(self, var: np.ndarray):
         """Unpack arguments, compute residuals."""
-        if True:
-            cav_settings = self._create_set_of_cavity_settings(var)
-            simulation_output = self.compute_beam_propagation(
-                cav_settings, transfer_data=False)
-            residuals = self.compute_residuals(simulation_output)
-            return residuals
-
-        # Unpack arguments
-        d_fits = {
-            'l_phi': var[:var.size // 2].tolist(),
-            'l_k_e': var[var.size // 2:].tolist(),
-            'phi_s fit': self.phi_s_fit,
-        }
-        simulation_output = self.compute_beam_propagation(d_fits,
-                                                          transfer_data=False)
+        cav_settings = self._create_set_of_cavity_settings(var)
+        simulation_output = self.compute_beam_propagation(cav_settings)
         residuals = self.compute_residuals(simulation_output)
         return residuals
+
 
     def _create_set_of_cavity_settings(self, var: np.ndarray
                                        ) -> SetOfCavitySettings:
