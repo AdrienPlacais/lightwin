@@ -71,16 +71,10 @@ class Fault:
             variables_constraints=variables_constraints,
             compute_residuals=compute_residuals,
             compute_beam_propagation=compute_beam_propagation,
+            compensating_cavities=self.comp_cav,
+            variable_names=self.variable_names,
             phi_s_fit=self.wtf['phi_s fit'])
         success, self.info = algorithm.optimise()
-
-        # self.fit_info.update({
-            # 'X_0': x_0,
-            # 'X_lim': x_lim,
-            # 'X_info': x_info,
-            # 'F_info': info_objectives,
-            # 'G': constr,
-        # })
         return success, self.info
 
     def update_cavities_status(self, optimisation: str,
@@ -134,6 +128,9 @@ class Fault:
 
         constraints = ['phi_s']
         # FIXME should not be initialized if not used
+
+        # FIXME not clean
+        self.variable_names = variables
 
         global_compensation = 'global' in self.wtf['strategy']
         kwargs = {'global_compensation': global_compensation}

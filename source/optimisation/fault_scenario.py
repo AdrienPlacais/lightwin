@@ -110,7 +110,7 @@ class FaultScenario(list):
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
 
-        simulation_output = self.fix_acc.elts.compute_transfer_matrices()
+        simulation_output = self.fix_acc.elts.new_compute_transfer_matrices()
         simulation_output.mismatch_factor = self._compute_mismatch(
             simulation_output.get('twiss_zdelta'))
         self.fix_acc.keep_this(simulation_output=simulation_output,
@@ -192,6 +192,8 @@ class FaultScenario(list):
 
     def _compute_beam_parameters_in_compensation_zone_and_save_it(
             self, fault: Fault, sol: list) -> None:
+        # FIXME: should be included elsewhere
+        logging.critical('_compute_beam_parameters_in_compensation_zone_and_save_it')
         d_fits = {'l_phi': sol[:len(sol) // 2],
                   'l_k_e': sol[len(sol) // 2:],
                   'phi_s fit': self.wtf['phi_s fit']}
@@ -226,6 +228,8 @@ class FaultScenario(list):
                   'l_k_e': my_sol[len(my_sol) // 2:],
                   'phi_s fit': self.wtf['phi_s fit']}
 
+        # FIXME: should be included elsewhere
+        logging.critical('_compute_beam_parameters_up_to_next_fault')
         simulation_output = elts.compute_transfer_matrices(d_fits=d_fits,
                                                            transfer_data=True)
         return simulation_output, elts

@@ -10,14 +10,10 @@ import logging
 
 
 @dataclass
-class SetOfCavitySettings(dict):
-    """Holds cavity settings, to be tried during optimisation process."""
-
-
-@dataclass
 class SingleCavitySettings:
     """Settings of a single cavity."""
 
+    cavity: object
     k_e: float | None = None
     phi_0_abs: float | None = None
     phi_0_rel: float | None = None
@@ -41,6 +37,14 @@ class SingleCavitySettings:
             return False
         return True
 
+@dataclass
+class SetOfCavitySettings(dict[object, SingleCavitySettings]):
+    """Holds cavity settings, to be tried during optimisation process."""
+    __cavity_settings: list[SingleCavitySettings]
 
-michel = SingleCavitySettings(k_e=0.8, phi_s=None, phi_0_rel=14.)
-print(michel)
+    def __post_init__(self):
+        """Create the proper dictionary."""
+        my_set = {single_setting.cavity: single_setting
+                  for single_setting in self.__cavity_settings}
+        super().__init__(my_set)
+
