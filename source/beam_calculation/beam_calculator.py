@@ -31,20 +31,17 @@ class BeamCalculator(ABC):
         """
 
     @abstractmethod
-    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | dict,
-                      elts: ListOfElements, transfer_data: bool = True
-                      ) -> SimulationOutput:
+    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings,
+                      elts: ListOfElements) -> SimulationOutput:
         """
         Perform a simulation with new cavity settings.
 
         Parameters
         ----------
-        set_of_cavity_settings : SetOfCavitySettings | dict
+        set_of_cavity_settings : SetOfCavitySettings
             Holds the norms and phases of the compensating cavities.
         elts: ListOfElements
             List of elements in which the beam should be propagated.
-        transfer_data : bool, optional
-            Legacy FIXME
 
         Returns
         -------

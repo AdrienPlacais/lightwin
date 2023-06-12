@@ -57,18 +57,30 @@ class Envelope1D(BeamCalculator):
             elts, single_elts_results, rf_fields)
         return simulation_output
 
-    def run_with_this(self,
-                      set_of_cavity_settings: SetOfCavitySettings,
-                      elts: ListOfElements,
-                      ) -> SimulationOutput:
-        """Compute the transfer matrices of Accelerator's elements."""
+    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings,
+                      elts: ListOfElements) -> SimulationOutput:
+        """
+        Envelope 1D calculation of beam in `elts`, with non-nominal settings.
+
+        Parameters
+        ----------
+        set_of_cavity_settings : SetOfCavitySettings
+            The new cavity settings to try.
+        elts : ListOfElements
+            List of elements in which the beam must be propagated.
+
+        Returns
+        -------
+        simulation_output : SimulationOutput
+            Holds energy, phase, transfer matrices (among others) packed into a
+            single object.
+
+        """
         single_elts_results = []
         rf_fields = []
 
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
-
-        # Compute transfer matrix and acceleration in each element
         for elt in elts:
             cavity_settings = None
             if elt in set_of_cavity_settings:
