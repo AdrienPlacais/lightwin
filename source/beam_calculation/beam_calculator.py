@@ -7,13 +7,11 @@ Created on Mon Jun 12 08:26:52 2023.
 """
 from typing import Any
 from abc import ABC, abstractmethod
-# from dataclasses import dataclass
 
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 from core.list_of_elements import ListOfElements
 
-# @dataclass
 class BeamCalculator(ABC):
     """A generic class to store a beam dynamics solver and its results."""
 
@@ -29,16 +27,20 @@ class BeamCalculator(ABC):
             single object.
 
         """
+        return self.run_with_this(None, elts)
 
     @abstractmethod
-    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings,
+    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
                       elts: ListOfElements) -> SimulationOutput:
         """
         Perform a simulation with new cavity settings.
 
+        Calling it with set_of_cavity_settings = None should be the same as
+        calling the plain `run` method.
+
         Parameters
         ----------
-        set_of_cavity_settings : SetOfCavitySettings
+        set_of_cavity_settings : SetOfCavitySettings | None
             Holds the norms and phases of the compensating cavities.
         elts: ListOfElements
             List of elements in which the beam should be propagated.

@@ -8,7 +8,6 @@ Created on Mon Jun 12 08:24:37 2023.
 TODO: access to listofelements._indiv_to_cumul_transf_mat
 TODO: run and run_with_this have too much in common, should mutualize
 """
-from core.elements import _Element
 from core.list_of_elements import ListOfElements
 from core.emittance import beam_parameters_zdelta
 from beam_calculation.beam_calculator import BeamCalculator
@@ -18,9 +17,6 @@ from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
 class Envelope1D(BeamCalculator):
     """The fastest beam calculator, adapted to high energies."""
-
-    def __init__(self) -> None:
-        """Create the object."""
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -38,34 +34,18 @@ class Envelope1D(BeamCalculator):
             single object.
 
         """
-        w_kin = elts.w_kin_in
-        phi_abs = elts.phi_abs_in
+        return self.run_with_this(set_of_cavity_settings=None, elts=elts)
 
-        single_elts_results = []
-        rf_fields = []
-        for elt in elts:
-            elt_results, rf_field = self._proper_transf_mat(elt, phi_abs,
-                                                            w_kin)
-
-            single_elts_results.append(elt_results)
-            rf_fields.append(rf_field)
-
-            phi_abs += elt_results["phi_rel"][-1]
-            w_kin = elt_results["w_kin"][-1]
-
-        simulation_output = self._generate_simulation_output(
-            elts, single_elts_results, rf_fields)
-        return simulation_output
-
-    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings,
+    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
                       elts: ListOfElements) -> SimulationOutput:
         """
         Envelope 1D calculation of beam in `elts`, with non-nominal settings.
 
         Parameters
         ----------
-        set_of_cavity_settings : SetOfCavitySettings
-            The new cavity settings to try.
+        set_of_cavity_settings : SetOfCavitySettings | None
+            The new cavity settings to try. If it is None, then the cavity
+            settings are taken from the FieldMap objects.
         elts : ListOfElements
             List of elements in which the beam must be propagated.
 
@@ -83,7 +63,8 @@ class Envelope1D(BeamCalculator):
         phi_abs = elts.phi_abs_in
         for elt in elts:
             cavity_settings = None
-            if elt in set_of_cavity_settings:
+            if (set_of_cavity_settings is not None
+                    and elt in set_of_cavity_settings):
                 cavity_settings = set_of_cavity_settings[elt]
 
             rf_field_kwargs = elt.new_rf_param(phi_abs, w_kin, cavity_settings)
@@ -98,27 +79,6 @@ class Envelope1D(BeamCalculator):
         simulation_output = self._generate_simulation_output(
             elts, single_elts_results, rf_fields)
         return simulation_output
-
-    # FIXME I think it is possible to simplify all of this
-    def _proper_transf_mat(
-        self, elt: _Element, phi_abs: float, w_kin: float,
-        set_of_cavity_settings: SetOfCavitySettings | None = None,
-    ) -> tuple[dict, dict]:
-        """Get the proper arguments and call the elt.calc_transf_mat."""
-        d_fit_elt = None
-        if elt.get('nature') == 'FIELD_MAP' and elt.get('status') != 'failed':
-            d_fit_elt = set_of_cavity_settings
-
-            if set_of_cavity_settings is not None \
-               and elt.get('status') == 'compensate (in progress)':
-                d_fit_elt = {'flag': True,
-                             'phi': set_of_cavity_settings['l_phi'].pop(0),
-                             'k_e': set_of_cavity_settings['l_k_e'].pop(0),
-                             'phi_s fit': set_of_cavity_settings['phi_s fit']}
-
-        rf_field_kwargs = elt.rf_param(phi_abs, w_kin, d_fit_elt)
-        elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
-        return elt_results, rf_field_kwargs
 
     # TODO only return what is needed for the fit?
     # maybe: a second specific _generate_simulation_output for fit only? This
