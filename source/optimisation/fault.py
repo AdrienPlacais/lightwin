@@ -48,8 +48,7 @@ class Fault:
             'resume': None,         # For output
         }
 
-    def _create_list_of_elements(self, elts: list[_Element]
-                                 ) -> ListOfElements:
+    def _create_list_of_elements(self, elts: list[_Element]) -> ListOfElements:
         """Create the proper ListOfElements object."""
         idx = elts[0].get('s_in', to_numpy=False)
         w_kin = self.ref_acc.get('w_kin')[idx]
@@ -60,8 +59,8 @@ class Fault:
         return elts
 
     def fix(self, beam_calculator_run_with_this: Callable[
-            [SetOfCavitySettings, ListOfElements, bool],
-            SimulationOutput]) -> tuple[bool, SetOfCavitySettings, dict]:
+            [SetOfCavitySettings, ListOfElements, bool], SimulationOutput]
+            ) -> tuple[bool, SetOfCavitySettings, dict]:
         """
         Fix the Fault.
 
