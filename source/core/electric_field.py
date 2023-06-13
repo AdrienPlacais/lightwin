@@ -181,4 +181,3 @@ def phi_0_rel_corresponding_to(phi_0_abs: float, phi_rf_abs: float) -> float:
 def phi_0_abs_corresponding_to(phi_0_rel: float, phi_rf_abs: float) -> float:
     """Calculate a cavity absolute entrance phase from the relative."""
     return np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
-

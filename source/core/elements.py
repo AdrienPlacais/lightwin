@@ -374,7 +374,6 @@ class FieldMap(_Element):
             'section_idx': self.idx['section'],
             'n_cell': self.get('n_cell')
         }
-        norm_and_phases: dict[str, float | None]
 
         if status in ['nominal', 'rephased (ok)', 'compensate (ok)',
                       'compensate (not ok)']:
@@ -539,9 +538,7 @@ def _try_this(cavity_settings: SingleCavitySettings, w_kin: float,
         abs_to_rel = False
         return norm_and_phases, abs_to_rel
 
-    norm_and_phases = {key: val
-                       if isinstance((val := cavity_settings.get(key)), float)
-                       else None
+    norm_and_phases = {key: cavity_settings.get(key)
                        for key in ['k_e', 'phi_0_abs', 'phi_0_rel']}
 
     norm_and_phases = {key: cavity_settings.get(key)
