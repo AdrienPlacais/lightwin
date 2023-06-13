@@ -4,6 +4,13 @@
 Created on Thu Nov 10 15:11:55 2022.
 
 @author: placais
+
+In this module we define the ListOfElements objects. These objects are created
+in two contexts:
+    - Accelerator.elts: holds all the _Elements of the linac.
+    - Fault.elts, also called in FaultScenario: it holds only a fraction of the
+    linac _Elements. Beam will be propagated a huge number of time during
+    optimisation process, so we recompute only the strict necessary.
 """
 import logging
 from typing import Any
@@ -14,29 +21,59 @@ from util.helper import recursive_items, recursive_getter
 from core.elements import _Element
 
 
-# TODO allow for None for w_kin etc and just take it from l_elts[0]
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
     def __init__(self, l_elts: list[_Element], w_kin: float, phi_abs: float,
-                 idx_in: int | None = None,
-                 tm_cumul: np.ndarray | None = None) -> None:
-        super().__init__(l_elts)
-        logging.info(f"Init list from {l_elts[0].get('elt_name')} to "
-                     f"{l_elts[-1].get('elt_name')}.")
-        logging.info(f" {w_kin = }, {phi_abs = }, {idx_in = }")
+                 tm_cumul: np.ndarray | None = None, full_linac: bool = True
+                 ) -> None:
+        """
+        Create the object, encompassing all the linac or only a fraction.
 
-        if idx_in is None:
-            idx_in = l_elts[0].idx['s_in']
-        self._idx_in = idx_in
+        The first case is when you initialize an Accelerator and compute the
+        baseline energy, phase, etc values.
+        The second case is when you only recompute a fraction of the linac,
+        which is part of the optimisation process.
+
+        Parameters
+        ----------
+        l_elts : list[_Element]
+            List containing the _Element objects.
+        w_kin : float
+            Kinetic energy at the entrance of the first _Element. Must be in
+            MeV.
+        phi_abs : float
+            Absolute phase at the entrance of the first _Element. Must be in
+            rad, and expressed relative to the bunch frequency.
+        tm_cumul : np.ndarray, optional
+            Cumulated transfer matrix (2, 2) at the entrance of the first
+            _Element. The default is None.
+        full_linac : bool, optional
+            To indicate if this a full linac or only a portion (fit process).
+            The default is True.
+
+        """
+        if full_linac:
+            logging.info("Init ListOfElements ecompassing all linac.")
+            if tm_cumul is not None:
+                logging.warning(
+                    "You do not need to provide a cumulated transfer matrix "
+                    + "to initialize this ListOfElements. It starts at the "
+                    + "beginning of the linac and the matrix is automatically "
+                    + "the eye matrix.")
+            tm_cumul = np.eye(2)
+
+        else:
+            logging.info(f"Init ListOfElements from {l_elts[0]} to "
+                         + f"{l_elts[-1]}.")
+            if np.any(np.isnan(tm_cumul)):
+                logging.error("Previous transfer matrix was not calculated.")
+
+        super().__init__(l_elts)
+        logging.info(f"{w_kin = }, {phi_abs = }")
         self.w_kin_in = w_kin
         self.phi_abs_in = phi_abs
 
-        if self._idx_in == 0:
-            tm_cumul = np.eye(2)
-        else:
-            assert ~np.isnan(tm_cumul).any(), \
-                "Previous transfer matrix was not calculated."
         self.tm_cumul_in = tm_cumul
         self._l_cav = filter_cav(self)
 

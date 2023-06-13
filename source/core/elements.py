@@ -260,7 +260,7 @@ class _Element():
 
     def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
                  cavity_settings: SingleCavitySettings | None = None
-                 ) -> dict | None:
+                 ) -> dict:
         """
         Set the properties of the rf field; in the default case, returns None.
 
@@ -277,10 +277,11 @@ class _Element():
 
         Returns
         -------
-        rf_parameters : dict | None
-            Always None by default.
+        rf_parameters : dict
+            Always {} by default.
 
         """
+        return {}
 
 
 # =============================================================================
@@ -342,7 +343,7 @@ class FieldMap(_Element):
 
     def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
                  cavity_settings: SingleCavitySettings | None = None
-                 ) -> dict | None:
+                 ) -> dict:
         """
         Set the properties of the rf field; specific to FieldMap.
 
@@ -359,14 +360,14 @@ class FieldMap(_Element):
 
         Returns
         -------
-        rf_parameters : dict | None
+        rf_parameters : dict
             Holds parameters that Envelope1d needs to solve the motion in the
-            FieldMap. If this is a non-accelerating Element, return None.
+            FieldMap. If this is a non-accelerating Element, return {}.
 
         """
         status = self.elt_info['status']
         if status in ['none', 'failed']:
-            return None
+            return {}
 
         generic_rf_param = {
             'omega0_rf': self.get('omega0_rf'),
@@ -389,7 +390,7 @@ class FieldMap(_Element):
                 _try_this(cavity_settings, w_kin_in, self, generic_rf_param)
         else:
             logging.error(f'{self} {status = } is not allowed.')
-            return None
+            return {}
 
         phi_rf_abs = phi_bunch_abs * generic_rf_param['n_cell']
 

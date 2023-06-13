@@ -237,7 +237,8 @@ class FaultScenario(list):
         phi_abs = self.fix_acc.get('phi_abs_array')[idx_in]
         transf_mat = self.fix_acc.get('tm_cumul')[idx_in]
 
-        elts = ListOfElements(__elts, w_kin, phi_abs, idx_in, transf_mat)
+        elts = ListOfElements(__elts, w_kin, phi_abs, transf_mat,
+                              full_linac=False)
         simulation_output = self.beam_calculator.run_with_this(
             optimized_cavity_settings, elts)
         return simulation_output, elts

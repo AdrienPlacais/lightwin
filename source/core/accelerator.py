@@ -59,9 +59,8 @@ class Accelerator():
         l_elts = self._handle_paths_and_folders(l_elts)
         l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
 
-        # Create a the list containing all the elements
         self.elts = ListOfElements(l_elts, w_kin=con.E_MEV, phi_abs=0.,
-                                   idx_in=0)
+                                   full_linac=True)
 
         self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
 

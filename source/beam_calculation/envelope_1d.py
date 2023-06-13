@@ -83,7 +83,7 @@ class Envelope1D(BeamCalculator):
     # is secondary for now...
     def _generate_simulation_output(self, elts: ListOfElements,
                                     single_elts_results: list[dict],
-                                    rf_fields: list[dict | None]
+                                    rf_fields: list[dict]
                                     ) -> SimulationOutput:
         """Transform the outputs of BeamCalculator to a SimulationOutput."""
         w_kin = [energy
@@ -137,5 +137,6 @@ class Envelope1D(BeamCalculator):
         d_fit_elt = {}
         return d_fit_elt
 
-    def generate_set_of_cavity_settings(self, d_fit: dict) -> SetOfCavitySettings:
+    def generate_set_of_cavity_settings(self, d_fit: dict
+                                        ) -> SetOfCavitySettings:
         return None
