@@ -16,7 +16,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 import config_manager as con
-from core.electric_field import (RfField, compute_param_cav, convert_phi_0,
+from core.electric_field import (RfField, compute_param_cav,
                                  phi_0_rel_corresponding_to,
                                  phi_0_abs_corresponding_to)
 from util.helper import recursive_items, recursive_getter, diff_angle
@@ -120,10 +120,10 @@ class _Element():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: tuple[str], to_numpy: bool = True, **kwargs: dict
-            ) -> Any:
+    def get(self, *keys: str, to_numpy: bool = True,
+            **kwargs: dict) -> Any:
         """Shorthand to get attributes."""
-        val = {}
+        val: dict[str, Any] = {}
         for key in keys:
             val[key] = []
 
@@ -143,11 +143,9 @@ class _Element():
         out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
                else val[key]
                for key in keys]
-
-        # Return as tuple or single value
         if len(out) == 1:
             return out[0]
-        # implicit else:
+
         return tuple(out)
 
     def init_solvers(self) -> None:
@@ -261,22 +259,28 @@ class _Element():
             self.acc_field.k_e = rf_field['k_e']
 
     def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
-                 d_fit: dict | SingleCavitySettings | None = None) -> dict:
-        """Set the properties of the rf field (returns {} by default)."""
-        # Remove unused arguments warning:
-        del phi_bunch_abs, w_kin_in, d_fit
+                 cavity_settings: SingleCavitySettings | None = None
+                 ) -> dict | None:
+        """
+        Set the properties of the rf field; in the default case, returns None.
 
-        rf_field_kwargs = {}
-        return rf_field_kwargs
+        Parameters
+        ----------
+        phi_bunch_abs : float
+            Absolute phase of the particle (bunch frequency).
+        w_kin_in : float
+            Kinetic energy at the Element entrance in MeV.
+        cavity_settings : SingleCavitySettings | None, optional
+            Cavity settings. Should be None in a non-accelerating element such
+            as a Drift or a broken FieldMap, and in accelerating elements
+            outside the fit process. The default is None.
 
-    def new_rf_param(self, phi_bunch_abs: float, w_kin_in: float,
-                     d_fit: dict | SingleCavitySettings | None = None) -> dict:
-        """Set the properties of the rf field (returns {} by default)."""
-        # Remove unused arguments warning:
-        del phi_bunch_abs, w_kin_in, d_fit
+        Returns
+        -------
+        rf_parameters : dict | None
+            Always None by default.
 
-        rf_field_kwargs = {}
-        return rf_field_kwargs
+        """
 
 
 # =============================================================================
@@ -337,72 +341,40 @@ class FieldMap(_Element):
         self.update_status('nominal')
 
     def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
-                 d_fit: dict | SingleCavitySettings | None = None) -> dict:
-        """Set the properties of the electric field."""
-        if isinstance(d_fit, SingleCavitySettings):
-            return self.new_rf_param(phi_bunch_abs, w_kin_in, d_fit)
-        if self.get('status') == 'failed':
-            rf_field_kwargs = {}
-            return rf_field_kwargs
+                 cavity_settings: SingleCavitySettings | None = None
+                 ) -> dict | None:
+        """
+        Set the properties of the rf field; specific to FieldMap.
 
-        # assert synch.get('synchronous'), "Out of synch particle to be " \
-            # + "implemented."
-        # FIXME By definition, the synchronous particle has a relative input
-        # phase of 0. phi_rf_rel = 0.
+        Parameters
+        ----------
+        phi_bunch_abs : float
+            Absolute phase of the particle (bunch frequency).
+        w_kin_in : float
+            Kinetic energy at the Element entrance in MeV.
+        cavity_settings : SingleCavitySettings | None, optional
+            Cavity settings. Should be None in a non-accelerating element such
+            as a Drift or a broken FieldMap, and in accelerating elements
+            outside the fit process. The default is None.
 
-        # Add the parameters that are independent from the cavity status
-        rf_field_kwargs = {
-            'omega0_rf': self.get('omega0_rf'),
-            'e_spat': self.acc_field.e_spat,
-            'section_idx': self.idx['section'],
-            'n_cell': self.get('n_cell'),
-            'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
+        Returns
+        -------
+        rf_parameters : dict | None
+            Holds parameters that Envelope1d needs to solve the motion in the
+            FieldMap. If this is a non-accelerating Element, return None.
 
-        # Set norm and phi_0 of the cavity
-        d_cav_param_setter = {
-            "nominal": _take_parameters_from_rf_field_object,
-            "rephased (ok)": _take_parameters_from_rf_field_object,
-            "compensate (ok)": _take_parameters_from_rf_field_object,
-            "compensate (not ok)": _take_parameters_from_rf_field_object,
-            "rephased (in progress)": _find_new_absolute_entry_phase,
-            "compensate (in progress)": _try_parameters_from_d_fit,
-        }
-        # Argument for the functions in d_cav_param_setter
-        arg = (self.acc_field,)
-        if self.elt_info['status'] == "compensate (in progress)":
-            arg = (d_fit, w_kin_in, self)
-
-        # Apply
-        rf_field_kwargs, abs_to_rel = \
-            d_cav_param_setter[self.elt_info['status']](
-                *arg, **rf_field_kwargs)
-
-        # Compute phi_0_rel in the general case. Compute instead phi_0_abs if
-        # the cavity is rephased
-        phi_rf_abs = phi_bunch_abs * rf_field_kwargs['n_cell']
-
-        rf_field_kwargs['phi_0_rel'], rf_field_kwargs['phi_0_abs'] = \
-            convert_phi_0(phi_rf_abs, abs_to_rel, rf_field_kwargs)
-
-        return rf_field_kwargs
-
-    def new_rf_param(self, phi_bunch_abs: float, w_kin_in: float,
-                     cavity_settings: SingleCavitySettings | None = None
-                     ) -> dict | None:
-        """Set the properties of the electric field."""
+        """
         status = self.elt_info['status']
-
         if status in ['none', 'failed']:
-            rf_parameters = {}
-            return rf_parameters
+            return None
 
-        # Add the parameters that are independent from the cavity status
-        rf_parameters = {
+        generic_rf_param = {
             'omega0_rf': self.get('omega0_rf'),
             'e_spat': self.acc_field.e_spat,
             'section_idx': self.idx['section'],
-            'n_cell': self.get('n_cell'),
-            'k_e': None, 'phi_0_rel': None, 'phi_0_abs': None}
+            'n_cell': self.get('n_cell')
+        }
+        norm_and_phases: dict[str, float | None]
 
         if status in ['nominal', 'rephased (ok)', 'compensate (ok)',
                       'compensate (not ok)']:
@@ -413,14 +385,15 @@ class FieldMap(_Element):
                                                     force_rephasing=True)
 
         elif status in ['compensate (in progress)']:
-            norm_and_phases, abs_to_rel = _try_this(cavity_settings,
-                                                    w_kin=w_kin_in, cav=self,
-                                                    **rf_parameters)
+            assert isinstance(cavity_settings, SingleCavitySettings)
+            norm_and_phases, abs_to_rel = \
+                _try_this(cavity_settings, w_kin_in, self, generic_rf_param)
         else:
             logging.error(f'{self} {status = } is not allowed.')
             return None
 
-        phi_rf_abs = phi_bunch_abs * rf_parameters['n_cell']
+        phi_rf_abs = phi_bunch_abs * generic_rf_param['n_cell']
+
         if abs_to_rel:
             norm_and_phases['phi_0_rel'] = phi_0_rel_corresponding_to(
                 norm_and_phases['phi_0_abs'], phi_rf_abs)
@@ -429,7 +402,7 @@ class FieldMap(_Element):
                 norm_and_phases['phi_0_rel'], phi_rf_abs)
 
         # '|' merges the two dictionaries
-        rf_parameters = rf_parameters | norm_and_phases
+        rf_parameters = generic_rf_param | norm_and_phases
         return rf_parameters
 
     def match_synch_phase(self, w_kin_in: float, phi_s_objective: float,
@@ -530,56 +503,6 @@ class End:
         pass
 
 
-def _take_parameters_from_rf_field_object(
-        a_f: RfField, **rf_field_kwargs: dict) -> tuple[dict, bool]:
-    """Extract RfField object parameters."""
-    rf_field_kwargs['k_e'] = a_f.get('k_e')
-    rf_field_kwargs['phi_0_rel'] = None
-    rf_field_kwargs['phi_0_abs'] = a_f.get('phi_0_abs')
-    abs_to_rel = True
-
-    # If we are calculating the transfer matrices of the nominal linac and the
-    # initial phases are defined in the .dat as relative phases, phi_0_abs is
-    # not defined
-    if a_f.get('phi_0_abs') is None:
-        rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
-        abs_to_rel = False
-
-    return rf_field_kwargs, abs_to_rel
-
-
-def _find_new_absolute_entry_phase(a_f: RfField, **rf_field_kwargs: dict
-                                   ) -> tuple[dict, bool]:
-    """Extract RfField parameters, except phi_0_abs that is recalculated."""
-    rf_field_kwargs['k_e'] = a_f.get('k_e')
-    rf_field_kwargs['phi_0_rel'] = a_f.get('phi_0_rel')
-    rf_field_kwargs['phi_0_abs'] = None
-    abs_to_rel = False
-    return rf_field_kwargs, abs_to_rel
-
-
-def _try_parameters_from_d_fit(d_fit: dict, w_kin: float, cav: FieldMap,
-                               **rf_field_kwargs: dict) -> tuple[dict, bool]:
-    """Extract parameters from d_fit."""
-    assert d_fit['flag'], "Inconsistency between cavity status and d_fit flag."
-    rf_field_kwargs['k_e'] = d_fit['k_e']
-    rf_field_kwargs['phi_0_rel'] = d_fit['phi']
-    rf_field_kwargs['phi_0_abs'] = d_fit['phi']
-
-    abs_to_rel = con.FLAG_PHI_ABS
-
-    if d_fit['phi_s fit']:
-        phi_0 = cav.match_synch_phase(w_kin, phi_s_objective=d_fit['phi'],
-                                      **rf_field_kwargs)
-        rf_field_kwargs['phi_0_rel'] = phi_0
-        rf_field_kwargs['phi_0_abs'] = None
-        abs_to_rel = False
-
-    # TODO modify the fit process in order to always fit on the relative phase.
-    # Absolute phase can easily be calculated afterwards.
-    return rf_field_kwargs, abs_to_rel
-
-
 def _get_from(rf_field: RfField, force_rephasing: bool = False
               ) -> tuple[dict, bool]:
     """Get norms and phases from RfField object."""
@@ -600,13 +523,14 @@ def _get_from(rf_field: RfField, force_rephasing: bool = False
 
 
 def _try_this(cavity_settings: SingleCavitySettings, w_kin: float,
-              cav: FieldMap, **rf_parameters: dict) -> tuple[dict, bool]:
+              cav: FieldMap, generic_rf_param: dict[str, Any]
+              ) -> tuple[dict, bool]:
     """Extract parameters from cavity_parameters."""
     if cavity_settings.phi_s is not None:
-        rf_parameters['k_e'] = cavity_settings.k_e
+        generic_rf_param['k_e'] = cavity_settings.k_e
         phi_0_rel = cav.phi_0_rel_matching_this(cavity_settings.phi_s,
                                                 w_kin_in=w_kin,
-                                                **rf_parameters)
+                                                **generic_rf_param)
 
         norm_and_phases = {
             'k_e': cavity_settings.k_e,
@@ -615,7 +539,12 @@ def _try_this(cavity_settings: SingleCavitySettings, w_kin: float,
         abs_to_rel = False
         return norm_and_phases, abs_to_rel
 
-    norm_and_phases = {key: cavity_settings.get(key, to_numpy=False)
+    norm_and_phases = {key: val
+                       if isinstance((val := cavity_settings.get(key)), float)
+                       else None
+                       for key in ['k_e', 'phi_0_abs', 'phi_0_rel']}
+
+    norm_and_phases = {key: cavity_settings.get(key)
                        for key in ['k_e', 'phi_0_abs', 'phi_0_rel']}
     abs_to_rel = con.FLAG_PHI_ABS
     return norm_and_phases, abs_to_rel

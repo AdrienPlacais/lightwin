@@ -67,7 +67,7 @@ class Envelope1D(BeamCalculator):
                     and elt in set_of_cavity_settings):
                 cavity_settings = set_of_cavity_settings[elt]
 
-            rf_field_kwargs = elt.new_rf_param(phi_abs, w_kin, cavity_settings)
+            rf_field_kwargs = elt.rf_param(phi_abs, w_kin, cavity_settings)
             elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
 
             single_elts_results.append(elt_results)

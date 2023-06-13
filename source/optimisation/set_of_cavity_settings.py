@@ -7,6 +7,10 @@ Created on Fri Jun  9 15:47:04 2023.
 """
 from dataclasses import dataclass
 import logging
+from typing import Any, Optional
+import numpy as np
+
+from util.helper import recursive_items, recursive_getter
 
 
 @dataclass
@@ -28,6 +32,33 @@ class SingleCavitySettings:
             self.phi_0_rel = None
             self.phi_s = None
 
+    def has(self, key: str) -> bool:
+        """Tell if the required attribute is in this class."""
+        return key in recursive_items(vars(self))
+
+    def get(self, *keys: str, to_deg: bool = False, **kwargs: dict
+            ) -> tuple[Any]:
+        """Shorthand to get attributes."""
+        val: dict[str, Any] = {}
+        for key in keys:
+            val[key] = []
+
+        for key in keys:
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            val[key] = recursive_getter(key, vars(self), **kwargs)
+
+            if val[key] is not None and to_deg and 'phi' in key:
+                val[key] = np.rad2deg(val[key])
+
+        out = [val[key] for key in keys]
+        if len(out) == 1:
+            return out[0]
+
+        return tuple(out)
+
     def _is_valid_phase_input(self) -> bool:
         """Assert that no more than one phase was given as input."""
         phases = [self.phi_0_abs, self.phi_0_rel, self.phi_s]
@@ -36,6 +67,7 @@ class SingleCavitySettings:
         if number_of_given_phases > 1:
             return False
         return True
+
 
 @dataclass
 class SetOfCavitySettings(dict[object, SingleCavitySettings]):
@@ -47,4 +79,3 @@ class SetOfCavitySettings(dict[object, SingleCavitySettings]):
         my_set = {single_setting.cavity: single_setting
                   for single_setting in self.__cavity_settings}
         super().__init__(my_set)
-
