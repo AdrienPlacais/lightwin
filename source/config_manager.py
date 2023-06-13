@@ -9,7 +9,7 @@ Handle simulation parameters. In particular:
     - what are the initial properties of the beam?
     - which cavities are broken?
     - how should they be fixed?
-    - simulation parameters to give to TW?
+    - simulation parameters to give to TW for a 'post' simulation?
 
 TODO: maybe make test and config to dict more compact?
 
@@ -52,9 +52,10 @@ TRACEWIN_EXECUTABLES = {
 }
 
 
-def process_config(config_path: str, project_path: str, key_solver: str,
-                   key_beam: str, key_wtf: str, key_post_tw: str | None = None,
-                   ) -> tuple[dict, dict, dict, dict]:
+def process_config(config_path: str, project_path: str,
+                   key_beam_calculator: str, key_beam: str, key_wtf: str,
+                   key_post_tw: str | None = None,
+                   ) -> tuple[dict, dict, dict, dict | None]:
     """
     Frontend for config: load .ini, test it, return its content as dicts.
 
@@ -64,8 +65,8 @@ def process_config(config_path: str, project_path: str, key_solver: str,
         Path to the .ini file.
     project_path : str
         Path to the project folder, to keep a copy of the used .ini.
-    key_solver : str
-        Name of the Section containing solver in the .ini file.
+    key_beam_calculator : str
+        Name of the Section containing beam_calculator in the .ini file.
     key_beam : str
         Name of the Section containing beam parameters in the .ini file.
     key_wtf : str
@@ -77,8 +78,8 @@ def process_config(config_path: str, project_path: str, key_solver: str,
 
     Returns
     -------
-    solver : dict
-        Holds the solver used for simulation.
+    beam_calculator : dict
+        Holds the beam_calculator used for simulation.
     beam : dict
         Dictionary holding all beam parameters.
     wtf : dict
@@ -112,79 +113,82 @@ def process_config(config_path: str, project_path: str, key_solver: str,
     # outputs!!
     config.read(config_path)
 
-    _test_config(config, key_solver, key_beam, key_wtf, key_post_tw)
+    _test_config(config, key_beam_calculator, key_beam, key_wtf, key_post_tw)
 
-    solver, beam, wtf, post_tw = _config_to_dict(
-        config, key_solver=key_solver, key_beam=key_beam, key_wtf=key_wtf,
-        key_post_tw=key_post_tw)
+    beam_calculator, beam, wtf, post_tw = _config_to_dict(
+        config, key_beam_calculator=key_beam_calculator, key_beam=key_beam,
+        key_wtf=key_wtf, key_post_tw=key_post_tw)
 
     # Remove unused Sections, save resulting file
     _ = [config.remove_section(key) for key in list(config.keys())
-         if key not in ['DEFAULT', key_solver, key_beam, key_wtf, key_post_tw]]
+         if key not in ['DEFAULT', key_beam_calculator, key_beam, key_wtf,
+                        key_post_tw]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 
-    _solver_make_global(solver)
+    _beam_calculator_make_global(beam_calculator)
     _beam_make_global(beam)
-    return solver, beam, wtf, post_tw
+    return beam_calculator, beam, wtf, post_tw
 
 
-def _test_config(config: configparser.ConfigParser, key_solver: str,
-                 key_beam: str, key_wtf: str, key_post_tw: str) -> None:
+def _test_config(config: configparser.ConfigParser, key_beam_calculator: str,
+                 key_beam: str, key_wtf: str, key_post_tw: str | None) -> None:
     """Run all the configuration tests, and save the config if ok."""
-    _test_solver(config[key_solver])
+    _test_beam_calculator(config[key_beam_calculator])
     _test_beam(config[key_beam])
     _test_wtf(config[key_wtf])
-    _test_post_tw(config[key_post_tw])
+    if key_post_tw is not None:
+        _test_post_tw(config[key_post_tw])
 
 
-def _config_to_dict(config: configparser.ConfigParser, key_solver: str,
-                    key_beam: str, key_wtf: str, key_post_tw: str) -> dict:
+def _config_to_dict(config: configparser.ConfigParser,
+                    key_beam_calculator: str, key_beam: str, key_wtf: str,
+                    key_post_tw: str | None
+                    ) -> tuple[dict, dict, dict, dict | None]:
     """To convert the configparser into the formats required by LightWin."""
-    solver = _config_to_dict_solver(config[key_solver])
+    beam_calculator = _config_to_dict_beam_calculator(
+        config[key_beam_calculator])
     beam = _config_to_dict_beam(config[key_beam])
     wtf = _config_to_dict_wtf(config[key_wtf])
-    post_tw = _config_to_dict_tw(config[key_post_tw])
-    return solver, beam, wtf, post_tw
-
-
-# TODO
-def generate_list_of_faults():
-    """Generate a proper (list of) faults."""
-    logging.critical("Not implemented.")
-    failed = None
-    return failed
+    post_tw = None
+    if key_post_tw is not None:
+        post_tw = _config_to_dict_tw(config[key_post_tw])
+    return beam_calculator, beam, wtf, post_tw
 
 
 # =============================================================================
-# Everything related to solver (particles motion solver) (TraceWin @ bottom)
+# Everything related to beam_calculator (particles motion beam_calculator)
+# (TraceWin @ bottom)
 # =============================================================================
-def _test_solver(c_solver: configparser.SectionProxy) -> None:
-    """Test the appropriate solver (LightWin or TraceWin)."""
+def _test_beam_calculator(c_beam_calculator: configparser.SectionProxy
+                          ) -> None:
+    """Test the appropriate beam_calculator (LightWin or TraceWin)."""
     passed = True
     mandatory = ["TOOL"]
     for key in mandatory:
-        if key not in c_solver.keys():
+        if key not in c_beam_calculator.keys():
             logging.error(f"Key {key} is mandatory and missing.")
             passed = False
 
-    valid_tools = {'LightWin': _test_solver_lightwin,
+    valid_tools = {'LightWin': _test_beam_calculator_lightwin,
                    'TraceWin': _test_tracewin}
-    my_tool = c_solver["TOOL"]
+    my_tool = c_beam_calculator["TOOL"]
     if my_tool not in valid_tools:
         logging.error(f"{my_tool} is an invalid value for TOOL. "
                       + f"Authorized values are: {valid_tools.keys()}.")
         passed = False
 
-    if not passed or not valid_tools[my_tool](c_solver):
-        raise IOError("Error treating the solver parameters.")
-    logging.info(f"solver parameters {c_solver.name} tested with success.")
+    if not passed or not valid_tools[my_tool](c_beam_calculator):
+        raise IOError("Error treating the beam_calculator parameters.")
+    logging.info(f"beam_calculator parameters {c_beam_calculator.name} tested "
+                 + "with success.")
 
 
-def _test_solver_lightwin(c_solver: configparser.SectionProxy) -> bool:
+def _test_beam_calculator_lightwin(
+        c_beam_calculator: configparser.SectionProxy) -> bool:
     """
-    Test consistency of the LightWin solver.
+    Test consistency of the LightWin beam_calculator.
 
     FLAF_PHI_ABS: to determine if the phases in the cavities are absolute or
     relative.
@@ -205,53 +209,55 @@ def _test_solver_lightwin(c_solver: configparser.SectionProxy) -> bool:
     """
     mandatory = ["FLAG_CYTHON", "METHOD", "FLAG_PHI_ABS"]
     for key in mandatory:
-        if key not in c_solver.keys():
+        if key not in c_beam_calculator.keys():
             logging.error(f"{key} is mandatory and missing.")
             return False
 
-    if c_solver["METHOD"] not in ["leapfrog", "RK"]:
-        logging.error("Wrong value for METHOD, solver not implemented.")
+    if c_beam_calculator["METHOD"] not in ["leapfrog", "RK"]:
+        logging.error("Wrong value for METHOD, "
+                      + "beam_calculator not implemented.")
         return False
 
-    if "N_STEPS_PER_CELL" not in c_solver.keys():
+    if "N_STEPS_PER_CELL" not in c_beam_calculator.keys():
         logging.warning("Number of integration steps per cell not precised. "
                         + "Will use default values.")
         default = {'leapfrog': '40', 'RK': '20'}
-        c_solver["N_STEPS_PER_CELL"] = default["METHOD"]
+        c_beam_calculator["N_STEPS_PER_CELL"] = default["METHOD"]
 
-    if c_solver.getboolean("FLAG_CYTHON"):
-        c_solver["METHOD"] += "_c"
+    if c_beam_calculator.getboolean("FLAG_CYTHON"):
+        c_beam_calculator["METHOD"] += "_c"
     else:
-        c_solver["METHOD"] += "_p"
+        c_beam_calculator["METHOD"] += "_p"
 
     return True
 
 
-def _config_to_dict_solver(c_solver: configparser.SectionProxy) -> dict:
-    """Save solver info into a dict."""
-    solver = {}
+def _config_to_dict_beam_calculator(
+        c_beam_calculator: configparser.SectionProxy) -> dict:
+    """Save beam_calculator info into a dict."""
+    beam_calculator = {}
     getter = {
-        'FLAG_CYTHON': c_solver.getboolean,
-        'FLAG_PHI_ABS': c_solver.getboolean,
-        'N_STEPS_PER_CELL': c_solver.getint,
+        'FLAG_CYTHON': c_beam_calculator.getboolean,
+        'FLAG_PHI_ABS': c_beam_calculator.getboolean,
+        'N_STEPS_PER_CELL': c_beam_calculator.getint,
     }
-    for key in c_solver.keys():
+    for key in c_beam_calculator.keys():
         key = key.upper()
         if key in getter:
-            solver[key] = getter[key](key)
+            beam_calculator[key] = getter[key](key)
             continue
-        solver[key] = c_solver.get(key.lower())
+        beam_calculator[key] = c_beam_calculator.get(key.lower())
 
-    return solver
+    return beam_calculator
 
 
-def _solver_make_global(solver: dict) -> None:
+def _beam_calculator_make_global(beam_calculator: dict) -> None:
     """Update the values of some variables so they can be used everywhere."""
     global FLAG_CYTHON, FLAG_PHI_ABS, N_STEPS_PER_CELL, METHOD
-    FLAG_CYTHON = solver["FLAG_CYTHON"]
-    FLAG_PHI_ABS = solver["FLAG_PHI_ABS"]
-    N_STEPS_PER_CELL = solver["N_STEPS_PER_CELL"]
-    METHOD = solver["METHOD"]
+    FLAG_CYTHON = beam_calculator["FLAG_CYTHON"]
+    FLAG_PHI_ABS = beam_calculator["FLAG_PHI_ABS"]
+    N_STEPS_PER_CELL = beam_calculator["N_STEPS_PER_CELL"]
+    METHOD = beam_calculator["METHOD"]
 
 
 # =============================================================================
@@ -682,15 +688,15 @@ def _test_misc(c_wtf: configparser.SectionProxy) -> bool:
 # =============================================================================
 # Everything related to TraceWin simulations
 # =============================================================================
-def _test_tracewin(c_solver: configparser.SectionProxy) -> bool:
+def _test_tracewin(c_beam_calculator: configparser.SectionProxy) -> bool:
     """Specific test for the TraceWin simulations."""
     mandatory = ["SIMULATION TYPE"]
     for key in mandatory:
-        if key not in c_solver.keys():
+        if key not in c_beam_calculator.keys():
             logging.error(f"{key} is mandatory and missing.")
             return False
 
-    simulation_type = c_solver["SIMULATION TYPE"]
+    simulation_type = c_beam_calculator["SIMULATION TYPE"]
     if simulation_type not in TRACEWIN_EXECUTABLES:
         logging.error(f"The simulation type {simulation_type} was not "
                       + "recognized. Authorized values: "
@@ -708,10 +714,10 @@ def _test_tracewin(c_solver: configparser.SectionProxy) -> bool:
                       + "should update the TRACEWIN_EXECUTABLES dictionary in "
                       + "config_manager.py.")
         return False
-    c_solver["executable"] = tw_exe
+    c_beam_calculator["executable"] = tw_exe
 
     # TODO: implement all TW options
-    for key in c_solver.keys():
+    for key in c_beam_calculator.keys():
         if "Ele" in key:
             logging.error("Are you trying to use the Ele[n][v] key? It is not "
                           + "implemented and may clash with LightWin.")
@@ -723,7 +729,7 @@ def _test_tracewin(c_solver: configparser.SectionProxy) -> bool:
             return False
 
         if key in ['partran', 'toutatis']:
-            if c_solver.get(key) not in ['0', '1']:
+            if c_beam_calculator.get(key) not in ['0', '1']:
                 logging.error("partran and toutatis keys should be 0 or 1.")
                 return False
     return True
@@ -817,9 +823,10 @@ if __name__ == '__main__':
     PROJECT_PATH = 'bla/'
 
     # Load config
-    wtfs = process_config(CONFIG_PATH, PROJECT_PATH,
-                          key_solver='solver.lightwin.envelope_longitudinal',
-                          key_beam='beam.jaea',
-                          key_wtf='wtf.k_out_of_n',
-                          key_post_tw='post_tracewin.quick_debug')
+    wtfs = process_config(
+        CONFIG_PATH, PROJECT_PATH,
+        key_beam_calculator='beam_calculator.lightwin.envelope_longitudinal',
+        key_beam='beam.jaea',
+        key_wtf='wtf.k_out_of_n',
+        key_post_tw='post_tracewin.quick_debug')
     print(f"{wtfs}")

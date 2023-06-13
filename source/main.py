@@ -27,7 +27,7 @@ from visualization import plot
 if __name__ == '__main__':
     FILEPATH = "../data/MYRRHA/MYRRHA_Transi-100MeV.dat"
     CONFIG_PATH = 'myrrha.ini'
-    KEY_SOLVER = 'solver.lightwin.envelope_longitudinal'
+    KEY_BEAM_CALCULATOR = 'beam_calculator.lightwin.envelope_longitudinal'
     KEY_BEAM = 'beam.myrrha'
     KEY_WTF = 'wtf.k_out_of_n'
     KEY_TW = 'post_tracewin.quick_debug'
@@ -76,8 +76,9 @@ if __name__ == '__main__':
 
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
-    solver, beam, wtf, post_tw = conf_man.process_config(
-        CONFIG_PATH, PROJECT_FOLDER, KEY_SOLVER, KEY_BEAM, KEY_WTF, KEY_TW)
+    beam_calculator_properties, beam, wtf, post_tw = conf_man.process_config(
+        CONFIG_PATH, PROJECT_FOLDER, KEY_BEAM_CALCULATOR, KEY_BEAM, KEY_WTF,
+        KEY_TW)
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
