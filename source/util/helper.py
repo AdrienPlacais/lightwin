@@ -15,7 +15,7 @@ import pandas as pd
 # =============================================================================
 # For getter and setters
 # =============================================================================
-def recursive_items(dictionary: dict) -> Iterator[str]:
+def recursive_items(dictionary: dict[Any, Any]) -> Iterator[str]:
     """Recursively list all keys of a possibly nested dictionary."""
     for key, value in dictionary.items():
         if isinstance(value, dict):
@@ -52,7 +52,7 @@ def recursive_getter(key: str, dictionary: dict, **kwargs: dict) -> Any:
 # =============================================================================
 # For lists manipulations
 # =============================================================================
-def flatten(nest: list[int | float, ...]) -> Iterator[int | float]:
+def flatten(nest: list[int | float]) -> Iterator[int | float]:
     """Flatten nested list of lists of..."""
     for _in in nest:
         if isinstance(_in, Iterable) and not isinstance(_in, (str, bytes)):
@@ -65,7 +65,7 @@ def flatten(nest: list[int | float, ...]) -> Iterator[int | float]:
 # Messages functions
 # =============================================================================
 # TODO: transform inputs into strings if they are not already strings
-def printc(*args: list[str], color: str = 'cyan') -> None:
+def printc(*args: str, color: str = 'cyan') -> None:
     """Print colored messages."""
     dict_c = {
         'red': '\x1B[31m',
@@ -81,7 +81,7 @@ def printc(*args: list[str], color: str = 'cyan') -> None:
     print('')
 
 
-def pd_output(message: str, header: str = '') -> str:
+def pd_output(message: pd.DataFrame, header: str = '') -> str:
     """Give a string describing a pandas dataframe."""
     tot = 100
     my_output = header + "\n" + "-" * tot + "\n" + message.to_string()
@@ -105,7 +105,7 @@ def pd_output(message: str, header: str = '') -> str:
 
 
 def resample(x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
-             ) -> tuple[np.ndarray]:
+             ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Downsample y_highres(olution) to x_1 or x_2 (the one with low res)."""
     assert x_1.shape == y_1.shape
     assert x_2.shape == y_2.shape
