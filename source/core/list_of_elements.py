@@ -89,15 +89,35 @@ class ListOfElements(list):
         # implicit else
         return tuple(out)
 
-    def _indiv_to_cumul_transf_mat(self, l_r_zz_elt: list[np.ndarray],
-                                   n_steps: int) -> np.ndarray:
-        """Compute cumulated transfer matrix."""
-        # Compute transfer matrix of l_elts
-        arr_tm_cumul = np.full((n_steps, 2, 2), np.NaN)
-        arr_tm_cumul[0] = self.tm_cumul_in
-        for i in range(1, n_steps):
-            arr_tm_cumul[i] = l_r_zz_elt[i - 1] @ arr_tm_cumul[i - 1]
-        return arr_tm_cumul
+
+def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
+                              r_zz_elt: list[np.ndarray], n_steps: int
+                              ) -> np.ndarray:
+    """
+    Compute cumulated transfer matrix.
+
+    Parameters
+    ----------
+    tm_cumul_in : np.ndarray
+        Cumulated transfer matrix @ first element. Should be eye matrix if we
+        are at the first element.
+    r_zz_elt : list[np.ndarray]
+        List of individual transfer matrix of the elements.
+    n_steps : int
+        Number of elements or elements slices.
+
+    Returns
+    -------
+    cumulated_transfer_matrices : np.ndarray
+        Cumulated transfer matrices.
+
+    """
+    cumulated_transfer_matrices = np.full((n_steps, 2, 2), np.NaN)
+    cumulated_transfer_matrices[0] = tm_cumul_in
+    for i in range(1, n_steps):
+        cumulated_transfer_matrices[i] = \
+            r_zz_elt[i - 1] @ cumulated_transfer_matrices[i - 1]
+    return cumulated_transfer_matrices
 
 
 def equiv_elt(elts: ListOfElements | list[_Element, ...],

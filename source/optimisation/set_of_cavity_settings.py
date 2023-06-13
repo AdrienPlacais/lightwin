@@ -7,7 +7,7 @@ Created on Fri Jun  9 15:47:04 2023.
 """
 from dataclasses import dataclass
 import logging
-from typing import Any, Optional
+from typing import Any
 import numpy as np
 
 from util.helper import recursive_items, recursive_getter

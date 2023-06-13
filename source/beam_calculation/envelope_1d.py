@@ -5,10 +5,8 @@ Created on Mon Jun 12 08:24:37 2023.
 
 @author: placais
 
-TODO: access to listofelements._indiv_to_cumul_transf_mat
-TODO: run and run_with_this have too much in common, should mutualize
 """
-from core.list_of_elements import ListOfElements
+from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
 from core.emittance import beam_parameters_zdelta
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
@@ -113,8 +111,8 @@ class Envelope1D(BeamCalculator):
             for results in single_elts_results
             for i in range(results['r_zz'].shape[0])
         ]
-        tm_cumul = elts._indiv_to_cumul_transf_mat(
-            r_zz_elt, len(w_kin))
+        tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in, r_zz_elt,
+                                             len(w_kin))
 
         beam_params = beam_parameters_zdelta(tm_cumul)
 
