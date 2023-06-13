@@ -6,6 +6,8 @@ Created on Mon Jun 12 08:24:37 2023.
 @author: placais
 
 """
+from dataclasses import dataclass
+
 from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
 from core.emittance import beam_parameters_zdelta
 from beam_calculation.beam_calculator import BeamCalculator
@@ -13,8 +15,14 @@ from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
 
+@dataclass
 class Envelope1D(BeamCalculator):
     """The fastest beam calculator, adapted to high energies."""
+
+    FLAG_PHI_ABS: bool
+    FLAG_CYTHON: bool
+    N_STEPS_PER_CELL: int
+    METHOD: str
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """

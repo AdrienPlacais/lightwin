@@ -14,11 +14,11 @@ import datetime
 import pandas as pd
 
 import config_manager as conf_man
-from beam_calculation.envelope_1d import Envelope1D
 import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
 import tracewin.interface
 from beam_calculation.tracewin import TraceWinBeamCalculator
+from beam_calculation.factory import init_calc_with
 from util import helper, output, evaluate
 from util.log_manager import set_up_logging
 from visualization import plot
@@ -76,14 +76,14 @@ if __name__ == '__main__':
 
     set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
 
-    beam_calculator_properties, beam, wtf, post_tw = conf_man.process_config(
+    beam_calculator_parameters, beam, wtf, post_tw = conf_man.process_config(
         CONFIG_PATH, PROJECT_FOLDER, KEY_BEAM_CALCULATOR, KEY_BEAM, KEY_WTF,
         KEY_TW)
 
     # Reference linac
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
 
-    beam_calculator = Envelope1D()
+    beam_calculator = init_calc_with(beam_calculator_parameters)
     simulation_output = beam_calculator.run(ref_linac.elts)
     ref_linac.keep_this(simulation_output=simulation_output,
                         l_elts=ref_linac.elts)
