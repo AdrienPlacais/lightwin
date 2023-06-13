@@ -5,7 +5,8 @@ Created on Wed May 17 09:08:47 2023.
 
 @author: placais
 
-Refactoring FaultScenario
+This module holds FaultScenario, a list-based class holding all the Fault
+objets to be fixed.
 """
 import logging
 import numpy as np
@@ -68,13 +69,10 @@ class FaultScenario(list):
         for fault, comp in zip(gathered_fault_idx, gathered_comp_idx):
             elts_subset, objectives_positions = \
                 position.compensation_zone(fix_acc, wtf, fault, comp)
-            # Here objectives_positions is Element index
-            # Ultimately I'll need solver index (envelope) or Element index
-            # (TW)
-            # WARNING! mesh index will be different from ref to fix... Maybe it
-            # would be better to stick to the exit of an _Element name
+
             faulty_cavities = [fix_acc.l_cav[i] for i in fault]
             compensating_cavities = [fix_acc.l_cav[i] for i in comp]
+
             faults.append(
                 Fault(self.ref_acc, self.fix_acc, self.wtf, faulty_cavities,
                       compensating_cavities, elts_subset,

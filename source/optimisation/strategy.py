@@ -34,18 +34,15 @@ def sort_and_gather_faults(fix: Accelerator, wtf: dict,
     If two faults need the same compensating cavities, they are gathered, their
     compensating cavities are put in common and they will be fixed together.
     """
-    # Check nature, convert to CAVITY index if necessary
     for my_list in [fault_idx, comp_idx]:
         assert _only_field_maps(fix, my_list, idx=wtf['idx'])
 
         if wtf['idx'] == 'element':
             my_list = _to_cavity_idx(fix, my_list)
 
-    # If manual, we are done
     if wtf['strategy'] == 'manual':
         return fault_idx, comp_idx
 
-    # If not, gather and sort with proper method
     gathered_fault_idx, gathered_comp_idx = _gather(fix, fault_idx, wtf)
     return gathered_fault_idx, gathered_comp_idx
 
@@ -53,10 +50,10 @@ def sort_and_gather_faults(fix: Accelerator, wtf: dict,
 def _gather(fix: Accelerator, fault_idx: list[int], wtf: dict
             ) -> tuple[list[list[int]], list[list[int]]]:
     """Gather faults to be fixed together and associated compensating cav."""
-    if wtf['strategy'] not in D_SORT_AND_GATHER:
+    if wtf['strategy'] not in SORT_AND_GATHERERS:
         logging.error('TMP: strategy not reimplemented.')
 
-    fun_sort = D_SORT_AND_GATHER[wtf['strategy']]
+    fun_sort = SORT_AND_GATHERERS[wtf['strategy']]
     r_comb = 2
 
     flag_gathered = False
@@ -93,6 +90,9 @@ def _gather(fix: Accelerator, fault_idx: list[int], wtf: dict
             if i == i_max:
                 flag_gathered = True
 
+    gathered_comp = [list(filter(lambda idx: idx not in fault_idx,
+                                 sublist))
+                     for sublist in gathered_comp]
     return gathered_faults, gathered_comp
 
 
@@ -154,7 +154,7 @@ def _l_neighboring_lattices(lin: Accelerator, fault_idx: list[int],
 
 
 def _all_cavities(lin: Accelerator, fault_idx: list[int], wtf: dict
-                 ) -> list[int]:
+                  ) -> list[int]:
     """Select all the cavities of the linac."""
     cavities = lin.l_cav
     idx_altered = [idx for idx in range(len(cavities))]
@@ -218,7 +218,7 @@ def _to_cavity_idx(lin: Accelerator,
     return None
 
 
-D_SORT_AND_GATHER = {
+SORT_AND_GATHERERS = {
     'k out of n': _k_neighboring_cavities,
     'l neighboring lattices': _l_neighboring_lattices,
     'global': _all_cavities,

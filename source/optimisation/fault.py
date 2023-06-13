@@ -35,10 +35,6 @@ class Fault:
         self.elts = self._create_list_of_elements(elts)
         self.elt_eval_objectives = elt_eval_objectives
 
-        logging.warning("Dirty fix to be moved to strategy. Manually removed "
-                        + "failed cavities from list of compensating.")
-        self.comp_cav = [cav for cav in comp_cav if cav not in failed_cav]
-
         self.fit_info = {
             'X': [],                # Solution
             'X_0': [],              # Initial guess
@@ -73,9 +69,7 @@ class Fault:
         ----------
         beam_calculator_run_with_this : Callable[[
                 SetOfCavitySettings, ListOfElements, bool], SimulationOutput]
-            The run_with_this method from a `BeamCalculator` object. We use
-            `partial` function to always use the same argument for the `elts`
-            `ListOfElements`.
+            The `run_with_this` method from a `BeamCalculator` object.
 
         Returns
         -------
