@@ -4,10 +4,7 @@
 Created on Tue Nov 30 15:43:39 2021.
 
 @author: placais
-
-TODO : phi_s_rad_objective should not be used too
 """
-import logging
 import cmath
 import numpy as np
 
@@ -53,7 +50,6 @@ class RfField():
 
         self.cav_params = {'v_cav_mv': np.NaN,
                            'phi_s': np.NaN}
-        self.phi_s_rad_objective = None
 
         # Initialized later as it depends on the Section the cavity is in
         self.omega0_rf, self.n_cell, self.n_z = None, None, None
@@ -86,7 +82,7 @@ class RfField():
         # implicit else:
         return tuple(out)
 
-    def init_freq_ncell(self, f_mhz, n_cell):
+    def set_pulsation_ncell(self, f_mhz, n_cell):
         """Initialize the frequency and the number of cells."""
         self.omega0_rf = 2e6 * np.pi * f_mhz
         self.n_cell = n_cell
