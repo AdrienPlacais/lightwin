@@ -17,15 +17,16 @@ from typing import Any
 from functools import partial
 import numpy as np
 
-from util.helper import recursive_items, recursive_getter
 from core.elements import _Element
+import tracewin.interface
+from util.helper import recursive_items, recursive_getter
 
 
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
-    def __init__(self, l_elts: list[_Element], w_kin: float, phi_abs: float,
-                 tm_cumul: np.ndarray | None = None, full_linac: bool = True
+    def __init__(self, elts: list[_Element], w_kin: float, phi_abs: float,
+                 tm_cumul: np.ndarray | None = None, first_init: bool = True
                  ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.
@@ -48,33 +49,37 @@ class ListOfElements(list):
         tm_cumul : np.ndarray, optional
             Cumulated transfer matrix (2, 2) at the entrance of the first
             _Element. The default is None.
-        full_linac : bool, optional
+        first_init : bool, optional
             To indicate if this a full linac or only a portion (fit process).
             The default is True.
 
         """
-        if full_linac:
-            logging.info("Init ListOfElements ecompassing all linac.")
+        super().__init__(elts)
+        self.w_kin_in = w_kin
+        self.phi_abs_in = phi_abs
+
+        if first_init:
+            logging.info("First initialisation of ListOfElements, ecompassing "
+                         + "all linac.")
+            self.first_initialisation_setters()
+
             if tm_cumul is not None:
                 logging.warning(
                     "You do not need to provide a cumulated transfer matrix "
                     + "to initialize this ListOfElements. It starts at the "
                     + "beginning of the linac and the matrix is automatically "
                     + "the eye matrix.")
-            tm_cumul = np.eye(2)
+            self.tm_cumul_in = np.eye(2)
 
         else:
-            logging.info(f"Init ListOfElements from {l_elts[0]} to "
-                         + f"{l_elts[-1]}.")
+            logging.info(f"Initalisation of ListOfElements from already "
+                         f"initialized elements: {elts[0]} to {elts[-1]}.")
+
             if np.any(np.isnan(tm_cumul)):
                 logging.error("Previous transfer matrix was not calculated.")
+            self.tm_cumul_in = tm_cumul
 
-        super().__init__(l_elts)
         logging.info(f"{w_kin = }, {phi_abs = }")
-        self.w_kin_in = w_kin
-        self.phi_abs_in = phi_abs
-
-        self.tm_cumul_in = tm_cumul
         self._l_cav = filter_cav(self)
 
     @property
@@ -126,6 +131,34 @@ class ListOfElements(list):
         # implicit else
         return tuple(out)
 
+    def first_initialisation_setters(self) -> None:
+        """
+        Set the _Element parameters that are dependent from one to another.
+
+        In particular: absolute positions, element number, absolute indexes.
+        """
+        tracewin.interface.give_name(self)
+        # self._set_absolute_positions()
+        # self._set_indexes()
+
+    def set_absolute_positions(self) -> None:
+        """Init solvers and absolute positions of elements."""
+        pos_in, pos_out = 0., 0.
+        for elt in self:
+            elt.init_solvers()
+
+            pos_in = pos_out
+            pos_out += elt.length_m
+            elt.solver_param['abs_mesh'] = elt.get('rel_mesh') + pos_in
+
+    def set_indexes(self) -> int:
+        """Set the absolute indexes of the elements."""
+        idx_in, idx_out = 0, 0
+        for elt in self:
+            idx_in = idx_out
+            idx_out += elt.get('n_steps')
+            elt.idx['s_in'], elt.idx['s_out'] = idx_in, idx_out
+        return idx_out
 
 def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
                               r_zz_elt: list[np.ndarray], n_steps: int

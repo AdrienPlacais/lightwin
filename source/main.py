@@ -29,7 +29,7 @@ if __name__ == '__main__':
     CONFIG_PATH = 'myrrha.ini'
     KEY_BEAM_CALCULATOR = 'beam_calculator.lightwin.envelope_longitudinal'
     KEY_BEAM = 'beam.myrrha'
-    KEY_WTF = 'wtf.k_out_of_n'
+    KEY_WTF = 'wtf.quick_debug'
     KEY_TW = 'post_tracewin.quick_debug'
 
     # =========================================================================
@@ -38,9 +38,9 @@ if __name__ == '__main__':
     FLAG_BREAK = True
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = True
-    RECOMPUTE_REFERENCE = True
-    FLAG_EVALUATE = True
+    FLAG_TW = False
+    RECOMPUTE_REFERENCE = False
+    FLAG_EVALUATE = False
 
     # =========================================================================
     # Outputs

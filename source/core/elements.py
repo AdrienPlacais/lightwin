@@ -42,14 +42,6 @@ except ModuleNotFoundError:
 
 import core.transfer_matrices_p as tm_p
 
-# Force reload of the module constants, as a modification of con.METHOD between
-# two executions is not taken into account (alternative is to restart kernel
-# each time):
-# import importlib
-# importlib.reload(constants)
-# print(f"con.METHOD: {con.METHOD}")
-
-
 # =============================================================================
 # Module dictionaries
 # =============================================================================
@@ -58,14 +50,12 @@ d_mod = {'p': tm_p,     # Pure Python
          'c': tm_c}     # Cython
 d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
              'leapfrog': lambda mod: mod.z_field_map_leapfrog,
-             'jm': lambda mod: mod.z_field_map_jm,
              'non_acc': lambda mod: mod.z_drift}
 
 # Dict to select the proper number of steps for the transfer matrix, the
 # energy, the phase, etc
 d_n_steps = {'RK': lambda elt: con.N_STEPS_PER_CELL * elt.get('n_cell'),
              'leapfrog': lambda elt: con.N_STEPS_PER_CELL * elt.get('n_cell'),
-             'jm': lambda elt: elt.get('n_z'),
              'drift': lambda elt: 1}
 
 

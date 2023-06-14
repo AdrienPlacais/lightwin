@@ -6,6 +6,7 @@ Created on Mon Jun 12 08:24:37 2023.
 @author: placais
 
 """
+import logging
 from dataclasses import dataclass
 
 from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
@@ -23,6 +24,19 @@ class Envelope1D(BeamCalculator):
     FLAG_CYTHON: bool
     N_STEPS_PER_CELL: int
     METHOD: str
+
+    def __post_init__(self):
+        """Set the proper motion integration function, according to inputs."""
+        if self.FLAG_CYTHON:
+            try:
+                import core.transfer_matrices_c as transf_mat
+            except ModuleNotFoundError:
+                logging.error("Cython version of transfer_matrices was not "
+                              + "compiled. Check util/setup.py.")
+                raise ModuleNotFoundError("Cython not compiled.")
+        else:
+            import core.transfer_matrices_p as transf_mat
+        print(transf_mat)
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """

@@ -55,22 +55,21 @@ class Accelerator():
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent = tracewin.load.dat_file(dat_filepath)
-        l_elts = tracewin.interface.create_structure(dat_filecontent)
-        l_elts = self._handle_paths_and_folders(l_elts)
-        l_elts, l_secs, l_latts, freqs = _sections_lattices(l_elts)
+        elts = tracewin.interface.create_structure(dat_filecontent)
+        elts = self._handle_paths_and_folders(elts)
+        elts, sections, lattices, freqs = _sections_lattices(elts)
 
-        self.elts = ListOfElements(l_elts, w_kin=con.E_MEV, phi_abs=0.,
-                                   full_linac=True)
+        self.elts = ListOfElements(elts, w_kin=con.E_MEV, phi_abs=0.,
+                                   first_init=True)
 
-        self.elements = {'l_lattices': l_latts, 'l_sections': l_secs}
+        self.elements = {'l_lattices': lattices, 'l_sections': sections}
 
         tracewin.interface.set_all_electric_field_maps(
             self.files, self.elements['l_sections'], freqs, con.F_BUNCH_MHZ)
-        tracewin.interface.give_name(l_elts)
-        self.files['dat_filecontent'] = dat_filecontent
+        self.elts.set_absolute_positions()
+        last_idx = self.elts.set_indexes()
 
-        # Set indexes and absolute position of the different elements
-        last_idx = self._set_indexes_and_abs_positions()
+        self.files['dat_filecontent'] = dat_filecontent
 
         # Create synchronous particle
         reference = bool(name == 'Working')
@@ -81,7 +80,6 @@ class Accelerator():
         self.transf_mat = {
             'tm_cumul': np.full((last_idx + 1, 2, 2), np.NaN),
             'tm_indiv': np.full((last_idx + 1, 2, 2), np.NaN),
-            'first_calc?': True,
         }
         self.transf_mat['tm_indiv'][0, :, :] = np.eye(2)
 
@@ -238,23 +236,6 @@ class Accelerator():
         }
         return _d_special_getters
 
-    def _set_indexes_and_abs_positions(self) -> int:
-        """Init solvers, set indexes and absolute positions of elements."""
-        pos = {'in': 0., 'out': 0.}
-        idx = {'in': 0, 'out': 0}
-
-        for elt in self.elts:
-            elt.init_solvers()
-
-            pos['in'] = pos['out']
-            pos['out'] += elt.length_m
-            elt.solver_param['abs_mesh'] = elt.get('rel_mesh') + pos['in']
-
-            idx['in'] = idx['out']
-            idx['out'] += elt.get('n_steps')
-            elt.idx['s_in'], elt.idx['s_out'] = idx['in'], idx['out']
-        return idx['out']
-
     def _check_consistency_phases(self) -> None:
         """Check that both TW and LW use absolute or relative phases."""
         flags_absolute = []
@@ -330,6 +311,7 @@ class Accelerator():
             # Go across phase spaces (z-z', z-delta, w-phi)
             for item2 in item1[1].items():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
+
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                           ) -> elements._Element | None:
         """Give the element where the given index is."""

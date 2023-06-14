@@ -236,7 +236,7 @@ class FaultScenario(list):
         transf_mat = self.fix_acc.get('tm_cumul')[idx_in]
 
         elts = ListOfElements(__elts, w_kin, phi_abs, transf_mat,
-                              full_linac=False)
+                              first_init=False)
         simulation_output = self.beam_calculator.run_with_this(
             optimized_cavity_settings, elts)
         return simulation_output, elts
@@ -248,7 +248,6 @@ class FaultScenario(list):
         Also store it into the broken_linac.beam_param dictionary.
         """
         mism = mismatch_factor(self.ref_acc.get("twiss_zdelta"),
-                               # self.fix_acc.get("twiss_z"),
                                fix_twiss_zdelta,
                                transp=True)
         return mism

@@ -55,7 +55,7 @@ class Fault:
         phi_abs = self.ref_acc.get('phi_abs_array')[idx]
         tm_cumul = self.ref_acc.get('tm_cumul')[idx]
         elts = ListOfElements(elts, w_kin, phi_abs, tm_cumul=tm_cumul,
-                              full_linac=False)
+                              first_init=False)
         return elts
 
     def fix(self, beam_calculator_run_with_this: Callable[
