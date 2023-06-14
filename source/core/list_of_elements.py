@@ -138,9 +138,14 @@ class ListOfElements(list):
         In particular: absolute positions, element number, absolute indexes.
         """
         tracewin.interface.give_name(self)
-        # self._set_absolute_positions()
-        # self._set_indexes()
+        # set section, lattices numbers? Here or elsewhere?
+        # set omega0_rf, n_cell of the _Elements. Depends on lattice #
 
+# =============================================================================
+# Should be moved to beam_compute? Always the same, only depends on the number
+# of steps. So no abstractmethod.
+# =============================================================================
+    # Depends on solver's number of steps!
     def set_absolute_positions(self) -> None:
         """Init solvers and absolute positions of elements."""
         pos_in, pos_out = 0., 0.
@@ -151,6 +156,7 @@ class ListOfElements(list):
             pos_out += elt.length_m
             elt.solver_param['abs_mesh'] = elt.get('rel_mesh') + pos_in
 
+    # Depends on solver's number of steps!
     def set_indexes(self) -> int:
         """Set the absolute indexes of the elements."""
         idx_in, idx_out = 0, 0

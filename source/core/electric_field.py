@@ -33,7 +33,8 @@ class RfField():
         phi = omega_0_bunch * t
     """
 
-    def __init__(self, k_e=np.NaN, absolute_phase_flag=0, phi_0=None):
+    def __init__(self, k_e: float = np.NaN, absolute_phase_flag: bool = False,
+                 phi_0: float = None) -> None:
         # By default, electric field spatial function is null.
         self.e_spat = lambda x: 0.
         self.k_e = k_e
@@ -41,18 +42,21 @@ class RfField():
         self.phi_0 = {'phi_0_rel': None,
                       'phi_0_abs': None,
                       'nominal_rel': None,
-                      'abs_phase_flag': bool(absolute_phase_flag)}
-        if self.phi_0['abs_phase_flag']:
+                      'abs_phase_flag': absolute_phase_flag}
+
+        if absolute_phase_flag:
             self.phi_0['phi_0_abs'] = phi_0
         else:
             self.phi_0['phi_0_rel'] = phi_0
             self.phi_0['nominal_rel'] = phi_0
 
-        self.cav_params = {'v_cav_mv': np.NaN,
-                           'phi_s': np.NaN}
+        self.cav_params = {'v_cav_mv': np.NaN, 'phi_s': np.NaN}
 
         # Initialized later as it depends on the Section the cavity is in
-        self.omega0_rf, self.n_cell, self.n_z = None, None, None
+        self.omega0_rf, self.n_cell = None, None
+
+        # Depends on beam_computer, but also on n_cell
+        self.n_z = None
 
     def has(self, key):
         """Tell if the required attribute is in this class."""

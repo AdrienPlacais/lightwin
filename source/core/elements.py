@@ -97,14 +97,14 @@ class _Element():
         self.solver_param = {'n_steps': None, 'd_z': None,
                              'abs_mesh': None, 'rel_mesh': None}
 
-    def __str__(self) -> str:
-        return self.elt_info['elt_name']
+    # def __str__(self) -> str:
+        # return self.elt_info['elt_name']
 
-    def __repr__(self) -> str:
-        # if self.elt_info['status'] not in ['none', 'nominal']:
-        #     logging.warning("Element properties where changed.")
-        # return f"{self.__class__}(elem={self.__elem})"
-        return self.__str__()
+    # def __repr__(self) -> str:
+        # # if self.elt_info['status'] not in ['none', 'nominal']:
+        # #     logging.warning("Element properties where changed.")
+        # # return f"{self.__class__}(elem={self.__elem})"
+        # return self.__str__()
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -327,7 +327,7 @@ class FieldMap(_Element):
             absolute_phase_flag = int(elem[10])
 
         self.acc_field = RfField(k_e=float(elem[6]),
-                                 absolute_phase_flag=absolute_phase_flag,
+                                 absolute_phase_flag=bool(absolute_phase_flag),
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 

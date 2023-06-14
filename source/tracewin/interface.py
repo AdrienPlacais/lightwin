@@ -130,7 +130,7 @@ def set_all_electric_field_maps(files: dict, sections: list[list[_Element]],
                         files['field_map_folder'], elt.field_map_file_name)
                     a_f = elt.acc_field
                     a_f.e_spat, a_f.n_z = get_single_electric_field_map(elt)
-                    a_f.init_freq_ncell(f_mhz, n_cell)
+                    a_f.set_pulsation_ncell(f_mhz, n_cell)
 
                     # For Cython, we need one filepath per section
                     if con.FLAG_CYTHON and len(filepaths) == i:
@@ -140,10 +140,9 @@ def set_all_electric_field_maps(files: dict, sections: list[list[_Element]],
         tm_c.init_arrays(filepaths)
 
 
-def get_single_electric_field_map(cav: FieldMap
-                                 ) -> tuple[Callable[[float | np.ndarray],
-                                                     float | np.ndarray],
-                                            int]:
+def get_single_electric_field_map(
+    cav: FieldMap) -> tuple[Callable[[float | np.ndarray], float | np.ndarray],
+                            int]:
     """
     Select the field map file and call the proper loading function.
 
@@ -156,16 +155,16 @@ def get_single_electric_field_map(cav: FieldMap
     """
     # FIXME
     cav.field_map_file_name += ".edz"
-    assert tracewin.load.is_loadable(cav.field_map_file_name, cav.geometry,
-                                     cav.aperture_flag), \
-            f"Error preparing {cav}'s field map."
+    assert tracewin.load.is_loadable(
+        cav.field_map_file_name, cav.geometry, cav.aperture_flag), \
+        f"Error preparing {cav}'s field map."
 
     _, extension = os.path.splitext(cav.field_map_file_name)
     import_function = tracewin.load.FIELD_MAP_LOADERS[extension]
 
     n_z, zmax, norm, f_z = import_function(cav.field_map_file_name)
     assert is_a_valid_electric_field(n_z, zmax, norm, f_z, cav.length_m), \
-            f"Error loading {cav}'s field map."
+        f"Error loading {cav}'s field map."
 
     z_cavity_array = np.linspace(0., zmax, n_z + 1) / norm
 
