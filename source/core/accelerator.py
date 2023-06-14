@@ -11,7 +11,7 @@ at the end
 """
 import os.path
 import logging
-from typing import Any
+from typing import Any, Nested
 import numpy as np
 
 
@@ -22,7 +22,7 @@ from beam_calculation.output import SimulationOutput
 import util.converters as convert
 from util.helper import recursive_items, recursive_getter
 from core import particle
-from core import elements
+from core.elements import _Element, FieldMapPath, Freq, Lattice
 from core.list_of_elements import ListOfElements, elt_at_this_s_idx, \
     equiv_elt
 from core.emittance import beam_parameters_all
@@ -65,7 +65,7 @@ class Accelerator():
         self.elements = {'l_lattices': lattices, 'l_sections': sections}
 
         tracewin.interface.set_all_electric_field_maps(
-            self.files, self.elements['l_sections'], freqs, con.F_BUNCH_MHZ)
+            self.files, sections, freqs, con.F_BUNCH_MHZ)
         self.elts.set_absolute_positions()
         last_idx = self.elts.set_indexes()
 
@@ -152,8 +152,8 @@ class Accelerator():
         return tuple(out)
 
     # TODO add linac name in the subproject folder name
-    def _handle_paths_and_folders(self, l_elts: list[elements._Element, ...]
-                                  ) -> list[elements._Element]:
+    def _handle_paths_and_folders(self, l_elts: list[_Element, ...]
+                                  ) -> list[_Element]:
         """Make paths absolute, create results folders."""
         # First we take care of where results will be stored
         i = 0
@@ -171,7 +171,7 @@ class Accelerator():
         # Now we handle where to look for the field maps
         field_map_basepaths = [basepath
                                for basepath in l_elts
-                               if isinstance(basepath, elements.FieldMapPath)]
+                               if isinstance(basepath, FieldMapPath)]
         # FIELD_MAP_PATH are not physical elements, so we remove them
         for basepath in field_map_basepaths:
             l_elts.remove(basepath)
@@ -179,7 +179,7 @@ class Accelerator():
         # If no FIELD_MAP_PATH command was provided, we take field maps in the
         # .dat dir
         if len(field_map_basepaths) == 0:
-            field_map_basepaths = [elements.FieldMapPath(
+            field_map_basepaths = [FieldMapPath(
                 ['FIELD_MAP_PATH', self.files['orig_dat_folder']])]
 
         # If more than one field map folder is provided, raise an error
@@ -256,7 +256,7 @@ class Accelerator():
                 + "cavities.")
 
     def keep_this(self, simulation_output: SimulationOutput,
-                  l_elts: list[elements._Element]) -> None:
+                  l_elts: list[_Element]) -> None:
         """
         We save data into the appropriate objects.
 
@@ -284,7 +284,8 @@ class Accelerator():
             elt.keep_rf_field(rf_field, cav_params)
 
         # Save into Accelerator
-        self.transf_mat['tm_cumul'][idx_in:idx_out] = simulation_output.tm_cumul
+        self.transf_mat['tm_cumul'][idx_in:idx_out] \
+            = simulation_output.tm_cumul
         self.beam_param["sigma_matrix"] = simulation_output.sigma_matrix
         # Mismatch will be None straight out of
         # ListOfElements._pack_into_single_dict method
@@ -313,30 +314,31 @@ class Accelerator():
                 item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
-                          ) -> elements._Element | None:
+                          ) -> _Element | None:
         """Give the element where the given index is."""
         return elt_at_this_s_idx(self.elts, s_idx, show_info)
 
-    def equiv_elt(self, elt: elements._Element | str, to_index: bool = False
-                  ) -> elements._Element | int | None:
+    def equiv_elt(self, elt: _Element | str, to_index: bool = False
+                  ) -> _Element | int | None:
         """Return an element from self.elts with the same name."""
         return equiv_elt(self.elts, elt, to_index)
 
 
-def _sections_lattices(l_elts: list[elements._Element, ...]) -> tuple[
-        list[elements._Element, ...], list[elements._Element, ...],
-        list[elements._Element, ...], dict]:
+def _sections_lattices(elts: list[_Element]
+                       ) -> tuple[list[_Element], list[_Element],
+                                  list[_Element], dict]:
     """Gather elements by section and lattice."""
-    l_elts, d_struct = _prepare_sections_and_lattices(l_elts)
+    tmp = new_prepare_sections_and_lattices(elts)
+    elts, structure = _prepare_sections_and_lattices(elts)
 
     lattices = []
     sections = []
     j = 0
-    for i in range(d_struct['n_sections']):
+    for i in range(structure['n_sections']):
         lattices = []
-        n_lattice = d_struct['lattices'][i].n_lattice
-        while j < d_struct['indices'][i]:
-            lattices.append(l_elts[j:j + n_lattice])
+        n_lattice = structure['lattices'][i].n_lattice
+        while j < structure['indices'][i]:
+            lattices.append(elts[j:j + n_lattice])
             j += n_lattice
         sections.append(lattices)
 
@@ -347,53 +349,156 @@ def _sections_lattices(l_elts: list[elements._Element, ...]) -> tuple[
             for elt in lattice:
                 elt.idx['section'] = i
                 elt.idx['lattice'] = j + shift_lattice
-                elt.idx['elt_idx'] = l_elts.index(elt)
+                elt.idx['elt_idx'] = elts.index(elt)
         shift_lattice += j + 1
     lattices = []
     for sec in sections:
         lattices += sec
-    return l_elts, sections, lattices, d_struct['frequencies']
+    return elts, sections, lattices, structure['frequencies']
 
 
-def _prepare_sections_and_lattices(l_elts: list[elements._Element, ...]
-                                   ) -> tuple[list[elements._Element, ...],
-                                              dict]:
+def _prepare_sections_and_lattices(elts: list[_Element]
+                                   ) -> tuple[list[_Element], dict]:
     """
-    Save info on the accelerator structure.
+    Set sections, lattices and the different rf frequencies of the Accelerator.
 
-    In particular: in every section, the number of elements per lattice,
-    the rf frequency of cavities, the position of the delimitations between
-    two sections.
+    Parameters
+    ----------
+    elts : list[_Element]
+        A list containing all the _Elements of the linac, including the 'fake'
+        _Elements that are `Lattice` and `Freq` commands from the .dat file.
+        TODO : create a elements._Command object?
+
+    Returns
+    -------
+    elts : list[_Element]
+        The same list, but with only real _Elements.
+    structure : dict
+        A dictionary containing the same _Elements, but grouped by Section
+        and/or by Lattice. Also holds every Section rf frequency.
+
     """
-    lattices = [lattice
-                for lattice in l_elts
-                if isinstance(lattice, elements.Lattice)
-                ]
-    frequencies = [frequency
-                   for frequency in l_elts
-                   if isinstance(frequency, elements.Freq)
-                   ]
+    lattices = list(filter(lambda elt: isinstance(elt, Lattice), elts))
+    frequencies = list(filter(lambda elt: isinstance(elt, Freq), elts))
+    n_sections = len(frequencies)
 
-    n_sections = len(lattices)
-    assert n_sections == len(frequencies)
+    sections_changing_indexes = []
+    number_of_sections_before_this_one = 0
 
-    idx_of_section_changes = []
-    n_secs_before_current = 0
-    for i in range(n_sections):
-        latt, freq = lattices[i], frequencies[i]
+    assert len(lattices) == len(frequencies)
+    for latt, freq in zip(lattices, frequencies):
+        idx_latt = elts.index(latt)
+        idx_freq = elts.index(freq)
+        if np.abs(idx_freq - idx_latt) != 1:
+            logging.error("Commands LATTICE and FREQ do not follow each "
+                          + "other. Check your .dat file.")
 
-        idx_latt = l_elts.index(latt)
-        idx_freq = l_elts.index(freq)
-        assert idx_freq - idx_latt == 1
+        sections_changing_indexes.append(
+            idx_latt - 2 * number_of_sections_before_this_one)
+        number_of_sections_before_this_one += 1
 
-        idx_of_section_changes.append(idx_latt - 2 * n_secs_before_current)
-        n_secs_before_current += 1
+        elts.pop(idx_freq)
+        elts.pop(idx_latt)
+    sections_changing_indexes.pop(0)
+    sections_changing_indexes.append(len(elts))
 
-        l_elts.pop(idx_freq)
-        l_elts.pop(idx_latt)
-    idx_of_section_changes.pop(0)
-    idx_of_section_changes.append(len(l_elts))
+    return elts, {'lattices': lattices, 'frequencies': frequencies,
+                  'indices': sections_changing_indexes,
+                  'n_sections': n_sections}
 
-    return l_elts, {'lattices': lattices, 'frequencies': frequencies,
-                    'indices': idx_of_section_changes,
-                    'n_sections': n_sections}
+
+def structured(elts: list[_Element]) -> tuple[list[_Element],
+                                              list[list[_Element]],
+                                              list[list[list[_Element]]],
+                                              list[Freq]]:
+    """
+    Remove Freq/Lattice commands, regroup _Elements by section/lattice.
+
+    Parameters
+    ----------
+    elts : list[_Element]
+        Raw list of _Elements, as read from the .dat file.
+
+    Returns
+    -------
+    elts : list[_Element]
+        Same list as input, but without Freq and Lattice objects.
+    elts_grouped_by_section : list[list[_Element]]
+        Level 1: Sections. Level 2: list of _Elements in the Section.
+    elts_grouped_by_lattice : list[list[list[_Element]]]
+        Level 1: Sections. Level 2: Lattices. Level 3: list of _Elements in the
+        Lattice.
+    frequencies: list[Freq]
+        Contains the Frequency object corresponding to every Section.
+
+    """
+    lattices, frequencies = lattices_and_frequencies(elts)
+    elts_grouped_by_section = group_elements_by_section(elts, lattices)
+
+    to_exclude = (Lattice, Freq)
+    elts = filter_out(elts, to_exclude)
+    elts_grouped_by_section = filter_out(elts_grouped_by_section, to_exclude)
+
+    elts_grouped_by_lattice = group_elements_by_lattice(
+        elts_grouped_by_section, lattices)
+
+    return elts, elts_grouped_by_section, elts_grouped_by_lattice, frequencies
+
+
+def lattices_and_frequencies(elts: list[_Element]
+                             ) -> tuple[list[Lattice], list[Freq]]:
+    """Get Lattice and Freq objects, which convey every Section information."""
+    lattices = list(filter(lambda elt: isinstance(elt, Lattice), elts))
+    frequencies = list(filter(lambda elt: isinstance(elt, Freq), elts))
+
+    idx_lattice_change = [elts.index(latt) for latt in lattices]
+    idx_freq_change = [elts.index(freq) for freq in frequencies]
+    distance = np.array(idx_lattice_change) - np.array(idx_freq_change)
+    if not np.all(distance == -1):
+        logging.error("FREQ commands do no directly follow LATTICE commands. "
+                      + "Check your .dat file.")
+    return lattices, frequencies
+
+
+def group_elements_by_section(elts: list[_Element], lattices: list[Lattice]
+                              ) -> list[list[_Element]]:
+    """Regroup the _Element belonging to the same Section."""
+    idx_lattice_change = [elts.index(latt) for latt in lattices]
+    slice_starts = idx_lattice_change
+    slice_ends = idx_lattice_change[1:] + [None]
+    elts_grouped_by_section = [
+        elts[start:stop]
+        for start, stop in zip(slice_starts, slice_ends)]
+
+    return elts_grouped_by_section
+
+
+def group_elements_by_lattice(elts_by_sec: list[list[_Element]],
+                              lattices: list[Lattice]
+                              ) -> list[list[list[_Element]]]:
+    """Regroup the _Element belonging to the same Lattice."""
+    elts_grouped_by_lattice = []
+    for elts_sec, latt in zip(elts_by_sec, lattices):
+        n_elts_per_lattice = latt.n_lattice
+        n_of_lattices_in_this_section = len(elts_sec) // n_elts_per_lattice
+        lattices_of_this_section = [
+            elts_sec[i * n_elts_per_lattice:(i + 1) * n_elts_per_lattice]
+            for i in range(n_of_lattices_in_this_section)]
+        elts_grouped_by_lattice.append(lattices_of_this_section)
+
+    return elts_grouped_by_lattice
+
+
+def filter_out(elements: Nested[list[_Element]], to_exclude: tuple[type]
+               ) -> Nested[_Element]:
+    """Filter out `to_exclude` types while keeping the input list structure."""
+    if isinstance(elements[0], list):
+        return [filter_out(sub, to_exclude) for sub in elements]
+
+    elif isinstance(elements, list):
+        return list(filter(lambda elt: not isinstance(elt, to_exclude),
+                           elements))
+    else:
+        raise TypeError("Wrong type for data filtering.")
+
+    return elements
