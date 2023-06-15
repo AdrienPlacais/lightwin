@@ -11,7 +11,7 @@ at the end
 """
 import os.path
 import logging
-from typing import Any, Nested
+from typing import Any
 import numpy as np
 
 
@@ -57,15 +57,23 @@ class Accelerator():
         dat_filecontent = tracewin.load.dat_file(dat_filepath)
         elts = tracewin.interface.create_structure(dat_filecontent)
         elts = self._handle_paths_and_folders(elts)
-        elts, sections, lattices, freqs = _sections_lattices(elts)
+
+        elts_copy = elts.copy()
+
+        # elts, sections, lattices, freqs = _sections_lattices(elts)
+        elts, elts_by_section_and_lattice, elts_by_lattice, freqs = \
+            structured(elts_copy)
+        set_structure_related_indexes(elts, elts_by_section_and_lattice,
+                                      elts_by_lattice)
 
         self.elts = ListOfElements(elts, w_kin=con.E_MEV, phi_abs=0.,
                                    first_init=True)
 
-        self.elements = {'l_lattices': lattices, 'l_sections': sections}
+        self.elements = {'l_lattices': elts_by_lattice,
+                         'l_sections': elts_by_section_and_lattice}
 
         tracewin.interface.set_all_electric_field_maps(
-            self.files, sections, freqs, con.F_BUNCH_MHZ)
+            self.files, elts_by_section_and_lattice, freqs, con.F_BUNCH_MHZ)
         self.elts.set_absolute_positions()
         last_idx = self.elts.set_indexes()
 
@@ -328,7 +336,6 @@ def _sections_lattices(elts: list[_Element]
                        ) -> tuple[list[_Element], list[_Element],
                                   list[_Element], dict]:
     """Gather elements by section and lattice."""
-    tmp = new_prepare_sections_and_lattices(elts)
     elts, structure = _prepare_sections_and_lattices(elts)
 
     lattices = []
@@ -423,30 +430,70 @@ def structured(elts: list[_Element]) -> tuple[list[_Element],
     -------
     elts : list[_Element]
         Same list as input, but without Freq and Lattice objects.
-    elts_grouped_by_section : list[list[_Element]]
-        Level 1: Sections. Level 2: list of _Elements in the Section.
-    elts_grouped_by_lattice : list[list[list[_Element]]]
+    elts_by_section_and_lattice : list[list[list[_Element]]]
         Level 1: Sections. Level 2: Lattices. Level 3: list of _Elements in the
         Lattice.
+    elts_by_lattice : list[list[_Element]]
+        Level 1: Lattices. Level 2: list of _Elements in the Lattice.
     frequencies: list[Freq]
         Contains the Frequency object corresponding to every Section.
 
     """
-    lattices, frequencies = lattices_and_frequencies(elts)
-    elts_grouped_by_section = group_elements_by_section(elts, lattices)
+    lattices, frequencies = _lattices_and_frequencies(elts)
+
+    _elts_by_section = _group_elements_by_section(elts, lattices)
 
     to_exclude = (Lattice, Freq)
-    elts = filter_out(elts, to_exclude)
-    elts_grouped_by_section = filter_out(elts_grouped_by_section, to_exclude)
+    elts = _filter_out(elts, to_exclude)
+    _elts_by_section = _filter_out(_elts_by_section, to_exclude)
 
-    elts_grouped_by_lattice = group_elements_by_lattice(
-        elts_grouped_by_section, lattices)
+    elts_by_section_and_lattice = _group_elements_by_section_and_lattice(
+        _elts_by_section, lattices)
+    elts_by_lattice = _group_elements_by_lattice(
+        elts_by_section_and_lattice, lattices)
 
-    return elts, elts_grouped_by_section, elts_grouped_by_lattice, frequencies
+    return elts, elts_by_section_and_lattice, elts_by_lattice, frequencies
 
 
-def lattices_and_frequencies(elts: list[_Element]
-                             ) -> tuple[list[Lattice], list[Freq]]:
+def set_structure_related_indexes(
+        elts: list[_Element],
+        elts_by_section_and_lattice: list[list[list[_Element]]],
+        elts_by_lattice: list[list[_Element]]) -> None:
+    """Set useful indexes, which are related to the structure of the linac."""
+    _set_elt_index(elts)
+    _set_section_index(elts_by_section_and_lattice)
+    _set_lattice_index(elts_by_lattice)
+
+
+def _set_elt_index(elts: list[_Element]) -> None:
+    """Set `elt_indexes`, the absolute _Element's index."""
+    for elt in elts:
+        elt.idx['elt_idx'] = elts.index(elt)
+
+
+def _set_section_index(elts_by_section_and_lattice: list[list[list[_Element]]]
+                       ) -> None:
+    """Set section indexes, which simply are the Section number of each elt."""
+    for i, section in enumerate(elts_by_section_and_lattice):
+        for lattice in section:
+            for element in lattice:
+                element.idx['section'] = i
+
+
+def _set_lattice_index(elts_by_lattice: list[list[_Element]]
+                       ) -> None:
+    """
+    Give each _Element its lattice number.
+
+    This index is not reset to 0 at Sections changes.
+    """
+    for i, lattice in enumerate(elts_by_lattice):
+        for elt in lattice:
+            elt.idx['lattice'] = i
+
+
+def _lattices_and_frequencies(elts: list[_Element]
+                              ) -> tuple[list[Lattice], list[Freq]]:
     """Get Lattice and Freq objects, which convey every Section information."""
     lattices = list(filter(lambda elt: isinstance(elt, Lattice), elts))
     frequencies = list(filter(lambda elt: isinstance(elt, Freq), elts))
@@ -460,8 +507,8 @@ def lattices_and_frequencies(elts: list[_Element]
     return lattices, frequencies
 
 
-def group_elements_by_section(elts: list[_Element], lattices: list[Lattice]
-                              ) -> list[list[_Element]]:
+def _group_elements_by_section(elts: list[_Element], lattices: list[Lattice]
+                               ) -> list[list[_Element]]:
     """Regroup the _Element belonging to the same Section."""
     idx_lattice_change = [elts.index(latt) for latt in lattices]
     slice_starts = idx_lattice_change
@@ -473,27 +520,45 @@ def group_elements_by_section(elts: list[_Element], lattices: list[Lattice]
     return elts_grouped_by_section
 
 
-def group_elements_by_lattice(elts_by_sec: list[list[_Element]],
-                              lattices: list[Lattice]
-                              ) -> list[list[list[_Element]]]:
+def _group_elements_by_lattice(
+    elts_by_sec_and_latt: list[list[list[_Element]]], lattices: list[Lattice]
+) -> list[list[_Element]]:
     """Regroup the _Element belonging to the same Lattice."""
     elts_grouped_by_lattice = []
-    for elts_sec, latt in zip(elts_by_sec, lattices):
-        n_elts_per_lattice = latt.n_lattice
-        n_of_lattices_in_this_section = len(elts_sec) // n_elts_per_lattice
-        lattices_of_this_section = [
-            elts_sec[i * n_elts_per_lattice:(i + 1) * n_elts_per_lattice]
-            for i in range(n_of_lattices_in_this_section)]
-        elts_grouped_by_lattice.append(lattices_of_this_section)
-
+    for by_section in elts_by_sec_and_latt:
+        for by_lattice in by_section:
+            elts_grouped_by_lattice.append(by_lattice)
     return elts_grouped_by_lattice
 
 
-def filter_out(elements: Nested[list[_Element]], to_exclude: tuple[type]
-               ) -> Nested[_Element]:
+def _group_elements_by_section_and_lattice(
+        elts_by_sec: list[list[_Element]], lattices: list[Lattice]
+        ) -> list[list[list[_Element]]]:
+    """Regroup _Elements by Section and then by Lattice."""
+    elts_by_section_and_lattice = [
+        _slice(elts_of_a_section, n_in_slice=latt.n_lattice)
+        for elts_of_a_section, latt in zip(elts_by_sec, lattices)]
+    return elts_by_section_and_lattice
+
+
+def _slice(unsliced: list, n_in_slice: int) -> list[list]:
+    """Convert a list to a list of sublist of length n_in_slice."""
+    if len(unsliced) % n_in_slice != 0:
+        logging.error("Number of items per slice is not a multiple of the "
+                      + "total length of the original list.")
+    n_slices = len(unsliced) // n_in_slice
+    sliced = [unsliced[i * n_in_slice:(i + 1) * n_in_slice]
+              for i in range(n_slices)]
+    return sliced
+
+
+
+
+# actually, type of elements and outputs is Nested[list[_Element]]
+def _filter_out(elements: Any, to_exclude: tuple[type]) -> Any:
     """Filter out `to_exclude` types while keeping the input list structure."""
     if isinstance(elements[0], list):
-        return [filter_out(sub, to_exclude) for sub in elements]
+        return [_filter_out(sub, to_exclude) for sub in elements]
 
     elif isinstance(elements, list):
         return list(filter(lambda elt: not isinstance(elt, to_exclude),
