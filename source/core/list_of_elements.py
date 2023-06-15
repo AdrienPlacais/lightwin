@@ -60,14 +60,18 @@ class ListOfElements(list):
 
         if first_init:
             logging.info("First initialisation of ListOfElements, ecompassing "
-                         + "all linac.")
+                         + "all linac. Also removing Lattice and Freq "
+                         + "commands, setting Lattice/Section structures, "
+                         + "_Elements names, numbering, indexes.")
             by_section_and_lattice, by_lattice, freqs = self.set_structure()
             self.by_section_and_lattice = by_section_and_lattice
             self.by_lattice = by_lattice
             self.freqs = freqs
+
             self.set_structure_related_indexes()
 
-            self.first_initialisation_setters()
+            tracewin.interface.give_name(self)
+        # set omega0_rf, n_cell of the _Elements. Depends on lattice #
 
             if tm_cumul is not None:
                 logging.warning(
@@ -192,16 +196,6 @@ class ListOfElements(list):
         for i, lattice in enumerate(self.by_lattice):
             for elt in lattice:
                 elt.idx['lattice'] = i
-
-    def first_initialisation_setters(self) -> None:
-        """
-        Set the _Element parameters that are dependent from one to another.
-
-        In particular: absolute positions, element number, absolute indexes.
-        """
-        tracewin.interface.give_name(self)
-        # set section, lattices numbers? Here or elsewhere?
-        # set omega0_rf, n_cell of the _Elements. Depends on lattice #
 
 # =============================================================================
 # Should be moved to beam_compute? Always the same, only depends on the number
