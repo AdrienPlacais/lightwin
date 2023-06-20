@@ -10,7 +10,9 @@ from abc import ABC, abstractmethod
 
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
+from core.elements import _Element
 from core.list_of_elements import ListOfElements
+
 
 class BeamCalculator(ABC):
     """A generic class to store a beam dynamics solver and its results."""
@@ -60,3 +62,11 @@ class BeamCalculator(ABC):
     @abstractmethod
     def _format_this(self, set_of_cavity_settings: SetOfCavitySettings) -> Any:
         """Transform `set_of_cavity_settings` for this BeamCalculator."""
+
+    @abstractmethod
+    def init_all_meshes(self, elts: list[_Element]) -> None:
+        """Set the mesh in every _Element (where quantities are evaluated)."""
+
+    @abstractmethod
+    def init_specific(self, elts: list[_Element]) -> None:
+        """Init quantities that depend on the current solver."""

@@ -164,6 +164,14 @@ class _Element():
 
         self._tm_func = d_func_tm[key_fun](mod)
 
+    def init_mesh(self, n_steps: int) -> None:
+        """Initialize meshing in the _Element."""
+        self.solver_param['n_steps'] = n_steps
+        self.solver_param['d_z'] = self.length_m / n_steps
+        self.solver_param['rel_mesh'] = np.linspace(0., self.length_m,
+                                                    n_steps + 1)
+
+
     def calc_transf_mat(self, w_kin_in: float, **rf_field_kwargs: dict
                         ) -> dict:
         """

@@ -81,8 +81,8 @@ class ListOfElements(list):
                 logging.warning(
                     "You do not need to provide a cumulated transfer matrix "
                     + "to initialize this ListOfElements. It starts at the "
-                    + "beginning of the linac and the matrix is automatically "
-                    + "the eye matrix.")
+                    + "beginning of the linac and the matrix should be the "
+                    + "eye matrix. Ignoring your input...")
             self.tm_cumul_in = np.eye(2)
 
         else:
@@ -223,6 +223,8 @@ class ListOfElements(list):
         """Init solvers and absolute positions of elements."""
         pos_in, pos_out = 0., 0.
         for elt in self:
+            # this routine uses METHOD, implicitely FLAG_CYTHON,
+            # N_STEPS_PER_CELL
             elt.init_solvers()
 
             pos_in = pos_out

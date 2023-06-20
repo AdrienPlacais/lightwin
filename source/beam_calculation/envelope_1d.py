@@ -8,7 +8,9 @@ Created on Mon Jun 12 08:24:37 2023.
 """
 import logging
 from dataclasses import dataclass
+import numpy as np
 
+from core.elements import _Element
 from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
 from core.emittance import beam_parameters_zdelta
 from beam_calculation.beam_calculator import BeamCalculator
@@ -161,3 +163,49 @@ class Envelope1D(BeamCalculator):
     def generate_set_of_cavity_settings(self, d_fit: dict
                                         ) -> SetOfCavitySettings:
         return None
+
+    def init_all_meshes(self, elts: list[_Element]) -> None:
+        """Init the mesh of every _Element (where quantities are evaluated)."""
+        method = self.METHOD
+        if '_' in method:
+            method = method('_')[0]
+
+        n_steps_setters = {
+            'RK': lambda elt: self.N_STEPS_PER_CELL * elt.get('n_cell'),
+            'leapfrog': lambda elt: self.N_STEPS_PER_CELL * elt.get('n_cell'),
+            'drift': lambda elt: 1
+        }
+
+        for elt in elts:
+            key_steps = method
+            if elt.get('nature') != 'FIELD_MAP':
+                key_steps = 'drift'
+            n_steps = n_steps_setters[key_steps]
+
+            elt.init_mesh(n_steps)
+
+    def init_specific(self, elts: list[_Element]) -> None:
+        """Set the proper transfer matrix function."""
+        self._init_all_transfer_matrix_functions(elts)
+
+    def _init_all_transfer_matrix_functions(self, elts: list[_Element]
+                                            ) -> None:
+        """Set the proper transfer matrix function."""
+        method = self.METHOD
+        if '_' in method:
+            method = method('_')[0]
+
+        transfer_matrix_function_setters = {
+            'RK': self.transf_mat.z_field_map_rk4,
+            'leapfrog': self.transf_mat.z_field_map_leapfrog,
+            'drift': self.transf_mat.z_drift
+        }
+
+        for elt in elts:
+            key_transf_mat = 'drift'
+            is_accelerating = elt.get('nature') == 'FIELD_MAP' and \
+                elt.get('status') != 'failed'
+            if is_accelerating:
+                key_transf_mat = method
+
+            elt._tm_func = transfer_matrix_function_setters[key_transf_mat]
