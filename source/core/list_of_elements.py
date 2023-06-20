@@ -72,7 +72,7 @@ class ListOfElements(list):
             self.by_lattice = by_lattice
             self.freqs = freqs
 
-            self.set_structure_related_indexes()
+            self.set_structure_related_indexes_of_elements()
 
             tracewin.interface.give_name(self)
         # set omega0_rf, n_cell of the _Elements. Depends on lattice #
@@ -184,7 +184,7 @@ class ListOfElements(list):
 
         return elts_by_section_and_lattice, elts_by_lattice, frequencies
 
-    def set_structure_related_indexes(self) -> None:
+    def set_structure_related_indexes_of_elements(self) -> None:
         """Set useful indexes, related to the structure of the linac."""
         # Absolute _Element index
         for elt in self:
