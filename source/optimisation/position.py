@@ -22,7 +22,6 @@ from core.accelerator import Accelerator
 from core.elements import _Element
 
 
-# !!! fault_idx is still in comp_idx!! FIXME
 def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
                       comp_idx: list[int]) -> tuple[list[_Element],
                                                     list[_Element]]:
@@ -56,28 +55,28 @@ def _zone(pos: str, *args) -> int | None:
 
 
 def _end_last_altered_lattice(lin: Accelerator, fault_idx: list[int],
-             comp_idx: list[int]) -> int:
+                              comp_idx: list[int]) -> int:
     """Evaluate obj at the end of the last lattice w/ an altered cavity."""
     idx_last = max(fault_idx + comp_idx)
     idx_lattice_last = lin.elts[idx_last].get('lattice')
-    lattices = [lattice for section in lin.get('l_sections', to_numpy=False)
-                for lattice in section]
-    return lattices[idx_lattice_last][-1].get('elt_idx', to_numpy=False)
+    idx_eval = lin.elts.by_lattice[idx_lattice_last][-1].get('elt_idx',
+                                                             to_numpy=False)
+    return idx_eval
 
 
 def _one_lattice_after_last_altered_lattice(
-    lin: Accelerator, fault_idx: list[int], comp_idx: list[int]) -> int:
+        lin: Accelerator, fault_idx: list[int], comp_idx: list[int]) -> int:
     """Evaluate objective one lattice after the last comp or failed cav."""
     idx_last = max(fault_idx + comp_idx)
     idx_lattice_last = lin.elts[idx_last].get('lattice') + 1
-    l_lattices = [lattice for section in lin.get('l_sections', to_numpy=False)
-                  for lattice in section]
-    if idx_lattice_last > len(l_lattices):
+    if idx_lattice_last > len(lin.elts.by_lattice):
         logging.warning("You asked for a lattice after the end of the linac. "
                         + "Revert back to previous lattice, i.e. end of "
                         + "linac.")
         idx_lattice_last -= 1
-    return l_lattices[idx_lattice_last][-1].get('elt_idx', to_numpy=False)
+    idx_eval = lin.elts.by_lattice[idx_lattice_last][-1].get('elt_idx',
+                                                             to_numpy=False)
+    return idx_eval
 
 
 def _end_last_failed_lattice(lin: Accelerator, fault_idx: list[int],
@@ -85,9 +84,9 @@ def _end_last_failed_lattice(lin: Accelerator, fault_idx: list[int],
     """Evaluate obj at the end of the last lattice w/ a failed cavity."""
     idx_last = max(fault_idx)
     idx_lattice_last = lin.elts[idx_last].get('lattice')
-    lattices = [lattice for section in lin.get('l_sections', to_numpy=False)
-                for lattice in section]
-    return lattices[idx_lattice_last][-1].get('elt_idx', to_numpy=False)
+    idx_eval = lin.elts.by_lattice[idx_lattice_last][-1].get('elt_idx',
+                                                             to_numpy=False)
+    return idx_eval
 
 
 def _end_linac(lin: Accelerator, fault_idx: list[int],

@@ -58,6 +58,10 @@ class ListOfElements(list):
         self.w_kin_in = w_kin
         self.phi_abs_in = phi_abs
 
+        self.by_section_and_lattice: list[list[list[_Element]]] | None = None
+        self.by_lattice: list[list[_Element]] | None = None
+        self.freqs: list[Freq] | None = None
+
         if first_init:
             logging.info("First initialisation of ListOfElements, ecompassing "
                          + "all linac. Also removing Lattice and Freq "
