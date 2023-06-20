@@ -192,52 +192,6 @@ class FaultScenario(list):
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
-    def _compute_beam_parameters_in_compensation_zone_and_save_it(
-            self, fault: Fault,
-            optimized_cavity_settings: SetOfCavitySettings) -> None:
-        """
-        Recompute the propagation of the beam, once optimisation is finished.
-
-        Parameters
-        ----------
-        fault : Fault
-            The Fault that was just fixed.
-        optimized_cavity_settings : SetOfCavitySettings
-            The (possibly not so) optimized settings found.
-
-        """
-        simulation_output = self.beam_calculator.run_with_this(
-            optimized_cavity_settings, fault.elts)
-
-        self.fix_acc.keep_this(simulation_output=simulation_output,
-                               l_elts=fault.elts)
-
-        fault.get_x_sol_in_real_phase()
-
-    def _compute_beam_parameters_up_to_next_fault(
-        self, fault: Fault, optimized_cavity_settings: SetOfCavitySettings
-    ) -> tuple[SimulationOutput, ListOfElements]:
-        """Compute propagation up to last element of the next fault."""
-        first_elt = fault.elts[-1]
-        last_elt = self.fix_acc.elts[-1]
-        if fault is not self[-1]:
-            idx = self.index(fault)
-            last_elt = self[idx + 1].elts[-1]
-
-        __elts = self.fix_acc.elts[
-            first_elt.get('elt_idx', to_numpy=False):
-            last_elt.get('elt_idx', to_numpy=False) + 1]
-        idx_in = first_elt.get('s_in', to_numpy=False)
-        w_kin = self.fix_acc.get('w_kin')[idx_in]
-        phi_abs = self.fix_acc.get('phi_abs_array')[idx_in]
-        transf_mat = self.fix_acc.get('tm_cumul')[idx_in]
-
-        elts = ListOfElements(__elts, w_kin, phi_abs, transf_mat,
-                              first_init=False)
-        simulation_output = self.beam_calculator.run_with_this(
-            optimized_cavity_settings, elts)
-        return simulation_output, elts
-
     def _compute_mismatch(self, fix_twiss_zdelta: np.ndarray) -> np.ndarray:
         """
         Compute the mismatch between reference abnd broken linac.
