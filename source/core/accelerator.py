@@ -61,8 +61,6 @@ class Accelerator():
         self.elts = ListOfElements(elts, w_kin=con.E_MEV, phi_abs=0.,
                                    first_init=True)
 
-        self.elements = {'l_sections': self.elts.by_section_and_lattice}
-
         tracewin.interface.set_all_electric_field_maps(
             self.files, self.elts.by_section_and_lattice, self.elts.freqs,
             con.F_BUNCH_MHZ)

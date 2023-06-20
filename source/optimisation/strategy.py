@@ -132,8 +132,7 @@ def _l_neighboring_lattices(lin: Accelerator, fault_idx: list[int],
     fault_cav = [lin.l_cav[idx] for idx in fault_idx]
 
     cavities_by_lattice = [filter_cav(lattice)
-                           for section in lin.get('l_sections', to_numpy=False)
-                           for lattice in section]
+                           for lattice in lin.elts.by_lattice]
     lattices_with_a_fault = [lattice
                              for cav in fault_cav
                              for lattice in cavities_by_lattice

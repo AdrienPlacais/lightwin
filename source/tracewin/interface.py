@@ -252,16 +252,15 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     data = []
     n_latt = 1
     i = 0
-    for section in linac.elements['l_sections']:
-        for lattice in section:
-            lattice_n = '--------M' + str(n_latt)
-            data.append([np.NaN, lattice_n, '', np.NaN, np.NaN, np.NaN, np.NaN,
-                         np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN])
-            n_latt += 1
-            for elt in lattice:
-                row = []
-                for value in larousse.values():
-                    row.append(value(linac, elt))
+    for lattice in linac.elts.by_lattice:
+        lattice_n = '--------M' + str(n_latt)
+        data.append([np.NaN, lattice_n, '', np.NaN, np.NaN, np.NaN, np.NaN,
+                     np.NaN, np.NaN, np.NaN, np.NaN, np.NaN, np.NaN])
+        n_latt += 1
+        for elt in lattice:
+            row = []
+            for value in larousse.values():
+                row.append(value(linac, elt))
                 data.append(row)
                 i += 1
 

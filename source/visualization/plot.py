@@ -544,7 +544,7 @@ def _plot_section(linac, ax, x_axis='z_abs'):
         'elt_idx': lambda elt: elt.get('elt_idx') + 1,
     }
     x_ax = [0]
-    for i, section in enumerate(linac.elements['l_sections']):
+    for i, section in enumerate(linac.elts.by_section_and_lattice):
         elt = dict_x_axis['last_elt_of_sec'](section)
         x_ax.append(dict_x_axis[x_axis](elt))
 
