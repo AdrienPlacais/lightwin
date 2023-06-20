@@ -82,10 +82,9 @@ class Envelope1D(BeamCalculator):
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
         for elt in elts:
-            cavity_settings = None
-            if (set_of_cavity_settings is not None
-                    and elt in set_of_cavity_settings):
-                cavity_settings = set_of_cavity_settings[elt]
+            cavity_settings = set_of_cavity_settings.get(elt) \
+                if isinstance(set_of_cavity_settings, SetOfCavitySettings) \
+                else None
 
             rf_field_kwargs = elt.rf_param(phi_abs, w_kin, cavity_settings)
             elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
