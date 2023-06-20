@@ -252,6 +252,29 @@ class Accelerator():
                 + "used by TW. Results won't match if there are faulty "
                 + "cavities.")
 
+    def new_keep_this(self, simulation_output: SimulationOutput,
+                      l_elts: list[_Element]) -> None:
+        """Compute some complementary data and save it as an attribute."""
+        logging.critical("Manual check that l_elts is full")
+        assert (l_elts[0].get('elt_name'), l_elts[-1].get('elt_name')) \
+            == ('QP1', 'DR378')
+        simulation_output.compute_complementary_data(l_elts)
+
+        # No more setting only a slice, we set the whole transf mat
+        simulation_output.tm_indiv = simulation_output.tm_cumul
+
+        # This is about storing parameters, not outputs
+        for elt, rf_field, cav_params in zip(l_elts,
+                                             simulation_output.rf_fields,
+                                             simulation_output.cav_params):
+            elt.keep_rf_field(rf_field, cav_params)
+
+        # TODO: remove
+        self.synch.keep_energy_and_phase(self,
+                                         range(0, l_elts[-1].idx['s_out']))
+
+        self.simulation_output = simulation_output
+
     def keep_this(self, simulation_output: SimulationOutput,
                   l_elts: list[_Element]) -> None:
         """
@@ -265,6 +288,10 @@ class Accelerator():
         This function is called when the fitting is not required/is already
         finished.
         """
+        logging.critical(f"keeping from {l_elts[0]} to {l_elts[-1]}.")
+        if False:
+            self.new_keep_this(simulation_output, l_elts)
+            return
         idx_in = l_elts[0].idx['s_in']
         idx_out = l_elts[-1].idx['s_out'] + 1
 

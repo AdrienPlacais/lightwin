@@ -29,7 +29,7 @@ if __name__ == '__main__':
     CONFIG_PATH = 'myrrha.ini'
     KEY_BEAM_CALCULATOR = 'beam_calculator.lightwin.envelope_longitudinal'
     KEY_BEAM = 'beam.myrrha'
-    KEY_WTF = 'wtf.quick_debug'
+    KEY_WTF = 'wtf.k_out_of_n'
     KEY_TW = 'post_tracewin.quick_debug'
 
     # =========================================================================
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     }
 
     # =========================================================================
-    # Start
+    # Startjkj
     # =========================================================================
     FILEPATH = os.path.abspath(FILEPATH)
     PROJECT_FOLDER = os.path.join(
@@ -85,6 +85,7 @@ if __name__ == '__main__':
 
     beam_calculator = init_calc_with(beam_calculator_parameters)
     simulation_output = beam_calculator.run(ref_linac.elts)
+    ref_linac.simulation_output = simulation_output
     ref_linac.keep_this(simulation_output=simulation_output,
                         l_elts=ref_linac.elts)
     data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(ref_linac)

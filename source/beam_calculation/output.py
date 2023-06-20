@@ -15,6 +15,9 @@ from typing import Any
 import numpy as np
 
 from util.helper import recursive_items, recursive_getter
+from core.list_of_elements import ListOfElements
+import util.converters as convert
+from core.emittance import beam_parameters_all
 
 
 # TODO remove unnecessary
@@ -68,3 +71,22 @@ class SimulationOutput:
             return out[0]
         # implicit else:
         return tuple(out)
+
+    def compute_complementary_data(self, l_elts: ListOfElements):
+        """
+        Compute some other indirect quantities.
+
+        Parameters
+        ----------
+        l_elts: ListOfElements
+            Must be a full ListOfElements, containing all the _Elements of the
+            linac.
+        """
+        mism = self.mismatch_factor
+        if mism is not None:
+            self.beam_param["mismatch_factor"] = mism
+
+        gamma = convert.energy(self.get('w_kin'), "kin to gamma")
+        self.d_beam_param = beam_parameters_all(self.eps_zdelta,
+                                                self.twiss_zdelta,
+                                                gamma)

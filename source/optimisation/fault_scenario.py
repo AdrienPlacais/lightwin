@@ -99,16 +99,13 @@ class FaultScenario(list):
             success.append(_succ)
             info.append(_info)
 
-            self._compute_beam_parameters_in_compensation_zone_and_save_it(
-                fault, optimized_cavity_settings)
-
-            fault.update_cavities_status(optimisation='finished', success=True)
-
-            simulation_output, elts = \
-                self._compute_beam_parameters_up_to_next_fault(
-                    fault, optimized_cavity_settings)
+            # Now we recompute full linac
+            simulation_output = self.beam_calculator.run_with_this(
+                optimized_cavity_settings, self.fix_acc.elts)
             self.fix_acc.keep_this(simulation_output=simulation_output,
-                                   l_elts=elts)
+                                   l_elts=self.fix_acc.elts)
+            fault.get_x_sol_in_real_phase()
+            fault.update_cavities_status(optimisation='finished', success=True)
 
             if not con.FLAG_PHI_ABS:
                 # Tell LW to keep the new phase of the rephased cavities
