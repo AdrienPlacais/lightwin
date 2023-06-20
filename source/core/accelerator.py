@@ -62,8 +62,7 @@ class Accelerator():
                                    first_init=True)
 
         tracewin.interface.set_all_electric_field_maps(
-            self.files, self.elts.by_section_and_lattice, self.elts.freqs,
-            con.F_BUNCH_MHZ)
+            self.files, self.elts.by_section_and_lattice)
         self.elts.set_absolute_positions()
         last_idx = self.elts.set_indexes()
 

@@ -101,8 +101,8 @@ def give_name(elts: list[_Element]) -> None:
 
 
 # TODO is it necessary to load all the electric fields when _p?
-def set_all_electric_field_maps(files: dict, sections: list[list[_Element]],
-                                freqs: list[float], freq_bunch: float) -> None:
+def set_all_electric_field_maps(files: dict, sections: list[list[_Element]]
+                                ) -> None:
     """
     Load all the filemaps.
 
@@ -112,17 +112,9 @@ def set_all_electric_field_maps(files: dict, sections: list[list[_Element]],
         Accelerator.files dictionary.
     sections: list of lists of Element
         List of sections containing lattices containing Element objects.
-    freqs : list
-        List of the RF frequencies in MHz in every section.
-    freq_bunch : float
-        Bunch frequency in MHz.
     """
-    assert len(sections) == len(freqs)
-
     filepaths = []
     for i, section in enumerate(sections):
-        f_mhz = freqs[i].f_rf_mhz
-        n_cell = int(f_mhz / freq_bunch)   # FIXME
         for lattice in section:
             for elt in lattice:
                 if elt.get('nature') == 'FIELD_MAP':
@@ -130,7 +122,6 @@ def set_all_electric_field_maps(files: dict, sections: list[list[_Element]],
                         files['field_map_folder'], elt.field_map_file_name)
                     a_f = elt.acc_field
                     a_f.e_spat, a_f.n_z = get_single_electric_field_map(elt)
-                    a_f.set_pulsation_ncell(f_mhz, n_cell)
 
                     # For Cython, we need one filepath per section
                     if con.FLAG_CYTHON and len(filepaths) == i:

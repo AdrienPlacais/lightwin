@@ -17,6 +17,7 @@ from typing import Any
 from functools import partial
 import numpy as np
 
+import config_manager
 from core.elements import _Element, Freq, Lattice
 import tracewin.interface
 from util.helper import recursive_items, recursive_getter
@@ -60,7 +61,6 @@ class ListOfElements(list):
 
         self.by_section_and_lattice: list[list[list[_Element]]] | None = None
         self.by_lattice: list[list[_Element]] | None = None
-        self.freqs: list[Freq] | None = None
 
         if first_init:
             logging.info("First initialisation of ListOfElements, ecompassing "
@@ -70,12 +70,12 @@ class ListOfElements(list):
             by_section_and_lattice, by_lattice, freqs = self.set_structure()
             self.by_section_and_lattice = by_section_and_lattice
             self.by_lattice = by_lattice
-            self.freqs = freqs
 
             self.set_structure_related_indexes_of_elements()
 
             tracewin.interface.give_name(self)
-        # set omega0_rf, n_cell of the _Elements. Depends on lattice #
+            self._set_generic_electric_field_properties(
+                freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
 
             if tm_cumul is not None:
                 logging.warning(
@@ -200,6 +200,19 @@ class ListOfElements(list):
         for i, lattice in enumerate(self.by_lattice):
             for elt in lattice:
                 elt.idx['lattice'] = i
+
+    def _set_generic_electric_field_properties(self, freqs: list[Freq],
+                                               freq_bunch: float) -> None:
+        """Set omega0, n_cells in cavities (used with every BeamCalculator)."""
+        assert len(self.by_section_and_lattice) == len(freqs)
+
+        for i, section in enumerate(self.by_section_and_lattice):
+            f_mhz = freqs[i].f_rf_mhz
+            n_cells = int(f_mhz / freq_bunch)
+
+            for lattice in section:
+                for elt in lattice:
+                    elt.acc_field.set_pulsation_ncell(f_mhz, n_cells)
 
 # =============================================================================
 # Should be moved to beam_compute? Always the same, only depends on the number
