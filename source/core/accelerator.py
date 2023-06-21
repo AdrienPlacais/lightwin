@@ -80,21 +80,6 @@ class Accelerator():
         }
         self.transf_mat['tm_indiv'][0, :, :] = np.eye(2)
 
-        # Beam parameters: emittance, Twiss
-        self.beam_param = {
-            "twiss": {"twiss_zdelta": np.full((last_idx + 1, 3), np.NaN),
-                      "twiss_z": np.full((last_idx + 1, 3), np.NaN),
-                      "twiss_w": np.full((last_idx + 1, 3), np.NaN)},
-            "eps": {"eps_zdelta": np.full((last_idx + 1), np.NaN),
-                    "eps_z": np.full((last_idx + 1), np.NaN),
-                    "eps_w": np.full((last_idx + 1), np.NaN)},
-            "envelopes": {
-                "envelopes_zdelta": np.full((last_idx + 1, 2), np.NaN),
-                "envelopes_z": np.full((last_idx + 1, 2), np.NaN),
-                "envelopes_w": np.full((last_idx + 1, 2), np.NaN)},
-            "mismatch_factor": np.full((last_idx + 1), np.NaN),
-            "sigma_matrix": np.full((last_idx + 1), np.NaN),
-        }
         # Define some shortcuts
         self._d_special_getters = self._create_special_getters()
 
@@ -196,35 +181,35 @@ class Accelerator():
         """Create a dict of aliases that can be accessed w/ the get method."""
         _d_special_getters = {
             'alpha_zdelta': lambda self:
-                self.beam_param['twiss']['twiss_zdelta'][:, 0],
+                self.simulation_output.beam_param['twiss']['twiss_zdelta'][:, 0],
             'beta_zdelta': lambda self:
-                self.beam_param['twiss']['twiss_zdelta'][:, 1],
+                self.simulation_output.beam_param['twiss']['twiss_zdelta'][:, 1],
             'gamma_zdelta': lambda self:
-                self.beam_param['twiss']['twiss_zdelta'][:, 2],
+                self.simulation_output.beam_param['twiss']['twiss_zdelta'][:, 2],
             'alpha_z': lambda self:
-                self.beam_param['twiss']['twiss_z'][:, 0],
+                self.simulation_output.beam_param['twiss']['twiss_z'][:, 0],
             'beta_z': lambda self:
-                self.beam_param['twiss']['twiss_z'][:, 1],
+                self.simulation_output.beam_param['twiss']['twiss_z'][:, 1],
             'gamma_z': lambda self:
-                self.beam_param['twiss']['twiss_z'][:, 2],
+                self.simulation_output.beam_param['twiss']['twiss_z'][:, 2],
             'alpha_w': lambda self:
-                self.beam_param['twiss']['twiss_w'][:, 0],
+                self.simulation_output.beam_param['twiss']['twiss_w'][:, 0],
             'beta_w': lambda self:
-                self.beam_param['twiss']['twiss_w'][:, 1],
+                self.simulation_output.beam_param['twiss']['twiss_w'][:, 1],
             'gamma_w': lambda self:
-                self.beam_param['twiss']['twiss_w'][:, 2],
+                self.simulation_output.beam_param['twiss']['twiss_w'][:, 2],
             'envelope_pos_zdelta': lambda self:
-                self.beam_param['envelopes']['envelopes_zdelta'][:, 0],
+                self.simulation_output.beam_param['envelopes']['envelopes_zdelta'][:, 0],
             'envelope_energy_zdelta': lambda self:
-                self.beam_param['envelopes']['envelopes_zdelta'][:, 1],
+                self.simulation_output.beam_param['envelopes']['envelopes_zdelta'][:, 1],
             'envelope_pos_z': lambda self:
-                self.beam_param['envelopes']['envelopes_z'][:, 0],
+                self.simulation_output.beam_param['envelopes']['envelopes_z'][:, 0],
             'envelope_energy_z': lambda self:
-                self.beam_param['envelopes']['envelopes_z'][:, 1],
+                self.simulation_output.beam_param['envelopes']['envelopes_z'][:, 1],
             'envelope_pos_w': lambda self:
-                self.beam_param['envelopes']['envelopes_w'][:, 0],
+                self.simulation_output.beam_param['envelopes']['envelopes_w'][:, 0],
             'envelope_energy_w': lambda self:
-                self.beam_param['envelopes']['envelopes_w'][:, 1],
+                self.simulation_output.beam_param['envelopes']['envelopes_w'][:, 1],
             'M_11': lambda self: self.transf_mat['tm_cumul'][:, 0, 0],
             'M_12': lambda self: self.transf_mat['tm_cumul'][:, 0, 1],
             'M_21': lambda self: self.transf_mat['tm_cumul'][:, 1, 0],
@@ -255,23 +240,21 @@ class Accelerator():
     def new_keep_this(self, simulation_output: SimulationOutput,
                       l_elts: list[_Element]) -> None:
         """Compute some complementary data and save it as an attribute."""
-        logging.critical("Manual check that l_elts is full")
-        assert (l_elts[0].get('elt_name'), l_elts[-1].get('elt_name')) \
-            == ('QP1', 'DR378')
         simulation_output.compute_complementary_data(l_elts)
 
         # No more setting only a slice, we set the whole transf mat
         simulation_output.tm_indiv = simulation_output.tm_cumul
 
-        # This is about storing parameters, not outputs
+        # FIXME This is about storing parameters, not outputs
         for elt, rf_field, cav_params in zip(l_elts,
                                              simulation_output.rf_fields,
                                              simulation_output.cav_params):
             elt.keep_rf_field(rf_field, cav_params)
 
         # TODO: remove
-        self.synch.keep_energy_and_phase(self,
-                                         range(0, l_elts[-1].idx['s_out']))
+        self.transf_mat['tm_cumul'] = simulation_output.tm_cumul
+        self.synch.keep_energy_and_phase(simulation_output,
+                                         range(0, l_elts[-1].idx['s_out'] + 1))
 
         self.simulation_output = simulation_output
 
@@ -289,7 +272,7 @@ class Accelerator():
         finished.
         """
         logging.critical(f"keeping from {l_elts[0]} to {l_elts[-1]}.")
-        if False:
+        if True:
             self.new_keep_this(simulation_output, l_elts)
             return
         idx_in = l_elts[0].idx['s_in']
@@ -310,7 +293,7 @@ class Accelerator():
         # Save into Accelerator
         self.transf_mat['tm_cumul'][idx_in:idx_out] \
             = simulation_output.tm_cumul
-        self.beam_param["sigma_matrix"] = simulation_output.sigma_matrix
+
         # Mismatch will be None straight out of
         # ListOfElements._pack_into_single_dict method
         # We add it manually to results dict during the fitting process

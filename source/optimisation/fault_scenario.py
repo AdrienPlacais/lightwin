@@ -14,12 +14,9 @@ import pandas as pd
 
 import config_manager as con
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.output import SimulationOutput
 from optimisation.fault import Fault
-from optimisation.set_of_cavity_settings import SetOfCavitySettings
 from optimisation import strategy, position
 from core.accelerator import Accelerator
-from core.list_of_elements import ListOfElements
 from core.emittance import mismatch_factor
 from util import debug, helper
 
@@ -102,6 +99,8 @@ class FaultScenario(list):
             # Now we recompute full linac
             simulation_output = self.beam_calculator.run_with_this(
                 optimized_cavity_settings, self.fix_acc.elts)
+            simulation_output.mismatch_factor = self._compute_mismatch(
+                simulation_output.get('twiss_zdelta'))
             self.fix_acc.keep_this(simulation_output=simulation_output,
                                    l_elts=self.fix_acc.elts)
             fault.get_x_sol_in_real_phase()
@@ -231,23 +230,27 @@ class FaultScenario(list):
         # Calculate relative errors in %
         for idx in evaluation_idx:
             for key in quantities_to_evaluate:
-                ref = self.ref_acc.get(key)[idx]
                 fix = self.fix_acc.get(key)[idx]
 
                 if key == 'mismatch_factor':
                     quantities[key].append(fix)
                     continue
+
+                ref = self.ref_acc.get(key)[idx]
+                fix = self.fix_acc.get(key)[idx]
                 quantities[key].append(1e2 * (ref - fix) / ref)
 
         headers.append("sum error linac")
         for key in quantities_to_evaluate:
-            ref = self.ref_acc.get(key)
-            ref[ref == 0.] = np.NaN
             fix = self.fix_acc.get(key)
 
             if key == 'mismatch_factor':
                 quantities[key].append(np.sum(fix))
                 continue
+
+            ref = self.ref_acc.get(key)
+            ref[ref == 0.] = np.NaN
+
             quantities[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
 
         # Handle time

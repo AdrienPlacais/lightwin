@@ -8,7 +8,6 @@ Created on Mon Jun 12 08:24:37 2023.
 """
 import logging
 from dataclasses import dataclass
-import numpy as np
 
 from core.elements import _Element
 from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat

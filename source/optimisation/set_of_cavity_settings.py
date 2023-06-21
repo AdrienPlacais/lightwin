@@ -72,6 +72,7 @@ class SingleCavitySettings:
 @dataclass
 class SetOfCavitySettings(dict[object, SingleCavitySettings]):
     """Holds cavity settings, to be tried during optimisation process."""
+
     __cavity_settings: list[SingleCavitySettings]
 
     def __post_init__(self):

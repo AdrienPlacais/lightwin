@@ -14,6 +14,7 @@ from util.helper import recursive_items, recursive_getter
 import util.converters as convert
 from beam_calculation.output import SimulationOutput
 
+
 class Particle:
     """
     Class to hold the position, energy, etc of a particle.
@@ -144,44 +145,13 @@ class Particle:
             'phi_rel': [self.phi['phi_rel']],
         })
 
-    # FIXME still used?
-    def advance_phi(self, delta_phi: float, idx: int | float = np.NaN,
-                    flag_rf: bool = False) -> None:
-        """
-        Increase relative and absolute phase by delta_phi.
-
-        Parameters
-        ----------
-        delta_phi : float
-            Phase increment.
-        idx : integer, optional
-            Index of the new phase in abs_array. By default, the first NaN
-            element of the array is replaced. Thus, idx has to be given only
-            when recomputing the transfer matrices.
-        flag_rf : boolean, optional
-            If False, delta_phi = omega_0_bunch * delta_t. Otherwise,
-            delta_phi = omega_0_rf * delta_t. The default is False.
-        """
-        if np.isnan(idx):
-            idx = np.where(np.isnan(self.phi['phi_abs_array']))[0][0]
-
-        self.phi['phi_rel'] += delta_phi
-
-        if flag_rf:
-            self.phi['phi_abs_rf'] += delta_phi
-            delta_phi *= self.frac_omega['rf_to_bunch']
-
-        self.phi['phi_abs'] += delta_phi
-        self.phi['phi_abs_array'][idx] = self.phi['phi_abs_array'][idx - 1] \
-            + delta_phi
-
     def keep_energy_and_phase(self,
                               simulation_output: SimulationOutput,
                               idx_range: range) -> None:
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = simulation_output.get('w_kin')
         self.phi['phi_abs_array'][idx_range] = \
-                simulation_output.get('phi_abs_array')
+            simulation_output.get('phi_abs_array')
         self.energy['w_kin'][idx_range] = w_kin
         self.energy['gamma'][idx_range] = convert.energy(w_kin, "kin to gamma")
         self.energy['beta'][idx_range] = convert.energy(w_kin, "kin to beta")

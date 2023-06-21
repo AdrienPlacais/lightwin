@@ -82,11 +82,11 @@ class SimulationOutput:
             Must be a full ListOfElements, containing all the _Elements of the
             linac.
         """
+        gamma = convert.energy(self.get('w_kin'), "kin to gamma")
+        self.beam_param = beam_parameters_all(self.eps_zdelta,
+                                              self.twiss_zdelta,
+                                              gamma)
+
         mism = self.mismatch_factor
         if mism is not None:
             self.beam_param["mismatch_factor"] = mism
-
-        gamma = convert.energy(self.get('w_kin'), "kin to gamma")
-        self.d_beam_param = beam_parameters_all(self.eps_zdelta,
-                                                self.twiss_zdelta,
-                                                gamma)
