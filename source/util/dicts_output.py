@@ -44,7 +44,7 @@ d_markdown = {
     # Particle
     'z_abs': "Synch. position [m]",
     'w_kin': "Beam energy [MeV]",
-    'phi_abs_array': "Beam phase [deg]",
+    'phi_abs': "Beam phase [deg]",
     'beta': r"Synch. $\beta$ [1]",
     # Misc
     'struct': "Structure",
@@ -99,7 +99,7 @@ d_plot_kwargs = {
     # Particle
     'z_abs': {'marker': None},
     'w_kin': {'marker': None},
-    'phi_abs_array': {'marker': None},
+    'phi_abs': {'marker': None},
     'beta': {'marker': None},
     # Misc
     'struct': {'marker': None},
@@ -128,7 +128,7 @@ d_lw_to_tw = {
     # Particle
     'z_abs': 'z(m)',
     # 'w_kin': Computed in Accelerator.precompute_some_tracewin_results,
-    # 'phi_abs_array': Computed in Accelerator.precompute_some_tracewin_results,
+    # 'phi_abs': Computed in Accelerator.precompute_some_tracewin_results,
     # Misc
     # List OfElements
     # TraceWin

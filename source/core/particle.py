@@ -4,62 +4,67 @@
 Created on Thu Dec  2 13:44:00 2021.
 
 @author: placais
+
+In this module, two classes are defined:
+    - ParticleInitialState, which is just here to save the position and energy
+    of a particle at the entrance of the linac. Saved as an Accelerator
+    attribute.
+    - ParticleFullTrajectory, which saves the energy, phase, position of a
+    particle along the linac. As a single ParticleInitialState can lead to
+    several ParticleFullTrajectory (according to size of the mesh, the solver,
+    etc), ParticleFullTrajectory are stored in SimulationOutput.
 """
+from dataclasses import dataclass
 from typing import Any
-import logging
 import numpy as np
-import pandas as pd
 
 from util.helper import recursive_items, recursive_getter
 import util.converters as convert
-from beam_calculation.output import SimulationOutput
 
 
-class Particle:
+@dataclass
+class ParticleInitialState:
     """
-    Class to hold the position, energy, etc of a particle.
+    Hold the initial energy/phase of a particle, and if it is synchronous.
+
+    It is stored in Accelerator, and is parent of ParticleFullTrajectory.
+
+    """
+    w_kin: float | np.ndarray | list
+    phi_abs: float | np.ndarray | list
+    synchronous: bool
+
+
+@dataclass
+class ParticleFullTrajectory(ParticleInitialState):
+    """
+    Hold the full energy, phase, etc of a particle.
+
+    It is stored in a SimulationOutput. A single Accelerator can have several
+    SimulationOutput, hence an Accelerator.ParticleInitialState can have
+    several SimulationOutput.ParticleFullTrajectory.
 
     Phase is defined as:
         phi = omega_0_bunch * t
     while in electric_field it is:
         phi = omega_0_rf * t
+
     """
 
-    def __init__(self, z_0: float, e_mev: float, n_steps: int = 1,
-                 synchronous: bool = False, reference: bool = True) -> None:
-        self.part_info = {
-            # Is this particle the generator?
-            'synchronous': synchronous,
-            # Is it in a reference (non-faulty) linac?
-            'reference': reference,
-            # Are the phases absolute? Or relative?
-            'fixed': False,
-            # FIXME: still used. Can be replaced by cav status?
-            # I think it could be a good thing as to prepare the global + local
-            # compensation
-        }
+    def __post_init__(self):
+        """Ensure that LightWin has everything it needs, with proper format."""
+        if isinstance(self.phi_abs, list):
+            self.phi_abs = np.array(self.phi_abs)
 
-        self.pos = {
-            'z_rel': z_0,           # Position from the start of the element
-            'z_abs': np.full((n_steps + 1), np.NaN),
-        }
-        self.pos['z_abs'][0] = z_0
-        self.energy = {
-            'w_kin': np.full((n_steps + 1), np.NaN),
-            'gamma': np.full((n_steps + 1), np.NaN),
-            'beta': np.full((n_steps + 1), np.NaN),
-        }
-        self.set_energy(e_mev, idx=0, delta_e=False)
+        if isinstance(self.w_kin, list):
+            self.w_kin = np.array(self.w_kin)
 
-        self.phi = {
-            'phi_rel': None,
-            'phi_abs_array': np.full((n_steps + 1), np.NaN),
-        }
-        self._init_phi(idx=0)
+        self.gamma = convert.energy(self.get('w_kin'), "kin to gamma")
+        self.beta: np.ndarray
 
-        if not self.part_info["synchronous"]:
-            logging.warning("The absolute position of a non synchronous "
-                            + "particle is not initialized.")
+    def compute_complementary_data(self):
+        """Compute some data necessary to do the post-treatment."""
+        self.beta = convert.energy(self.get('gamma'), "gamma to beta")
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -89,60 +94,6 @@ class Particle:
             return out[0]
         # implicit else:
         return tuple(out)
-
-    def init_abs_z(self, abs_z_array: np.ndarray) -> None:
-        """Create the array of absolute positions."""
-        assert self.part_info["synchronous"], """This routine only works for
-        the synch particle I think."""
-        self.pos['z_abs'] = abs_z_array
-
-    def set_energy(self, e_mev: float, idx: int | float = np.NaN,
-                   delta_e: bool = False) -> None:
-        """
-        Update the energy dict.
-
-        Parameters
-        ----------
-        e_mev : float
-            New energy in MeV.
-        idx : int | np.NaN, opt
-            Index of the the energy concerned. If NaN, e_mev replaces the first
-            NaN element of w_kin. The default is np.NaN
-        delta_e : bool, opt
-            If True, energy is increased by e_mev. If False, energy is set to
-            e_mev. The default is False.
-        """
-        if np.isnan(idx):
-            idx = np.where(np.isnan(self.energy['w_kin']))[0][0]
-
-        if delta_e:
-            self.energy['w_kin'][idx] = \
-                self.energy['w_kin'][idx - 1] + e_mev
-        else:
-            self.energy['w_kin'][idx] = e_mev
-
-        gamma = convert.energy(self.energy['w_kin'][idx], "kin to gamma")
-        beta = convert.energy(gamma, "gamma to beta")
-
-        self.energy['gamma'][idx] = gamma
-        self.energy['beta'][idx] = beta
-
-    def _init_phi(self, idx: int = 0) -> None:
-        """Init phi by taking z_rel and beta."""
-        phi_abs = convert.position(self.pos['z_abs'][idx],
-                                   self.energy['beta'][idx], "z to phi")
-        self.phi['phi_abs_array'][idx] = phi_abs
-        self.phi['phi_rel'] = phi_abs
-
-    def keep_energy_and_phase(self, simulation_output: SimulationOutput
-                              ) -> None:
-        """Assign the energy and phase data to synch after MT calculation."""
-        w_kin = simulation_output.get('w_kin')
-        self.phi['phi_abs_array'] = \
-            simulation_output.get('phi_abs_array')
-        self.energy['w_kin'] = w_kin
-        self.energy['gamma'] = convert.energy(w_kin, "kin to gamma")
-        self.energy['beta'] = convert.energy(w_kin, "kin to beta")
 
 
 # def create_rand_particles(e_0_mev):

@@ -191,7 +191,7 @@ class FaultScenario(list):
                              additional_idx: int | None = None
                              ) -> pd.DataFrame:
         """Compute some quantities on the whole linac to see if fit is good."""
-        quantities_to_evaluate = ['w_kin', 'phi_abs_array', 'envelope_pos_w',
+        quantities_to_evaluate = ['w_kin', 'phi_abs', 'envelope_pos_w',
                                   'envelope_energy_w', 'mismatch_factor',
                                   'eps_w']
         quantities = {}

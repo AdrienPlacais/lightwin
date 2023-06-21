@@ -171,7 +171,6 @@ class _Element():
         self.solver_param['rel_mesh'] = np.linspace(0., self.length_m,
                                                     n_steps + 1)
 
-
     def calc_transf_mat(self, w_kin_in: float, **rf_field_kwargs: dict
                         ) -> dict:
         """

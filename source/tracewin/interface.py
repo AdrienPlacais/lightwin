@@ -237,7 +237,7 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
         'Full length (mm)': lambda lin, elt: lin.get('z_abs')[
             elt.idx['s_out']] * 1e3,
         'Abs. phase (deg)': lambda lin, elt: lin.get(
-            'phi_abs_array', to_deg=True)[elt.idx['s_out']],
+            'phi_abs', to_deg=True)[elt.idx['s_out']],
     }
 
     data = []

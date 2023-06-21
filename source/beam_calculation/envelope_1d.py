@@ -9,6 +9,7 @@ Created on Mon Jun 12 08:24:37 2023.
 import logging
 from dataclasses import dataclass
 
+from core.particle import ParticleFullTrajectory
 from core.elements import _Element
 from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
 from core.emittance import beam_parameters_zdelta
@@ -100,9 +101,6 @@ class Envelope1D(BeamCalculator):
             elts, single_elts_results, rf_fields)
         return simulation_output
 
-    # TODO only return what is needed for the fit?
-    # maybe: a second specific _generate_simulation_output for fit only? This
-    # is secondary for now...
     def _generate_simulation_output(self, elts: ListOfElements,
                                     single_elts_results: list[dict],
                                     rf_fields: list[dict]
@@ -119,9 +117,11 @@ class Envelope1D(BeamCalculator):
             phi_abs = [phi_rel + phi_abs_array[-1]
                        for phi_rel in elt_results['phi_rel']]
             phi_abs_array.extend(phi_abs)
+        synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
+                                                  phi_abs=phi_abs_array,
+                                                  synchronous=True)
 
-        # FIXME
-        mismatch_factor = None  # for results in single_elts_results]
+        mismatch_factor = None
 
         cav_params = [results['cav_params']
                       for results in single_elts_results]
@@ -139,8 +139,7 @@ class Envelope1D(BeamCalculator):
         beam_params = beam_parameters_zdelta(tm_cumul)
 
         simulation_output = SimulationOutput(
-            w_kin=w_kin,
-            phi_abs_array=phi_abs_array,
+            synch_trajectory=synch_trajectory,
             mismatch_factor=mismatch_factor,
             cav_params=cav_params,
             phi_s=phi_s,

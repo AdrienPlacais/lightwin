@@ -35,7 +35,7 @@ DICT_PLOT_PRESETS = {
                'l_y_str': ["w_kin", "w_kin_err", "struct"],
                'num': 21},
     "phase": {'x_str': 'z_abs',
-              'l_y_str': ["phi_abs_array", "phi_abs_array_err", "struct"],
+              'l_y_str': ["phi_abs", "phi_abs_err", "struct"],
               'num': 22},
     "cav": {'x_str': 'elt_idx',
             'l_y_str': ["v_cav_mv", "phi_s", "struct"],
@@ -55,7 +55,7 @@ DICT_PLOT_PRESETS = {
                         'num': 27},
 }
 DICT_ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'simple'},
-                      'phi_abs_array_err': {'scale': 1., 'diff': 'simple'},
+                      'phi_abs_err': {'scale': 1., 'diff': 'simple'},
                       }
 
 

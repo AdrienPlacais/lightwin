@@ -14,29 +14,29 @@ from dataclasses import dataclass
 from typing import Any
 import numpy as np
 
-from util.helper import recursive_items, recursive_getter
+from core.particle import ParticleFullTrajectory
 from core.list_of_elements import ListOfElements
-import util.converters as convert
 from core.emittance import beam_parameters_all, mismatch_factor
+from util.helper import recursive_items, recursive_getter
 
 
-# TODO remove unnecessary
 @dataclass
 class SimulationOutput:
     """Stores the information that is needed for a fit."""
-
-    w_kin: list[float] | None = None
-    phi_abs_array: list[float] | None = None
-    mismatch_factor: list[float | None] | None = None
+    z_abs: np.ndarray | None = None
+    synch_trajectory: ParticleFullTrajectory | None = None
 
     cav_params: list[dict | None] | None = None
     phi_s: list[float] | None = None
+    rf_fields: list[dict] | None = None
+
     r_zz_elt: list[np.ndarray] | None = None
     tm_cumul: np.ndarray | None = None
-    rf_fields: list[dict] | None = None
+
     eps_zdelta: np.ndarray | None = None
     twiss_zdelta: np.ndarray | None = None
     sigma_matrix: np.ndarray | None = None
+    mismatch_factor: list[float | None] | None = None
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -88,10 +88,12 @@ class SimulationOutput:
             calculation of the mismatch factor. The default is None.
 
         """
-        gamma = convert.energy(self.get('w_kin'), "kin to gamma")
+        self.z_abs = elts.get('abs_mesh', remove_first=True)
+        self.synch_trajectory.compute_complementary_data()
+
         self.beam_param = beam_parameters_all(self.eps_zdelta,
                                               self.twiss_zdelta,
-                                              gamma)
+                                              self.synch_trajectory.gamma)
         mism = None
         if ref_twiss_zdelta is not None:
             self.mismatch_factor = self._compute_mismatch(ref_twiss_zdelta)

@@ -593,7 +593,7 @@ def _test_objective(c_wtf: configparser.SectionProxy) -> bool:
 
     objectives = c_wtf.getliststr('objective')
     implemented = [
-        'w_kin', 'phi_abs_array', 'mismatch_factor',
+        'w_kin', 'phi_abs', 'mismatch_factor',
         'eps_zdelta', 'beta_zdelta', 'gamma_zdelta', 'alpha_zdelta',
         'M_11', 'M_12', 'M_22', 'M_21']
 

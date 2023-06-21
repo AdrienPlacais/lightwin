@@ -19,13 +19,11 @@ import config_manager as con
 import tracewin.interface
 import tracewin.load
 from beam_calculation.output import SimulationOutput
-import util.converters as convert
 from util.helper import recursive_items, recursive_getter
 from core import particle
 from core.elements import _Element, FieldMapPath
 from core.list_of_elements import ListOfElements, elt_at_this_s_idx, \
     equiv_elt
-from core.emittance import beam_parameters_all
 
 
 class Accelerator():
@@ -69,12 +67,13 @@ class Accelerator():
 
         self.files['dat_filecontent'] = dat_filecontent
 
-        reference = bool(name == 'Working')
-        self.synch = particle.Particle(0., con.E_MEV, n_steps=last_idx,
-                                       synchronous=True, reference=reference)
+        self.synch = particle.ParticleInitialState(
+            w_kin=con.E_MEV,
+            phi_abs=0.,
+            synchronous=True
+        )
 
         self._special_getters = self._create_special_getters()
-        self.synch.init_abs_z(self.get('abs_mesh', remove_first=True))
         self._check_consistency_phases()
 
         self._l_cav = self.elts.l_cav
@@ -261,9 +260,6 @@ class Accelerator():
                                              simulation_output.rf_fields,
                                              simulation_output.cav_params):
             elt.keep_rf_field(rf_field, cav_params)
-
-        # TODO: keep this for now
-        self.synch.keep_energy_and_phase(simulation_output)
 
         self.simulation_output = simulation_output
 
