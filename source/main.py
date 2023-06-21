@@ -118,15 +118,9 @@ if __name__ == '__main__':
 
             if FLAG_FIX:
                 fault_scenario.fix_all()
-                simulation_output = beam_calculator.run(lin.elts)
-                simulation_output.mismatch_factor = \
-                    fault_scenario._compute_mismatch(
-                        simulation_output.get('twiss_zdelta'))
-                lin.keep_this(simulation_output=simulation_output)
 
             linacs.append(lin)
 
-            # Output some info on the quality of the fit
             end_time = time.monotonic()
             delta_t = datetime.timedelta(seconds=end_time - start_time)
             logging.info(f"Elapsed time: {delta_t}")

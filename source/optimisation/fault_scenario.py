@@ -88,6 +88,7 @@ class FaultScenario(list):
     def fix_all(self) -> None:
         """Fix all the Faults."""
         success, info = [], []
+        ref_twiss_zdelta = self.ref_acc.get('twiss_zdelta')
         for fault in self:
             fault.update_cavities_status(optimisation='not started')
             _succ, optimized_cavity_settings, _info = fault.fix(
@@ -99,9 +100,8 @@ class FaultScenario(list):
             # Now we recompute full linac
             simulation_output = self.beam_calculator.run_with_this(
                 optimized_cavity_settings, self.fix_acc.elts)
-            simulation_output.mismatch_factor = self._compute_mismatch(
-                simulation_output.get('twiss_zdelta'))
-            self.fix_acc.keep_this(simulation_output=simulation_output)
+            self.fix_acc.keep_this(simulation_output,
+                                   ref_twiss_zdelta=ref_twiss_zdelta)
             fault.get_x_sol_in_real_phase()
             fault.update_cavities_status(optimisation='finished', success=True)
 
@@ -111,9 +111,8 @@ class FaultScenario(list):
                 self._reupdate_status_of_rephased_cavities(fault)
 
         simulation_output = self.beam_calculator.run(self.fix_acc.elts)
-        simulation_output.mismatch_factor = self._compute_mismatch(
-            simulation_output.get('twiss_zdelta'))
-        self.fix_acc.keep_this(simulation_output=simulation_output)
+        self.fix_acc.keep_this(simulation_output,
+                               ref_twiss_zdelta=ref_twiss_zdelta)
         self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
             + f" of {str(len(success))})"
 

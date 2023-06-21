@@ -238,7 +238,8 @@ class Accelerator():
                 + "used by TW. Results won't match if there are faulty "
                 + "cavities.")
 
-    def keep_this(self, simulation_output: SimulationOutput) -> None:
+    def keep_this(self, simulation_output: SimulationOutput,
+                  ref_twiss_zdelta: np.ndarray | None = None) -> None:
         """
         Compute some complementary data and save it as an attribute.
 
@@ -247,8 +248,13 @@ class Accelerator():
         simulation_output : SimulationOutput
             Class that holds all the relatable data created by the
             BeamCalculator.
+        ref_twiss_zdelta : np.ndarray | None, optional
+            A reference array of Twiss parameters. If provided, it allows the
+            calculation of the mismatch factor. The default is None.
+
         """
-        simulation_output.compute_complementary_data(self.elts)
+        simulation_output.compute_complementary_data(self.elts,
+                                                     ref_twiss_zdelta)
 
         # FIXME This is about storing parameters, not outputs
         for elt, rf_field, cav_params in zip(self.elts,

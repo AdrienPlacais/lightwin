@@ -17,7 +17,7 @@ import numpy as np
 from util.helper import recursive_items, recursive_getter
 from core.list_of_elements import ListOfElements
 import util.converters as convert
-from core.emittance import beam_parameters_all
+from core.emittance import beam_parameters_all, mismatch_factor
 
 
 # TODO remove unnecessary
@@ -72,21 +72,36 @@ class SimulationOutput:
         # implicit else:
         return tuple(out)
 
-    def compute_complementary_data(self, elts: ListOfElements) -> None:
+    def compute_complementary_data(self, elts: ListOfElements,
+                                   ref_twiss_zdelta: np.ndarray | None = None
+                                   ) -> None:
         """
         Compute some other indirect quantities.
 
         Parameters
         ----------
-        elts: ListOfElements
+        elts : ListOfElements
             Must be a full ListOfElements, containing all the _Elements of the
             linac.
+        ref_twiss_zdelta : np.ndarray | None, optional
+            A reference array of Twiss parameters. If provided, it allows the
+            calculation of the mismatch factor. The default is None.
+
         """
         gamma = convert.energy(self.get('w_kin'), "kin to gamma")
         self.beam_param = beam_parameters_all(self.eps_zdelta,
                                               self.twiss_zdelta,
                                               gamma)
+        mism = None
+        if ref_twiss_zdelta is not None:
+            self.mismatch_factor = self._compute_mismatch(ref_twiss_zdelta)
+            mism = self.mismatch_factor
 
-        mism = self.mismatch_factor
         if mism is not None:
             self.beam_param["mismatch_factor"] = mism
+
+    def _compute_mismatch(self, ref_twiss_zdelta: np.ndarray) -> np.ndarray:
+        """Compute the mismatch between reference and broken linac."""
+        mism = mismatch_factor(ref_twiss_zdelta, self.get("twiss_zdelta"),
+                               transp=True)
+        return mism
