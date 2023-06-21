@@ -86,8 +86,7 @@ if __name__ == '__main__':
     beam_calculator = init_calc_with(beam_calculator_parameters)
     simulation_output = beam_calculator.run(ref_linac.elts)
     ref_linac.simulation_output = simulation_output
-    ref_linac.keep_this(simulation_output=simulation_output,
-                        l_elts=ref_linac.elts)
+    ref_linac.keep_this(simulation_output=simulation_output)
     data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(ref_linac)
     linacs = [ref_linac]
 
@@ -123,8 +122,7 @@ if __name__ == '__main__':
                 simulation_output.mismatch_factor = \
                     fault_scenario._compute_mismatch(
                         simulation_output.get('twiss_zdelta'))
-                lin.keep_this(simulation_output=simulation_output,
-                              l_elts=lin.elts)  # useful?
+                lin.keep_this(simulation_output=simulation_output)
 
             linacs.append(lin)
 

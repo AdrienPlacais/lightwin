@@ -101,8 +101,7 @@ class FaultScenario(list):
                 optimized_cavity_settings, self.fix_acc.elts)
             simulation_output.mismatch_factor = self._compute_mismatch(
                 simulation_output.get('twiss_zdelta'))
-            self.fix_acc.keep_this(simulation_output=simulation_output,
-                                   l_elts=self.fix_acc.elts)
+            self.fix_acc.keep_this(simulation_output=simulation_output)
             fault.get_x_sol_in_real_phase()
             fault.update_cavities_status(optimisation='finished', success=True)
 
@@ -114,8 +113,7 @@ class FaultScenario(list):
         simulation_output = self.beam_calculator.run(self.fix_acc.elts)
         simulation_output.mismatch_factor = self._compute_mismatch(
             simulation_output.get('twiss_zdelta'))
-        self.fix_acc.keep_this(simulation_output=simulation_output,
-                               l_elts=self.fix_acc.elts)
+        self.fix_acc.keep_this(simulation_output=simulation_output)
         self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
             + f" of {str(len(success))})"
 
@@ -157,7 +155,6 @@ class FaultScenario(list):
         logging.warning("Changed the way of defining idx1 and idx2.")
         elts = self.fix_acc.elts
 
-        # idx1 = l_elts.index(fault.comp['l_all_elts'][-1])
         idx1 = fault.elts[-1].idx['elt_idx']
         idx2 = len(elts)
         if fault is not self[-1]:

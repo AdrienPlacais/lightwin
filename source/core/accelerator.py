@@ -241,88 +241,21 @@ class Accelerator():
                 + "used by TW. Results won't match if there are faulty "
                 + "cavities.")
 
-    def new_keep_this(self, simulation_output: SimulationOutput,
-                      l_elts: list[_Element]) -> None:
+    def keep_this(self, simulation_output: SimulationOutput) -> None:
         """Compute some complementary data and save it as an attribute."""
-        simulation_output.compute_complementary_data(l_elts)
-
-        # No more setting only a slice, we set the whole transf mat
-        simulation_output.tm_indiv = simulation_output.tm_cumul
-        logging.critical("tm_indiv is exactly tm_cumul")
+        simulation_output.compute_complementary_data(self.elts)
 
         # FIXME This is about storing parameters, not outputs
-        for elt, rf_field, cav_params in zip(l_elts,
+        for elt, rf_field, cav_params in zip(self.elts,
                                              simulation_output.rf_fields,
                                              simulation_output.cav_params):
             elt.keep_rf_field(rf_field, cav_params)
 
-        # TODO: remove
-        self.synch.keep_energy_and_phase(simulation_output,
-                                         range(0, l_elts[-1].idx['s_out'] + 1))
+        # TODO: keep this for now
+        self.synch.keep_energy_and_phase(
+            simulation_output, range(0, self.elts[-1].idx['s_out'] + 1))
 
         self.simulation_output = simulation_output
-
-    def keep_this(self, simulation_output: SimulationOutput,
-                  l_elts: list[_Element]) -> None:
-        """
-        We save data into the appropriate objects.
-
-        In particular:
-            energy and phase into accelerator.synch
-            rf field parameters, element transfer matrices into Elements
-            global transfer matrices into Accelerator
-
-        This function is called when the fitting is not required/is already
-        finished.
-        """
-        logging.critical(f"keeping from {l_elts[0]} to {l_elts[-1]}.")
-        if True:
-            self.new_keep_this(simulation_output, l_elts)
-            return
-        idx_in = l_elts[0].idx['s_in']
-        idx_out = l_elts[-1].idx['s_out'] + 1
-
-        # Go across elements
-        for elt, rf_field, cav_params in zip(l_elts,
-                                             simulation_output.rf_fields,
-                                             simulation_output.cav_params):
-            idx_abs = range(elt.idx['s_in'] + 1, elt.idx['s_out'] + 1)
-            idx_rel = range(elt.idx['s_in'] + 1 - idx_in,
-                            elt.idx['s_out'] + 1 - idx_in)
-            transf_mat_elt = simulation_output.tm_cumul[idx_rel]
-
-            self.transf_mat['tm_indiv'][idx_abs] = transf_mat_elt
-            elt.keep_rf_field(rf_field, cav_params)
-
-        # Save into Accelerator
-        self.transf_mat['tm_cumul'][idx_in:idx_out] \
-            = simulation_output.tm_cumul
-
-        # Mismatch will be None straight out of
-        # ListOfElements._pack_into_single_dict method
-        # We add it manually to results dict during the fitting process
-        # (FaultScenario)
-        mism = simulation_output.mismatch_factor
-        if mism is not None:
-            self.beam_param["mismatch_factor"] = mism
-
-        # Save into Particle
-        self.synch.keep_energy_and_phase(simulation_output,
-                                         range(idx_in, idx_out))
-
-        # Save into Accelerator
-        gamma = convert.energy(simulation_output.get('w_kin'), "kin to gamma")
-        d_beam_param = beam_parameters_all(simulation_output.eps_zdelta,
-                                           simulation_output.twiss_zdelta,
-                                           gamma)
-
-        # Go across beam parameters (Twiss, emittance, long. envelopes)
-        for item1 in self.beam_param.items():
-            if not isinstance(item1[1], dict):
-                continue
-            # Go across phase spaces (z-z', z-delta, w-phi)
-            for item2 in item1[1].items():
-                item2[1][idx_in:idx_out] = d_beam_param[item1[0]][item2[0]]
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                           ) -> _Element | None:
