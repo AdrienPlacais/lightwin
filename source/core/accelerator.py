@@ -73,13 +73,6 @@ class Accelerator():
         self.synch = particle.Particle(0., con.E_MEV, n_steps=last_idx,
                                        synchronous=True, reference=reference)
 
-        # Transfer matrices
-        self.transf_mat = {
-            'tm_cumul': np.full((last_idx + 1, 2, 2), np.NaN),
-            'tm_indiv': np.full((last_idx + 1, 2, 2), np.NaN),
-        }
-        self.transf_mat['tm_indiv'][0, :, :] = np.eye(2)
-
         # Define some shortcuts
         self._d_special_getters = self._create_special_getters()
 
@@ -181,15 +174,20 @@ class Accelerator():
         """Create a dict of aliases that can be accessed w/ the get method."""
         _d_special_getters = {
             'alpha_zdelta': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_zdelta'][:, 0],
+                self.simulation_output.beam_param['twiss'][
+                    'twiss_zdelta'][:, 0],
             'beta_zdelta': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_zdelta'][:, 1],
+                self.simulation_output.beam_param['twiss'][
+                    'twiss_zdelta'][:, 1],
             'gamma_zdelta': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_zdelta'][:, 2],
+                self.simulation_output.beam_param['twiss'][
+                    'twiss_zdelta'][:, 2],
             'alpha_z': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_z'][:, 0],
+                self.simulation_output.beam_param['twiss'][
+                    'twiss_z'][:, 0],
             'beta_z': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_z'][:, 1],
+                self.simulation_output.beam_param['twiss'][
+                    'twiss_z'][:, 1],
             'gamma_z': lambda self:
                 self.simulation_output.beam_param['twiss']['twiss_z'][:, 2],
             'alpha_w': lambda self:
@@ -199,21 +197,27 @@ class Accelerator():
             'gamma_w': lambda self:
                 self.simulation_output.beam_param['twiss']['twiss_w'][:, 2],
             'envelope_pos_zdelta': lambda self:
-                self.simulation_output.beam_param['envelopes']['envelopes_zdelta'][:, 0],
+                self.simulation_output.beam_param['envelopes'][
+                    'envelopes_zdelta'][:, 0],
             'envelope_energy_zdelta': lambda self:
-                self.simulation_output.beam_param['envelopes']['envelopes_zdelta'][:, 1],
+                self.simulation_output.beam_param['envelopes'][
+                    'envelopes_zdelta'][:, 1],
             'envelope_pos_z': lambda self:
-                self.simulation_output.beam_param['envelopes']['envelopes_z'][:, 0],
+                self.simulation_output.beam_param['envelopes'][
+                    'envelopes_z'][:, 0],
             'envelope_energy_z': lambda self:
-                self.simulation_output.beam_param['envelopes']['envelopes_z'][:, 1],
+                self.simulation_output.beam_param['envelopes'][
+                    'envelopes_z'][:, 1],
             'envelope_pos_w': lambda self:
-                self.simulation_output.beam_param['envelopes']['envelopes_w'][:, 0],
+                self.simulation_output.beam_param['envelopes'][
+                    'envelopes_w'][:, 0],
             'envelope_energy_w': lambda self:
-                self.simulation_output.beam_param['envelopes']['envelopes_w'][:, 1],
-            'M_11': lambda self: self.transf_mat['tm_cumul'][:, 0, 0],
-            'M_12': lambda self: self.transf_mat['tm_cumul'][:, 0, 1],
-            'M_21': lambda self: self.transf_mat['tm_cumul'][:, 1, 0],
-            'M_22': lambda self: self.transf_mat['tm_cumul'][:, 1, 1],
+                self.simulation_output.beam_param['envelopes'][
+                    'envelopes_w'][:, 1],
+            'M_11': lambda self: self.simulation_output.tm_cumul[:, 0, 0],
+            'M_12': lambda self: self.simulation_output.tm_cumul[:, 0, 1],
+            'M_21': lambda self: self.simulation_output.tm_cumul[:, 1, 0],
+            'M_22': lambda self: self.simulation_output.tm_cumul[:, 1, 1],
             'element number': lambda self: self.get('elt_idx') + 1,
         }
         return _d_special_getters
@@ -244,6 +248,7 @@ class Accelerator():
 
         # No more setting only a slice, we set the whole transf mat
         simulation_output.tm_indiv = simulation_output.tm_cumul
+        logging.critical("tm_indiv is exactly tm_cumul")
 
         # FIXME This is about storing parameters, not outputs
         for elt, rf_field, cav_params in zip(l_elts,
@@ -252,7 +257,6 @@ class Accelerator():
             elt.keep_rf_field(rf_field, cav_params)
 
         # TODO: remove
-        self.transf_mat['tm_cumul'] = simulation_output.tm_cumul
         self.synch.keep_energy_and_phase(simulation_output,
                                          range(0, l_elts[-1].idx['s_out'] + 1))
 
