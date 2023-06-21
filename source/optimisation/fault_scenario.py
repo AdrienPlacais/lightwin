@@ -17,7 +17,6 @@ from beam_calculation.beam_calculator import BeamCalculator
 from optimisation.fault import Fault
 from optimisation import strategy, position
 from core.accelerator import Accelerator
-from core.emittance import mismatch_factor
 from util import debug, helper
 
 DISPLAY_CAVITIES_INFO = True
