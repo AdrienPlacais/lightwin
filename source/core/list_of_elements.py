@@ -61,29 +61,14 @@ class ListOfElements(list):
 
         self.by_section_and_lattice: list[list[list[_Element]]] | None = None
         self.by_lattice: list[list[_Element]] | None = None
+        self.tm_cumul_in: np.ndarray | None
 
         if first_init:
             logging.info("First initialisation of ListOfElements, ecompassing "
                          + "all linac. Also removing Lattice and Freq "
                          + "commands, setting Lattice/Section structures, "
                          + "_Elements names, numbering, indexes.")
-            by_section_and_lattice, by_lattice, freqs = self.set_structure()
-            self.by_section_and_lattice = by_section_and_lattice
-            self.by_lattice = by_lattice
-
-            self.set_structure_related_indexes_of_elements()
-
-            tracewin.interface.give_name(self)
-            self._set_generic_electric_field_properties(
-                freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
-
-            if tm_cumul is not None:
-                logging.warning(
-                    "You do not need to provide a cumulated transfer matrix "
-                    + "to initialize this ListOfElements. It starts at the "
-                    + "beginning of the linac and the matrix should be the "
-                    + "eye matrix. Ignoring your input...")
-            self.tm_cumul_in = np.eye(2)
+            self._first_init(tm_cumul)
 
         else:
             logging.info(f"Initalisation of ListOfElements from already "
@@ -144,6 +129,26 @@ class ListOfElements(list):
             return out[0]
         # implicit else
         return tuple(out)
+
+    def _first_init(self, tm_cumul: np.ndarray | None) -> None:
+        """Remove Lattice/Freq commands, set structure, some indexes."""
+        by_section_and_lattice, by_lattice, freqs = self.set_structure()
+        self.by_section_and_lattice = by_section_and_lattice
+        self.by_lattice = by_lattice
+
+        self.set_structure_related_indexes_of_elements()
+
+        tracewin.interface.give_name(self)
+        self._set_generic_electric_field_properties(
+            freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
+
+        if tm_cumul is not None:
+            logging.warning(
+                "You do not need to provide a cumulated transfer matrix "
+                + "to initialize this ListOfElements. It starts at the "
+                + "beginning of the linac and the matrix should be the "
+                + "eye matrix. Ignoring your input...")
+        self.tm_cumul_in = np.eye(2)
 
     def set_structure(self) -> tuple[list[list[_Element]],
                                      list[list[list[_Element]]],
