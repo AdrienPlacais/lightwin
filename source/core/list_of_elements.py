@@ -232,14 +232,13 @@ class ListOfElements(list):
             elt.solver_param['abs_mesh'] = elt.get('rel_mesh') + pos_in
 
     # Depends on solver's number of steps!
-    def set_indexes(self) -> int:
+    def set_indexes(self) -> None:
         """Set the absolute indexes of the elements."""
         idx_in, idx_out = 0, 0
         for elt in self:
             idx_in = idx_out
             idx_out += elt.get('n_steps')
             elt.idx['s_in'], elt.idx['s_out'] = idx_in, idx_out
-        return idx_out
 
 
 def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
