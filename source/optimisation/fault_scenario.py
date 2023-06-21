@@ -187,17 +187,6 @@ class FaultScenario(list):
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
-    def _compute_mismatch(self, fix_twiss_zdelta: np.ndarray) -> np.ndarray:
-        """
-        Compute the mismatch between reference abnd broken linac.
-
-        Also store it into the broken_linac.beam_param dictionary.
-        """
-        mism = mismatch_factor(self.ref_acc.get("twiss_zdelta"),
-                               fix_twiss_zdelta,
-                               transp=True)
-        return mism
-
     # FIXME
     def evaluate_fit_quality(self, delta_t: float,
                              additional_idx: int | None = None
