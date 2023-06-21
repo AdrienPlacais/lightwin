@@ -72,13 +72,13 @@ class SimulationOutput:
         # implicit else:
         return tuple(out)
 
-    def compute_complementary_data(self, l_elts: ListOfElements):
+    def compute_complementary_data(self, elts: ListOfElements) -> None:
         """
         Compute some other indirect quantities.
 
         Parameters
         ----------
-        l_elts: ListOfElements
+        elts: ListOfElements
             Must be a full ListOfElements, containing all the _Elements of the
             linac.
         """

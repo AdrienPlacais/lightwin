@@ -39,7 +39,7 @@ class ListOfElements(list):
 
         Parameters
         ----------
-        l_elts : list[_Element]
+        elts : list[_Element]
             List containing the _Element objects.
         w_kin : float
             Kinetic energy at the entrance of the first _Element. Must be in

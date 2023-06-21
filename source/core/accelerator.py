@@ -73,11 +73,8 @@ class Accelerator():
         self.synch = particle.Particle(0., con.E_MEV, n_steps=last_idx,
                                        synchronous=True, reference=reference)
 
-        # Define some shortcuts
-        self._d_special_getters = self._create_special_getters()
-
+        self._special_getters = self._create_special_getters()
         self.synch.init_abs_z(self.get('abs_mesh', remove_first=True))
-        # Check that LW and TW computes the phases in the same way (abs or rel)
         self._check_consistency_phases()
 
         self._l_cav = self.elts.l_cav
@@ -99,8 +96,8 @@ class Accelerator():
             val[key] = []
 
         for key in keys:
-            if key in self._d_special_getters:
-                val[key] = self._d_special_getters[key](self)
+            if key in self._special_getters:
+                val[key] = self._special_getters[key](self)
                 continue
 
             if not self.has(key):
@@ -127,7 +124,7 @@ class Accelerator():
         return tuple(out)
 
     # TODO add linac name in the subproject folder name
-    def _handle_paths_and_folders(self, l_elts: list[_Element, ...]
+    def _handle_paths_and_folders(self, elts: list[_Element, ...]
                                   ) -> list[_Element]:
         """Make paths absolute, create results folders."""
         # First we take care of where results will be stored
@@ -145,11 +142,11 @@ class Accelerator():
 
         # Now we handle where to look for the field maps
         field_map_basepaths = [basepath
-                               for basepath in l_elts
+                               for basepath in elts
                                if isinstance(basepath, FieldMapPath)]
         # FIELD_MAP_PATH are not physical elements, so we remove them
         for basepath in field_map_basepaths:
-            l_elts.remove(basepath)
+            elts.remove(basepath)
 
         # If no FIELD_MAP_PATH command was provided, we take field maps in the
         # .dat dir
@@ -168,11 +165,11 @@ class Accelerator():
             for fm_path in field_map_basepaths]
         self.files['field_map_folder'] = field_map_basepaths[0]
 
-        return l_elts
+        return elts
 
     def _create_special_getters(self) -> dict:
         """Create a dict of aliases that can be accessed w/ the get method."""
-        _d_special_getters = {
+        _special_getters = {
             'alpha_zdelta': lambda self:
                 self.simulation_output.beam_param['twiss'][
                     'twiss_zdelta'][:, 0],
@@ -220,7 +217,7 @@ class Accelerator():
             'M_22': lambda self: self.simulation_output.tm_cumul[:, 1, 1],
             'element number': lambda self: self.get('elt_idx') + 1,
         }
-        return _d_special_getters
+        return _special_getters
 
     def _check_consistency_phases(self) -> None:
         """Check that both TW and LW use absolute or relative phases."""
@@ -242,7 +239,15 @@ class Accelerator():
                 + "cavities.")
 
     def keep_this(self, simulation_output: SimulationOutput) -> None:
-        """Compute some complementary data and save it as an attribute."""
+        """
+        Compute some complementary data and save it as an attribute.
+
+        Parameters
+        ----------
+        simulation_output : SimulationOutput
+            Class that holds all the relatable data created by the
+            BeamCalculator.
+        """
         simulation_output.compute_complementary_data(self.elts)
 
         # FIXME This is about storing parameters, not outputs
