@@ -42,6 +42,7 @@ class Accelerator():
         the self.synch Particle object.
         """
         self.name = name
+        self.simulation_output: SimulationOutput
 
         # Prepare files and folders
         self.files = {
@@ -68,7 +69,6 @@ class Accelerator():
 
         self.files['dat_filecontent'] = dat_filecontent
 
-        # Create synchronous particle
         reference = bool(name == 'Working')
         self.synch = particle.Particle(0., con.E_MEV, n_steps=last_idx,
                                        synchronous=True, reference=reference)

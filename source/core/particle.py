@@ -133,11 +133,6 @@ class Particle:
                                    self.energy['beta'][idx], "z to phi")
         self.phi['phi_abs_array'][idx] = phi_abs
         self.phi['phi_rel'] = phi_abs
-        self.df = pd.DataFrame({
-            'phi_abs_array': [self.phi['phi_abs_array'][idx]],
-            'phi_abs': [phi_abs],
-            'phi_rel': [self.phi['phi_rel']],
-        })
 
     def keep_energy_and_phase(self, simulation_output: SimulationOutput
                               ) -> None:
