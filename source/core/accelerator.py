@@ -263,8 +263,7 @@ class Accelerator():
             elt.keep_rf_field(rf_field, cav_params)
 
         # TODO: keep this for now
-        self.synch.keep_energy_and_phase(
-            simulation_output, range(0, self.elts[-1].idx['s_out'] + 1))
+        self.synch.keep_energy_and_phase(simulation_output)
 
         self.simulation_output = simulation_output
 

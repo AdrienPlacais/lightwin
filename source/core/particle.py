@@ -48,14 +48,11 @@ class Particle:
             'w_kin': np.full((n_steps + 1), np.NaN),
             'gamma': np.full((n_steps + 1), np.NaN),
             'beta': np.full((n_steps + 1), np.NaN),
-            'p': np.full((n_steps + 1), np.NaN),  # Necessary? TODO
         }
         self.set_energy(e_mev, idx=0, delta_e=False)
 
         self.phi = {
             'phi_rel': None,
-            'phi_abs': None,
-            'phi_abs_rf': None,
             'phi_abs_array': np.full((n_steps + 1), np.NaN),
         }
         self._init_phi(idx=0)
@@ -126,35 +123,31 @@ class Particle:
 
         gamma = convert.energy(self.energy['w_kin'][idx], "kin to gamma")
         beta = convert.energy(gamma, "gamma to beta")
-        p_mev = convert.energy(gamma, "gamma to p")
 
         self.energy['gamma'][idx] = gamma
         self.energy['beta'][idx] = beta
-        self.energy['p'][idx] = p_mev
 
     def _init_phi(self, idx: int = 0) -> None:
         """Init phi by taking z_rel and beta."""
         phi_abs = convert.position(self.pos['z_abs'][idx],
                                    self.energy['beta'][idx], "z to phi")
-        self.phi['phi_abs'] = phi_abs
         self.phi['phi_abs_array'][idx] = phi_abs
         self.phi['phi_rel'] = phi_abs
         self.df = pd.DataFrame({
             'phi_abs_array': [self.phi['phi_abs_array'][idx]],
-            'phi_abs': [self.phi['phi_abs']],
+            'phi_abs': [phi_abs],
             'phi_rel': [self.phi['phi_rel']],
         })
 
-    def keep_energy_and_phase(self,
-                              simulation_output: SimulationOutput,
-                              idx_range: range) -> None:
+    def keep_energy_and_phase(self, simulation_output: SimulationOutput
+                              ) -> None:
         """Assign the energy and phase data to synch after MT calculation."""
         w_kin = simulation_output.get('w_kin')
-        self.phi['phi_abs_array'][idx_range] = \
+        self.phi['phi_abs_array'] = \
             simulation_output.get('phi_abs_array')
-        self.energy['w_kin'][idx_range] = w_kin
-        self.energy['gamma'][idx_range] = convert.energy(w_kin, "kin to gamma")
-        self.energy['beta'][idx_range] = convert.energy(w_kin, "kin to beta")
+        self.energy['w_kin'] = w_kin
+        self.energy['gamma'] = convert.energy(w_kin, "kin to gamma")
+        self.energy['beta'] = convert.energy(w_kin, "kin to beta")
 
 
 # def create_rand_particles(e_0_mev):
