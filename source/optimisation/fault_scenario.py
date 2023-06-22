@@ -16,6 +16,7 @@ import config_manager as con
 from beam_calculation.beam_calculator import BeamCalculator
 from optimisation.fault import Fault
 from optimisation import strategy, position
+from core.elements import _Element
 from core.accelerator import Accelerator
 from util import debug, helper
 
@@ -188,40 +189,41 @@ class FaultScenario(list):
 
     # FIXME
     def evaluate_fit_quality(self, delta_t: float,
-                             additional_idx: int | None = None
+                             additional_elt: list[_Element] | None = None
                              ) -> pd.DataFrame:
         """Compute some quantities on the whole linac to see if fit is good."""
-        quantities_to_evaluate = ['w_kin', 'phi_abs', 'envelope_pos_w',
-                                  'envelope_energy_w', 'mismatch_factor',
-                                  'eps_w']
+        quantities_to_evaluate = ['w_kin', 'phi_abs',
+                                  # 'envelope_pos_w', 'envelope_energy_w',
+                                  'mismatch_factor',
+                                  # 'eps_w'
+                                  ]
         quantities = {}
         for key in quantities_to_evaluate:
             quantities[key] = []
 
-        evaluation_idx = [fault.elts[-1].get('s_out') for fault in self]
-        headers = [f"end comp zone\n({idx = }) [%]" for idx in evaluation_idx]
+        evaluation_elt = [fault.elts[-1] for fault in self]
+        headers = [f"end comp zone\n({elt = }) [%]" for elt in evaluation_elt]
 
-        if additional_idx is not None:
-            headers += [f"user defined\n({idx = }) [%]"
-                        for idx in additional_idx]
-            evaluation_idx += additional_idx
+        if additional_elt is not None:
+            headers += [f"user defined\n({elt = }) [%]"
+                        for elt in additional_elt]
+            evaluation_elt += additional_elt
 
         headers.append("end linac [%]")
-        evaluation_idx.append(-1)
+        evaluation_elt.append(self.fix_acc.elts[-1])
 
         headers.insert(0, "Qty")
 
         # Calculate relative errors in %
-        for idx in evaluation_idx:
+        for elt in evaluation_elt:
             for key in quantities_to_evaluate:
-                fix = self.fix_acc.get(key)[idx]
+                fix = self.fix_acc.get(key, elt=elt, pos='out')
 
                 if key == 'mismatch_factor':
                     quantities[key].append(fix)
                     continue
 
-                ref = self.ref_acc.get(key)[idx]
-                fix = self.fix_acc.get(key)[idx]
+                ref = self.ref_acc.get(key, elt=elt, pos='out')
                 quantities[key].append(1e2 * (ref - fix) / ref)
 
         headers.append("sum error linac")
@@ -237,10 +239,8 @@ class FaultScenario(list):
 
             quantities[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
 
-        # Handle time
-        time_line = [None
-                     for n in range(len(
-                         quantities[quantities_to_evaluate[0]]))]
+        time_line = [None for n in range(len(
+            quantities[quantities_to_evaluate[0]]))]
         days, seconds = delta_t.days, delta_t.seconds
         time_line[0] = f"{days * 24 + seconds // 3600} hrs"
         time_line[1] = f"{seconds % 3600 // 60} min"

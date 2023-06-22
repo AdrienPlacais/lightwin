@@ -50,10 +50,8 @@ class Fault:
 
     def _create_list_of_elements(self, elts: list[_Element]) -> ListOfElements:
         """Create the proper ListOfElements object."""
-        idx = elts[0].get('s_in', to_numpy=False)
-        w_kin = self.ref_acc.get('w_kin')[idx]
-        phi_abs = self.ref_acc.get('phi_abs')[idx]
-        tm_cumul = self.ref_acc.get('tm_cumul')[idx]
+        w_kin, phi_abs, tm_cumul = self.ref_acc.get(
+            'w_kin', 'phi_abs', 'tm_cumul', elt=elts[0], pos='in')
         elts = ListOfElements(elts, w_kin, phi_abs, tm_cumul=tm_cumul,
                               first_init=False)
         return elts
