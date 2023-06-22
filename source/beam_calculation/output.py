@@ -13,7 +13,6 @@ A class to uniformly store the outputs from the different simulation tools:
 from dataclasses import dataclass
 from typing import Any, Callable
 import numpy as np
-import logging
 
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
@@ -49,10 +48,10 @@ class SimulationOutput:
         return key in recursive_items(vars(self))
 
     def get(self, *keys: str, to_numpy: bool = True,
-            elt: str | _Element | None = None, pos: str | None = None,
+            elt: _Element | None = None, pos: str | None = None,
             **kwargs: Any) -> Any:
         """
-        Shorthand to get attributes.
+        Shorthand to get attributes from this class or its attributes.
 
         Parameters
         ----------
@@ -61,9 +60,8 @@ class SimulationOutput:
         to_numpy : bool, optional
             If you want the list output to be converted to a np.ndarray. The
             default is True.
-        elt : str | _Element | None, optional
-            If provided, return the attributes only at the considered _Element
-            (or _Element name). The default is None.
+        elt : _Element | None, optional
+            If provided, return the attributes only at the considered _Element.
         pos : 'in' | 'out' | None
             If you want the attribute at the entry, exit, or in the whole
             _Element.

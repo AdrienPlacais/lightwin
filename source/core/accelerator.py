@@ -87,11 +87,34 @@ class Accelerator():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: str, to_numpy: bool = True, **kwargs: Any) -> Any:
-        """Shorthand to get attributes."""
-        val = {}
-        for key in keys:
-            val[key] = []
+    def get(self, *keys: str, to_numpy: bool = True,
+            elt: str | _Element | None = None, **kwargs: Any) -> Any:
+        """
+        Shorthand to get attributes from this class or its attributes.
+
+        Parameters
+        ----------
+        *keys: str
+            Name of the desired attributes.
+        to_numpy : bool, optional
+            If you want the list output to be converted to a np.ndarray. The
+            default is True.
+        elt : str | _Element | None, optional
+            If provided, and if the desired keys are in SimulationOutput, the
+            attributes will be given over the _Element only. You can provide an
+            _Element name, such as `QP1`. If the given _Element is not in the
+            Accelerator.ListOfElements, the _Element with the same name that is
+            present in this list will be used.
+        **kwargs: Any
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : Any
+            Attribute(s) value(s).
+
+        """
+        val = {key: [] for key in keys}
 
         for key in keys:
             if key in self._special_getters:
@@ -102,27 +125,25 @@ class Accelerator():
                 val[key] = None
                 continue
 
-            val[key] = recursive_getter(key, vars(self), to_numpy=False,
-                                        **kwargs)
+            if elt is not None:
+                if isinstance(elt, str) or elt not in self.elts:
+                    elt = self.equiv_elt(elt)
 
-        # Convert to list, and to numpy array if necessary
+            val[key] = recursive_getter(key, vars(self), to_numpy=False,
+                                        elt=elt, **kwargs)
+
         out = [val[key] for key in keys]
         if to_numpy:
-            # VisibleDeprecationWarning with Python < 3.11?
-            # Error with Python >= 3.11?
-            # Try setting to_numpy to False.
             out = [np.array(val) if isinstance(val, list)
                    else val
                    for val in out]
 
-        # Return as tuple or single value
         if len(keys) == 1:
             return out[0]
-        # implicit else
         return tuple(out)
 
     # TODO add linac name in the subproject folder name
-    def _handle_paths_and_folders(self, elts: list[_Element, ...]
+    def _handle_paths_and_folders(self, elts: list[_Element]
                                   ) -> list[_Element]:
         """Make paths absolute, create results folders."""
         # First we take care of where results will be stored

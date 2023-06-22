@@ -276,9 +276,8 @@ def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
     return cumulated_transfer_matrices
 
 
-def equiv_elt(elts: ListOfElements | list[_Element, ...],
-              elt: _Element | str, to_index: bool = False
-              ) -> _Element | int | None:
+def equiv_elt(elts: ListOfElements | list[_Element], elt: _Element | str,
+              to_index: bool = False) -> _Element | int | None:
     """
     Return an element from elts that has the same name as elt.
 
@@ -290,7 +289,7 @@ def equiv_elt(elts: ListOfElements | list[_Element, ...],
 
     Parameters
     ----------
-    elts : ListOfElements | list[_Element, ...]
+    elts : ListOfElements | list[_Element]
         List of elements where you want the position.
     elt : _Element | str
         Element of which you want the position. If you give a str, it should be
@@ -413,8 +412,8 @@ def _filter_out(elements: Any, to_exclude: tuple[type]) -> Any:
     return elements
 
 
-def filter_elts(elts: ListOfElements | list[_Element, ...], key: str, val: Any
-                ) -> list[_Element, ...]:
+def filter_elts(elts: ListOfElements | list[_Element], key: str, val: Any
+                ) -> list[_Element]:
     """Shortcut for filtering elements according to (key, val)."""
     return list(filter(lambda elt: elt.get(key) == val, elts))
 

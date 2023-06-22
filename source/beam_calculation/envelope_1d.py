@@ -12,7 +12,8 @@ from dataclasses import dataclass
 
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
-from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
+from core.list_of_elements import (ListOfElements, indiv_to_cumul_transf_mat,
+                                   filter_elts)
 from core.emittance import beam_parameters_zdelta
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
