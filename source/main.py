@@ -86,17 +86,6 @@ if __name__ == '__main__':
     simulation_output = beam_calculator.run(ref_linac.elts)
     ref_linac.keep_this(simulation_output=simulation_output)
 
-    my_elt = ref_linac.elts[89]
-
-    # We try to match at mesh index(es) [792].
-    # This is exit of: [DR54].
-    # Full indexes: [{'s_in': 791, 's_out': 792, 'elt_idx': 89, 'lattice': 8, 'section': 0}].
-    # [INFO    ] [fault.py            ] Objectives:
-    #                             Objective: | Scale: | Initial value
-    # 0:           Beam energy [MeV] @idx792 |    1.0 | 24.55825073613376
-    # 1:            Beam phase [rad] @idx792 |    1.0 | 501.7145144709698
-    # 2:                         $M$ @idx792 |    1.0 | [ 0.37841127 17.58170632  0.06502185]
-
     data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(ref_linac)
     linacs = [ref_linac]
 
