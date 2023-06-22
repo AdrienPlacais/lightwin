@@ -41,20 +41,41 @@ class SimulationOutput:
     sigma_matrix: np.ndarray | None = None
     mismatch_factor: list[float | None] | None = None
 
-    element_to_index: Callable[[_Element, str | None], int | slice] \
+    element_to_index: Callable[[str | _Element, str | None], int | slice] \
         | None = None
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: tuple[str], to_numpy: bool = True,
-            elt: _Element | None = None, pos: str | None = None,
-            **kwargs: dict) -> Any:
-        """Shorthand to get attributes."""
-        val = {}
-        for key in keys:
-            val[key] = []
+    def get(self, *keys: str, to_numpy: bool = True,
+            elt: str | _Element | None = None, pos: str | None = None,
+            **kwargs: Any) -> Any:
+        """
+        Shorthand to get attributes.
+
+        Parameters
+        ----------
+        *keys: str
+            Name of the desired attributes.
+        to_numpy : bool, optional
+            If you want the list output to be converted to a np.ndarray. The
+            default is True.
+        elt : str | _Element | None, optional
+            If provided, return the attributes only at the considered _Element
+            (or _Element name). The default is None.
+        pos : 'in' | 'out' | None
+            If you want the attribute at the entry, exit, or in the whole
+            _Element.
+        **kwargs: Any
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        The attributes.
+
+        """
+        val = {key: [] for key in keys}
 
         for key in keys:
             if not self.has(key):
