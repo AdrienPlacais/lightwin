@@ -70,7 +70,8 @@ class SimulationOutput:
 
         Returns
         -------
-        The attributes.
+        out : Any
+            Attribute(s) value(s).
 
         """
         val = {key: [] for key in keys}

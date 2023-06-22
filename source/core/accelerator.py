@@ -119,6 +119,10 @@ class Accelerator():
         for key in keys:
             if key in self._special_getters:
                 val[key] = self._special_getters[key](self)
+                if elt is not None:
+                    # TODO
+                    logging.error("Get attribute by elt not implemented with "
+                                  "special getters.")
                 continue
 
             if not self.has(key):

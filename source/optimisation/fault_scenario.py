@@ -197,9 +197,7 @@ class FaultScenario(list):
                                   'mismatch_factor',
                                   # 'eps_w'
                                   ]
-        quantities = {}
-        for key in quantities_to_evaluate:
-            quantities[key] = []
+        quantities = {key: [] for key in quantities_to_evaluate}
 
         evaluation_elt = [fault.elts[-1] for fault in self]
         headers = [f"end comp zone\n({elt = }) [%]" for elt in evaluation_elt]
