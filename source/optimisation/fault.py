@@ -165,29 +165,18 @@ class Fault:
         objectives = self.wtf['objective']
         scales = self.wtf['scale objective']
 
-        idx_eval_ref = [elt.idx['s_out'] for elt in self.elt_eval_objectives]
-        idx_eval_fix = [idx - self.elts[0].idx['s_in']
-                        for idx in idx_eval_ref]
-
-        # List of strings to output the objective names and positions
         info_objectives = [
-            f"{d_markdown[key].replace('[deg]', '[rad]')} @idx{i}"
-            for i in idx_eval_ref
+            f"{d_markdown[key].replace('[deg]', '[rad]')} @{elt = }"
+            for elt in self.elt_eval_objectives
             for key in objectives]
 
-        # We evaluate all the desired objectives
         exceptions = ['mismatch_factor']
-        objectives_values = [self.ref_acc.get(key)[i]
-                             if key not in exceptions
-                             else self.ref_acc.get('twiss_zdelta')[i]
-                             for i in idx_eval_ref
-                             for key in objectives]
-        _out = [elt.get('idx', to_numpy=False)
-                for elt in self.elt_eval_objectives]
-        logging.info("Position of objectives evalutations:\n"
-                     + f"We try to match at mesh index(es) {idx_eval_ref}.\n"
-                     + f"This is exit of: {self.elt_eval_objectives}.\n"
-                     + f"Full indexes: {_out}.")
+        objectives_values = [
+            self.ref_acc.get(key, elt=elt, pos='out')
+            if key not in exceptions
+            else self.ref_acc.get('twiss_zdelta', elt=elt, pos='out')
+            for elt in self.elt_eval_objectives
+            for key in objectives]
 
         # TODO move to util/output
         output = "Objectives:\n"
@@ -203,7 +192,7 @@ class Fault:
             """Compute difference between ref value and results dictionary."""
             i_ref = -1
             residues = []
-            for i_fix in idx_eval_fix:
+            for elt in self.elt_eval_objectives:
                 for key, scale in zip(objectives, scales):
                     i_ref += 1
 
@@ -211,13 +200,17 @@ class Fault:
                     if key == 'mismatch_factor':
                         mism = mismatch_factor(
                             objectives_values[i_ref],
-                            simulation_output.get('twiss_zdelta')[i_fix])[0]
+                            simulation_output.get('twiss_zdelta',
+                                                  elt=elt,
+                                                  pos='out'))[0]
                         residues.append(mism * scale)
                         continue
 
                     residues.append(
                         (objectives_values[i_ref]
-                         - simulation_output.get(key)[i_fix]) * scale)
+                         - simulation_output.get(key,
+                                                 elt=elt,
+                                                 pos='out')) * scale)
             return np.array(residues)
 
         return compute_residuals, info_objectives
