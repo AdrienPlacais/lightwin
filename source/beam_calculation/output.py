@@ -11,10 +11,12 @@ A class to uniformly store the outputs from the different simulation tools:
     tracewin_multiparticle
 """
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 import numpy as np
+import logging
 
 from core.particle import ParticleFullTrajectory
+from core.elements import _Element
 from core.list_of_elements import ListOfElements
 from core.emittance import beam_parameters_all, mismatch_factor
 from util.helper import recursive_items, recursive_getter
@@ -23,6 +25,7 @@ from util.helper import recursive_items, recursive_getter
 @dataclass
 class SimulationOutput:
     """Stores the information that is needed for a fit."""
+
     z_abs: np.ndarray | None = None
     synch_trajectory: ParticleFullTrajectory | None = None
 
@@ -38,12 +41,16 @@ class SimulationOutput:
     sigma_matrix: np.ndarray | None = None
     mismatch_factor: list[float | None] | None = None
 
+    element_to_index: Callable[[_Element, str | None], int | slice] \
+        | None = None
+
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: tuple[str], to_numpy: bool = True, **kwargs: dict
-            ) -> Any:
+    def get(self, *keys: tuple[str], to_numpy: bool = True,
+            elt: _Element | None = None, pos: str | None = None,
+            **kwargs: dict) -> Any:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:
@@ -55,21 +62,19 @@ class SimulationOutput:
                 continue
 
             val[key] = recursive_getter(key, vars(self), **kwargs)
-            # Easier to concatenate lists that stack numpy arrays, so convert
-            # to list
             if not to_numpy and isinstance(val[key], np.ndarray):
                 val[key] = val[key].tolist()
 
-        # Convert to list; elements of the list are numpy is required, except
-        # strings that are never converted
+            if None not in (self.element_to_index, elt):
+                idx = self.element_to_index(elt, pos)
+                val[key] = val[key][idx]
+
         out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
                else val[key]
                for key in keys]
 
-        # Return as tuple or single value
         if len(out) == 1:
             return out[0]
-        # implicit else:
         return tuple(out)
 
     def compute_complementary_data(self, elts: ListOfElements,

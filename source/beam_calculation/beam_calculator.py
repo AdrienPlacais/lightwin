@@ -5,7 +5,7 @@ Created on Mon Jun 12 08:26:52 2023.
 
 @author: placais
 """
-from typing import Any
+from typing import Any, Callable
 from abc import ABC, abstractmethod
 
 from beam_calculation.output import SimulationOutput
@@ -58,6 +58,12 @@ class BeamCalculator(ABC):
     @abstractmethod
     def _generate_simulation_output(self, *args: Any) -> SimulationOutput:
         """Transform the outputs of BeamCalculator to a SimulationOutput."""
+
+    @abstractmethod
+    def _generate_element_to_index_func(self, elts: ListOfElements
+                                        ) -> Callable[[_Element, str | None],
+                                                      int | slice]:
+        """Create the func to easily get data at proper mesh index."""
 
     @abstractmethod
     def _format_this(self, set_of_cavity_settings: SetOfCavitySettings) -> Any:

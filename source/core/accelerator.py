@@ -87,8 +87,7 @@ class Accelerator():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: tuple[str, ...], to_numpy: bool = True, **kwargs: dict
-            ) -> Any:
+    def get(self, *keys: str, to_numpy: bool = True, **kwargs: Any) -> Any:
         """Shorthand to get attributes."""
         val = {}
         for key in keys:

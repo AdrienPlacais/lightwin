@@ -7,6 +7,7 @@ Created on Mon Jun 12 08:24:37 2023.
 
 """
 import logging
+from typing import Callable
 from dataclasses import dataclass
 
 from core.particle import ParticleFullTrajectory
@@ -138,6 +139,8 @@ class Envelope1D(BeamCalculator):
 
         beam_params = beam_parameters_zdelta(tm_cumul)
 
+        element_to_index = self._generate_element_to_index_func(elts)
+
         simulation_output = SimulationOutput(
             synch_trajectory=synch_trajectory,
             mismatch_factor=mismatch_factor,
@@ -148,9 +151,42 @@ class Envelope1D(BeamCalculator):
             rf_fields=rf_fields,
             eps_zdelta=beam_params[0],
             twiss_zdelta=beam_params[1],
-            sigma_matrix=beam_params[2]
+            sigma_matrix=beam_params[2],
+            element_to_index=element_to_index
         )
         return simulation_output
+
+    # TODO update this once I remove s_in s_out from the Elements
+    def _generate_element_to_index_func(self, elts: ListOfElements
+                                        ) -> Callable[[_Element, str | None],
+                                                      int | slice]:
+        """Create the func to easily get data at proper mesh index."""
+        shift = elts[0].get('s_in')
+
+        def element_to_index(elt: _Element, pos: str | None) -> int | slice:
+            """
+            Convert element + pos into a mesh index.
+
+            Parameters
+            ----------
+            elt : _Element
+                Element of which you want the index.
+            pos : 'in' | 'out' | None
+                Index of entry or exit of the _Element. If None, return full
+                indexes array.
+
+            """
+            if pos is None:
+                return slice(elt.get('s_in') - shift,
+                             elt.get('s_out') - shift + 1)
+            elif pos == 'in':
+                return elt.get('s_in') - shift
+            elif pos == 'out':
+                return elt.get('s_out') - shift
+            else:
+                logging.error(f"{pos = }, while it must be 'in', 'out' or "
+                              + "None")
+        return element_to_index
 
     def _format_this(self, set_of_cavity_settings: SetOfCavitySettings
                      ) -> dict:
