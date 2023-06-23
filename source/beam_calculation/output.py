@@ -17,7 +17,7 @@ import numpy as np
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
 from core.list_of_elements import ListOfElements
-from core.emittance import BeamParameters
+from core.beam_parameters import BeamParameters
 from util.helper import recursive_items, recursive_getter
 
 
@@ -33,7 +33,6 @@ class SimulationOutput:
     rf_fields: list[dict] | None = None
 
     r_zz_elt: list[np.ndarray] | None = None
-    tm_cumul: np.ndarray | None = None  # TODO remove
     beam_parameters: BeamParameters | None = None
 
     element_to_index: Callable[[str | _Element, str | None], int | slice] \

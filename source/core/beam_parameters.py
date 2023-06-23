@@ -5,29 +5,31 @@ Created on Mon Dec 13 14:42:41 2021.
 
 @author: placais
 
-Longitudinal RMS emittances:
-    eps_zdelta in [z-delta]           [pi.m.rad]    non normalized
-    eps_z      in [z-z']              [pi.mm.mrad]  non normalized
-    eps_w      in [Delta phi-Delta W] [pi.deg.MeV]  normalized
+This module holds everything related to emittances, Twiss parameters,
+envelopes.
 
+Conventions
+-----------
+    Longitudinal RMS emittances:
+        eps_zdelta in [z-delta]           [pi.m.rad]    non normalized
+        eps_z      in [z-z']              [pi.mm.mrad]  non normalized
+        eps_w      in [Delta phi-Delta W] [pi.deg.MeV]  normalized
 
-Twiss:
-    beta, gamma are Lorentz factors.
-    beta_blabla, gamma_blabla are Twiss parameters.
+    Twiss:
+        beta, gamma are Lorentz factors.
+        beta_blabla, gamma_blabla are Twiss parameters.
 
-    beta_zdelta in [z-delta]            [mm/(pi.%)]
-    beta_z      in [z-z']               [mm/(pi.mrad)]
-    beta_w is   in [Delta phi-Delta W]  [deg/(pi.MeV)]
+        beta_zdelta in [z-delta]            [mm/(pi.%)]
+        beta_z      in [z-z']               [mm/(pi.mrad)]
+        beta_w is   in [Delta phi-Delta W]  [deg/(pi.MeV)]
 
-    (same for gamma_z, gamma_z, gamma_zdelta)
+        (same for gamma_z, gamma_z, gamma_zdelta)
 
-    Conversions for alpha are easier:
-        alpha_w = -alpha_z = -alpha_zdelta
+        Conversions for alpha are easier:
+            alpha_w = -alpha_z = -alpha_zdelta
 
 TODO: handle error on eps_zdelta
 TODO better ellipse plot
-FIXME handle portions of linac for fit process
-FIXME tm_cumul should be an argument instead of taking the linac attribute. Also
 """
 from typing import Any
 from dataclasses import dataclass
@@ -52,8 +54,9 @@ class BeamParameters:
         if self.sigma_in is None:
             self.sigma_in = con.SIGMA_ZDELTA
 
-        self.eps_zdelta, self.twiss_zdelta, self.sigma = \
-            beam_parameters_zdelta(self.tm_cumul, self.sigma_in)
+        self.sigma = _sigma_beam_matrices(self.tm_cumul, self.sigma_in)
+        self.eps_zdelta = _emittance_zdelta(self.sigma)
+        self.twiss_zdelta = _twiss_zdelta(self.sigma, self.eps_zdelta)
 
         self.mismatch_factor: np.ndarray | None
 
@@ -72,36 +75,6 @@ class BeamParameters:
         self.envelope_energy_z: np.ndarray
         self.envelope_pos_w: np.ndarray
         self.envelope_energy_w: np.ndarray
-
-    def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
-        """Compute the mismatch factor."""
-        self.mismatch_factor = None
-        if ref_twiss_zdelta is not None:
-            self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
-                                                   self.twiss_zdelta,
-                                                   transp=True)
-
-    def compute_full(self, gamma: np.ndarray) -> None:
-        """Compute emittances, Twiss etc in every plane."""
-        _beam_param = beam_parameters_all(self.eps_zdelta, self.twiss_zdelta,
-                                          gamma)
-        self.alpha_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 0]
-        self.beta_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 1]
-        self.gamma_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 2]
-        self.alpha_z = _beam_param['twiss']['twiss_z'][:, 0]
-        self.beta_z = _beam_param['twiss']['twiss_z'][:, 1]
-        self.gamma_z = _beam_param['twiss']['twiss_z'][:, 2]
-        self.alpha_w = _beam_param['twiss']['twiss_w'][:, 0]
-        self.beta_w = _beam_param['twiss']['twiss_w'][:, 1]
-        self.gamma_w = _beam_param['twiss']['twiss_w'][:, 2]
-        self.envelope_pos_zdelta = _beam_param['envelopes'][
-            'envelopes_zdelta'][:, 0]
-        self.envelope_energy_zdelta = _beam_param['envelopes'][
-            'envelopes_zdelta'][:, 1]
-        self.envelope_pos_z = _beam_param['envelopes']['envelopes_z'][:, 0]
-        self.envelope_energy_z = _beam_param['envelopes']['envelopes_z'][:, 1]
-        self.envelope_pos_w = _beam_param['envelopes']['envelopes_w'][:, 0]
-        self.envelope_energy_w = _beam_param['envelopes']['envelopes_w'][:, 1]
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -157,42 +130,40 @@ class BeamParameters:
             return out[0]
         return tuple(out)
 
+    def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
+        """Compute the mismatch factor."""
+        self.mismatch_factor = None
+        if ref_twiss_zdelta is not None:
+            self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
+                                                   self.twiss_zdelta,
+                                                   transp=True)
+
+    def compute_full(self, gamma: np.ndarray) -> None:
+        """Compute emittances, Twiss etc in every plane."""
+        _beam_param = beam_parameters_all(self.eps_zdelta, self.twiss_zdelta,
+                                          gamma)
+        self.alpha_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 0]
+        self.beta_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 1]
+        self.gamma_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 2]
+        self.alpha_z = _beam_param['twiss']['twiss_z'][:, 0]
+        self.beta_z = _beam_param['twiss']['twiss_z'][:, 1]
+        self.gamma_z = _beam_param['twiss']['twiss_z'][:, 2]
+        self.alpha_w = _beam_param['twiss']['twiss_w'][:, 0]
+        self.beta_w = _beam_param['twiss']['twiss_w'][:, 1]
+        self.gamma_w = _beam_param['twiss']['twiss_w'][:, 2]
+        self.envelope_pos_zdelta = _beam_param['envelopes'][
+            'envelopes_zdelta'][:, 0]
+        self.envelope_energy_zdelta = _beam_param['envelopes'][
+            'envelopes_zdelta'][:, 1]
+        self.envelope_pos_z = _beam_param['envelopes']['envelopes_z'][:, 0]
+        self.envelope_energy_z = _beam_param['envelopes']['envelopes_z'][:, 1]
+        self.envelope_pos_w = _beam_param['envelopes']['envelopes_w'][:, 0]
+        self.envelope_energy_w = _beam_param['envelopes']['envelopes_w'][:, 1]
+
 
 # =============================================================================
 # Public
 # =============================================================================
-def beam_parameters_zdelta(tm_cumul: np.ndarray, sigma_in: np.ndarray | None = None
-                           ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Compute sigma beam matrix, emittance, Twiss parameters.
-
-    Parameters
-    ----------
-    tm_cumul : np.ndarray
-        (n, 2, 2) cumulated transfer matrices.
-    sigma_in : np.ndarray | None, optional
-        (2, 2) sigma beam matrix at entry of linac. The default is None. In
-        this case, we take the sigma matrix provided by the user in the
-        configuration file.
-
-    Returns
-    -------
-    eps_zdelta : np.ndarray
-        (n) array of emittances.
-    twiss_zdelta : np.ndarray
-        (n, 3) Twiss parameters (alfa, beta, gamma).
-    sigma : np.ndarray
-        (n, 2, 2) sigma beam matrices.
-    """
-    if sigma_in is None:
-        sigma_in = con.SIGMA_ZDELTA
-    sigma = _sigma_beam_matrices(tm_cumul, sigma_in)
-
-    eps_zdelta = _emittance_zdelta(sigma)
-    twiss_zdelta = _twiss_zdelta(sigma, eps_zdelta)
-    return eps_zdelta, twiss_zdelta, sigma
-
-
 def beam_parameters_all(eps_zdelta: np.ndarray, twiss_zdelta: np.ndarray,
                         gamma: np.ndarray) -> dict[str, dict[str, np.ndarray]]:
     """

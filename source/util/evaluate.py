@@ -6,6 +6,8 @@ Created on Mon Feb  6 13:52:26 2023.
 @author: placais
 
 Routines to evaluate the quality of the new settings for the linac.
+
+# TODO a lot of things to update with SimulationOutput!!
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,7 +15,7 @@ import matplotlib.pyplot as plt
 from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
-from core.emittance import mismatch_factor
+from core.beam_parameters import mismatch_factor
 from core.accelerator import Accelerator
 import visualization.plot
 
@@ -136,7 +138,6 @@ def bruce_tests(lin_ref: Accelerator, lin_fix: Accelerator,
         twiss_ref = ref_results['twiss_' + key]
         twiss_fix = fix_results['twiss_' + key]
         mismatch[key] = mismatch_factor(twiss_ref, twiss_fix, transp=True)
-
 
     fix_results['mismatch_t'] = .5 * (mismatch['x'] + mismatch['y'])
     fix_results['mismatch_zdp'] = mismatch['zdp']

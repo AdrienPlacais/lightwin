@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
 from core.list_of_elements import (ListOfElements, indiv_to_cumul_transf_mat)
-from core.emittance import BeamParameters
+from core.beam_parameters import BeamParameters
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
@@ -144,7 +144,6 @@ class Envelope1D(BeamCalculator):
             cav_params=cav_params,
             phi_s=phi_s,
             r_zz_elt=r_zz_elt,
-            tm_cumul=tm_cumul,
             rf_fields=rf_fields,
             beam_parameters=beam_params,
             element_to_index=element_to_index
