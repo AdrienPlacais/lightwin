@@ -69,6 +69,7 @@ class BeamParameters:
         self.alpha_w: np.ndarray
         self.beta_w: np.ndarray
         self.gamma_w: np.ndarray
+
         self.envelope_pos_zdelta: np.ndarray
         self.envelope_energy_zdelta: np.ndarray
         self.envelope_pos_z: np.ndarray
@@ -139,62 +140,34 @@ class BeamParameters:
                                                    transp=True)
 
     def compute_full(self, gamma: np.ndarray) -> None:
-        """Compute emittances, Twiss etc in every plane."""
-        _beam_param = beam_parameters_all(self.eps_zdelta, self.twiss_zdelta,
-                                          gamma)
-        self.alpha_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 0]
-        self.beta_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 1]
-        self.gamma_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 2]
-        self.alpha_z = _beam_param['twiss']['twiss_z'][:, 0]
-        self.beta_z = _beam_param['twiss']['twiss_z'][:, 1]
-        self.gamma_z = _beam_param['twiss']['twiss_z'][:, 2]
-        self.alpha_w = _beam_param['twiss']['twiss_w'][:, 0]
-        self.beta_w = _beam_param['twiss']['twiss_w'][:, 1]
-        self.gamma_w = _beam_param['twiss']['twiss_w'][:, 2]
-        self.envelope_pos_zdelta = _beam_param['envelopes'][
-            'envelopes_zdelta'][:, 0]
-        self.envelope_energy_zdelta = _beam_param['envelopes'][
-            'envelopes_zdelta'][:, 1]
-        self.envelope_pos_z = _beam_param['envelopes']['envelopes_z'][:, 0]
-        self.envelope_energy_z = _beam_param['envelopes']['envelopes_z'][:, 1]
-        self.envelope_pos_w = _beam_param['envelopes']['envelopes_w'][:, 0]
-        self.envelope_energy_w = _beam_param['envelopes']['envelopes_w'][:, 1]
+        """Compute emittances, Twiss, envelopes in every plane."""
+        _eps = _emittances_all(self.eps_zdelta, gamma)
+        self.eps_w = _eps['eps_w']
+        self.eps_z = _eps['eps_z']
+
+        _twiss = _twiss_all(self.twiss_zdelta, gamma)
+        self.alpha_zdelta = _twiss['twiss_zdelta'][:, 0]
+        self.beta_zdelta = _twiss['twiss_zdelta'][:, 1]
+        self.gamma_zdelta = _twiss['twiss_zdelta'][:, 2]
+        self.alpha_z = _twiss['twiss_z'][:, 0]
+        self.beta_z = _twiss['twiss_z'][:, 1]
+        self.gamma_z = _twiss['twiss_z'][:, 2]
+        self.alpha_w = _twiss['twiss_w'][:, 0]
+        self.beta_w = _twiss['twiss_w'][:, 1]
+        self.gamma_w = _twiss['twiss_w'][:, 2]
+
+        _envelopes = _envelopes_all(_twiss, _eps)
+        self.envelope_pos_zdelta = _envelopes['envelopes_zdelta'][:, 0]
+        self.envelope_energy_zdelta = _envelopes['envelopes_zdelta'][:, 1]
+        self.envelope_pos_z = _envelopes['envelopes_z'][:, 0]
+        self.envelope_energy_z = _envelopes['envelopes_z'][:, 1]
+        self.envelope_pos_w = _envelopes['envelopes_w'][:, 0]
+        self.envelope_energy_w = _envelopes['envelopes_w'][:, 1]
 
 
 # =============================================================================
 # Public
 # =============================================================================
-def beam_parameters_all(eps_zdelta: np.ndarray, twiss_zdelta: np.ndarray,
-                        gamma: np.ndarray) -> dict[str, dict[str, np.ndarray]]:
-    """
-    Convert the [z - delta] beam parameters in [phi - W] and [z - z'].
-
-    Parameters
-    ----------
-    eps_zdelta : np.ndarray
-        Longitudinal emittances in the z-delta plane.
-    twiss_zdelta : np.ndarray
-        Twiss parameters (alfa, beta, gamma) in the z-delta plane.
-    gamma : np.ndarray
-        Lorentz gamma factor.
-
-    Returns
-    -------
-    beam_parameters : dict[str, dict[str, np.ndarray]]
-        A dict holding the Twiss parameters, the emittances, and the envelopes.
-        Each key is a dictionary holding these quantities in the different
-        longitudinal phase spaces.
-
-    """
-    eps = _emittances_all(eps_zdelta, gamma)
-    twiss = _twiss_all(twiss_zdelta, gamma)
-    envelopes = _envelopes_all(twiss, eps)
-    beam_parameters = {"twiss": twiss,
-                       "eps": eps,
-                       "envelopes": envelopes}
-    return beam_parameters
-
-
 def mismatch_factor(ref: np.ndarray, fix: np.ndarray, transp: bool = False
                     ) -> float:
     """Compute the mismatch factor between two ellipses."""
@@ -221,9 +194,10 @@ def mismatch_factor(ref: np.ndarray, fix: np.ndarray, transp: bool = False
 # =============================================================================
 # Private
 # =============================================================================
-def _sigma_beam_matrices(tm_cumul: np.ndarray, sigma_in: np.ndarray) -> np.ndarray:
+def _sigma_beam_matrices(tm_cumul: np.ndarray, sigma_in: np.ndarray
+                         ) -> np.ndarray:
     """
-    Compute the sigma beam matrices between linac entry and idx_out.
+    Compute the sigma beam matrices between over the linac.
 
     sigma_in and transfer matrices should be in the same ref. By default,
     LW calculates transfer matrices in [z - delta].
