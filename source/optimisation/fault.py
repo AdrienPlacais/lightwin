@@ -16,7 +16,7 @@ from util.dicts_output import d_markdown
 from core.elements import _Element, FieldMap
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
-from core.emittance import mismatch_factor
+from core.beam_parameters import mismatch_factor
 from algorithms.least_squares import LeastSquares
 from optimisation.variables import VariablesAndConstraints
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
