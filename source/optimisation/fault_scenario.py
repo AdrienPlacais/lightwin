@@ -193,9 +193,9 @@ class FaultScenario(list):
                              ) -> pd.DataFrame:
         """Compute some quantities on the whole linac to see if fit is good."""
         quantities_to_evaluate = ['w_kin', 'phi_abs',
-                                  # 'envelope_pos_w', 'envelope_energy_w',
+                                  'envelope_pos_w', 'envelope_energy_w',
                                   'mismatch_factor',
-                                  # 'eps_w'
+                                  'eps_w'
                                   ]
         quantities = {key: [] for key in quantities_to_evaluate}
 
