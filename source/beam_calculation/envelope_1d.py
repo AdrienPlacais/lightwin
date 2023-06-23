@@ -12,9 +12,8 @@ from dataclasses import dataclass
 
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
-from core.list_of_elements import (ListOfElements, indiv_to_cumul_transf_mat,
-                                   filter_elts)
-from core.emittance import beam_parameters_zdelta
+from core.list_of_elements import (ListOfElements, indiv_to_cumul_transf_mat)
+from core.emittance import BeamParameters
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
@@ -123,8 +122,6 @@ class Envelope1D(BeamCalculator):
                                                   phi_abs=phi_abs_array,
                                                   synchronous=True)
 
-        mismatch_factor = None
-
         cav_params = [results['cav_params']
                       for results in single_elts_results]
         phi_s = [cav_param['phi_s']
@@ -138,21 +135,18 @@ class Envelope1D(BeamCalculator):
         tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in, r_zz_elt,
                                              len(w_kin))
 
-        beam_params = beam_parameters_zdelta(tm_cumul)
+        beam_params = BeamParameters(tm_cumul)
 
         element_to_index = self._generate_element_to_index_func(elts)
 
         simulation_output = SimulationOutput(
             synch_trajectory=synch_trajectory,
-            mismatch_factor=mismatch_factor,
             cav_params=cav_params,
             phi_s=phi_s,
             r_zz_elt=r_zz_elt,
             tm_cumul=tm_cumul,
             rf_fields=rf_fields,
-            eps_zdelta=beam_params[0],
-            twiss_zdelta=beam_params[1],
-            sigma_matrix=beam_params[2],
+            beam_parameters=beam_params,
             element_to_index=element_to_index
         )
         return simulation_output

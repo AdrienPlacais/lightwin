@@ -193,47 +193,47 @@ class Accelerator():
     def _create_special_getters(self) -> dict:
         """Create a dict of aliases that can be accessed w/ the get method."""
         _special_getters = {
-            'alpha_zdelta': lambda self:
-                self.simulation_output.beam_param['twiss'][
-                    'twiss_zdelta'][:, 0],
-            'beta_zdelta': lambda self:
-                self.simulation_output.beam_param['twiss'][
-                    'twiss_zdelta'][:, 1],
-            'gamma_zdelta': lambda self:
-                self.simulation_output.beam_param['twiss'][
-                    'twiss_zdelta'][:, 2],
-            'alpha_z': lambda self:
-                self.simulation_output.beam_param['twiss'][
-                    'twiss_z'][:, 0],
-            'beta_z': lambda self:
-                self.simulation_output.beam_param['twiss'][
-                    'twiss_z'][:, 1],
-            'gamma_z': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_z'][:, 2],
-            'alpha_w': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_w'][:, 0],
-            'beta_w': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_w'][:, 1],
-            'gamma_w': lambda self:
-                self.simulation_output.beam_param['twiss']['twiss_w'][:, 2],
-            'envelope_pos_zdelta': lambda self:
-                self.simulation_output.beam_param['envelopes'][
-                    'envelopes_zdelta'][:, 0],
-            'envelope_energy_zdelta': lambda self:
-                self.simulation_output.beam_param['envelopes'][
-                    'envelopes_zdelta'][:, 1],
-            'envelope_pos_z': lambda self:
-                self.simulation_output.beam_param['envelopes'][
-                    'envelopes_z'][:, 0],
-            'envelope_energy_z': lambda self:
-                self.simulation_output.beam_param['envelopes'][
-                    'envelopes_z'][:, 1],
-            'envelope_pos_w': lambda self:
-                self.simulation_output.beam_param['envelopes'][
-                    'envelopes_w'][:, 0],
-            'envelope_energy_w': lambda self:
-                self.simulation_output.beam_param['envelopes'][
-                    'envelopes_w'][:, 1],
+            # 'alpha_zdelta': lambda self:
+                # self.simulation_output.beam_param['twiss'][
+                    # 'twiss_zdelta'][:, 0],
+            # 'beta_zdelta': lambda self:
+                # self.simulation_output.beam_param['twiss'][
+                    # 'twiss_zdelta'][:, 1],
+            # 'gamma_zdelta': lambda self:
+                # self.simulation_output.beam_param['twiss'][
+                    # 'twiss_zdelta'][:, 2],
+            # 'alpha_z': lambda self:
+                # self.simulation_output.beam_param['twiss'][
+                    # 'twiss_z'][:, 0],
+            # 'beta_z': lambda self:
+                # self.simulation_output.beam_param['twiss'][
+                    # 'twiss_z'][:, 1],
+            # 'gamma_z': lambda self:
+                # self.simulation_output.beam_param['twiss']['twiss_z'][:, 2],
+            # 'alpha_w': lambda self:
+                # self.simulation_output.beam_param['twiss']['twiss_w'][:, 0],
+            # 'beta_w': lambda self:
+                # self.simulation_output.beam_param['twiss']['twiss_w'][:, 1],
+            # 'gamma_w': lambda self:
+                # self.simulation_output.beam_param['twiss']['twiss_w'][:, 2],
+            # 'envelope_pos_zdelta': lambda self:
+                # self.simulation_output.beam_param['envelopes'][
+                    # 'envelopes_zdelta'][:, 0],
+            # 'envelope_energy_zdelta': lambda self:
+                # self.simulation_output.beam_param['envelopes'][
+                    # 'envelopes_zdelta'][:, 1],
+            # 'envelope_pos_z': lambda self:
+                # self.simulation_output.beam_param['envelopes'][
+                    # 'envelopes_z'][:, 0],
+            # 'envelope_energy_z': lambda self:
+                # self.simulation_output.beam_param['envelopes'][
+                    # 'envelopes_z'][:, 1],
+            # 'envelope_pos_w': lambda self:
+                # self.simulation_output.beam_param['envelopes'][
+                    # 'envelopes_w'][:, 0],
+            # 'envelope_energy_w': lambda self:
+                # self.simulation_output.beam_param['envelopes'][
+                    # 'envelopes_w'][:, 1],
             'M_11': lambda self: self.simulation_output.tm_cumul[:, 0, 0],
             'M_12': lambda self: self.simulation_output.tm_cumul[:, 0, 1],
             'M_21': lambda self: self.simulation_output.tm_cumul[:, 1, 0],

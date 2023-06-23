@@ -27,26 +27,148 @@ Twiss:
 TODO: handle error on eps_zdelta
 TODO better ellipse plot
 FIXME handle portions of linac for fit process
-FIXME r_zz should be an argument instead of taking the linac attribute. Also
+FIXME tm_cumul should be an argument instead of taking the linac attribute. Also
 """
+from typing import Any
+from dataclasses import dataclass
 
 import numpy as np
 
 import config_manager as con
+from core.elements import _Element
 import util.converters as convert
+from util.helper import recursive_items, recursive_getter
+
+
+@dataclass
+class BeamParameters:
+    """This module holds all emittances, envelopes, etc in various planes."""
+
+    tm_cumul: np.ndarray
+    sigma_in: np.ndarray | None = None
+
+    def __post_init__(self) -> None:
+        """Create emittance and twiss in the [z-delta] plane."""
+        if self.sigma_in is None:
+            self.sigma_in = con.SIGMA_ZDELTA
+
+        self.eps_zdelta, self.twiss_zdelta, self.sigma = \
+            beam_parameters_zdelta(self.tm_cumul, self.sigma_in)
+
+        self.mismatch_factor: np.ndarray | None
+
+        self.alpha_zdelta: np.ndarray
+        self.beta_zdelta: np.ndarray
+        self.gamma_zdelta: np.ndarray
+        self.alpha_z: np.ndarray
+        self.beta_z: np.ndarray
+        self.gamma_z: np.ndarray
+        self.alpha_w: np.ndarray
+        self.beta_w: np.ndarray
+        self.gamma_w: np.ndarray
+        self.envelope_pos_zdelta: np.ndarray
+        self.envelope_energy_zdelta: np.ndarray
+        self.envelope_pos_z: np.ndarray
+        self.envelope_energy_z: np.ndarray
+        self.envelope_pos_w: np.ndarray
+        self.envelope_energy_w: np.ndarray
+
+    def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
+        """Compute the mismatch factor."""
+        self.mismatch_factor = None
+        if ref_twiss_zdelta is not None:
+            self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
+                                                   self.twiss_zdelta,
+                                                   transp=True)
+
+    def compute_full(self, gamma: np.ndarray) -> None:
+        """Compute emittances, Twiss etc in every plane."""
+        _beam_param = beam_parameters_all(self.eps_zdelta, self.twiss_zdelta,
+                                          gamma)
+        self.alpha_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 0]
+        self.beta_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 1]
+        self.gamma_zdelta = _beam_param['twiss']['twiss_zdelta'][:, 2]
+        self.alpha_z = _beam_param['twiss']['twiss_z'][:, 0]
+        self.beta_z = _beam_param['twiss']['twiss_z'][:, 1]
+        self.gamma_z = _beam_param['twiss']['twiss_z'][:, 2]
+        self.alpha_w = _beam_param['twiss']['twiss_w'][:, 0]
+        self.beta_w = _beam_param['twiss']['twiss_w'][:, 1]
+        self.gamma_w = _beam_param['twiss']['twiss_w'][:, 2]
+        self.envelope_pos_zdelta = _beam_param['envelopes'][
+            'envelopes_zdelta'][:, 0]
+        self.envelope_energy_zdelta = _beam_param['envelopes'][
+            'envelopes_zdelta'][:, 1]
+        self.envelope_pos_z = _beam_param['envelopes']['envelopes_z'][:, 0]
+        self.envelope_energy_z = _beam_param['envelopes']['envelopes_z'][:, 1]
+        self.envelope_pos_w = _beam_param['envelopes']['envelopes_w'][:, 0]
+        self.envelope_energy_w = _beam_param['envelopes']['envelopes_w'][:, 1]
+
+    def has(self, key: str) -> bool:
+        """Tell if the required attribute is in this class."""
+        return key in recursive_items(vars(self))
+
+    def get(self, *keys: str, to_numpy: bool = True,
+            elt: _Element | None = None, pos: str | None = None,
+            **kwargs: Any) -> Any:
+        """
+        Shorthand to get attributes from this class or its attributes.
+
+        Parameters
+        ----------
+        *keys: str
+            Name of the desired attributes.
+        to_numpy : bool, optional
+            If you want the list output to be converted to a np.ndarray. The
+            default is True.
+        elt : _Element | None, optional
+            If provided, return the attributes only at the considered _Element.
+        pos : 'in' | 'out' | None
+            If you want the attribute at the entry, exit, or in the whole
+            _Element.
+        **kwargs: Any
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : Any
+            Attribute(s) value(s).
+
+        """
+        val = {key: [] for key in keys}
+
+        for key in keys:
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            val[key] = recursive_getter(key, vars(self), **kwargs)
+            if not to_numpy and isinstance(val[key], np.ndarray):
+                val[key] = val[key].tolist()
+
+            # if None not in (self.element_to_index, elt):
+                # idx = self.element_to_index(elt, pos)
+                # val[key] = val[key][idx]
+
+        out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
+               else val[key]
+               for key in keys]
+
+        if len(out) == 1:
+            return out[0]
+        return tuple(out)
 
 
 # =============================================================================
 # Public
 # =============================================================================
-def beam_parameters_zdelta(r_zz: np.ndarray, sigma_in: np.ndarray | None = None
+def beam_parameters_zdelta(tm_cumul: np.ndarray, sigma_in: np.ndarray | None = None
                            ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Compute sigma beam matrix, emittance, Twiss parameters.
 
     Parameters
     ----------
-    r_zz : np.ndarray
+    tm_cumul : np.ndarray
         (n, 2, 2) cumulated transfer matrices.
     sigma_in : np.ndarray | None, optional
         (2, 2) sigma beam matrix at entry of linac. The default is None. In
@@ -64,7 +186,7 @@ def beam_parameters_zdelta(r_zz: np.ndarray, sigma_in: np.ndarray | None = None
     """
     if sigma_in is None:
         sigma_in = con.SIGMA_ZDELTA
-    sigma = _sigma_beam_matrices(r_zz, sigma_in)
+    sigma = _sigma_beam_matrices(tm_cumul, sigma_in)
 
     eps_zdelta = _emittance_zdelta(sigma)
     twiss_zdelta = _twiss_zdelta(sigma, eps_zdelta)
@@ -128,7 +250,7 @@ def mismatch_factor(ref: np.ndarray, fix: np.ndarray, transp: bool = False
 # =============================================================================
 # Private
 # =============================================================================
-def _sigma_beam_matrices(r_zz: np.ndarray, sigma_in: np.ndarray) -> np.ndarray:
+def _sigma_beam_matrices(tm_cumul: np.ndarray, sigma_in: np.ndarray) -> np.ndarray:
     """
     Compute the sigma beam matrices between linac entry and idx_out.
 
@@ -136,10 +258,10 @@ def _sigma_beam_matrices(r_zz: np.ndarray, sigma_in: np.ndarray) -> np.ndarray:
     LW calculates transfer matrices in [z - delta].
     """
     sigma = []
-    n_points = r_zz.shape[0]
+    n_points = tm_cumul.shape[0]
 
     for i in range(n_points):
-        sigma.append(r_zz[i] @ sigma_in @ r_zz[i].transpose())
+        sigma.append(tm_cumul[i] @ sigma_in @ tm_cumul[i].transpose())
     return np.array(sigma)
 
 
@@ -160,7 +282,7 @@ def _emittances_all(eps_zdelta: np.ndarray, gamma: np.ndarray
 
 
 def _twiss_zdelta(sigma: np.ndarray, eps_zdelta: np.ndarray) -> np.ndarray:
-    """Transport Twiss parameters along element(s) described by r_zz."""
+    """Transport Twiss parameters along element(s) described by tm_cumul."""
     n_points = sigma.shape[0]
     twiss = np.full((n_points, 3), np.NaN)
 

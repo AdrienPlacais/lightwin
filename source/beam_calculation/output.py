@@ -17,7 +17,7 @@ import numpy as np
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
 from core.list_of_elements import ListOfElements
-from core.emittance import beam_parameters_all, mismatch_factor
+from core.emittance import BeamParameters
 from util.helper import recursive_items, recursive_getter
 
 
@@ -33,12 +33,8 @@ class SimulationOutput:
     rf_fields: list[dict] | None = None
 
     r_zz_elt: list[np.ndarray] | None = None
-    tm_cumul: np.ndarray | None = None
-
-    eps_zdelta: np.ndarray | None = None
-    twiss_zdelta: np.ndarray | None = None
-    sigma_matrix: np.ndarray | None = None
-    mismatch_factor: list[float | None] | None = None
+    tm_cumul: np.ndarray | None = None  # TODO remove
+    beam_parameters: BeamParameters | None = None
 
     element_to_index: Callable[[str | _Element, str | None], int | slice] \
         | None = None
@@ -116,19 +112,5 @@ class SimulationOutput:
         self.z_abs = elts.get('abs_mesh', remove_first=True)
         self.synch_trajectory.compute_complementary_data()
 
-        self.beam_param = beam_parameters_all(self.eps_zdelta,
-                                              self.twiss_zdelta,
-                                              self.synch_trajectory.gamma)
-        mism = None
-        if ref_twiss_zdelta is not None:
-            self.mismatch_factor = self._compute_mismatch(ref_twiss_zdelta)
-            mism = self.mismatch_factor
-
-        if mism is not None:
-            self.beam_param["mismatch_factor"] = mism
-
-    def _compute_mismatch(self, ref_twiss_zdelta: np.ndarray) -> np.ndarray:
-        """Compute the mismatch between reference and broken linac."""
-        mism = mismatch_factor(ref_twiss_zdelta, self.get("twiss_zdelta"),
-                               transp=True)
-        return mism
+        self.beam_parameters.compute_full(self.synch_trajectory.gamma)
+        self.beam_parameters.compute_mismatch(ref_twiss_zdelta)
