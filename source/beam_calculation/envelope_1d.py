@@ -7,8 +7,11 @@ Created on Mon Jun 12 08:24:37 2023.
 
 """
 import logging
-from typing import Callable
+from typing import Callable, Any
+from types import ModuleType
 from dataclasses import dataclass
+
+import numpy as np
 
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
@@ -39,7 +42,9 @@ class Envelope1D(BeamCalculator):
                 raise ModuleNotFoundError("Cython not compiled.")
         else:
             import core.transfer_matrices_p as transf_mat
-        print(transf_mat)
+        self.transf_mat_module = transf_mat
+
+        self.parameters: dict[_Element, SingleElementEnvelope1DParameters]
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -60,7 +65,8 @@ class Envelope1D(BeamCalculator):
         return self.run_with_this(set_of_cavity_settings=None, elts=elts)
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
-                      elts: ListOfElements) -> SimulationOutput:
+                      elts: ListOfElements, init_solver: bool = False
+                      ) -> SimulationOutput:
         """
         Envelope 1D calculation of beam in `elts`, with non-nominal settings.
 
@@ -79,6 +85,10 @@ class Envelope1D(BeamCalculator):
             single object.
 
         """
+        if 'parameters' not in dir(self) \
+                or list(self.parameters.keys()) != elts:
+            self._init_solver_parameters(elts)
+
         single_elts_results = []
         rf_fields = []
 
@@ -101,6 +111,39 @@ class Envelope1D(BeamCalculator):
         simulation_output = self._generate_simulation_output(
             elts, single_elts_results, rf_fields)
         return simulation_output
+
+    def _init_solver_parameters(self, elts: ListOfElements) -> None:
+        """
+        Create the number of steps, meshing, transfer functions for elts.
+
+        The solver parameters are stored in self.parameters. As for now, for
+        memory purposes, only one set of solver parameters is stored. In other
+        words, if you compute the transfer matrices of several ListOfElements
+        back and forth, the solver paramters will be re-initialized each time.
+
+        Parameters
+        ----------
+        elts : ListOfElements
+            The list of elements for which you want the parameters.
+
+        """
+        kwargs = {'_n_steps_per_cell': self.N_STEPS_PER_CELL,
+                  '_method': self.METHOD,
+                  '_transf_mat_module': self.transf_mat_module,
+                  }
+
+        self.parameters = {
+            elt: SingleElementEnvelope1DParameters(
+                _length_m=elt.get('length_m', to_numpy=False),
+                _is_accelerating=elt.get('nature') == 'FIELD_MAP',
+                _n_cells=elt.get('n_cell', to_numpy=False),
+                **kwargs)
+            for elt in elts}
+
+        position = 0.
+        index = 0
+        for param in self.parameters.values():
+            position, index = param.set_absolute_meshes(position, index)
 
     def _generate_simulation_output(self, elts: ListOfElements,
                                     single_elts_results: list[dict],
@@ -237,3 +280,52 @@ class Envelope1D(BeamCalculator):
                 key_transf_mat = method
 
             elt._tm_func = transfer_matrix_function_setters[key_transf_mat]
+
+
+# TODO if necessary, inherit from a parent class
+@dataclass
+class SingleElementEnvelope1DParameters:
+    """Holds the parameters to compute beam propagation in an _Element."""
+
+    _length_m: float
+    _is_accelerating: bool
+    _n_cells: int | None
+    _n_steps_per_cell: int
+    _method: str
+    _transf_mat_module: ModuleType
+
+    def __post_init__(self):
+        """Set the actually useful parameters."""
+        self.n_steps = 1
+        self.transf_mat_function = self._transf_mat_module.z_drift
+        if self._is_accelerating:
+            assert self._n_cells is not None
+            self.n_steps = self._n_cells * self._n_steps_per_cell
+
+            if self._method == 'RK':
+                self.transf_mat_function = \
+                    self._transf_mat_module.z_field_map_rk4
+            elif self._method == 'leapfrog':
+                self.transf_mat_function = \
+                    self._transf_mat_module.z_field_map_leapfrog
+
+        self.d_z = self._length_m / self.n_steps
+        self.rel_mesh = np.linspace(0., self._length_m, self.n_steps + 1)
+
+        self.s_in: int
+        self.s_out: int
+        self.abs_mesh: np.ndarray
+
+    def set_absolute_meshes(self, pos_in: float, s_in: int
+                            ) -> tuple[float, int]:
+        """Set the absolute indexes and arrays, depending on previous elem."""
+        self.abs_mesh = self.rel_mesh + pos_in
+
+        self.s_in = s_in
+        self.s_out = self.s_in + self.n_steps
+
+        return self.abs_mesh[-1], self.s_out
+
+    def re_set_for_broken_cavity(self):
+        """Change solver parameters for efficiency purposes."""
+        self.transf_mat_function = self._transf_mat_module.z_drift

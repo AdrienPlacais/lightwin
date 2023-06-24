@@ -18,7 +18,7 @@ import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
 import tracewin.interface
 from beam_calculation.tracewin import TraceWinBeamCalculator
-from beam_calculation.factory import init_calc_with
+from beam_calculation.factory import create_beam_calculator_object
 from util import helper, output, evaluate
 from util.log_manager import set_up_logging
 from visualization import plot
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         KEY_TW)
 
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
-    beam_calculator = init_calc_with(beam_calculator_parameters)
+    beam_calculator = create_beam_calculator_object(beam_calculator_parameters)
 
     simulation_output = beam_calculator.run(ref_linac.elts)
     ref_linac.keep_this(simulation_output=simulation_output)

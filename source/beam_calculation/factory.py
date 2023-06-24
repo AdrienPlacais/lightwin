@@ -11,8 +11,8 @@ from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.envelope_1d import Envelope1D
 
 
-def init_calc_with(beam_calculator_parameters: dict[str, Any]
-                   ) -> BeamCalculator:
+def create_beam_calculator_object(beam_calculator_parameters: dict[str, Any]
+                                  ) -> BeamCalculator:
     """
     Take the appropriate beam calculator and set it up.
 
