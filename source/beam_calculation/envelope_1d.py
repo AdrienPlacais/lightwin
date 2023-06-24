@@ -7,7 +7,7 @@ Created on Mon Jun 12 08:24:37 2023.
 
 """
 import logging
-from typing import Callable, Any
+from typing import Callable
 from types import ModuleType
 from dataclasses import dataclass
 
@@ -17,9 +17,11 @@ from core.particle import ParticleFullTrajectory
 from core.elements import _Element
 from core.list_of_elements import (ListOfElements, indiv_to_cumul_transf_mat)
 from core.beam_parameters import BeamParameters
+from core.electric_field import compute_param_cav
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
+import util.converters as convert
 
 
 @dataclass
@@ -65,8 +67,57 @@ class Envelope1D(BeamCalculator):
         return self.run_with_this(set_of_cavity_settings=None, elts=elts)
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
-                      elts: ListOfElements, init_solver: bool = False
-                      ) -> SimulationOutput:
+                      elts: ListOfElements) -> SimulationOutput:
+        """
+        Envelope 1D calculation of beam in `elts`, with non-nominal settings.
+
+        Parameters
+        ----------
+        set_of_cavity_settings : SetOfCavitySettings | None
+            The new cavity settings to try. If it is None, then the cavity
+            settings are taken from the FieldMap objects.
+        elts : ListOfElements
+            List of elements in which the beam must be propagated.
+
+        Returns
+        -------
+        simulation_output : SimulationOutput
+            Holds energy, phase, transfer matrices (among others) packed into a
+            single object.
+
+        """
+        if True:
+            return self.new_run_with_this(set_of_cavity_settings, elts)
+        if 'parameters' not in dir(self) \
+                or list(self.parameters.keys()) != elts:
+            self._init_solver_parameters(elts)
+
+        single_elts_results = []
+        rf_fields = []
+
+        w_kin = elts.w_kin_in
+        phi_abs = elts.phi_abs_in
+        for elt in elts:
+            cavity_settings = set_of_cavity_settings.get(elt) \
+                if isinstance(set_of_cavity_settings, SetOfCavitySettings) \
+                else None
+
+            rf_field_kwargs = elt.rf_param(phi_abs, w_kin, cavity_settings)
+            elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
+
+            single_elts_results.append(elt_results)
+            rf_fields.append(rf_field_kwargs)
+
+            phi_abs += elt_results["phi_rel"][-1]
+            w_kin = elt_results["w_kin"][-1]
+
+        simulation_output = self._generate_simulation_output(
+            elts, single_elts_results, rf_fields)
+        return simulation_output
+
+    def new_run_with_this(self,
+                          set_of_cavity_settings: SetOfCavitySettings | None,
+                          elts: ListOfElements) -> SimulationOutput:
         """
         Envelope 1D calculation of beam in `elts`, with non-nominal settings.
 
@@ -94,13 +145,15 @@ class Envelope1D(BeamCalculator):
 
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
-        for elt in elts:
+
+        for elt, param in self.parameters.items():
             cavity_settings = set_of_cavity_settings.get(elt) \
                 if isinstance(set_of_cavity_settings, SetOfCavitySettings) \
                 else None
 
             rf_field_kwargs = elt.rf_param(phi_abs, w_kin, cavity_settings)
-            elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
+            elt_results = a_new_calc_transf_mat(w_kin, elt, param,
+                                                **rf_field_kwargs)
 
             single_elts_results.append(elt_results)
             rf_fields.append(rf_field_kwargs)
@@ -135,7 +188,7 @@ class Envelope1D(BeamCalculator):
         self.parameters = {
             elt: SingleElementEnvelope1DParameters(
                 _length_m=elt.get('length_m', to_numpy=False),
-                _is_accelerating=elt.get('nature') == 'FIELD_MAP',
+                _is_accelerating=elt.is_accelerating(),
                 _n_cells=elt.get('n_cell', to_numpy=False),
                 **kwargs)
             for elt in elts}
@@ -329,3 +382,27 @@ class SingleElementEnvelope1DParameters:
     def re_set_for_broken_cavity(self):
         """Change solver parameters for efficiency purposes."""
         self.transf_mat_function = self._transf_mat_module.z_drift
+
+
+def a_new_calc_transf_mat(w_kin_in: float, elt: _Element,
+                          solver_param: SingleElementEnvelope1DParameters,
+                          **rf_field_kwargs):
+    """Let's try something."""
+    gamma = convert.energy(w_kin_in, "kin to gamma")
+
+    args = (solver_param.d_z, gamma, solver_param.n_steps)
+
+    cav_params = None
+    if elt.is_accelerating():
+        r_zz, gamma_phi, itg_field = solver_param.transf_mat_function(
+            *args, rf_field_kwargs=rf_field_kwargs)
+        gamma_phi[:, 1] /= solver_param._n_cells
+        cav_params = compute_param_cav(itg_field, elt.get('status'))
+    else:
+        r_zz, gamma_phi, _ = solver_param.transf_mat_function(*args)
+
+    w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
+    results = {'r_zz': r_zz, 'cav_params': cav_params,
+               'w_kin': w_kin, 'phi_rel': gamma_phi[:, 1]}
+
+    return results
