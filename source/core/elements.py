@@ -280,6 +280,11 @@ class _Element():
         """
         return {}
 
+    def is_accelerating(self) -> bool:
+        """Say if this _Element is accelerating or not."""
+        return self.get('nature') == 'FIELD_MAP' \
+            and self.get('status') != 'failed'
+
 
 # =============================================================================
 # More specific classes
