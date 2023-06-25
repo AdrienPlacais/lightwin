@@ -214,21 +214,20 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t gamma_in, np.int64_t n_steps=1):
     return r_zz_array, gamma_phi_array, None
 
 
-cpdef z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
-                      dict_rf_field):
+def z_field_map_rk4(DTYPE_t dz_s,
+                    DTYPE_t gamma_in,
+                    np.int64_t n_steps,
+                    DTYPE_t omega0_rf,
+                    DTYPE_t k_e,
+                    DTYPE_t phi_0_rel,
+                    np.int64_t section_idx,
+                    **kwargs):
     """Calculate the transfer matrix of a field map using Runge-Kutta."""
-    cdef DTYPE_t omega0_rf = dict_rf_field['omega0_rf']
-    cdef DTYPE_t k_e = dict_rf_field['k_e']
-    cdef DTYPE_t phi_0_rel = dict_rf_field['phi_0_rel']
-    cdef np.int64_t section_idx = dict_rf_field['section_idx']
-
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
     cdef DTYPE_t half_dz_s = .5 * dz_s
-    cdef DTYPE_t beta = sqrt(1. - gamma_in**-2)
     cdef np.int64_t i
-    cdef DTYPE_t tmp
     cdef DTYPE_t gamma_middle, phi_middle
 
     # Arrays:
@@ -237,9 +236,7 @@ cpdef z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
 
     # Memory views:
     gamma_phi_array = np.empty((n_steps + 1, 2), dtype=DTYPE)
-    delta_gamma_phi_array = np.zeros((2), dtype=DTYPE)
     cdef DTYPE_t[:, :] gamma_phi = gamma_phi_array
-    cdef DTYPE_t[:] delta_gammma_phi = delta_gamma_phi_array
     cdef DTYPE_t[:] e_z
     cdef DTYPE_t inv_dz_e
     cdef int n_points_e
@@ -248,7 +245,6 @@ cpdef z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
     cdef DTYPE_t delta_phi_norm = omega0_rf * dz_s / c_cdef
     cdef DTYPE_t delta_gamma_norm = q_adim_cdef * dz_s * inv_E_rest_MeV_cdef
     cdef DTYPE_t k_k = delta_gamma_norm * k_e
-    cdef DTYPE_t delta_gamma_m_max
 
     inv_dz_e = l_d_ez[section_idx]["inv_dz"]
     e_z = l_d_ez[section_idx]["e_z"]
@@ -292,20 +288,20 @@ cpdef z_field_map_rk4(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
     return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
-cpdef z_field_map_leapfrog(DTYPE_t dz_s, DTYPE_t gamma_in, np.int64_t n_steps,
-                           dict_rf_field):
+def z_field_map_leapfrog(DTYPE_t dz_s,
+                         DTYPE_t gamma_in,
+                         np.int64_t n_steps,
+                         DTYPE_t omega0_rf,
+                         DTYPE_t k_e,
+                         DTYPE_t phi_0_rel,
+                         np.int64_t section_idx,
+                         **kwargs):
     """Calculate the transfer matrix of a field map using leapfrog."""
-    cdef DTYPE_t omega0_rf = dict_rf_field['omega0_rf']
-    cdef DTYPE_t k_e = dict_rf_field['k_e']
-    cdef DTYPE_t phi_0_rel = dict_rf_field['phi_0_rel']
-    cdef np.int64_t section_idx = dict_rf_field['section_idx']
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
-    cdef DTYPE_t beta_next
     cdef DTYPE_t beta = sqrt(1. - gamma_in**-2)
     cdef np.int64_t i
-    cdef DTYPE_t tmp
     cdef DTYPE_t delta_gamma, delta_phi
     cdef DTYPE_t half_dz_s = .5 * dz_s
 

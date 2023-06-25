@@ -14,8 +14,10 @@ Possible to use only lists here. Not prioritary.
 May speed up the code, especially in _c.
 But numpy is fast, no?
 """
+from typing import Callable
 
 import numpy as np
+
 from constants import c
 import config_manager as con
 
@@ -71,7 +73,8 @@ def rk4(u, du, x, dx):
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def z_drift(delta_s, gamma_in, n_steps=1):
+def z_drift(delta_s: float, gamma_in: float, n_steps: int = 1, **kwargs
+            ) -> tuple[np.ndarray, np.ndarray, None]:
     """Calculate the transfer matrix of a drift."""
     gamma_in_min2 = gamma_in**-2
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
@@ -91,15 +94,14 @@ def z_drift(delta_s, gamma_in, n_steps=1):
     return r_zz, gamma_phi, None
 
 
-def z_field_map_rk4(d_z, gamma_in, n_steps, dict_rf_field):
+def z_field_map_rk4(d_z: float, gamma_in: float, n_steps: int,
+                    omega0_rf: float, k_e: float, phi_0_rel: float,
+                    e_spat: Callable[[float, np.ndarray, float, float], float],
+                    **kwargs) -> tuple[np.ndarray, np.ndarray, float]:
     """Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta."""
     z_rel = 0.
     itg_field = 0.
     half_dz = .5 * d_z
-
-    omega0_rf, k_e, phi_0_rel, e_spat = dict_rf_field['omega0_rf'], \
-        dict_rf_field['k_e'], dict_rf_field['phi_0_rel'], \
-        dict_rf_field['e_spat']
 
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c
@@ -163,7 +165,11 @@ def z_field_map_rk4(d_z, gamma_in, n_steps, dict_rf_field):
     return r_zz, gamma_phi[1:, :], itg_field
 
 
-def z_field_map_leapfrog(d_z, gamma_in, n_steps, dict_rf_field):
+def z_field_map_leapfrog(d_z: float, gamma_in: float, n_steps: int,
+                         omega0_rf: float, k_e: float, phi_0_rel: float,
+                         e_spat: Callable[[float, np.ndarray, float, float],
+                                          float],
+                         **kwargs) -> tuple[np.ndarray, np.ndarray, float]:
     """
     Calculate the transfer matrix of a FIELD_MAP using leapfrog.
 
@@ -183,10 +189,6 @@ def z_field_map_leapfrog(d_z, gamma_in, n_steps, dict_rf_field):
     z_rel = 0.
     itg_field = 0.
     half_dz = .5 * d_z
-
-    omega0_rf, k_e, phi_0_rel, e_spat = dict_rf_field['omega0_rf'], \
-        dict_rf_field['k_e'], dict_rf_field['phi_0_rel'], \
-        dict_rf_field['e_spat']
 
     # Constants to speed up calculation
     delta_phi_norm = omega0_rf * d_z / c

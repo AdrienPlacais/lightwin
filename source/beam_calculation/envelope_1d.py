@@ -296,15 +296,13 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
 
         args = (self.d_z, gamma, self.n_steps)
 
+        r_zz, gamma_phi, itg_field = self.transf_mat_function(
+            *args, **rf_field_kwargs)
+
         cav_params = None
         if is_accelerating:
-            r_zz, gamma_phi, itg_field = self.transf_mat_function(
-                *args, dict_rf_field=rf_field_kwargs)
             gamma_phi[:, 1] /= self.n_cells
             cav_params = compute_param_cav(itg_field, elt_status)
-
-        else:
-            r_zz, gamma_phi, _ = self.transf_mat_function(*args)
 
         w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
         results = {'r_zz': r_zz, 'cav_params': cav_params,
