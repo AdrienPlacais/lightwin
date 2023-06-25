@@ -27,7 +27,7 @@ class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
     def __init__(self, elts: list[_Element], w_kin: float, phi_abs: float,
-                 tm_cumul: np.ndarray | None = None, first_init: bool = True
+                 tm_cumul: np.ndarray | None = None, first_init: bool = True,
                  ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.

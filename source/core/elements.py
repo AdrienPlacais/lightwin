@@ -16,6 +16,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 import config_manager as con
+# from beam_calculation.beam_calculator import SingleElementCalculatorParameters
 from core.electric_field import (RfField, compute_param_cav,
                                  phi_0_rel_corresponding_to,
                                  phi_0_abs_corresponding_to)
@@ -92,6 +93,7 @@ class _Element():
         self.idx = {'s_in': None, 's_out': None,
                     'elt_idx': None, 'lattice': None, 'section': None}
 
+        # self.beam_calc_param: SingleElementCalculatorParameters
         self._tm_func = lambda d_z, gamma, n_steps, rf_field=None: \
             (np.empty([10, 2, 2]), np.empty([10, 2]), None)
         self.solver_param = {'n_steps': None, 'd_z': None,
@@ -246,6 +248,7 @@ class _Element():
         if new_status == 'failed':
             self.acc_field.k_e = 0.
             self.init_solvers()
+            self.beam_calc_param.re_set_for_broken_cavity()
 
     def keep_rf_field(self, rf_field: dict, cav_params: dict) -> None:
         """Save data calculated by Accelerator.compute_transfer_matrices."""

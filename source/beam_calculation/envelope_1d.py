@@ -18,7 +18,8 @@ from core.elements import _Element
 from core.list_of_elements import (ListOfElements, indiv_to_cumul_transf_mat)
 from core.beam_parameters import BeamParameters
 from core.electric_field import compute_param_cav
-from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.beam_calculator import (
+    BeamCalculator, SingleElementCalculatorParameters)
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 import util.converters as convert
@@ -45,8 +46,6 @@ class Envelope1D(BeamCalculator):
         else:
             import core.transfer_matrices_p as transf_mat
         self.transf_mat_module = transf_mat
-
-        self.parameters: dict[_Element, SingleElementEnvelope1DParameters]
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -88,9 +87,6 @@ class Envelope1D(BeamCalculator):
         """
         if True:
             return self.new_run_with_this(set_of_cavity_settings, elts)
-        if 'parameters' not in dir(self) \
-                or list(self.parameters.keys()) != elts:
-            self._init_solver_parameters(elts)
 
         single_elts_results = []
         rf_fields = []
@@ -136,24 +132,19 @@ class Envelope1D(BeamCalculator):
             single object.
 
         """
-        if 'parameters' not in dir(self) \
-                or list(self.parameters.keys()) != elts:
-            self._init_solver_parameters(elts)
-
         single_elts_results = []
         rf_fields = []
 
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
 
-        for elt, param in self.parameters.items():
+        for elt in elts:
             cavity_settings = set_of_cavity_settings.get(elt) \
                 if isinstance(set_of_cavity_settings, SetOfCavitySettings) \
                 else None
 
             rf_field_kwargs = elt.rf_param(phi_abs, w_kin, cavity_settings)
-            elt_results = a_new_calc_transf_mat(w_kin, elt, param,
-                                                **rf_field_kwargs)
+            elt_results = a_new_calc_transf_mat(w_kin, elt, **rf_field_kwargs)
 
             single_elts_results.append(elt_results)
             rf_fields.append(rf_field_kwargs)
@@ -180,23 +171,22 @@ class Envelope1D(BeamCalculator):
             The list of elements for which you want the parameters.
 
         """
-        kwargs = {'_n_steps_per_cell': self.N_STEPS_PER_CELL,
-                  '_method': self.METHOD,
-                  '_transf_mat_module': self.transf_mat_module,
+        kwargs = {'n_steps_per_cell': self.N_STEPS_PER_CELL,
+                  'method': self.METHOD,
+                  'transf_mat_module': self.transf_mat_module,
                   }
-
-        self.parameters = {
-            elt: SingleElementEnvelope1DParameters(
-                _length_m=elt.get('length_m', to_numpy=False),
-                _is_accelerating=elt.is_accelerating(),
-                _n_cells=elt.get('n_cell', to_numpy=False),
+        for elt in elts:
+            elt.beam_calc_param = SingleElementEnvelope1DParameters(
+                length_m=elt.get('length_m', to_numpy=False),
+                is_accelerating=elt.is_accelerating(),
+                n_cells=elt.get('n_cell', to_numpy=False),
                 **kwargs)
-            for elt in elts}
 
         position = 0.
         index = 0
-        for param in self.parameters.values():
-            position, index = param.set_absolute_meshes(position, index)
+        for elt in elts:
+            position, index = elt.beam_calc_param.set_absolute_meshes(position,
+                                                                      index)
 
     def _generate_simulation_output(self, elts: ListOfElements,
                                     single_elts_results: list[dict],
@@ -251,9 +241,10 @@ class Envelope1D(BeamCalculator):
                                         ) -> Callable[[_Element, str | None],
                                                       int | slice]:
         """Create the func to easily get data at proper mesh index."""
-        shift = elts[0].get('s_in')
+        shift = elts[0].get('s_in', to_numpy=False)
 
-        def element_to_index(elt: _Element, pos: str | None) -> int | slice:
+        def element_to_index(elt: _Element, pos: str | None = None
+                             ) -> int | slice:
             """
             Convert element + pos into a mesh index.
 
@@ -261,18 +252,18 @@ class Envelope1D(BeamCalculator):
             ----------
             elt : _Element
                 Element of which you want the index.
-            pos : 'in' | 'out' | None
+            pos : 'in' | 'out' | None, optional
                 Index of entry or exit of the _Element. If None, return full
-                indexes array.
+                indexes array. The default is None.
 
             """
             if pos is None:
-                return slice(elt.get('s_in') - shift,
-                             elt.get('s_out') - shift + 1)
+                return slice(elt.get('s_in', to_numpy=False) - shift,
+                             elt.get('s_out', to_numpy=False) - shift + 1)
             elif pos == 'in':
-                return elt.get('s_in') - shift
+                return elt.get('s_in', to_numpy=False) - shift
             elif pos == 'out':
-                return elt.get('s_out') - shift
+                return elt.get('s_out', to_numpy=False) - shift
             else:
                 logging.error(f"{pos = }, while it must be 'in', 'out' or "
                               + "None")
@@ -335,35 +326,28 @@ class Envelope1D(BeamCalculator):
             elt._tm_func = transfer_matrix_function_setters[key_transf_mat]
 
 
-# TODO if necessary, inherit from a parent class
-@dataclass
-class SingleElementEnvelope1DParameters:
+class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
     """Holds the parameters to compute beam propagation in an _Element."""
 
-    _length_m: float
-    _is_accelerating: bool
-    _n_cells: int | None
-    _n_steps_per_cell: int
-    _method: str
-    _transf_mat_module: ModuleType
-
-    def __post_init__(self):
+    def __init__(self, length_m: float, is_accelerating: bool,
+                 n_cells: int | None, n_steps_per_cell: int, method: str,
+                 transf_mat_module: ModuleType) -> None:
         """Set the actually useful parameters."""
         self.n_steps = 1
-        self.transf_mat_function = self._transf_mat_module.z_drift
-        if self._is_accelerating:
-            assert self._n_cells is not None
-            self.n_steps = self._n_cells * self._n_steps_per_cell
+        self.back_up_function = transf_mat_module.z_drift
+        self.transf_mat_function = transf_mat_module.z_drift
+        if is_accelerating:
+            assert n_cells is not None
+            self.n_steps = n_cells * n_steps_per_cell
 
-            if self._method == 'RK':
+            if 'RK' in method:
+                self.transf_mat_function = transf_mat_module.z_field_map_rk4
+            elif 'leapfrog' in method:
                 self.transf_mat_function = \
-                    self._transf_mat_module.z_field_map_rk4
-            elif self._method == 'leapfrog':
-                self.transf_mat_function = \
-                    self._transf_mat_module.z_field_map_leapfrog
+                    transf_mat_module.z_field_map_leapfrog
 
-        self.d_z = self._length_m / self.n_steps
-        self.rel_mesh = np.linspace(0., self._length_m, self.n_steps + 1)
+        self.d_z = length_m / self.n_steps
+        self.rel_mesh = np.linspace(0., length_m, self.n_steps + 1)
 
         self.s_in: int
         self.s_out: int
@@ -381,25 +365,24 @@ class SingleElementEnvelope1DParameters:
 
     def re_set_for_broken_cavity(self):
         """Change solver parameters for efficiency purposes."""
-        self.transf_mat_function = self._transf_mat_module.z_drift
+        self.transf_mat_function = self.back_up_function
 
 
-def a_new_calc_transf_mat(w_kin_in: float, elt: _Element,
-                          solver_param: SingleElementEnvelope1DParameters,
-                          **rf_field_kwargs):
+def a_new_calc_transf_mat(w_kin_in: float, elt: _Element, **rf_field_kwargs):
     """Let's try something."""
     gamma = convert.energy(w_kin_in, "kin to gamma")
 
-    args = (solver_param.d_z, gamma, solver_param.n_steps)
+    args = (elt.beam_calc_param.d_z, gamma, elt.beam_calc_param.n_steps)
 
     cav_params = None
     if elt.is_accelerating():
-        r_zz, gamma_phi, itg_field = solver_param.transf_mat_function(
-            *args, rf_field_kwargs=rf_field_kwargs)
-        gamma_phi[:, 1] /= solver_param._n_cells
+        r_zz, gamma_phi, itg_field = elt.beam_calc_param.transf_mat_function(
+            *args, dict_rf_field=rf_field_kwargs)
+        gamma_phi[:, 1] /= elt.get('n_cell', to_numpy=False)
         cav_params = compute_param_cav(itg_field, elt.get('status'))
+
     else:
-        r_zz, gamma_phi, _ = solver_param.transf_mat_function(*args)
+        r_zz, gamma_phi, _ = elt.beam_calc_param.transf_mat_function(*args)
 
     w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
     results = {'r_zz': r_zz, 'cav_params': cav_params,

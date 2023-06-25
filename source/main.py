@@ -82,6 +82,7 @@ if __name__ == '__main__':
 
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
     beam_calculator = create_beam_calculator_object(beam_calculator_parameters)
+    beam_calculator._init_solver_parameters(ref_linac.elts)
 
     simulation_output = beam_calculator.run(ref_linac.elts)
     ref_linac.keep_this(simulation_output=simulation_output)
@@ -104,6 +105,7 @@ if __name__ == '__main__':
         for i, failed in enumerate(l_failed):
             start_time = time.monotonic()
             lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken")
+            beam_calculator._init_solver_parameters(lin.elts)
 
             if l_manual is not None:
                 manual = l_manual[i]

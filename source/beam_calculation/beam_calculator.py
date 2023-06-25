@@ -76,3 +76,12 @@ class BeamCalculator(ABC):
     @abstractmethod
     def init_specific(self, elts: list[_Element]) -> None:
         """Init quantities that depend on the current solver."""
+
+
+class SingleElementCalculatorParameters:
+    """
+    Parent class to hold solving parameters. Attribute of _Element.
+
+    As for now, only used by Envelope1D. Useful for TraceWin? To store its
+    meshing maybe?
+    """
