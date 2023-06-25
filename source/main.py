@@ -30,7 +30,7 @@ if __name__ == '__main__':
     KEY_BEAM_CALCULATOR = 'beam_calculator.lightwin.envelope_longitudinal'
     KEY_BEAM = 'beam.myrrha'
     KEY_WTF = 'wtf.k_out_of_n'
-    KEY_TW = 'post_tracewin.quick_debug'
+    KEY_BEAM_CALCULATOR_POST = 'beam_calculator_post.tracewin.quick_debug'
 
     # =========================================================================
     # Fault compensation
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     FLAG_BREAK = True
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = False
+    FLAG_TW = True
     RECOMPUTE_REFERENCE = False
     FLAG_EVALUATE = False
 
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     beam_calculator_parameters, beam, wtf, post_tw = conf_man.process_config(
         CONFIG_PATH, PROJECT_FOLDER, KEY_BEAM_CALCULATOR, KEY_BEAM, KEY_WTF,
-        KEY_TW)
+        KEY_BEAM_CALCULATOR_POST)
 
     ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
     beam_calculator = create_beam_calculator_object(beam_calculator_parameters)

@@ -54,7 +54,7 @@ TRACEWIN_EXECUTABLES = {
 
 def process_config(config_path: str, project_path: str,
                    key_beam_calculator: str, key_beam: str, key_wtf: str,
-                   key_post_tw: str | None = None,
+                   key_beam_calculator_post: str | None = None,
                    ) -> tuple[dict, dict, dict, dict | None]:
     """
     Frontend for config: load .ini, test it, return its content as dicts.
@@ -71,10 +71,10 @@ def process_config(config_path: str, project_path: str,
         Name of the Section containing beam parameters in the .ini file.
     key_wtf : str
         Name of the Section containing wtf parameters in the .ini file.
-    key_post_tw : str | None, optional
-        Name of the Section containing the TraceWin simulation parameters in
-        the .ini file. This simulation is performed once the new settings are
-        found. The default is None.
+    key_beam_calculator_post : str | None, optional
+        Name of the Section containing the parameters for the simulation
+        performed after the end of the optimisation (usually, a slower but more
+        precise simulation). The default is None.
 
     Returns
     -------
@@ -84,10 +84,8 @@ def process_config(config_path: str, project_path: str,
         Dictionary holding all beam parameters.
     wtf : dict
         Dictionary holding all wtf parameters.
-    post_tw : dict
-        Holds the TW arguments. Overrides what is defined in the TW .ini file.
-        Path to .ini, .dat and to results folder are defined in
-        Accelerator.files dict.
+    beam_calculator_post : dict
+        Holds beam_calculator parameters for the post treatment simulation.
 
     """
     # Load config
@@ -113,53 +111,55 @@ def process_config(config_path: str, project_path: str,
     # outputs!!
     config.read(config_path)
 
-    _test_config(config, key_beam_calculator, key_beam, key_wtf, key_post_tw)
+    _test_config(config, key_beam_calculator, key_beam, key_wtf,
+                 key_beam_calculator_post)
 
-    beam_calculator, beam, wtf, post_tw = _config_to_dict(
+    beam_calculator, beam, wtf, beam_calculator_post = _config_to_dict(
         config, key_beam_calculator=key_beam_calculator, key_beam=key_beam,
-        key_wtf=key_wtf, key_post_tw=key_post_tw)
+        key_wtf=key_wtf, key_beam_calculator_post=key_beam_calculator_post)
 
     # Remove unused Sections, save resulting file
     _ = [config.remove_section(key) for key in list(config.keys())
          if key not in ['DEFAULT', key_beam_calculator, key_beam, key_wtf,
-                        key_post_tw]]
+                        key_beam_calculator_post]]
     with open(os.path.join(project_path, 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 
     _beam_calculator_make_global(beam_calculator)
     _beam_make_global(beam)
-    return beam_calculator, beam, wtf, post_tw
+    return beam_calculator, beam, wtf, beam_calculator_post
 
 
 def _test_config(config: configparser.ConfigParser, key_beam_calculator: str,
-                 key_beam: str, key_wtf: str, key_post_tw: str | None) -> None:
+                 key_beam: str, key_wtf: str,
+                 key_beam_calculator_post: str | None) -> None:
     """Run all the configuration tests, and save the config if ok."""
     _test_beam_calculator(config[key_beam_calculator])
     _test_beam(config[key_beam])
     _test_wtf(config[key_wtf])
-    if key_post_tw is not None:
-        _test_post_tw(config[key_post_tw])
+    if key_beam_calculator_post is not None:
+        _test_beam_calculator(config[key_beam_calculator_post])
 
 
 def _config_to_dict(config: configparser.ConfigParser,
                     key_beam_calculator: str, key_beam: str, key_wtf: str,
-                    key_post_tw: str | None
+                    key_beam_calculator_post: str | None
                     ) -> tuple[dict, dict, dict, dict | None]:
     """To convert the configparser into the formats required by LightWin."""
     beam_calculator = _config_to_dict_beam_calculator(
         config[key_beam_calculator])
     beam = _config_to_dict_beam(config[key_beam])
     wtf = _config_to_dict_wtf(config[key_wtf])
-    post_tw = None
-    if key_post_tw is not None:
-        post_tw = _config_to_dict_tw(config[key_post_tw])
-    return beam_calculator, beam, wtf, post_tw
+    beam_calculator_post = None
+    if key_beam_calculator_post is not None:
+        beam_calculator_post = _config_to_dict_beam_calculator(
+            config[key_beam_calculator_post])
+    return beam_calculator, beam, wtf, beam_calculator_post
 
 
 # =============================================================================
 # Everything related to beam_calculator (particles motion beam_calculator)
-# (TraceWin @ bottom)
 # =============================================================================
 def _test_beam_calculator(c_beam_calculator: configparser.SectionProxy
                           ) -> None:
@@ -172,7 +172,7 @@ def _test_beam_calculator(c_beam_calculator: configparser.SectionProxy
             passed = False
 
     valid_tools = {'LightWin': _test_beam_calculator_lightwin,
-                   'TraceWin': _test_tracewin}
+                   'TraceWin': _test_beam_calculator_tracewin}
     my_tool = c_beam_calculator["TOOL"]
     if my_tool not in valid_tools:
         logging.error(f"{my_tool} is an invalid value for TOOL. "
@@ -232,7 +232,64 @@ def _test_beam_calculator_lightwin(
     return True
 
 
+def _test_beam_calculator_tracewin(
+        c_beam_calculator: configparser.SectionProxy) -> bool:
+    """Specific test for the TraceWin simulations."""
+    mandatory = ["SIMULATION TYPE"]
+    for key in mandatory:
+        if key not in c_beam_calculator.keys():
+            logging.error(f"{key} is mandatory and missing.")
+            return False
+
+    simulation_type = c_beam_calculator["SIMULATION TYPE"]
+    if simulation_type not in TRACEWIN_EXECUTABLES:
+        logging.error(f"The simulation type {simulation_type} was not "
+                      + "recognized. Authorized values: "
+                      + f"{TRACEWIN_EXECUTABLES.keys()}")
+        return False
+
+    tw_exe = TRACEWIN_EXECUTABLES[simulation_type]
+    if tw_exe is None:
+        logging.warning("No TraceWin simulation. May clash with other things "
+                        "as the executable is None.")
+        return True
+
+    if not os.path.isfile(tw_exe):
+        logging.error(f"The TraceWin executable was not found: {tw_exe}. You "
+                      + "should update the TRACEWIN_EXECUTABLES dictionary in "
+                      + "config_manager.py.")
+        return False
+    c_beam_calculator["executable"] = tw_exe
+
+    # TODO: implement all TW options
+    for key in c_beam_calculator.keys():
+        if "Ele" in key:
+            logging.error("Are you trying to use the Ele[n][v] key? It is not "
+                          + "implemented and may clash with LightWin.")
+            return False
+
+        if key == "Synoptic_file":
+            logging.error("Not implemented as I am not sure how this should "
+                          + "work.")
+            return False
+
+        if key in ['partran', 'toutatis']:
+            if c_beam_calculator.get(key) not in ['0', '1']:
+                logging.error("partran and toutatis keys should be 0 or 1.")
+                return False
+    return True
+
+
 def _config_to_dict_beam_calculator(
+        c_beam_calculator: configparser.SectionProxy) -> dict:
+    """Call the proper _config_to_dict function."""
+    config_to_dicts = {'LightWin': _config_to_dict_lightwin,
+                       'TraceWin': _config_to_dict_tracewin}
+    my_tool = c_beam_calculator["TOOL"]
+    return config_to_dicts[my_tool](c_beam_calculator)
+
+
+def _config_to_dict_lightwin(
         c_beam_calculator: configparser.SectionProxy) -> dict:
     """Save beam_calculator info into a dict."""
     beam_calculator = {}
@@ -249,6 +306,79 @@ def _config_to_dict_beam_calculator(
         beam_calculator[key] = c_beam_calculator.get(key.lower())
 
     return beam_calculator
+
+
+def _config_to_dict_tracewin(c_tw: configparser.SectionProxy) -> dict:
+    """Convert tw configparser into a dict."""
+    tracew = {}
+    # Getters. If a key is not in this dict, it won't be transferred to TW
+    getter = {
+        'executable': c_tw.get,
+        'hide': c_tw.get,
+        'tab_file': c_tw.get,
+        'nbr_thread': c_tw.getint,
+        'dst_file1': c_tw.get,
+        'dst_file2': c_tw.get,
+        'current1': c_tw.getfloat,
+        'current2': c_tw.getfloat,
+        'nbr_part1': c_tw.getint,
+        'nbr_part2': c_tw.getint,
+        'energy1': c_tw.getfloat,
+        'energy2': c_tw.getfloat,
+        'etnx1': c_tw.getfloat,
+        'etnx2': c_tw.getfloat,
+        'etny1': c_tw.getfloat,
+        'etny2': c_tw.getfloat,
+        'eln1': c_tw.getfloat,
+        'eln2': c_tw.getfloat,
+        'freq1': c_tw.getfloat,
+        'freq2': c_tw.getfloat,
+        'duty1': c_tw.getfloat,
+        'duty2': c_tw.getfloat,
+        'mass1': c_tw.getfloat,
+        'mass2': c_tw.getfloat,
+        'charge1': c_tw.getfloat,
+        'charge2': c_tw.getfloat,
+        'alpx1': c_tw.getfloat,
+        'alpx2': c_tw.getfloat,
+        'alpy1': c_tw.getfloat,
+        'alpy2': c_tw.getfloat,
+        'alpz1': c_tw.getfloat,
+        'alpz2': c_tw.getfloat,
+        'betx1': c_tw.getfloat,
+        'betx2': c_tw.getfloat,
+        'bety1': c_tw.getfloat,
+        'bety2': c_tw.getfloat,
+        'betz1': c_tw.getfloat,
+        'betz2': c_tw.getfloat,
+        'x1': c_tw.getfloat,
+        'x2': c_tw.getfloat,
+        'y1': c_tw.getfloat,
+        'y2': c_tw.getfloat,
+        'z1': c_tw.getfloat,
+        'z2': c_tw.getfloat,
+        'xp1': c_tw.getfloat,
+        'xp2': c_tw.getfloat,
+        'yp1': c_tw.getfloat,
+        'yp2': c_tw.getfloat,
+        'zp1': c_tw.getfloat,
+        'zp2': c_tw.getfloat,
+        'dw1': c_tw.getfloat,
+        'dw2': c_tw.getfloat,
+        'spreadw1': c_tw.getfloat,
+        'spreadw2': c_tw.getfloat,
+        'part_step': c_tw.getint,
+        'vfac': c_tw.getfloat,
+        'random_seed': c_tw.getint,
+        'partran': c_tw.getint,
+        'toutatis': c_tw.getint,
+    }
+    for key in c_tw.keys():
+        if key in getter:
+            tracew[key] = getter[key](key)
+            continue
+
+    return tracew
 
 
 def _beam_calculator_make_global(beam_calculator: dict) -> None:
@@ -688,132 +818,6 @@ def _test_misc(c_wtf: configparser.SectionProxy) -> bool:
 # =============================================================================
 # Everything related to TraceWin simulations
 # =============================================================================
-def _test_tracewin(c_beam_calculator: configparser.SectionProxy) -> bool:
-    """Specific test for the TraceWin simulations."""
-    mandatory = ["SIMULATION TYPE"]
-    for key in mandatory:
-        if key not in c_beam_calculator.keys():
-            logging.error(f"{key} is mandatory and missing.")
-            return False
-
-    simulation_type = c_beam_calculator["SIMULATION TYPE"]
-    if simulation_type not in TRACEWIN_EXECUTABLES:
-        logging.error(f"The simulation type {simulation_type} was not "
-                      + "recognized. Authorized values: "
-                      + f"{TRACEWIN_EXECUTABLES.keys()}")
-        return False
-
-    tw_exe = TRACEWIN_EXECUTABLES[simulation_type]
-    if tw_exe is None:
-        logging.warning("No TraceWin simulation. May clash with other things "
-                        "as the executable is None.")
-        return True
-
-    if not os.path.isfile(tw_exe):
-        logging.error(f"The TraceWin executable was not found: {tw_exe}. You "
-                      + "should update the TRACEWIN_EXECUTABLES dictionary in "
-                      + "config_manager.py.")
-        return False
-    c_beam_calculator["executable"] = tw_exe
-
-    # TODO: implement all TW options
-    for key in c_beam_calculator.keys():
-        if "Ele" in key:
-            logging.error("Are you trying to use the Ele[n][v] key? It is not "
-                          + "implemented and may clash with LightWin.")
-            return False
-
-        if key == "Synoptic_file":
-            logging.error("Not implemented as I am not sure how this should "
-                          + "work.")
-            return False
-
-        if key in ['partran', 'toutatis']:
-            if c_beam_calculator.get(key) not in ['0', '1']:
-                logging.error("partran and toutatis keys should be 0 or 1.")
-                return False
-    return True
-
-
-def _test_post_tw(c_tw: configparser.SectionProxy) -> None:
-    """Test for the TraceWin simulation parameters."""
-    if not _test_tracewin(c_tw):
-        raise IOError("Error when testing the TW configuration.")
-
-
-def _config_to_dict_tw(c_tw: configparser.SectionProxy) -> dict:
-    """Convert tw configparser into a dict."""
-    tracew = {}
-    # Getters. If a key is not in this dict, it won't be transferred to TW
-    getter = {
-        'executable': c_tw.get,
-        'hide': c_tw.get,
-        'tab_file': c_tw.get,
-        'nbr_thread': c_tw.getint,
-        'dst_file1': c_tw.get,
-        'dst_file2': c_tw.get,
-        'current1': c_tw.getfloat,
-        'current2': c_tw.getfloat,
-        'nbr_part1': c_tw.getint,
-        'nbr_part2': c_tw.getint,
-        'energy1': c_tw.getfloat,
-        'energy2': c_tw.getfloat,
-        'etnx1': c_tw.getfloat,
-        'etnx2': c_tw.getfloat,
-        'etny1': c_tw.getfloat,
-        'etny2': c_tw.getfloat,
-        'eln1': c_tw.getfloat,
-        'eln2': c_tw.getfloat,
-        'freq1': c_tw.getfloat,
-        'freq2': c_tw.getfloat,
-        'duty1': c_tw.getfloat,
-        'duty2': c_tw.getfloat,
-        'mass1': c_tw.getfloat,
-        'mass2': c_tw.getfloat,
-        'charge1': c_tw.getfloat,
-        'charge2': c_tw.getfloat,
-        'alpx1': c_tw.getfloat,
-        'alpx2': c_tw.getfloat,
-        'alpy1': c_tw.getfloat,
-        'alpy2': c_tw.getfloat,
-        'alpz1': c_tw.getfloat,
-        'alpz2': c_tw.getfloat,
-        'betx1': c_tw.getfloat,
-        'betx2': c_tw.getfloat,
-        'bety1': c_tw.getfloat,
-        'bety2': c_tw.getfloat,
-        'betz1': c_tw.getfloat,
-        'betz2': c_tw.getfloat,
-        'x1': c_tw.getfloat,
-        'x2': c_tw.getfloat,
-        'y1': c_tw.getfloat,
-        'y2': c_tw.getfloat,
-        'z1': c_tw.getfloat,
-        'z2': c_tw.getfloat,
-        'xp1': c_tw.getfloat,
-        'xp2': c_tw.getfloat,
-        'yp1': c_tw.getfloat,
-        'yp2': c_tw.getfloat,
-        'zp1': c_tw.getfloat,
-        'zp2': c_tw.getfloat,
-        'dw1': c_tw.getfloat,
-        'dw2': c_tw.getfloat,
-        'spreadw1': c_tw.getfloat,
-        'spreadw2': c_tw.getfloat,
-        'part_step': c_tw.getint,
-        'vfac': c_tw.getfloat,
-        'random_seed': c_tw.getint,
-        'partran': c_tw.getint,
-        'toutatis': c_tw.getint,
-    }
-    for key in c_tw.keys():
-        if key in getter:
-            tracew[key] = getter[key](key)
-            continue
-
-    return tracew
-
-
 # =============================================================================
 # Main func
 # =============================================================================
@@ -828,5 +832,5 @@ if __name__ == '__main__':
         key_beam_calculator='beam_calculator.lightwin.envelope_longitudinal',
         key_beam='beam.jaea',
         key_wtf='wtf.k_out_of_n',
-        key_post_tw='post_tracewin.quick_debug')
+        key_beam_calculator_post='post_tracewin.quick_debug')
     print(f"{wtfs}")
