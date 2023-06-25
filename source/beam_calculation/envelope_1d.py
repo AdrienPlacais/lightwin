@@ -7,7 +7,7 @@ Created on Mon Jun 12 08:24:37 2023.
 
 """
 import logging
-from typing import Callable, Any
+from typing import Callable
 from types import ModuleType
 from dataclasses import dataclass
 
@@ -23,7 +23,6 @@ from beam_calculation.beam_calculator import (
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 import util.converters as convert
-from util.helper import recursive_items, recursive_getter
 
 
 @dataclass
@@ -98,7 +97,9 @@ class Envelope1D(BeamCalculator):
                 else None
 
             rf_field_kwargs = elt.rf_param(phi_abs, w_kin, cavity_settings)
-            elt_results = a_new_calc_transf_mat(w_kin, elt, **rf_field_kwargs)
+            elt_results = elt.beam_calc_param.transf_mat_function_wrapper(
+                w_kin, elt.is_accelerating(), elt.get('status'),
+                **rf_field_kwargs)
 
             single_elts_results.append(elt_results)
             rf_fields.append(rf_field_kwargs)
@@ -190,7 +191,6 @@ class Envelope1D(BeamCalculator):
         )
         return simulation_output
 
-    # TODO update this once I remove s_in s_out from the Elements
     def _generate_element_to_index_func(self, elts: ListOfElements
                                         ) -> Callable[[_Element, str | None],
                                                       int | slice]:
@@ -287,7 +287,11 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
     def transf_mat_function_wrapper(self, w_kin_in: float,
                                     is_accelerating: bool, elt_status: str,
                                     **rf_field_kwargs) -> dict:
-        """Encapsulate calculation of transfer matrix in BeamCalcParam obj."""
+        """
+        Calculate beam propagation in the _Element.
+
+        This wrapping is not very Pythonic, should be removed in the future.
+        """
         gamma = convert.energy(w_kin_in, "kin to gamma")
 
         args = (self.d_z, gamma, self.n_steps)
@@ -307,26 +311,3 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
                    'w_kin': w_kin, 'phi_rel': gamma_phi[:, 1]}
 
         return results
-
-
-def a_new_calc_transf_mat(w_kin_in: float, elt: _Element, **rf_field_kwargs):
-    """Let's try something."""
-    gamma = convert.energy(w_kin_in, "kin to gamma")
-
-    args = (elt.beam_calc_param.d_z, gamma, elt.beam_calc_param.n_steps)
-
-    cav_params = None
-    if elt.is_accelerating():
-        r_zz, gamma_phi, itg_field = elt.beam_calc_param.transf_mat_function(
-            *args, dict_rf_field=rf_field_kwargs)
-        gamma_phi[:, 1] /= elt.get('n_cell', to_numpy=False)
-        cav_params = compute_param_cav(itg_field, elt.get('status'))
-
-    else:
-        r_zz, gamma_phi, _ = elt.beam_calc_param.transf_mat_function(*args)
-
-    w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
-    results = {'r_zz': r_zz, 'cav_params': cav_params,
-               'w_kin': w_kin, 'phi_rel': gamma_phi[:, 1]}
-
-    return results
