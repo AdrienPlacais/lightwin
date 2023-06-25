@@ -11,17 +11,15 @@ for non-synch particles.
 FIXME : __repr__ won't work with retuned elements
 """
 import logging
-from typing import Any
+from typing import Any, Callable
 import numpy as np
 from scipy.optimize import minimize_scalar
 
 import config_manager as con
-# from beam_calculation.beam_calculator import SingleElementCalculatorParameters
-from core.electric_field import (RfField, compute_param_cav,
+from core.electric_field import (RfField,
                                  phi_0_rel_corresponding_to,
                                  phi_0_abs_corresponding_to)
 from util.helper import recursive_items, recursive_getter, diff_angle
-import util.converters as convert
 from optimisation.set_of_cavity_settings import SingleCavitySettings
 
 try:
@@ -90,14 +88,8 @@ class _Element():
         # accelerating field.
         self.acc_field = RfField()
 
-        self.idx = {'s_in': None, 's_out': None,
-                    'elt_idx': None, 'lattice': None, 'section': None}
-
-        # self.beam_calc_param: SingleElementCalculatorParameters
-        self._tm_func = lambda d_z, gamma, n_steps, rf_field=None: \
-            (np.empty([10, 2, 2]), np.empty([10, 2]), None)
-        self.solver_param = {'n_steps': None, 'd_z': None,
-                             'abs_mesh': None, 'rel_mesh': None}
+        self.idx = {'elt_idx': None, 'lattice': None, 'section': None}
+        self.beam_calc_param: object
 
     def __str__(self) -> str:
         return self.elt_info['elt_name']
@@ -140,83 +132,6 @@ class _Element():
 
         return tuple(out)
 
-    def init_solvers(self) -> None:
-        """Initialize how transfer matrices will be calculated."""
-        l_method = con.METHOD.split('_')
-
-        # Select proper module (Python or Cython)
-        mod = d_mod[l_method[1]]
-
-        # Select proper number of steps
-        key_n_steps = l_method[0]
-        if self.elt_info['nature'] != 'FIELD_MAP':
-            key_n_steps = 'drift'
-        n_steps = d_n_steps[key_n_steps](self)
-
-        self.solver_param['n_steps'] = n_steps
-        self.solver_param['d_z'] = self.length_m / n_steps
-        self.solver_param['rel_mesh'] = np.linspace(0., self.length_m,
-                                                    n_steps + 1)
-
-        # Select proper function to compute transfer matrix
-        key_fun = l_method[0]
-        if (self.get('nature') != 'FIELD_MAP'
-                or self.get('status') == 'failed'):
-            key_fun = 'non_acc'
-
-        self._tm_func = d_func_tm[key_fun](mod)
-
-    def init_mesh(self, n_steps: int) -> None:
-        """Initialize meshing in the _Element."""
-        self.solver_param['n_steps'] = n_steps
-        self.solver_param['d_z'] = self.length_m / n_steps
-        self.solver_param['rel_mesh'] = np.linspace(0., self.length_m,
-                                                    n_steps + 1)
-
-    def calc_transf_mat(self, w_kin_in: float, **rf_field_kwargs: dict
-                        ) -> dict:
-        """
-        Compute longitudinal matrix.
-
-        Parameters
-        ----------
-        w_kin_in : float
-            Kinetic energy at the entrance of the element in MeV.
-        rf_field_kwargs : dict
-            Holds all the rf field parameters. The mandatory keys are:
-                omega0_rf, k_e, phi_0_rel
-            For Python implementation, also need e_spat.
-            For Cython implementation, also need section_idx.
-
-        Returns
-        -------
-        results : dict
-            Holds the results. Keys are 'r_zz', 'cav_params', 'w_kin' and
-            'phi_rel'.
-        """
-        n_steps, d_z = self.get('n_steps', 'd_z')
-        gamma = convert.energy(w_kin_in, "kin to gamma")
-
-        if self.get('nature') == 'FIELD_MAP' and \
-                self.get('status') != 'failed':
-
-            r_zz, gamma_phi, itg_field = \
-                self._tm_func(d_z, gamma, n_steps, rf_field_kwargs)
-
-            gamma_phi[:, 1] /= rf_field_kwargs['n_cell']
-            cav_params = compute_param_cav(itg_field, self.get('status'))
-
-        else:
-            r_zz, gamma_phi, _ = self._tm_func(d_z, gamma, n_steps)
-            cav_params = None
-
-        w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
-
-        results = {'r_zz': r_zz, 'cav_params': cav_params,
-                   'w_kin': w_kin, 'phi_rel': gamma_phi[:, 1]}
-
-        return results
-
     def update_status(self, new_status: str) -> None:
         """
         Change the status of a cavity.
@@ -247,7 +162,6 @@ class _Element():
         self.elt_info['status'] = new_status
         if new_status == 'failed':
             self.acc_field.k_e = 0.
-            self.init_solvers()
             self.beam_calc_param.re_set_for_broken_cavity()
 
     def keep_rf_field(self, rf_field: dict, cav_params: dict) -> None:
@@ -259,7 +173,7 @@ class _Element():
             self.acc_field.k_e = rf_field['k_e']
 
     def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
-                 cavity_settings: SingleCavitySettings | None = None
+                 cavity_settings: SingleCavitySettings | None = None,
                  ) -> dict:
         """
         Set the properties of the rf field; in the default case, returns None.
@@ -347,8 +261,7 @@ class FieldMap(_Element):
         self.update_status('nominal')
 
     def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
-                 cavity_settings: SingleCavitySettings | None = None
-                 ) -> dict:
+                 cavity_settings: SingleCavitySettings | None = None) -> dict:
         """
         Set the properties of the rf field; specific to FieldMap.
 
@@ -410,40 +323,6 @@ class FieldMap(_Element):
         rf_parameters = generic_rf_param | norm_and_phases
         return rf_parameters
 
-    def match_synch_phase(self, w_kin_in: float, phi_s_objective: float,
-                          **rf_field_kwargs: dict) -> float:
-        """
-        Sweeps phi_0_rel until the cavity synch phase matches phi_s.
-
-        Parameters
-        ----------
-        w_kin_in : float
-            Kinetic energy at the cavity entrance in MeV.
-        rf_field_kwargs : dict
-            Holds all rf electric field parameters.
-
-        Return
-        ------
-        phi_0_rel : float
-            The relative cavity entrance phase that leads to a synchronous
-            phase of phi_s_objective.
-        """
-        bounds = (0, 2. * np.pi)
-
-        def _wrapper_synch(phi_0_rel):
-            rf_field_kwargs['phi_0_rel'] = phi_0_rel
-            rf_field_kwargs['phi_0_abs'] = None
-            results = self.calc_transf_mat(w_kin_in, **rf_field_kwargs)
-            diff = diff_angle(phi_s_objective, results['cav_params']['phi_s'])
-            return diff**2
-
-        res = minimize_scalar(_wrapper_synch, bounds=bounds)
-        if not res.success:
-            logging.error('Synch phase not found')
-        phi_0_rel = res.x
-
-        return phi_0_rel
-
     def phi_0_rel_matching_this(self, phi_s: float, w_kin_in: float,
                                 **rf_parameters: dict) -> float:
         """
@@ -469,7 +348,10 @@ class FieldMap(_Element):
         def _wrapper_synch(phi_0_rel):
             rf_parameters['phi_0_rel'] = phi_0_rel
             rf_parameters['phi_0_abs'] = None
-            results = self.calc_transf_mat(w_kin_in, **rf_parameters)
+            # FIXME should not have dependencies is_accelerating, status
+            args = (w_kin_in, self.is_accelerating(), self.get('status'))
+            results = self.beam_calc_param.transf_mat_function_wrapper(
+                *args, **rf_parameters)
             diff = diff_angle(phi_s, results['cav_params']['phi_s'])
             return diff**2
 
@@ -528,14 +410,13 @@ def _get_from(rf_field: RfField, force_rephasing: bool = False
 
 
 def _try_this(cavity_settings: SingleCavitySettings, w_kin: float,
-              cav: FieldMap, generic_rf_param: dict[str, Any]
+              cav: FieldMap, generic_rf_param: dict[str, Any],
               ) -> tuple[dict, bool]:
     """Extract parameters from cavity_parameters."""
     if cavity_settings.phi_s is not None:
         generic_rf_param['k_e'] = cavity_settings.k_e
-        phi_0_rel = cav.phi_0_rel_matching_this(cavity_settings.phi_s,
-                                                w_kin_in=w_kin,
-                                                **generic_rf_param)
+        phi_0_rel = cav.phi_0_rel_matching_this(
+            cavity_settings.phi_s, w_kin_in=w_kin, **generic_rf_param)
 
         norm_and_phases = {
             'k_e': cavity_settings.k_e,
@@ -543,9 +424,6 @@ def _try_this(cavity_settings: SingleCavitySettings, w_kin: float,
         }
         abs_to_rel = False
         return norm_and_phases, abs_to_rel
-
-    norm_and_phases = {key: cavity_settings.get(key)
-                       for key in ['k_e', 'phi_0_abs', 'phi_0_rel']}
 
     norm_and_phases = {key: cavity_settings.get(key)
                        for key in ['k_e', 'phi_0_abs', 'phi_0_rel']}

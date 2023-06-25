@@ -7,7 +7,7 @@ Created on Mon Jun 12 08:24:37 2023.
 
 """
 import logging
-from typing import Callable
+from typing import Callable, Any
 from types import ModuleType
 from dataclasses import dataclass
 
@@ -23,6 +23,7 @@ from beam_calculation.beam_calculator import (
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 import util.converters as convert
+from util.helper import recursive_items, recursive_getter
 
 
 @dataclass
@@ -67,53 +68,6 @@ class Envelope1D(BeamCalculator):
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
                       elts: ListOfElements) -> SimulationOutput:
-        """
-        Envelope 1D calculation of beam in `elts`, with non-nominal settings.
-
-        Parameters
-        ----------
-        set_of_cavity_settings : SetOfCavitySettings | None
-            The new cavity settings to try. If it is None, then the cavity
-            settings are taken from the FieldMap objects.
-        elts : ListOfElements
-            List of elements in which the beam must be propagated.
-
-        Returns
-        -------
-        simulation_output : SimulationOutput
-            Holds energy, phase, transfer matrices (among others) packed into a
-            single object.
-
-        """
-        if True:
-            return self.new_run_with_this(set_of_cavity_settings, elts)
-
-        single_elts_results = []
-        rf_fields = []
-
-        w_kin = elts.w_kin_in
-        phi_abs = elts.phi_abs_in
-        for elt in elts:
-            cavity_settings = set_of_cavity_settings.get(elt) \
-                if isinstance(set_of_cavity_settings, SetOfCavitySettings) \
-                else None
-
-            rf_field_kwargs = elt.rf_param(phi_abs, w_kin, cavity_settings)
-            elt_results = elt.calc_transf_mat(w_kin, **rf_field_kwargs)
-
-            single_elts_results.append(elt_results)
-            rf_fields.append(rf_field_kwargs)
-
-            phi_abs += elt_results["phi_rel"][-1]
-            w_kin = elt_results["w_kin"][-1]
-
-        simulation_output = self._generate_simulation_output(
-            elts, single_elts_results, rf_fields)
-        return simulation_output
-
-    def new_run_with_this(self,
-                          set_of_cavity_settings: SetOfCavitySettings | None,
-                          elts: ListOfElements) -> SimulationOutput:
         """
         Envelope 1D calculation of beam in `elts`, with non-nominal settings.
 
@@ -279,63 +233,25 @@ class Envelope1D(BeamCalculator):
                                         ) -> SetOfCavitySettings:
         return None
 
-    def init_all_meshes(self, elts: list[_Element]) -> None:
-        """Init the mesh of every _Element (where quantities are evaluated)."""
-        method = self.METHOD
-        if '_' in method:
-            method = method('_')[0]
-
-        n_steps_setters = {
-            'RK': lambda elt: self.N_STEPS_PER_CELL * elt.get('n_cell'),
-            'leapfrog': lambda elt: self.N_STEPS_PER_CELL * elt.get('n_cell'),
-            'drift': lambda elt: 1
-        }
-
-        for elt in elts:
-            key_steps = method
-            if elt.get('nature') != 'FIELD_MAP':
-                key_steps = 'drift'
-            n_steps = n_steps_setters[key_steps]
-
-            elt.init_mesh(n_steps)
-
-    def init_specific(self, elts: list[_Element]) -> None:
-        """Set the proper transfer matrix function."""
-        self._init_all_transfer_matrix_functions(elts)
-
-    def _init_all_transfer_matrix_functions(self, elts: list[_Element]
-                                            ) -> None:
-        """Set the proper transfer matrix function."""
-        method = self.METHOD
-        if '_' in method:
-            method = method('_')[0]
-
-        transfer_matrix_function_setters = {
-            'RK': self.transf_mat.z_field_map_rk4,
-            'leapfrog': self.transf_mat.z_field_map_leapfrog,
-            'drift': self.transf_mat.z_drift
-        }
-
-        for elt in elts:
-            key_transf_mat = 'drift'
-            is_accelerating = elt.get('nature') == 'FIELD_MAP' and \
-                elt.get('status') != 'failed'
-            if is_accelerating:
-                key_transf_mat = method
-
-            elt._tm_func = transfer_matrix_function_setters[key_transf_mat]
-
 
 class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
-    """Holds the parameters to compute beam propagation in an _Element."""
+    """
+    Holds the parameters to compute beam propagation in an _Element.
+
+    has and get method inherited from SingleElementCalculatorParameters parent
+    class.
+    """
 
     def __init__(self, length_m: float, is_accelerating: bool,
                  n_cells: int | None, n_steps_per_cell: int, method: str,
                  transf_mat_module: ModuleType) -> None:
         """Set the actually useful parameters."""
         self.n_steps = 1
+
+        self.n_cells = n_cells
         self.back_up_function = transf_mat_module.z_drift
         self.transf_mat_function = transf_mat_module.z_drift
+
         if is_accelerating:
             assert n_cells is not None
             self.n_steps = n_cells * n_steps_per_cell
@@ -366,6 +282,31 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
     def re_set_for_broken_cavity(self):
         """Change solver parameters for efficiency purposes."""
         self.transf_mat_function = self.back_up_function
+
+    # FIXME should not have dependencies is_accelerating, status
+    def transf_mat_function_wrapper(self, w_kin_in: float,
+                                    is_accelerating: bool, elt_status: str,
+                                    **rf_field_kwargs) -> dict:
+        """Encapsulate calculation of transfer matrix in BeamCalcParam obj."""
+        gamma = convert.energy(w_kin_in, "kin to gamma")
+
+        args = (self.d_z, gamma, self.n_steps)
+
+        cav_params = None
+        if is_accelerating:
+            r_zz, gamma_phi, itg_field = self.transf_mat_function(
+                *args, dict_rf_field=rf_field_kwargs)
+            gamma_phi[:, 1] /= self.n_cells
+            cav_params = compute_param_cav(itg_field, elt_status)
+
+        else:
+            r_zz, gamma_phi, _ = self.transf_mat_function(*args)
+
+        w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
+        results = {'r_zz': r_zz, 'cav_params': cav_params,
+                   'w_kin': w_kin, 'phi_rel': gamma_phi[:, 1]}
+
+        return results
 
 
 def a_new_calc_transf_mat(w_kin_in: float, elt: _Element, **rf_field_kwargs):

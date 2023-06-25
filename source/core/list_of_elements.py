@@ -67,7 +67,7 @@ class ListOfElements(list):
             logging.info("First initialisation of ListOfElements, ecompassing "
                          + "all linac. Also removing Lattice and Freq "
                          + "commands, setting Lattice/Section structures, "
-                         + "_Elements names, numbering, indexes.")
+                         + "_Elements names.")
             self._first_init(tm_cumul)
 
         else:
@@ -218,32 +218,6 @@ class ListOfElements(list):
             for lattice in section:
                 for elt in lattice:
                     elt.acc_field.set_pulsation_ncell(f_mhz, n_cells)
-
-# =============================================================================
-# Should be moved to beam_compute? Always the same, only depends on the number
-# of steps. So no abstractmethod.
-# =============================================================================
-    # Depends on solver's number of steps!
-    def set_absolute_positions(self) -> None:
-        """Init solvers and absolute positions of elements."""
-        pos_in, pos_out = 0., 0.
-        for elt in self:
-            # this routine uses METHOD, implicitely FLAG_CYTHON,
-            # N_STEPS_PER_CELL
-            elt.init_solvers()
-
-            pos_in = pos_out
-            pos_out += elt.length_m
-            elt.solver_param['abs_mesh'] = elt.get('rel_mesh') + pos_in
-
-    # Depends on solver's number of steps!
-    def set_indexes(self) -> None:
-        """Set the absolute indexes of the elements."""
-        idx_in, idx_out = 0, 0
-        for elt in self:
-            idx_in = idx_out
-            idx_out += elt.get('n_steps')
-            elt.idx['s_in'], elt.idx['s_out'] = idx_in, idx_out
 
 
 def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
