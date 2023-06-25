@@ -11,6 +11,7 @@ Different use cases, from easiest to hardest:
     - use it to fit
 """
 from dataclasses import dataclass
+from typing import Callable
 import os
 import logging
 import subprocess
@@ -22,10 +23,16 @@ import numpy as np
 
 from constants import c
 import util.converters as convert
+from beam_calculation.output import SimulationOutput
+from optimisation.set_of_cavity_settings import SetOfCavitySettings
+from core.list_of_elements import ListOfElements
+from core.particle import ParticleFullTrajectory
+from core.elements import _Element
+from core.beam_parameters import BeamParameters
 
 
 @dataclass
-class TraceWinBeamCalculator:
+class TraceWin:
     """
     A class to hold a TW simulation and its results.
 
@@ -57,18 +64,18 @@ class TraceWinBeamCalculator:
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
-        self.get_results_envelope = partial(self.get_results,
-                                            filename='tracewin.out')
-        self.get_results_multipart = partial(self.get_results,
-                                             filename='partran1.out')
+        self.get_results = partial(self.load_results,
+                                   filename='tracewin.out')
+        if self._is_a_multiparticle_simulation:
+            self.get_results = partial(self.load_results,
+                                       filename='partran1.out')
         os.makedirs(self.path_cal)
         self.results_envelope: dict
         self.results_multipart: dict | None
         self.transfer_matrices: np.ndarray
         self.cavity_parameters: dict
 
-    def run(self, store_all_outputs: bool = True, post_treat: bool = True,
-            **specific_kwargs) -> None:
+    def run(self, **specific_kwargs) -> None:
         """
         Run TraceWin.
 
@@ -107,14 +114,84 @@ class TraceWinBeamCalculator:
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"TW finished! It took {delta_t}")
 
-        if store_all_outputs:
-            self.results_envelope = \
-                self.get_results_envelope(post_treat=post_treat)
-            self.results_multipart = \
-                self.get_results_multipart(post_treat=post_treat) \
-                if self._is_a_multiparticle_simulation(kwargs) else None
-            _, _, self.transfer_matrices = self.get_transfer_matrices()
-            self.cavity_parameters = self.get_cavity_parameters()
+        simulation_output = self._generate_simulation_output()
+        return simulation_output
+
+    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
+                      elts: ListOfElements) -> SimulationOutput:
+        """
+        Perform a simulation with new cavity settings.
+
+        Calling it with set_of_cavity_settings = None should be the same as
+        calling the plain `run` method.
+
+        Parameters
+        ----------
+        set_of_cavity_settings : SetOfCavitySettings | None
+            Holds the norms and phases of the compensating cavities.
+        elts: ListOfElements
+            List of elements in which the beam should be propagated.
+
+        Returns
+        -------
+        simulation_output : SimulationOutput
+            Holds energy, phase, transfer matrices (among others) packed into a
+            single object.
+
+        """
+        raise NotImplementedError
+
+    def _generate_simulation_output(self) -> SimulationOutput:
+        """Create an object holding all relatable simulation results."""
+        results = self.get_results(post_treat=True)
+        w_kin = results['w_kin']
+        phi_abs_array = results['phi_abs_array']
+        synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
+                                                  phi_abs=phi_abs_array,
+                                                  synchronous=True)
+
+        elt_number, pos, tm_cumul = self.get_transfer_matrices()
+
+        # self.cavity_parameters = self.get_cavity_parameters()
+        cav_params = []
+        phi_s = []
+        r_zz_elt = []
+        beam_params = BeamParameters(tm_cumul)
+        rf_fields = []
+
+        element_to_index = self._generate_element_to_index_func()
+        simulation_output = SimulationOutput(
+            synch_trajectory=synch_trajectory,
+            cav_params=cav_params,
+            phi_s=phi_s,
+            r_zz_elt=r_zz_elt,
+            rf_fields=rf_fields,
+            beam_parameters=beam_params,
+            element_to_index=element_to_index
+        )
+        return simulation_output
+
+    def _generate_element_to_index_func(self, elts: ListOfElements
+                                        ) -> Callable[[_Element, str | None],
+                                                      int | slice]:
+        """Create the func to easily get data at proper mesh index."""
+
+        def element_to_index(elt: _Element, pos: str | None = None
+                             ) -> int | slice:
+            """
+            Convert element + pos into a mesh index.
+
+            Parameters
+            ----------
+            elt : _Element
+                Element of which you want the index.
+            pos : 'in' | 'out' | None, optional
+                Index of entry or exit of the _Element. If None, return full
+                indexes array. The default is None.
+
+            """
+            pass
+        return element_to_index
 
     def _set_command(self, **kwargs) -> str:
         """Create the command line to launch TraceWin."""
@@ -138,8 +215,8 @@ class TraceWinBeamCalculator:
             return kwargs['partran'] == 1
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
 
-    def get_results(self, filename: str, post_treat: bool = True
-                    ) -> dict[[str], np.ndarray]:
+    def load_results(self, filename: str, post_treat: bool = True
+                     ) -> dict[str, np.ndarray]:
         """
         Get the TraceWin results.
 
@@ -150,8 +227,8 @@ class TraceWinBeamCalculator:
 
         Returns
         -------
-        results : dict[[str], np.ndarray]
-            Dictionary contatining the raw outputs from TraceWin.
+        results : dict[str, np.ndarray]
+            Dictionary containing the raw outputs from TraceWin.
         """
         f_p = os.path.join(self.path_cal, filename)
         n_lines_header = 9

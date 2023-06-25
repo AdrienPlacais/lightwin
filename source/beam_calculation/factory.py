@@ -9,6 +9,7 @@ from typing import Any
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.envelope_1d import Envelope1D
+from beam_calculation.tracewin import TraceWin
 
 
 def create_beam_calculator_object(beam_calculator_parameters: dict[str, Any]
@@ -31,6 +32,7 @@ def create_beam_calculator_object(beam_calculator_parameters: dict[str, Any]
     tool = beam_calculator_parameters.pop('TOOL')
     calculators = {
         'LightWin': Envelope1D,
+        'TraceWin': TraceWin,
     }
 
     beam_calculator = calculators[tool](**beam_calculator_parameters)
