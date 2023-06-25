@@ -95,6 +95,14 @@ class ParticleFullTrajectory(ParticleInitialState):
         # implicit else:
         return tuple(out)
 
+    def __str__(self) -> str:
+        """Print info on particle in a compact way."""
+        n_points = self.w_kin.shape[0]
+        w_kin_range = f"{self.w_kin[0]} -> {self.w_kin[-1]}"
+        phi_abs_range = f"{self.phi_abs[0]} -> {self.phi_abs[-1]}"
+        string = f"{n_points = }, synchronous = {self.synchronous}, " \
+            + f"{w_kin_range = }, {phi_abs_range = }"
+        return string
 
 # def create_rand_particles(e_0_mev):
 #     """Create two random particles."""
