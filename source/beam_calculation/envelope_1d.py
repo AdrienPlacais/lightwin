@@ -15,7 +15,7 @@ import numpy as np
 
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
-from core.list_of_elements import (ListOfElements, indiv_to_cumul_transf_mat)
+from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
 from core.beam_parameters import BeamParameters
 from core.electric_field import compute_param_cav
 from beam_calculation.beam_calculator import (
