@@ -11,7 +11,7 @@ for non-synch particles.
 FIXME : __repr__ won't work with retuned elements
 """
 import logging
-from typing import Any, Callable
+from typing import Any
 import numpy as np
 from scipy.optimize import minimize_scalar
 
@@ -21,41 +21,6 @@ from core.electric_field import (RfField,
                                  phi_0_abs_corresponding_to)
 from util.helper import recursive_items, recursive_getter, diff_angle
 from optimisation.set_of_cavity_settings import SingleCavitySettings
-
-try:
-    import core.transfer_matrices_c as tm_c
-
-except ModuleNotFoundError:
-    MESSAGE = 'Cython module not compilated. Check setup.py and elements.py'\
-        + ' for more information.'
-
-    # If Cython was asked, raise Error.
-    if con.FLAG_CYTHON:
-        logging.error(MESSAGE)
-        raise ModuleNotFoundError(MESSAGE)
-    # Else, only issue a Warning.
-    logging.warning(MESSAGE)
-    # Load Python version as Cython to allow the execution of the code.
-    # It will not be used.
-    import core.transfer_matrices_p as tm_c
-
-import core.transfer_matrices_p as tm_p
-
-# =============================================================================
-# Module dictionaries
-# =============================================================================
-# Dict to select the proper transfer matrix function
-d_mod = {'p': tm_p,     # Pure Python
-         'c': tm_c}     # Cython
-d_func_tm = {'RK': lambda mod: mod.z_field_map_rk4,
-             'leapfrog': lambda mod: mod.z_field_map_leapfrog,
-             'non_acc': lambda mod: mod.z_drift}
-
-# Dict to select the proper number of steps for the transfer matrix, the
-# energy, the phase, etc
-d_n_steps = {'RK': lambda elt: con.N_STEPS_PER_CELL * elt.get('n_cell'),
-             'leapfrog': lambda elt: con.N_STEPS_PER_CELL * elt.get('n_cell'),
-             'drift': lambda elt: 1}
 
 
 # =============================================================================
@@ -107,9 +72,7 @@ class _Element():
     def get(self, *keys: str, to_numpy: bool = True,
             **kwargs: dict) -> Any:
         """Shorthand to get attributes."""
-        val: dict[str, Any] = {}
-        for key in keys:
-            val[key] = []
+        val = {key: [] for key in keys}
 
         for key in keys:
             if not self.has(key):
@@ -117,13 +80,9 @@ class _Element():
                 continue
 
             val[key] = recursive_getter(key, vars(self), **kwargs)
-            # Easier to concatenate lists that stack numpy arrays, so convert
-            # to list
             if not to_numpy and isinstance(val[key], np.ndarray):
                 val[key] = val[key].tolist()
 
-        # Convert to list; elements of the list are numpy is required, except
-        # strings that are never converted
         out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
                else val[key]
                for key in keys]
