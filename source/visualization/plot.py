@@ -540,7 +540,7 @@ def _plot_section(linac, ax, x_axis='z_abs'):
     """Add light grey rectangles behind the plot to show the sections."""
     dict_x_axis = {
         'last_elt_of_sec': lambda sec: sec[-1][-1],
-        'z_abs': lambda elt: linac.get('z_abs')[elt.idx['s_out']],
+        'z_abs': lambda elt: linac.get('z_abs', elt=elt, pos='out'),
         'elt_idx': lambda elt: elt.get('elt_idx') + 1,
     }
     x_ax = [0]

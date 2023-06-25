@@ -232,12 +232,12 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
         'Input_Phase (deg)': lambda lin, elt: elt.get('phi_0_rel',
                                                       to_deg=True),
         'Sync_Phase (deg)': lambda lin, elt: elt.get('phi_s', to_deg=True),
-        'Energy (MeV)': lambda lin, elt: lin.get('w_kin')[elt.idx['s_out']],
-        'Beta Synch.': lambda lin, elt: lin.get('beta')[elt.idx['s_out']],
-        'Full length (mm)': lambda lin, elt: lin.get('z_abs')[
-            elt.idx['s_out']] * 1e3,
-        'Abs. phase (deg)': lambda lin, elt: lin.get(
-            'phi_abs', to_deg=True)[elt.idx['s_out']],
+        'Energy (MeV)': lambda lin, elt: lin.get('w_kin', elt=elt, pos='out'),
+        'Beta Synch.': lambda lin, elt: lin.get('beta', elt=elt, pos='out'),
+        'Full length (mm)': lambda lin, elt: lin.get('z_abs', elt=elt,
+                                                     pos='out') * 1e3,
+        'Abs. phase (deg)': lambda lin, elt: lin.get('phi_abs', to_deg=True,
+                                                     elt=elt, pos='out'),
     }
 
     data = []
