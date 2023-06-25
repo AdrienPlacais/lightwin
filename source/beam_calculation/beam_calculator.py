@@ -69,19 +69,16 @@ class BeamCalculator(ABC):
     def _format_this(self, set_of_cavity_settings: SetOfCavitySettings) -> Any:
         """Transform `set_of_cavity_settings` for this BeamCalculator."""
 
-    @abstractmethod
-    def init_all_meshes(self, elts: list[_Element]) -> None:
-        """Set the mesh in every _Element (where quantities are evaluated)."""
 
-    @abstractmethod
-    def init_specific(self, elts: list[_Element]) -> None:
-        """Init quantities that depend on the current solver."""
-
-
-class SingleElementCalculatorParameters:
+class SingleElementCalculatorParameters(ABC):
     """
     Parent class to hold solving parameters. Attribute of _Element.
 
     As for now, only used by Envelope1D. Useful for TraceWin? To store its
     meshing maybe?
     """
+
+    @abstractmethod
+    def transf_mat_function_wrapper(self, w_kin_in: float, *args, **kwargs
+                                    ) -> dict:
+        """Calculate the beam propagation in _Element, give results dict."""
