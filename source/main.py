@@ -15,7 +15,7 @@ import pandas as pd
 
 import config_manager as conf_man
 from core.accelerator import Accelerator, accelerator_factory
-from optimisation.fault_scenario import FaultScenario
+from optimisation.fault_scenario import FaultScenario, fault_scenario_factory
 import tracewin.interface
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_object
@@ -76,53 +76,38 @@ if __name__ == '__main__':
 
     lw_fit_evals = []
 
-# =============================================================================
-# Run all simulations of the Project
-# =============================================================================
-    l_failed = my_configs['wtf'].pop('failed')
-    l_manual = None
-    manual = None
-    if 'manual list' in my_configs['wtf']:
-        l_manual = my_configs['wtf'].pop('manual list')
+    # =========================================================================
+    # Set up FaultScenario objects
+    # =========================================================================
+    fault_scenarios: list[FaultScenario]
+    fault_scenarios = fault_scenario_factory(accelerators, my_beam_calc,
+                                             my_configs['wtf'])
 
-    if break_and_fix:
-        for i, failed in enumerate(l_failed):
-            start_time = time.monotonic()
-            # lin = Accelerator('Broken', **my_configs['files'])
-            lin = accelerators[i + 1]
-            my_beam_calc._init_solver_parameters(lin.elts)
+    # =========================================================================
+    # Fix
+    # =========================================================================
+    for accelerator, fault_scenario in zip(accelerators, fault_scenarios):
+        start_time = time.monotonic()
+        fault_scenario.fix_all()
+        end_time = time.monotonic()
+        delta_t = datetime.timedelta(seconds=end_time - start_time)
+        logging.info(f"Elapsed time: {delta_t}")
 
-            if l_manual is not None:
-                manual = l_manual[i]
-            fault_scenario = FaultScenario(ref_acc=accelerators[0],
-                                           fix_acc=lin,
-                                           beam_calculator=my_beam_calc,
-                                           wtf=my_configs['wtf'],
-                                           fault_idx=failed,
-                                           comp_idx=manual)
-            # accelerators.append(deepcopy(lin))
+        tracewin.interface.update_dat_with_fixed_cavities(
+            accelerator.get('dat_filecontent', to_numpy=False),
+            accelerator.elts,
+            accelerator.get('field_map_folder'))
+        data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(
+            accelerator)
+        lw_fit_eval = fault_scenario.evaluate_fit_quality(delta_t)
 
-            fault_scenario.fix_all()
+        accelerator.files['dat_filepath'] = os.path.join(
+            accelerator.get('out_lw'),
+            os.path.basename(FILEPATH))
+        output.save_files(accelerator, data=data_tab_from_tw,
+                          lw_fit_eval=lw_fit_eval)
 
-            # accelerators.append(lin)
-
-            end_time = time.monotonic()
-            delta_t = datetime.timedelta(seconds=end_time - start_time)
-            logging.info(f"Elapsed time: {delta_t}")
-
-            tracewin.interface.update_dat_with_fixed_cavities(
-                lin.get('dat_filecontent', to_numpy=False), lin.elts,
-                lin.get('field_map_folder'))
-            data_tab_from_tw = \
-                tracewin.interface.output_data_in_tw_fashion(lin)
-            lw_fit_eval = fault_scenario.evaluate_fit_quality(delta_t)
-
-            lin.files['dat_filepath'] = os.path.join(
-                lin.get('out_lw'), os.path.basename(FILEPATH))
-            output.save_files(lin, data=data_tab_from_tw,
-                              lw_fit_eval=lw_fit_eval)
-
-            lw_fit_evals.append(lw_fit_eval)
+        lw_fit_evals.append(lw_fit_eval)
 
 # =============================================================================
 # Post simulation
@@ -177,7 +162,7 @@ if __name__ == '__main__':
 # =============================================================================
     kwargs = {'plot_tw': perform_post_simulation, 'save_fig': False,
               'clean_fig': True}
-    for i in range(len(l_failed)):
+    for i in range(len(fault_scenarios)):
         for str_plot, to_plot in my_configs['plots'].items():
             if not to_plot:
                 continue

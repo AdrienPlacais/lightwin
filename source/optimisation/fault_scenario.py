@@ -9,6 +9,7 @@ This module holds FaultScenario, a list-based class holding all the Fault
 objets to be fixed.
 """
 import logging
+from typing import Any
 import numpy as np
 import pandas as pd
 
@@ -251,3 +252,29 @@ class FaultScenario(list):
             df_eval.loc[i + 1] = [key] + quantities[key]
         logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
         return df_eval
+
+
+def fault_scenario_factory(accelerators: list[Accelerator],
+                           beam_calculator: BeamCalculator,
+                           wtf: dict[str, Any]) -> list[FaultScenario]:
+    """Shorthand to generate the FaultScenario objects."""
+    scenarios_fault_idx = wtf.pop('failed')
+
+    scenarios_comp_idx = [None for accelerator in accelerators[1:]]
+    if 'manual list' in wtf:
+        scenarios_comp_idx = wtf.pop('manual list')
+
+    _ = [beam_calculator._init_solver_parameters(accelerator.elts)
+         for accelerator in accelerators]
+
+    fault_scenarios = [FaultScenario(ref_acc=accelerators[0],
+                                     fix_acc=accelerator,
+                                     beam_calculator=beam_calculator,
+                                     wtf=wtf,
+                                     fault_idx=fault_idx,
+                                     comp_idx=comp_idx)
+                       for accelerator, fault_idx, comp_idx
+                       in zip(accelerators[1:], scenarios_fault_idx,
+                              scenarios_comp_idx)]
+
+    return fault_scenarios
