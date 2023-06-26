@@ -256,9 +256,9 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
             assert n_cells is not None
             self.n_steps = n_cells * n_steps_per_cell
 
-            if 'RK' in method:
+            if method == 'RK':
                 self.transf_mat_function = transf_mat_module.z_field_map_rk4
-            elif 'leapfrog' in method:
+            elif method == 'leapfrog':
                 self.transf_mat_function = \
                     transf_mat_module.z_field_map_leapfrog
 

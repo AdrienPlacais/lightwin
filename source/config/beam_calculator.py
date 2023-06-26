@@ -96,12 +96,6 @@ def _test_beam_calculator_lightwin(
         default = {'leapfrog': '40', 'RK': '20'}
         c_beam_calculator["n_steps_per_cell"] = default["method"]
 
-    # TODO remove this
-    if c_beam_calculator.getboolean("flag_cython"):
-        c_beam_calculator["method"] += "_c"
-    else:
-        c_beam_calculator["method"] += "_p"
-
     return True
 
 

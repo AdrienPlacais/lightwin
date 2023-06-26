@@ -147,10 +147,7 @@ class Accelerator():
     def _handle_paths_and_folders(self, elts: list[_Element]
                                   ) -> list[_Element]:
         """Make paths absolute, create results folders."""
-        # First we take care of where results will be stored
         i = 0
-
-        # i is useful if  you launch several simulations
         out_base = os.path.join(self.files['project_folder'], f"{i:06d}")
 
         while os.path.exists(out_base):
