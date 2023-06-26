@@ -29,14 +29,14 @@ import util.converters as convert
 class Envelope1D(BeamCalculator):
     """The fastest beam calculator, adapted to high energies."""
 
-    FLAG_PHI_ABS: bool
-    FLAG_CYTHON: bool
-    N_STEPS_PER_CELL: int
-    METHOD: str
+    flag_phi_abs: bool
+    flag_cython: bool
+    n_steps_per_cell: int
+    method: str
 
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
-        if self.FLAG_CYTHON:
+        if self.flag_cython:
             try:
                 import core.transfer_matrices_c as transf_mat
             except ModuleNotFoundError:
@@ -126,8 +126,8 @@ class Envelope1D(BeamCalculator):
             The list of elements for which you want the parameters.
 
         """
-        kwargs = {'n_steps_per_cell': self.N_STEPS_PER_CELL,
-                  'method': self.METHOD,
+        kwargs = {'n_steps_per_cell': self.n_steps_per_cell,
+                  'method': self.method,
                   'transf_mat_module': self.transf_mat_module,
                   }
         for elt in elts:

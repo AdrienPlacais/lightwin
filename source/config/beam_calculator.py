@@ -26,7 +26,7 @@ TRACEWIN_EXECUTABLES = {  # Should match with your installation
 def test(c_beam_calculator: configparser.SectionProxy) -> None:
     """Test the appropriate beam_calculator (LightWin or TraceWin)."""
     passed = True
-    mandatory = ["TOOL"]
+    mandatory = ["tool"]
     for key in mandatory:
         if key not in c_beam_calculator.keys():
             logging.error(f"Key {key} is mandatory and missing.")
@@ -34,9 +34,9 @@ def test(c_beam_calculator: configparser.SectionProxy) -> None:
 
     valid_tools = {'LightWin': _test_beam_calculator_lightwin,
                    'TraceWin': _test_beam_calculator_tracewin}
-    my_tool = c_beam_calculator["TOOL"]
+    my_tool = c_beam_calculator["tool"]
     if my_tool not in valid_tools:
-        logging.error(f"{my_tool} is an invalid value for TOOL. "
+        logging.error(f"{my_tool} is an invalid value for tool. "
                       + f"Authorized values are: {valid_tools.keys()}.")
         passed = False
 
@@ -50,12 +50,8 @@ def config_to_dict(c_beam_calculator: configparser.SectionProxy) -> dict:
     """Call the proper _config_to_dict function."""
     config_to_dicts = {'LightWin': _config_to_dict_lightwin,
                        'TraceWin': _config_to_dict_tracewin}
-    my_tool = c_beam_calculator["TOOL"]
+    my_tool = c_beam_calculator["tool"]
     return config_to_dicts[my_tool](c_beam_calculator)
-
-
-def make_global(beam_calculator: dict) -> None:
-    """Update the values of some variables so they can be used everywhere."""
 
 
 # =============================================================================
@@ -83,28 +79,28 @@ def _test_beam_calculator_lightwin(
     change in FLAG_CYTHON into account.
 
     """
-    mandatory = ["FLAG_CYTHON", "METHOD", "FLAG_PHI_ABS"]
+    mandatory = ["flag_cython", "method", "flag_phi_abs"]
     for key in mandatory:
         if key not in c_beam_calculator.keys():
             logging.error(f"{key} is mandatory and missing.")
             return False
 
-    if c_beam_calculator["METHOD"] not in ["leapfrog", "RK"]:
-        logging.error("Wrong value for METHOD, "
+    if c_beam_calculator["method"] not in ["leapfrog", "RK"]:
+        logging.error("Wrong value for method, "
                       + "beam_calculator not implemented.")
         return False
 
-    if "N_STEPS_PER_CELL" not in c_beam_calculator.keys():
+    if "n_steps_per_cell" not in c_beam_calculator.keys():
         logging.warning("Number of integration steps per cell not precised. "
                         + "Will use default values.")
         default = {'leapfrog': '40', 'RK': '20'}
-        c_beam_calculator["N_STEPS_PER_CELL"] = default["METHOD"]
+        c_beam_calculator["n_steps_per_cell"] = default["method"]
 
     # TODO remove this
-    if c_beam_calculator.getboolean("FLAG_CYTHON"):
-        c_beam_calculator["METHOD"] += "_c"
+    if c_beam_calculator.getboolean("flag_cython"):
+        c_beam_calculator["method"] += "_c"
     else:
-        c_beam_calculator["METHOD"] += "_p"
+        c_beam_calculator["method"] += "_p"
 
     return True
 
@@ -112,7 +108,7 @@ def _test_beam_calculator_lightwin(
 def _test_beam_calculator_tracewin(
         c_beam_calculator: configparser.SectionProxy) -> bool:
     """Specific test for the TraceWin simulations."""
-    mandatory = ["SIMULATION TYPE", "ini_path"]
+    mandatory = ["simulation type", "ini_path"]
     for key in mandatory:
         if key not in c_beam_calculator.keys():
             logging.error(f"{key} is mandatory and missing.")
@@ -122,7 +118,7 @@ def _test_beam_calculator_tracewin(
         logging.error(f"{c_beam_calculator['ini_path']} does not exist.")
         return False
 
-    simulation_type = c_beam_calculator["SIMULATION TYPE"]
+    simulation_type = c_beam_calculator["simulation type"]
     if simulation_type not in TRACEWIN_EXECUTABLES:
         logging.error(f"The simulation type {simulation_type} was not "
                       + "recognized. Authorized values: "
@@ -169,16 +165,15 @@ def _config_to_dict_lightwin(
     """Save beam_calculator info into a dict."""
     beam_calculator = {}
     getter = {
-        'FLAG_CYTHON': c_beam_calculator.getboolean,
-        'FLAG_PHI_ABS': c_beam_calculator.getboolean,
-        'N_STEPS_PER_CELL': c_beam_calculator.getint,
+        'flag_cython': c_beam_calculator.getboolean,
+        'flag_phi_abs': c_beam_calculator.getboolean,
+        'n_steps_per_cell': c_beam_calculator.getint,
     }
     for key in c_beam_calculator.keys():
-        key = key.upper()
         if key in getter:
             beam_calculator[key] = getter[key](key)
             continue
-        beam_calculator[key] = c_beam_calculator.get(key.lower())
+        beam_calculator[key] = c_beam_calculator.get(key)
 
     return beam_calculator
 
@@ -252,5 +247,6 @@ def _config_to_dict_tracewin(c_tw: configparser.SectionProxy) -> dict:
         if key in getter:
             tracew[key] = getter[key](key)
             continue
+        tracew[key] = c_tw.get(key)
 
     return tracew

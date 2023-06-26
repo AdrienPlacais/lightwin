@@ -34,6 +34,9 @@ def wrapper_beam_calculation(linac: Accelerator,
     output.save_files(linac, data=data_tab_in_tw_style)
 
 
+# =============================================================================
+# Main function
+# =============================================================================
 if __name__ == '__main__':
     MY_CONFIG_FILE = 'myrrha.ini'
     MY_KEYS = {
@@ -42,13 +45,10 @@ if __name__ == '__main__':
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
         'wtf': 'wtf.k_out_of_n',
-        'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
+        # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
-    # =========================================================================
-    # Set up workflow
-    # =========================================================================
     break_and_fix = 'wtf' in my_configs
     perform_post_simulation = 'beam_calculator_post' in my_configs
     RECOMPUTE_REFERENCE = False

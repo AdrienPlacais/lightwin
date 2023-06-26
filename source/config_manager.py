@@ -153,26 +153,26 @@ def _config_to_dict(config: configparser.ConfigParser,
 def _make_global(beam_calculator: dict, beam: dict, **kwargs) -> None:
     """Update the values of some variables so they can be used everywhere."""
     global FLAG_CYTHON, FLAG_PHI_ABS, N_STEPS_PER_CELL, METHOD
-    FLAG_CYTHON = beam_calculator["FLAG_CYTHON"]
-    FLAG_PHI_ABS = beam_calculator["FLAG_PHI_ABS"]
-    N_STEPS_PER_CELL = beam_calculator["N_STEPS_PER_CELL"]
-    METHOD = beam_calculator["METHOD"]
+    FLAG_CYTHON = beam_calculator["flag_cython"]
+    FLAG_PHI_ABS = beam_calculator["flag_phi_abs"]
+    N_STEPS_PER_CELL = beam_calculator["n_steps_per_cell"]
+    METHOD = beam_calculator["method"]
 
     global Q_ADIM, E_REST_MEV, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT, \
         LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, F_BUNCH_MHZ, E_MEV, SIGMA_ZDELTA, \
         LINAC
-    Q_ADIM = beam["Q_ADIM"]
-    E_REST_MEV = beam["E_REST_MEV"]
-    INV_E_REST_MEV = beam["INV_E_REST_MEV"]
-    OMEGA_0_BUNCH = beam["OMEGA_0_BUNCH"]
-    GAMMA_INIT = beam["GAMMA_INIT"]
-    LAMBDA_BUNCH = beam["LAMBDA_BUNCH"]
-    Q_OVER_M = beam["Q_OVER_M"]
-    M_OVER_Q = beam["M_OVER_Q"]
-    F_BUNCH_MHZ = beam["F_BUNCH_MHZ"]
-    E_MEV = beam["E_MEV"]
-    SIGMA_ZDELTA = beam["SIGMA_ZDELTA"]
-    LINAC = beam["LINAC"]
+    Q_ADIM = beam["q_adim"]
+    E_REST_MEV = beam["e_rest_mev"]
+    INV_E_REST_MEV = beam["inv_e_rest_mev"]
+    OMEGA_0_BUNCH = beam["omega_0_bunch"]
+    GAMMA_INIT = beam["gamma_init"]
+    LAMBDA_BUNCH = beam["lambda_bunch"]
+    Q_OVER_M = beam["q_over_m"]
+    M_OVER_Q = beam["m_over_q"]
+    F_BUNCH_MHZ = beam["f_bunch_mhz"]
+    E_MEV = beam["e_mev"]
+    SIGMA_ZDELTA = beam["sigma_zdelta"]
+    LINAC = beam["linac"]
 
 
 # =============================================================================
