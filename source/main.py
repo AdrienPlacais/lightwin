@@ -94,18 +94,8 @@ if __name__ == '__main__':
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time: {delta_t}")
 
-        tracewin.interface.update_dat_with_fixed_cavities(
-            accelerator.get('dat_filecontent', to_numpy=False),
-            accelerator.elts,
-            accelerator.get('field_map_folder'))
         data_in_tracewin_style = tracewin.interface.output_data_in_tw_fashion(
             accelerator)
-
-        accelerator.files['dat_filepath'] = os.path.join(
-            accelerator.get('out_lw'),
-            os.path.basename(FILEPATH))
-        output.save_files(accelerator,
-                          data_in_tracewin_style=data_in_tracewin_style)
 
 
 # =============================================================================

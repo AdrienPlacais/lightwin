@@ -219,6 +219,7 @@ class Accelerator():
             calculation of the mismatch factor. The default is None.
 
         """
+        logging.critical('keep_this')
         simulation_output.compute_complementary_data(self.elts,
                                                      ref_twiss_zdelta)
 
@@ -229,6 +230,7 @@ class Accelerator():
             elt.keep_rf_field(rf_field, cav_params)
 
         self.simulation_output = simulation_output
+        self._store_settings_in_dat(save=True)
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                           ) -> _Element | None:
@@ -239,6 +241,24 @@ class Accelerator():
                   ) -> _Element | int | None:
         """Return an element from self.elts with the same name."""
         return equiv_elt(self.elts, elt, to_index)
+
+    def _store_settings_in_dat(self, save: bool = True) -> None:
+        """Update the dat file, save it if asked."""
+        tracewin.interface.update_dat_with_fixed_cavities(
+            self.get('dat_filecontent', to_numpy=False),
+            self.elts,
+            self.get('field_map_folder')
+        )
+
+        if save:
+            dat_filepath = os.path.join(
+                self.get('out_lw'),
+                os.path.basename(self.get('dat_filepath')))
+            self.files['dat_filepath'] = dat_filepath
+            with open(self.get('dat_filepath'), 'w') as file:
+                for line in self.files['dat_filecontent']:
+                    file.write(' '.join(line) + '\n')
+            logging.info(f"New dat saved in {self.get('dat_filepath')}")
 
 
 def accelerator_factory(files: dict[str, str], beam_calculator: dict[str, Any],
