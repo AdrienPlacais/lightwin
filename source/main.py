@@ -66,26 +66,16 @@ if __name__ == '__main__':
         my_configs['beam_calculator_post']) \
         if perform_post_simulation else None
 
-    # =========================================================================
-    # Set up Accelerator objects
-    # =========================================================================
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
     accelerators: list[Accelerator] = accelerator_factory(**my_configs)
     wrapper_beam_calculation(accelerators[0], my_beam_calc)
 
-    # =========================================================================
-    # Set up FaultScenario objects
-    # =========================================================================
     fault_scenarios: list[FaultScenario]
     fault_scenarios = fault_scenario_factory(accelerators, my_beam_calc,
                                              my_configs['wtf'])
-
-    # =========================================================================
-    # Fix
-    # =========================================================================
-    for accelerator, fault_scenario in zip(accelerators, fault_scenarios):
+    for fault_scenario in fault_scenarios:
         start_time = time.monotonic()
 
         fault_scenario.fix_all()
