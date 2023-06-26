@@ -17,20 +17,20 @@ import config_manager as conf_man
 import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
 import tracewin.interface
-from beam_calculation.tracewin import TraceWinBeamCalculator
 from beam_calculation.factory import create_beam_calculator_object
 from util import helper, output, evaluate
-from util.log_manager import set_up_logging
 from visualization import plot
 
 
 if __name__ == '__main__':
-    FILEPATH = "../data/MYRRHA/MYRRHA_Transi-100MeV.dat"
-    CONFIG_PATH = 'myrrha.ini'
-    KEY_BEAM_CALCULATOR = 'beam_calculator.lightwin.envelope_longitudinal'
-    KEY_BEAM = 'beam.myrrha'
-    KEY_WTF = 'wtf.k_out_of_n'
-    KEY_BEAM_CALCULATOR_POST = 'beam_calculator_post.tracewin.quick_debug'
+    MY_CONFIG_FILE = 'myrrha.ini'
+    MY_KEYS = {
+        'files': 'files',
+        'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
+        'beam': 'beam',
+        'wtf': 'wtf.k_out_of_n',
+        'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
+    }
 
     # =========================================================================
     # Fault compensation
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     FLAG_BREAK = True
     FLAG_FIX = True
     SAVE_FIX = True
-    FLAG_TW = True
+    FLAG_TW = False
     RECOMPUTE_REFERENCE = False
     FLAG_EVALUATE = False
 
@@ -66,26 +66,20 @@ if __name__ == '__main__':
     }
 
     # =========================================================================
-    # Startjkj
+    # Start
     # =========================================================================
-    FILEPATH = os.path.abspath(FILEPATH)
-    PROJECT_FOLDER = os.path.join(
-        os.path.dirname(FILEPATH),
-        datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
-    os.makedirs(PROJECT_FOLDER)
+    my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
-    set_up_logging(logfile_file=os.path.join(PROJECT_FOLDER, 'lightwin.log'))
+    FILEPATH = my_configs['files']['dat_file']
+    PROJECT_FOLDER = my_configs['files']['project_folder']
 
-    beam_calculator_parameters, beam, wtf, post_tw = conf_man.process_config(
-        CONFIG_PATH, PROJECT_FOLDER, KEY_BEAM_CALCULATOR, KEY_BEAM, KEY_WTF,
-        KEY_BEAM_CALCULATOR_POST)
-
-    ref_linac = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Working")
-    beam_calculator = create_beam_calculator_object(beam_calculator_parameters)
+    ref_linac = acc.Accelerator('Working', **my_configs['files'])
+    beam_calculator = \
+        create_beam_calculator_object(my_configs['beam_calculator'])
     beam_calculator._init_solver_parameters(ref_linac.elts)
 
     simulation_output = beam_calculator.run(ref_linac.elts)
-    ref_linac.keep_this(simulation_output=simulation_output)
+    ref_linac.keep_this(simulation_output)
 
     data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(ref_linac)
     linacs = [ref_linac]
@@ -95,16 +89,16 @@ if __name__ == '__main__':
 # =============================================================================
 # Run all simulations of the Project
 # =============================================================================
-    l_failed = wtf.pop('failed')
+    l_failed = my_configs['wtf'].pop('failed')
     l_manual = None
     manual = None
-    if 'manual list' in wtf:
-        l_manual = wtf.pop('manual list')
+    if 'manual list' in my_configs['wtf']:
+        l_manual = my_configs['wtf'].pop('manual list')
 
     if FLAG_BREAK:
         for i, failed in enumerate(l_failed):
             start_time = time.monotonic()
-            lin = acc.Accelerator(FILEPATH, PROJECT_FOLDER, "Broken")
+            lin = acc.Accelerator('Broken', **my_configs['files'])
             beam_calculator._init_solver_parameters(lin.elts)
 
             if l_manual is not None:
@@ -112,7 +106,7 @@ if __name__ == '__main__':
             fault_scenario = FaultScenario(ref_acc=ref_linac,
                                            fix_acc=lin,
                                            beam_calculator=beam_calculator,
-                                           wtf=wtf,
+                                           wtf=my_configs['wtf'],
                                            fault_idx=failed,
                                            comp_idx=manual)
             linacs.append(deepcopy(lin))
@@ -162,13 +156,15 @@ if __name__ == '__main__':
 
             ini_path = FILEPATH.replace('.dat', '.ini')
             # TODO transfer ini path elsewhere
-            tw_simu = TraceWinBeamCalculator(post_tw['executable'],
-                                             ini_path,
-                                             lin.get('out_tw'),
-                                             lin.get('dat_filepath'),
-                                             post_tw)
-            tw_simu.run(store_all_outputs=True)
-            lin.tracewin_simulation = tw_simu
+            beam_calculator_post = create_beam_calculator_object(
+                my_configs['beam_calculator_post'])
+            simulation_output = beam_calculator_post.run()
+
+            # tw_simu = TraceWinBeamCalculator(post_tw['executable'],
+            #                                  ini_path,
+            #                                  lin.get('out_tw'),
+            #                                  lin.get('dat_filepath'),
+            #                                  post_tw)
 
             if 'Fixed' in lin.name:
                 tracewin.interface.resample_tracewin_results(

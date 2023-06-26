@@ -29,8 +29,8 @@ from core.list_of_elements import ListOfElements, elt_at_this_s_idx, \
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
-    def __init__(self, dat_filepath: str, project_folder: str,
-                 name: str) -> None:
+    def __init__(self, name: str, dat_file: str, project_folder: str,
+                 ) -> None:
         """
         Create Accelerator object.
 
@@ -44,8 +44,8 @@ class Accelerator():
 
         # Prepare files and folders
         self.files = {
-            'dat_filepath': os.path.abspath(dat_filepath),
-            'orig_dat_folder': os.path.abspath(os.path.dirname(dat_filepath)),
+            'dat_filepath': dat_file,
+            'orig_dat_folder': os.path.dirname(dat_file),
             'project_folder': project_folder,
             'dat_filecontent': None,
             'field_map_folder': None,
@@ -53,7 +53,7 @@ class Accelerator():
             'out_tw': None}
 
         # Load dat file, clean it up (remove comments, etc), load elements
-        dat_filecontent = tracewin.load.dat_file(dat_filepath)
+        dat_filecontent = tracewin.load.dat_file(dat_file)
         elts = tracewin.interface.create_structure(dat_filecontent)
         elts = self._handle_paths_and_folders(elts)
 

@@ -29,8 +29,11 @@ TODO variable: maybe add this? Unnecessary at this point
 import logging
 import os
 import configparser
+import datetime
 import numpy as np
+
 from constants import c
+from util.log_manager import set_up_logging
 
 # Values that will be available everywhere
 FLAG_CYTHON, FLAG_PHI_ABS = bool, bool
@@ -52,9 +55,7 @@ TRACEWIN_EXECUTABLES = {
 }
 
 
-def process_config(config_path: str, project_path: str,
-                   key_beam_calculator: str, key_beam: str, key_wtf: str,
-                   key_beam_calculator_post: str | None = None,
+def process_config(config_path: str, config_keys: dict[str, str],
                    ) -> tuple[dict, dict, dict, dict | None]:
     """
     Frontend for config: load .ini, test it, return its content as dicts.
@@ -111,51 +112,89 @@ def process_config(config_path: str, project_path: str,
     # outputs!!
     config.read(config_path)
 
-    _test_config(config, key_beam_calculator, key_beam, key_wtf,
-                 key_beam_calculator_post)
-
-    beam_calculator, beam, wtf, beam_calculator_post = _config_to_dict(
-        config, key_beam_calculator=key_beam_calculator, key_beam=key_beam,
-        key_wtf=key_wtf, key_beam_calculator_post=key_beam_calculator_post)
+    _test_config(config, config_keys)
+    output_dict = _config_to_dict(config, config_keys)
 
     # Remove unused Sections, save resulting file
     _ = [config.remove_section(key) for key in list(config.keys())
-         if key not in ['DEFAULT', key_beam_calculator, key_beam, key_wtf,
-                        key_beam_calculator_post]]
-    with open(os.path.join(project_path, 'lighwin.ini'),
+         if key not in config_keys.keys()]
+
+    with open(os.path.join(output_dict['files']['project_folder'],
+                           'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 
-    _beam_calculator_make_global(beam_calculator)
-    _beam_make_global(beam)
-    return beam_calculator, beam, wtf, beam_calculator_post
+    _beam_calculator_make_global(output_dict['beam_calculator'])
+    _beam_make_global(output_dict['beam'])
+    return output_dict
 
 
-def _test_config(config: configparser.ConfigParser, key_beam_calculator: str,
-                 key_beam: str, key_wtf: str,
-                 key_beam_calculator_post: str | None) -> None:
+def _test_config(config: configparser.ConfigParser, config_keys: dict[str, str]
+                 ) -> None:
     """Run all the configuration tests, and save the config if ok."""
-    _test_beam_calculator(config[key_beam_calculator])
-    _test_beam(config[key_beam])
-    _test_wtf(config[key_wtf])
-    if key_beam_calculator_post is not None:
-        _test_beam_calculator(config[key_beam_calculator_post])
+    for key, val in config_keys.items():
+        if val is None:
+            continue
+        tester = TESTERS[key]
+        tester(config[val])
 
 
 def _config_to_dict(config: configparser.ConfigParser,
-                    key_beam_calculator: str, key_beam: str, key_wtf: str,
-                    key_beam_calculator_post: str | None
-                    ) -> tuple[dict, dict, dict, dict | None]:
+                    config_keys: dict[str, str]) -> dict:
     """To convert the configparser into the formats required by LightWin."""
-    beam_calculator = _config_to_dict_beam_calculator(
-        config[key_beam_calculator])
-    beam = _config_to_dict_beam(config[key_beam])
-    wtf = _config_to_dict_wtf(config[key_wtf])
-    beam_calculator_post = None
-    if key_beam_calculator_post is not None:
-        beam_calculator_post = _config_to_dict_beam_calculator(
-            config[key_beam_calculator_post])
-    return beam_calculator, beam, wtf, beam_calculator_post
+    output_dict = {}
+    for key, val in config_keys.items():
+        to_dict = DICTIONARIZERS[key]
+        if val is None:
+            continue
+        output_dict[key] = to_dict(config[val])
+    return output_dict
+
+
+# =============================================================================
+# Files test
+# =============================================================================
+def _test_files(c_files: configparser.SectionProxy) -> None:
+    """Test that the provided .dat is valid."""
+    passed = True
+    mandatory = ["dat_file"]
+    for key in mandatory:
+        if key not in c_files.keys():
+            logging.error(f"Key {key} is mandatory and missing.")
+            passed = False
+
+    dat_file, project_folder = _create_project_folders(c_files['dat_file'])
+    logfile_file = os.path.join(project_folder, 'lightwin.log')
+    set_up_logging(logfile_file=logfile_file)
+    logging.info(f"Setting {project_folder = }\nSetting {logfile_file = }")
+    c_files['dat_file'], c_files['project_folder'] = dat_file, project_folder
+
+    if not os.path.isfile(c_files.get("dat_file")):
+        logging.error("The provided path for the .dat does not exist.")
+        passed = False
+
+    if not passed:
+        raise IOError("Error treating the files parameters.")
+
+    logging.info(f"files parameters {c_files.name} tested with success.")
+
+
+def _create_project_folders(dat_file: str) -> None:
+    """Create a folder to store outputs and log messages."""
+    dat_file = os.path.abspath(dat_file)
+    project_folder = os.path.join(
+        os.path.dirname(dat_file),
+        datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
+    os.makedirs(project_folder)
+    return dat_file, project_folder
+
+
+def _config_to_dict_files(c_files: configparser.SectionProxy) -> dict:
+    """Save files info into a dict."""
+    files = {}
+    for key in c_files.keys():
+        files[key] = c_files.get(key)
+    return files
 
 
 # =============================================================================
@@ -224,6 +263,7 @@ def _test_beam_calculator_lightwin(
         default = {'leapfrog': '40', 'RK': '20'}
         c_beam_calculator["N_STEPS_PER_CELL"] = default["METHOD"]
 
+    # TODO remove this
     if c_beam_calculator.getboolean("FLAG_CYTHON"):
         c_beam_calculator["METHOD"] += "_c"
     else:
@@ -235,11 +275,15 @@ def _test_beam_calculator_lightwin(
 def _test_beam_calculator_tracewin(
         c_beam_calculator: configparser.SectionProxy) -> bool:
     """Specific test for the TraceWin simulations."""
-    mandatory = ["SIMULATION TYPE"]
+    mandatory = ["SIMULATION TYPE", "ini_path"]
     for key in mandatory:
         if key not in c_beam_calculator.keys():
             logging.error(f"{key} is mandatory and missing.")
             return False
+
+    if not os.path.isfile(c_beam_calculator["ini_path"]):
+        logging.error(f"{c_beam_calculator['ini_path']} does not exist.")
+        return False
 
     simulation_type = c_beam_calculator["SIMULATION TYPE"]
     if simulation_type not in TRACEWIN_EXECUTABLES:
@@ -816,8 +860,25 @@ def _test_misc(c_wtf: configparser.SectionProxy) -> bool:
 
 
 # =============================================================================
-# Everything related to TraceWin simulations
+# Dictionaries
 # =============================================================================
+TESTERS = {
+    'files': _test_files,
+    'beam_calculator': _test_beam_calculator,
+    'beam': _test_beam,
+    'wtf': _test_wtf,
+    'beam_calculator_post': _test_beam_calculator
+}
+
+DICTIONARIZERS = {
+    'files': _config_to_dict_files,
+    'beam_calculator': _config_to_dict_beam_calculator,
+    'beam': _config_to_dict_beam,
+    'wtf': _config_to_dict_wtf,
+    'beam_calculator_post': _config_to_dict_beam_calculator
+}
+
+
 # =============================================================================
 # Main func
 # =============================================================================
