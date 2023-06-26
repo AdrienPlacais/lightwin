@@ -30,7 +30,7 @@ import os
 import configparser
 import numpy as np
 
-from config import files, beam_calculator, beam, wtf
+from config import files, plots, beam_calculator, beam, wtf
 
 
 # Values that will be available everywhere
@@ -77,7 +77,7 @@ def process_config(config_path: str, config_keys: dict[str, str],
         A dict of dicts. The 'sub' dicts are:
         files : dict
             Information on the files, project folders.
-        plot : dict
+        plots : dict
             The quantities to plot.
         beam_calculator : dict
             Holds the beam_calculator used for simulation.
@@ -180,6 +180,7 @@ def _make_global(beam_calculator: dict, beam: dict, **kwargs) -> None:
 # =============================================================================
 TESTERS = {
     'files': files.test,
+    'plots': plots.test,
     'beam_calculator': beam_calculator.test,
     'beam': beam.test,
     'wtf': wtf.test,
@@ -188,26 +189,9 @@ TESTERS = {
 
 DICTIONARIZERS = {
     'files': files.config_to_dict,
+    'plots': plots.config_to_dict,
     'beam_calculator': beam_calculator.config_to_dict,
     'beam': beam.config_to_dict,
     'wtf': wtf.config_to_dict,
     'beam_calculator_post': beam_calculator.config_to_dict
 }
-
-
-# =============================================================================
-# Main func
-# =============================================================================
-if __name__ == '__main__':
-    # Init paths
-    CONFIG_PATH = 'jaea.ini'
-    PROJECT_PATH = 'bla/'
-
-    # Load config
-    wtfs = process_config(
-        CONFIG_PATH, PROJECT_PATH,
-        key_beam_calculator='beam_calculator.lightwin.envelope_longitudinal',
-        key_beam='beam.jaea',
-        key_wtf='wtf.k_out_of_n',
-        key_beam_calculator_post='post_tracewin.quick_debug')
-    print(f"{wtfs}")

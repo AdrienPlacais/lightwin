@@ -26,6 +26,7 @@ if __name__ == '__main__':
     MY_CONFIG_FILE = 'myrrha.ini'
     MY_KEYS = {
         'files': 'files',
+        'plots': 'plots.essential',
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
         'wtf': 'wtf.k_out_of_n',
@@ -41,19 +42,6 @@ if __name__ == '__main__':
     FLAG_TW = False
     RECOMPUTE_REFERENCE = False
     FLAG_EVALUATE = False
-
-    # =========================================================================
-    # Outputs
-    # =========================================================================
-    PLOTS = [
-        "energy",
-        "phase",
-        # "cav",
-        "emittance",
-        # "twiss",  # TODO
-        # "envelopes", # FIXME
-        # "transfer matrices", # TODO
-    ]
 
     # =========================================================================
     # Start
@@ -180,7 +168,9 @@ if __name__ == '__main__':
 # =============================================================================
     kwargs = {'plot_tw': FLAG_TW, 'save_fig': False, 'clean_fig': True}
     for i in range(len(l_failed)):
-        for str_plot in PLOTS:
+        for str_plot, to_plot in my_configs['plots'].items():
+            if not to_plot:
+                continue
             # Plot the reference linac, i-th broken linac and corresponding
             # fixed linac
             if not FLAG_BREAK:
