@@ -30,9 +30,10 @@ def wrapper_beam_calculation(accelerator: Accelerator,
     simulation_output = beam_calculator.run(accelerator.elts)
     accelerator.keep_this(simulation_output)
 
-    data_tab_in_tw_style = tracewin.interface.output_data_in_tw_fashion(
+    data_in_tracewin_style = tracewin.interface.output_data_in_tw_fashion(
         accelerator)
-    output.save_files(accelerator, data=data_tab_in_tw_style)
+    output.save_files(accelerator,
+                      data_in_tracewin_style=data_in_tracewin_style)
 
 
 # =============================================================================
@@ -74,7 +75,7 @@ if __name__ == '__main__':
     accelerators: list[Accelerator] = accelerator_factory(**my_configs)
     wrapper_beam_calculation(accelerators[0], my_beam_calc)
 
-    lw_fit_evals = []
+    settings_quality_tests = []
 
     # =========================================================================
     # Set up FaultScenario objects
@@ -88,26 +89,28 @@ if __name__ == '__main__':
     # =========================================================================
     for accelerator, fault_scenario in zip(accelerators, fault_scenarios):
         start_time = time.monotonic()
+
         fault_scenario.fix_all()
+
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time: {delta_t}")
+
+        fault_scenario.evaluate_fit_quality(delta_t)
 
         tracewin.interface.update_dat_with_fixed_cavities(
             accelerator.get('dat_filecontent', to_numpy=False),
             accelerator.elts,
             accelerator.get('field_map_folder'))
-        data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(
+        data_in_tracewin_style = tracewin.interface.output_data_in_tw_fashion(
             accelerator)
-        lw_fit_eval = fault_scenario.evaluate_fit_quality(delta_t)
 
         accelerator.files['dat_filepath'] = os.path.join(
             accelerator.get('out_lw'),
             os.path.basename(FILEPATH))
-        output.save_files(accelerator, data=data_tab_from_tw,
-                          lw_fit_eval=lw_fit_eval)
+        output.save_files(accelerator,
+                          data_in_tracewin_style=data_in_tracewin_style)
 
-        lw_fit_evals.append(lw_fit_eval)
 
 # =============================================================================
 # Post simulation

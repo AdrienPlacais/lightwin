@@ -10,6 +10,8 @@ objets to be fixed.
 """
 import logging
 from typing import Any
+import os.path
+
 import numpy as np
 import pandas as pd
 
@@ -188,16 +190,25 @@ class FaultScenario(list):
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
-    # FIXME
+    # FIXME cculd be simpler
     def evaluate_fit_quality(self, delta_t: float,
                              additional_elt: list[_Element] | None = None
-                             ) -> pd.DataFrame:
-        """Compute some quantities on the whole linac to see if fit is good."""
-        quantities_to_evaluate = ['w_kin', 'phi_abs',
-                                  'envelope_pos_w', 'envelope_energy_w',
-                                  'mismatch_factor',
-                                  'eps_w'
-                                  ]
+                             ) -> None:
+        """
+        Compute some quantities on the whole linac to see if fit is good.
+
+        Parameters
+        ----------
+        delta_t : float
+            Time spent by the optimisation process.
+        additional_elt : list[_Element] | None, optional
+            If you want to evaluate the quality of the beam at the exit of
+            additional _Elements. The default is None.
+
+        """
+        quantities_to_evaluate = [
+            'w_kin', 'phi_abs', 'envelope_pos_w', 'envelope_energy_w',
+            'mismatch_factor', 'eps_w']
         quantities = {key: [] for key in quantities_to_evaluate}
 
         evaluation_elt = [fault.elts[-1] for fault in self]
@@ -251,7 +262,10 @@ class FaultScenario(list):
         for i, key in enumerate(quantities_to_evaluate):
             df_eval.loc[i + 1] = [key] + quantities[key]
         logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
-        return df_eval
+
+        out = os.path.join(self.fix_acc.get('out_lw'),
+                           'settings_quality_tests.csv')
+        df_eval.to_csv(out)
 
 
 def fault_scenario_factory(accelerators: list[Accelerator],
