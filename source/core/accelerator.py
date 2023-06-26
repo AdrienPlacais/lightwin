@@ -56,7 +56,7 @@ class Accelerator():
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent = tracewin.load.dat_file(dat_file)
         elts = tracewin.interface.create_structure(dat_filecontent)
-        elts = self._handle_paths_and_folders(elts)
+        elts = self._set_field_map_files_paths(elts)
 
         self.elts = ListOfElements(elts, w_kin=con.E_MEV, phi_abs=0.,
                                    first_init=True)
@@ -144,11 +144,9 @@ class Accelerator():
             return out[0]
         return tuple(out)
 
-    # TODO add linac name in the subproject folder name
-    def _handle_paths_and_folders(self, elts: list[_Element]
-                                  ) -> list[_Element]:
-        """Make paths absolute, create results folders."""
-        # Now we handle where to look for the field maps
+    def _set_field_map_files_paths(self, elts: list[_Element]
+                                   ) -> list[_Element]:
+        """Load FIELD_MAP_PATH, remove it from the list of elements."""
         field_map_basepaths = [basepath
                                for basepath in elts
                                if isinstance(basepath, FieldMapPath)]
@@ -301,13 +299,14 @@ def _generate_folders_tree_structure(project_folder: str,
     base_beam_calc = f"beam_calculation_{tool}"
     beam_calc_paths = [os.path.join(fault_scenar, base_beam_calc)
                        for fault_scenar in fault_scenario_paths]
-    (os.makedirs(beam_calc_path) for beam_calc_path in beam_calc_paths)
+    _ = [os.makedirs(beam_calc_path) for beam_calc_path in beam_calc_paths]
 
     beam_calc_post_paths = [None for fault_scenar in fault_scenario_paths]
     if post_tool is not None:
         base_beam_calc_post = f"beam_calculation_post_{post_tool}"
         beam_calc_post_paths = [os.path.join(fault_scenar, base_beam_calc_post)
                                 for fault_scenar in fault_scenario_paths]
-        (os.makedir(beam_calc_path) for beam_calc_path in beam_calc_post_paths)
+        _ = [os.makedir(beam_calc_path)
+             for beam_calc_path in beam_calc_post_paths]
 
     return beam_calc_paths, beam_calc_post_paths

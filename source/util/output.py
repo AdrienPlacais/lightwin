@@ -12,9 +12,6 @@ import logging
 
 def save_files(lin, data=None, lw_fit_eval=None, flags=None):
     """Save a new dat with the new linac settings, as well as eval. files."""
-    os.makedirs(lin.get('out_lw'))
-    logging.info(f"New dat saved in {lin.get('dat_filepath')}")
-
     if data is not None:
         out = os.path.join(lin.get('out_lw'), 'data.csv')
         data.to_csv(out)
@@ -28,6 +25,7 @@ def save_files(lin, data=None, lw_fit_eval=None, flags=None):
     with open(lin.get('dat_filepath'), 'w') as file:
         for line in lin.files['dat_filecontent']:
             file.write(' '.join(line) + '\n')
+    logging.info(f"New dat saved in {lin.get('dat_filepath')}")
 
 
 def save_project_evaluation_files(project_folder, lw_fit_evals=None,
