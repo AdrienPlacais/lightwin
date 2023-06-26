@@ -75,8 +75,6 @@ if __name__ == '__main__':
     accelerators: list[Accelerator] = accelerator_factory(**my_configs)
     wrapper_beam_calculation(accelerators[0], my_beam_calc)
 
-    settings_quality_tests = []
-
     # =========================================================================
     # Set up FaultScenario objects
     # =========================================================================
@@ -95,8 +93,6 @@ if __name__ == '__main__':
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time: {delta_t}")
-
-        fault_scenario.evaluate_fit_quality(delta_t)
 
         tracewin.interface.update_dat_with_fixed_cavities(
             accelerator.get('dat_filecontent', to_numpy=False),

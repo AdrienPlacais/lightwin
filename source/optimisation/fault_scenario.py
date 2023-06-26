@@ -123,6 +123,8 @@ class FaultScenario(list):
             self.info[linac.name + ' cav'] = \
                 debug.output_cavities(linac, DISPLAY_CAVITIES_INFO)
 
+        self._evaluate_fit_quality()
+
         # Legacy, does not work anymore with the new implementation
         # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
 
@@ -190,17 +192,15 @@ class FaultScenario(list):
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
-    # FIXME cculd be simpler
-    def evaluate_fit_quality(self, delta_t: float,
-                             additional_elt: list[_Element] | None = None
-                             ) -> None:
+    # FIXME could be simpler
+    def _evaluate_fit_quality(self,
+                              additional_elt: list[_Element] | None = None
+                              ) -> None:
         """
         Compute some quantities on the whole linac to see if fit is good.
 
         Parameters
         ----------
-        delta_t : float
-            Time spent by the optimisation process.
         additional_elt : list[_Element] | None, optional
             If you want to evaluate the quality of the beam at the exit of
             additional _Elements. The default is None.
@@ -249,18 +249,10 @@ class FaultScenario(list):
 
             quantities[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
 
-        time_line = [None for n in range(len(
-            quantities[quantities_to_evaluate[0]]))]
-        days, seconds = delta_t.days, delta_t.seconds
-        time_line[0] = f"{days * 24 + seconds // 3600} hrs"
-        time_line[1] = f"{seconds % 3600 // 60} min"
-        time_line[2] = f"{seconds % 60} sec"
-
         # Now make it a pandas dataframe for sweet output
         df_eval = pd.DataFrame(columns=headers)
-        df_eval.loc[0] = ['time'] + time_line
         for i, key in enumerate(quantities_to_evaluate):
-            df_eval.loc[i + 1] = [key] + quantities[key]
+            df_eval.loc[i] = [key] + quantities[key]
         logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
 
         out = os.path.join(self.fix_acc.get('out_lw'),
