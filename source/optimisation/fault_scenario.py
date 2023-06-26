@@ -123,7 +123,7 @@ class FaultScenario(list):
             self.info[linac.name + ' cav'] = \
                 debug.output_cavities(linac, DISPLAY_CAVITIES_INFO)
 
-        self._evaluate_fit_quality()
+        self._evaluate_fit_quality(save=True)
 
         # Legacy, does not work anymore with the new implementation
         # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
@@ -193,7 +193,7 @@ class FaultScenario(list):
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
     # FIXME could be simpler
-    def _evaluate_fit_quality(self,
+    def _evaluate_fit_quality(self, save: bool = True,
                               additional_elt: list[_Element] | None = None
                               ) -> None:
         """
@@ -201,6 +201,8 @@ class FaultScenario(list):
 
         Parameters
         ----------
+        save : bool, optional
+            To tell if you want to save the evaluation. The default is True.
         additional_elt : list[_Element] | None, optional
             If you want to evaluate the quality of the beam at the exit of
             additional _Elements. The default is None.
@@ -255,9 +257,10 @@ class FaultScenario(list):
             df_eval.loc[i] = [key] + quantities[key]
         logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
 
-        out = os.path.join(self.fix_acc.get('out_lw'),
-                           'settings_quality_tests.csv')
-        df_eval.to_csv(out)
+        if save:
+            out = os.path.join(self.fix_acc.get('out_lw'),
+                               'settings_quality_tests.csv')
+            df_eval.to_csv(out)
 
 
 def fault_scenario_factory(accelerators: list[Accelerator],
