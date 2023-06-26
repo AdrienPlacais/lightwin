@@ -18,7 +18,7 @@ import core.accelerator as acc
 from optimisation.fault_scenario import FaultScenario
 import tracewin.interface
 from beam_calculation.factory import create_beam_calculator_object
-from util import helper, output, evaluate
+from util import output, evaluate
 from visualization import plot
 
 
@@ -54,16 +54,6 @@ if __name__ == '__main__':
         # "envelopes", # FIXME
         # "transfer matrices", # TODO
     ]
-
-    SAVES = [
-        "energy phase and mt",
-        "Vcav and phis",
-    ]
-
-    DICT_SAVES = {
-        "energy phase and mt": helper.save_energy_phase_tm,
-        "Vcav and phis": helper.save_vcav_and_phis,
-    }
 
     # =========================================================================
     # Start

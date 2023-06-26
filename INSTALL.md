@@ -1,6 +1,5 @@
 # Installation
-You will need Python 3.
-Tested with Python 3.9, 3.10, 3.11.
+You will need Python 3.9 or higher.
 
 ## Mandatory packages
 - `matplotlib`
@@ -39,11 +38,12 @@ Instead:
 `pymoo` package is currently not on anaconda.
 Create an conda environment and take your packages from `conda-forge`:
 ```
-conda create -n <env_name> -c conda-forge python=3.10
+conda create -n <env_name> -c conda-forge python=3.11
 conda activate <env_name>
 conda install matplotlib numpy pandas scipy palettable pymoo -c conda_forge
 ```
 (may be necessary to install the different packages one at a time)
+In `<env-name>`, you will have to precise `-c conda-forge` each time you want to update or install packages.
 
 `pip`, `anaconda` and `conda-forge` packages are not compatible!
 Never mix them!
@@ -51,3 +51,5 @@ Or create a dedicated environment.
 If you use Spyder, check this out:
 [https://www.youtube.com/watch?v=Ul79ihg41Rs](https://www.youtube.com/watch?v=Ul79ihg41Rs)
 
+## TraceWin compatibility
+To run TraceWin, modify the paths in `source/config/beam_calculator` so that it matches with your installation.
