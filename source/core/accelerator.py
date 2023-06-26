@@ -30,6 +30,7 @@ class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
     def __init__(self, name: str, dat_file: str, project_folder: str,
+                 beam_calc_path: str, beam_calc_post_path: str | None,
                  ) -> None:
         """
         Create Accelerator object.
@@ -49,8 +50,8 @@ class Accelerator():
             'project_folder': project_folder,
             'dat_filecontent': None,
             'field_map_folder': None,
-            'out_lw': None,
-            'out_tw': None}
+            'out_lw': beam_calc_path,
+            'out_tw': beam_calc_post_path}
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent = tracewin.load.dat_file(dat_file)
@@ -147,16 +148,6 @@ class Accelerator():
     def _handle_paths_and_folders(self, elts: list[_Element]
                                   ) -> list[_Element]:
         """Make paths absolute, create results folders."""
-        i = 0
-        out_base = os.path.join(self.files['project_folder'], f"{i:06d}")
-
-        while os.path.exists(out_base):
-            i += 1
-            out_base = os.path.join(self.files['project_folder'], f"{i:06d}")
-        os.makedirs(out_base)
-        self.files['out_lw'] = os.path.join(out_base, 'LW')
-        self.files['out_tw'] = os.path.join(out_base, 'TW')
-
         # Now we handle where to look for the field maps
         field_map_basepaths = [basepath
                                for basepath in elts
@@ -250,3 +241,73 @@ class Accelerator():
                   ) -> _Element | int | None:
         """Return an element from self.elts with the same name."""
         return equiv_elt(self.elts, elt, to_index)
+
+
+def accelerator_factory(files: dict[str, str], beam_calculator: dict[str, Any],
+                        beam: dict[str, Any],
+                        wtf: dict[str, Any] | None = None,
+                        beam_calculator_post: dict[str, Any] | None = None,
+                        **kwargs
+                        ) -> list[Accelerator]:
+    """Create the required Accelerators as well as their output folders."""
+    n_simulations = 1
+    if wtf is not None:
+        n_simulations = len(wtf['failed']) + 1
+
+    beam_calc_paths, beam_calc_post_paths = _generate_folders_tree_structure(
+        project_folder=files['project_folder'],
+        n_simulations=n_simulations,
+        tool=beam_calculator['tool'],
+        post_tool=beam_calculator_post['tool']
+        if beam_calculator_post is not None else None
+    )
+    names = ['Broken' if i > 0 else 'Working' for i in range(n_simulations)]
+
+    accelerators = [Accelerator(name,
+                                **files,
+                                beam_calc_path=beam_calc_path,
+                                beam_calc_post_path=beam_calc_post_path)
+                    for name, beam_calc_path, beam_calc_post_path
+                    in zip(names, beam_calc_paths, beam_calc_post_paths)]
+    return accelerators
+
+
+def _generate_folders_tree_structure(project_folder: str,
+                                     n_simulations: int,
+                                     tool: str, post_tool: str | None = None
+                                     ) -> tuple[list[str], list[str | None]]:
+    """
+    Create the proper folders for every Accelerator.
+
+    The default structure is:
+
+    where_original_dat_is/
+        YYYY.MM.DD_HHhMM_SSs_MILLIms/              <- project_folder
+            000000_ref/                            <- fault_scenario_path
+                beam_calculation_toolname/         <- beam_calc
+                (beam_calculation_post_toolname)/  <- beam_calc_post
+            000001/
+                beam_calculation_toolname/
+                (beam_calculation_post_toolname)/
+            000002/
+                beam_calculation_toolname/
+                (beam_calculation_post_toolname)/
+            etc
+    """
+    fault_scenario_paths = [os.path.join(project_folder, f"{i:06d}")
+                            for i in range(n_simulations)]
+    fault_scenario_paths[0] += '_ref'
+
+    base_beam_calc = f"beam_calculation_{tool}"
+    beam_calc_paths = [os.path.join(fault_scenar, base_beam_calc)
+                       for fault_scenar in fault_scenario_paths]
+    (os.makedirs(beam_calc_path) for beam_calc_path in beam_calc_paths)
+
+    beam_calc_post_paths = [None for fault_scenar in fault_scenario_paths]
+    if post_tool is not None:
+        base_beam_calc_post = f"beam_calculation_post_{post_tool}"
+        beam_calc_post_paths = [os.path.join(fault_scenar, base_beam_calc_post)
+                                for fault_scenar in fault_scenario_paths]
+        (os.makedir(beam_calc_path) for beam_calc_path in beam_calc_post_paths)
+
+    return beam_calc_paths, beam_calc_post_paths

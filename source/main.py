@@ -8,13 +8,13 @@ Created on Tue Dec  6 14:33:39 2022.
 
 import os
 import logging
-from copy import deepcopy
+# from copy import deepcopy
 import time
 import datetime
 import pandas as pd
 
 import config_manager as conf_man
-from core.accelerator import Accelerator
+from core.accelerator import Accelerator, accelerator_factory
 from optimisation.fault_scenario import FaultScenario
 import tracewin.interface
 from beam_calculation.beam_calculator import BeamCalculator
@@ -23,15 +23,16 @@ from util import output, evaluate
 from visualization import plot
 
 
-def wrapper_beam_calculation(linac: Accelerator,
+def wrapper_beam_calculation(accelerator: Accelerator,
                              beam_calculator: BeamCalculator):
     """Shorthand to init the solver, perform beam calculation, save results."""
-    beam_calculator._init_solver_parameters(linac.elts)
-    simulation_output = beam_calculator.run(linac.elts)
-    linac.keep_this(simulation_output)
+    beam_calculator._init_solver_parameters(accelerator.elts)
+    simulation_output = beam_calculator.run(accelerator.elts)
+    accelerator.keep_this(simulation_output)
 
-    data_tab_in_tw_style = tracewin.interface.output_data_in_tw_fashion(linac)
-    output.save_files(linac, data=data_tab_in_tw_style)
+    data_tab_in_tw_style = tracewin.interface.output_data_in_tw_fashion(
+        accelerator)
+    output.save_files(accelerator, data=data_tab_in_tw_style)
 
 
 # =============================================================================
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     RECOMPUTE_REFERENCE = False
 
     # =========================================================================
-    # Set up beam_calculators (motion solvers)
+    # Set up BeamCalculator objects
     # =========================================================================
     my_beam_calc: BeamCalculator
     my_beam_calc = create_beam_calculator_object(my_configs['beam_calculator'])
@@ -65,15 +66,14 @@ if __name__ == '__main__':
         if perform_post_simulation else None
 
     # =========================================================================
-    # Handle reference linac
+    # Set up Accelerator objects
     # =========================================================================
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
-    ref_linac = Accelerator('Working', **my_configs['files'])
-    wrapper_beam_calculation(ref_linac, my_beam_calc)
+    accelerators: list[Accelerator] = accelerator_factory(**my_configs)
+    wrapper_beam_calculation(accelerators[0], my_beam_calc)
 
-    linacs = [ref_linac]
     lw_fit_evals = []
 
 # =============================================================================
@@ -88,22 +88,23 @@ if __name__ == '__main__':
     if break_and_fix:
         for i, failed in enumerate(l_failed):
             start_time = time.monotonic()
-            lin = Accelerator('Broken', **my_configs['files'])
+            # lin = Accelerator('Broken', **my_configs['files'])
+            lin = accelerators[i + 1]
             my_beam_calc._init_solver_parameters(lin.elts)
 
             if l_manual is not None:
                 manual = l_manual[i]
-            fault_scenario = FaultScenario(ref_acc=ref_linac,
+            fault_scenario = FaultScenario(ref_acc=accelerators[0],
                                            fix_acc=lin,
                                            beam_calculator=my_beam_calc,
                                            wtf=my_configs['wtf'],
                                            fault_idx=failed,
                                            comp_idx=manual)
-            linacs.append(deepcopy(lin))
+            # accelerators.append(deepcopy(lin))
 
             fault_scenario.fix_all()
 
-            linacs.append(lin)
+            # accelerators.append(lin)
 
             end_time = time.monotonic()
             delta_t = datetime.timedelta(seconds=end_time - start_time)
@@ -129,7 +130,7 @@ if __name__ == '__main__':
     l_fred = []
     l_bruce = []
     if perform_post_simulation:
-        for lin in linacs:
+        for lin in accelerators:
             # It would be a loss of time to do these simulation
             if 'Broken' in lin.name:
                 continue
@@ -138,7 +139,7 @@ if __name__ == '__main__':
                 lin.files["out_tw"] = os.path.join(os.path.dirname(FILEPATH),
                                                    'ref')
                 logging.info(
-                    "we do not TW recompute reference linac. "
+                    "we do not TW recompute reference accelerator. "
                     + f"We take TW results from {lin.files['out_tw']}.")
                 continue
 
@@ -154,14 +155,14 @@ if __name__ == '__main__':
 
             if 'Fixed' in lin.name:
                 tracewin.interface.resample_tracewin_results(
-                    ref=linacs[0].tracewin_simulation,
+                    ref=accelerators[0].tracewin_simulation,
                     fix=lin.tracewin_simulation)
 
             if 'Fixed' in lin.name:
-                d_fred = evaluate.fred_tests(linacs[0], lin)
+                d_fred = evaluate.fred_tests(accelerators[0], lin)
                 l_fred.append(d_fred)
 
-                d_bruce = evaluate.bruce_tests(linacs[0], lin)
+                d_bruce = evaluate.bruce_tests(accelerators[0], lin)
                 l_bruce.append(d_bruce)
 
         if break_and_fix:
@@ -180,13 +181,12 @@ if __name__ == '__main__':
         for str_plot, to_plot in my_configs['plots'].items():
             if not to_plot:
                 continue
-            # Plot the reference linac, i-th broken linac and corresponding
-            # fixed linac
+            # Plot the reference accelerator, i-th broken accelerator and
+            # corresponding fixed accelerator
             if not break_and_fix:
-                args = (linacs[0], )
+                args = (accelerators[0], )
             else:
-                if not break_and_fix:
-                    args = (linacs[0], linacs[i + 1])
-                else:
-                    args = (linacs[0], linacs[2 * i + 1], linacs[2 * i + 2])
+                # args = (accelerators[0], accelerators[2 * i + 1],
+                # accelerators[2 * i + 2])
+                args = (accelerators[0], accelerators[i + 1])
             plot.plot_preset(str_plot, *args, **kwargs)
