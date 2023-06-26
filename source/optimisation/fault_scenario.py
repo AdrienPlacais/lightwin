@@ -113,9 +113,6 @@ class FaultScenario(list):
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
 
-        simulation_output = self.beam_calculator.run(self.fix_acc.elts)
-        self.fix_acc.keep_this(simulation_output,
-                               ref_twiss_zdelta=ref_twiss_zdelta)
         self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
             + f" of {str(len(success))})"
 
