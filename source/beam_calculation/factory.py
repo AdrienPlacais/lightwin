@@ -32,11 +32,16 @@ def create_beam_calculator_object(
     if beam_calculator_parameters is None:
         return None
 
-    tool = beam_calculator_parameters.pop('tool')
+    tool = beam_calculator_parameters['tool']
+    keys_not_handled = ['tool']
+    clean_parameters = {key: val
+                        for key, val in beam_calculator_parameters.items()
+                        if key not in keys_not_handled}
+
     calculators = {
         'LightWin': Envelope1D,
         'TraceWin': TraceWin,
     }
 
-    beam_calculator = calculators[tool](**beam_calculator_parameters)
+    beam_calculator = calculators[tool](**clean_parameters)
     return beam_calculator
