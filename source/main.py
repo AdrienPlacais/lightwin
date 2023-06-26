@@ -14,13 +14,24 @@ import datetime
 import pandas as pd
 
 import config_manager as conf_man
-import core.accelerator as acc
+from core.accelerator import Accelerator
 from optimisation.fault_scenario import FaultScenario
 import tracewin.interface
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_object
 from util import output, evaluate
 from visualization import plot
+
+
+def wrapper_beam_calculation(linac: Accelerator,
+                             beam_calculator: BeamCalculator):
+    """Shorthand to init the solver, perform beam calculation, save results."""
+    beam_calculator._init_solver_parameters(linac.elts)
+    simulation_output = beam_calculator.run(linac.elts)
+    linac.keep_this(simulation_output)
+
+    data_tab_in_tw_style = tracewin.interface.output_data_in_tw_fashion(linac)
+    output.save_files(linac, data=data_tab_in_tw_style)
 
 
 if __name__ == '__main__':
@@ -54,20 +65,15 @@ if __name__ == '__main__':
         if perform_post_simulation else None
 
     # =========================================================================
-    # Start
+    # Handle reference linac
     # =========================================================================
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
-    ref_linac = acc.Accelerator('Working', **my_configs['files'])
-    my_beam_calc._init_solver_parameters(ref_linac.elts)
+    ref_linac = Accelerator('Working', **my_configs['files'])
+    wrapper_beam_calculation(ref_linac, my_beam_calc)
 
-    simulation_output = my_beam_calc.run(ref_linac.elts)
-    ref_linac.keep_this(simulation_output)
-
-    data_tab_from_tw = tracewin.interface.output_data_in_tw_fashion(ref_linac)
     linacs = [ref_linac]
-
     lw_fit_evals = []
 
 # =============================================================================
@@ -82,7 +88,7 @@ if __name__ == '__main__':
     if break_and_fix:
         for i, failed in enumerate(l_failed):
             start_time = time.monotonic()
-            lin = acc.Accelerator('Broken', **my_configs['files'])
+            lin = Accelerator('Broken', **my_configs['files'])
             my_beam_calc._init_solver_parameters(lin.elts)
 
             if l_manual is not None:
@@ -118,7 +124,7 @@ if __name__ == '__main__':
             lw_fit_evals.append(lw_fit_eval)
 
 # =============================================================================
-# TraceWin
+# Post simulation
 # =============================================================================
     l_fred = []
     l_bruce = []
