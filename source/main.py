@@ -94,10 +94,6 @@ if __name__ == '__main__':
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time: {delta_t}")
 
-        data_in_tracewin_style = tracewin.interface.output_data_in_tw_fashion(
-            accelerator)
-
-
 # =============================================================================
 # Post simulation
 # =============================================================================

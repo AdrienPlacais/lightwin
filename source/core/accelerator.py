@@ -12,8 +12,9 @@ at the end
 import os.path
 import logging
 from typing import Any
-import numpy as np
 
+import numpy as np
+import pandas as pd
 
 import config_manager as con
 import tracewin.interface
@@ -42,6 +43,7 @@ class Accelerator():
         """
         self.name = name
         self.simulation_output: SimulationOutput
+        self.data_in_tw_fashion: pd.DataFrame
 
         # Prepare files and folders
         self.files = {
@@ -219,7 +221,6 @@ class Accelerator():
             calculation of the mismatch factor. The default is None.
 
         """
-        logging.critical('keep_this')
         simulation_output.compute_complementary_data(self.elts,
                                                      ref_twiss_zdelta)
 
@@ -231,6 +232,9 @@ class Accelerator():
 
         self.simulation_output = simulation_output
         self._store_settings_in_dat(save=True)
+        # self.data_in_tw_fashion = tracewin.interface.output_data_in_tw_fashion(
+            # self)
+        logging.critical("data_in_tw_fashion is bugged")
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                           ) -> _Element | None:
