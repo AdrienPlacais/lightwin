@@ -33,7 +33,7 @@ def create_beam_calculator_object(
         return None
 
     tool = beam_calculator_parameters['tool']
-    keys_not_handled = ['tool']
+    keys_not_handled = ['tool', 'simulation type']
     clean_parameters = {key: val
                         for key, val in beam_calculator_parameters.items()
                         if key not in keys_not_handled}

@@ -64,11 +64,11 @@ class TraceWin:
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
-        self.get_results = partial(self.load_results,
-                                   filename='tracewin.out')
+        filename = 'tracewin.out'
         if self._is_a_multiparticle_simulation:
-            self.get_results = partial(self.load_results,
-                                       filename='partran1.out')
+            filename = 'partran1.out'
+        self.get_results = partial(self.load_results, filename=filename)
+
         os.makedirs(self.path_cal)
         self.results_envelope: dict
         self.results_multipart: dict | None

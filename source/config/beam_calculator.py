@@ -173,11 +173,22 @@ def _config_to_dict_lightwin(
 
 
 def _config_to_dict_tracewin(c_tw: configparser.SectionProxy) -> dict:
-    """Convert tw configparser into a dict."""
-    tracew = {}
-    # Getters. If a key is not in this dict, it won't be transferred to TW
-    getter = {
+    """
+    Convert tw configparser into a dict.
+
+    The TraceWin mandatory command line arguments, as well as the arguments
+    necessary for LightWin to run are stored in `arg_for_lightwin`.
+
+    We separate the optional arguments that will be sent in the TraceWin
+    commannd line in a separated dictionary: `arg_for_tracewin`.
+    """
+    args_for_lightwin = {}
+    args_for_tracewin = {}
+    getter_arg_for_lightwin = {
         'executable': c_tw.get,
+    }
+
+    getter_arg_for_tracewin = {
         'hide': c_tw.get,
         'tab_file': c_tw.get,
         'nbr_thread': c_tw.getint,
@@ -238,9 +249,14 @@ def _config_to_dict_tracewin(c_tw: configparser.SectionProxy) -> dict:
         'toutatis': c_tw.getint,
     }
     for key in c_tw.keys():
-        if key in getter:
-            tracew[key] = getter[key](key)
+        if key in getter_arg_for_tracewin:
+            args_for_tracewin[key] = getter_arg_for_tracewin[key](key)
             continue
-        tracew[key] = c_tw.get(key)
+        if key in getter_arg_for_lightwin:
+            args_for_lightwin[key] = getter_arg_for_lightwin[key](key)
+            continue
+        args_for_lightwin[key] = c_tw.get(key)
 
-    return tracew
+    args_for_lightwin['base_kwargs'] = args_for_tracewin
+
+    return args_for_lightwin
