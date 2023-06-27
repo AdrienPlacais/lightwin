@@ -276,7 +276,7 @@ def fault_scenario_factory(accelerators: list[Accelerator],
     if 'manual list' in wtf:
         scenarios_comp_idx = wtf.pop('manual list')
 
-    _ = [beam_calculator._init_solver_parameters(accelerator.elts)
+    _ = [beam_calculator.init_solver_parameters(accelerator.elts)
          for accelerator in accelerators]
 
     fault_scenarios = [FaultScenario(ref_acc=accelerators[0],

@@ -29,7 +29,7 @@ def _wrap_beam_calculation(elts: ListOfElements,
                            beam_calculator: BeamCalculator
                            ) -> SimulationOutput:
     """Shorthand to init the solver, perform beam calculation, save results."""
-    beam_calculator._init_solver_parameters(elts)
+    beam_calculator.init_solver_parameters(elts)
     simulation_output = beam_calculator.run(elts)
     simulation_output.compute_complementary_data(elts)
     return simulation_output

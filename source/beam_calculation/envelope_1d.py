@@ -111,7 +111,7 @@ class Envelope1D(BeamCalculator):
             elts, single_elts_results, rf_fields)
         return simulation_output
 
-    def _init_solver_parameters(self, elts: ListOfElements) -> None:
+    def init_solver_parameters(self, elts: ListOfElements) -> None:
         """
         Create the number of steps, meshing, transfer functions for elts.
 
