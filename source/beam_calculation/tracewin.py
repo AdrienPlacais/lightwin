@@ -16,8 +16,6 @@ import os
 import logging
 import subprocess
 from functools import partial
-import time
-import datetime
 
 import numpy as np
 
@@ -76,50 +74,27 @@ class TraceWin:
         self.transfer_matrices: np.ndarray
         self.cavity_parameters: dict
 
-    def run(self, **specific_kwargs) -> None:
+    # TODO what is specific_kwargs for? I should just have a function
+    # set_of_cavity_settings_to_kwargs
+    def run(self, elts, **specific_kwargs) -> None:
         """
         Run TraceWin.
 
         Parameters
         ----------
-        store_all_outputs : bool, optional
-            Save all the outputs from TraceWin. The default is True.
-        post_treat : bool, optional
-            Compute quantities that will be required later in results (both
-            multipart and envelope). The default is True.
+        elts : ListOfElements
+            List of _Elements in which you want the beam propagated.
         **specific_kwargs : dict
             TraceWin optional arguments. Overrides what is defined in
             base_kwargs and .ini.
 
         """
-        if self.executable is None:
-            logging.warning("TraceWinSimulation has an invalid TraceWin "
-                            + "executable. Skipping simulation...")
-            return
-
-        start_time = time.monotonic()
-
-        kwargs = specific_kwargs.copy()
-        for key, val in self.base_kwargs.items():
-            if key not in kwargs:
-                kwargs[key] = val
-
-        command = self._set_command(**kwargs)
-        logging.info(f"Running TW with command {command}...")
-        process = subprocess.Popen(command, stdout=subprocess.PIPE)
-        process.wait()
-        for line in process.stdout:
-            print(line)
-
-        end_time = time.monotonic()
-        delta_t = datetime.timedelta(seconds=end_time - start_time)
-        logging.info(f"TW finished! It took {delta_t}")
-
-        simulation_output = self._generate_simulation_output()
-        return simulation_output
+        return self.run_with_this(set_of_cavity_settings=None, elts=elts,
+                                  **specific_kwargs)
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
-                      elts: ListOfElements) -> SimulationOutput:
+                      elts: ListOfElements, **specific_kwargs
+                      ) -> SimulationOutput:
         """
         Perform a simulation with new cavity settings.
 
@@ -140,7 +115,25 @@ class TraceWin:
             single object.
 
         """
-        raise NotImplementedError
+        if set_of_cavity_settings is not None:
+            raise NotImplementedError
+
+        kwargs = specific_kwargs.copy()
+        for key, val in self.base_kwargs.items():
+            if key not in kwargs:
+                kwargs[key] = val
+
+        dat_file = elts_to_dat(elts)
+        command = self._set_command(dat_file, **kwargs)
+        logging.info(f"Running TW with command {command}...")
+
+        process = subprocess.Popen(command, stdout=subprocess.PIPE)
+        process.wait()
+        for line in process.stdout:
+            print(line)
+
+        simulation_output = self._generate_simulation_output()
+        return simulation_output
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
         """Set the `path_cal` variable."""
@@ -203,13 +196,13 @@ class TraceWin:
             pass
         return element_to_index
 
-    def _set_command(self, **kwargs) -> str:
+    def _set_command(self, dat_file: str, **kwargs) -> str:
         """Create the command line to launch TraceWin."""
         arguments_that_tracewin_will_not_understand = ["executable"]
         command = [self.executable,
                    self.ini_path,
                    f"path_cal={self.path_cal}",
-                   f"dat_file={self.dat_file}"]
+                   f"dat_file={dat_file}"]
         for key, value in kwargs.items():
             if key in arguments_that_tracewin_will_not_understand:
                 continue
@@ -350,6 +343,11 @@ class TraceWin:
             cavity_param[key] = out[:, i]
         logging.debug(f"successfully loaded {f_p}")
         return cavity_param
+
+
+def elts_to_dat(elts: ListOfElements) -> str:
+    """Create a .dat file from elts."""
+    return str(elts)
 
 
 def _post_treat(results: dict) -> dict:

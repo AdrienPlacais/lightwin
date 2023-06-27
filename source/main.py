@@ -80,7 +80,7 @@ if __name__ == '__main__':
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
         'wtf': 'wtf.k_out_of_n',
-        # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
+        'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
@@ -115,10 +115,16 @@ if __name__ == '__main__':
 
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
-        logging.info(f"Elapsed time: {delta_t}")
+        logging.info(f"Elapsed time in optimisation: {delta_t}")
 
     for accelerator in accelerators:
+        start_time = time.monotonic()
+
         post_beam_calc_and_save(accelerator, my_beam_calc_post)
+
+        end_time = time.monotonic()
+        delta_t = datetime.timedelta(seconds=end_time - start_time)
+        logging.info(f"Elapsed time in post beam calculation: {delta_t}")
 
         # ini_path = FILEPATH.replace('.dat', '.ini')
         # TODO transfer ini path elsewhere
