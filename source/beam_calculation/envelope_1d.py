@@ -16,6 +16,7 @@ import numpy as np
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
 from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
+from core.accelerator import Accelerator
 from core.beam_parameters import BeamParameters
 from core.electric_field import compute_param_cav
 from beam_calculation.beam_calculator import (
@@ -111,7 +112,7 @@ class Envelope1D(BeamCalculator):
             elts, single_elts_results, rf_fields)
         return simulation_output
 
-    def init_solver_parameters(self, elts: ListOfElements) -> None:
+    def init_solver_parameters(self, accelerator: Accelerator) -> None:
         """
         Create the number of steps, meshing, transfer functions for elts.
 
@@ -122,10 +123,11 @@ class Envelope1D(BeamCalculator):
 
         Parameters
         ----------
-        elts : ListOfElements
-            The list of elements for which you want the parameters.
+        accelerator : Accelerator
+            Accelerator object which ListOfElements must be initialized.
 
         """
+        elts = accelerator.elts
         kwargs = {'n_steps_per_cell': self.n_steps_per_cell,
                   'method': self.method,
                   'transf_mat_module': self.transf_mat_module,
