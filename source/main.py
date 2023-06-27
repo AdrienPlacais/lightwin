@@ -15,25 +15,59 @@ import pandas as pd
 
 import config_manager as conf_man
 from core.accelerator import Accelerator, accelerator_factory
+from core.list_of_elements import ListOfElements
 from optimisation.fault_scenario import FaultScenario, fault_scenario_factory
 import tracewin.interface
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_object
-from util import output, evaluate
+from beam_calculation.output import SimulationOutput
+from util import evaluate
 from visualization import plot
 
 
-def wrapper_beam_calculation(accelerator: Accelerator,
-                             beam_calculator: BeamCalculator):
+def _wrap_beam_calculation(elts: ListOfElements,
+                           beam_calculator: BeamCalculator
+                           ) -> SimulationOutput:
     """Shorthand to init the solver, perform beam calculation, save results."""
-    beam_calculator._init_solver_parameters(accelerator.elts)
-    simulation_output = beam_calculator.run(accelerator.elts)
-    accelerator.keep_this(simulation_output)
+    beam_calculator._init_solver_parameters(elts)
+    simulation_output = beam_calculator.run(elts)
+    simulation_output.compute_complementary_data(elts)
+    return simulation_output
 
-    data_in_tracewin_style = tracewin.interface.output_data_in_tw_fashion(
-        accelerator)
-    output.save_files(accelerator,
-                      data_in_tracewin_style=data_in_tracewin_style)
+
+def beam_calc_and_save(accelerator: Accelerator,
+                       beam_calculator: BeamCalculator):
+    """Perform the simulation, save it into Accelerator.simulation_output."""
+    simulation_output = _wrap_beam_calculation(accelerator.elts,
+                                               beam_calculator)
+    accelerator.keep_settings(simulation_output)
+    accelerator.simulation_output = simulation_output
+
+
+def post_beam_calc_and_save(accelerator: Accelerator,
+                            beam_calculator: BeamCalculator | None,
+                            recompute_reference: bool = False):
+    """Perform the simulation, save it into Accelerator.simulation_output."""
+    if beam_calculator is None:
+        return
+    if accelerator.name == 'Working' and not recompute_reference:
+        logging.info("Not recomputing reference linac. Implement the auto "
+                     "taking from a reference folder.")
+        return
+    logging.error("Post calculation... Is out_tw set?")
+
+    simulation_output = _wrap_beam_calculation(accelerator.elts,
+                                               beam_calculator)
+    accelerator.simulation_output_post = simulation_output
+
+    # lin.files["out_tw"] = os.path.join(os.path.dirname(FILEPATH),
+    #                                    'ref')
+    # logging.info(
+    #     "we do not TW recompute reference accelerator. "
+    #     + f"We take TW results from {lin.files['out_tw']}.")
+    # continue
+    # output.save_files(accelerator,
+    #                   data_in_tracewin_style=simulation_output.in_tw_fashion)
 
 
 # =============================================================================
@@ -70,7 +104,7 @@ if __name__ == '__main__':
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
     accelerators: list[Accelerator] = accelerator_factory(**my_configs)
-    wrapper_beam_calculation(accelerators[0], my_beam_calc)
+    beam_calc_and_save(accelerators[0], my_beam_calc)
 
     fault_scenarios: list[FaultScenario]
     fault_scenarios = fault_scenario_factory(accelerators, my_beam_calc,
@@ -87,50 +121,35 @@ if __name__ == '__main__':
 # =============================================================================
 # Post simulation
 # =============================================================================
-    l_fred = []
-    l_bruce = []
-    if perform_post_simulation:
-        for lin in accelerators:
-            # It would be a loss of time to do these simulation
-            if 'Broken' in lin.name:
-                continue
+    for accelerator in accelerators:
+        post_beam_calc_and_save(accelerator, my_beam_calc_post)
 
-            if 'Working' in lin.name and not RECOMPUTE_REFERENCE:
-                lin.files["out_tw"] = os.path.join(os.path.dirname(FILEPATH),
-                                                   'ref')
-                logging.info(
-                    "we do not TW recompute reference accelerator. "
-                    + f"We take TW results from {lin.files['out_tw']}.")
-                continue
+        # ini_path = FILEPATH.replace('.dat', '.ini')
+        # TODO transfer ini path elsewhere
+        # tw_simu = TraceWinBeamCalculator(post_tw['executable'],
+        #                                  ini_path,
+        #                                  lin.get('out_tw'),
+        #                                  lin.get('dat_filepath'),
+        #                                  post_tw)
 
-            ini_path = FILEPATH.replace('.dat', '.ini')
-            # TODO transfer ini path elsewhere
-            simulation_output = my_beam_calc_post.run()
+#     if 'Fixed' in lin.name:
+#         tracewin.interface.resample_tracewin_results(
+#             ref=accelerators[0].tracewin_simulation,
+#             fix=lin.tracewin_simulation)
 
-            # tw_simu = TraceWinBeamCalculator(post_tw['executable'],
-            #                                  ini_path,
-            #                                  lin.get('out_tw'),
-            #                                  lin.get('dat_filepath'),
-            #                                  post_tw)
+#     if 'Fixed' in lin.name:
+#         d_fred = evaluate.fred_tests(accelerators[0], lin)
+#         l_fred.append(d_fred)
 
-            if 'Fixed' in lin.name:
-                tracewin.interface.resample_tracewin_results(
-                    ref=accelerators[0].tracewin_simulation,
-                    fix=lin.tracewin_simulation)
+#         d_bruce = evaluate.bruce_tests(accelerators[0], lin)
+#         l_bruce.append(d_bruce)
 
-            if 'Fixed' in lin.name:
-                d_fred = evaluate.fred_tests(accelerators[0], lin)
-                l_fred.append(d_fred)
-
-                d_bruce = evaluate.bruce_tests(accelerators[0], lin)
-                l_bruce.append(d_bruce)
-
-        if break_and_fix:
-            for _list, name in zip([l_fred, l_bruce],
-                                   ['fred_tests.csv', 'bruce_tests.csv']):
-                out = pd.DataFrame(_list)
-                filepath = os.path.join(PROJECT_FOLDER, name)
-                out.to_csv(filepath)
+# if break_and_fix:
+#     for _list, name in zip([l_fred, l_bruce],
+#                            ['fred_tests.csv', 'bruce_tests.csv']):
+#         out = pd.DataFrame(_list)
+#         filepath = os.path.join(PROJECT_FOLDER, name)
+#         out.to_csv(filepath)
 
 # =============================================================================
 # Plot

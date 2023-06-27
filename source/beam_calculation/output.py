@@ -10,9 +10,11 @@ A class to uniformly store the outputs from the different simulation tools:
     tracewin_envelope
     tracewin_multiparticle
 """
+import logging
 from dataclasses import dataclass
 from typing import Any, Callable
 import numpy as np
+import pandas as pd
 
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
@@ -37,6 +39,8 @@ class SimulationOutput:
 
     element_to_index: Callable[[str | _Element, str | None], int | slice] \
         | None = None
+
+    in_tw_fashion: pd.DataFrame | None = None
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -113,3 +117,6 @@ class SimulationOutput:
 
         self.beam_parameters.compute_full(self.synch_trajectory.gamma)
         self.beam_parameters.compute_mismatch(ref_twiss_zdelta)
+
+        # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
+        logging.critical("data_in_tw_fashion is bugged")

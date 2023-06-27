@@ -43,6 +43,7 @@ class Accelerator():
         """
         self.name = name
         self.simulation_output: SimulationOutput
+        self.simulation_output_post: SimulationOutput
         self.data_in_tw_fashion: pd.DataFrame
 
         # Prepare files and folders
@@ -206,35 +207,14 @@ class Accelerator():
                 + "used by TW. Results won't match if there are faulty "
                 + "cavities.")
 
-    def keep_this(self, simulation_output: SimulationOutput,
-                  ref_twiss_zdelta: np.ndarray | None = None) -> None:
-        """
-        Compute some complementary data and save it as an attribute.
-
-        Parameters
-        ----------
-        simulation_output : SimulationOutput
-            Class that holds all the relatable data created by the
-            BeamCalculator.
-        ref_twiss_zdelta : np.ndarray | None, optional
-            A reference array of Twiss parameters. If provided, it allows the
-            calculation of the mismatch factor. The default is None.
-
-        """
-        simulation_output.compute_complementary_data(self.elts,
-                                                     ref_twiss_zdelta)
-
-        # FIXME This is about storing parameters, not outputs
+    def keep_settings(self, simulation_output: SimulationOutput) -> None:
+        """Save cavity parameters in _Elements and new .dat file."""
         for elt, rf_field, cav_params in zip(self.elts,
                                              simulation_output.rf_fields,
                                              simulation_output.cav_params):
             elt.keep_rf_field(rf_field, cav_params)
 
-        self.simulation_output = simulation_output
         self._store_settings_in_dat(save=True)
-        # self.data_in_tw_fashion = tracewin.interface.output_data_in_tw_fashion(
-            # self)
-        logging.critical("data_in_tw_fashion is bugged")
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                           ) -> _Element | None:
@@ -256,8 +236,7 @@ class Accelerator():
 
         if save:
             dat_filepath = os.path.join(
-                self.get('out_lw'),
-                os.path.basename(self.get('dat_filepath')))
+                self.get('out_lw'), os.path.basename(self.get('dat_filepath')))
             self.files['dat_filepath'] = dat_filepath
             with open(self.get('dat_filepath'), 'w') as file:
                 for line in self.files['dat_filecontent']:

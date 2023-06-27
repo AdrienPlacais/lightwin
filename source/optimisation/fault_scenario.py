@@ -103,8 +103,12 @@ class FaultScenario(list):
             # Now we recompute full linac
             simulation_output = self.beam_calculator.run_with_this(
                 optimized_cavity_settings, self.fix_acc.elts)
-            self.fix_acc.keep_this(simulation_output,
-                                   ref_twiss_zdelta=ref_twiss_zdelta)
+            simulation_output.compute_complementary_data(self.fix_acc.elts,
+                                                         ref_twiss_zdelta)
+
+            self.fix_acc.keep_settings(simulation_output)
+            self.fix_acc.simulation_output = simulation_output
+
             fault.get_x_sol_in_real_phase()
             fault.update_cavities_status(optimisation='finished', success=True)
 
@@ -112,6 +116,8 @@ class FaultScenario(list):
                 # Tell LW to keep the new phase of the rephased cavities
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
+                logging.critical("Calculation in relative phase. Check if "
+                                 "necessary to reperform simulation?")
 
         self.fix_acc.name = f"Fixed ({str(success.count(True))}" \
             + f" of {str(len(success))})"
