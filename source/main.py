@@ -6,22 +6,22 @@ Created on Tue Dec  6 14:33:39 2022.
 @author: placais
 """
 
-import os
+# import os
 import logging
 # from copy import deepcopy
 import time
 import datetime
-import pandas as pd
+# import pandas as pd
 
 import config_manager as conf_man
 from core.accelerator import Accelerator, accelerator_factory
 from core.list_of_elements import ListOfElements
 from optimisation.fault_scenario import FaultScenario, fault_scenario_factory
-import tracewin.interface
+# import tracewin.interface
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_object
 from beam_calculation.output import SimulationOutput
-from util import evaluate
+# from util import evaluate
 from visualization import plot
 
 
