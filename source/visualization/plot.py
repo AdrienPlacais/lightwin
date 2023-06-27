@@ -128,7 +128,7 @@ def plot_preset(str_preset: str, *args, **kwargs):
 
     if kwargs['save_fig']:
         fixed_lin = args[-1]
-        file = os.path.join(fixed_lin.get('out_lw'), '..', f"{str_preset}.png")
+        file = os.path.join(fixed_lin.get('beam_calc_path'), '..', f"{str_preset}.png")
         _savefig(fig, file)
 
 
@@ -169,7 +169,7 @@ def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
         _plot_structure(lin_fix, axx[-1], x_axis=x_str)
 
         if save_fig:
-            file = os.path.join(lin_fix.get('out_lw'), '..',
+            file = os.path.join(lin_fix.get('beam_calc_path'), '..',
                                 f"{evaluation}_{i}.png")
             _savefig(fig, file)
 

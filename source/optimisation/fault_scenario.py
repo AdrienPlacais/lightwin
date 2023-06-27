@@ -261,7 +261,7 @@ class FaultScenario(list):
         logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
 
         if save:
-            out = os.path.join(self.fix_acc.get('out_lw'),
+            out = os.path.join(self.fix_acc.get('beam_calc_path'),
                                'settings_quality_tests.csv')
             df_eval.to_csv(out)
 

@@ -17,5 +17,5 @@ def save_files(accelerator: Accelerator,
     for data, filename in zip([data_in_tracewin_style],
                               ['data_in_tracewin_style.csv']):
         if data is not None:
-            out = os.path.join(accelerator.get('out_lw'), filename)
+            out = os.path.join(accelerator.get('beam_calc_path'), filename)
             data.to_csv(out)

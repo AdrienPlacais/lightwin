@@ -53,8 +53,8 @@ class Accelerator():
             'project_folder': project_folder,
             'dat_filecontent': None,
             'field_map_folder': None,
-            'out_lw': beam_calc_path,
-            'out_tw': beam_calc_post_path}
+            'beam_calc_path': beam_calc_path,
+            'beam_calc_post_path': beam_calc_post_path}
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent = tracewin.load.dat_file(dat_file)
@@ -236,7 +236,7 @@ class Accelerator():
 
         if save:
             dat_filepath = os.path.join(
-                self.get('out_lw'), os.path.basename(self.get('dat_filepath')))
+                self.get('beam_calc_path'), os.path.basename(self.get('dat_filepath')))
             self.files['dat_filepath'] = dat_filepath
             with open(self.get('dat_filepath'), 'w') as file:
                 for line in self.files['dat_filecontent']:
