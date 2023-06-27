@@ -21,7 +21,7 @@ import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
 import tracewin.load
-from beam_calculation.tracewin import TraceWin
+# from beam_calculation.tracewin import TraceWin
 
 
 try:
@@ -259,9 +259,10 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     return data
 
 
-def resample_tracewin_results(ref: TraceWin,
-                              fix: TraceWin) -> None:
+def resample_tracewin_results(ref: object,
+                              fix: object) -> None:
     """Interpolate the `fix` results @ `ref` positions."""
+    logging.critical("resample_tracewin_results should not exist anymore.")
     logging.critical("resample_tracewin_results should be moved away")
     ref_results = ref.results_multipart
     fix_results = fix.results_multipart

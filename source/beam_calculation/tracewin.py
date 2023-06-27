@@ -25,9 +25,10 @@ from constants import c
 import util.converters as convert
 from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
-from core.list_of_elements import ListOfElements
-from core.particle import ParticleFullTrajectory
 from core.elements import _Element
+from core.list_of_elements import ListOfElements
+from core.accelerator import Accelerator
+from core.particle import ParticleFullTrajectory
 from core.beam_parameters import BeamParameters
 
 
@@ -58,8 +59,6 @@ class TraceWin:
 
     executable: str
     ini_path: str
-    path_cal: str
-    dat_file: str
     base_kwargs: dict[[str], str]
 
     def __post_init__(self) -> None:
@@ -69,7 +68,9 @@ class TraceWin:
             filename = 'partran1.out'
         self.get_results = partial(self.load_results, filename=filename)
 
-        os.makedirs(self.path_cal)
+        self.path_cal: str
+        self.dat_file: str
+
         self.results_envelope: dict
         self.results_multipart: dict | None
         self.transfer_matrices: np.ndarray
@@ -140,6 +141,15 @@ class TraceWin:
 
         """
         raise NotImplementedError
+
+    def init_solver_parameters(self, accelerator: Accelerator) -> None:
+        """Set the `path_cal` variable."""
+        # self.path_cal = os.path.abspath('beam_calc_path')
+        # FIXME
+        logging.warning("For now, the TW path_cal is automatically set to the "
+                        "POST calculation path.")
+        self.path_cal = os.path.abspath('beam_calc_post_path')
+        assert os.path.exists(self.path_cal)
 
     def _generate_simulation_output(self) -> SimulationOutput:
         """Create an object holding all relatable simulation results."""

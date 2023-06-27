@@ -14,6 +14,7 @@ from beam_calculation.output import SimulationOutput
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 from core.elements import _Element
 from core.list_of_elements import ListOfElements
+from core.accelerator import Accelerator
 from util.helper import recursive_items, recursive_getter
 
 
@@ -57,6 +58,10 @@ class BeamCalculator(ABC):
             single object.
 
         """
+
+    @abstractmethod
+    def init_solver_parameters(self, accelerator: Accelerator) -> None:
+        """Init some BeamCalculator solver parameters."""
 
     @abstractmethod
     def _generate_simulation_output(self, *args: Any) -> SimulationOutput:
