@@ -88,7 +88,7 @@ if __name__ == '__main__':
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
         'wtf': 'wtf.k_out_of_n',
-        'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
+        # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 

@@ -48,12 +48,6 @@ class Envelope1D(BeamCalculator):
         else:
             import core.transfer_matrices_p as transf_mat
         self.transf_mat_module = transf_mat
-        logging.error("Envelope1D "
-                      "systematically takes indexes from beam_calc_param, "
-                      "while it should take beam_calc_post_param if called "
-                      "in post simulation.\n"
-                      "Such behavior reported in run_with_this and "
-                      " _generate_element_to_index_func")
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
