@@ -73,10 +73,6 @@ class BeamCalculator(ABC):
                                                       int | slice]:
         """Create the func to easily get data at proper mesh index."""
 
-    @abstractmethod
-    def _format_this(self, set_of_cavity_settings: SetOfCavitySettings) -> Any:
-        """Transform `set_of_cavity_settings` for this BeamCalculator."""
-
 
 class SingleElementCalculatorParameters(ABC):
     """

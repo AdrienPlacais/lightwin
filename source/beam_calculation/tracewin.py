@@ -23,7 +23,7 @@ from constants import c
 import util.converters as convert
 from beam_calculation.output import SimulationOutput
 from beam_calculation.beam_calculator import (
-    # BeamCalculator,
+    BeamCalculator,
     SingleElementCalculatorParameters)
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 from core.elements import _Element
@@ -34,7 +34,7 @@ from core.beam_parameters import BeamParameters
 
 
 @dataclass
-class TraceWin:
+class TraceWin(BeamCalculator):
     """
     A class to hold a TW simulation and its results.
 
@@ -67,7 +67,7 @@ class TraceWin:
         filename = 'tracewin.out'
         if self._is_a_multiparticle_simulation:
             filename = 'partran1.out'
-        self.get_results = partial(self.load_results, filename=filename)
+        self.get_results = partial(self._load_results, filename=filename)
 
         self.path_cal: str
         self.dat_file: str
@@ -163,11 +163,11 @@ class TraceWin:
                                                   synchronous=True)
 
         # WARNING, different meshing for these files
-        elt_number, pos, tm_cumul = self.get_transfer_matrices()
+        elt_number, pos, tm_cumul = self._load_transfer_matrices()
         logging.warning("Manually extracting only the z transf mat.")
         tm_cumul = tm_cumul[:, 4:, 4:]
 
-        # self.cavity_parameters = self.get_cavity_parameters()
+        # self.cavity_parameters = self._load_cavity_parameters()
         cav_params = []
         phi_s = []
         r_zz_elt = []
@@ -230,7 +230,7 @@ class TraceWin:
             return kwargs['partran'] == 1
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
 
-    def load_results(self, filename: str, post_treat: bool = True
+    def _load_results(self, filename: str, post_treat: bool = True
                      ) -> dict[str, np.ndarray]:
         """
         Get the TraceWin results.
@@ -264,9 +264,9 @@ class TraceWin:
             return _post_treat(results)
         return results
 
-    def get_transfer_matrices(self, filename: str = 'Transfer_matrix1.dat',
-                              high_def: bool = False
-                              ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _load_transfer_matrices(self, filename: str = 'Transfer_matrix1.dat',
+                                high_def: bool = False
+                                ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Get the full transfer matrices calculated by TraceWin.
 
@@ -323,8 +323,8 @@ class TraceWin:
         transfer_matrix = np.array(transfer_matrix)
         return element_number, position_in_m, transfer_matrix
 
-    def get_cavity_parameters(self, filename: str = 'Cav_set_point_res.dat'
-                              ) -> dict[[str], np.ndarray]:
+    def _load_cavity_parameters(self, filename: str = 'Cav_set_point_res.dat'
+                                ) -> dict[[str], np.ndarray]:
         """
         Get the cavity parameters calculated by TraceWin.
 
@@ -419,6 +419,10 @@ def _element_to_index(_elts: ListOfElements, _shift: int, elt: _Element | str,
     """
     if isinstance(elt, str):
         elt = equiv_elt(elts=_elts, elt=elt)
+    elif elt not in _elts:
+        logging.warning(f"Required element {elt} belongs to another "
+                        "ListOfElements, which is questionable in this "
+                        "context.")
 
     if pos is None:
         return slice(elt.beam_calc_post_param.s_in - _shift,

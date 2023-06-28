@@ -208,16 +208,6 @@ class Envelope1D(BeamCalculator):
         shift = elts[0].beam_calc_param.s_in
         return partial(_element_to_index, _elts=elts, _shift=shift)
 
-    def _format_this(self, set_of_cavity_settings: SetOfCavitySettings
-                     ) -> dict:
-        """Transform `set_of_cavity_settings` for this BeamCalculator."""
-        d_fit_elt = {}
-        return d_fit_elt
-
-    def generate_set_of_cavity_settings(self, d_fit: dict
-                                        ) -> SetOfCavitySettings:
-        return None
-
 
 def _element_to_index(_elts: ListOfElements, _shift: int, elt: _Element | str,
                       pos: str | None = None) -> int | slice:
@@ -241,6 +231,10 @@ def _element_to_index(_elts: ListOfElements, _shift: int, elt: _Element | str,
     """
     if isinstance(elt, str):
         elt = equiv_elt(elts=_elts, elt=elt)
+    elif elt not in _elts:
+        logging.warning(f"Required element {elt} belongs to another "
+                        "ListOfElements, which is questionable in this "
+                        "context.")
 
     if pos is None:
         return slice(elt.beam_calc_param.s_in - _shift,

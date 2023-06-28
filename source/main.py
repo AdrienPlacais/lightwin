@@ -49,6 +49,7 @@ def post_beam_calc_and_save(accelerator: Accelerator,
     """Perform the simulation, save it into Accelerator.simulation_output."""
     if beam_calculator is None:
         return
+
     beam_calculator.init_solver_parameters(accelerator)
     if accelerator.name == 'Working' and not recompute_reference:
         logging.info("Not recomputing reference linac. Implement the auto "
@@ -57,7 +58,6 @@ def post_beam_calc_and_save(accelerator: Accelerator,
 
     # simulation_output = _wrap_beam_calculation(accelerator, beam_calculator)
 
-    beam_calculator.init_solver_parameters(accelerator)
     # elts = accelerator.elts
     logging.warning("Need to give TraceWin.run_with_this and run a dat "
                     "filepath. Inconsistent with Envelope1D!!")
