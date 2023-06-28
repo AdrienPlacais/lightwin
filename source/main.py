@@ -27,7 +27,7 @@ from visualization import plot
 def _wrap_beam_calculation(accelerator: Accelerator,
                            beam_calculator: BeamCalculator
                            ) -> SimulationOutput:
-    """Shorthand to init the solver, perform beam calculation, save results."""
+    """Shorthand to init the solver, perform beam calculation."""
     beam_calculator.init_solver_parameters(accelerator)
     elts = accelerator.elts
     simulation_output = beam_calculator.run(elts)
@@ -45,7 +45,7 @@ def beam_calc_and_save(accelerator: Accelerator,
 
 def post_beam_calc_and_save(accelerator: Accelerator,
                             beam_calculator: BeamCalculator | None,
-                            recompute_reference: bool = False):
+                            recompute_reference: bool = True):
     """Perform the simulation, save it into Accelerator.simulation_output."""
     if beam_calculator is None:
         return
@@ -66,9 +66,6 @@ def post_beam_calc_and_save(accelerator: Accelerator,
     # simulation_output.compute_complementary_data(elts)
 
     accelerator.simulation_output_post = simulation_output
-
-    logging.critical('test differences between the two simulation_output '
-                     'for get method with elt=string.')
 
     # lin.files["out_tw"] = os.path.join(os.path.dirname(FILEPATH),
     #                                    'ref')
@@ -182,6 +179,3 @@ if __name__ == '__main__':
                 # accelerators[2 * i + 2])
                 args = (accelerators[0], accelerators[i + 1])
             plot.plot_preset(str_plot, *args, **kwargs)
-
-accelerators[-1].simulation_output.get('w_kin', elt='FM2')
-accelerators[-1].simulation_output_post.get('w_kin', elt='FM2')
