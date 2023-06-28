@@ -11,7 +11,6 @@ Different use cases, from easiest to hardest:
     - use it to fit
 """
 from dataclasses import dataclass
-from typing import Callable
 import os
 import logging
 import subprocess
@@ -29,8 +28,7 @@ from beam_calculation.single_element_tracewin_parameters import (
 
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
-from core.elements import _Element
-from core.list_of_elements import ListOfElements, equiv_elt
+from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory
 from core.beam_parameters import BeamParameters
@@ -190,14 +188,6 @@ class TraceWin(BeamCalculator):
             element_to_index=element_to_index
         )
         return simulation_output
-
-    def _generate_element_to_index_func(self, elts: ListOfElements
-                                        ) -> Callable[[_Element, str | None],
-                                                      int | slice]:
-        """Create the func to easily get data at proper mesh index."""
-        shift = elts[0].beam_calc_param[self.id].s_in
-        return partial(_element_to_index, _elts=elts, _shift=shift,
-                       _solver_id=self.id)
 
     def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
                                            elt_numbers: np.ndarray,
@@ -401,43 +391,3 @@ def _post_treat(results: dict) -> dict:
         gamma = (1. + alpha**2) / beta
         results[twi] = np.column_stack((alpha, beta, gamma))
     return results
-
-
-def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
-                      elt: _Element | str, pos: str | None = None
-                      ) -> int | slice:
-    """
-    Convert element + pos into a mesh index.
-
-    Parameters
-    ----------
-    _elts : ListOfElements
-        List of Elements where elt should be. Must be set by a
-        functools.partial.
-    shift : int
-        Mesh index of first _Element. Used when the first _Element of _elts is
-        not the first of the Accelerator. Must be set by functools.partial.
-    elt : _Element | str
-        Element of which you want the index.
-    pos : 'in' | 'out' | None, optional
-        Index of entry or exit of the _Element. If None, return full
-        indexes array. The default is None.
-
-    """
-    if isinstance(elt, str):
-        elt = equiv_elt(elts=_elts, elt=elt)
-    elif elt not in _elts:
-        logging.warning(f"Required element {elt} belongs to another "
-                        "ListOfElements, which is questionable in this "
-                        "context.")
-
-    beam_calc_param = elt.beam_calc_param[_solver_id]
-    if pos is None:
-        return slice(beam_calc_param.s_in - _shift,
-                     beam_calc_param.s_out - _shift + 1)
-    elif pos == 'in':
-        return beam_calc_param.s_in - _shift
-    elif pos == 'out':
-        return beam_calc_param.s_out - _shift
-    else:
-        logging.error(f"{pos = }, while it must be 'in', 'out' or None")
