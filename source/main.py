@@ -54,10 +54,21 @@ def post_beam_calc_and_save(accelerator: Accelerator,
         logging.info("Not recomputing reference linac. Implement the auto "
                      "taking from a reference folder.")
         return
-    logging.error("Post calculation... Is out_tw set?")
 
-    simulation_output = _wrap_beam_calculation(accelerator, beam_calculator)
+    # simulation_output = _wrap_beam_calculation(accelerator, beam_calculator)
+
+    beam_calculator.init_solver_parameters(accelerator)
+    # elts = accelerator.elts
+    logging.warning("Need to give TraceWin.run_with_this and run a dat "
+                    "filepath. Inconsistent with Envelope1D!!")
+    simulation_output = beam_calculator.run(accelerator.elts,
+                                            accelerator.get('dat_filepath'))
+    # simulation_output.compute_complementary_data(elts)
+
     accelerator.simulation_output_post = simulation_output
+
+    logging.critical('test differences between the two simulation_output '
+                     'for get method with elt=string.')
 
     # lin.files["out_tw"] = os.path.join(os.path.dirname(FILEPATH),
     #                                    'ref')
@@ -171,3 +182,6 @@ if __name__ == '__main__':
                 # accelerators[2 * i + 2])
                 args = (accelerators[0], accelerators[i + 1])
             plot.plot_preset(str_plot, *args, **kwargs)
+
+accelerators[-1].simulation_output.get('w_kin', elt='FM2')
+accelerators[-1].simulation_output_post.get('w_kin', elt='FM2')

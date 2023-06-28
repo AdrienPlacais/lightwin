@@ -86,20 +86,6 @@ class SingleElementCalculatorParameters(ABC):
     meshing maybe?
     """
 
-    @abstractmethod
-    def set_absolute_meshes(self, pos_in: float, s_in: int
-                            ) -> tuple[float, int]:
-        """Set the absolute indexes and arrays, depending on previous elem."""
-
-    @abstractmethod
-    def re_set_for_broken_cavity(self):
-        """Modify solver parameters once a cavity is non-accelerating."""
-
-    @abstractmethod
-    def transf_mat_function_wrapper(self, w_kin_in: float, *args, **kwargs
-                                    ) -> dict:
-        """Calculate the beam propagation in _Element, give results dict."""
-
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))

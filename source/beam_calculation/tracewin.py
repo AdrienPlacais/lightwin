@@ -22,9 +22,12 @@ import numpy as np
 from constants import c
 import util.converters as convert
 from beam_calculation.output import SimulationOutput
+from beam_calculation.beam_calculator import (
+    # BeamCalculator,
+    SingleElementCalculatorParameters)
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 from core.elements import _Element
-from core.list_of_elements import ListOfElements
+from core.list_of_elements import ListOfElements, equiv_elt
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory
 from core.beam_parameters import BeamParameters
@@ -76,7 +79,8 @@ class TraceWin:
 
     # TODO what is specific_kwargs for? I should just have a function
     # set_of_cavity_settings_to_kwargs
-    def run(self, elts, **specific_kwargs) -> None:
+    def run(self, elts: ListOfElements, dat_filepath: str,
+            **specific_kwargs) -> None:
         """
         Run TraceWin.
 
@@ -90,10 +94,11 @@ class TraceWin:
 
         """
         return self.run_with_this(set_of_cavity_settings=None, elts=elts,
-                                  **specific_kwargs)
+                                  dat_filepath=dat_filepath, **specific_kwargs)
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
-                      elts: ListOfElements, **specific_kwargs
+                      elts: ListOfElements, dat_filepath: str,
+                      **specific_kwargs
                       ) -> SimulationOutput:
         """
         Perform a simulation with new cavity settings.
@@ -123,8 +128,7 @@ class TraceWin:
             if key not in kwargs:
                 kwargs[key] = val
 
-        dat_file = elts_to_dat(elts)
-        command = self._set_command(dat_file, **kwargs)
+        command = self._set_command(dat_filepath, **kwargs)
         logging.info(f"Running TW with command {command}...")
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE)
@@ -132,7 +136,7 @@ class TraceWin:
         for line in process.stdout:
             print(line)
 
-        simulation_output = self._generate_simulation_output()
+        simulation_output = self._generate_simulation_output(elts)
         return simulation_output
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
@@ -141,19 +145,27 @@ class TraceWin:
         # FIXME
         logging.warning("For now, the TW path_cal is automatically set to the "
                         "POST calculation path.")
-        self.path_cal = os.path.abspath('beam_calc_post_path')
+        self.path_cal = accelerator.get('beam_calc_post_path')
         assert os.path.exists(self.path_cal)
 
-    def _generate_simulation_output(self) -> SimulationOutput:
+    def _generate_simulation_output(self, elts: ListOfElements
+                                    ) -> SimulationOutput:
         """Create an object holding all relatable simulation results."""
         results = self.get_results(post_treat=True)
+
+        self._save_tracewin_meshing_in_elements(elts, results['##'],
+                                                results['z(m)'])
+
         w_kin = results['w_kin']
         phi_abs_array = results['phi_abs_array']
         synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
                                                   phi_abs=phi_abs_array,
                                                   synchronous=True)
 
+        # WARNING, different meshing for these files
         elt_number, pos, tm_cumul = self.get_transfer_matrices()
+        logging.warning("Manually extracting only the z transf mat.")
+        tm_cumul = tm_cumul[:, 4:, 4:]
 
         # self.cavity_parameters = self.get_cavity_parameters()
         cav_params = []
@@ -162,7 +174,7 @@ class TraceWin:
         beam_params = BeamParameters(tm_cumul)
         rf_fields = []
 
-        element_to_index = self._generate_element_to_index_func()
+        element_to_index = self._generate_element_to_index_func(elts)
         simulation_output = SimulationOutput(
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
@@ -178,23 +190,23 @@ class TraceWin:
                                         ) -> Callable[[_Element, str | None],
                                                       int | slice]:
         """Create the func to easily get data at proper mesh index."""
+        shift = elts[0].beam_calc_param.s_in
+        return partial(_element_to_index, _elts=elts, _shift=shift)
 
-        def element_to_index(elt: _Element, pos: str | None = None
-                             ) -> int | slice:
-            """
-            Convert element + pos into a mesh index.
+    def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
+                                           elt_numbers: np.ndarray,
+                                           z_abs: np.ndarray) -> None:
+        """Take output files to determine where are evaluated w_kin, etc."""
+        elt_numbers = elt_numbers.astype(int)
 
-            Parameters
-            ----------
-            elt : _Element
-                Element of which you want the index.
-            pos : 'in' | 'out' | None, optional
-                Index of entry or exit of the _Element. If None, return full
-                indexes array. The default is None.
+        for elt_number, elt in enumerate(elts, start=1):
+            elt_mesh_indexes = np.where(elt_numbers == elt_number)[0]
+            s_in = elt_mesh_indexes[0] - 1
+            s_out = elt_mesh_indexes[-1]
+            z_element = z_abs[s_in:s_out + 1]
 
-            """
-            pass
-        return element_to_index
+            elt.beam_calc_post_param = SingleElementTraceWinParameters(
+                elt.length_m, z_element, s_in, s_out)
 
     def _set_command(self, dat_file: str, **kwargs) -> str:
         """Create the command line to launch TraceWin."""
@@ -383,3 +395,59 @@ def _post_treat(results: dict) -> dict:
         gamma = (1. + alpha**2) / beta
         results[twi] = np.column_stack((alpha, beta, gamma))
     return results
+
+
+def _element_to_index(_elts: ListOfElements, _shift: int, elt: _Element | str,
+                      pos: str | None = None) -> int | slice:
+    """
+    Convert element + pos into a mesh index.
+
+    Parameters
+    ----------
+    _elts : ListOfElements
+        List of Elements where elt should be. Must be set by a
+        functools.partial.
+    shift : int
+        Mesh index of first _Element. Used when the first _Element of _elts is
+        not the first of the Accelerator. Must be set by functools.partial.
+    elt : _Element | str
+        Element of which you want the index.
+    pos : 'in' | 'out' | None, optional
+        Index of entry or exit of the _Element. If None, return full
+        indexes array. The default is None.
+
+    """
+    if isinstance(elt, str):
+        elt = equiv_elt(elts=_elts, elt=elt)
+
+    if pos is None:
+        return slice(elt.beam_calc_post_param.s_in - _shift,
+                     elt.beam_calc_post_param.s_out - _shift + 1)
+    elif pos == 'in':
+        return elt.beam_calc_post_param.s_in - _shift
+    elif pos == 'out':
+        return elt.beam_calc_post_param.s_out - _shift
+    else:
+        logging.error(f"{pos = }, while it must be 'in', 'out' or None")
+
+
+class SingleElementTraceWinParameters(SingleElementCalculatorParameters):
+    """
+    Holds meshing and indexes of _Elements.
+
+    Unnecessary for TraceWin, but useful to link the meshing in TraceWin to
+    other simulations. Hence, it is not created by the init_solver_parameters
+    as for Envelope1D!!
+    Instead, meshing is deducted from the TraceWin output files.
+    """
+
+    def __init__(self, length_m: float, z_of_this_element_from_tw: np.ndarray,
+                 s_in: int, s_out: int) -> None:
+        self.n_steps = z_of_this_element_from_tw.shape[0]
+        self.abs_mesh = z_of_this_element_from_tw
+        self.rel_mesh = self.abs_mesh - self.abs_mesh[0]
+
+        assert np.abs(length_m - self.rel_mesh[-1]) < 1e-10
+
+        self.s_in = s_in
+        self.s_out = s_out

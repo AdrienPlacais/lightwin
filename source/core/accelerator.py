@@ -236,7 +236,8 @@ class Accelerator():
 
         if save:
             dat_filepath = os.path.join(
-                self.get('beam_calc_path'), os.path.basename(self.get('dat_filepath')))
+                self.get('beam_calc_path'),
+                os.path.basename(self.get('dat_filepath')))
             self.files['dat_filepath'] = dat_filepath
             with open(self.get('dat_filepath'), 'w') as file:
                 for line in self.files['dat_filecontent']:
@@ -309,7 +310,7 @@ def _generate_folders_tree_structure(project_folder: str,
         base_beam_calc_post = f"beam_calculation_post_{post_tool}"
         beam_calc_post_paths = [os.path.join(fault_scenar, base_beam_calc_post)
                                 for fault_scenar in fault_scenario_paths]
-        _ = [os.makedir(beam_calc_path)
+        _ = [os.makedirs(beam_calc_path)
              for beam_calc_path in beam_calc_post_paths]
 
     return beam_calc_paths, beam_calc_post_paths

@@ -7,15 +7,17 @@ Created on Mon Jun 12 08:24:37 2023.
 
 """
 import logging
-from typing import Callable
 from types import ModuleType
+from functools import partial
+from typing import Callable
 from dataclasses import dataclass
 
 import numpy as np
 
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
-from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
+from core.list_of_elements import (ListOfElements, indiv_to_cumul_transf_mat,
+                                   equiv_elt)
 from core.accelerator import Accelerator
 from core.beam_parameters import BeamParameters
 from core.electric_field import compute_param_cav
@@ -47,6 +49,12 @@ class Envelope1D(BeamCalculator):
         else:
             import core.transfer_matrices_p as transf_mat
         self.transf_mat_module = transf_mat
+        logging.error("Envelope1D "
+                      "systematically takes indexes from beam_calc_param, "
+                      "while it should take beam_calc_post_param if called "
+                      "in post simulation.\n"
+                      "Such behavior reported in run_with_this and "
+                      " _generate_element_to_index_func")
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -197,33 +205,8 @@ class Envelope1D(BeamCalculator):
                                         ) -> Callable[[_Element, str | None],
                                                       int | slice]:
         """Create the func to easily get data at proper mesh index."""
-        shift = elts[0].get('s_in', to_numpy=False)
-
-        def element_to_index(elt: _Element, pos: str | None = None
-                             ) -> int | slice:
-            """
-            Convert element + pos into a mesh index.
-
-            Parameters
-            ----------
-            elt : _Element
-                Element of which you want the index.
-            pos : 'in' | 'out' | None, optional
-                Index of entry or exit of the _Element. If None, return full
-                indexes array. The default is None.
-
-            """
-            if pos is None:
-                return slice(elt.get('s_in', to_numpy=False) - shift,
-                             elt.get('s_out', to_numpy=False) - shift + 1)
-            elif pos == 'in':
-                return elt.get('s_in', to_numpy=False) - shift
-            elif pos == 'out':
-                return elt.get('s_out', to_numpy=False) - shift
-            else:
-                logging.error(f"{pos = }, while it must be 'in', 'out' or "
-                              + "None")
-        return element_to_index
+        shift = elts[0].beam_calc_param.s_in
+        return partial(_element_to_index, _elts=elts, _shift=shift)
 
     def _format_this(self, set_of_cavity_settings: SetOfCavitySettings
                      ) -> dict:
@@ -234,6 +217,40 @@ class Envelope1D(BeamCalculator):
     def generate_set_of_cavity_settings(self, d_fit: dict
                                         ) -> SetOfCavitySettings:
         return None
+
+
+def _element_to_index(_elts: ListOfElements, _shift: int, elt: _Element | str,
+                      pos: str | None = None) -> int | slice:
+    """
+    Convert element + pos into a mesh index.
+
+    Parameters
+    ----------
+    _elts : ListOfElements
+        List of Elements where elt should be. Must be set by a
+        functools.partial.
+    shift : int
+        Mesh index of first _Element. Used when the first _Element of _elts is
+        not the first of the Accelerator. Must be set by functools.partial.
+    elt : _Element | str
+        Element of which you want the index.
+    pos : 'in' | 'out' | None, optional
+        Index of entry or exit of the _Element. If None, return full
+        indexes array. The default is None.
+
+    """
+    if isinstance(elt, str):
+        elt = equiv_elt(elts=_elts, elt=elt)
+
+    if pos is None:
+        return slice(elt.beam_calc_param.s_in - _shift,
+                     elt.beam_calc_param.s_out - _shift + 1)
+    elif pos == 'in':
+        return elt.beam_calc_param.s_in - _shift
+    elif pos == 'out':
+        return elt.beam_calc_param.s_out - _shift
+    else:
+        logging.error(f"{pos = }, while it must be 'in', 'out' or None")
 
 
 class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):

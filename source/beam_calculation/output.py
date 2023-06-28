@@ -85,7 +85,7 @@ class SimulationOutput:
                 val[key] = val[key].tolist()
 
             if None not in (self.element_to_index, elt):
-                idx = self.element_to_index(elt, pos)
+                idx = self.element_to_index(elt=elt, pos=pos)
                 val[key] = val[key][idx]
 
         out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
