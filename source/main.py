@@ -40,7 +40,7 @@ def beam_calc_and_save(accelerator: Accelerator,
     """Perform the simulation, save it into Accelerator.simulation_output."""
     simulation_output = _wrap_beam_calculation(accelerator, beam_calculator)
     accelerator.keep_settings(simulation_output)
-    accelerator.simulation_output = simulation_output
+    accelerator.simulation_outputs[beam_calculator.id] = simulation_output
 
 
 def post_beam_calc_and_save(accelerator: Accelerator,
@@ -65,7 +65,7 @@ def post_beam_calc_and_save(accelerator: Accelerator,
                                             accelerator.get('dat_filepath'))
     # simulation_output.compute_complementary_data(elts)
 
-    accelerator.simulation_output_post = simulation_output
+    accelerator.simulation_outputs[beam_calculator.id] = simulation_output
 
     # lin.files["out_tw"] = os.path.join(os.path.dirname(FILEPATH),
     #                                    'ref')
@@ -88,7 +88,7 @@ if __name__ == '__main__':
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
         'wtf': 'wtf.k_out_of_n',
-        # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
+        'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 

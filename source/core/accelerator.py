@@ -42,8 +42,7 @@ class Accelerator():
         the self.synch Particle object.
         """
         self.name = name
-        self.simulation_output: SimulationOutput
-        self.simulation_output_post: SimulationOutput
+        self.simulation_outputs: dict[str, SimulationOutput] = {}
         self.data_in_tw_fashion: pd.DataFrame
 
         # Prepare files and folders
@@ -178,6 +177,7 @@ class Accelerator():
 
     def _create_special_getters(self) -> dict:
         """Create a dict of aliases that can be accessed w/ the get method."""
+        # FIXME this won't work with new simulation output
         # TODO also remove the M_ij?
         _special_getters = {
             'M_11': lambda self: self.simulation_output.tm_cumul[:, 0, 0],

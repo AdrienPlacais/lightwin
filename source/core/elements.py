@@ -59,9 +59,7 @@ class _Element():
         self.acc_field = RfField()
 
         self.idx = {'elt_idx': None, 'lattice': None, 'section': None}
-        self.beam_calc_param: {
-            str: SingleElementCalculatorParameters
-        } = {}
+        self.beam_calc_param: dict[str, SingleElementCalculatorParameters] = {}
 
     def __str__(self) -> str:
         return self.elt_info['elt_name']

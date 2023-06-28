@@ -107,7 +107,8 @@ class FaultScenario(list):
                                                          ref_twiss_zdelta)
 
             self.fix_acc.keep_settings(simulation_output)
-            self.fix_acc.simulation_output = simulation_output
+            self.fix_acc.simulation_outputs[self.beam_calculator.id] \
+                = simulation_output
 
             fault.get_x_sol_in_real_phase()
             fault.update_cavities_status(optimisation='finished', success=True)
