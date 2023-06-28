@@ -75,11 +75,6 @@ class TraceWin(BeamCalculator):
         self.path_cal: str
         self.dat_file: str
 
-        self.results_envelope: dict
-        self.results_multipart: dict | None
-        self.transfer_matrices: np.ndarray
-        self.cavity_parameters: dict
-
     # TODO what is specific_kwargs for? I should just have a function
     # set_of_cavity_settings_to_kwargs
     def run(self, elts: ListOfElements, dat_filepath: str,
@@ -146,8 +141,8 @@ class TraceWin(BeamCalculator):
         """Set the `path_cal` variable."""
         # self.path_cal = os.path.abspath('beam_calc_path')
         # FIXME
-        logging.warning("For now, the TW path_cal is automatically set to the "
-                        "POST calculation path.")
+        logging.critical("For now, the TW path_cal is automatically set to the"
+                         " POST calculation path.")
         self.path_cal = accelerator.get('beam_calc_post_path')
         assert os.path.exists(self.path_cal)
 
@@ -170,11 +165,16 @@ class TraceWin(BeamCalculator):
         logging.warning("Manually extracting only the z transf mat.")
         tm_cumul = tm_cumul[:, 4:, 4:]
 
-        # self.cavity_parameters = self._load_cavity_parameters()
-        cav_params = []
-        phi_s = []
+        cav_params = self._load_cavity_parameters()
+        phi_s = list(np.deg2rad(cav_params['SyncPhase[°]']))
+        cav_params = self._cavity_parameters_uniform_with_envelope1d(
+            cav_params, len(elts))
+
         r_zz_elt = []
+
         beam_params = BeamParameters(tm_cumul)
+        beam_params = _beam_param_uniform_with_envelope1d(beam_params, results)
+
         rf_fields = []
 
         element_to_index = self._generate_element_to_index_func(elts)
@@ -351,6 +351,53 @@ class TraceWin(BeamCalculator):
             cavity_param[key] = out[:, i]
         logging.debug(f"successfully loaded {f_p}")
         return cavity_param
+
+    def _cavity_parameters_uniform_with_envelope1d(
+        self, cav_params: dict[str, np.ndarray], n_elts: int
+            ) -> list[None | dict[str, float]]:
+        """Transform the dict so we have the same format as Envelope1D."""
+        elt_number = cav_params['Cav#'].astype(int)
+
+        j = 0
+        compliant_cav_params = []
+        for i in range(1, n_elts + 1):
+            if i not in elt_number:
+                compliant_cav_params.append(None)
+                continue
+
+            param = {'v_cav_mv': cav_params['Voltage[MV]'][j],
+                     'phi_s': np.deg2rad(cav_params['SyncPhase[°]'][j])}
+            compliant_cav_params.append(param)
+            j += 1
+        return compliant_cav_params
+
+
+def _beam_param_uniform_with_envelope1d(
+    beam_parameters: BeamParameters, results: dict[str, np.ndarray]
+        ) -> BeamParameters:
+    """Manually set quantities in BeamParamaters object."""
+    beam_parameters.eps_x = results['ex']
+    beam_parameters.eps_y = results['ey']
+    beam_parameters.eps_t = results['et']
+    beam_parameters.eps_zdelta = results['ezdp']
+    beam_parameters.eps_phiw = results['ep']
+
+    beam_parameters.eps_x_99 = results['ex99']
+    beam_parameters.eps_y_99 = results['ey99']
+    beam_parameters.eps_phiw_99 = results['ep99']
+
+    beam_parameters.envelope_pos_zdelta = results['SizeZ']
+    # beam_parameters.envelope_energy_zdelta = results['']
+    beam_parameters.envelope_pos_z = results['SizeZ']
+    # beam_parameters.envelope_energy_z = results['']
+    beam_parameters.envelope_pos_w = results['SizeP']
+    # beam_parameters.envelope_energy_w = results['']
+    beam_parameters.envelope_energy_zdelta = results['szdp']
+    # beam_parameters.envelope_pos_z = results['']
+    # beam_parameters.envelope_energy_z = results['']
+    # beam_parameters.envelope_pos_w = results['']
+    beam_parameters.envelope_energy_w = results['spW']
+    return beam_parameters
 
 
 def elts_to_dat(elts: ListOfElements) -> str:

@@ -44,7 +44,7 @@ from util.helper import recursive_items, recursive_getter, range_vals
 
 @dataclass
 class BeamParameters:
-    """This module holds all emittances, envelopes, etc in various planes."""
+    """Hold all emittances, envelopes, etc in various planes."""
 
     tm_cumul: np.ndarray
     sigma_in: np.ndarray | None = None
@@ -78,6 +78,7 @@ class BeamParameters:
         self.envelope_energy_w: np.ndarray
 
     def __str__(self) -> str:
+        """Give compact information on the data that is stored."""
         out = "\tBeamParameters:\n"
         out += "\t\t" + range_vals("eps_zdelta", self.eps_zdelta)
         out += "\t\t" + range_vals("beta_zdelta", self.beta_zdelta)

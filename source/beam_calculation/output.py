@@ -43,6 +43,7 @@ class SimulationOutput:
     in_tw_fashion: pd.DataFrame | None = None
 
     def __str__(self) -> str:
+        """Give a resume of the data that is stored."""
         out = "SimulationOutput:\n"
         out += "\t" + range_vals("z_abs", self.z_abs)
         out += self.synch_trajectory.__str__()
