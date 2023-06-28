@@ -39,7 +39,7 @@ import numpy as np
 import config_manager as con
 from core.elements import _Element
 import util.converters as convert
-from util.helper import recursive_items, recursive_getter
+from util.helper import recursive_items, recursive_getter, range_vals
 
 
 @dataclass
@@ -76,6 +76,13 @@ class BeamParameters:
         self.envelope_energy_z: np.ndarray
         self.envelope_pos_w: np.ndarray
         self.envelope_energy_w: np.ndarray
+
+    def __str__(self) -> str:
+        out = "BeamParameters:\n"
+        out += "\t" + range_vals("eps_zdelta", self.eps_zdelta)
+        out += "\t" + range_vals("beta_zdelta", self.beta_zdelta)
+        out += "\t" + range_vals("mismatch", self.mismatch_factor)
+        return out
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""

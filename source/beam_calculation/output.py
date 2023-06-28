@@ -20,7 +20,7 @@ from core.particle import ParticleFullTrajectory
 from core.elements import _Element
 from core.list_of_elements import ListOfElements
 from core.beam_parameters import BeamParameters
-from util.helper import recursive_items, recursive_getter
+from util.helper import recursive_items, recursive_getter, range_vals
 
 
 @dataclass
@@ -41,6 +41,13 @@ class SimulationOutput:
         | None = None
 
     in_tw_fashion: pd.DataFrame | None = None
+
+    def __str__(self) -> str:
+        out = "SimulationOutput:\n"
+        out += "\t" + range_vals("z_abs", self.z_abs)
+        out += self.synch_trajectory.__str__()
+        out += self.beam_parameters.__str__()
+        return out
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""

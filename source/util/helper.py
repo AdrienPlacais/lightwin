@@ -119,6 +119,14 @@ def resample(x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
     return x_1, y_1, x_2, y_2
 
 
+def range_vals(name: str, data: np.ndarray | None) -> str:
+    """Return formatted first and last value of the `data` array."""
+    out = f"{name:15s}"
+    if data is None:
+        return out + "(not set)\n"
+    out += f"{data[0]:7.5e} -> {data[-1]:7.5e} | {data.shape}\n"
+    return out
+
 # =============================================================================
 # Files functions
 # =============================================================================

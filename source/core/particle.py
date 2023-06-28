@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from typing import Any
 import numpy as np
 
-from util.helper import recursive_items, recursive_getter
+from util.helper import recursive_items, recursive_getter, range_vals
 import util.converters as convert
 
 
@@ -62,6 +62,12 @@ class ParticleFullTrajectory(ParticleInitialState):
         self.gamma = convert.energy(self.get('w_kin'), "kin to gamma")
         self.beta: np.ndarray
 
+    def __str__(self) -> str:
+        out = "ParticleFullTrajectory:\n"
+        out += "\t" + range_vals("w_kin", self.w_kin)
+        out += "\t" + range_vals("phi_abs", self.phi_abs)
+        return out
+
     def compute_complementary_data(self):
         """Compute some data necessary to do the post-treatment."""
         self.beta = convert.energy(self.get('gamma'), "gamma to beta")
@@ -95,14 +101,6 @@ class ParticleFullTrajectory(ParticleInitialState):
         # implicit else:
         return tuple(out)
 
-    def __str__(self) -> str:
-        """Print info on particle in a compact way."""
-        n_points = self.w_kin.shape[0]
-        w_kin_range = f"{self.w_kin[0]} -> {self.w_kin[-1]}"
-        phi_abs_range = f"{self.phi_abs[0]} -> {self.phi_abs[-1]}"
-        string = f"{n_points = }, synchronous = {self.synchronous}, " \
-            + f"{w_kin_range = }, {phi_abs_range = }"
-        return string
 
 # def create_rand_particles(e_0_mev):
 #     """Create two random particles."""
