@@ -78,10 +78,10 @@ class BeamParameters:
         self.envelope_energy_w: np.ndarray
 
     def __str__(self) -> str:
-        out = "BeamParameters:\n"
-        out += "\t" + range_vals("eps_zdelta", self.eps_zdelta)
-        out += "\t" + range_vals("beta_zdelta", self.beta_zdelta)
-        out += "\t" + range_vals("mismatch", self.mismatch_factor)
+        out = "\tBeamParameters:\n"
+        out += "\t\t" + range_vals("eps_zdelta", self.eps_zdelta)
+        out += "\t\t" + range_vals("beta_zdelta", self.beta_zdelta)
+        out += "\t\t" + range_vals("mismatch", self.mismatch_factor)
         return out
 
     def has(self, key: str) -> bool:

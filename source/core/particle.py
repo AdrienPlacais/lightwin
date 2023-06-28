@@ -63,9 +63,9 @@ class ParticleFullTrajectory(ParticleInitialState):
         self.beta: np.ndarray
 
     def __str__(self) -> str:
-        out = "ParticleFullTrajectory:\n"
-        out += "\t" + range_vals("w_kin", self.w_kin)
-        out += "\t" + range_vals("phi_abs", self.phi_abs)
+        out = "\tParticleFullTrajectory:\n"
+        out += "\t\t" + range_vals("w_kin", self.w_kin)
+        out += "\t\t" + range_vals("phi_abs", self.phi_abs)
         return out
 
     def compute_complementary_data(self):
