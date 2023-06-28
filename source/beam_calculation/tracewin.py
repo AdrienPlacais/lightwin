@@ -21,11 +21,14 @@ import numpy as np
 
 from constants import c
 import util.converters as convert
+
 from beam_calculation.output import SimulationOutput
-from beam_calculation.beam_calculator import (
-    BeamCalculator,
-    SingleElementCalculatorParameters)
+from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.single_element_tracewin_parameters import (
+    SingleElementTraceWinParameters)
+
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
+
 from core.elements import _Element
 from core.list_of_elements import ListOfElements, equiv_elt
 from core.accelerator import Accelerator
@@ -64,6 +67,8 @@ class TraceWin(BeamCalculator):
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
+        self.id = self.__repr__()
+
         filename = 'tracewin.out'
         if self._is_a_multiparticle_simulation:
             filename = 'partran1.out'
@@ -190,8 +195,9 @@ class TraceWin(BeamCalculator):
                                         ) -> Callable[[_Element, str | None],
                                                       int | slice]:
         """Create the func to easily get data at proper mesh index."""
-        shift = elts[0].beam_calc_param.s_in
-        return partial(_element_to_index, _elts=elts, _shift=shift)
+        shift = elts[0].beam_calc_param[self.id].s_in
+        return partial(_element_to_index, _elts=elts, _shift=shift,
+                       _solver_id=self.id)
 
     def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
                                            elt_numbers: np.ndarray,
@@ -205,7 +211,7 @@ class TraceWin(BeamCalculator):
             s_out = elt_mesh_indexes[-1]
             z_element = z_abs[s_in:s_out + 1]
 
-            elt.beam_calc_post_param = SingleElementTraceWinParameters(
+            elt.beam_calc_param[self.id] = SingleElementTraceWinParameters(
                 elt.length_m, z_element, s_in, s_out)
 
     def _set_command(self, dat_file: str, **kwargs) -> str:
@@ -231,7 +237,7 @@ class TraceWin(BeamCalculator):
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
 
     def _load_results(self, filename: str, post_treat: bool = True
-                     ) -> dict[str, np.ndarray]:
+                      ) -> dict[str, np.ndarray]:
         """
         Get the TraceWin results.
 
@@ -397,8 +403,9 @@ def _post_treat(results: dict) -> dict:
     return results
 
 
-def _element_to_index(_elts: ListOfElements, _shift: int, elt: _Element | str,
-                      pos: str | None = None) -> int | slice:
+def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
+                      elt: _Element | str, pos: str | None = None
+                      ) -> int | slice:
     """
     Convert element + pos into a mesh index.
 
@@ -424,34 +431,13 @@ def _element_to_index(_elts: ListOfElements, _shift: int, elt: _Element | str,
                         "ListOfElements, which is questionable in this "
                         "context.")
 
+    beam_calc_param = elt.beam_calc_param[_solver_id]
     if pos is None:
-        return slice(elt.beam_calc_post_param.s_in - _shift,
-                     elt.beam_calc_post_param.s_out - _shift + 1)
+        return slice(beam_calc_param.s_in - _shift,
+                     beam_calc_param.s_out - _shift + 1)
     elif pos == 'in':
-        return elt.beam_calc_post_param.s_in - _shift
+        return beam_calc_param.s_in - _shift
     elif pos == 'out':
-        return elt.beam_calc_post_param.s_out - _shift
+        return beam_calc_param.s_out - _shift
     else:
         logging.error(f"{pos = }, while it must be 'in', 'out' or None")
-
-
-class SingleElementTraceWinParameters(SingleElementCalculatorParameters):
-    """
-    Holds meshing and indexes of _Elements.
-
-    Unnecessary for TraceWin, but useful to link the meshing in TraceWin to
-    other simulations. Hence, it is not created by the init_solver_parameters
-    as for Envelope1D!!
-    Instead, meshing is deducted from the TraceWin output files.
-    """
-
-    def __init__(self, length_m: float, z_of_this_element_from_tw: np.ndarray,
-                 s_in: int, s_out: int) -> None:
-        self.n_steps = z_of_this_element_from_tw.shape[0]
-        self.abs_mesh = z_of_this_element_from_tw
-        self.rel_mesh = self.abs_mesh - self.abs_mesh[0]
-
-        assert np.abs(length_m - self.rel_mesh[-1]) < 1e-10
-
-        self.s_in = s_in
-        self.s_out = s_out

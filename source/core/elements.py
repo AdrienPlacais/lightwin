@@ -16,11 +16,16 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 import config_manager as con
-from core.electric_field import (RfField,
-                                 phi_0_rel_corresponding_to,
+
+from core.electric_field import (phi_0_rel_corresponding_to, RfField,
                                  phi_0_abs_corresponding_to)
+
 from util.helper import recursive_items, recursive_getter, diff_angle
+
 from optimisation.set_of_cavity_settings import SingleCavitySettings
+
+from beam_calculation.single_element_beam_calculator_parameters import (
+   SingleElementCalculatorParameters)
 
 
 # =============================================================================
@@ -54,7 +59,9 @@ class _Element():
         self.acc_field = RfField()
 
         self.idx = {'elt_idx': None, 'lattice': None, 'section': None}
-        self.beam_calc_param: object
+        self.beam_calc_param: {
+            str: SingleElementCalculatorParameters
+        } = {}
 
     def __str__(self) -> str:
         return self.elt_info['elt_name']
@@ -121,7 +128,8 @@ class _Element():
         self.elt_info['status'] = new_status
         if new_status == 'failed':
             self.acc_field.k_e = 0.
-            self.beam_calc_param.re_set_for_broken_cavity()
+            for beam_calc_param in self.beam_calc_param.values():
+                beam_calc_param.re_set_for_broken_cavity()
 
     def keep_rf_field(self, rf_field: dict, cav_params: dict) -> None:
         """Save data calculated by Accelerator.compute_transfer_matrices."""
@@ -131,7 +139,7 @@ class _Element():
             self.acc_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
             self.acc_field.k_e = rf_field['k_e']
 
-    def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
+    def rf_param(self, solver_id: str, phi_bunch_abs: float, w_kin_in: float,
                  cavity_settings: SingleCavitySettings | None = None,
                  ) -> dict:
         """
@@ -139,6 +147,8 @@ class _Element():
 
         Parameters
         ----------
+        solver_id : str
+            Identificator of the BeamCalculator.
         phi_bunch_abs : float
             Absolute phase of the particle (bunch frequency).
         w_kin_in : float
@@ -219,13 +229,15 @@ class FieldMap(_Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
-    def rf_param(self, phi_bunch_abs: float, w_kin_in: float,
+    def rf_param(self, solver_id: str, phi_bunch_abs: float, w_kin_in: float,
                  cavity_settings: SingleCavitySettings | None = None) -> dict:
         """
         Set the properties of the rf field; specific to FieldMap.
 
         Parameters
         ----------
+        solver_id : str
+            Identificator of the BeamCalculator.
         phi_bunch_abs : float
             Absolute phase of the particle (bunch frequency).
         w_kin_in : float
@@ -264,7 +276,8 @@ class FieldMap(_Element):
         elif status in ['compensate (in progress)']:
             assert isinstance(cavity_settings, SingleCavitySettings)
             norm_and_phases, abs_to_rel = \
-                _try_this(cavity_settings, w_kin_in, self, generic_rf_param)
+                _try_this(solver_id, cavity_settings, w_kin_in, self,
+                          generic_rf_param)
         else:
             logging.error(f'{self} {status = } is not allowed.')
             return {}
@@ -282,13 +295,17 @@ class FieldMap(_Element):
         rf_parameters = generic_rf_param | norm_and_phases
         return rf_parameters
 
-    def phi_0_rel_matching_this(self, phi_s: float, w_kin_in: float,
-                                **rf_parameters: dict) -> float:
+    # FIXME to refactor, in particular send proper beam_parameters directly.
+    def phi_0_rel_matching_this(self, solver_id: str, phi_s: float,
+                                w_kin_in: float, **rf_parameters: dict
+                                ) -> float:
         """
         Sweeps phi_0_rel until the cavity synch phase matches phi_s.
 
         Parameters
         ----------
+        solver_id : str
+            BeamCalculator identificator.
         phi_s : float
             Synchronous phase to be matched.
         w_kin_in : float
@@ -303,13 +320,14 @@ class FieldMap(_Element):
             phase of phi_s_objective.
         """
         bounds = (0, 2. * np.pi)
+        beam_calc_param = self.beam_calc_param[solver_id]
 
-        def _wrapper_synch(phi_0_rel):
+        def _wrapper_synch(phi_0_rel: float) -> float:
             rf_parameters['phi_0_rel'] = phi_0_rel
             rf_parameters['phi_0_abs'] = None
             # FIXME should not have dependencies is_accelerating, status
             args = (w_kin_in, self.is_accelerating(), self.get('status'))
-            results = self.beam_calc_param.transf_mat_function_wrapper(
+            results = beam_calc_param.transf_mat_function_wrapper(
                 *args, **rf_parameters)
             diff = diff_angle(phi_s, results['cav_params']['phi_s'])
             return diff**2
@@ -368,14 +386,16 @@ def _get_from(rf_field: RfField, force_rephasing: bool = False
     return norm_and_phases, abs_to_rel
 
 
-def _try_this(cavity_settings: SingleCavitySettings, w_kin: float,
-              cav: FieldMap, generic_rf_param: dict[str, Any],
+# FIXME to refactor
+def _try_this(solver_id: str, cavity_settings: SingleCavitySettings,
+              w_kin: float, cav: FieldMap, generic_rf_param: dict[str, Any],
               ) -> tuple[dict, bool]:
     """Extract parameters from cavity_parameters."""
     if cavity_settings.phi_s is not None:
         generic_rf_param['k_e'] = cavity_settings.k_e
         phi_0_rel = cav.phi_0_rel_matching_this(
-            cavity_settings.phi_s, w_kin_in=w_kin, **generic_rf_param)
+            solver_id, cavity_settings.phi_s, w_kin_in=w_kin,
+            **generic_rf_param)
 
         norm_and_phases = {
             'k_e': cavity_settings.k_e,
