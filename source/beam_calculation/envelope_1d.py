@@ -98,7 +98,8 @@ class Envelope1D(BeamCalculator):
                 if isinstance(set_of_cavity_settings, SetOfCavitySettings) \
                 else None
 
-            rf_field_kwargs = elt.rf_param(phi_abs, w_kin, cavity_settings)
+            rf_field_kwargs = elt.rf_param(self.id, phi_abs, w_kin,
+                                           cavity_settings)
             elt_results = \
                 elt.beam_calc_param[self.id].transf_mat_function_wrapper(
                     w_kin, elt.is_accelerating(), elt.get('status'),
