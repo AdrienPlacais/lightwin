@@ -8,9 +8,10 @@ Created on Wed Feb  8 09:35:54 2023.
 
 import os
 import logging
-from typing import Any
-import numpy as np
+from typing import Any, Callable
+import itertools
 
+import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
@@ -21,6 +22,7 @@ from cycler import cycler
 
 from util import helper
 from core.accelerator import Accelerator
+from beam_calculation.output import SimulationOutput
 import util.dicts_output as dic
 
 figure_type = matplotlib.figure.Figure
@@ -85,74 +87,6 @@ def factory(accelerators: list[Accelerator], plots: dict[str, bool],
     return figs
 
 
-def _proper_kwargs(preset: str, kwargs: dict[str, bool]
-                   ) -> dict[str, bool | int | str]:
-    """Merge dicts, priority kwargs > PLOT_PRESETS > FALLBACK_PRESETS."""
-    return FALLBACK_PRESETS | PLOT_PRESETS[preset] | kwargs
-
-
-def _plot_preset(str_preset: str, *args: Accelerator,
-                 x_axis: str = 'z_abs', all_y_axis: list[str] | None = None,
-                 plot_section: bool = True, save_fig: bool = True,
-                 **kwargs: bool | str | int,
-                 ) -> plt.figure:
-    """
-    Plot a preset.
-
-    Parameters
-    ----------
-    str_preset : str
-        Key of PLOT_PRESETS.
-    *args : Accelerator
-        Accelerators to plot. In typical usage, args = (Working, Fixed)
-        (previously: (Working, Broken, Fixed). Useful to reimplement?)
-    **kwargs : bool | str | int
-        Holds all complementary data on the plots.
-    """
-    fig, axx = _create_fig_if_not_exists(len(all_y_axis), **kwargs)
-    axx[-1].set_xlabel(dic.markdown[x_axis])
-
-    colors = {}
-    for _ax, y_axis in zip(axx, all_y_axis):
-        for arg in args:
-            if plot_section:
-                _plot_section(arg, _ax, x_axis=x_axis)
-                plot_section = False
-
-            if y_axis == 'struct':
-                _plot_structure(arg, _ax, x_axis=x_axis)
-                continue
-
-        if y_axis == 'struct':   # FIXME
-            continue
-
-        x_data, y_data, l_kwargs = _concatenate_all_data(x_axis, y_axis,
-                                                         *args, **kwargs)
-        colors = _plot_all_data(_ax, x_data, y_data, l_kwargs, colors)
-
-        # Rescale
-        _autoscale_based_on(_ax, str_ignore='Broken')
-
-        _ax.grid(True)
-        if y_axis[-3:] == 'err':
-            diff = ERROR_PRESETS[y_axis]['diff']
-            _ax.set_ylabel(dic.markdown['err_' + diff])
-            continue
-
-        _ax.set_ylabel(dic.markdown[y_axis])
-        # TODO handle linear vs log
-
-    axx[0].legend()
-
-    if save_fig:
-        fixed_lin = args[-1]
-        file = os.path.join(fixed_lin.get('beam_calc_path'), '..',
-                            f"{str_preset}.png")
-        _savefig(fig, file)
-
-    return fig
-
-
 def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
                   fixed_values: list[dict], acceptable_values: list[dict],
                   lin_fix: Accelerator, evaluation: str = 'test',
@@ -198,178 +132,189 @@ def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
 # =============================================================================
 # Used in _plot_preset
 # =============================================================================
-def _concatenate_all_data(x_axis: str, y_axis: str, *args,
-                          plot_tw: bool = False, reference: str = 'self',
-                          **kwargs
-                          ) -> tuple[list[np.ndarray], list[np.ndarray],
-                                     list[dict[str, bool | int | str]]]:
+def _plot_preset(str_preset: str, *args: Accelerator,
+                 x_axis: str = 'z_abs', all_y_axis: list[str] | None = None,
+                 save_fig: bool = True, **kwargs: bool | str | int,
+                 ) -> plt.figure:
     """
-    Get all the data that should be plotted.
+    Plot a preset.
 
     Parameters
     ----------
-    x_axis : str
-        Name of x data.
-    y_axis : str
-        Name of y data.
+    str_preset : str
+        Key of PLOT_PRESETS.
     *args : Accelerator
-        Tuple of linacs which data should be gathered.
-    plot_tw : bool, optional
-        If TW data should be shown. The default is False.
-    reference : str, optional
-        How error is calculated, see d_ref in _err. The default is 'self'.
-
-    Returns
-    -------
-    x_data : list[np.ndarray]
-        All x data.
-    y_data : list[np.ndarray]
-        All y data.
-    l_kwargs : list[dict]
-        matplotlib kwargs for every dataset.
-
+        Accelerators to plot. In typical usage, args = (Working, Fixed)
+        (previously: (Working, Broken, Fixed). Useful to reimplement?)
+    **kwargs : bool | str | int
+        Holds all complementary data on the plots.
     """
-    x_data = []
-    y_data = []
-    l_kwargs = []
+    fig, axx = _create_fig_if_not_exists(len(all_y_axis), **kwargs)
+    axx[-1].set_xlabel(dic.markdown[x_axis])
 
-    source = 'TW.multipart'
-    # FIXME Get all the data that should be plotted.
-    if y_axis in ['v_cav_mv', 'phi_s']:
-        source = 'cav_param'
+    for axe, y_axis in zip(axx, all_y_axis):
+        _make_a_subplot(axe, x_axis, y_axis, *args, **kwargs)
+    axx[0].legend()
 
-    plot_error = y_axis[-3:] == 'err'
-    if plot_error:
-        x_data, y_data, l_kwargs = _err(x_axis, y_axis, *args, plot_tw=plot_tw,
-                                        reference=reference)
-        return x_data, y_data, l_kwargs
+    if save_fig:
+        fixed_lin = args[-1]
+        file = os.path.join(fixed_lin.get('beam_calc_path'), '..',
+                            f"{str_preset}.png")
+        _savefig(fig, file)
 
-    for arg in args:
-        x_dat, y_dat, kw = _data_from(x_axis, y_axis, arg)
-        x_data.append(x_dat), y_data.append(y_dat), l_kwargs.append(kw)
-
-        # TODO handle multipart or envelope
-        if plot_tw:
-            x_dat, y_dat, kw = _data_from(x_axis, y_axis, arg, source=source)
-            x_data.append(x_dat), y_data.append(y_dat), l_kwargs.append(kw)
-
-    return x_data, y_data, l_kwargs
+    return fig
 
 
-def _data_from(x_axis: str, y_str: str, arg: tuple[Accelerator | dict],
-               source: str = 'LW') -> tuple[np.ndarray, np.ndarray, dict]:
-    """Get data."""
-    if source == 'cav_params':
-        logging.critical("Legacy cav_params. How was this supposed to work?")
-    getters = {
-        'TW.envelope': lambda x, arg:
-            _data_from_tw(x, arg.tracewin_simulation.results_envelope),
-        'TW.multipart': lambda x, arg:
-            _data_from_tw(x, arg.tracewin_simulation.results_multipart),
-        'LW': lambda x, arg: _data_from_lw(x, arg)
-    }
-    getter = getters[source]
-
-    try:
-        x_dat, y_dat = getter(x_axis, arg), getter(y_str, arg)
-    except AttributeError:
-        logging.error(f"Data {x_axis} and/or {y_str} not found in {arg}.")
-        x_dat, y_dat = np.full((10, 1), np.NaN), np.full((10, 1), np.NaN)
-
-    kw = dic.plot_kwargs[y_str].copy()
-    kw['label'] = arg.name
-    if source != 'LW':
-        kw['ls'] = '--'
-        kw['label'] = 'TW ' + kw['label']
-    return x_dat, y_dat, kw
+def _proper_kwargs(preset: str, kwargs: dict[str, bool]
+                   ) -> dict[str, bool | int | str]:
+    """Merge dicts, priority kwargs > PLOT_PRESETS > FALLBACK_PRESETS."""
+    return FALLBACK_PRESETS | PLOT_PRESETS[preset] | kwargs
 
 
-def _data_from_lw(data_name: str, linac: Accelerator) -> Any:
-    """Get the data calculated by LightWin."""
-    data = linac.get(data_name, to_deg=True)
+def _single_simulation_data(axis: str, simulation_output: SimulationOutput
+                            ) -> list[float] | None:
+    """Get single data array from single SimulationOutput."""
+    data = simulation_output.get(axis, to_numpy=False, to_deg=True)
+    if data is None:
+        logging.warning(f"{axis} not found in")
     return data
 
 
-def _data_from_tw(data_name: str, tracewin_results: dict,
-                  warn_missing: bool = False) -> Any:
-    """Get the data calculated by TraceWin, already loaded."""
-    out = None
+def _single_simulation_all_data(x_axis: str, y_axis: str,
+                                simulation_output: SimulationOutput
+                                ) -> tuple[np.ndarray, np.ndarray,
+                                           dict | None]:
+    """Get x data, y data, kwargs from a SimulationOutput."""
+    x_data = _single_simulation_data(x_axis, simulation_output)
+    y_data = _single_simulation_data(y_axis, simulation_output)
 
-    # Data recomputed from TW simulation
-    if data_name in tracewin_results.keys():
-        out = tracewin_results[data_name]
+    if None in (x_data, y_data):
+        x_data = np.full((10, 1), np.NaN)
+        y_data = np.full((10, 1), np.NaN)
+        return x_data, y_data, None
 
-    # Raw data from TW simulation
-    if data_name in dic.lw_to_tw.keys():
-        key = dic.lw_to_tw[data_name]
-        if key in tracewin_results.keys():
-            out = tracewin_results[key]
-
-    # If need to be rescaled or modified
-    if out is not None and data_name in dic.lw_to_tw_func.keys():
-        out = dic.lw_to_tw_func[data_name](out)
-
-    # Not implemented
-    if warn_missing and out is None:
-        logging.warning(f"{data_name} not found for TW.")
-    return out
+    x_data = np.array(x_data)
+    y_data = np.array(y_data)
+    plt_kwargs = dic.plot_kwargs[y_axis].copy()
+    return x_data, y_data, plt_kwargs
 
 
-def _err(x_axis, y_str, *args, plot_tw=False, reference='self'):
-    """Calculate error with a reference calculation."""
-    # We expect the first arg to be the reference Accelerator
-    assert args[0].get('name') == 'Working'
+def _single_accelerator_all_simulations_data(
+        x_axis: str, y_axis: str, accelerator: Accelerator
+        ) -> tuple[list[np.ndarray], list[np.ndarray], list[dict[str, Any]]]:
+    """Get x_data, y_data, kwargs from all SimulationOutputs of Accelerator."""
+    x_data, y_data, plt_kwargs = [], [], []
+    ls = '-'
+    for solver, simulation_output in accelerator.simulation_outputs.items():
+        x_dat, y_dat, plt_kw = _single_simulation_all_data(x_axis, y_axis,
+                                                           simulation_output)
+        short_solver = solver.split('(')[0]
+        plt_kw['label'] = ' '.join([accelerator.name, short_solver])
+        plt_kw['ls'] = ls
+        ls = '--'
 
-    d_ref = {
-        'LW': lambda source: 'LW',          # Error calculated w.r.t LW
-        'TW.multipart': lambda source: 'TW.multipart',   # Error calculated w.r.t TW
-        'self': lambda source: source}      # LW error w.r.t LW, TW w.r.t TW
+        x_data.append(x_dat)
+        y_data.append(y_dat)
+        plt_kwargs.append(plt_kw)
 
-    # Set up a scale (for example if the error is very small)
-    scale = ERROR_PRESETS[y_str]['scale']
-    d_diff = {
+    return x_data, y_data, plt_kwargs
+
+
+def _all_accelerators_data(
+        x_axis: str, y_axis: str, *accelerators: Accelerator
+        ) -> tuple[list[np.ndarray], list[np.ndarray], list[dict[str, Any]]]:
+    """Get x_data, y_data, kwargs from all Accelerators (<=> for 1 subplot)."""
+    x_data, y_data, plt_kwargs = [], [], []
+
+    key = y_axis
+    error_plot = y_axis[-4:] == '_err'
+    if error_plot:
+        key = y_axis[:-4]
+
+    for accelerator in accelerators:
+        x_dat, y_dat, plt_kw = _single_accelerator_all_simulations_data(
+            x_axis, key, accelerator)
+        x_data += x_dat
+        y_data += y_dat
+        plt_kwargs += plt_kw
+
+    if error_plot:
+        fun_error = _error_calculation_function(y_axis)
+        reference = "ref. accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)"
+        x_data, y_data, plt_kwargs = _compute_error(x_data, y_data, plt_kwargs,
+                                                    reference, fun_error)
+
+    return x_data, y_data, plt_kwargs
+
+
+def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
+                    *accelerators: Accelerator, plot_section: bool = True,
+                    **kwargs: bool | int | str) -> None:
+    """Get proper data and plot it on an Axe."""
+    if plot_section:
+        _plot_section(accelerators[0], axe, x_axis=x_axis)
+
+    if y_axis == 'struct':
+        _plot_structure(accelerators[-1], axe, x_axis=x_axis)
+        return
+
+    all_my_data = _all_accelerators_data(x_axis, y_axis, *accelerators)
+    for x_data, y_data, plt_kwargs in zip(all_my_data[0], all_my_data[1],
+                                          all_my_data[2]):
+        axe.plot(x_data, y_data, **plt_kwargs)
+
+    axe.grid(True)
+    _autoscale_based_on(axe, str_ignore='Broken')
+
+
+def _error_calculation_function(y_axis: str
+                                ) -> Callable[[np.ndarray, np.ndarray],
+                                              np.ndarray]:
+    """Set the function called to compute error."""
+    scale = ERROR_PRESETS[y_axis]['scale']
+    error_computers = {
         'simple': lambda y_ref, y_lin: scale * (y_ref - y_lin),
         'abs': lambda y_ref, y_lin: scale * np.abs(y_ref - y_lin),
         'rel': lambda y_ref, y_lin: scale * (y_ref - y_lin) / y_ref,
         'log': lambda y_ref, y_lin: scale * np.log10(np.abs(y_lin / y_ref)),
         }
-    fun_diff = d_diff[ERROR_PRESETS[y_str]['diff']]
+    fun_error = error_computers[ERROR_PRESETS[y_axis]['diff']]
+    return fun_error
 
-    x_data, y_data, l_kwargs = [], [], []
-    key = y_str[:-4]
-    for arg in args[1:]:
-        source = 'LW'
-        ref = d_ref[source](reference)
-        x_ref, y_ref, _ = _data_from(x_axis, key, args[0], source=ref)
-        __x, __y, kw = _data_from(x_axis, key, arg, source=source)
 
-        x_data.append(__x)
-        diff = None
-        if __y is not None:
-            if __y.shape != y_ref.shape:
-                x_ref, y_ref, __x, __y = helper.resample(x_ref, y_ref,
-                                                         __x, __y)
-            diff = fun_diff(y_ref, __y)
-        y_data.append(diff)
-        l_kwargs.append(kw)
+def _compute_error(x_data: list[np.ndarray], y_data: list[np.ndarray],
+                   plt_kwargs: dict[str, int | bool | str], reference: str,
+                   fun_error: Callable[[np.ndarray, np.ndarray], np.ndarray]
+                   ) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    """Compute error with proper reference and proper function."""
+    if reference == "ref. accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)":
+        i_ref = [0, 2]
+        i_err = [1, 2]
+    elif reference == "ref. accelerator (1st solver)":
+        i_ref = [0]
+        i_err = [1, 2, 3]
+    elif reference == "ref. accelerator (2nd solver)":
+        i_ref = [2]
+        i_err = [0, 1, 3]
+    else:
+        logging.error(f"{reference = }, which is not allowed. Check allowed "
+                      "values in _compute_error.")
+        return np.full((10, 1), np.NaN), np.full((10, 1), np.NaN)
 
-        if plot_tw:
-            source = 'TW.multipart'
-            ref = d_ref[source](reference)
-            x_ref, y_ref, _ = _data_from(x_axis, key, args[0], source=ref)
-            __x, __y, kw = _data_from(x_axis, key, arg, source=source)
+    indexes_ref_with_err = itertools.zip_longest(i_ref, i_err,
+                                                 fillvalue=i_ref[0])
 
-            x_data.append(__x)
-            diff = None
-            if __y is not None:
-                if __y.shape != y_ref.shape:
-                    x_ref, y_ref, __x, __y = helper.resample(x_ref, y_ref,
-                                                             __x, __y)
-                diff = fun_diff(y_ref, __y)
-            y_data.append(diff)
-            l_kwargs.append(kw)
+    x_data_error, y_data_error = [], []
+    for (ref, err) in indexes_ref_with_err:
+        x_interp, y_ref, _, y_err = helper.resample(x_data[ref], y_data[ref],
+                                                    x_data[err], y_data[err])
+        error = fun_error(y_ref, y_err)
 
-    return x_data, y_data, l_kwargs
+        x_data_error.append(x_interp)
+        y_data_error.append(error)
+
+    plt_kwargs = [plt_kwargs[i] for i in i_err]
+    return x_data_error, y_data_error, plt_kwargs
 
 
 def _plot_all_data(axx, x_data, y_data, l_kwargs, colors):

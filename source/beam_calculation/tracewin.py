@@ -187,6 +187,7 @@ class TraceWin(BeamCalculator):
             beam_parameters=beam_params,
             element_to_index=element_to_index
         )
+        simulation_output.z_abs = results['z(m)']
         return simulation_output
 
     def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
