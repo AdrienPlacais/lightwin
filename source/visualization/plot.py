@@ -150,11 +150,11 @@ def _plot_preset(str_preset: str, *args: Accelerator,
         Holds all complementary data on the plots.
     """
     fig, axx = _create_fig_if_not_exists(len(all_y_axis), **kwargs)
-    axx[-1].set_xlabel(dic.markdown[x_axis])
 
     for axe, y_axis in zip(axx, all_y_axis):
         _make_a_subplot(axe, x_axis, y_axis, *args, **kwargs)
     axx[0].legend()
+    axx[-1].set_xlabel(dic.markdown[x_axis])
 
     if save_fig:
         fixed_lin = args[-1]
@@ -264,12 +264,14 @@ def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
         axe.plot(x_data, y_data, **plt_kwargs)
 
     axe.grid(True)
+    axe.set_ylabel(_y_label(y_axis))
     _autoscale_based_on(axe, str_ignore='Broken')
 
 
 def _error_calculation_function(y_axis: str
-                                ) -> Callable[[np.ndarray, np.ndarray],
-                                              np.ndarray]:
+                                ) -> tuple[Callable[[np.ndarray, np.ndarray],
+                                                    np.ndarray],
+                                           str]:
     """Set the function called to compute error."""
     scale = ERROR_PRESETS[y_axis]['scale']
     error_computers = {
@@ -278,8 +280,19 @@ def _error_calculation_function(y_axis: str
         'rel': lambda y_ref, y_lin: scale * (y_ref - y_lin) / y_ref,
         'log': lambda y_ref, y_lin: scale * np.log10(np.abs(y_lin / y_ref)),
         }
-    fun_error = error_computers[ERROR_PRESETS[y_axis]['diff']]
+    key = ERROR_PRESETS[y_axis]['diff']
+    fun_error = error_computers[key]
     return fun_error
+
+
+def _y_label(y_axis: str) -> str:
+    """Set the proper y axis label."""
+    if '_err' in y_axis:
+        key = ERROR_PRESETS[y_axis]['diff']
+        y_label = dic.markdown["err_" + key]
+        return y_label
+    y_label = dic.markdown[y_axis]
+    return y_label
 
 
 def _compute_error(x_data: list[np.ndarray], y_data: list[np.ndarray],
