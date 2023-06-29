@@ -10,6 +10,8 @@ import os
 import logging
 from typing import Any
 import numpy as np
+
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as pat
@@ -21,137 +23,156 @@ from util import helper
 from core.accelerator import Accelerator
 import util.dicts_output as dic
 
+figure_type = matplotlib.figure.Figure
+ax_type = matplotlib.axes._axes.Axes
+
 font = {'family': 'serif', 'size': 25}
 plt.rc('font', **font)
 plt.rcParams['axes.prop_cycle'] = cycler(color=Dark2_8.mpl_colors)
 plt.rcParams["figure.figsize"] = (19.2, 11.24)
 plt.rcParams["figure.dpi"] = 100
 
-BASE_DICT = {'x_str': 'z_abs', 'reference': 'LW', 'replot_lw': False,
-             'plot_section': True, 'plot_tw': False, 'clean_fig': False,
-             'sharex': True}
-DICT_PLOT_PRESETS = {
-    "energy": {'x_str': 'z_abs',
-               'l_y_str': ["w_kin", "w_kin_err", "struct"],
+FALLBACK_PRESETS = {'x_axis': 'z_abs', 'reference': 'LW', 'replot_lw': False,
+                    'plot_section': True, 'plot_tw': False, 'clean_fig': False,
+                    'sharex': True}
+PLOT_PRESETS = {
+    "energy": {'x_axis': 'z_abs',
+               'all_y_axis': ["w_kin", "w_kin_err", "struct"],
                'num': 21},
-    "phase": {'x_str': 'z_abs',
-              'l_y_str': ["phi_abs", "phi_abs_err", "struct"],
+    "phase": {'x_axis': 'z_abs',
+              'all_y_axis': ["phi_abs", "phi_abs_err", "struct"],
               'num': 22},
-    "cav": {'x_str': 'elt_idx',
-            'l_y_str': ["v_cav_mv", "phi_s", "struct"],
+    "cav": {'x_axis': 'elt_idx',
+            'all_y_axis': ["v_cav_mv", "phi_s", "struct"],
             'num': 23},
-    "emittance": {'x_str': 'z_abs',
-                  'l_y_str': ["eps_zdelta", "struct"],
+    "emittance": {'x_axis': 'z_abs',
+                  'all_y_axis': ["eps_zdelta", "struct"],
                   'num': 24},
-    "twiss": {'x_str': 'z_abs',
-              'l_y_str': ["alpha_w", "beta_w", "gamma_w"],
+    "twiss": {'x_axis': 'z_abs',
+              'all_y_axis': ["alpha_w", "beta_w", "gamma_w"],
               'num': 25},
     "envelopes": {
-        'x_str': 'z_abs',
-        'l_y_str': ["envelope_pos_zdelta", "envelope_energy_zdelta", "struct"],
+        'x_axis': 'z_abs',
+        'all_y_axis':
+            ["envelope_pos_zdelta", "envelope_energy_zdelta", "struct"],
         'num': 26},
-    "mismatch_factor": {'x_str': 'z_abs',
-                        'l_y_str': ["mismatch_factor", "struct"],
+    "mismatch_factor": {'x_axis': 'z_abs',
+                        'all_y_axis': ["mismatch_factor", "struct"],
                         'num': 27},
 }
-DICT_ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'simple'},
-                      'phi_abs_err': {'scale': 1., 'diff': 'simple'},
-                      }
+ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'simple'},
+                 'phi_abs_err': {'scale': 1., 'diff': 'simple'},
+                 }
 
 
 # =============================================================================
 # Front end
 # =============================================================================
-def plot_preset(str_preset: str, *args, **kwargs):
+def factory(accelerators: list[Accelerator], plots: dict[str, bool],
+            **kwargs: bool) -> list[figure_type]:
+    """Create all the desired plots."""
+    if (kwargs['clean_fig'] and
+            not kwargs['save_fig'] and
+            len(accelerators) > 2):
+        logging.warning("You will only see the plots of the last accelerators,"
+                        " previous will be erased without saving.")
+
+    ref_acc = accelerators[0]
+    figs = [_plot_preset(preset, *(ref_acc, fix_acc), **_proper_kwargs(preset,
+                                                                       kwargs))
+            for fix_acc in accelerators[1:]
+            for preset, plot_me in plots.items() if plot_me]
+    return figs
+
+
+def _proper_kwargs(preset: str, kwargs: dict[str, bool]
+                   ) -> dict[str, bool | int | str]:
+    """Merge dicts, priority kwargs > PLOT_PRESETS > FALLBACK_PRESETS."""
+    return FALLBACK_PRESETS | PLOT_PRESETS[preset] | kwargs
+
+
+def _plot_preset(str_preset: str, *args: Accelerator,
+                 x_axis: str = 'z_abs', all_y_axis: list[str] | None = None,
+                 plot_section: bool = True, save_fig: bool = True,
+                 **kwargs: bool | str | int,
+                 ) -> plt.figure:
     """
     Plot a preset.
 
     Parameters
     ----------
     str_preset : str
-        Key of DICT_PLOT_PRESETS.
-    args : Accelerators
-        Accelerators to plot. In typical usage,
-        *args = (Working, Broken, Fixed.)
-    kwargs : dict
-        Keys overriding DICT_PLOT_PRESETS and BASE_DICT.
+        Key of PLOT_PRESETS.
+    *args : Accelerator
+        Accelerators to plot. In typical usage, args = (Working, Fixed)
+        (previously: (Working, Broken, Fixed). Useful to reimplement?)
+    **kwargs : bool | str | int
+        Holds all complementary data on the plots.
     """
-    # From preset, add keys that are not already in kwargs
-    for key, val in DICT_PLOT_PRESETS[str_preset].items():
-        if key not in kwargs:
-            kwargs[key] = val
-    # From base dict, add keys that are not already in kwargs
-    for key, val in BASE_DICT.items():
-        if key not in kwargs:
-            kwargs[key] = val
+    fig, axx = _create_fig_if_not_exists(len(all_y_axis), **kwargs)
+    axx[-1].set_xlabel(dic.markdown[x_axis])
 
-    # Extract data used everywhere
-    x_str, l_y_str = kwargs['x_str'], kwargs['l_y_str']
-    plot_tw = kwargs['plot_tw']
-
-    fig, axx = create_fig_if_not_exists(
-        len(l_y_str), sharex=True, num=kwargs['num'],
-        clean_fig=kwargs['clean_fig'])
-    axx[-1].set_xlabel(dic.d_markdown[x_str])
-
-    d_colors = {}
-    for ax, y_str in zip(axx, l_y_str):
-        section_already_plotted = False
+    colors = {}
+    for _ax, y_axis in zip(axx, all_y_axis):
         for arg in args:
-            if kwargs["plot_section"] and not section_already_plotted:
-                _plot_section(arg, ax, x_axis=x_str)
-                section_already_plotted = True
-            if y_str == 'struct':
-                _plot_structure(arg, ax, x_axis=x_str)
+            if plot_section:
+                _plot_section(arg, _ax, x_axis=x_axis)
+                plot_section = False
+
+            if y_axis == 'struct':
+                _plot_structure(arg, _ax, x_axis=x_axis)
                 continue
-        if y_str == 'struct':   # FIXME
+
+        if y_axis == 'struct':   # FIXME
             continue
 
-        x_data, y_data, l_kwargs =  \
-            _concatenate_all_data(x_str, y_str, *args, plot_tw=plot_tw,
-                                  reference=kwargs['reference'])
-        d_colors = _plot_all_data(ax, x_data, y_data, l_kwargs, d_colors)
+        x_data, y_data, l_kwargs = _concatenate_all_data(x_axis, y_axis,
+                                                         *args, **kwargs)
+        colors = _plot_all_data(_ax, x_data, y_data, l_kwargs, colors)
 
         # Rescale
-        _autoscale_based_on(ax, str_ignore='Broken')
+        _autoscale_based_on(_ax, str_ignore='Broken')
 
-        ax.grid(True)
-        if y_str[-3:] == 'err':
-            diff = DICT_ERROR_PRESETS[y_str]['diff']
-            ax.set_ylabel(dic.d_markdown['err_' + diff])
+        _ax.grid(True)
+        if y_axis[-3:] == 'err':
+            diff = ERROR_PRESETS[y_axis]['diff']
+            _ax.set_ylabel(dic.markdown['err_' + diff])
             continue
 
-        ax.set_ylabel(dic.d_markdown[y_str])
+        _ax.set_ylabel(dic.markdown[y_axis])
         # TODO handle linear vs log
 
     axx[0].legend()
 
-    if kwargs['save_fig']:
+    if save_fig:
         fixed_lin = args[-1]
-        file = os.path.join(fixed_lin.get('beam_calc_path'), '..', f"{str_preset}.png")
+        file = os.path.join(fixed_lin.get('beam_calc_path'), '..',
+                            f"{str_preset}.png")
         _savefig(fig, file)
+
+    return fig
 
 
 def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
                   fixed_values: list[dict], acceptable_values: list[dict],
                   lin_fix: Accelerator, evaluation: str = 'test',
-                  save_fig: bool = True, num: int = 0) -> None:
+                  save_fig: bool = True, num: int = 1) -> None:
     """Plot data from util.evaluate."""
-    x_str = 'z_abs'
+    x_axis = 'z_abs'
 
     for i, (ref, fix, limits) in enumerate(zip(reference_values,
                                                fixed_values,
                                                acceptable_values)):
         n_axes = len(ref) + 1
         num += 1
-        fig, axx = create_fig_if_not_exists(n_axes, sharex=True, num=num,
+        fig, axx = _create_fig_if_not_exists(n_axes, sharex=True, num=num,
                                             clean_fig=True)
-        axx[-1].set_xlabel(dic.d_markdown[x_str])
+        axx[-1].set_xlabel(dic.markdown[x_axis])
         # TODO : structure plot (needs a linac)
 
         for ax, (key, ref), fix, lim in zip(axx[:-1], ref.items(),
                                             fix.values(), limits.values()):
-            ax.set_ylabel(dic.d_markdown[key])
+            ax.set_ylabel(dic.markdown[key])
             ax.grid(True)
             ax.plot(z_m, ref, label="TW ref")
             ax.plot(z_m, fix, label=lin_fix.name)
@@ -166,7 +187,7 @@ def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
                     ax.plot(z_m, dat, c='r', ls='--')
 
         axx[0].legend()
-        _plot_structure(lin_fix, axx[-1], x_axis=x_str)
+        _plot_structure(lin_fix, axx[-1], x_axis=x_axis)
 
         if save_fig:
             file = os.path.join(lin_fix.get('beam_calc_path'), '..',
@@ -175,20 +196,23 @@ def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
 
 
 # =============================================================================
-# Used in plot_preset
+# Used in _plot_preset
 # =============================================================================
-def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool = False,
-                          reference: str = 'self'):
+def _concatenate_all_data(x_axis: str, y_axis: str, *args,
+                          plot_tw: bool = False, reference: str = 'self',
+                          **kwargs
+                          ) -> tuple[list[np.ndarray], list[np.ndarray],
+                                     list[dict[str, bool | int | str]]]:
     """
     Get all the data that should be plotted.
 
     Parameters
     ----------
-    x_str : str
+    x_axis : str
         Name of x data.
-    y_str : str
+    y_axis : str
         Name of y data.
-    *args : Accelerators
+    *args : Accelerator
         Tuple of linacs which data should be gathered.
     plot_tw : bool, optional
         If TW data should be shown. The default is False.
@@ -197,11 +221,11 @@ def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool = False,
 
     Returns
     -------
-    x_data : list of np.ndarray
+    x_data : list[np.ndarray]
         All x data.
-    y_data : list of np.ndarray
-        All y_data.
-    l_kwargs : list of dict
+    y_data : list[np.ndarray]
+        All y data.
+    l_kwargs : list[dict]
         matplotlib kwargs for every dataset.
 
     """
@@ -211,28 +235,28 @@ def _concatenate_all_data(x_str: str, y_str: str, *args, plot_tw: bool = False,
 
     source = 'TW.multipart'
     # FIXME Get all the data that should be plotted.
-    if y_str in ['v_cav_mv', 'phi_s']:
+    if y_axis in ['v_cav_mv', 'phi_s']:
         source = 'cav_param'
 
-    plot_error = y_str[-3:] == 'err'
+    plot_error = y_axis[-3:] == 'err'
     if plot_error:
-        x_data, y_data, l_kwargs = _err(x_str, y_str, *args, plot_tw=plot_tw,
+        x_data, y_data, l_kwargs = _err(x_axis, y_axis, *args, plot_tw=plot_tw,
                                         reference=reference)
         return x_data, y_data, l_kwargs
 
     for arg in args:
-        x_dat, y_dat, kw = _data_from(x_str, y_str, arg)
+        x_dat, y_dat, kw = _data_from(x_axis, y_axis, arg)
         x_data.append(x_dat), y_data.append(y_dat), l_kwargs.append(kw)
 
         # TODO handle multipart or envelope
         if plot_tw:
-            x_dat, y_dat, kw = _data_from(x_str, y_str, arg, source=source)
+            x_dat, y_dat, kw = _data_from(x_axis, y_axis, arg, source=source)
             x_data.append(x_dat), y_data.append(y_dat), l_kwargs.append(kw)
 
     return x_data, y_data, l_kwargs
 
 
-def _data_from(x_str: str, y_str: str, arg: tuple[Accelerator | dict],
+def _data_from(x_axis: str, y_str: str, arg: tuple[Accelerator | dict],
                source: str = 'LW') -> tuple[np.ndarray, np.ndarray, dict]:
     """Get data."""
     if source == 'cav_params':
@@ -247,12 +271,12 @@ def _data_from(x_str: str, y_str: str, arg: tuple[Accelerator | dict],
     getter = getters[source]
 
     try:
-        x_dat, y_dat = getter(x_str, arg), getter(y_str, arg)
+        x_dat, y_dat = getter(x_axis, arg), getter(y_str, arg)
     except AttributeError:
-        logging.error(f"Data {x_str} and/or {y_str} not found in {arg}.")
+        logging.error(f"Data {x_axis} and/or {y_str} not found in {arg}.")
         x_dat, y_dat = np.full((10, 1), np.NaN), np.full((10, 1), np.NaN)
 
-    kw = dic.d_plot_kwargs[y_str].copy()
+    kw = dic.plot_kwargs[y_str].copy()
     kw['label'] = arg.name
     if source != 'LW':
         kw['ls'] = '--'
@@ -276,14 +300,14 @@ def _data_from_tw(data_name: str, tracewin_results: dict,
         out = tracewin_results[data_name]
 
     # Raw data from TW simulation
-    if data_name in dic.d_lw_to_tw.keys():
-        key = dic.d_lw_to_tw[data_name]
+    if data_name in dic.lw_to_tw.keys():
+        key = dic.lw_to_tw[data_name]
         if key in tracewin_results.keys():
             out = tracewin_results[key]
 
     # If need to be rescaled or modified
-    if out is not None and data_name in dic.d_lw_to_tw_func.keys():
-        out = dic.d_lw_to_tw_func[data_name](out)
+    if out is not None and data_name in dic.lw_to_tw_func.keys():
+        out = dic.lw_to_tw_func[data_name](out)
 
     # Not implemented
     if warn_missing and out is None:
@@ -291,7 +315,7 @@ def _data_from_tw(data_name: str, tracewin_results: dict,
     return out
 
 
-def _err(x_str, y_str, *args, plot_tw=False, reference='self'):
+def _err(x_axis, y_str, *args, plot_tw=False, reference='self'):
     """Calculate error with a reference calculation."""
     # We expect the first arg to be the reference Accelerator
     assert args[0].get('name') == 'Working'
@@ -302,22 +326,22 @@ def _err(x_str, y_str, *args, plot_tw=False, reference='self'):
         'self': lambda source: source}      # LW error w.r.t LW, TW w.r.t TW
 
     # Set up a scale (for example if the error is very small)
-    scale = DICT_ERROR_PRESETS[y_str]['scale']
+    scale = ERROR_PRESETS[y_str]['scale']
     d_diff = {
         'simple': lambda y_ref, y_lin: scale * (y_ref - y_lin),
         'abs': lambda y_ref, y_lin: scale * np.abs(y_ref - y_lin),
         'rel': lambda y_ref, y_lin: scale * (y_ref - y_lin) / y_ref,
         'log': lambda y_ref, y_lin: scale * np.log10(np.abs(y_lin / y_ref)),
         }
-    fun_diff = d_diff[DICT_ERROR_PRESETS[y_str]['diff']]
+    fun_diff = d_diff[ERROR_PRESETS[y_str]['diff']]
 
     x_data, y_data, l_kwargs = [], [], []
     key = y_str[:-4]
     for arg in args[1:]:
         source = 'LW'
         ref = d_ref[source](reference)
-        x_ref, y_ref, _ = _data_from(x_str, key, args[0], source=ref)
-        __x, __y, kw = _data_from(x_str, key, arg, source=source)
+        x_ref, y_ref, _ = _data_from(x_axis, key, args[0], source=ref)
+        __x, __y, kw = _data_from(x_axis, key, arg, source=source)
 
         x_data.append(__x)
         diff = None
@@ -332,8 +356,8 @@ def _err(x_str, y_str, *args, plot_tw=False, reference='self'):
         if plot_tw:
             source = 'TW.multipart'
             ref = d_ref[source](reference)
-            x_ref, y_ref, _ = _data_from(x_str, key, args[0], source=ref)
-            __x, __y, kw = _data_from(x_str, key, arg, source=source)
+            x_ref, y_ref, _ = _data_from(x_axis, key, args[0], source=ref)
+            __x, __y, kw = _data_from(x_axis, key, arg, source=source)
 
             x_data.append(__x)
             diff = None
@@ -348,22 +372,22 @@ def _err(x_str, y_str, *args, plot_tw=False, reference='self'):
     return x_data, y_data, l_kwargs
 
 
-def _plot_all_data(axx, x_data, y_data, l_kwargs, d_colors):
+def _plot_all_data(axx, x_data, y_data, l_kwargs, colors):
     """Plot given data on give axis. Keep same colors for LW and TW data."""
     for x, y, kw in zip(x_data, y_data, l_kwargs):
         key_color = kw['label'].removeprefix('TW ')
 
-        if key_color in d_colors.keys():
-            kw['color'] = d_colors[key_color]
+        if key_color in colors.keys():
+            kw['color'] = colors[key_color]
 
         if y is None:
             continue
         line, = axx.plot(x, y, **kw)
 
-        if key_color not in d_colors.keys():
-            d_colors[key_color] = line.get_color()
+        if key_color not in colors.keys():
+            colors[key_color] = line.get_color()
 
-    return d_colors
+    return colors
 
 
 def _savefig(fig, filepath):
@@ -375,40 +399,43 @@ def _savefig(fig, filepath):
 # =============================================================================
 # Basic helpers
 # =============================================================================
-def create_fig_if_not_exists(axnum, sharex=False, num=1, clean_fig=False):
+def _create_fig_if_not_exists(axnum: int | list[int], sharex: bool = False,
+                              num: int = 1, clean_fig: bool = False,
+                              **kwargs: bool | str | int
+                              ) -> tuple[figure_type, list[ax_type]]:
     """
     Check if figures were already created, create it if not.
 
     Parameters
     ----------
-    axnum : list of int or int
+    axnum : int | list[int]
         Axes indexes as understood by fig.add_subplot or number of desired
         axes.
-    sharex : boolean, opt
-        If x axis should be shared.
-    num : int, opt
-        Fig number.
+    sharex : boolean, optional
+        If x axis should be shared. The default is False.
+    num : int, optional
+        Fig number. The default is 1.
+    clean_fig: bool, optional
+        If the previous plot should be erased from Figure. The default is
+        False.
+
     """
     if isinstance(axnum, int):
-        # We make a one-column, axnum rows figure
+        # We make a one-column, `axnum` rows figure
         axnum = range(100 * axnum + 11, 101 * axnum + 11)
 
     if plt.fignum_exists(num):
         fig = plt.figure(num)
         axlist = fig.get_axes()
-
         if clean_fig:
             _clean_fig([num])
         return fig, axlist
-
     fig = plt.figure(num)
-    axlist = []
-    axlist.append(fig.add_subplot(axnum[0]))
-
-    d_sharex = {True: axlist[0], False: None}
-
-    for i in axnum[1:]:
-        axlist.append(fig.add_subplot(i, sharex=d_sharex[sharex]))
+    axlist = [fig.add_subplot(axnum[0])]
+    shared_ax = None
+    if sharex:
+        shared_ax = axlist[0]
+    axlist += [fig.add_subplot(num, sharex=shared_ax) for num in axnum[1:]]
     return fig, axlist
 
 
@@ -418,19 +445,6 @@ def _clean_fig(fignumlist):
         fig = plt.figure(fignum)
         for axx in fig.get_axes():
             axx.cla()
-
-
-# TODO still used?
-def _empty_fig(fignum):
-    """Return True if at least one axis of Fig(fignum) has no line."""
-    out = False
-    if plt.fignum_exists(fignum):
-        fig = plt.figure(fignum)
-        axlist = fig.get_axes()
-        for axx in axlist:
-            if axx.lines == []:
-                out = True
-    return out
 
 
 def _autoscale_based_on(axx, str_ignore):
@@ -520,7 +534,7 @@ def _plot_field_map(field_map, x0, width):
     """Add an ellipse to show a field_map."""
     height = 1.
     y0 = height * .5
-    d_colors = {
+    colors = {
         'nominal': 'green',
         'rephased (in progress)': 'yellow',
         'rephased (ok)': 'yellow',
@@ -530,7 +544,7 @@ def _plot_field_map(field_map, x0, width):
         'compensate (not ok)': 'orange',
     }
     patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
-                        lw=0.5, fc=d_colors[field_map.get('status',
+                        lw=0.5, fc=colors[field_map.get('status',
                                                           to_numpy=False)],
                         ec='k')
     return patch
@@ -626,10 +640,10 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
             "F": -eps}
 
     # Plot ellipse
-    d_colors = {"Working": "k",
+    colors = {"Working": "k",
                 "Broken": "r",
                 "Fixed": "g"}
-    color = d_colors[accelerator.name.split(" ")[0]]
+    color = colors[accelerator.name.split(" ")[0]]
     plot_kwargs = {"c": color}
     plot_ellipse(axx, d_eq, **plot_kwargs)
 
@@ -670,7 +684,7 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
 
 def plot_fit_progress(hist_f, l_label, nature='Relative'):
     """Plot the evolution of the objective functions w/ each iteration."""
-    _, axx = create_fig_if_not_exists(1, num=32)
+    _, axx = _create_fig_if_not_exists(1, num=32)
     axx = axx[0]
 
     scales = {'Relative': lambda x: x / x[0],

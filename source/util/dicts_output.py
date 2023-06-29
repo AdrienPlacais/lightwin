@@ -7,7 +7,7 @@ Created on Tue Nov 29 12:01:01 2022.
 """
 # NB: all phi are in radians. The reason why they all have unit [deg] is that
 # they are always converted to degrees when outputed.
-d_markdown = {
+markdown = {
     # Accelerator
     'M_11': r"$M_{11}$",
     'M_12': r"$M_{12}$",
@@ -69,7 +69,7 @@ d_markdown = {
     'mismatch_zdp': r'$M_l$',
 }
 
-d_plot_kwargs = {
+plot_kwargs = {
     # Accelerator
     'eps_zdelta': {'marker': None},
     'eps_z': {'marker': None},
@@ -110,7 +110,7 @@ d_plot_kwargs = {
     # TraceWin
 }
 
-d_lw_to_tw = {
+lw_to_tw = {
     # Accelerator
     'eps_zdelta': 'ezdp',
     'envelope_pos_z': 'SizeZ',
@@ -133,11 +133,11 @@ d_lw_to_tw = {
     # List OfElements
     # TraceWin
     'lost power': 'Powlost',
-    }
+}
 
-d_lw_to_tw_func = {
+lw_to_tw_func = {
     'eps_zdelta': lambda x: x * 1e-6,
     'envelope_pos_zdelta': lambda x: x * 1e-3,
     'envelope_energy_zdelta': lambda x: x * 1e-3,
     'elt_idx': lambda x: x - 1,
-    }
+}

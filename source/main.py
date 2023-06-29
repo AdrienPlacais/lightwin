@@ -168,16 +168,4 @@ if __name__ == '__main__':
 # =============================================================================
     kwargs = {'plot_tw': perform_post_simulation, 'save_fig': False,
               'clean_fig': True}
-    for i in range(len(fault_scenarios)):
-        for str_plot, to_plot in my_configs['plots'].items():
-            if not to_plot:
-                continue
-            # Plot the reference accelerator, i-th broken accelerator and
-            # corresponding fixed accelerator
-            if not break_and_fix:
-                args = (accelerators[0], )
-            else:
-                # args = (accelerators[0], accelerators[2 * i + 1],
-                # accelerators[2 * i + 2])
-                args = (accelerators[0], accelerators[i + 1])
-            plot.plot_preset(str_plot, *args, **kwargs)
+    figs = plot.factory(accelerators, my_configs['plots'], **kwargs)

@@ -11,7 +11,7 @@ import numpy as np
 
 from core.accelerator import Accelerator
 from core.elements import FieldMap
-from util.dicts_output import d_markdown
+from util.dicts_output import markdown
 
 
 @dataclass
@@ -30,7 +30,7 @@ class Variable:
             self.limits_fmt = np.rad2deg(self.limits)
 
     def __str__(self):
-        out = f"{d_markdown[self.name]:20} {self.cavity_name:5} "
+        out = f"{markdown[self.name]:20} {self.cavity_name:5} "
         out += f"x_0={self.x_0_fmt:>8.3f}   "
         out += f"limits={self.limits_fmt[0]:>8.3f} {self.limits_fmt[1]:>8.3f}"
         return out
@@ -50,7 +50,7 @@ class Constraint:
             self.limits_fmt = np.rad2deg(self.limits)
 
     def __str__(self):
-        out = f"{d_markdown[self.name]:20} {self.cavity_name:15}      "
+        out = f"{markdown[self.name]:20} {self.cavity_name:15}      "
         out += f"limits={self.limits_fmt[0]:>8.3f} {self.limits_fmt[1]:>8.3f}"
         return out
 

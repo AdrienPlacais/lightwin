@@ -12,7 +12,7 @@ import numpy as np
 
 from beam_calculation.output import SimulationOutput
 import config_manager as con
-from util.dicts_output import d_markdown
+from util.dicts_output import markdown
 from core.elements import _Element, FieldMap
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
@@ -164,7 +164,7 @@ class Fault:
         scales = self.wtf['scale objective']
 
         info_objectives = [
-            f"{d_markdown[key].replace('[deg]', '[rad]')} @{elt = }"
+            f"{markdown[key].replace('[deg]', '[rad]')} @{elt = }"
             for elt in self.elt_eval_objectives
             for key in objectives]
 
