@@ -35,8 +35,7 @@ plt.rcParams["figure.figsize"] = (19.2, 11.24)
 plt.rcParams["figure.dpi"] = 100
 
 FALLBACK_PRESETS = {'x_axis': 'z_abs',
-                    'plot_section': True, 'plot_tw': False, 'clean_fig': False,
-                    'sharex': True}
+                    'plot_section': True, 'clean_fig': False, 'sharex': True}
 PLOT_PRESETS = {
     "energy": {'x_axis': 'z_abs',
                'all_y_axis': ["w_kin", "w_kin_err", "struct"],

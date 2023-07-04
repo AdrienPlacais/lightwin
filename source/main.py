@@ -163,9 +163,5 @@ if __name__ == '__main__':
 #         filepath = os.path.join(PROJECT_FOLDER, name)
 #         out.to_csv(filepath)
 
-# =============================================================================
-# Plot
-# =============================================================================
-    kwargs = {'plot_tw': perform_post_simulation, 'save_fig': False,
-              'clean_fig': True}
+    kwargs = {'save_fig': False, 'clean_fig': True}
     figs = plot.factory(accelerators, my_configs['plots'], **kwargs)
