@@ -80,8 +80,8 @@ def factory(accelerators: list[Accelerator], plots: dict[str, bool],
                         " previous will be erased without saving.")
 
     ref_acc = accelerators[0]
-    figs = [_plot_preset(preset, *(ref_acc, fix_acc), **_proper_kwargs(preset,
-                                                                       kwargs))
+    figs = [_plot_preset(preset, *(ref_acc, fix_acc),
+                         **_proper_kwargs(preset, kwargs))
             for fix_acc in accelerators[1:]
             for preset, plot_me in plots.items() if plot_me]
     return figs
@@ -146,14 +146,24 @@ def _plot_preset(str_preset: str, *args: Accelerator,
     *args : Accelerator
         Accelerators to plot. In typical usage, args = (Working, Fixed)
         (previously: (Working, Broken, Fixed). Useful to reimplement?)
+    x_axis : str, optional
+        Name of the x axis. The default is 'z_abs'.
+    all_y_axis : list[str] | None, optional
+        Name of all the y axis. The default is None.
+    save_fig : bool, optional
+        To save Figures or not. The default is True.
     **kwargs : bool | str | int
         Holds all complementary data on the plots.
     """
     fig, axx = _create_fig_if_not_exists(len(all_y_axis), **kwargs)
 
-    for axe, y_axis in zip(axx, all_y_axis):
-        _make_a_subplot(axe, x_axis, y_axis, *args, **kwargs)
-    axx[0].legend()
+    colors = None
+    for i, (axe, y_axis) in enumerate(zip(axx, all_y_axis)):
+        _make_a_subplot(axe, x_axis, y_axis, colors, *args, **kwargs)
+        if i == 0:
+            colors = _keep_colors(axe)
+        axe.legend()
+    # axx[0].legend()
     axx[-1].set_xlabel(dic.markdown[x_axis])
 
     if save_fig:
@@ -175,8 +185,6 @@ def _single_simulation_data(axis: str, simulation_output: SimulationOutput
                             ) -> list[float] | None:
     """Get single data array from single SimulationOutput."""
     data = simulation_output.get(axis, to_numpy=False, to_deg=True)
-    if data is None:
-        logging.warning(f"{axis} not found in")
     return data
 
 
@@ -191,6 +199,8 @@ def _single_simulation_all_data(x_axis: str, y_axis: str,
     if None in (x_data, y_data):
         x_data = np.full((10, 1), np.NaN)
         y_data = np.full((10, 1), np.NaN)
+        logging.warning(
+            f"{x_axis} or {y_axis} not found in {simulation_output}")
         return x_data, y_data, None
 
     x_data = np.array(x_data)
@@ -248,6 +258,7 @@ def _all_accelerators_data(
 
 
 def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
+                    colors: dict[str, str] | None,
                     *accelerators: Accelerator, plot_section: bool = True,
                     **kwargs: bool | int | str) -> None:
     """Get proper data and plot it on an Axe."""
@@ -261,11 +272,20 @@ def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
     all_my_data = _all_accelerators_data(x_axis, y_axis, *accelerators)
     for x_data, y_data, plt_kwargs in zip(all_my_data[0], all_my_data[1],
                                           all_my_data[2]):
+        if colors is not None and plt_kwargs['label'] in colors:
+            plt_kwargs['color'] = colors[plt_kwargs['label']]
         axe.plot(x_data, y_data, **plt_kwargs)
 
     axe.grid(True)
     axe.set_ylabel(_y_label(y_axis))
     _autoscale_based_on(axe, str_ignore='Broken')
+
+
+def _keep_colors(axe: ax_type) -> dict[str, str]:
+    """Keep track of the color associated with each SimulationOutput."""
+    lines = axe.get_lines()
+    colors = {line.get_label(): line.get_color() for line in lines}
+    return colors
 
 
 def _error_calculation_function(y_axis: str
