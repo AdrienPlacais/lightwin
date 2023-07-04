@@ -34,7 +34,7 @@ plt.rcParams['axes.prop_cycle'] = cycler(color=Dark2_8.mpl_colors)
 plt.rcParams["figure.figsize"] = (19.2, 11.24)
 plt.rcParams["figure.dpi"] = 100
 
-FALLBACK_PRESETS = {'x_axis': 'z_abs', 'reference': 'LW', 'replot_lw': False,
+FALLBACK_PRESETS = {'x_axis': 'z_abs',
                     'plot_section': True, 'plot_tw': False, 'clean_fig': False,
                     'sharex': True}
 PLOT_PRESETS = {
@@ -66,6 +66,14 @@ ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'simple'},
                  'phi_abs_err': {'scale': 1., 'diff': 'simple'},
                  }
 
+# The one you generally want
+ERROR_REFERENCE = "ref accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)"
+
+# These two are mostly useful when you want to study the differences between
+# two solvers
+# ERROR_REFERENCE = "ref accelerator (1st solver)"
+# ERROR_REFERENCE = "ref accelerator (2nd solver)"
+
 
 # =============================================================================
 # Front end
@@ -73,9 +81,9 @@ ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'simple'},
 def factory(accelerators: list[Accelerator], plots: dict[str, bool],
             **kwargs: bool) -> list[figure_type]:
     """Create all the desired plots."""
-    if (kwargs['clean_fig'] and
-            not kwargs['save_fig'] and
-            len(accelerators) > 2):
+    if (kwargs['clean_fig']
+            and not kwargs['save_fig']
+            and len(accelerators) > 2):
         logging.warning("You will only see the plots of the last accelerators,"
                         " previous will be erased without saving.")
 
@@ -100,7 +108,7 @@ def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
         n_axes = len(ref) + 1
         num += 1
         fig, axx = _create_fig_if_not_exists(n_axes, sharex=True, num=num,
-                                            clean_fig=True)
+                                             clean_fig=True)
         axx[-1].set_xlabel(dic.markdown[x_axis])
         # TODO : structure plot (needs a linac)
 
@@ -162,8 +170,7 @@ def _plot_preset(str_preset: str, *args: Accelerator,
         _make_a_subplot(axe, x_axis, y_axis, colors, *args, **kwargs)
         if i == 0:
             colors = _keep_colors(axe)
-        axe.legend()
-    # axx[0].legend()
+    axx[0].legend()
     axx[-1].set_xlabel(dic.markdown[x_axis])
 
     if save_fig:
@@ -250,9 +257,8 @@ def _all_accelerators_data(
 
     if error_plot:
         fun_error = _error_calculation_function(y_axis)
-        reference = "ref. accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)"
         x_data, y_data, plt_kwargs = _compute_error(x_data, y_data, plt_kwargs,
-                                                    reference, fun_error)
+                                                    fun_error)
 
     return x_data, y_data, plt_kwargs
 
@@ -316,24 +322,28 @@ def _y_label(y_axis: str) -> str:
 
 
 def _compute_error(x_data: list[np.ndarray], y_data: list[np.ndarray],
-                   plt_kwargs: dict[str, int | bool | str], reference: str,
+                   plt_kwargs: dict[str, int | bool | str],
                    fun_error: Callable[[np.ndarray, np.ndarray], np.ndarray]
                    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """Compute error with proper reference and proper function."""
-    if reference == "ref. accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)":
-        i_ref = [0, 2]
-        i_err = [1, 2]
-    elif reference == "ref. accelerator (1st solver)":
+    simulation_indexes = range(len(x_data))
+    if ERROR_REFERENCE == "ref accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)":
+        i_ref = [i for i in simulation_indexes if i % 2 == 0]
+    elif ERROR_REFERENCE == "ref accelerator (1st solver)":
         i_ref = [0]
-        i_err = [1, 2, 3]
-    elif reference == "ref. accelerator (2nd solver)":
+    elif ERROR_REFERENCE == "ref accelerator (2nd solver)":
+        if len(x_data) < 4:
+            logging.error(f"{ERROR_REFERENCE = } not supported when only one "
+                          "simulation is performed.")
+
+            return np.full((10, 1), np.NaN), np.full((10, 1), np.NaN)
         i_ref = [2]
-        i_err = [0, 1, 3]
     else:
-        logging.error(f"{reference = }, which is not allowed. Check allowed "
-                      "values in _compute_error.")
+        logging.error(f"{ERROR_REFERENCE = }, which is not allowed. Check "
+                      "allowed values in _compute_error.")
         return np.full((10, 1), np.NaN), np.full((10, 1), np.NaN)
 
+    i_err = [i for i in simulation_indexes if i not in i_ref]
     indexes_ref_with_err = itertools.zip_longest(i_ref, i_err,
                                                  fillvalue=i_ref[0])
 
