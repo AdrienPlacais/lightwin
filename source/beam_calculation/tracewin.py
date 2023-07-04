@@ -61,14 +61,14 @@ class TraceWin(BeamCalculator):
 
     executable: str
     ini_path: str
-    base_kwargs: dict[[str], str]
+    base_kwargs: dict[str, str | int | float]
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
         self.id = self.__repr__()
 
         filename = 'tracewin.out'
-        if self._is_a_multiparticle_simulation:
+        if self._is_a_multiparticle_simulation(self.base_kwargs):
             filename = 'partran1.out'
         self.get_results = partial(self._load_results, filename=filename)
 
@@ -155,7 +155,7 @@ class TraceWin(BeamCalculator):
                                                 results['z(m)'])
 
         w_kin = results['w_kin']
-        phi_abs_array = results['phi_abs_array']
+        phi_abs_array = np.deg2rad(results['phi_abs_array'])
         synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
                                                   phi_abs=phi_abs_array,
                                                   synchronous=True)
@@ -248,9 +248,12 @@ class TraceWin(BeamCalculator):
 
         with open(f_p, 'r', encoding='utf-8') as file:
             for i, line in enumerate(file):
+                if i == 1:
+                    __mc2, freq, __z, __i, __npart = line.strip().split()
                 if i == n_lines_header:
                     headers = line.strip().split()
                     break
+        results['freq'] = float(freq)
 
         out = np.loadtxt(f_p, skiprows=n_lines_header)
         for i, key in enumerate(headers):
@@ -411,16 +414,18 @@ def _post_treat(results: dict) -> dict:
     results['gamma'] = 1. + results['gama-1']
     results['w_kin'] = convert.energy(results['gamma'], "gamma to kin")
     results['beta'] = convert.energy(results['w_kin'], "kin to beta")
-    results['lambda'] = c / 162e6   # FIXME
+    results['lambda'] = c / results['freq'] * 1e-6
+
+    omega = 2. * np. pi * results['freq'] * 1e6
+    delta_z = np.diff(results['z(m)'])
+    beta = .5 * (results['beta'][1:] + results['beta'][:-1])
+    delta_phi = omega * delta_z / (beta * c)
 
     num = results['beta'].shape[0]
-    results['phi_abs_array'] = np.full((num), 0.)
-    for i in range(1, num):
-        delta_z = results['z(m)'][i] - results['z(m)'][i - 1]
-        beta_i = results['beta'][i]
-        delta_phi = 2. * np.pi * delta_z / (results['lambda'] * beta_i)
-        results['phi_abs_array'][i] = results['phi_abs_array'][i - 1] \
-            + np.rad2deg(delta_phi)
+    phi_abs_array = np.full((num), 0.)
+    for i in range(num - 1):
+        phi_abs_array[i + 1] = phi_abs_array[i] + delta_phi[i]
+    results['phi_abs_array'] = np.rad2deg(phi_abs_array)
 
     # Transverse emittance, used in evaluate
     results['et'] = 0.5 * (results['ex'] + results['ey'])
