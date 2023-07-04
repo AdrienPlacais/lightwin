@@ -138,8 +138,9 @@ def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
 
 
 # =============================================================================
-# Used in _plot_preset
+# Used in factory
 # =============================================================================
+# Main func
 def _plot_preset(str_preset: str, *args: Accelerator,
                  x_axis: str = 'z_abs', all_y_axis: list[str] | None = None,
                  save_fig: bool = True, **kwargs: bool | str | int,
@@ -174,20 +175,38 @@ def _plot_preset(str_preset: str, *args: Accelerator,
     axx[-1].set_xlabel(dic.markdown[x_axis])
 
     if save_fig:
-        fixed_lin = args[-1]
-        file = os.path.join(fixed_lin.get('beam_calc_path'), '..',
+        file = os.path.join(os.path.dirname(args[-1].get('beam_calc_path')),
                             f"{str_preset}.png")
         _savefig(fig, file)
 
     return fig
 
 
+# Plot style
 def _proper_kwargs(preset: str, kwargs: dict[str, bool]
                    ) -> dict[str, bool | int | str]:
     """Merge dicts, priority kwargs > PLOT_PRESETS > FALLBACK_PRESETS."""
     return FALLBACK_PRESETS | PLOT_PRESETS[preset] | kwargs
 
 
+def _keep_colors(axe: ax_type) -> dict[str, str]:
+    """Keep track of the color associated with each SimulationOutput."""
+    lines = axe.get_lines()
+    colors = {line.get_label(): line.get_color() for line in lines}
+    return colors
+
+
+def _y_label(y_axis: str) -> str:
+    """Set the proper y axis label."""
+    if '_err' in y_axis:
+        key = ERROR_PRESETS[y_axis]['diff']
+        y_label = dic.markdown["err_" + key]
+        return y_label
+    y_label = dic.markdown[y_axis]
+    return y_label
+
+
+# Data getters
 def _single_simulation_data(axis: str, simulation_output: SimulationOutput
                             ) -> list[float] | None:
     """Get single data array from single SimulationOutput."""
@@ -263,37 +282,7 @@ def _all_accelerators_data(
     return x_data, y_data, plt_kwargs
 
 
-def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
-                    colors: dict[str, str] | None,
-                    *accelerators: Accelerator, plot_section: bool = True,
-                    **kwargs: bool | int | str) -> None:
-    """Get proper data and plot it on an Axe."""
-    if plot_section:
-        _plot_section(accelerators[0], axe, x_axis=x_axis)
-
-    if y_axis == 'struct':
-        _plot_structure(accelerators[-1], axe, x_axis=x_axis)
-        return
-
-    all_my_data = _all_accelerators_data(x_axis, y_axis, *accelerators)
-    for x_data, y_data, plt_kwargs in zip(all_my_data[0], all_my_data[1],
-                                          all_my_data[2]):
-        if colors is not None and plt_kwargs['label'] in colors:
-            plt_kwargs['color'] = colors[plt_kwargs['label']]
-        axe.plot(x_data, y_data, **plt_kwargs)
-
-    axe.grid(True)
-    axe.set_ylabel(_y_label(y_axis))
-    _autoscale_based_on(axe, str_ignore='Broken')
-
-
-def _keep_colors(axe: ax_type) -> dict[str, str]:
-    """Keep track of the color associated with each SimulationOutput."""
-    lines = axe.get_lines()
-    colors = {line.get_label(): line.get_color() for line in lines}
-    return colors
-
-
+# Error related
 def _error_calculation_function(y_axis: str
                                 ) -> tuple[Callable[[np.ndarray, np.ndarray],
                                                     np.ndarray],
@@ -309,16 +298,6 @@ def _error_calculation_function(y_axis: str
     key = ERROR_PRESETS[y_axis]['diff']
     fun_error = error_computers[key]
     return fun_error
-
-
-def _y_label(y_axis: str) -> str:
-    """Set the proper y axis label."""
-    if '_err' in y_axis:
-        key = ERROR_PRESETS[y_axis]['diff']
-        y_label = dic.markdown["err_" + key]
-        return y_label
-    y_label = dic.markdown[y_axis]
-    return y_label
 
 
 def _compute_error(x_data: list[np.ndarray], y_data: list[np.ndarray],
@@ -360,28 +339,29 @@ def _compute_error(x_data: list[np.ndarray], y_data: list[np.ndarray],
     return x_data_error, y_data_error, plt_kwargs
 
 
-def _plot_all_data(axx, x_data, y_data, l_kwargs, colors):
-    """Plot given data on give axis. Keep same colors for LW and TW data."""
-    for x, y, kw in zip(x_data, y_data, l_kwargs):
-        key_color = kw['label'].removeprefix('TW ')
+# Actual interface with matplotlib
+def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
+                    colors: dict[str, str] | None,
+                    *accelerators: Accelerator, plot_section: bool = True,
+                    **kwargs: bool | int | str) -> None:
+    """Get proper data and plot it on an Axe."""
+    if plot_section:
+        _plot_section(accelerators[0], axe, x_axis=x_axis)
 
-        if key_color in colors.keys():
-            kw['color'] = colors[key_color]
+    if y_axis == 'struct':
+        _plot_structure(accelerators[-1], axe, x_axis=x_axis)
+        return
 
-        if y is None:
-            continue
-        line, = axx.plot(x, y, **kw)
+    all_my_data = _all_accelerators_data(x_axis, y_axis, *accelerators)
+    for x_data, y_data, plt_kwargs in zip(all_my_data[0], all_my_data[1],
+                                          all_my_data[2]):
+        if colors is not None and plt_kwargs['label'] in colors:
+            plt_kwargs['color'] = colors[plt_kwargs['label']]
+        axe.plot(x_data, y_data, **plt_kwargs)
 
-        if key_color not in colors.keys():
-            colors[key_color] = line.get_color()
-
-    return colors
-
-
-def _savefig(fig, filepath):
-    """Save the figure."""
-    fig.savefig(filepath)
-    logging.debug(f"Fig. saved in {filepath}")
+    axe.grid(True)
+    axe.set_ylabel(_y_label(y_axis))
+    _autoscale_based_on(axe, str_ignore='Broken')
 
 
 # =============================================================================
@@ -444,6 +424,12 @@ def _autoscale_based_on(axx, str_ignore):
         datxy = np.vstack(line.get_data()).T
         axx.dataLim.update_from_data_xy(datxy, ignore=False)
     axx.autoscale_view()
+
+
+def _savefig(fig, filepath):
+    """Save the figure."""
+    fig.savefig(filepath)
+    logging.debug(f"Fig. saved in {filepath}")
 
 
 # =============================================================================
