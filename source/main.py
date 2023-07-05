@@ -107,7 +107,7 @@ if __name__ == '__main__':
         my_configs['beam_calculator_post']) \
         if perform_post_simulation else None
 
-    # solv1, solv2 = my_beam_calc.id, my_beam_calc_post.id
+    solv1, solv2 = my_beam_calc.id, my_beam_calc_post.id
 
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']

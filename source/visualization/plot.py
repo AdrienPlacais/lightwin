@@ -236,7 +236,7 @@ def _single_simulation_all_data(x_axis: str, y_axis: str,
 
 def _single_accelerator_all_simulations_data(
         x_axis: str, y_axis: str, accelerator: Accelerator
-        ) -> tuple[list[np.ndarray], list[np.ndarray], list[dict[str, Any]]]:
+) -> tuple[list[np.ndarray], list[np.ndarray], list[dict[str, Any]]]:
     """Get x_data, y_data, kwargs from all SimulationOutputs of Accelerator."""
     x_data, y_data, plt_kwargs = [], [], []
     ls = '-'
@@ -257,7 +257,7 @@ def _single_accelerator_all_simulations_data(
 
 def _all_accelerators_data(
         x_axis: str, y_axis: str, *accelerators: Accelerator
-        ) -> tuple[list[np.ndarray], list[np.ndarray], list[dict[str, Any]]]:
+) -> tuple[list[np.ndarray], list[np.ndarray], list[dict[str, Any]]]:
     """Get x_data, y_data, kwargs from all Accelerators (<=> for 1 subplot)."""
     x_data, y_data, plt_kwargs = [], [], []
 
@@ -293,7 +293,7 @@ def _error_calculation_function(y_axis: str
         'abs': lambda y_ref, y_lin: scale * np.abs(y_ref - y_lin),
         'rel': lambda y_ref, y_lin: scale * (y_ref - y_lin) / y_ref,
         'log': lambda y_ref, y_lin: scale * np.log10(np.abs(y_lin / y_ref)),
-        }
+    }
     key = ERROR_PRESETS[y_axis]['diff']
     fun_error = error_computers[key]
     return fun_error
@@ -306,16 +306,16 @@ def _compute_error(x_data: list[np.ndarray], y_data: list[np.ndarray],
     """Compute error with proper reference and proper function."""
     simulation_indexes = range(len(x_data))
     if ERROR_REFERENCE == "ref accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)":
-        i_ref = [i for i in simulation_indexes if i % 2 == 0]
+        i_ref = [i for i in range(len(x_data) // 2)]
     elif ERROR_REFERENCE == "ref accelerator (1st solver)":
         i_ref = [0]
     elif ERROR_REFERENCE == "ref accelerator (2nd solver)":
+        i_ref = [1]
         if len(x_data) < 4:
             logging.error(f"{ERROR_REFERENCE = } not supported when only one "
                           "simulation is performed.")
 
             return np.full((10, 1), np.NaN), np.full((10, 1), np.NaN)
-        i_ref = [2]
     else:
         logging.error(f"{ERROR_REFERENCE = }, which is not allowed. Check "
                       "allowed values in _compute_error.")
@@ -352,8 +352,8 @@ def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
         return
 
     all_my_data = _all_accelerators_data(x_axis, y_axis, *accelerators)
-    for x_data, y_data, plt_kwargs in zip(all_my_data[0], all_my_data[1],
-                                          all_my_data[2]):
+    for x_data, y_data, plt_kwargs in zip(
+            all_my_data[0], all_my_data[1], all_my_data[2]):
         if colors is not None and plt_kwargs['label'] in colors:
             plt_kwargs['color'] = colors[plt_kwargs['label']]
         axe.plot(x_data, y_data, **plt_kwargs)
@@ -518,7 +518,7 @@ def _plot_field_map(field_map, x0, width):
     }
     patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
                         lw=0.5, fc=colors[field_map.get('status',
-                                                          to_numpy=False)],
+                                                        to_numpy=False)],
                         ec='k')
     return patch
 
@@ -568,7 +568,7 @@ def _compute_ellipse_parameters(d_eq):
         if d_eq["A"] < d_eq["C"]:
             theta = 0.
         else:
-            theta = np.pi/2.
+            theta = np.pi / 2.
     else:
         theta = np.arctan((d_eq["C"] - d_eq["A"] - tmp2) / d_eq["B"])
 
@@ -583,13 +583,13 @@ def _compute_ellipse_parameters(d_eq):
 
 
 def plot_ellipse(axx, d_eq, **plot_kwargs):
-    """The proper ellipse plotting."""
+    """Perform the proper ellipse plotting."""
     d_plot = _compute_ellipse_parameters(d_eq)
     n_points = 10001
     var = np.linspace(0., 2. * np.pi, n_points)
     ellipse = np.array([d_plot["a"] * np.cos(var), d_plot["b"] * np.sin(var)])
     rotation = np.array([[np.cos(d_plot["theta"]), -np.sin(d_plot["theta"])],
-                         [np.sin(d_plot["theta"]),  np.cos(d_plot["theta"])]])
+                         [np.sin(d_plot["theta"]), np.cos(d_plot["theta"])]])
     ellipse_rot = np.empty((2, n_points))
 
     for i in range(n_points):
@@ -614,8 +614,8 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
 
     # Plot ellipse
     colors = {"Working": "k",
-                "Broken": "r",
-                "Fixed": "g"}
+              "Broken": "r",
+              "Fixed": "g"}
     color = colors[accelerator.name.split(" ")[0]]
     plot_kwargs = {"c": color}
     plot_ellipse(axx, d_eq, **plot_kwargs)

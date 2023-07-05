@@ -155,9 +155,9 @@ class TraceWin(BeamCalculator):
                                                 results['z(m)'])
 
         w_kin = results['w_kin']
-        phi_abs_array = np.deg2rad(results['phi_abs_array'])
+        phi_abs = np.deg2rad(results['phi_abs'])
         synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
-                                                  phi_abs=phi_abs_array,
+                                                  phi_abs=phi_abs,
                                                   synchronous=True)
 
         # WARNING, different meshing for these files
@@ -422,10 +422,10 @@ def _post_treat(results: dict) -> dict:
     delta_phi = omega * delta_z / (beta * c)
 
     num = results['beta'].shape[0]
-    phi_abs_array = np.full((num), 0.)
+    phi_abs = np.full((num), 0.)
     for i in range(num - 1):
-        phi_abs_array[i + 1] = phi_abs_array[i] + delta_phi[i]
-    results['phi_abs_array'] = np.rad2deg(phi_abs_array)
+        phi_abs[i + 1] = phi_abs[i] + delta_phi[i]
+    results['phi_abs'] = np.rad2deg(phi_abs)
 
     # Transverse emittance, used in evaluate
     results['et'] = 0.5 * (results['ex'] + results['ey'])
