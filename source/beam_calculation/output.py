@@ -30,8 +30,7 @@ class SimulationOutput:
     z_abs: np.ndarray | None = None
     synch_trajectory: ParticleFullTrajectory | None = None
 
-    cav_params: list[dict | None] | None = None
-    phi_s: list[float] | None = None
+    cav_params: dict[str, float | None] | None = None
     rf_fields: list[dict] | None = None
 
     r_zz_elt: list[np.ndarray] | None = None
@@ -56,6 +55,7 @@ class SimulationOutput:
 
     def get(self, *keys: str, to_numpy: bool = True,
             elt: _Element | None = None, pos: str | None = None,
+            none_to_nan: bool = False,
             **kwargs: Any) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -96,9 +96,16 @@ class SimulationOutput:
                 idx = self.element_to_index(elt=elt, pos=pos)
                 val[key] = val[key][idx]
 
-        out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
+        out = [np.array(val[key])
+               if to_numpy and not isinstance(val[key], str)
                else val[key]
                for key in keys]
+
+        if none_to_nan:
+            if not to_numpy:
+                logging.error(f"{none_to_nan = } while {to_numpy = }, which "
+                              "is not supported.")
+            out = [val.astype(float) for val in out]
 
         if len(out) == 1:
             return out[0]
