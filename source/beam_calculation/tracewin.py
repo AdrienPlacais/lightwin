@@ -166,7 +166,6 @@ class TraceWin(BeamCalculator):
         tm_cumul = tm_cumul[:, 4:, 4:]
 
         cav_params = self._load_cavity_parameters()
-        phi_s = list(np.deg2rad(cav_params['SyncPhase[°]']))
         cav_params = self._cavity_parameters_uniform_with_envelope1d(
             cav_params, len(elts))
 
@@ -181,7 +180,6 @@ class TraceWin(BeamCalculator):
         simulation_output = SimulationOutput(
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
-            phi_s=phi_s,
             r_zz_elt=r_zz_elt,
             rf_fields=rf_fields,
             beam_parameters=beam_params,
@@ -342,7 +340,6 @@ class TraceWin(BeamCalculator):
         """
         f_p = os.path.join(self.path_cal, filename)
         n_lines_header = 1
-        cavity_param = {}
 
         with open(f_p, 'r', encoding='utf-8') as file:
             for i, line in enumerate(file):
@@ -351,8 +348,7 @@ class TraceWin(BeamCalculator):
                     break
 
         out = np.loadtxt(f_p, skiprows=n_lines_header)
-        for i, key in enumerate(headers):
-            cavity_param[key] = out[:, i]
+        cavity_param = {key: out[:, i] for i, key in enumerate(headers)}
         logging.debug(f"successfully loaded {f_p}")
         return cavity_param
 
@@ -361,18 +357,17 @@ class TraceWin(BeamCalculator):
             ) -> list[None | dict[str, float]]:
         """Transform the dict so we have the same format as Envelope1D."""
         elt_number = cav_params['Cav#'].astype(int)
+        compliant_cav_params = {'v_cav_mv': list[float | None],
+                                'phi_s': list[float | None]}
 
-        j = 0
-        compliant_cav_params = []
-        for i in range(1, n_elts + 1):
-            if i not in elt_number:
-                compliant_cav_params.append(None)
-                continue
+        compliant_cav_params['v_cav_mv'] = [cav_params['Voltage[MV]'].pop(0)
+                                            if i in elt_number else None
+                                            for i in range(1, n_elts + 1)]
+        compliant_cav_params['phi_s'] = [
+            np.deg2rad(cav_params['SyncPhase[°]'].pop(0))
+            if i in elt_number else None
+            for i in range(1, n_elts + 1)]
 
-            param = {'v_cav_mv': cav_params['Voltage[MV]'][j],
-                     'phi_s': np.deg2rad(cav_params['SyncPhase[°]'][j])}
-            compliant_cav_params.append(param)
-            j += 1
         return compliant_cav_params
 
 

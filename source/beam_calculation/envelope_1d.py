@@ -165,10 +165,17 @@ class Envelope1D(BeamCalculator):
                                                   phi_abs=phi_abs_array,
                                                   synchronous=True)
 
-        cav_params = [results['cav_params']
-                      for results in single_elts_results]
-        phi_s = [cav_param['phi_s']
-                 for cav_param in cav_params if cav_param is not None]
+        cav_params = [results['cav_params'] for results in single_elts_results]
+        cav_params = {
+            'v_cav_mv': [cav_param['v_cav_mv']
+                         if cav_param is not None else None
+                         for cav_param in cav_params
+                         ],
+            'phi_s': [cav_param['phi_s']
+                      if cav_param is not None else None
+                      for cav_param in cav_params
+                      ],
+        }
 
         r_zz_elt = [
             results['r_zz'][i, :, :]
@@ -185,7 +192,6 @@ class Envelope1D(BeamCalculator):
         simulation_output = SimulationOutput(
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
-            phi_s=phi_s,
             r_zz_elt=r_zz_elt,
             rf_fields=rf_fields,
             beam_parameters=beam_params,
