@@ -88,7 +88,7 @@ class Accelerator():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: str, to_numpy: bool = True,
+    def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
             elt: str | _Element | None = None, **kwargs: Any) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -135,12 +135,15 @@ class Accelerator():
                 elt = self.equiv_elt(elt)
 
             val[key] = recursive_getter(key, vars(self), to_numpy=False,
+                                        none_to_nan=False,
                                         elt=elt, **kwargs)
 
         out = [val[key] for key in keys]
         if to_numpy:
             out = [np.array(val) if isinstance(val, list) else val
                    for val in out]
+            if none_to_nan:
+                out = [val.astype(float) for val in out]
 
         if len(keys) == 1:
             return out[0]
