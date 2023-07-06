@@ -17,6 +17,7 @@ from util.dicts_output import markdown
 @dataclass
 class Variable:
     """A single variable."""
+
     name: str
     cavity_name: str
     x_0: float
@@ -29,7 +30,8 @@ class Variable:
             self.x_0_fmt = np.rad2deg(self.x_0)
             self.limits_fmt = np.rad2deg(self.limits)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Output variable name, initial value and limits."""
         out = f"{markdown[self.name]:20} {self.cavity_name:5} "
         out += f"x_0={self.x_0_fmt:>8.3f}   "
         out += f"limits={self.limits_fmt[0]:>8.3f} {self.limits_fmt[1]:>8.3f}"
@@ -39,6 +41,7 @@ class Variable:
 @dataclass
 class Constraint:
     """A single constraint."""
+
     name: str
     cavity_name: str
     limits: tuple
@@ -49,7 +52,8 @@ class Constraint:
         if 'phi' in self.name:
             self.limits_fmt = np.rad2deg(self.limits)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Output constraint name and limits."""
         out = f"{markdown[self.name]:20} {self.cavity_name:15}      "
         out += f"limits={self.limits_fmt[0]:>8.3f} {self.limits_fmt[1]:>8.3f}"
         return out
@@ -79,6 +83,7 @@ class VariablesAndConstraints:
                             for cav in self.comp_cav]
 
     def __str__(self) -> str:
+        """Output all variables and constraints in a fancy way."""
         out = ["=" * 80]
         out += ["Variables:"] + [str(var) for var in self.variables]
         out += ["-" * 80]
@@ -96,7 +101,7 @@ class VariablesAndConstraints:
         return INITIAL[key](ref_cav)
 
     def _set_limits(self, key: str, cav: FieldMap, **kwargs
-                   ) -> tuple[float | None]:
+                    ) -> tuple[float | None]:
         """Return optimisation limits for desired key."""
         if key not in LIM:
             logging.error(f"Limits for variable {key} not implemented.")
@@ -117,7 +122,7 @@ class VariablesAndConstraints:
 
 def _limits_k_e(preset: str, cav: FieldMap, ref_cav: FieldMap,
                 ref_linac: Accelerator, global_compensation: bool = False
-               ) -> tuple[float | None]:
+                ) -> tuple[float | None]:
     """Limits for electric field."""
     ref_k_e = ref_cav.get('k_e', to_numpy=False)
 
