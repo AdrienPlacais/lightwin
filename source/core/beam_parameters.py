@@ -89,7 +89,7 @@ class BeamParameters:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: str, to_numpy: bool = True,
+    def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
             elt: _Element | None = None, pos: str | None = None,
             **kwargs: Any) -> Any:
         """
@@ -102,6 +102,8 @@ class BeamParameters:
         to_numpy : bool, optional
             If you want the list output to be converted to a np.ndarray. The
             default is True.
+        none_to_nan : bool, optional
+            To convert None to np.NaN. The default is True.
         elt : _Element | None, optional
             If provided, return the attributes only at the considered _Element.
         pos : 'in' | 'out' | None
@@ -123,17 +125,16 @@ class BeamParameters:
                 val[key] = None
                 continue
 
-            val[key] = recursive_getter(key, vars(self), **kwargs)
-            if not to_numpy and isinstance(val[key], np.ndarray):
-                val[key] = val[key].tolist()
+            val[key] = recursive_getter(key, vars(self), to_numpy=False,
+                                        none_to_nan=False, elt=elt, pos=pos,
+                                        **kwargs)
 
-            # if None not in (self.element_to_index, elt):
-                # idx = self.element_to_index(elt, pos)
-                # val[key] = val[key][idx]
-
-        out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
-               else val[key]
-               for key in keys]
+        out = [val[key] for key in keys]
+        if to_numpy:
+            out = [np.array(val) if isinstance(val, list) else val
+                   for val in out]
+            if none_to_nan:
+                out = [val.astype(float) for val in out]
 
         if len(out) == 1:
             return out[0]
