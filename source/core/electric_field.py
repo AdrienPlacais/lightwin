@@ -50,7 +50,9 @@ class RfField():
             self.phi_0['phi_0_rel'] = phi_0
             self.phi_0['nominal_rel'] = phi_0
 
-        self.cav_params = {'v_cav_mv': np.NaN, 'phi_s': np.NaN}
+        # self.cav_params = {'v_cav_mv': np.NaN, 'phi_s': np.NaN}
+        self.v_cav_mv = np.NaN
+        self.phi_s = np.NaN
 
         # Initialized later as it depends on the Section the cavity is in
         self.omega0_rf, self.n_cell = None, None

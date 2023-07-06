@@ -129,10 +129,12 @@ class _Element():
             for beam_calc_param in self.beam_calc_param.values():
                 beam_calc_param.re_set_for_broken_cavity()
 
-    def keep_rf_field(self, rf_field: dict, cav_params: dict) -> None:
-        """Save data calculated by Accelerator.compute_transfer_matrices."""
+    def keep_rf_field(self, rf_field: dict, v_cav_mv: float, phi_s: float,
+                      ) -> None:
+        """Save data calculated by BeamCalculator.run_with_this."""
         if rf_field != {}:
-            self.acc_field.cav_params = cav_params
+            self.acc_field.v_cav_mv = v_cav_mv
+            self.acc_field.phi_s = phi_s
             self.acc_field.phi_0['phi_0_abs'] = rf_field['phi_0_abs']
             self.acc_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
             self.acc_field.k_e = rf_field['k_e']

@@ -212,10 +212,11 @@ class Accelerator():
 
     def keep_settings(self, simulation_output: SimulationOutput) -> None:
         """Save cavity parameters in _Elements and new .dat file."""
-        for elt, rf_field, cav_params in zip(self.elts,
-                                             simulation_output.rf_fields,
-                                             simulation_output.cav_params):
-            elt.keep_rf_field(rf_field, cav_params)
+        for i, (elt, rf_field) in enumerate(zip(self.elts,
+                                                simulation_output.rf_fields)):
+            v_cav_mv = simulation_output.cav_params['v_cav_mv'][i]
+            phi_s = simulation_output.cav_params['phi_s'][i]
+            elt.keep_rf_field(rf_field, v_cav_mv, phi_s)
 
         self._store_settings_in_dat(save=True)
 
