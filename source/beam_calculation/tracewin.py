@@ -356,18 +356,19 @@ class TraceWin(BeamCalculator):
         self, cav_params: dict[str, np.ndarray], n_elts: int
             ) -> list[None | dict[str, float]]:
         """Transform the dict so we have the same format as Envelope1D."""
-        elt_number = cav_params['Cav#'].astype(int)
-        compliant_cav_params = {'v_cav_mv': list[float | None],
-                                'phi_s': list[float | None]}
+        cavity_numbers = cav_params['Cav#'].astype(int)
+        v_cav, phi_s = [], []
+        cavity_idx = 0
+        for elt_idx in range(1, n_elts + 1):
+            if elt_idx not in cavity_numbers:
+                v_cav.append(None), phi_s.append(None)
+                continue
 
-        compliant_cav_params['v_cav_mv'] = [cav_params['Voltage[MV]'].pop(0)
-                                            if i in elt_number else None
-                                            for i in range(1, n_elts + 1)]
-        compliant_cav_params['phi_s'] = [
-            np.deg2rad(cav_params['SyncPhase[°]'].pop(0))
-            if i in elt_number else None
-            for i in range(1, n_elts + 1)]
+            v_cav.append(cav_params['Voltage[MV]'][cavity_idx])
+            phi_s.append(np.deg2rad(cav_params['SyncPhase[°]'][cavity_idx]))
+            cavity_idx += 1
 
+        compliant_cav_params = {'v_cav_mv': v_cav, 'phi_s': phi_s}
         return compliant_cav_params
 
 
