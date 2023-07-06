@@ -4,6 +4,8 @@
 Created on Tue Dec  6 14:33:39 2022.
 
 @author: placais
+
+FIXME get @ elt clash when arg is single: v_cav, phi_s, etc
 """
 
 # import os

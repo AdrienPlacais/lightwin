@@ -41,6 +41,17 @@ class SimulationOutput:
 
     in_tw_fashion: pd.DataFrame | None = None
 
+    def __post_init__(self) -> None:
+        """Save complementary data, such as _Elements indexes."""
+        self.elt_idx: list[int]
+        if self.cav_params is None:
+            logging.error("Failed to init SimulationOutput.elt_idx as "
+                          ".cav_params was not provided.")
+        else:
+            self.elt_idx = [
+                i for i, _ in enumerate(self.cav_params['v_cav_mv'], start=1)
+            ]
+
     def __str__(self) -> str:
         """Give a resume of the data that is stored."""
         out = "SimulationOutput:\n"
