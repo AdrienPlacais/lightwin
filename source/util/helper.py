@@ -31,21 +31,22 @@ def recursive_items(dictionary: dict[Any, Any]) -> Iterator[str]:
             yield key
 
 
-def recursive_getter(key: str, dictionary: dict, **kwargs: dict) -> Any:
+def recursive_getter(wanted_key: str, dictionary: dict,
+                     **kwargs: bool | str | int) -> Any:
     """Get first key in a possibly nested dictionary."""
-    for _key, _value in dictionary.items():
-        if key == _key:
-            return _value
+    for key, value in dictionary.items():
+        if wanted_key == key:
+            return value
 
-        if isinstance(_value, dict):
-            value = recursive_getter(key, _value, **kwargs)
-            if value is not None:
-                return value
+        if isinstance(value, dict):
+            corresp_value = recursive_getter(wanted_key, value, **kwargs)
+            if corresp_value is not None:
+                return corresp_value
 
-        elif hasattr(_value, 'get'):
-            value = _value.get(key, **kwargs)
-            if value is not None:
-                return value
+        elif hasattr(value, 'get'):
+            corresp_value = value.get(wanted_key, **kwargs)
+            if corresp_value is not None:
+                return corresp_value
     return None
 
 
