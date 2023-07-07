@@ -187,6 +187,8 @@ class Envelope1D(BeamCalculator):
 
         beam_params = BeamParameters(tm_cumul)
         beam_params.init_zdelta_from_sigma()
+        beam_params.init_other_longitudinal_planes_from_zdelta(
+            synch_trajectory.gamma)
 
         element_to_index = self._generate_element_to_index_func(elts)
 

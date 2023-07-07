@@ -39,7 +39,7 @@ import numpy as np
 
 import config_manager as con
 from core.elements import _Element
-import util.converters as convert
+import util.converters as converters
 from util.helper import recursive_items, recursive_getter, range_vals
 
 
@@ -60,7 +60,6 @@ class BeamParameters:
 
         self.sigma = _sigma_beam_matrices(self.tm_cumul, self.sigma_in)
 
-        # New way of doing things
         self.zdelta = SinglePhaseSpaceBeamParameters(phase_space='zdelta')
         self.z = SinglePhaseSpaceBeamParameters(phase_space='z')
         self.phiw = SinglePhaseSpaceBeamParameters(phase_space='phiw')
@@ -174,6 +173,13 @@ class BeamParameters:
         """Call the proper method to initialize zdelta."""
         self.zdelta.init_from_sigma(self.sigma)
 
+    def init_other_longitudinal_planes_from_zdelta(self, gamma_kin: np.ndarray
+                                                   ) -> None:
+        """Create the other longitudinal planes from zdelta."""
+        args = (self.zdelta.eps, self.zdelta.twiss, gamma_kin)
+        self.phiw.init_from_another_plane(*args, 'zdelta to phiw')
+        self.z.init_from_another_plane(*args, 'zdelta to z')
+
     def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
         """Compute the mismatch factor."""
         self.mismatch_factor = None
@@ -181,35 +187,6 @@ class BeamParameters:
             self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
                                                    self.zdelta.twiss,
                                                    transp=True)
-
-    @property
-    def twiss_zdelta(self) -> np.ndarray:
-        return self.zdelta.twiss
-
-    # def compute_full(self, gamma: np.ndarray) -> None:
-    #     """Compute emittances, Twiss, envelopes in every plane."""
-    #     _eps = _emittances_all(self.eps_zdelta, gamma)
-    #     self.eps_w = _eps['eps_w']
-    #     self.eps_z = _eps['eps_z']
-
-    #     _twiss = _twiss_all(self.twiss_zdelta, gamma)
-    #     self.alpha_zdelta = _twiss['twiss_zdelta'][:, 0]
-    #     self.beta_zdelta = _twiss['twiss_zdelta'][:, 1]
-    #     self.gamma_zdelta = _twiss['twiss_zdelta'][:, 2]
-    #     self.alpha_z = _twiss['twiss_z'][:, 0]
-    #     self.beta_z = _twiss['twiss_z'][:, 1]
-    #     self.gamma_z = _twiss['twiss_z'][:, 2]
-    #     self.alpha_w = _twiss['twiss_w'][:, 0]
-    #     self.beta_w = _twiss['twiss_w'][:, 1]
-    #     self.gamma_w = _twiss['twiss_w'][:, 2]
-
-    #     _envelopes = _envelopes_all(_twiss, _eps)
-    #     self.envelope_pos_zdelta = _envelopes['envelopes_zdelta'][:, 0]
-    #     self.envelope_energy_zdelta = _envelopes['envelopes_zdelta'][:, 1]
-    #     self.envelope_pos_z = _envelopes['envelopes_z'][:, 0]
-    #     self.envelope_energy_z = _envelopes['envelopes_z'][:, 1]
-    #     self.envelope_pos_w = _envelopes['envelopes_w'][:, 0]
-    #     self.envelope_energy_w = _envelopes['envelopes_w'][:, 1]
 
 
 @dataclass
@@ -293,8 +270,8 @@ class SinglePhaseSpaceBeamParameters:
                                 twiss_orig: np.ndarray, gamma_kin: np.ndarray,
                                 convert: str) -> None:
         """Fully initialize from another phase space."""
-        self._compute_eps_from_other_plane(eps_orig, convert)
-        self._compute_twiss_from_other_plane(twiss_orig, convert)
+        self._compute_eps_from_other_plane(eps_orig, gamma_kin, convert)
+        self._compute_twiss_from_other_plane(twiss_orig, gamma_kin, convert)
         self.compute_envelopes()
 
     def _compute_eps_from_sigma(self, sigma: np.ndarray) -> None:
@@ -307,7 +284,7 @@ class SinglePhaseSpaceBeamParameters:
                                       gamma_kin: np.ndarray, convert: str
                                       ) -> None:
         """Compute eps from eps in another plane."""
-        self.eps = convert.emittance(eps_orig, gamma_kin, convert)
+        self.eps = converters.emittance(eps_orig, gamma_kin, convert)
 
     def _compute_twiss_from_sigma(self, sigma: np.ndarray) -> None:
         """Compute the Twiss parameters using the sigma matrix."""
@@ -325,9 +302,11 @@ class SinglePhaseSpaceBeamParameters:
         self.twiss = twiss
 
     def _compute_twiss_from_other_plane(self, twiss_orig: np.ndarray,
-                                        convert: str) -> None:
+                                        gamma_kin: np.ndarray, convert: str
+                                        ) -> None:
         """Compute Twiss parameters from Twiss parameters in another plane."""
-        self._unpack_twiss(convert.twiss(twiss_orig, convert))
+        self.twiss = converters.twiss(twiss_orig, gamma_kin, convert)
+        self._unpack_twiss(self.twiss)
 
     def compute_envelopes(self) -> None:
         """Compute the envelopes from the Twiss parameters and eps."""
@@ -398,8 +377,8 @@ def _emittances_all(eps_zdelta: np.ndarray, gamma: np.ndarray
                     ) -> dict[str, np.ndarray]:
     """Compute emittances in [phi-W] and [z-z']."""
     eps = {"eps_zdelta": eps_zdelta,
-           "eps_w": convert.emittance(eps_zdelta, gamma, "zdelta to w"),
-           "eps_z": convert.emittance(eps_zdelta, gamma, "zdelta to z")}
+           "eps_w": converters.emittance(eps_zdelta, gamma, "zdelta to w"),
+           "eps_z": converters.emittance(eps_zdelta, gamma, "zdelta to z")}
     return eps
 
 
@@ -420,8 +399,8 @@ def _twiss_zdelta(sigma: np.ndarray, eps_zdelta: np.ndarray) -> np.ndarray:
 def _twiss_all(twiss_zdelta: np.ndarray, gamma: np.ndarray) -> np.ndarray:
     """Compute Twiss parameters in [phi-W] and [z-z']."""
     twiss = {"twiss_zdelta": twiss_zdelta,
-             "twiss_w": convert.twiss(twiss_zdelta, gamma, "zdelta to w"),
-             "twiss_z": convert.twiss(twiss_zdelta, gamma, "zdelta to z")}
+             "twiss_w": converters.twiss(twiss_zdelta, gamma, "zdelta to w"),
+             "twiss_z": converters.twiss(twiss_zdelta, gamma, "zdelta to z")}
     return twiss
 
 
