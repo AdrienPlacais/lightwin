@@ -30,6 +30,7 @@ class ParticleInitialState:
     It is stored in Accelerator, and is parent of ParticleFullTrajectory.
 
     """
+
     w_kin: float | np.ndarray | list
     phi_abs: float | np.ndarray | list
     synchronous: bool
@@ -63,6 +64,7 @@ class ParticleFullTrajectory(ParticleInitialState):
         self.beta: np.ndarray
 
     def __str__(self) -> str:
+        """Show amplitude of phase and energy."""
         out = "\tParticleFullTrajectory:\n"
         out += "\t\t" + range_vals("w_kin", self.w_kin)
         out += "\t\t" + range_vals("phi_abs", self.phi_abs)
@@ -93,12 +95,10 @@ class ParticleFullTrajectory(ParticleInitialState):
             if val[key] is not None and to_deg and 'phi' in key:
                 val[key] = np.rad2deg(val[key])
 
-        # Convert to list
         out = [val[key] for key in keys]
 
         if len(out) == 1:
             return out[0]
-        # implicit else:
         return tuple(out)
 
 
