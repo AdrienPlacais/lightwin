@@ -61,8 +61,14 @@ class SimulationOutput:
         return out
 
     def has(self, key: str) -> bool:
-        """Tell if the required attribute is in this class."""
-        return key in recursive_items(vars(self))
+        """
+        Tell if the required attribute is in this class.
+
+        We also call the beam_parameters.has, as it is designed to handle the
+        alias (twiss_zdelta <-> zdelta.twiss).
+        """
+        return key in recursive_items(vars(self)) \
+            or self.beam_parameters.has(key)
 
     def get(self, *keys: str, to_numpy: bool = True,
             elt: _Element | None = None, pos: str | None = None,
@@ -141,7 +147,7 @@ class SimulationOutput:
         self.z_abs = elts.get('abs_mesh', remove_first=True)
         self.synch_trajectory.compute_complementary_data()
 
-        self.beam_parameters.compute_full(self.synch_trajectory.gamma)
+        # self.beam_parameters.compute_full(self.synch_trajectory.gamma)
         self.beam_parameters.compute_mismatch(ref_twiss_zdelta)
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()

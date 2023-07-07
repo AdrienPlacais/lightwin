@@ -154,10 +154,8 @@ class TraceWin(BeamCalculator):
         self._save_tracewin_meshing_in_elements(elts, results['##'],
                                                 results['z(m)'])
 
-        w_kin = results['w_kin']
-        phi_abs = np.deg2rad(results['phi_abs'])
-        synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
-                                                  phi_abs=phi_abs,
+        synch_trajectory = ParticleFullTrajectory(w_kin=results['w_kin'],
+                                                  phi_abs=results['phi_abs'],
                                                   synchronous=True)
 
         # WARNING, different meshing for these files
@@ -234,6 +232,8 @@ class TraceWin(BeamCalculator):
         ----------
         filename : str
             Results file produced by TraceWin.
+        post_treat : bool, optional
+            To compute complementary data. The default is True.
 
         Returns
         -------
@@ -354,7 +354,7 @@ class TraceWin(BeamCalculator):
 
     def _cavity_parameters_uniform_with_envelope1d(
         self, cav_params: dict[str, np.ndarray], n_elts: int
-            ) -> list[None | dict[str, float]]:
+    ) -> list[None | dict[str, float]]:
         """Transform the dict so we have the same format as Envelope1D."""
         cavity_numbers = cav_params['Cav#'].astype(int)
         v_cav, phi_s = [], []
@@ -374,8 +374,11 @@ class TraceWin(BeamCalculator):
 
 def _beam_param_uniform_with_envelope1d(
     beam_parameters: BeamParameters, results: dict[str, np.ndarray]
-        ) -> BeamParameters:
+) -> BeamParameters:
     """Manually set quantities in BeamParamaters object."""
+    beam_parameters.compute_full(results['gamma'])
+
+    # Overwrite the beam_parameters quantities that are already in results dict
     beam_parameters.eps_x = results['ex']
     beam_parameters.eps_y = results['ey']
     beam_parameters.eps_t = results['et']

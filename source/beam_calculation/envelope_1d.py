@@ -186,6 +186,7 @@ class Envelope1D(BeamCalculator):
                                              len(w_kin))
 
         beam_params = BeamParameters(tm_cumul)
+        beam_params.init_zdelta_from_sigma()
 
         element_to_index = self._generate_element_to_index_func(elts)
 

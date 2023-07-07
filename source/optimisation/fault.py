@@ -172,7 +172,8 @@ class Fault:
         objectives_values = [
             self.ref_acc.get(key, elt=elt, pos='out')
             if key not in exceptions
-            else self.ref_acc.get('twiss_zdelta', elt=elt, pos='out')
+            else self.ref_acc.get('twiss', elt=elt, pos='out',
+                                  phase_space='zdelta')
             for elt in self.elt_eval_objectives
             for key in objectives]
 
@@ -198,17 +199,15 @@ class Fault:
                     if key == 'mismatch_factor':
                         mism = mismatch_factor(
                             objectives_values[i_ref],
-                            simulation_output.get('twiss_zdelta',
-                                                  elt=elt,
-                                                  pos='out'))[0]
+                            simulation_output.get('twiss', elt=elt, pos='out',
+                                                  phase_space='zdelta'))[0]
                         residues.append(mism * scale)
                         continue
 
                     residues.append(
                         (objectives_values[i_ref]
-                         - simulation_output.get(key,
-                                                 elt=elt,
-                                                 pos='out')) * scale)
+                         - simulation_output.get(key, elt=elt, pos='out'))
+                        * scale)
             return np.array(residues)
 
         return compute_residuals, info_objectives

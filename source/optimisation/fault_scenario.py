@@ -212,9 +212,10 @@ class FaultScenario(list):
             additional _Elements. The default is None.
 
         """
+        logging.critical('_Evaluate_fit_quality should be SimulationOutput, not Accelerator')
         quantities_to_evaluate = [
-            'w_kin', 'phi_abs', 'envelope_pos_w', 'envelope_energy_w',
-            'mismatch_factor', 'eps_w']
+            'w_kin', 'phi_abs', 'envelope_pos_phiw', 'envelope_energy_phiw',
+            'mismatch_factor', 'eps_phiw']
         quantities = {key: [] for key in quantities_to_evaluate}
 
         evaluation_elt = [fault.elts[-1] for fault in self]
@@ -238,7 +239,7 @@ class FaultScenario(list):
                 if key == 'mismatch_factor':
                     quantities[key].append(fix)
                     continue
-
+                print(key)
                 ref = self.ref_acc.get(key, elt=elt, pos='out')
                 quantities[key].append(1e2 * (ref - fix) / ref)
 

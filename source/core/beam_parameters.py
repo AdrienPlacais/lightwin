@@ -79,7 +79,15 @@ class BeamParameters:
         return out
 
     def has(self, key: str) -> bool:
-        """Tell if the required attribute is in this class."""
+        """
+        Tell if the required attribute is in this class.
+
+        Specifics of this method: twiss_zdelta will return True, even if the
+        correct property is zdelta.twiss.
+        """
+        if _phase_space_name_hidden_in_key(key):
+            key, phase_space = _separate_var_from_phase_space(key)
+            return key in recursive_items(vars(vars(self)[phase_space]))
         return key in recursive_items(vars(self))
 
     def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
@@ -128,7 +136,7 @@ class BeamParameters:
         for key in keys:
 
             if _phase_space_name_hidden_in_key(key):
-                key, my_phase_space = key.split('_')
+                key, my_phase_space = _separate_var_from_phase_space(key)
                 if phase_space is not None:
                     logging.warning(
                         "Amibiguous: you asked for two phase-spaces. One with "
@@ -140,16 +148,16 @@ class BeamParameters:
                 val[key] = None
                 continue
 
-            for stored_key, stored_val in dict(self):
+            for stored_key, stored_val in vars(self).items():
                 if stored_key == key:
                     val[key] = stored_val
-                    continue
+                    break
 
                 if stored_key == my_phase_space:
                     val[key] = recursive_getter(
                         key, vars(stored_val), to_numpy=False,
                         none_to_nan=False, elt=elt, pos=pos, **kwargs)
-                    continue
+                    break
 
         out = [val[key] for key in keys]
         if to_numpy:
@@ -173,6 +181,10 @@ class BeamParameters:
             self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
                                                    self.zdelta.twiss,
                                                    transp=True)
+
+    @property
+    def twiss_zdelta(self) -> np.ndarray:
+        return self.zdelta.twiss
 
     # def compute_full(self, gamma: np.ndarray) -> None:
     #     """Compute emittances, Twiss, envelopes in every plane."""
@@ -434,7 +446,14 @@ def _phase_space_name_hidden_in_key(key: str) -> bool:
         return False
 
     to_test = key.split('_')
-    if to_test[1] in PHASE_SPACES:
+    if to_test[-1] in PHASE_SPACES:
         return True
-
     return False
+
+
+def _separate_var_from_phase_space(key: str) -> bool:
+    """Separate variable name from phase space name."""
+    splitted = key.split('_')
+    key = '_'.join(splitted[:-1])
+    phase_space = splitted[-1]
+    return key, phase_space
