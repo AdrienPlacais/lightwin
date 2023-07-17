@@ -97,9 +97,11 @@ class BeamParameters:
 
         What is particular in this getter is that all
         SinglePhaseSpaceBeamParameters attributes have attributes with the same
-        name: twiss, alpha, beta, gamma, eps, envelopes_pos, envelopes_energy.
-        Hence there is a specific keyword argument: `phase_space`, which can be
-        any of the phase spaces.
+        name: `twiss`, `alpha`, `beta`, `gamma`, `eps`, `envelopes_pos` and
+        `envelopes_energy`.
+        Hence, you must provide either a `phase_space` argument which shall be
+        in PHASE_SPACES, either you must append the name of the phase space to
+        the name of the desired variable.
 
         Parameters
         ----------
@@ -133,9 +135,9 @@ class BeamParameters:
 
         val = {key: [] for key in keys}
         for key in keys:
-
+            short_key = key
             if _phase_space_name_hidden_in_key(key):
-                key, my_phase_space = _separate_var_from_phase_space(key)
+                short_key, my_phase_space = _separate_var_from_phase_space(key)
                 if phase_space is not None:
                     logging.warning(
                         "Amibiguous: you asked for two phase-spaces. One with "
@@ -143,18 +145,18 @@ class BeamParameters:
                         f"the positional argument {key = }. I take "
                         f"{my_phase_space}.")
 
-            if not self.has(key):
+            if not self.has(short_key):
                 val[key] = None
                 continue
 
             for stored_key, stored_val in vars(self).items():
-                if stored_key == key:
+                if stored_key == short_key:
                     val[key] = stored_val
                     break
 
                 if stored_key == my_phase_space:
                     val[key] = recursive_getter(
-                        key, vars(stored_val), to_numpy=False,
+                        short_key, vars(stored_val), to_numpy=False,
                         none_to_nan=False, elt=elt, pos=pos, **kwargs)
                     break
 

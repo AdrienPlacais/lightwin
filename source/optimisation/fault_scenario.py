@@ -302,12 +302,12 @@ class FaultScenario(list):
 
         for elt in evaluation_elt:
             for key in quantities_to_evaluate:
+                print(key)
                 fix = fix_simu.get(key, elt=elt, pos='out')
 
                 if key == 'mismatch_factor':
                     quantities[key].append(fix)
                     continue
-                print(key)
                 ref = ref_simu.get(key, elt=elt, pos='out')
                 quantities[key].append(1e2 * (ref - fix) / ref)
 
