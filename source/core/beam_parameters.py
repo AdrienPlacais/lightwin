@@ -67,7 +67,7 @@ class BeamParameters:
         self.y = SinglePhaseSpaceBeamParameters(phase_space='y')
 
         self.zdelta.init_from_sigma(self.sigma)
-        self.mismatch_factor: np.ndarray | None
+        self.mismatch_factor: np.ndarray | None = None
 
     def __str__(self) -> str:
         """Give compact information on the data that is stored."""
@@ -129,21 +129,17 @@ class BeamParameters:
             Attribute(s) value(s).
 
         """
-        my_phase_space = phase_space
-        if phase_space is None:
-            my_phase_space = 'zdelta'
-
         val = {key: [] for key in keys}
         for key in keys:
             short_key = key
             if _phase_space_name_hidden_in_key(key):
-                short_key, my_phase_space = _separate_var_from_phase_space(key)
                 if phase_space is not None:
                     logging.warning(
                         "Amibiguous: you asked for two phase-spaces. One with "
                         f"keyword argument {phase_space = }, and another with "
-                        f"the positional argument {key = }. I take "
-                        f"{my_phase_space}.")
+                        f"the positional argument {key = }. I take phase "
+                        f"space from {key = }.")
+                short_key, phase_space = _separate_var_from_phase_space(key)
 
             if not self.has(short_key):
                 val[key] = None
@@ -154,10 +150,13 @@ class BeamParameters:
                     val[key] = stored_val
                     break
 
-                if stored_key == my_phase_space:
+                if stored_key == phase_space:
                     val[key] = recursive_getter(
                         short_key, vars(stored_val), to_numpy=False,
                         none_to_nan=False, elt=elt, pos=pos, **kwargs)
+
+                    if val[key] is None:
+                        continue
                     break
 
         out = [val[key] for key in keys]
@@ -184,11 +183,11 @@ class BeamParameters:
 
     def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
         """Compute the mismatch factor."""
-        self.mismatch_factor = None
-        if ref_twiss_zdelta is not None:
-            self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
-                                                   self.zdelta.twiss,
-                                                   transp=True)
+        if ref_twiss_zdelta is None:
+            return
+        self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
+                                               self.zdelta.twiss,
+                                               transp=True)
 
 
 @dataclass
