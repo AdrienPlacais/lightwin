@@ -17,6 +17,7 @@ import pandas as pd
 
 import config_manager as con
 from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.output import SimulationOutput
 from optimisation.fault import Fault
 from optimisation import strategy, position
 from core.elements import _Element
@@ -197,9 +198,9 @@ class FaultScenario(list):
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
     # FIXME could be simpler
-    def _evaluate_fit_quality(self, save: bool = True,
-                              additional_elt: list[_Element] | None = None
-                              ) -> None:
+    def _evaluate_fit_quality_old(self, save: bool = True,
+                                  additional_elt: list[_Element] | None = None
+                                  ) -> None:
         """
         Compute some quantities on the whole linac to see if fit is good.
 
@@ -266,6 +267,123 @@ class FaultScenario(list):
             out = os.path.join(self.fix_acc.get('beam_calc_path'),
                                'settings_quality_tests.csv')
             df_eval.to_csv(out)
+
+    def _evaluate_fit_quality(self, save: bool = True,
+                              additional_elt: list[_Element] | None = None,
+                              id_solver_ref: str | None = None,
+                              id_solver_fix: str | None = None) -> None:
+        """
+        Compute some quantities on the whole linac to see if fit is good.
+
+        Parameters
+        ----------
+        save : bool, optional
+            To tell if you want to save the evaluation. The default is True.
+        additional_elt : list[_Element] | None, optional
+            If you want to evaluate the quality of the beam at the exit of
+            additional _Elements. The default is None.
+        id_solver_ref : str, optional
+            Id of the solver from which you want reference results. The default
+            is None. In this case, the first solver is taken
+            (`beam_calc_param`).
+        id_solver_fix : str, optional
+            Id of the solver from which you want fixed results. The default is
+            None. In this case, the solver is the same as for reference.
+
+        """
+        quantities_to_evaluate = ['w_kin', 'phi_abs', 'envelope_pos_phiw',
+                                  'envelope_energy_phiw', 'mismatch_factor',
+                                  'eps_phiw']
+        quantities = {key: [] for key in quantities_to_evaluate}
+        evaluation_elt = self._set_evaluation_elements(additional_elt)
+        header = self._set_fit_quality_header(evaluation_elt, additional_elt)
+        ref_simu, fix_simu = self._set_which_simulations_should_be_compared(
+            id_solver_ref, id_solver_fix)
+
+        for elt in evaluation_elt:
+            for key in quantities_to_evaluate:
+                fix = fix_simu.get(key, elt=elt, pos='out')
+
+                if key == 'mismatch_factor':
+                    quantities[key].append(fix)
+                    continue
+                print(key)
+                ref = ref_simu.get(key, elt=elt, pos='out')
+                quantities[key].append(1e2 * (ref - fix) / ref)
+
+        for key in quantities_to_evaluate:
+            fix = fix_simu.get(key)
+
+            if key == 'mismatch_factor':
+                quantities[key].append(np.sum(fix))
+                continue
+
+            ref = fix_simu.get(key)
+            ref[ref == 0.] = np.NaN
+
+            quantities[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
+
+        df_eval = pd.DataFrame(columns=header)
+        for i, key in enumerate(quantities_to_evaluate):
+            df_eval.loc[i] = [key] + quantities[key]
+        logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
+
+        if save:
+            out = os.path.join(self.fix_acc.get('beam_calc_path'),
+                               'settings_quality_tests.csv')
+            df_eval.to_csv(out)
+
+    def _set_evaluation_elements(self,
+                                 additional_elt: list[_Element] | None = None,
+                                 ) -> list[_Element]:
+        """Set a the proper list of where to check the fit quality."""
+        evaluation_elt = [fault.elts[-1] for fault in self]
+        if additional_elt is not None:
+            evaluation_elt += additional_elt
+        evaluation_elt.append(self.fix_acc.elts[-1])
+        return evaluation_elt
+
+    def _set_fit_quality_header(self, evaluation_elt: list[_Element],
+                                additional_elt: list[_Element] | None = None,
+                                ) -> list[str]:
+        """Set the heading for proper output of fit quality eval."""
+        descriptors = []
+        for elt in evaluation_elt:
+            if elt == self.fix_acc.elts[-1]:
+                descriptors.append("end linac")
+                continue
+            if additional_elt is not None and elt in additional_elt:
+                descriptors.append("user-defined")
+                continue
+            descriptors.append("end comp zone")
+
+        element_names = [f"\n({elt = }) [%]" for elt in evaluation_elt]
+
+        header = [descr + name
+                  for descr, name in zip(descriptors, element_names)]
+        header.insert(0, "Qty")
+        header.append("sum error linac")
+        return header
+
+    def _set_which_simulations_should_be_compared(
+        self, id_solver_ref: str | None, id_solver_fix: str | None
+    ) -> tuple[SimulationOutput, SimulationOutput]:
+        """Get proper SimulationOutputs for comparison."""
+        if id_solver_ref is None:
+            id_solver_ref = list(self.ref_acc.simulation_outputs.keys())[0]
+
+        if id_solver_fix is None:
+            id_solver_fix = id_solver_ref
+
+        if id_solver_ref != id_solver_fix:
+            logging.warning("You are trying to compare two SimulationOutputs "
+                            "created by two different solvers. This may lead "
+                            "to errors, as interpolations in this case are not"
+                            " implemented yet.")
+
+        ref_simu = self.ref_acc.simulation_outputs[id_solver_ref]
+        fix_simu = self.fix_acc.simulation_outputs[id_solver_fix]
+        return ref_simu, fix_simu
 
 
 def fault_scenario_factory(accelerators: list[Accelerator],
