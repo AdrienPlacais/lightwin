@@ -292,37 +292,18 @@ class FaultScenario(list):
             None. In this case, the solver is the same as for reference.
 
         """
-        quantities_to_evaluate = ['w_kin', 'phi_abs', 'envelope_pos_phiw',
+        quantities_to_evaluate = ('w_kin', 'phi_abs', 'envelope_pos_phiw',
                                   'envelope_energy_phiw', 'mismatch_factor',
-                                  'eps_phiw']
+                                  'eps_phiw')
         quantities = {key: [] for key in quantities_to_evaluate}
         evaluation_elt = self._set_evaluation_elements(additional_elt)
         header = self._set_fit_quality_header(evaluation_elt, additional_elt)
-        ref_simu, fix_simu = self._set_which_simulations_should_be_compared(
+        ref_simu, fix_simu = self._simulations_that_should_be_compared(
             id_solver_ref, id_solver_fix)
 
-        for elt in evaluation_elt:
-            for key in quantities_to_evaluate:
-                print(key)
-                fix = fix_simu.get(key, elt=elt, pos='out')
-
-                if key == 'mismatch_factor':
-                    quantities[key].append(fix)
-                    continue
-                ref = ref_simu.get(key, elt=elt, pos='out')
-                quantities[key].append(1e2 * (ref - fix) / ref)
-
-        for key in quantities_to_evaluate:
-            fix = fix_simu.get(key)
-
-            if key == 'mismatch_factor':
-                quantities[key].append(np.sum(fix))
-                continue
-
-            ref = fix_simu.get(key)
-            ref[ref == 0.] = np.NaN
-
-            quantities[key].append(np.nansum(np.sqrt(((ref - fix) / ref)**2)))
+        _fit_quality_at_elements_exits(quantities, ref_simu, fix_simu,
+                                       evaluation_elt)
+        _fit_quality_over_full_accelerator(quantities, ref_simu, fix_simu)
 
         df_eval = pd.DataFrame(columns=header)
         for i, key in enumerate(quantities_to_evaluate):
@@ -366,7 +347,7 @@ class FaultScenario(list):
         header.append("sum error linac")
         return header
 
-    def _set_which_simulations_should_be_compared(
+    def _simulations_that_should_be_compared(
         self, id_solver_ref: str | None, id_solver_fix: str | None
     ) -> tuple[SimulationOutput, SimulationOutput]:
         """Get proper SimulationOutputs for comparison."""
@@ -385,6 +366,52 @@ class FaultScenario(list):
         ref_simu = self.ref_acc.simulation_outputs[id_solver_ref]
         fix_simu = self.fix_acc.simulation_outputs[id_solver_fix]
         return ref_simu, fix_simu
+
+
+def _fit_quality_at_elements_exits(quantities: dict[str, list[float]],
+                                   ref_simulation_output: SimulationOutput,
+                                   fix_simulation_output: SimulationOutput,
+                                   evaluation_elt: list[_Element],
+                                   ) -> dict[str, list[float]]:
+    """
+    Evaluate error of `quantities.keys()` at `evaluation_elt`.
+
+    Error is relative error in percents between `ref` and `fix`. Only
+    exception is for 'mismatch_factor' key, not multiplied by 100.
+
+    """
+    for elt in evaluation_elt:
+        for key, values in quantities.items():
+            fix = fix_simulation_output.get(key, elt=elt, pos='out')
+            if key == 'mismatch_factor':
+                values.append(fix)
+                continue
+
+            ref = ref_simulation_output.get(key, elt=elt, pos='out')
+            values.append(1e2 * (ref - fix) / ref)
+
+
+# FIXME: not RMS error. Plus: maybe there is much more relatable crits.
+def _fit_quality_over_full_accelerator(quantities: dict[str, list[float]],
+                                       ref_simulation_output: SimulationOutput,
+                                       fix_simulation_output: SimulationOutput,
+                                       ) -> dict[str, list[float]]:
+    """
+    Evaluate RMS error of `quantities.keys()` over the full accelerator.
+
+    Error is evaluated between `ref` and `fix`.
+
+    """
+    for key, values in quantities.items():
+        fix = fix_simulation_output.get(key)
+        if key == 'mismatch_factor':
+            values.append(np.sum(fix))
+            continue
+
+        ref = ref_simulation_output.get(key)
+        ref[ref == 0.] = np.NaN
+        error = np.nansum(np.sqrt(((ref - fix) / ref)**2))
+        values.append(error)
 
 
 def fault_scenario_factory(accelerators: list[Accelerator],
