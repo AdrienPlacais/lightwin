@@ -27,27 +27,31 @@ from visualization import plot
 
 
 def _wrap_beam_calculation(accelerator: Accelerator,
-                           beam_calculator: BeamCalculator
+                           beam_calculator: BeamCalculator,
+                           **kwargs: SimulationOutput
                            ) -> SimulationOutput:
     """Shorthand to init the solver, perform beam calculation."""
     beam_calculator.init_solver_parameters(accelerator)
     elts = accelerator.elts
     simulation_output = beam_calculator.run(elts)
-    simulation_output.compute_complementary_data(elts)
+    simulation_output.compute_complementary_data(elts, **kwargs)
     return simulation_output
 
 
 def beam_calc_and_save(accelerator: Accelerator,
-                       beam_calculator: BeamCalculator):
+                       beam_calculator: BeamCalculator,
+                       **kwargs: SimulationOutput):
     """Perform the simulation, save it into Accelerator.simulation_output."""
-    simulation_output = _wrap_beam_calculation(accelerator, beam_calculator)
+    simulation_output = _wrap_beam_calculation(accelerator, beam_calculator,
+                                               **kwargs)
     accelerator.keep_settings(simulation_output)
     accelerator.simulation_outputs[beam_calculator.id] = simulation_output
 
 
 def post_beam_calc_and_save(accelerator: Accelerator,
                             beam_calculator: BeamCalculator | None,
-                            recompute_reference: bool = True):
+                            recompute_reference: bool = True,
+                            **kwargs: SimulationOutput):
     """Perform the simulation, save it into Accelerator.simulation_output."""
     if beam_calculator is None:
         return
@@ -65,7 +69,7 @@ def post_beam_calc_and_save(accelerator: Accelerator,
                     "filepath. Inconsistent with Envelope1D!!")
     simulation_output = beam_calculator.run(elts,
                                             accelerator.get('dat_filepath'))
-    # simulation_output.compute_complementary_data(elts)
+    simulation_output.compute_complementary_data(elts, **kwargs)
 
     accelerator.simulation_outputs[beam_calculator.id] = simulation_output
 
@@ -133,7 +137,11 @@ if __name__ == '__main__':
     for accelerator in accelerators:
         start_time = time.monotonic()
 
-        post_beam_calc_and_save(accelerator, my_beam_calc_post)
+        ref_simulation_output = None
+        if accelerator != accelerators[0] and solv2 is not None:
+            ref_simulation_output = accelerators[0].simulation_outputs[solv2]
+        post_beam_calc_and_save(accelerator, my_beam_calc_post,
+                                ref_simulation_output=ref_simulation_output)
 
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)

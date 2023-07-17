@@ -92,7 +92,8 @@ class FaultScenario(list):
     def fix_all(self) -> None:
         """Fix all the Faults."""
         success, info = [], []
-        ref_twiss_zdelta = self.ref_acc.get('twiss_zdelta')
+        ref_simulation_output = \
+            self.ref_acc.simulation_outputs[self.beam_calculator.id]
         for fault in self:
             fault.update_cavities_status(optimisation='not started')
             _succ, optimized_cavity_settings, _info = fault.fix(
@@ -104,8 +105,8 @@ class FaultScenario(list):
             # Now we recompute full linac
             simulation_output = self.beam_calculator.run_with_this(
                 optimized_cavity_settings, self.fix_acc.elts)
-            simulation_output.compute_complementary_data(self.fix_acc.elts,
-                                                         ref_twiss_zdelta)
+            simulation_output.compute_complementary_data(
+                self.fix_acc.elts, ref_simulation_output=ref_simulation_output)
 
             self.fix_acc.keep_settings(simulation_output)
             self.fix_acc.simulation_outputs[self.beam_calculator.id] \

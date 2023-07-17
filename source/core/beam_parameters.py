@@ -184,6 +184,8 @@ class BeamParameters:
     def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
         """Compute the mismatch factor."""
         if ref_twiss_zdelta is None:
+            logging.warning("Attempting to compute a mismatch without "
+                            "reference Twiss parameters.")
             return
         self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
                                                self.zdelta.twiss,

@@ -128,8 +128,10 @@ class SimulationOutput:
             return out[0]
         return tuple(out)
 
+    # in reality, kwargs can be of SimulationOutput type
     def compute_complementary_data(self, elts: ListOfElements,
-                                   ref_twiss_zdelta: np.ndarray | None = None
+                                   ref_simulation_output: Any = None,
+                                   **kwargs: Any
                                    ) -> None:
         """
         Compute some other indirect quantities.
@@ -148,7 +150,10 @@ class SimulationOutput:
         self.synch_trajectory.compute_complementary_data()
 
         # self.beam_parameters.compute_full(self.synch_trajectory.gamma)
-        self.beam_parameters.compute_mismatch(ref_twiss_zdelta)
+        if ref_simulation_output is not None:
+            ref_twiss_zdelta = \
+                ref_simulation_output.beam_parameters.zdelta.twiss
+            self.beam_parameters.compute_mismatch(ref_twiss_zdelta)
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
         logging.critical("data_in_tw_fashion is bugged")
