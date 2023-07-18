@@ -37,9 +37,9 @@ def compute_differences_between_simulation_outputs(
                                           **kwargs)
         test_outputs.update(output)
 
-    df_eval = pd.DataFrame(columns=test_outputs,
-                           index=(markdown[qty]
-                                  for qty in quantities_to_evaluate))
+    index = (markdown[qty].replace('deg', 'rad')
+             for qty in quantities_to_evaluate)
+    df_eval = pd.DataFrame(columns=test_outputs, index=index)
     for evaluated_test, evaluated_quantities in test_outputs.items():
         df_eval[evaluated_test] = evaluated_quantities
     logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
@@ -133,7 +133,7 @@ def _get_diff_at_elements_exits_elements(faults: tuple[Fault] = (),
     evaluation_elements['end linac'] = elts[-1]
     for elt in additional_elts:
         evaluation_elements["user-defined"] = elt
-    evaluation_elements = {header + f"\n({elt=})": elt
+    evaluation_elements = {header + f" ({elt})": elt
                            for header, elt in evaluation_elements.items()}
     return evaluation_elements
 
@@ -169,7 +169,7 @@ def _diff_over_full_accelerator(ref_simulation_output: SimulationOutput,
         header for better output.
 
     """
-    header = 'sum over linac'
+    header = 'sum linac [usual units]'
     evaluated_quantities = {header: []}
     fmt = f".{precision}f"
 
