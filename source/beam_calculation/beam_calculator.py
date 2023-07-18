@@ -113,10 +113,6 @@ def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
     """
     if isinstance(elt, str):
         elt = equiv_elt(elts=_elts, elt=elt)
-    elif elt not in _elts:
-        logging.warning(f"Required element {elt} belongs to another "
-                        "ListOfElements, which is questionable in this "
-                        "context.")
 
     beam_calc_param = elt.beam_calc_param[_solver_id]
     if pos is None:
