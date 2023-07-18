@@ -23,13 +23,34 @@ from util import helper
 from util.dicts_output import markdown
 
 
-# TODO return values as string with their units
 def compute_differences_between_simulation_outputs(
         simulation_outputs: tuple[SimulationOutput],
         quantities_to_evaluate: tuple[str], *tests: str, **kwargs: Any,
 ) -> pd.DataFrame:
-    """Evaluate difference on several quantities between ref and fix linac."""
+    """
+    Evaluate difference on several quantities between ref and fix linac.
 
+    It is called by _evaluate_fit_quality and is called after a FaultScenario
+    is fixed (FaultScenario._evaluate_fit_quality method).
+
+    Parameters
+    ----------
+    simulation_outputs : tuple[SimulationOutput]
+        First one is reference, second one is fixed.
+    quantities_to_evaluate : tuple[str]
+        All the physical quantities to evaluate. Must work with the
+        SimulationOutput.get method.
+    *tests : str
+        All the tests to perform. Must be keys of the DIFFERENCE_TESTERS dict.
+    **kwargs : Any
+        Keyword arguments specific for the various tests.
+
+    Returns
+    -------
+    df_eval : pd.DataFrame
+        A resume of the tests that were performed.
+
+    """
     test_outputs = {}
     for test in tests:
         output = DIFFERENCE_TESTERS[test](*simulation_outputs,
@@ -42,7 +63,8 @@ def compute_differences_between_simulation_outputs(
     df_eval = pd.DataFrame(columns=test_outputs, index=index)
     for evaluated_test, evaluated_quantities in test_outputs.items():
         df_eval[evaluated_test] = evaluated_quantities
-    logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
+    title = "Fit quality (settings in FaultScenario._evaluate_fit_quality)"
+    logging.info(helper.pd_output(df_eval, header=title))
     return df_eval
 
 

@@ -209,9 +209,6 @@ class FaultScenario(list):
         ----------
         save : bool, optional
             To tell if you want to save the evaluation. The default is True.
-        additional_elt : list[_Element] | None, optional
-            If you want to evaluate the quality of the beam at the exit of
-            additional _Elements. The default is None.
         id_solver_ref : str, optional
             Id of the solver from which you want reference results. The default
             is None. In this case, the first solver is taken
@@ -224,10 +221,10 @@ class FaultScenario(list):
         simulations = self._simulations_that_should_be_compared(id_solver_ref,
                                                                 id_solver_fix)
 
-        tests = ('elements exits', 'over accelerator')
         quantities_to_evaluate = ('w_kin', 'phi_abs', 'envelope_pos_phiw',
                                   'envelope_energy_phiw', 'mismatch_factor',
                                   'eps_phiw')
+        tests = ('elements exits', 'over accelerator')
         kwargs = {
             'faults': tuple([fault for fault in self]),
             'additional_elts': (),
@@ -239,8 +236,8 @@ class FaultScenario(list):
             simulations, quantities_to_evaluate, *tests, **kwargs)
 
         if save:
-            out = os.path.join(self.fix_acc.get('beam_calc_path'),
-                               'settings_quality_tests.csv')
+            fname = 'evaluations_differences_between_simulation_output.csv'
+            out = os.path.join(self.fix_acc.get('beam_calc_path'), fname)
             df_eval.to_csv(out)
 
     def _set_evaluation_elements(self,
