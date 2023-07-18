@@ -20,6 +20,7 @@ from core.elements import _Element
 from beam_calculation.output import SimulationOutput
 from optimisation.fault import Fault
 from util import helper
+from util.dicts_output import markdown
 
 
 # TODO return values as string with their units
@@ -29,15 +30,16 @@ def compute_differences_between_simulation_outputs(
 ) -> pd.DataFrame:
     """Evaluate difference on several quantities between ref and fix linac."""
 
-    test_outputs = {'Qty': quantities_to_evaluate}
+    test_outputs = {}
     for test in tests:
         output = DIFFERENCE_TESTERS[test](*simulation_outputs,
                                           *quantities_to_evaluate,
                                           **kwargs)
         test_outputs.update(output)
 
-    df_eval = pd.DataFrame(columns=list(test_outputs.keys()))
-    df_eval['Qty'] = quantities_to_evaluate
+    df_eval = pd.DataFrame(columns=test_outputs,
+                           index=(markdown[qty]
+                                  for qty in quantities_to_evaluate))
     for evaluated_test, evaluated_quantities in test_outputs.items():
         df_eval[evaluated_test] = evaluated_quantities
     logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
