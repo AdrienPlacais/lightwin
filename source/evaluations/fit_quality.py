@@ -25,9 +25,7 @@ from util import helper
 # TODO return values as string with their units
 def compute_differences_between_simulation_outputs(
         simulation_outputs: tuple[SimulationOutput],
-        quantities_to_evaluate: tuple[str],
-        *tests: str,
-        **kwargs: Any,
+        quantities_to_evaluate: tuple[str], *tests: str, **kwargs: Any,
 ) -> pd.DataFrame:
     """Evaluate difference on several quantities between ref and fix linac."""
 
@@ -48,8 +46,9 @@ def compute_differences_between_simulation_outputs(
 
 def _diff_at_elements_exits(ref_simulation_output: SimulationOutput,
                             fix_simulation_output: SimulationOutput,
-                            *quantities_to_evaluate: str, **kwargs: Any,
-                            ) -> dict[str, list[float]]:
+                            *quantities_to_evaluate: str, precision: int = 3,
+                            **kwargs: Any,
+                            ) -> dict[str, list[str]]:
     """
     Evaluate error of `quantities_to_evaluate` at some _Elements exits.
 
@@ -65,6 +64,8 @@ def _diff_at_elements_exits(ref_simulation_output: SimulationOutput,
     *quantities_to_evaluate : str
         Tuple containing the keys corresponding to the desired quantities. Must
         work with the SimulationOutput.get method.
+    precision : int, optional
+        Floating point precision. The default is 3.
     **kwargs: Any
         Here we pass `faults` and `additional_elts` keys to get the list of
         _Elements where quantities are evaluated.
@@ -79,16 +80,18 @@ def _diff_at_elements_exits(ref_simulation_output: SimulationOutput,
     """
     evaluation_elements = _get_diff_at_elements_exits_elements(**kwargs)
     evaluated_quantities = {header: [] for header in evaluation_elements}
+    fmt = f".{precision}f"
 
     for header, elt in evaluation_elements.items():
         for quantity in quantities_to_evaluate:
             fix = fix_simulation_output.get(quantity, elt=elt, pos='out')
             if quantity == 'mismatch_factor':
-                evaluated_quantities[header].append(fix)
+                evaluated_quantities[header].append(f"{fix:{fmt}}")
                 continue
 
             ref = ref_simulation_output.get(quantity, elt=elt, pos='out')
-            evaluated_quantities[header].append(1e2 * (ref - fix) / ref)
+            error = 1e2 * (ref - fix) / ref
+            evaluated_quantities[header].append(f"{error:{fmt}} %")
     return evaluated_quantities
 
 
@@ -136,7 +139,8 @@ def _get_diff_at_elements_exits_elements(faults: tuple[Fault] = (),
 # FIXME: not RMS error. Plus: maybe there is much more relatable crits.
 def _diff_over_full_accelerator(ref_simulation_output: SimulationOutput,
                                 fix_simulation_output: SimulationOutput,
-                                *quantities_to_evaluate: str, **kwargs: Any,
+                                *quantities_to_evaluate: str,
+                                precision: int = 3, **kwargs: Any,
                                 ) -> dict[str, list[float]]:
     """
     Evaluate sum of RMS errors over full linac of `quantities_to_evaluate`.
@@ -150,6 +154,8 @@ def _diff_over_full_accelerator(ref_simulation_output: SimulationOutput,
     *quantities_to_evaluate : str
         Tuple containing the keys corresponding to the desired quantities. Must
         work with the SimulationOutput.get method.
+    precision : int, optional
+        Floating point precision. The default is 3.
     **kwargs: Any
         Here we pass `faults` and `additional_elts` keys to get the list of
         _Elements where quantities are evaluated.
@@ -163,17 +169,19 @@ def _diff_over_full_accelerator(ref_simulation_output: SimulationOutput,
     """
     header = 'sum over linac'
     evaluated_quantities = {header: []}
+    fmt = f".{precision}f"
 
     for quantity in quantities_to_evaluate:
         fix = fix_simulation_output.get(quantity)
         if quantity == 'mismatch_factor':
-            evaluated_quantities[header].append(np.sum(fix))
+            error = np.sum(fix)
+            evaluated_quantities[header].append(f"{error:{fmt}}")
             continue
 
         ref = ref_simulation_output.get(quantity)
         ref[ref == 0.] = np.NaN
         error = np.nansum(np.sqrt(((ref - fix) / ref)**2))
-        evaluated_quantities[header].append(error)
+        evaluated_quantities[header].append(f"{error:{fmt}}")
     return evaluated_quantities
 
 

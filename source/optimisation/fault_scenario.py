@@ -232,6 +232,7 @@ class FaultScenario(list):
             'faults': tuple([fault for fault in self]),
             'additional_elts': (),
             'elts': self.fix_acc.elts,
+            'precision': 3,
         }
 
         df_eval = fit_quality.compute_differences_between_simulation_outputs(
