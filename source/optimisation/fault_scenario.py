@@ -23,6 +23,7 @@ from optimisation import strategy, position
 from core.elements import _Element
 from core.accelerator import Accelerator
 from util import debug, helper
+from evaluations import fit_quality
 
 DISPLAY_CAVITIES_INFO = True
 
@@ -199,7 +200,6 @@ class FaultScenario(list):
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
     def _evaluate_fit_quality(self, save: bool = True,
-                              additional_elt: list[_Element] | None = None,
                               id_solver_ref: str | None = None,
                               id_solver_fix: str | None = None) -> None:
         """
@@ -221,23 +221,21 @@ class FaultScenario(list):
             None. In this case, the solver is the same as for reference.
 
         """
+        simulations = self._simulations_that_should_be_compared(id_solver_ref,
+                                                                id_solver_fix)
+
+        tests = ('elements exits', 'over accelerator')
         quantities_to_evaluate = ('w_kin', 'phi_abs', 'envelope_pos_phiw',
                                   'envelope_energy_phiw', 'mismatch_factor',
                                   'eps_phiw')
-        quantities = {key: [] for key in quantities_to_evaluate}
-        evaluation_elt = self._set_evaluation_elements(additional_elt)
-        header = self._set_fit_quality_header(evaluation_elt, additional_elt)
-        ref_simu, fix_simu = self._simulations_that_should_be_compared(
-            id_solver_ref, id_solver_fix)
+        kwargs = {
+            'faults': tuple([fault for fault in self]),
+            'additional_elts': (),
+            'elts': self.fix_acc.elts,
+        }
 
-        _fit_quality_at_elements_exits(quantities, ref_simu, fix_simu,
-                                       evaluation_elt)
-        _fit_quality_over_full_accelerator(quantities, ref_simu, fix_simu)
-
-        df_eval = pd.DataFrame(columns=header)
-        for i, key in enumerate(quantities_to_evaluate):
-            df_eval.loc[i] = [key] + quantities[key]
-        logging.info(helper.pd_output(df_eval, header='Fit evaluation'))
+        df_eval = fit_quality.compute_differences_between_simulation_outputs(
+            simulations, quantities_to_evaluate, *tests, **kwargs)
 
         if save:
             out = os.path.join(self.fix_acc.get('beam_calc_path'),
@@ -246,35 +244,13 @@ class FaultScenario(list):
 
     def _set_evaluation_elements(self,
                                  additional_elt: list[_Element] | None = None,
-                                 ) -> list[_Element]:
+                                 ) -> dict[str, _Element]:
         """Set a the proper list of where to check the fit quality."""
-        evaluation_elt = [fault.elts[-1] for fault in self]
+        evaluation_elements = [fault.elts[-1] for fault in self]
         if additional_elt is not None:
-            evaluation_elt += additional_elt
-        evaluation_elt.append(self.fix_acc.elts[-1])
-        return evaluation_elt
-
-    def _set_fit_quality_header(self, evaluation_elt: list[_Element],
-                                additional_elt: list[_Element] | None = None,
-                                ) -> list[str]:
-        """Set the heading for proper output of fit quality eval."""
-        descriptors = []
-        for elt in evaluation_elt:
-            if elt == self.fix_acc.elts[-1]:
-                descriptors.append("end linac")
-                continue
-            if additional_elt is not None and elt in additional_elt:
-                descriptors.append("user-defined")
-                continue
-            descriptors.append("end comp zone")
-
-        element_names = [f"\n({elt = }) [%]" for elt in evaluation_elt]
-
-        header = [descr + name
-                  for descr, name in zip(descriptors, element_names)]
-        header.insert(0, "Qty")
-        header.append("sum error linac")
-        return header
+            evaluation_elements += additional_elt
+        evaluation_elements.append(self.fix_acc.elts[-1])
+        return evaluation_elements
 
     def _simulations_that_should_be_compared(
         self, id_solver_ref: str | None, id_solver_fix: str | None
@@ -300,16 +276,16 @@ class FaultScenario(list):
 def _fit_quality_at_elements_exits(quantities: dict[str, list[float]],
                                    ref_simulation_output: SimulationOutput,
                                    fix_simulation_output: SimulationOutput,
-                                   evaluation_elt: list[_Element],
+                                   evaluation_elements: list[_Element],
                                    ) -> dict[str, list[float]]:
     """
-    Evaluate error of `quantities.keys()` at `evaluation_elt`.
+    Evaluate error of `quantities.keys()` at `evaluation_elements`.
 
     Error is relative error in percents between `ref` and `fix`. Only
     exception is for 'mismatch_factor' key, not multiplied by 100.
 
     """
-    for elt in evaluation_elt:
+    for elt in evaluation_elements:
         for key, values in quantities.items():
             fix = fix_simulation_output.get(key, elt=elt, pos='out')
             if key == 'mismatch_factor':
@@ -320,7 +296,6 @@ def _fit_quality_at_elements_exits(quantities: dict[str, list[float]],
             values.append(1e2 * (ref - fix) / ref)
 
 
-# FIXME: not RMS error. Plus: maybe there is much more relatable crits.
 def _fit_quality_over_full_accelerator(quantities: dict[str, list[float]],
                                        ref_simulation_output: SimulationOutput,
                                        fix_simulation_output: SimulationOutput,
