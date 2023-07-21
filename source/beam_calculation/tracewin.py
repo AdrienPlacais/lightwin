@@ -376,30 +376,11 @@ def _beam_param_uniform_with_envelope1d(
     beam_parameters: BeamParameters, results: dict[str, np.ndarray]
 ) -> BeamParameters:
     """Manually set quantities in BeamParamaters object."""
-    beam_parameters.compute_full(results['gamma'])
-
-    # Overwrite the beam_parameters quantities that are already in results dict
-    beam_parameters.eps_x = results['ex']
-    beam_parameters.eps_y = results['ey']
-    beam_parameters.eps_t = results['et']
-    beam_parameters.eps_zdelta = results['ezdp']
-    beam_parameters.eps_phiw = results['ep']
-
-    beam_parameters.eps_x_99 = results['ex99']
-    beam_parameters.eps_y_99 = results['ey99']
-    beam_parameters.eps_phiw_99 = results['ep99']
-
-    beam_parameters.envelope_pos_zdelta = results['SizeZ']
-    # beam_parameters.envelope_energy_zdelta = results['']
-    beam_parameters.envelope_pos_z = results['SizeZ']
-    # beam_parameters.envelope_energy_z = results['']
-    beam_parameters.envelope_pos_w = results['SizeP']
-    # beam_parameters.envelope_energy_w = results['']
-    beam_parameters.envelope_energy_zdelta = results['szdp']
-    # beam_parameters.envelope_pos_z = results['']
-    # beam_parameters.envelope_energy_z = results['']
-    # beam_parameters.envelope_pos_w = results['']
-    beam_parameters.envelope_energy_w = results['spW']
+    # beam_parameters.init_all_phase_spaces_from_a_dict(results,
+    #                                                   BEAM_PARAMETERS_FROM_TW)
+    beam_parameters.init_zdelta_from_dict(results)
+    beam_parameters.init_other_longitudinal_planes_from_zdelta_no_twiss(
+        results['gamma'])
     return beam_parameters
 
 
@@ -443,3 +424,37 @@ def _post_treat(results: dict) -> dict:
         gamma = (1. + alpha**2) / beta
         results[twi] = np.column_stack((alpha, beta, gamma))
     return results
+
+
+BEAM_PARAMETERS_FROM_TW = {
+    "zdelta": lambda results:
+        (None, None, None,
+         results["ezdp"], results["SizeZ"], results['szdp']),
+    "zdelta99": lambda results:
+        (None, None, None,
+         results["ep99"], None, None),    # is doc wrong?
+    "z": lambda results:
+        (None, None, None,
+         None, results["SizeZ"], None),
+    "phiw": lambda results:
+        (None, None, None,
+         results["ep"], results["SizeP"], results["spW"]),
+    "phiw99": lambda results:
+        (None, None, None,
+         results["ep99"], None, None),
+    "x": lambda results:
+        (None, None, None,
+         results["ex"], results["SizeX"], results["sxx'"]),
+    "y": lambda results:
+        (None, None, None,
+         results["ey"], results["SizeY"], results["syy'"]),
+    "t": lambda results:
+        (None, None, None,
+         results["et"], None, None),
+    "x99": lambda results:
+        (None, None, None,
+         results["ex99"], None, None),
+    "y99": lambda results:
+        (None, None, None,
+         results["ey99"], None, None),
+}

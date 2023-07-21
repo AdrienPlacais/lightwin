@@ -31,7 +31,7 @@ Conventions
 TODO: handle error on eps_zdelta
 TODO better ellipse plot
 """
-from typing import Any
+from typing import Any, Callable
 from dataclasses import dataclass
 import logging
 
@@ -43,9 +43,11 @@ import util.converters as converters
 from util.helper import recursive_items, recursive_getter, range_vals
 
 
-PHASE_SPACES = ['zdelta', 'z', 'phiw', 'x', 'y']
+PHASE_SPACES = ['zdelta', 'z', 'phiw', 'phiw99',
+                'x', 'y', 'x99', 'y99']
 
 
+# FIXME avoid initialisation with sigma etc when from TraceWin
 @dataclass
 class BeamParameters:
     """Hold all emittances, envelopes, etc in various planes."""
@@ -181,6 +183,53 @@ class BeamParameters:
         self.phiw.init_from_another_plane(*args, 'zdelta to phiw')
         self.z.init_from_another_plane(*args, 'zdelta to z')
 
+    def init_other_longitudinal_planes_from_zdelta_no_twiss(
+            self, gamma_kin: np.ndarray) -> None:
+        """Create the other longitudinal planes from zdelta (for TraceWin)."""
+        args = (self.zdelta.eps, self.zdelta.envelope_pos,
+                self.zdelta.envelope_energy, gamma_kin)
+        self.phiw.init_from_another_plane_no_twiss(*args, 'zdelta to phiw')
+        self.z.init_from_another_plane_no_twiss(*args, 'zdelta to z')
+
+# FIXME will not work as for now. Tmp replaced by phiW only
+    def init_all_phase_spaces_from_a_dict(
+        self, results: dict[str, np.ndarray],
+        results_converter: dict[str, Callable[[str], tuple[np.ndarray]]]
+    ) -> None:
+        """
+        Init phase spaces from a dict, such as loaded after TW simulation.
+
+        Parameters
+        ----------
+        results : dict[str, np.ndarray]
+            Dictionary holding beam parameters.
+        results_converter : dict[str, Callable[[str], tuple[np.ndarray]]]
+            Dictionary to convert `results` into beam parameters. Keys must be
+            phase-spaces names, values functions taking `results` in argument
+            and returning a tuple holding (alpha, beta, gamma, eps,
+            envelope_pos, envelope_energy.
+
+        """
+        for phase_space, converter in results_converter.items():
+            alpha, beta, gamma, eps, envelope_pos, envelope_energy = \
+                converter(results)
+            self.phase_space = \
+                SinglePhaseSpaceBeamParameters(phase_space=phase_space)
+
+    def init_zdelta_from_dict(self, results: dict[str, np.ndarray]) -> None:
+        """
+        Init phiw from a dict, such as loaded after TW simulation.
+
+        Parameters
+        ----------
+        results : dict[str, np.ndarray]
+            Dictionary holding beam parameters.
+
+        """
+        self.zdelta.eps = results['ezdp']
+        self.zdelta.envelope_pos = results['SizeZ']
+        self.zdelta.envelope_energy = results['szdp']
+
     def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
         """Compute the mismatch factor."""
         if ref_twiss_zdelta is None:
@@ -272,10 +321,46 @@ class SinglePhaseSpaceBeamParameters:
     def init_from_another_plane(self, eps_orig: np.ndarray,
                                 twiss_orig: np.ndarray, gamma_kin: np.ndarray,
                                 convert: str) -> None:
-        """Fully initialize from another phase space."""
+        """
+        Fully initialize from another phase space.
+
+        It needs emittance and Twiss to be used, and computes envelopes. Hence
+        it is not adapted to TraceWin data treatment, as we do not have the
+        Twiss but already have envelopes.
+        """
         self._compute_eps_from_other_plane(eps_orig, gamma_kin, convert)
         self._compute_twiss_from_other_plane(twiss_orig, gamma_kin, convert)
         self.compute_envelopes()
+
+    def init_from_another_plane_no_twiss(self, eps_orig: np.ndarray,
+                                         envelope_pos_orig: np.ndarray,
+                                         envelope_energy_orig: np.ndarray,
+                                         gamma_kin: np.ndarray, convert: str
+                                         ) -> None:
+        """
+        Partially initialize from another phase space (no Twiss).
+
+        To be used with TraceWin data treatment, as we do not need Twiss and
+        already have envelopes.
+
+        Parameters
+        ----------
+        eps_orig : np.ndarray
+            Emittance in original phase space.
+        envelope_pos_orig : np.ndarray
+            Position envelope in original phase space.
+        envelope_energy_orig : np.ndarray
+            Energy envelope in original phase space.
+        gamma_kin : np.ndarray
+            Lorentz factor.
+        convert : str
+            To determine which phase space we have and which one we want.
+
+        """
+        self._compute_eps_from_other_plane(eps_orig, gamma_kin, convert)
+        self._compute_envelopes_from_other_plane(envelope_pos_orig,
+                                                 envelope_energy_orig,
+                                                 gamma_kin, convert)
 
     def _compute_eps_from_sigma(self, sigma: np.ndarray) -> None:
         """Compute eps from sigma matrix."""
@@ -311,6 +396,17 @@ class SinglePhaseSpaceBeamParameters:
         self.twiss = converters.twiss(twiss_orig, gamma_kin, convert)
         self._unpack_twiss(self.twiss)
 
+    def _compute_envelopes_from_other_plane(self,
+                                            envelope_pos_orig: np.ndarray,
+                                            envelope_energy_orig: np.ndarray,
+                                            gamma_kin: np.ndarray, convert: str
+                                            ) -> None:
+        """Compute envelopes from envelopes in another plane."""
+        self.envelope_pos = converters.envelope_pos(envelope_pos_orig,
+                                                    gamma_kin, convert)
+        self.envelope_energy = converters.envelope_energy(envelope_energy_orig,
+                                                          gamma_kin, convert)
+
     def compute_envelopes(self) -> None:
         """Compute the envelopes from the Twiss parameters and eps."""
         assert None not in (self.eps.all(), self.beta.all(), self.gamma.all())
@@ -322,6 +418,18 @@ class SinglePhaseSpaceBeamParameters:
         self.alpha = twiss[:, 0]
         self.beta = twiss[:, 1]
         self.gamma = twiss[:, 2]
+
+    def init_from_tracewin_results(self, alpha: np.ndarray, beta: np.ndarray,
+                                   gamma: np.ndarray, eps: np.ndarray,
+                                   envelope_pos: np.ndarray,
+                                   envelope_energy: np.ndarray) -> None:
+        """Init from TW."""
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.eps = eps
+        self.envelope_pos = envelope_pos
+        self.envelope_energy = envelope_energy
 
 
 # =============================================================================
