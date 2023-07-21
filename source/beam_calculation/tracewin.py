@@ -176,6 +176,7 @@ class TraceWin(BeamCalculator):
 
         element_to_index = self._generate_element_to_index_func(elts)
         simulation_output = SimulationOutput(
+            z_abs=results['z(m)'],
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
             r_zz_elt=r_zz_elt,

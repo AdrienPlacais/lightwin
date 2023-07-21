@@ -146,7 +146,8 @@ class SimulationOutput:
             calculation of the mismatch factor. The default is None.
 
         """
-        self.z_abs = elts.get('abs_mesh', remove_first=True)
+        if self.z_abs is None:
+            self.z_abs = elts.get('abs_mesh', remove_first=True)
         self.synch_trajectory.compute_complementary_data()
 
         # self.beam_parameters.compute_full(self.synch_trajectory.gamma)
