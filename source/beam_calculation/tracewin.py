@@ -154,9 +154,10 @@ class TraceWin(BeamCalculator):
         self._save_tracewin_meshing_in_elements(elts, results['##'],
                                                 results['z(m)'])
 
-        synch_trajectory = ParticleFullTrajectory(w_kin=results['w_kin'],
-                                                  phi_abs=results['phi_abs'],
-                                                  synchronous=True)
+        synch_trajectory = ParticleFullTrajectory(
+            w_kin=results['w_kin'],
+            phi_abs=np.deg2rad(results['phi_abs']),
+            synchronous=True)
 
         # WARNING, different meshing for these files
         elt_number, pos, tm_cumul = self._load_transfer_matrices()
