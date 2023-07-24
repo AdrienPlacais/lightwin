@@ -382,6 +382,11 @@ def _beam_param_uniform_with_envelope1d(
     # beam_parameters.init_all_phase_spaces_from_a_dict(results,
     #                                                   BEAM_PARAMETERS_FROM_TW)
     beam_parameters.init_zdelta_from_dict(results)
+    beam_parameters.zdelta.eps /= 10.
+    logging.info("Divided eps_zdelta from TraceWin results by 10 to have "
+                 "consistent units.")
+    # Check comment in BEAM_PARAMETERS_FROM_TW or header of
+    # core.beam_parameters for more info
     beam_parameters.init_other_phase_spaces_from_zdelta_no_twiss(
         *('phiw', 'z'))
 
@@ -434,12 +439,14 @@ BEAM_PARAMETERS_FROM_TW = {
     "zdelta": lambda results:
         (None, None, None,
          results["ezdp"], results["SizeZ"], results['szdp']),
+        # eps in pi.mm.mrad in file. Need to divide eps by 10 to go back to
+        # pi.mm.% for consistency.
     "zdelta99": lambda results:
         (None, None, None,
          results["ep99"], None, None),    # is doc wrong?
     "z": lambda results:
         (None, None, None,
-         None, results["SizeZ"], None),
+         results["ezdp"], results["SizeZ"], None),
     "phiw": lambda results:
         (None, None, None,
          results["ep"], results["SizeP"], results["spW"]),

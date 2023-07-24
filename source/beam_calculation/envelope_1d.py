@@ -187,10 +187,6 @@ class Envelope1D(BeamCalculator):
         tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in, r_zz_elt,
                                              len(w_kin))
 
-        try:
-            print(synch_trajectory.beta)
-        except:
-            "no init"
         beam_params = BeamParameters(gamma_kin=synch_trajectory.gamma,
                                      tm_cumul=tm_cumul)
         beam_params.create_phase_spaces('zdelta', 'z', 'phiw')

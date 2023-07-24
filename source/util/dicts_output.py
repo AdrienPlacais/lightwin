@@ -13,26 +13,26 @@ markdown = {
     'M_12': r"$M_{12}$",
     'M_21': r"$M_{21}$",
     'M_22': r"$M_{22}$",
-
-    'eps_zdelta': r"$\epsilon_{z\delta}$ [$\pi$.mm.mrad]",
+    # Beam Parameters
+    'eps_zdelta': r"$\epsilon_{z\delta}$ [$\pi$.mm.%]",
     'alpha_zdelta': r"$\alpha_{z\delta}$ [1]",
     'beta_zdelta': r"$\beta_{z\delta}$ [mm/$\pi$.%]",
-    'gamma_zdelta': r"$\gamma_{z\delta}$ [$\pi$/mm.rad]",
-    'envelope_pos_zdelta': r"$\sigma_z$ [m]",
-    'envelope_energy_zdelta': r"$\sigma_\delta$ [rad]",
+    'gamma_zdelta': r"$\gamma_{z\delta}$ [$\pi$/mm.%]",
+    'envelope_pos_zdelta': r"$\sigma_z$ @ $1\sigma$ [mm]",
+    'envelope_energy_zdelta': r"$\sigma_\delta$ [%]",
 
     'eps_z': r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]",
     'alpha_z': r"$\alpha_{zz'}$ [1]",
     'beta_z': r"$\beta_{zz'}$ [mm/$\pi$.mrad]",
     'gamma_z': r"$\gamma_{zz'}$ [$\pi$/mm.mrad]",
-    'envelope_pos_z': r"$\sigma_z$ [mm]",
+    'envelope_pos_z': r"$\sigma_z$ @ $1\sigma$ [mm]",
     'envelope_energy_z': r"$\sigma_{z'}$ [mrad]",
 
     'eps_phiw': r"$\epsilon_{\phi W}$ [deg/$\pi$.MeV]",
     'alpha_phiw': r"$\alpha_{\phi W}$ [1]",
     'beta_phiw': r"$\beta_{\phi W}$ [deg/$\pi$.MeV]",
     'gamma_phiw': r"$\gamma_{\phi W}$ [$\pi$/deg.MeV]",
-    'envelope_pos_phiw': r"$\sigma_\phi$ [deg]",
+    'envelope_pos_phiw': r"$\sigma_\phi$ @ $1\sigma$ [deg]",
     'envelope_energy_phiw': r"$\sigma_\phi$ [MeV]",
 
     'mismatch_factor': r"$M$",

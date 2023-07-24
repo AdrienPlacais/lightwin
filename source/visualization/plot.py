@@ -91,6 +91,9 @@ def factory(accelerators: list[Accelerator], plots: dict[str, bool],
                          **_proper_kwargs(preset, kwargs))
             for fix_acc in accelerators[1:]
             for preset, plot_me in plots.items() if plot_me]
+    if "emittance" in plots:
+        logging.warning("Find out why y-limits of emittance plot are set to "
+                        "0 -> 1.")
     return figs
 
 

@@ -13,8 +13,11 @@ Conventions
 We use the same units and conventions as TraceWin.
 
     Longitudinal RMS emittances:
-        eps_zdelta in [z-delta]           [pi.mm.mrad]  normalized
-        eps_z      in [z-z']              [pi.mm.mrad]  non normalized
+        eps_zdelta in [z-delta]           [pi.mm.%]     normalized
+            !!! Sometimes expressed in pi.mm.mrad in TW (partran.out and
+            !!! tracewin.out files).
+            !!! Conversion factor is 1 pi.mm.mrad = 10 pi.mm.%
+        eps_z      in [z-z']              [pi.mm.mrad]  normalized
         eps_w      in [Delta phi-Delta W] [pi.deg.MeV]  normalized
 
     Twiss:
@@ -31,12 +34,14 @@ We use the same units and conventions as TraceWin.
             alpha_w = -alpha_z = -alpha_zdelta
 
     Envelopes:
-        envelope_pos in     [z-delta]
-        envelope_pos in     [z-z']
+        envelope_pos in     [z-delta]           [mm]
+        envelope_pos in     [z-z']              [mm]
         envelope_pos in     [Delta phi-Delta W]
         envelope_energy in  [z-delta]
         envelope_energy in  [z-z']
         envelope_energy in  [Delta phi-Delta W]
+    NB: envelopes are at 1-sigma, while they are plotted at 6-sigma by default
+    in TraceWin.
 
 TODO: handle error on eps_zdelta
 TODO better ellipse plot
@@ -439,9 +444,12 @@ class SinglePhaseSpaceBeamParameters:
     def init_from_sigma(self, sigma: np.ndarray, gamma_kin: np.ndarray | None,
                         beta_kin: np.ndarray = None) -> None:
         """Compute Twiss, eps, envelopes just from sigma matrix."""
-        self._compute_eps_from_sigma(sigma, gamma_kin, beta_kin)
-        self._compute_twiss_from_sigma(sigma)
-        self.compute_envelopes()
+        eps_no_normalisation, eps_normalized = self._compute_eps_from_sigma(
+            sigma, gamma_kin, beta_kin)
+        self.eps = eps_normalized
+        self._compute_twiss_from_sigma(sigma, eps_no_normalisation)
+        self.envelope_pos, self.envelope_energy = \
+            self._compute_envelopes_from_sigma(sigma)
 
     def init_from_another_plane(self, eps_orig: np.ndarray,
                                 twiss_orig: np.ndarray, gamma_kin: np.ndarray,
@@ -455,7 +463,7 @@ class SinglePhaseSpaceBeamParameters:
         """
         self._compute_eps_from_other_plane(eps_orig, gamma_kin, convert)
         self._compute_twiss_from_other_plane(twiss_orig, gamma_kin, convert)
-        self.compute_envelopes()
+        self.compute_envelopes(self.eps, self.beta, self.gamma)
 
     def init_from_another_plane_no_twiss(self, eps_orig: np.ndarray,
                                          envelope_pos_orig: np.ndarray,
@@ -489,17 +497,42 @@ class SinglePhaseSpaceBeamParameters:
 
     def _compute_eps_from_sigma(self, sigma: np.ndarray,
                                 gamma_kin: np.ndarray | None,
-                                beta_kin: np.ndarray | None) -> None:
-        """Compute normalized eps_zdeta from sigma matrix, in pi.mm.mrad."""
+                                beta_kin: np.ndarray | None
+                                ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Compute eps_zdeta from sigma matrix in pi.mm.%.
+
+        Parameters
+        ----------
+        sigma : np.ndarray
+            Sigma matrix in SI units.
+        gamma_kin : np.ndarray | None
+            Lorentz gamma factor. If None, raise a warning.
+        beta_kin : np.ndarray | None
+            Lorentz beta factor. If None, raise a warning.
+
+        Returns
+        -------
+        eps_no_normalisation : np.ndarray
+            Emittance in pi.mm.%, not normalized, in z-dp/p plane.
+        eps_normalized : np.ndarray
+            Emittance in pi.mm.%, normalized, in z-dp/p plane.
+
+        """
         assert self.phase_space == 'zdelta'
         if gamma_kin is None or beta_kin is None:
             logging.warning("Lorentz gamma and/or Lorentz beta were not "
                             "provided. eps_zdelta will NOT be normalized, "
                             "which may misrepresent all beam parameters.")
             gamma_kin, beta_kin = 1., 1.
-        self.eps = np.array(
+
+        eps_no_normalisation = np.array(
             [np.sqrt(np.linalg.det(sigma[i])) for i in range(sigma.shape[0])])
-        self.eps *= 1e6 * gamma_kin * beta_kin
+        eps_no_normalisation *= 1e5
+
+        eps_normalized = eps_no_normalisation * gamma_kin * beta_kin
+
+        return eps_no_normalisation, eps_normalized
 
     def _compute_eps_from_other_plane(self, eps_orig: np.ndarray,
                                       gamma_kin: np.ndarray, convert: str
@@ -507,18 +540,35 @@ class SinglePhaseSpaceBeamParameters:
         """Compute eps from eps in another plane."""
         self.eps = converters.emittance(eps_orig, gamma_kin, convert)
 
-    def _compute_twiss_from_sigma(self, sigma: np.ndarray) -> None:
-        """Compute the Twiss parameters using the sigma matrix."""
+    def _compute_twiss_from_sigma(self, sigma: np.ndarray,
+                                  eps_no_normalisation: np.ndarray
+                                  ) -> None:
+        """
+        Compute the Twiss parameters using the sigma matrix.
+
+        Parameters
+        ----------
+        sigma : np.ndarray
+            sigma matrix along the linac in the z-dp/p plane. It must be
+            provided in SI units, hence the 1e5 factor.
+        eps_no_normalisation : np.ndarray
+            Unnormalized emittance in the z-dp/p plane, in pi.mm.% (non-SI).
+
+        Returns
+        -------
+        Nothing, but set attributes alpha (no units), beta (mm/pi.%), gamma
+        (mm.pi/%) and twiss (column_stacking of the three), in the z-dp/p
+        plane.
+
+        """
         assert self.eps is not None and self.phase_space == 'zdelta'
         n_points = sigma.shape[0]
         twiss = np.full((n_points, 3), np.NaN)
 
         for i in range(n_points):
-            twiss[i, :] = np.array([-sigma[i][1, 0],
-                                    sigma[i][0, 0] * 10.,
-                                    sigma[i][1, 1] / 10.]) / self.eps[i]
-            # beta multiplied by 10 to match TW
-            # gamma divided by 10 to keep beta * gamma - alpha**2 = 1
+            twiss[i, :] = np.array(
+                [-sigma[i][1, 0], sigma[i][0, 0] * 10., sigma[i][1, 1] / 10.]
+            ) / eps_no_normalisation[i] * 1e5
         self._unpack_twiss(twiss)
         self.twiss = twiss
 
@@ -540,11 +590,20 @@ class SinglePhaseSpaceBeamParameters:
         self.envelope_energy = converters.envelope_energy(envelope_energy_orig,
                                                           gamma_kin, convert)
 
-    def compute_envelopes(self) -> None:
+    def _compute_envelopes_from_sigma(self, sigma: np.ndarray
+                                      ) -> tuple[np.ndarray, np.ndarray]:
+        """Compute the envelopes in mm and % in z-deltap/p plane."""
+        envelope_pos = np.array([np.sqrt(sigm[0, 0]) for sigm in sigma]) * 1e3
+        envelope_energy = np.array([np.sqrt(sigm[1, 1]) for sigm in sigma]
+                                   ) * 1e2
+        return envelope_pos, envelope_energy
+
+    def compute_envelopes(self, beta: np.ndarray, gamma: np.ndarray,
+                          eps: np.ndarray) -> None:
         """Compute the envelopes from the Twiss parameters and eps."""
-        assert None not in (self.eps.all(), self.beta.all(), self.gamma.all())
-        self.envelope_pos = np.sqrt(self.beta * self.eps)
-        self.envelope_energy = np.sqrt(self.gamma * self.eps)
+        assert None not in (eps.all(), beta.all(), gamma.all())
+        self.envelope_pos = np.sqrt(beta * eps)
+        self.envelope_energy = np.sqrt(gamma * eps)
 
     def _unpack_twiss(self, twiss: np.ndarray) -> None:
         """Unpack a three-columns twiss array in alpha, beta, gamma."""

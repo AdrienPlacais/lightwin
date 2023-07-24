@@ -86,8 +86,8 @@ def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
         "z to phiw": k_2,
         "phiw to zdelta": 1e-6 / k_1,
         "zdelta to phiw": 1e6 * k_1,
-        "z to zdelta": gamma2,
-        "zdelta to z": 1. / gamma2,
+        "z to zdelta": 0.1,
+        "zdelta to z": 10.,
     }
     eps_new = eps_orig * conversion_constants[key]
     return eps_new
