@@ -140,7 +140,6 @@ lw_to_tw = {
 }
 
 lw_to_tw_func = {
-    # 'eps_zdelta': lambda x: x * 1e-6,
     'envelope_pos_zdelta': lambda x: x * 1e-3,
     'envelope_energy_zdelta': lambda x: x * 1e-3,
     'elt_idx': lambda x: x - 1,

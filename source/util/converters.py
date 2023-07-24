@@ -74,11 +74,11 @@ def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
         lam = con.LAMBDA_BUNCH
     if e_0 is None:
         e_0 = con.E_REST_MEV
-    beta = np.sqrt(1. - gamma**-2)
+    # beta = np.sqrt(1. - gamma**-2)
 
     # Lighten the dict
     gamma2 = gamma**2
-    k_1 = 360. * e_0 * (gamma * beta) / lam
+    k_1 = 360. * e_0 / lam
     k_2 = k_1 * gamma2
 
     conversion_constants = {
@@ -86,8 +86,8 @@ def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
         "z to phiw": k_2,
         "phiw to zdelta": 1e-6 / k_1,
         "zdelta to phiw": 1e6 * k_1,
-        "z to zdelta": 1e-6 * gamma2,
-        "zdelta to z": 1e6 / gamma2,
+        "z to zdelta": gamma2,
+        "zdelta to z": 1. / gamma2,
     }
     eps_new = eps_orig * conversion_constants[key]
     return eps_new
