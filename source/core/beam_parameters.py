@@ -489,8 +489,8 @@ class SinglePhaseSpaceBeamParameters:
 
     def _compute_eps_from_sigma(self, sigma: np.ndarray,
                                 gamma_kin: np.ndarray | None,
-                                beta_kin: np.ndarray = None) -> None:
-        """Compute eps from sigma matrix."""
+                                beta_kin: np.ndarray | None) -> None:
+        """Compute normalized eps_zdeta from sigma matrix, in pi.mm.mrad."""
         assert self.phase_space == 'zdelta'
         if gamma_kin is None or beta_kin is None:
             logging.warning("Lorentz gamma and/or Lorentz beta were not "
@@ -499,7 +499,7 @@ class SinglePhaseSpaceBeamParameters:
             gamma_kin, beta_kin = 1., 1.
         self.eps = np.array(
             [np.sqrt(np.linalg.det(sigma[i])) for i in range(sigma.shape[0])])
-        self.eps *= 1e6 * (gamma_kin * beta_kin)
+        self.eps *= 1e6 * gamma_kin * beta_kin
 
     def _compute_eps_from_other_plane(self, eps_orig: np.ndarray,
                                       gamma_kin: np.ndarray, convert: str
