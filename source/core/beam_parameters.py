@@ -64,12 +64,16 @@ class BeamParameters:
 
     sigma_in: np.ndarray | None = None
     gamma_kin: np.ndarray | None = None
+    beta_kin: np.ndarray | None = None
     tm_cumul: np.ndarray | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
         if self.sigma_in is None:
             self.sigma_in = con.SIGMA_ZDELTA
+
+        if self.beta_kin is None and self.gamma_kin is not None:
+            self.beta_kin = converters.energy(self.gamma_kin, 'gamma to beta')
 
         self.zdelta: SinglePhaseSpaceBeamParameters
         self.z: SinglePhaseSpaceBeamParameters
@@ -229,12 +233,18 @@ class BeamParameters:
             self.y = SinglePhaseSpaceBeamParameters('y', kwargs.get('y', None))
 
     def init_zdelta_from_cumulated_transfer_matrices(
-            self, tm_cumul: np.ndarray | None = None) -> None:
+            self, tm_cumul: np.ndarray | None = None,
+            gamma_kin: np.ndarray | None = None,
+            beta_kin: np.ndarray | None = None) -> None:
         """Call the proper method to initialize zdelta."""
         if tm_cumul is None:
             tm_cumul = self.tm_cumul
+        if gamma_kin is None:
+            gamma_kin = self.gamma_kin
+        if beta_kin is None:
+            beta_kin = self.beta_kin
         sigma = _sigma_beam_matrices(tm_cumul, self.sigma_in)
-        self.zdelta.init_from_sigma(sigma)
+        self.zdelta.init_from_sigma(sigma, gamma_kin, beta_kin)
 
     def init_other_phase_spaces_from_zdelta(
             self, *args: str, gamma_kin: np.ndarray | None = None) -> None:
@@ -426,9 +436,10 @@ class SinglePhaseSpaceBeamParameters:
             return out[0]
         return tuple(out)
 
-    def init_from_sigma(self, sigma: np.ndarray) -> None:
+    def init_from_sigma(self, sigma: np.ndarray, gamma_kin: np.ndarray | None,
+                        beta_kin: np.ndarray = None) -> None:
         """Compute Twiss, eps, envelopes just from sigma matrix."""
-        self._compute_eps_from_sigma(sigma)
+        self._compute_eps_from_sigma(sigma, gamma_kin, beta_kin)
         self._compute_twiss_from_sigma(sigma)
         self.compute_envelopes()
 
@@ -476,11 +487,19 @@ class SinglePhaseSpaceBeamParameters:
                                                  envelope_energy_orig,
                                                  gamma_kin, convert)
 
-    def _compute_eps_from_sigma(self, sigma: np.ndarray) -> None:
+    def _compute_eps_from_sigma(self, sigma: np.ndarray,
+                                gamma_kin: np.ndarray | None,
+                                beta_kin: np.ndarray = None) -> None:
         """Compute eps from sigma matrix."""
         assert self.phase_space == 'zdelta'
+        if gamma_kin is None or beta_kin is None:
+            logging.warning("Lorentz gamma and/or Lorentz beta were not "
+                            "provided. eps_zdelta will NOT be normalized, "
+                            "which may misrepresent all beam parameters.")
+            gamma_kin, beta_kin = 1., 1.
         self.eps = np.array(
             [np.sqrt(np.linalg.det(sigma[i])) for i in range(sigma.shape[0])])
+        self.eps *= 1e6 * (gamma_kin * beta_kin)
 
     def _compute_eps_from_other_plane(self, eps_orig: np.ndarray,
                                       gamma_kin: np.ndarray, convert: str
