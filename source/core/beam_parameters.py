@@ -10,8 +10,10 @@ envelopes.
 
 Conventions
 -----------
+We use the same units and conventions as TraceWin.
+
     Longitudinal RMS emittances:
-        eps_zdelta in [z-delta]           [pi.m.rad]    non normalized
+        eps_zdelta in [z-delta]           [pi.mm.mrad]  normalized
         eps_z      in [z-z']              [pi.mm.mrad]  non normalized
         eps_w      in [Delta phi-Delta W] [pi.deg.MeV]  normalized
 
@@ -27,6 +29,14 @@ Conventions
 
         Conversions for alpha are easier:
             alpha_w = -alpha_z = -alpha_zdelta
+
+    Envelopes:
+        envelope_pos in     [z-delta]
+        envelope_pos in     [z-z']
+        envelope_pos in     [Delta phi-Delta W]
+        envelope_energy in  [z-delta]
+        envelope_energy in  [z-z']
+        envelope_energy in  [Delta phi-Delta W]
 
 TODO: handle error on eps_zdelta
 TODO better ellipse plot
@@ -52,24 +62,22 @@ PHASE_SPACES = ['zdelta', 'z', 'phiw', 'phiw99',
 class BeamParameters:
     """Hold all emittances, envelopes, etc in various planes."""
 
-    tm_cumul: np.ndarray
     sigma_in: np.ndarray | None = None
 
     def __post_init__(self) -> None:
-        """Create emittance and twiss in the [z-delta] plane."""
+        """Define the attributes that may be used."""
         if self.sigma_in is None:
             self.sigma_in = con.SIGMA_ZDELTA
 
-        self.sigma = _sigma_beam_matrices(self.tm_cumul, self.sigma_in)
+        self.tm_cumul: np.ndarray | None
 
-        self.zdelta = SinglePhaseSpaceBeamParameters(phase_space='zdelta')
-        self.z = SinglePhaseSpaceBeamParameters(phase_space='z')
-        self.phiw = SinglePhaseSpaceBeamParameters(phase_space='phiw')
-        self.x = SinglePhaseSpaceBeamParameters(phase_space='x')
-        self.y = SinglePhaseSpaceBeamParameters(phase_space='y')
+        self.zdelta: SinglePhaseSpaceBeamParameters
+        self.z: SinglePhaseSpaceBeamParameters
+        self.phiw: SinglePhaseSpaceBeamParameters
+        self.x: SinglePhaseSpaceBeamParameters
+        self.y: SinglePhaseSpaceBeamParameters
 
-        self.zdelta.init_from_sigma(self.sigma)
-        self.mismatch_factor: np.ndarray | None = None
+        self.mismatch_factor: np.ndarray | None
 
     def __str__(self) -> str:
         """Give compact information on the data that is stored."""
@@ -172,9 +180,59 @@ class BeamParameters:
             return out[0]
         return tuple(out)
 
-    def init_zdelta_from_sigma(self) -> None:
+    # TODO: implement all phase spaces
+    def create_phase_spaces(self, *args: str,
+                            **kwargs: dict[str, np.ndarray | float]) -> None:
+        """
+        Create the desired phase spaces.
+
+        Parameters
+        ----------
+        *args : str
+            Name of the phase spaces to be created. Must be in PHASE_SPACES.
+            FIXME : not all implemented
+        **kwargs : dict[str, np.ndarray | float]
+            Keyword arguments to directly initialize properties in some phase
+            spaces. Name of the keyword argument must correspond to a phase
+            space. Argument must be a dictionary, which keys must be
+            understandable by SinglePhaseSpaceBeamParameters.__init__: alpha,
+            beta, gamma, eps, twiss, envelope_pos and envelope_energy are
+            allowed values.
+        """
+        for arg in args:
+            if arg not in ['zdelta', 'z', 'phiw', 'x', 'y']:
+                logging.error(f"Phase space {arg} to be implemented. Will be "
+                              "ignored.")
+                continue
+                # TODO
+
+            if arg not in PHASE_SPACES:
+                logging.error(f"Phase space {arg} not recognized. Will be "
+                              "ignored.")
+
+        if 'zdelta' in args:
+            self.zdelta = SinglePhaseSpaceBeamParameters(
+                'zdelta', kwargs.get('zdelta', None))
+
+        if 'z' in args:
+            self.z = SinglePhaseSpaceBeamParameters(
+                'z', kwargs.get('z', None))
+
+        if 'phiw' in args:
+            self.phiw = SinglePhaseSpaceBeamParameters(
+                'phiw', kwargs.get('phiw', None))
+
+        if 'x' in args:
+            self.x = SinglePhaseSpaceBeamParameters('x', kwargs.get('x', None))
+
+        if 'y' in args:
+            self.y = SinglePhaseSpaceBeamParameters('y', kwargs.get('y', None))
+
+    def init_zdelta_from_cumulated_transfer_matrices(
+            self, tm_cumul: np.ndarray) -> None:
         """Call the proper method to initialize zdelta."""
-        self.zdelta.init_from_sigma(self.sigma)
+        sigma = _sigma_beam_matrices(tm_cumul, self.sigma_in)
+        self.zdelta.init_from_sigma(sigma)
 
     def init_other_longitudinal_planes_from_zdelta(self, gamma_kin: np.ndarray
                                                    ) -> None:
@@ -475,13 +533,6 @@ def _sigma_beam_matrices(tm_cumul: np.ndarray, sigma_in: np.ndarray
     for i in range(n_points):
         sigma.append(tm_cumul[i] @ sigma_in @ tm_cumul[i].transpose())
     return np.array(sigma)
-
-
-def _emittance_zdelta(sigma: np.ndarray) -> np.ndarray:
-    """Compute longitudinal emittance, unnormalized, in pi.m.rad."""
-    epsilon_zdelta = [np.sqrt(np.linalg.det(sigma[i]))
-                      for i in range(sigma.shape[0])]
-    return np.array(epsilon_zdelta)
 
 
 def _emittances_all(eps_zdelta: np.ndarray, gamma: np.ndarray

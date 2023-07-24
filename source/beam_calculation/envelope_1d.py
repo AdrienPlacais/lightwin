@@ -185,8 +185,10 @@ class Envelope1D(BeamCalculator):
         tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in, r_zz_elt,
                                              len(w_kin))
 
-        beam_params = BeamParameters(tm_cumul)
-        beam_params.init_zdelta_from_sigma()
+        beam_params = BeamParameters()
+        beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
+        beam_params.tm_cumul = tm_cumul
+        beam_params.init_zdelta_from_cumulated_transfer_matrices(tm_cumul)
         beam_params.init_other_longitudinal_planes_from_zdelta(
             synch_trajectory.gamma)
 

@@ -170,7 +170,8 @@ class TraceWin(BeamCalculator):
 
         r_zz_elt = []
 
-        beam_params = BeamParameters(tm_cumul)
+        beam_params = BeamParameters()
+        beam_params.create_phase_spaces('zdelta', 'z', 'phiw', 'x', 'y')
         beam_params = _beam_param_uniform_with_envelope1d(beam_params, results)
 
         rf_fields = []
