@@ -170,7 +170,7 @@ class TraceWin(BeamCalculator):
 
         r_zz_elt = []
 
-        beam_params = BeamParameters()
+        beam_params = BeamParameters(gamma_kin=results['gamma'])
         beam_params.create_phase_spaces('zdelta', 'z', 'phiw', 'x', 'y')
         beam_params = _beam_param_uniform_with_envelope1d(beam_params, results)
 
@@ -382,8 +382,9 @@ def _beam_param_uniform_with_envelope1d(
     # beam_parameters.init_all_phase_spaces_from_a_dict(results,
     #                                                   BEAM_PARAMETERS_FROM_TW)
     beam_parameters.init_zdelta_from_dict(results)
-    beam_parameters.init_other_longitudinal_planes_from_zdelta_no_twiss(
-        results['gamma'])
+    beam_parameters.init_other_phase_spaces_from_zdelta_no_twiss(
+        *('phiw', 'z'))
+
     return beam_parameters
 
 

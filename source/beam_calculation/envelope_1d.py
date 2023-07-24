@@ -19,6 +19,8 @@ from beam_calculation.output import SimulationOutput
 from beam_calculation.single_element_envelope_1d_parameters import (
     SingleElementEnvelope1DParameters)
 
+from util import converters
+
 from optimisation.set_of_cavity_settings import SetOfCavitySettings
 
 
@@ -185,12 +187,11 @@ class Envelope1D(BeamCalculator):
         tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in, r_zz_elt,
                                              len(w_kin))
 
-        beam_params = BeamParameters()
+        beam_params = BeamParameters(gamma_kin=synch_trajectory.gamma,
+                                     tm_cumul=tm_cumul)
         beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
-        beam_params.tm_cumul = tm_cumul
-        beam_params.init_zdelta_from_cumulated_transfer_matrices(tm_cumul)
-        beam_params.init_other_longitudinal_planes_from_zdelta(
-            synch_trajectory.gamma)
+        beam_params.init_zdelta_from_cumulated_transfer_matrices()
+        beam_params.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
 
         element_to_index = self._generate_element_to_index_func(elts)
 

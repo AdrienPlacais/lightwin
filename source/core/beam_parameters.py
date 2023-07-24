@@ -63,13 +63,13 @@ class BeamParameters:
     """Hold all emittances, envelopes, etc in various planes."""
 
     sigma_in: np.ndarray | None = None
+    gamma_kin: np.ndarray | None = None
+    tm_cumul: np.ndarray | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
         if self.sigma_in is None:
             self.sigma_in = con.SIGMA_ZDELTA
-
-        self.tm_cumul: np.ndarray | None
 
         self.zdelta: SinglePhaseSpaceBeamParameters
         self.z: SinglePhaseSpaceBeamParameters
@@ -229,30 +229,55 @@ class BeamParameters:
             self.y = SinglePhaseSpaceBeamParameters('y', kwargs.get('y', None))
 
     def init_zdelta_from_cumulated_transfer_matrices(
-            self, tm_cumul: np.ndarray) -> None:
+            self, tm_cumul: np.ndarray | None = None) -> None:
         """Call the proper method to initialize zdelta."""
+        if tm_cumul is None:
+            tm_cumul = self.tm_cumul
         sigma = _sigma_beam_matrices(tm_cumul, self.sigma_in)
         self.zdelta.init_from_sigma(sigma)
 
-    def init_other_longitudinal_planes_from_zdelta(self, gamma_kin: np.ndarray
-                                                   ) -> None:
-        """Create the other longitudinal planes from zdelta."""
-        args = (self.zdelta.eps, self.zdelta.twiss, gamma_kin)
-        self.phiw.init_from_another_plane(*args, 'zdelta to phiw')
-        self.z.init_from_another_plane(*args, 'zdelta to z')
+    def init_other_phase_spaces_from_zdelta(
+            self, *args: str, gamma_kin: np.ndarray | None = None) -> None:
+        """Create the desired longitudinal planes from zdelta."""
+        if gamma_kin is None:
+            gamma_kin = self.gamma_kin
+        args_for_init = (self.zdelta.eps, self.zdelta.twiss, gamma_kin)
 
-    def init_other_longitudinal_planes_from_zdelta_no_twiss(
-            self, gamma_kin: np.ndarray) -> None:
-        """Create the other longitudinal planes from zdelta (for TraceWin)."""
-        args = (self.zdelta.eps, self.zdelta.envelope_pos,
-                self.zdelta.envelope_energy, gamma_kin)
-        self.phiw.init_from_another_plane_no_twiss(*args, 'zdelta to phiw')
-        self.z.init_from_another_plane_no_twiss(*args, 'zdelta to z')
+        for arg in args:
+            if arg not in ['phiw', 'z']:
+                logging.error(f"Phase space conversion zdelta -> {arg} not "
+                              "implemented. Ignoring...")
+
+        if 'phiw' in args:
+            self.phiw.init_from_another_plane(*args_for_init, 'zdelta to phiw')
+        if 'z' in args:
+            self.z.init_from_another_plane(*args_for_init, 'zdelta to z')
+
+    def init_other_phase_spaces_from_zdelta_no_twiss(
+            self, *args: str, gamma_kin: np.ndarray | None = None) -> None:
+        """Create the desired longitudinal planes from zdelta (for TW)."""
+        if gamma_kin is None:
+            gamma_kin = self.gamma_kin
+        args_for_init = (self.zdelta.eps, self.zdelta.envelope_pos,
+                         self.zdelta.envelope_energy, gamma_kin)
+
+        for arg in args:
+            if arg not in ['phiw', 'z']:
+                logging.error(f"Phase space conversion zdelta -> {arg} not "
+                              "implemented. Ignoring...")
+
+        if 'phiw' in args:
+            self.phiw.init_from_another_plane_no_twiss(*args_for_init,
+                                                       'zdelta to phiw')
+        if 'z' in args:
+            self.z.init_from_another_plane_no_twiss(*args_for_init,
+                                                    'zdelta to z')
 
 # FIXME will not work as for now. Tmp replaced by phiW only
     def init_all_phase_spaces_from_a_dict(
         self, results: dict[str, np.ndarray],
-        results_converter: dict[str, Callable[[str], tuple[np.ndarray]]]
+        results_converter: dict[str, Callable[[str], tuple[np.ndarray]]],
+        *args: str
     ) -> None:
         """
         Init phase spaces from a dict, such as loaded after TW simulation.
@@ -266,8 +291,39 @@ class BeamParameters:
             phase-spaces names, values functions taking `results` in argument
             and returning a tuple holding (alpha, beta, gamma, eps,
             envelope_pos, envelope_energy.
+        *args : str
+            Tuple containing the name of the phase-spaces to initialize.
 
         """
+        for phase_space in args:
+            if phase_space not in results_converter:
+                logging.error(f"{phase_space} is not defined in the provided. "
+                              "`results_converter` dictionary (it is probably "
+                              "`BEAM_PARAMETERS_FROM_TW`, defined in "
+                              "beam_calculation.tracewin). Ignoring...")
+                continue
+            converter = results_converter[phase_space]
+
+            phase_space_beam_parameters = converter(results)
+            if phase_space == 'zdelta':
+                self.zdelta.init_from_tracewin_results(
+                    *phase_space_beam_parameters)
+                continue
+            if phase_space == 'phiw':
+                self.phiw.init_from_tracewin_results(
+                    *phase_space_beam_parameters)
+                continue
+            if phase_space == 'z':
+                self.z.init_from_tracewin_results(*phase_space_beam_parameters)
+                continue
+            if phase_space == 'x':
+                self.x.init_from_tracewin_results(*phase_space_beam_parameters)
+                continue
+            if phase_space == 'y':
+                self.y.init_from_tracewin_results(*phase_space_beam_parameters)
+                continue
+            logging.error(f"{phase_space} not implemented. Ignoring...")
+
         for phase_space, converter in results_converter.items():
             alpha, beta, gamma, eps, envelope_pos, envelope_energy = \
                 converter(results)
