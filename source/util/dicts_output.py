@@ -21,7 +21,7 @@ markdown = {
     'envelope_pos_zdelta': r"$\sigma_z$ @ $1\sigma$ [mm]",
     'envelope_energy_zdelta': r"$\sigma_\delta$ [%]",
 
-    'eps_z': r"$\epsilon_{zz'}$ [mm/$\pi$.mrad]",
+    'eps_z': r"$\epsilon_{zz'}$ [$\pi$.mm.mrad]",
     'alpha_z': r"$\alpha_{zz'}$ [1]",
     'beta_z': r"$\beta_{zz'}$ [mm/$\pi$.mrad]",
     'gamma_z': r"$\gamma_{zz'}$ [$\pi$/mm.mrad]",
