@@ -171,7 +171,6 @@ class TraceWin(BeamCalculator):
         r_zz_elt = []
 
         beam_params = BeamParameters(gamma_kin=results['gamma'])
-        beam_params.create_phase_spaces('zdelta', 'z', 'phiw', 'x', 'y')
         beam_params = _beam_param_uniform_with_envelope1d(beam_params, results)
 
         rf_fields = []
@@ -379,17 +378,18 @@ def _beam_param_uniform_with_envelope1d(
     beam_parameters: BeamParameters, results: dict[str, np.ndarray]
 ) -> BeamParameters:
     """Manually set quantities in BeamParamaters object."""
-    # beam_parameters.init_all_phase_spaces_from_a_dict(results,
-    #                                                   BEAM_PARAMETERS_FROM_TW)
-    beam_parameters.init_zdelta_from_dict(results)
-    beam_parameters.zdelta.eps /= 10.
-    logging.info("Divided eps_zdelta from TraceWin results by 10 to have "
-                 "consistent units.")
-    # Check comment in BEAM_PARAMETERS_FROM_TW or header of
-    # core.beam_parameters for more info
-    beam_parameters.init_other_phase_spaces_from_zdelta_no_twiss(
-        *('phiw', 'z'))
+    sigma_00 = results['SizeZ']**2
+    sigma_01 = results['szdp']
+    eps_normalized = results['ezdp']
 
+    sigma = beam_parameters.sigma_matrix_from_zdelta_beam_param(sigma_00,
+                                                                sigma_01,
+                                                                eps_normalized)
+    beam_parameters.sigma = sigma
+
+    beam_parameters.create_phase_spaces('zdelta', 'z', 'phiw', 'x', 'y')
+    beam_parameters.init_zdelta_from_sigma_matrix(sigma)
+    beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
     return beam_parameters
 
 
@@ -435,6 +435,7 @@ def _post_treat(results: dict) -> dict:
     return results
 
 
+# OLD?
 BEAM_PARAMETERS_FROM_TW = {
     "zdelta": lambda results:
         (None, None, None,

@@ -62,12 +62,12 @@ PHASE_SPACES = ['zdelta', 'z', 'phiw', 'phiw99',
                 'x', 'y', 'x99', 'y99']
 
 
-# FIXME avoid initialisation with sigma etc when from TraceWin
 @dataclass
 class BeamParameters:
     """Hold all emittances, envelopes, etc in various planes."""
 
     sigma_in: np.ndarray | None = None
+    sigma: np.ndarray | None = None
     gamma_kin: np.ndarray | None = None
     beta_kin: np.ndarray | None = None
     tm_cumul: np.ndarray | None = None
@@ -237,11 +237,63 @@ class BeamParameters:
         if 'y' in args:
             self.y = SinglePhaseSpaceBeamParameters('y', kwargs.get('y', None))
 
+    def sigma_matrix_from_zdelta_beam_param(
+        self, sigma_00: np.ndarray, sigma_01: np.ndarray,
+        eps_normalized: np.ndarray, gamma_kin: np.ndarray | None = None,
+        beta_kin: np.ndarray | None = None
+    ) -> np.ndarray:
+        """
+        Compute sigma matrix from the two top components and emittance.
+
+        For consistency with TraceWin results files, inputs must be in the
+        z-delta phase space, in "practical" units: mm, mrad.
+          | Note that epsilon_zdelta is in pi.mm.mrad in TraceWin .out files,
+          | while pi.mm.% is used everywhere else in TraceWin as well as in
+          | LightWin.
+
+        For consistency with Envelope1D, output is in z-delta phase space, in
+        SI units: m, rad.
+
+        Parameters
+        ----------
+        sigma_00 : np.ndarray
+            Top-left component of the sigma matrix.
+        sigma_01 : np.ndarray
+            Top-right = bottom-left component of the sigma matrix.
+        eps_normalized : np.ndarray
+            Normalized emittance.
+        gamma_kin : np.ndarray | None = None
+            Lorentz gamma factor. The default is None. In this case, we take
+            the self.gamma_kin attribute.
+        beta_kin : np.ndarray | None = None
+            Lorentz beta factor. The default is None. In this case, we take
+            the self.beta_kin attribute.
+
+        Returns
+        -------
+        sigma : np.ndarray
+            Full sigma matrix along the linac, in the z-delta phase space.
+
+        """
+        if gamma_kin is None:
+            gamma_kin = self.gamma_kin
+        if beta_kin is None:
+            beta_kin = self.beta_kin
+
+        eps_no_normalisation = eps_normalized / (gamma_kin * beta_kin)
+
+        sigma = np.zeros((sigma_00.shape[0], 2, 2))
+        sigma[:, 0, 0] = sigma_00
+        sigma[:, 0, 1] = sigma_01
+        sigma[:, 1, 0] = sigma_01
+        sigma[:, 1, 1] = (eps_no_normalisation**2 + sigma_01**2) / sigma_00
+        return sigma * 1e-6
+
     def init_zdelta_from_cumulated_transfer_matrices(
             self, tm_cumul: np.ndarray | None = None,
             gamma_kin: np.ndarray | None = None,
             beta_kin: np.ndarray | None = None) -> None:
-        """Call the proper method to initialize zdelta."""
+        """Compute the sigma matrix from transfer matrix and init zdelta."""
         if tm_cumul is None:
             tm_cumul = self.tm_cumul
         if gamma_kin is None:
@@ -249,6 +301,20 @@ class BeamParameters:
         if beta_kin is None:
             beta_kin = self.beta_kin
         sigma = _sigma_beam_matrices(tm_cumul, self.sigma_in)
+        self.sigma = sigma
+        self.zdelta.init_from_sigma(sigma, gamma_kin, beta_kin)
+
+    def init_zdelta_from_sigma_matrix(self, sigma: np.ndarray | None = None,
+                                      gamma_kin: np.ndarray | None = None,
+                                      beta_kin: np.ndarray | None = None
+                                      ) -> None:
+        """Initialize zdelta from an already known sigma matrix."""
+        if sigma is None:
+            sigma = self.sigma
+        if gamma_kin is None:
+            gamma_kin = self.gamma_kin
+        if beta_kin is None:
+            beta_kin = self.beta_kin
         self.zdelta.init_from_sigma(sigma, gamma_kin, beta_kin)
 
     def init_other_phase_spaces_from_zdelta(
@@ -465,6 +531,7 @@ class SinglePhaseSpaceBeamParameters:
         self._compute_twiss_from_other_plane(twiss_orig, gamma_kin, convert)
         self.compute_envelopes(self.eps, self.beta, self.gamma)
 
+# OLD
     def init_from_another_plane_no_twiss(self, eps_orig: np.ndarray,
                                          envelope_pos_orig: np.ndarray,
                                          envelope_energy_orig: np.ndarray,
@@ -579,6 +646,7 @@ class SinglePhaseSpaceBeamParameters:
         self.twiss = converters.twiss(twiss_orig, gamma_kin, convert)
         self._unpack_twiss(self.twiss)
 
+# OLD (also remove converters.envelope)
     def _compute_envelopes_from_other_plane(self,
                                             envelope_pos_orig: np.ndarray,
                                             envelope_energy_orig: np.ndarray,
@@ -611,6 +679,7 @@ class SinglePhaseSpaceBeamParameters:
         self.beta = twiss[:, 1]
         self.gamma = twiss[:, 2]
 
+# OLD
     def init_from_tracewin_results(self, alpha: np.ndarray, beta: np.ndarray,
                                    gamma: np.ndarray, eps: np.ndarray,
                                    envelope_pos: np.ndarray,
