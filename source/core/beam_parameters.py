@@ -334,40 +334,6 @@ class BeamParameters:
         if 'z' in args:
             self.z.init_from_another_plane(*args_for_init, 'zdelta to z')
 
-    def init_other_phase_spaces_from_zdelta_no_twiss(
-            self, *args: str, gamma_kin: np.ndarray | None = None) -> None:
-        """Create the desired longitudinal planes from zdelta (for TW)."""
-        if gamma_kin is None:
-            gamma_kin = self.gamma_kin
-        args_for_init = (self.zdelta.eps, self.zdelta.envelope_pos,
-                         self.zdelta.envelope_energy, gamma_kin)
-
-        for arg in args:
-            if arg not in ['phiw', 'z']:
-                logging.error(f"Phase space conversion zdelta -> {arg} not "
-                              "implemented. Ignoring...")
-
-        if 'phiw' in args:
-            self.phiw.init_from_another_plane_no_twiss(*args_for_init,
-                                                       'zdelta to phiw')
-        if 'z' in args:
-            self.z.init_from_another_plane_no_twiss(*args_for_init,
-                                                    'zdelta to z')
-
-    def init_zdelta_from_dict(self, results: dict[str, np.ndarray]) -> None:
-        """
-        Init phiw from a dict, such as loaded after TW simulation.
-
-        Parameters
-        ----------
-        results : dict[str, np.ndarray]
-            Dictionary holding beam parameters.
-
-        """
-        self.zdelta.eps = results['ezdp']
-        self.zdelta.envelope_pos = results['SizeZ']
-        self.zdelta.envelope_energy = results['szdp']
-
     def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
         """Compute the mismatch factor."""
         if ref_twiss_zdelta is None:
