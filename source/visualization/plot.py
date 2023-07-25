@@ -91,9 +91,6 @@ def factory(accelerators: list[Accelerator], plots: dict[str, bool],
                          **_proper_kwargs(preset, kwargs))
             for fix_acc in accelerators[1:]
             for preset, plot_me in plots.items() if plot_me]
-    if "emittance" in plots:
-        logging.warning("Find out why y-limits of emittance plot are set to "
-                        "0 -> 1.")
     return figs
 
 
@@ -370,7 +367,9 @@ def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
 
     axe.grid(True)
     axe.set_ylabel(_y_label(y_axis))
-    _autoscale_based_on(axe, str_ignore='Broken')
+
+    # Legacy. Was used to ignore the limits from the Broken linac plots
+    # _autoscale_based_on(axe, to_ignore='Broken')
 
 
 # =============================================================================
@@ -424,10 +423,10 @@ def _clean_fig(fignumlist):
             axx.cla()
 
 
-def _autoscale_based_on(axx, str_ignore):
-    """Rescale axis, ignoring Lines with str_ignore in their label."""
+def _autoscale_based_on(axx: ax_type, to_ignore: str) -> None:
+    """Rescale axis, ignoring Lines with to_ignore in their label."""
     lines = [line for line in axx.get_lines()
-             if str_ignore not in line.get_label()]
+             if to_ignore not in line.get_label()]
     axx.dataLim = mtransforms.Bbox.unit()
     for line in lines:
         datxy = np.vstack(line.get_data()).T
