@@ -70,26 +70,29 @@ class SimulationOutput:
         return key in recursive_items(vars(self)) \
             or self.beam_parameters.has(key)
 
-    def get(self, *keys: str, to_numpy: bool = True,
+    def get(self, *keys: str, to_numpy: bool = True, to_deg: bool = False,
             elt: _Element | None = None, pos: str | None = None,
-            none_to_nan: bool = False,
-            **kwargs: Any) -> Any:
+            none_to_nan: bool = False, **kwargs: str | bool | None) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
         Parameters
         ----------
-        *keys: str
+        *keys : str
             Name of the desired attributes.
         to_numpy : bool, optional
             If you want the list output to be converted to a np.ndarray. The
             default is True.
+        to_deg : bool, optional
+            To apply np.rad2deg function over every `key` containing the string
         elt : _Element | None, optional
             If provided, return the attributes only at the considered _Element.
         pos : 'in' | 'out' | None
             If you want the attribute at the entry, exit, or in the whole
             _Element.
-        **kwargs: Any
+        none_to_nan : bool, optional
+            To convert None to np.NaN. The default is False.
+        **kwargs : str | bool | None
             Other arguments passed to recursive getter.
 
         Returns
@@ -106,6 +109,15 @@ class SimulationOutput:
                 continue
 
             val[key] = recursive_getter(key, vars(self), **kwargs)
+
+            if val[key] is not None and to_deg and 'phi' in key:
+                if isinstance(val[key], list):
+                    val[key] = [np.rad2deg(angle)
+                                if angle is not None else None
+                                for angle in val[key]]
+                else:
+                    val[key] = np.rad2deg(val[key])
+
             if not to_numpy and isinstance(val[key], np.ndarray):
                 val[key] = val[key].tolist()
 

@@ -75,8 +75,26 @@ class _Element():
         return key in recursive_items(vars(self))
 
     def get(self, *keys: str, to_numpy: bool = True,
-            **kwargs: dict) -> Any:
-        """Shorthand to get attributes."""
+            **kwargs: bool | str | None) -> Any:
+        """
+        Shorthand to get attributes from this class or its attributes.
+
+        Parameters
+        ----------
+        *keys: str
+            Name of the desired attributes.
+        to_numpy : bool, optional
+            If you want the list output to be converted to a np.ndarray. The
+            default is True.
+        **kwargs : bool | str | None
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : Any
+            Attribute(s) value(s).
+
+        """
         val = {key: [] for key in keys}
 
         for key in keys:
@@ -91,9 +109,9 @@ class _Element():
         out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
                else val[key]
                for key in keys]
+
         if len(out) == 1:
             return out[0]
-
         return tuple(out)
 
     def update_status(self, new_status: str) -> None:

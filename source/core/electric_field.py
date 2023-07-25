@@ -64,11 +64,28 @@ class RfField():
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys, to_deg=False, **kwargs):
-        """Shorthand to get attributes."""
-        val = {}
-        for key in keys:
-            val[key] = []
+    def get(self, *keys: str, to_deg: bool = False, **kwargs: bool | str
+            ) -> list | np.ndarray | float | None:
+        """
+        Shorthand to get attributes from this class.
+
+        Parameters
+        ----------
+        *keys : str
+            Name of the desired attributes.
+        to_deg : bool, optional
+            To apply np.rad2deg function over every `key` containing the string
+            'phi'. The default is False.
+        **kwargs : bool | str
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : list | np.ndarray | float | None
+            Attribute(s) value(s).
+
+        """
+        val = {key: [] for key in keys}
 
         for key in keys:
             if not self.has(key):
@@ -80,12 +97,10 @@ class RfField():
             if val[key] is not None and to_deg and 'phi' in key:
                 val[key] = np.rad2deg(val[key])
 
-        # Convert to list
         out = [val[key] for key in keys]
 
         if len(out) == 1:
             return out[0]
-        # implicit else:
         return tuple(out)
 
     def set_pulsation_ncell(self, f_mhz, n_cell):

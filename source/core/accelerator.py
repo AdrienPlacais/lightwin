@@ -89,24 +89,26 @@ class Accelerator():
         return key in recursive_items(vars(self))
 
     def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
-            elt: str | _Element | None = None, **kwargs: Any) -> Any:
+            elt: str | _Element | None = None, **kwargs: bool | str) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
         Parameters
         ----------
-        *keys: str
+        *keys : str
             Name of the desired attributes.
         to_numpy : bool, optional
             If you want the list output to be converted to a np.ndarray. The
             default is True.
+        none_to_nan : bool, optional
+            To convert None to np.NaN. The default is False.
         elt : str | _Element | None, optional
             If provided, and if the desired keys are in SimulationOutput, the
             attributes will be given over the _Element only. You can provide an
             _Element name, such as `QP1`. If the given _Element is not in the
             Accelerator.ListOfElements, the _Element with the same name that is
             present in this list will be used.
-        **kwargs: Any
+        **kwargs : bool | str
             Other arguments passed to recursive getter.
 
         Returns

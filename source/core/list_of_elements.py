@@ -91,43 +91,66 @@ class ListOfElements(list):
         return key in recursive_items(vars(self)) or \
             key in recursive_items(vars(self[0]))
 
-    def get(self, *keys: tuple[str], to_numpy: bool = True,
-            remove_first: bool = False, **kwargs: dict) -> Any:
-        """Shorthand to get attributes."""
-        val = {}
-        for key in keys:
-            val[key] = []
+    def get(self, *keys: str, to_numpy: bool = True,
+            remove_first: bool = False, **kwargs: bool | str | _Element | None
+            ) -> Any:
+        """
+        Shorthand to get attributes from this class or its attributes.
+
+        This method also looks into the first `_Element` of `self`. If the
+        desired `key` is in this `_Element`, we recursively get `key` from
+        every `_Element` and concatenate the output.
+
+        Parameters
+        ----------
+        *keys : str
+            Name of the desired attributes.
+        to_numpy : bool, optional
+            If you want the list output to be converted to a np.ndarray. The
+            default is True.
+        remove_first : bool, optional
+            If you want to remove the first item of every `_Element`'s `key`.
+            It the _Element is the first of the list, we do not remove its
+            first item.
+            It is useful when the last item of an `_Element` is the same as the
+            first item of the next `_Element`. For example, `z_abs`. The
+            default is False.
+        **kwargs : bool | str | _Element | None
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : Any
+            Attribute(s) value(s).
+
+        """
+        val = {key: [] for key in keys}
 
         for key in keys:
             if not self.has(key):
                 val[key] = None
                 continue
 
-            # Specific case: key is in Element so we concatenate all
-            # corresponding values in a single list
+            # Specific case: key is in _Element
             if self[0].has(key):
                 for elt in self:
                     data = elt.get(key, to_numpy=False, **kwargs)
-                    # In some arrays such as z position arrays, the last pos of
-                    # an element is the first of the next
+
                     if remove_first and elt is not self[0]:
                         data = data[1:]
                     if isinstance(data, list):
                         val[key] += data
-                    else:
-                        val[key].append(data)
+                        continue
+                    val[key].append(data)
             else:
                 val[key] = recursive_getter(key, vars(self), **kwargs)
 
-        # Convert to list, and to numpy array if necessary
         out = [val[key] for key in keys]
         if to_numpy:
             out = [np.array(val) for val in out]
 
-        # Return as tuple or single value
         if len(keys) == 1:
             return out[0]
-        # implicit else
         return tuple(out)
 
     def _first_init(self, tm_cumul: np.ndarray | None) -> None:
