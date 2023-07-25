@@ -36,12 +36,15 @@ We use the same units and conventions as TraceWin.
     Envelopes:
         envelope_pos in     [z-delta]           [mm]
         envelope_pos in     [z-z']              [mm]
-        envelope_pos in     [Delta phi-Delta W]
-        envelope_energy in  [z-delta]
-        envelope_energy in  [z-z']
-        envelope_energy in  [Delta phi-Delta W]
+        envelope_pos in     [Delta phi-Delta W] [deg]
+        envelope_energy in  [z-delta]           [%]
+        envelope_energy in  [z-z']              [mrad]
+        envelope_energy in  [Delta phi-Delta W] [MeV]
     NB: envelopes are at 1-sigma, while they are plotted at 6-sigma by default
     in TraceWin.
+    NB2: Envelopes are calculated with un-normalized emittances in the
+    [z-delta] and [z-z'] planes, but they are calculated with normalized
+    emittance in the [phi-W] plane.
 
 TODO: handle error on eps_zdelta
 TODO better ellipse plot
@@ -444,11 +447,13 @@ class SinglePhaseSpaceBeamParameters:
             self._compute_eps_from_other_plane(eps_orig, convert, gamma_kin,
                                                beta_kin)
         self.eps = eps_normalized
-        self._eps_not_norm = eps_no_normalisation
         self._compute_twiss_from_other_plane(twiss_orig, convert, gamma_kin,
                                              beta_kin)
+        eps_for_envelope = eps_no_normalisation
+        if self.phase_space == 'phiw':
+            eps_for_envelope = eps_normalized
         self.compute_envelopes(self.twiss[:, 1], self.twiss[:, 2],
-                               eps_no_normalisation)
+                               eps_for_envelope)
 
     def _compute_eps_from_sigma(self, sigma: np.ndarray, gamma_kin: np.ndarray,
                                 beta_kin: np.ndarray) -> tuple[np.ndarray,
@@ -517,6 +522,8 @@ class SinglePhaseSpaceBeamParameters:
         eps_no_normalisation = eps_normalized / (beta_kin * gamma_kin)
         if self.phase_space == 'z':
             eps_no_normalisation /= gamma_kin**2
+            return eps_no_normalisation, eps_normalized
+
         return eps_no_normalisation, eps_normalized
 
     def _compute_twiss_from_sigma(self, sigma: np.ndarray,
@@ -570,7 +577,13 @@ class SinglePhaseSpaceBeamParameters:
 
     def compute_envelopes(self, beta: np.ndarray, gamma: np.ndarray,
                           eps: np.ndarray) -> None:
-        """Compute the envelopes from the Twiss parameters and eps."""
+        """
+        Compute the envelopes from the Twiss parameters and eps.
+
+        Emittance eps should be normalized in the [phi-W] plane, but not in the
+        [z-delta] and [z-z'] planes (consistency with TW).
+
+        """
         self.envelope_pos = np.sqrt(beta * eps)
         self.envelope_energy = np.sqrt(gamma * eps)
 
