@@ -13,8 +13,8 @@ import os
 import configparser
 
 TRACEWIN_EXECUTABLES = {  # Should match with your installation
-    "X11 full": "/usr/local/bin/./TraceWin",
-    "noX11 full": "/usr/local/bin/./TraceWin_noX11",
+    "X11 full": "/usr/local/bin/TraceWin/./TraceWin",
+    "noX11 full": "/usr/local/bin/TraceWin/./TraceWin_noX11",
     "noX11 minimal": "/home/placais/TraceWin/exe/./tracelx64",
     "no run": None
 }
@@ -128,7 +128,7 @@ def _test_beam_calculator_tracewin(
     if not os.path.isfile(tw_exe):
         logging.error(f"The TraceWin executable was not found: {tw_exe}. You "
                       + "should update the TRACEWIN_EXECUTABLES dictionary in "
-                      + "config_manager.py.")
+                      + "config/beam_calculator.py.")
         return False
     c_beam_calculator["executable"] = tw_exe
 
