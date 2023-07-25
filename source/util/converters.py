@@ -69,8 +69,7 @@ def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
 
 
 # TODO may be possible to save some operations by using lambda func?
-def emittance(eps_orig: float | np.ndarray, key: str, normalize: bool = False,
-              denormalize: bool = False,
+def emittance(eps_orig: float | np.ndarray, key: str,
               gamma_kin: float | np.ndarray | None = None,
               beta_kin: float | np.ndarray | None = None,
               lam: float | np.ndarray | None = None,
@@ -91,45 +90,7 @@ def emittance(eps_orig: float | np.ndarray, key: str, normalize: bool = False,
         "zdelta to z": 10.,
     }
     eps_new = eps_orig * conversion_constants[key]
-
-    if normalize == denormalize:
-        return eps_new
-    if normalize:
-        return normalize_emittance(eps_new, gamma_kin, beta_kin)
-    if denormalize:
-        return denormalize_emittance(eps_new, gamma_kin, beta_kin)
-
-
-def normalize_emittance(eps_no_normalisation: float | np.ndarray,
-                        gamma_kin: float | np.ndarray,
-                        beta_kin: float | np.ndarray | None = None
-                        ) -> float | np.ndarray:
-    """Normalize an emittance."""
-    if gamma_kin is None:
-        logging.error("Need to provide `gamma_kin` to normalize eps. Returning"
-                      " un-normalized emittance.")
-        return eps_no_normalisation
-    if beta_kin is None:
-        beta_kin = energy(gamma_kin, "gamma to beta")
-
-    eps_normalized = eps_no_normalisation / (gamma_kin * beta_kin)
-    return eps_normalized
-
-
-def denormalize_emittance(eps_normalized: float | np.ndarray,
-                          gamma_kin: float | np.ndarray,
-                          beta_kin: float | np.ndarray | None = None
-                          ) -> float | np.ndarray:
-    """De-normalize an emittance."""
-    if gamma_kin is None:
-        logging.error("Need to provide `gamma_kin` to de-normalize eps. "
-                      "Returning normalized emittance.")
-        return eps_normalized
-    if beta_kin is None:
-        beta_kin = energy(gamma_kin, "gamma to beta")
-
-    eps_no_normalisation = eps_normalized * (gamma_kin * beta_kin)
-    return eps_no_normalisation
+    return eps_new
 
 
 def twiss(twiss_orig: np.ndarray, gamma_kin: float | np.ndarray, key: str,
