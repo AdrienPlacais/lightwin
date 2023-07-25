@@ -4,6 +4,8 @@
 Created on Wed Feb  8 09:35:54 2023.
 
 @author: placais
+
+TODO : add a phase_space key in PLOT_PRESETS (emittance, twiss, envelopes)
 """
 
 import os
@@ -47,15 +49,15 @@ PLOT_PRESETS = {
             'all_y_axis': ["v_cav_mv", "phi_s", "struct"],
             'num': 23},
     "emittance": {'x_axis': 'z_abs',
-                  'all_y_axis': ["eps_zdelta", "struct"],
+                  'all_y_axis': ["eps_z", "struct"],
                   'num': 24},
     "twiss": {'x_axis': 'z_abs',
-              'all_y_axis': ["alpha_w", "beta_w", "gamma_w"],
+              'all_y_axis': ["alpha_phiw", "beta_phiw", "gamma_phiw"],
               'num': 25},
     "envelopes": {
         'x_axis': 'z_abs',
         'all_y_axis':
-            ["envelope_pos_zdelta", "envelope_energy_zdelta", "struct"],
+            ["envelope_pos_phiw", "envelope_energy_zdelta", "struct"],
         'num': 26},
     "mismatch_factor": {'x_axis': 'z_abs',
                         'all_y_axis': ["mismatch_factor", "struct"],
