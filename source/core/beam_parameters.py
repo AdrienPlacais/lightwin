@@ -354,63 +354,6 @@ class BeamParameters:
             self.z.init_from_another_plane_no_twiss(*args_for_init,
                                                     'zdelta to z')
 
-# FIXME will not work as for now. Tmp replaced by phiW only
-    def init_all_phase_spaces_from_a_dict(
-        self, results: dict[str, np.ndarray],
-        results_converter: dict[str, Callable[[str], tuple[np.ndarray]]],
-        *args: str
-    ) -> None:
-        """
-        Init phase spaces from a dict, such as loaded after TW simulation.
-
-        Parameters
-        ----------
-        results : dict[str, np.ndarray]
-            Dictionary holding beam parameters.
-        results_converter : dict[str, Callable[[str], tuple[np.ndarray]]]
-            Dictionary to convert `results` into beam parameters. Keys must be
-            phase-spaces names, values functions taking `results` in argument
-            and returning a tuple holding (alpha, beta, gamma, eps,
-            envelope_pos, envelope_energy.
-        *args : str
-            Tuple containing the name of the phase-spaces to initialize.
-
-        """
-        for phase_space in args:
-            if phase_space not in results_converter:
-                logging.error(f"{phase_space} is not defined in the provided. "
-                              "`results_converter` dictionary (it is probably "
-                              "`BEAM_PARAMETERS_FROM_TW`, defined in "
-                              "beam_calculation.tracewin). Ignoring...")
-                continue
-            converter = results_converter[phase_space]
-
-            phase_space_beam_parameters = converter(results)
-            if phase_space == 'zdelta':
-                self.zdelta.init_from_tracewin_results(
-                    *phase_space_beam_parameters)
-                continue
-            if phase_space == 'phiw':
-                self.phiw.init_from_tracewin_results(
-                    *phase_space_beam_parameters)
-                continue
-            if phase_space == 'z':
-                self.z.init_from_tracewin_results(*phase_space_beam_parameters)
-                continue
-            if phase_space == 'x':
-                self.x.init_from_tracewin_results(*phase_space_beam_parameters)
-                continue
-            if phase_space == 'y':
-                self.y.init_from_tracewin_results(*phase_space_beam_parameters)
-                continue
-            logging.error(f"{phase_space} not implemented. Ignoring...")
-
-        for phase_space, converter in results_converter.items():
-            alpha, beta, gamma, eps, envelope_pos, envelope_energy = \
-                converter(results)
-            self.phase_space = \
-                SinglePhaseSpaceBeamParameters(phase_space=phase_space)
-
     def init_zdelta_from_dict(self, results: dict[str, np.ndarray]) -> None:
         """
         Init phiw from a dict, such as loaded after TW simulation.
@@ -531,37 +474,6 @@ class SinglePhaseSpaceBeamParameters:
         self._compute_twiss_from_other_plane(twiss_orig, gamma_kin, convert)
         self.compute_envelopes(self.eps, self.beta, self.gamma)
 
-# OLD
-    def init_from_another_plane_no_twiss(self, eps_orig: np.ndarray,
-                                         envelope_pos_orig: np.ndarray,
-                                         envelope_energy_orig: np.ndarray,
-                                         gamma_kin: np.ndarray, convert: str
-                                         ) -> None:
-        """
-        Partially initialize from another phase space (no Twiss).
-
-        To be used with TraceWin data treatment, as we do not need Twiss and
-        already have envelopes.
-
-        Parameters
-        ----------
-        eps_orig : np.ndarray
-            Emittance in original phase space.
-        envelope_pos_orig : np.ndarray
-            Position envelope in original phase space.
-        envelope_energy_orig : np.ndarray
-            Energy envelope in original phase space.
-        gamma_kin : np.ndarray
-            Lorentz factor.
-        convert : str
-            To determine which phase space we have and which one we want.
-
-        """
-        self._compute_eps_from_other_plane(eps_orig, gamma_kin, convert)
-        self._compute_envelopes_from_other_plane(envelope_pos_orig,
-                                                 envelope_energy_orig,
-                                                 gamma_kin, convert)
-
     def _compute_eps_from_sigma(self, sigma: np.ndarray,
                                 gamma_kin: np.ndarray | None,
                                 beta_kin: np.ndarray | None
@@ -646,18 +558,6 @@ class SinglePhaseSpaceBeamParameters:
         self.twiss = converters.twiss(twiss_orig, gamma_kin, convert)
         self._unpack_twiss(self.twiss)
 
-# OLD (also remove converters.envelope)
-    def _compute_envelopes_from_other_plane(self,
-                                            envelope_pos_orig: np.ndarray,
-                                            envelope_energy_orig: np.ndarray,
-                                            gamma_kin: np.ndarray, convert: str
-                                            ) -> None:
-        """Compute envelopes from envelopes in another plane."""
-        self.envelope_pos = converters.envelope_pos(envelope_pos_orig,
-                                                    gamma_kin, convert)
-        self.envelope_energy = converters.envelope_energy(envelope_energy_orig,
-                                                          gamma_kin, convert)
-
     def _compute_envelopes_from_sigma(self, sigma: np.ndarray
                                       ) -> tuple[np.ndarray, np.ndarray]:
         """Compute the envelopes in mm and % in z-deltap/p plane."""
@@ -678,19 +578,6 @@ class SinglePhaseSpaceBeamParameters:
         self.alpha = twiss[:, 0]
         self.beta = twiss[:, 1]
         self.gamma = twiss[:, 2]
-
-# OLD
-    def init_from_tracewin_results(self, alpha: np.ndarray, beta: np.ndarray,
-                                   gamma: np.ndarray, eps: np.ndarray,
-                                   envelope_pos: np.ndarray,
-                                   envelope_energy: np.ndarray) -> None:
-        """Init from TW."""
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-        self.eps = eps
-        self.envelope_pos = envelope_pos
-        self.envelope_energy = envelope_energy
 
 
 # =============================================================================
