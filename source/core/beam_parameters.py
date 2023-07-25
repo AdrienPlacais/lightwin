@@ -444,6 +444,7 @@ class SinglePhaseSpaceBeamParameters:
             self._compute_eps_from_other_plane(eps_orig, convert, gamma_kin,
                                                beta_kin)
         self.eps = eps_normalized
+        self._eps_not_norm = eps_no_normalisation
         self._compute_twiss_from_other_plane(twiss_orig, convert, gamma_kin,
                                              beta_kin)
         self.compute_envelopes(self.twiss[:, 1], self.twiss[:, 2],
@@ -513,8 +514,9 @@ class SinglePhaseSpaceBeamParameters:
                                               gamma_kin=gamma_kin,
                                               beta_kin=beta_kin)
 
-        eps_no_normalisation = converters.denormalize_emittance(
-            eps_normalized, gamma_kin, beta_kin)
+        eps_no_normalisation = eps_normalized / (beta_kin * gamma_kin)
+        if self.phase_space == 'z':
+            eps_no_normalisation /= gamma_kin**2
         return eps_no_normalisation, eps_normalized
 
     def _compute_twiss_from_sigma(self, sigma: np.ndarray,
@@ -560,6 +562,7 @@ class SinglePhaseSpaceBeamParameters:
     def _compute_envelopes_from_sigma(self, sigma: np.ndarray
                                       ) -> tuple[np.ndarray, np.ndarray]:
         """Compute the envelopes in mm and % in z-deltap/p plane."""
+        assert self.phase_space == 'zdelta'
         envelope_pos = np.array([np.sqrt(sigm[0, 0]) for sigm in sigma]) * 1e3
         envelope_energy = np.array([np.sqrt(sigm[1, 1]) for sigm in sigma]
                                    ) * 1e2
