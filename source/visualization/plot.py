@@ -4,8 +4,6 @@
 Created on Wed Feb  8 09:35:54 2023.
 
 @author: placais
-
-TODO : add a phase_space key in PLOT_PRESETS (emittance, twiss, envelopes)
 """
 
 import os
