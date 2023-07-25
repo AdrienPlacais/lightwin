@@ -58,7 +58,7 @@ PLOT_PRESETS = {
         'x_axis': 'z_abs',
         'all_y_axis':
             ["envelope_pos_phiw", "envelope_energy_zdelta", "struct"],
-        'num': 26},
+        'num': 26, 'symetric_plot': True},
     "mismatch_factor": {'x_axis': 'z_abs',
                         'all_y_axis': ["mismatch_factor", "struct"],
                         'num': 27},
@@ -347,6 +347,7 @@ def _compute_error(x_data: list[np.ndarray], y_data: list[np.ndarray],
 def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
                     colors: dict[str, str] | None,
                     *accelerators: Accelerator, plot_section: bool = True,
+                    symetric_plot: bool = False,
                     **kwargs: bool | int | str) -> None:
     """Get proper data and plot it on an Axe."""
     if plot_section:
@@ -361,7 +362,13 @@ def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
             all_my_data[0], all_my_data[1], all_my_data[2]):
         if colors is not None and plt_kwargs['label'] in colors:
             plt_kwargs['color'] = colors[plt_kwargs['label']]
-        axe.plot(x_data, y_data, **plt_kwargs)
+
+        line, = axe.plot(x_data, y_data, **plt_kwargs)
+
+        if symetric_plot:
+            symetric_kwargs = plt_kwargs | {'color': line.get_color(),
+                                            'label': None}
+            axe.plot(x_data, -y_data, **symetric_kwargs)
 
     axe.grid(True)
     axe.set_ylabel(_y_label(y_axis))
