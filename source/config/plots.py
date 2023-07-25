@@ -17,7 +17,7 @@ def test(c_plots: configparser.SectionProxy) -> None:
 
     implemented = ['energy', 'phase', 'cav', 'emittance', 'twiss', 'envelopes',
                    'transfer matrices']
-    to_update_or_fix = ['twiss', 'envelopes', 'transfer matrices']
+    to_update_or_fix = ['transfer matrices']
 
     for key in c_plots.keys():
         if key not in implemented:
