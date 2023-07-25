@@ -92,16 +92,12 @@ def emittance(eps_orig: float | np.ndarray, key: str, normalize: bool = False,
     }
     eps_new = eps_orig * conversion_constants[key]
 
-    if normalize and denormalize:
-        logging.error("You asked to normalize and denormalize emittance. "
-                      "Returning eps as is...")
+    if normalize == denormalize:
         return eps_new
-
     if normalize:
         return normalize_emittance(eps_new, gamma_kin, beta_kin)
     if denormalize:
         return denormalize_emittance(eps_new, gamma_kin, beta_kin)
-    return eps_new
 
 
 def normalize_emittance(eps_no_normalisation: float | np.ndarray,
@@ -136,28 +132,30 @@ def denormalize_emittance(eps_normalized: float | np.ndarray,
     return eps_no_normalisation
 
 
-def twiss(twiss_orig: np.ndarray, gamma: float | np.ndarray, key: str,
+def twiss(twiss_orig: np.ndarray, gamma_kin: float | np.ndarray, key: str,
           lam: float | np.ndarray | None = None,
-          e_0: float | np.ndarray | None = None) -> np.ndarray:
+          e_0: float | np.ndarray | None = None,
+          beta_kin: float | np.ndarray | None = None) -> np.ndarray:
     """Convert Twiss array from a phase space to another."""
     if lam is None:
         lam = con.LAMBDA_BUNCH
     if e_0 is None:
         e_0 = con.E_REST_MEV
-    beta = np.sqrt(1. - gamma**-2)
+    if beta_kin is None:
+        beta_kin = np.sqrt(1. - gamma_kin**-2)
 
     # Lighten the dict
-    k_1 = e_0 * (gamma * beta) * lam / 360.
-    k_2 = k_1 * beta**2
-    k_3 = k_2 * gamma**2
+    k_1 = e_0 * (gamma_kin * beta_kin) * lam / 360.
+    k_2 = k_1 * beta_kin**2
+    k_3 = k_2 * gamma_kin**2
 
     conversion_constants = {
         "phiw to z": [-1., 1e-6 * k_3],
         "z to phiw": [-1., 1e6 / k_3],
         "phiw to zdelta": [-1., 1e-5 * k_2],
         "zdelta to phiw": [-1., 1e5 / k_2],
-        "z to zdelta": [1., 1e1 * gamma**-2],
-        "zdelta to z": [1., 1e-1 * gamma**2],
+        "z to zdelta": [1., 1e1 * gamma_kin**-2],
+        "zdelta to z": [1., 1e-1 * gamma_kin**2],
     }
     factors = conversion_constants[key]
 
