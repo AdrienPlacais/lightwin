@@ -176,7 +176,3 @@ if __name__ == '__main__':
 
     kwargs = {'save_fig': False, 'clean_fig': True}
     figs = plot.factory(accelerators, my_configs['plots'], **kwargs)
-
-
-from experimental import plot_envelopes
-plot_envelopes.plot_envelopes(accelerators[0])
