@@ -7,7 +7,10 @@ Created on Fri May 12 20:27:54 2023.
 
 All functions to change units.
 """
+import logging
+
 import numpy as np
+
 from constants import c
 import config_manager as con
 
@@ -66,31 +69,71 @@ def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
 
 
 # TODO may be possible to save some operations by using lambda func?
-def emittance(eps_orig: float | np.ndarray, gamma: float | np.ndarray,
-              key: str, lam: float | np.ndarray | None = None,
+def emittance(eps_orig: float | np.ndarray, key: str, normalize: bool = False,
+              denormalize: bool = False,
+              gamma_kin: float | np.ndarray | None = None,
+              beta_kin: float | np.ndarray | None = None,
+              lam: float | np.ndarray | None = None,
               e_0: float | np.ndarray | None = None) -> float | np.ndarray:
     """Convert emittance from a phase space to another."""
     if lam is None:
         lam = con.LAMBDA_BUNCH
     if e_0 is None:
         e_0 = con.E_REST_MEV
-    # beta = np.sqrt(1. - gamma**-2)
-
-    # Lighten the dict
-    gamma2 = gamma**2
     k_1 = 360. * e_0 / lam
-    k_2 = k_1 * gamma2
 
     conversion_constants = {
-        "phiw to z": 1. / k_2,
-        "z to phiw": k_2,
-        "phiw to zdelta": 1e-6 / k_1,
-        "zdelta to phiw": 1e6 * k_1,
+        "phiw to z": 1. / k_1,
+        "z to phiw": k_1,
+        "phiw to zdelta": 0.1 / k_1,
+        "zdelta to phiw": 10 * k_1,
         "z to zdelta": 0.1,
         "zdelta to z": 10.,
     }
     eps_new = eps_orig * conversion_constants[key]
+
+    if normalize and denormalize:
+        logging.error("You asked to normalize and denormalize emittance. "
+                      "Returning eps as is...")
+        return eps_new
+
+    if normalize:
+        return normalize_emittance(eps_new, gamma_kin, beta_kin)
+    if denormalize:
+        return denormalize_emittance(eps_new, gamma_kin, beta_kin)
     return eps_new
+
+
+def normalize_emittance(eps_no_normalisation: float | np.ndarray,
+                        gamma_kin: float | np.ndarray,
+                        beta_kin: float | np.ndarray | None = None
+                        ) -> float | np.ndarray:
+    """Normalize an emittance."""
+    if gamma_kin is None:
+        logging.error("Need to provide `gamma_kin` to normalize eps. Returning"
+                      " un-normalized emittance.")
+        return eps_no_normalisation
+    if beta_kin is None:
+        beta_kin = energy(gamma_kin, "gamma to beta")
+
+    eps_normalized = eps_no_normalisation / (gamma_kin * beta_kin)
+    return eps_normalized
+
+
+def denormalize_emittance(eps_normalized: float | np.ndarray,
+                          gamma_kin: float | np.ndarray,
+                          beta_kin: float | np.ndarray | None = None
+                          ) -> float | np.ndarray:
+    """De-normalize an emittance."""
+    if gamma_kin is None:
+        logging.error("Need to provide `gamma_kin` to de-normalize eps. "
+                      "Returning normalized emittance.")
+        return eps_normalized
+    if beta_kin is None:
+        beta_kin = energy(gamma_kin, "gamma to beta")
+
+    eps_no_normalisation = eps_normalized * (gamma_kin * beta_kin)
+    return eps_no_normalisation
 
 
 def twiss(twiss_orig: np.ndarray, gamma: float | np.ndarray, key: str,
