@@ -15,6 +15,7 @@ In contrary to the optimisation.strategy module, here we do one fault at a time
 (a fault can encompass several faulty cavities that are to be fixed together).
 
 TODO end_section, elt_name
+
 """
 import logging
 
