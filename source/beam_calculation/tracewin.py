@@ -26,7 +26,7 @@ from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.single_element_tracewin_parameters import (
     SingleElementTraceWinParameters)
 
-from optimisation.set_of_cavity_settings import SetOfCavitySettings
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator

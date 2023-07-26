@@ -17,7 +17,7 @@ import datetime
 
 import config_manager as conf_man
 from core.accelerator import Accelerator, accelerator_factory
-from optimisation.fault_scenario import FaultScenario, fault_scenario_factory
+from failures.fault_scenario import FaultScenario, fault_scenario_factory
 # import tracewin_utils.interface
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_object
@@ -93,7 +93,7 @@ if __name__ == '__main__':
         'plots': 'plots.essential',
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
-        'wtf': 'wtf.k_out_of_n',
+        'wtf': 'wtf.quick_debug',
         'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)

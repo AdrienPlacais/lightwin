@@ -4,6 +4,10 @@
 Created on Fri Jun  9 15:47:04 2023.
 
 @author: placais
+
+This module holds classes to store (compensating) cavity settings in a compact
+way.
+
 """
 from dataclasses import dataclass
 import logging
@@ -71,7 +75,10 @@ class SingleCavitySettings:
 
 @dataclass
 class SetOfCavitySettings(dict[object, SingleCavitySettings]):
-    """Holds cavity settings, to be tried during optimisation process."""
+    """
+    Holds several cavity settings, to be tried during optimisation process.
+
+    """
 
     __cavity_settings: list[SingleCavitySettings]
 

@@ -22,7 +22,7 @@ from core.electric_field import (phi_0_rel_corresponding_to, RfField,
 
 from util.helper import recursive_items, recursive_getter, diff_angle
 
-from optimisation.set_of_cavity_settings import SingleCavitySettings
+from failures.set_of_cavity_settings import SingleCavitySettings
 
 from beam_calculation.single_element_beam_calculator_parameters import (
    SingleElementCalculatorParameters)

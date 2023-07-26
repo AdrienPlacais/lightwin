@@ -18,7 +18,7 @@ import pandas as pd
 
 from core.elements import _Element
 from beam_calculation.output import SimulationOutput
-from optimisation.fault import Fault
+from failures.fault import Fault
 from util import helper
 from util.dicts_output import markdown
 

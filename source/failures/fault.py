@@ -4,9 +4,12 @@
 Created on Thu May 18 15:46:38 2023.
 
 @author: placais
+
+This module holds the class `Fault`. Its purpose is to hold information on a
+cavity failure and to fix it.
 """
 import logging
-from typing import Callable
+from collections.abc import Callable
 from functools import partial
 import numpy as np
 
@@ -18,17 +21,42 @@ from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.beam_parameters import mismatch_factor
 from algorithms.least_squares import LeastSquares
-from optimisation.variables import VariablesAndConstraints
-from optimisation.set_of_cavity_settings import SetOfCavitySettings
+from failures.variables import VariablesAndConstraints
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
 class Fault:
     """To handle and fix a single Fault."""
 
-    def __init__(self, ref_acc: Accelerator, fix_acc: Accelerator, wtf: dict,
+    def __init__(self, ref_acc: Accelerator, fix_acc: Accelerator,
+                 wtf: dict[str, str | int | bool | list[str] | list[float]],
                  failed_cav: list[FieldMap], comp_cav: list[FieldMap],
-                 elts: list[_Element], elt_eval_objectives: list[_Element]):
-        """Init."""
+                 elt_eval_objectives: list[_Element], elts: list[_Element]
+                 ) -> None:
+        """
+        Create the Fault object.
+
+        Parameters
+        ----------
+        ref_acc : Accelerator
+            The reference `Accelerator` (nominal `Accelerator`).
+        fix_acc : Accelerator
+            The broken `Accelerator` to be fixed.
+        wtf : dict[str, str | int | bool | list[str] | list[float]]
+            What To Fit dictionary. Holds information on the fixing method.
+        failed_cav : list[FieldMap]
+            Holds the failed cavities.
+        comp_cav : list[FieldMap]
+            Holds the compensating cavities.
+        elt_eval_objectives : list[_Element]
+            `_Element`s at which exit objectives are evaluated.
+        elts : list[_Element]
+            Holds the portion of the linac that will be computed again and
+            again in the optimisation process. It is as short as possible, but
+            must contain all `failed_cav`, `comp_cav` and
+            `elt_eval_objectives`.
+
+        """
         self.ref_acc, self.fix_acc = ref_acc, fix_acc
         self.wtf = wtf
         self.failed_cav, self.comp_cav = failed_cav, comp_cav
@@ -49,7 +77,10 @@ class Fault:
         }
 
     def _create_list_of_elements(self, elts: list[_Element]) -> ListOfElements:
-        """Create the proper ListOfElements object."""
+        """
+        Create a `ListOfElements` object from a list of `_Element` objects.
+
+        """
         w_kin, phi_abs, tm_cumul = self.ref_acc.get(
             'w_kin', 'phi_abs', 'tm_cumul', elt=elts[0], pos='in')
         elts = ListOfElements(elts, w_kin, phi_abs, tm_cumul=tm_cumul,
@@ -76,6 +107,7 @@ class Fault:
             Best cavity settings found by the optimization `Algorithm`.
         self.info : dict
             Useful information, such as the best solution.
+
         """
         variables_constraints = self._set_design_space()
         compute_residuals, info_objectives = self._select_objective()
@@ -134,6 +166,7 @@ class Fault:
         variables_constraints : VariablesAndConstraints
             Holds variables, their initial values, their limits, and
             constraints.
+
         """
         variables = ['phi_0_rel', 'k_e']
         if con.FLAG_PHI_ABS:
@@ -154,7 +187,7 @@ class Fault:
             con.LINAC, self.ref_acc, self.comp_cav, variables, constraints,
             **kwargs)
 
-        logging.info("Design space (handled in optimisation.variables, not "
+        logging.info("Design space (handled in failures.variables, not "
                      f".ini):\n{variables_constraints}")
         return variables_constraints
 
@@ -219,6 +252,7 @@ class Fault:
         Least-squares fits the synchronous phase, while PSO fits the relative
         or absolute entry phase. We get all in relative/absolute to ease
         comparison between solutions.
+
         """
         # First half of X array: phase of cavities (relative or synchronous
         # according to the value of wtf['phi_s fit']).

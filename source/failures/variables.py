@@ -4,6 +4,14 @@
 Created on Mon May 15 16:43:55 2023.
 
 @author: placais
+
+This module holds classes to store the variables and constraints of the
+optimisation problem in a compact way.
+
+If you want to set variables initial values, to modify the power margins of a
+cavity, to implement a new linac and its synchronous phase limits...
+This is the module you are looking for.
+
 """
 import logging
 from dataclasses import dataclass

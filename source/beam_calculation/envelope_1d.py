@@ -19,9 +19,7 @@ from beam_calculation.output import SimulationOutput
 from beam_calculation.single_element_envelope_1d_parameters import (
     SingleElementEnvelope1DParameters)
 
-from util import converters
-
-from optimisation.set_of_cavity_settings import SetOfCavitySettings
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
 @dataclass

@@ -15,8 +15,8 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import numpy as np
 
-from optimisation.variables import VariablesAndConstraints
-from optimisation.set_of_cavity_settings import SetOfCavitySettings
+from failures.variables import VariablesAndConstraints
+from failures.set_of_cavity_settings import SetOfCavitySettings
 from beam_calculation.output import SimulationOutput
 from core.elements import FieldMap
 

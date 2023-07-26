@@ -5,11 +5,12 @@ Created on Wed May 17 12:41:26 2023.
 
 @author: placais
 
-Here we define the function related to the 'strategy' key of the what_to_fit
+Here we define the function related to the `strategy` key of the `what_to_fit`
 dictionary. In particular, it answers the question:
     Given this set of faults, which compensating cavities will be used?
 
 In this module, the indexes are CAVITY indexes, not element.
+
 """
 import logging
 import itertools
