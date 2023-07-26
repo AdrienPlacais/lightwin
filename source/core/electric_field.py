@@ -4,6 +4,12 @@
 Created on Tue Nov 30 15:43:39 2021.
 
 @author: placais
+
+This module holds RfField, which is a simple electric field.
+
+TODO : untouched for many time... Should modernize this module, maybe move it
+to beam_calculation/?
+
 """
 import cmath
 import numpy as np

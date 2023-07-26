@@ -5,10 +5,14 @@ Created on Wed Sep 22 10:26:19 2021.
 
 @author: placais
 
+This module holds `_Element`, the base parent class that is then declined in
+Drift, FieldMap, etc.
+
 TODO : check FLAG_PHI_S_FIT
 TODO : rf_param should also return phi_rf_rel. Will be necessary
 for non-synch particles.
 FIXME : __repr__ won't work with retuned elements
+
 """
 import logging
 from typing import Any

@@ -5,12 +5,15 @@ Created on Thu Nov 10 15:11:55 2022.
 
 @author: placais
 
-In this module we define the ListOfElements objects. These objects are created
-in two contexts:
-    - Accelerator.elts: holds all the _Elements of the linac.
-    - Fault.elts, also called in FaultScenario: it holds only a fraction of the
-    linac _Elements. Beam will be propagated a huge number of time during
+In this module we define the `ListOfElements` object. This type of object is
+a list of `_Element`s, with some additional methods.
+
+It is created in two contexts:
+    - `Accelerator.elts`: holds all the `_Element`s of the linac.
+    - `Fault.elts`, also called in `FaultScenario`: it holds only a fraction of
+    the linac `_Element`s. Beam will be propagated a huge number of time during
     optimisation process, so we recompute only the strict necessary.
+
 """
 import logging
 from typing import Any

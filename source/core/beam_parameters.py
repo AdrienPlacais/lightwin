@@ -6,7 +6,8 @@ Created on Mon Dec 13 14:42:41 2021.
 @author: placais
 
 This module holds everything related to emittances, Twiss parameters,
-envelopes.
+envelopes. They are stored in a `SinglePhaseSpaceBeamParameters`, which are
+gathered in a `BeamParameters` class object.
 
 Conventions
 -----------
@@ -48,6 +49,7 @@ We use the same units and conventions as TraceWin.
 
 TODO: handle error on eps_zdelta
 TODO better ellipse plot
+
 """
 from typing import Any
 from dataclasses import dataclass

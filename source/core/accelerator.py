@@ -5,9 +5,16 @@ Created on Tue Sep 21 11:54:19 2021.
 
 @author: placais
 
+This module holds `Accelerator`, the highest-level class of LightWin. It holds,
+well... an accelerator. This accelerator has a `ListOfElements`. For each
+`BeamCalculator` defined, it has a `SimulationOutput`. Additionaly, it has a
+`ParticleInitialState`, which describes energy, phase, etc of the beam at the
+entry of its `ListOfElements`.
+
 TODO : Check if _check_consistency_phases message still relatable
 TODO : compute_transfer_matrices: simplify, add a calculation of missing phi_0
 at the end
+
 """
 import os.path
 import logging
