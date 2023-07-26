@@ -6,6 +6,7 @@ Created on Mon Jun 26 09:50:26 2023.
 @author: placais
 
 All the functions related to the `beam` key of the config file.
+
 """
 import logging
 import configparser

@@ -6,6 +6,7 @@ Created on Mon Jun 26 09:54:54 2023.
 @author: placais
 
 All the functions to test the `wtf` (what to fit) key of the config file.
+
 """
 import logging
 import configparser

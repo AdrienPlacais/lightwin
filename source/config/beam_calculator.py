@@ -5,8 +5,9 @@ Created on Mon Jun 26 09:34:51 2023.
 
 @author: placais
 
-Everything related to the beam_calculator (and beam_calculator_post) keys of
-the config file.
+Everything related to the `beam_calculator` (and `beam_calculator_post`) keys
+of the config file.
+
 """
 import logging
 import os

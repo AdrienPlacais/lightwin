@@ -6,6 +6,7 @@ Created on Mon Jun 26 10:20:14 2023.
 @author: placais
 
 Everything related to the plots.
+
 """
 import logging
 import configparser
