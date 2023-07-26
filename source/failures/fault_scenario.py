@@ -21,7 +21,7 @@ from failures import strategy, position
 from core.elements import _Element
 from core.accelerator import Accelerator
 from util import debug
-from evaluations import fit_quality
+from evaluator import fit_quality
 
 DISPLAY_CAVITIES_INFO = True
 
