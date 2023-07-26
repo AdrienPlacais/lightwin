@@ -11,4 +11,6 @@ can be created very easily using the `factory` module.
 In order to work, solvers rely on `SingleElementCalculatorParameters` to hold
 the meshing, etc.
 
+`transfer_matrices_x` modules are used by the `Envelope1D` solver.
+
 """

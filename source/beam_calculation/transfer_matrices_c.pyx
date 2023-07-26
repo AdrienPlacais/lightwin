@@ -6,16 +6,14 @@ Created on Wed Sep 22 16:04:34 2021.
 
 @author: placais
 
-This file holds the same functions as transfer_matrices_p, but in Cython.
+This module holds the same functions as transfer_matrices_p, but in Cython.
 
 Cython needs to be compiled to work. Check the instrutions in setup.py.
 
-Currently adapted to MYRRHA only:
-    electric fields are hard-coded;
-    energy at linac entrance is hard-coded.
+TODO I think that this module could be greatly enhanced. I am not a Cython
+specialist and suggestions are welcome.
+TODO field maps better to create the transfer matrix in one passage at the end?
 
-# TODO field maps better to create the transfer matrix in one passage at the end?
-# TODO try to put more cdef functions
 """
 import cython
 from libc.math cimport sin, cos, sqrt, tan, floor

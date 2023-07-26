@@ -4,6 +4,9 @@
 Created on Mon Apr 11 14:46:05 2022.
 
 @author: placais
+
+This module simply holds the function to build the Cython module(s).
+
 """
 
 from setuptools import setup
