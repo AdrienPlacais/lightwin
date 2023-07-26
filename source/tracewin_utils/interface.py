@@ -24,7 +24,7 @@ import tracewin_utils.load
 
 
 try:
-    import core.transfer_matrices_c as tm_c
+    import beam_calculation.transfer_matrices_c as tm_c
 except ModuleNotFoundError:
     MESSAGE = 'Cython module not compilated. Check elements.py and setup.py'\
         + ' for more information.'
@@ -32,7 +32,7 @@ except ModuleNotFoundError:
         raise ModuleNotFoundError(MESSAGE)
     logging.warning(MESSAGE)
     # Load Python version as Cython to allow the execution of the code.
-    import core.transfer_matrices_p as tm_c
+    import beam_calculation.transfer_matrices_p as tm_c
 
 
 TO_BE_IMPLEMENTED = [

@@ -49,13 +49,13 @@ class Envelope1D(BeamCalculator):
         self.id = self.__repr__()
         if self.flag_cython:
             try:
-                import core.transfer_matrices_c as transf_mat
+                import beam_calculation.transfer_matrices_c as transf_mat
             except ModuleNotFoundError:
                 logging.error("Cython version of transfer_matrices was not "
                               + "compiled. Check util/setup.py.")
                 raise ModuleNotFoundError("Cython not compiled.")
         else:
-            import core.transfer_matrices_p as transf_mat
+            import beam_calculation.transfer_matrices_p as transf_mat
         self.transf_mat_module = transf_mat
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
