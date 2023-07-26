@@ -5,9 +5,11 @@ Created on Mon Jun 12 08:26:52 2023.
 
 @author: placais
 
-This module holds the base class BeamCalculator.
+This module holds the base class `BeamCalculator`. It computes the propagation
+of the beam in a `ListOfElements`, possibly with a specific
+`SetOfCavitySettings` (optimisation process). It should create
+`SimulationOutput`s.
 
-TODO handle type checking, maybe at the cost of refactoring the code...
 """
 import logging
 from typing import Any, Callable
@@ -68,11 +70,11 @@ class BeamCalculator(ABC):
 
     @abstractmethod
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
-        """Init some BeamCalculator solver parameters."""
+        """Init some `BeamCalculator` solver parameters."""
 
     @abstractmethod
     def _generate_simulation_output(self, *args: Any) -> SimulationOutput:
-        """Transform the outputs of BeamCalculator to a SimulationOutput."""
+        """Transform the output of `BeamCalculator` to a `SimulationOutput`."""
 
     def _generate_element_to_index_func(self, elts: ListOfElements
                                         ) -> Callable[[_Element, str | None],
@@ -90,24 +92,25 @@ def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
     Convert `elt` + `pos` into a mesh index.
 
     This way, you can call .get('w_kin', elt='FM5', pos='out') and
-    systematically gete the energy at the exit of FM5, whatever the
-    BeamCalculator or the mesh size is.
+    systematically get the energy at the exit of FM5, whatever the
+    `BeamCalculator` or the mesh size is.
 
     Parameters
     ----------
     _elts : ListOfElements
-        List of Elements where elt should be. Must be set by a
+        List of `_Element`s where elt should be. Must be set by a
         functools.partial.
     _shift : int
-        Mesh index of first _Element. Used when the first _Element of _elts is
-        not the first of the Accelerator. Must be set by functools.partial.
+        Mesh index of first `_Element`. Used when the first `_Element` of
+        `_elts` is not the first of the `Accelerator`. Must be set by
+        functools.partial.
     _solver_id : str
         Name of the solver, to identify and take the proper
-        SingleElementBeamParameters.
+        `SingleElementBeamParameters`.
     elt : _Element | str
         Element of which you want the index.
     pos : 'in' | 'out' | None, optional
-        Index of entry or exit of the _Element. If None, return full
+        Index of entry or exit of the `_Element`. If None, return full
         indexes array. The default is None.
 
     """

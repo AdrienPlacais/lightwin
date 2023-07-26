@@ -5,10 +5,9 @@ Created on Fri Jun  9 11:56:20 2023.
 
 @author: placais
 
-A class to uniformly store the outputs from the different simulation tools:
-    envelope1d
-    tracewin_envelope
-    tracewin_multiparticle
+This module holds `SimulationOutput`, a class to uniformly store the outputs
+from the different `BeamCalculator`s.
+
 """
 import logging
 from dataclasses import dataclass

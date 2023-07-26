@@ -5,6 +5,19 @@ Created on Mon Jun 12 08:24:37 2023.
 
 @author: placais
 
+This module holds Envelope1D, that inherits from BeamCalculator base class. It
+solves the motion of the particle in Envelope, in 1D.
+
+Methods from `BeamCalculator` that are inherited:
+    __post_init__
+    _generate_element_to_index_func
+
+Abstractmethods from `BeamCalculator` that must be defined:
+    run
+    run_with_this
+    init_solver_parameters
+    _generate_simulation_output
+
 """
 import logging
 from dataclasses import dataclass

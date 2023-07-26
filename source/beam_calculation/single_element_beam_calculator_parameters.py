@@ -5,8 +5,12 @@ Created on Wed Jun 28 12:29:12 2023.
 
 @author: placais
 
-This module holds a base class for SingleElementCalculatorParameters (attribute
-of an _Element).
+This module holds a base class for `SingleElementCalculatorParameters`
+(attribute of an `_Element`). It holds parameters that depend on both the
+`_Element` under study and the BeamCalculator solver that is used.
+
+Currently, it is used by `Envelope1D` only, as `TraceWin` handles it itself.
+
 """
 from typing import Any
 from abc import ABC, abstractmethod
@@ -18,10 +22,8 @@ from util.helper import recursive_items, recursive_getter
 
 class SingleElementCalculatorParameters(ABC):
     """
-    Parent class to hold solving parameters. Attribute of _Element.
+    Parent class to hold solving parameters. Attribute of `_Element`.
 
-    As for now, only used by Envelope1D. Useful for TraceWin? To store its
-    meshing maybe?
     """
 
     def has(self, key: str) -> bool:

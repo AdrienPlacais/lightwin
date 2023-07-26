@@ -4,6 +4,13 @@
 Created on Wed Jun 28 12:31:18 2023.
 
 @author: placais
+
+This module holds `SingleElementEnvelope1DParameters`, that inherits form the
+Abstract Base Class `SingleElementCalculatorParameters`.
+It holds the transfer matrix function that is used, according to the solver
+(Runge-Kutta or leapfrog) and their version (Python or Cython), as well as the
+meshing in accelerating elements.
+
 """
 from types import ModuleType
 
@@ -21,6 +28,7 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
 
     has and get method inherited from SingleElementCalculatorParameters parent
     class.
+
     """
 
     def __init__(self, length_m: float, is_accelerating: bool,

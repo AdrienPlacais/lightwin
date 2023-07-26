@@ -5,10 +5,21 @@ Created on Wed Jun  7 16:13:16 2023.
 
 @author: placais
 
-Different use cases, from easiest to hardest:
-    - run it, get its results
-    - no run, but get results anyway
-    - use it to fit
+This module holds TraceWin, that inherits from BeamCalculator base class. It
+solves the motion of the particles in Envelope or Multipart, in 3D. In contrary
+to Envelope1D solver, it is not a real solver but an interface with TraceWin
+which must be installed on your machine.
+
+Methods from `BeamCalculator` that are inherited:
+    __post_init__
+    _generate_element_to_index_func
+
+Abstractmethods from `BeamCalculator` that must be defined:
+    run
+    run_with_this
+    init_solver_parameters
+    _generate_simulation_output
+
 """
 from dataclasses import dataclass
 import os

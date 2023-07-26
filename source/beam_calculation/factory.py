@@ -4,6 +4,10 @@
 Created on Tue Jun 13 17:30:58 2023.
 
 @author: placais
+
+This module simply holds a factory to easily create the desired
+`BeamCalculator`.
+
 """
 from typing import Any
 

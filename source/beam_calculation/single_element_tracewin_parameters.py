@@ -4,6 +4,11 @@
 Created on Wed Jun 28 12:31:18 2023.
 
 @author: placais
+
+This module holds `SingleElementTraceWinParameters`, that inherits from the
+Abstract Base Class `SingleElementCalculatorParameters`.
+It is currently not necessary.
+
 """
 import numpy as np
 
