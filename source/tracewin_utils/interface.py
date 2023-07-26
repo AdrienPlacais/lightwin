@@ -20,8 +20,7 @@ import numpy as np
 import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
-import tracewin.load
-# from beam_calculation.tracewin import TraceWin
+import tracewin_utils.load
 
 
 try:
@@ -146,12 +145,12 @@ def get_single_electric_field_map(
     """
     # FIXME
     cav.field_map_file_name += ".edz"
-    assert tracewin.load.is_loadable(
+    assert tracewin_utils.load.is_loadable(
         cav.field_map_file_name, cav.geometry, cav.aperture_flag), \
         f"Error preparing {cav}'s field map."
 
     _, extension = os.path.splitext(cav.field_map_file_name)
-    import_function = tracewin.load.FIELD_MAP_LOADERS[extension]
+    import_function = tracewin_utils.load.FIELD_MAP_LOADERS[extension]
 
     n_z, zmax, norm, f_z = import_function(cav.field_map_file_name)
     assert is_a_valid_electric_field(n_z, zmax, norm, f_z, cav.length_m), \

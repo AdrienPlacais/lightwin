@@ -18,7 +18,7 @@ import datetime
 import config_manager as conf_man
 from core.accelerator import Accelerator, accelerator_factory
 from optimisation.fault_scenario import FaultScenario, fault_scenario_factory
-# import tracewin.interface
+# import tracewin_utils.interface
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_object
 from beam_calculation.output import SimulationOutput
@@ -156,7 +156,7 @@ if __name__ == '__main__':
         #                                  post_tw)
 
 #     if 'Fixed' in lin.name:
-#         tracewin.interface.resample_tracewin_results(
+#         tracewin_utils.interface.resample_tracewin_results(
 #             ref=accelerators[0].tracewin_simulation,
 #             fix=lin.tracewin_simulation)
 

@@ -19,7 +19,7 @@ import numpy as np
 
 import config_manager
 from core.elements import _Element, Freq, Lattice
-import tracewin.interface
+import tracewin_utils.interface
 from util.helper import recursive_items, recursive_getter
 
 
@@ -161,7 +161,7 @@ class ListOfElements(list):
 
         self.set_structure_related_indexes_of_elements()
 
-        tracewin.interface.give_name(self)
+        tracewin_utils.interface.give_name(self)
         self._set_generic_electric_field_properties(
             freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
 
