@@ -182,6 +182,7 @@ class SimulationOutputEvaluator(ABC):
         if self.descriptor is None:
             logging.warning("No descriptor was given for this evaluator, which"
                             " may be confusing in the long run.")
+        self.descriptor = ' '.join(self.descriptor.split())
 
         if self.quantity_kwargs is None:
             self.quantity_kwargs = {}
@@ -191,6 +192,10 @@ class SimulationOutputEvaluator(ABC):
             self.post_treat_kwargs = {}
         if self.test_kwargs is None:
             self.test_kwargs = {}
+
+    def __repr__(self) -> str:
+        """Output the descriptor string."""
+        return self.descriptor
 
     def run(self, simulation_output: SimulationOutput) -> bool | float:
         """
