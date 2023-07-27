@@ -197,7 +197,7 @@ class SimulationOutputEvaluator(ABC):
         """Output the descriptor string."""
         return self.descriptor
 
-    def run(self, simulation_output: SimulationOutput) -> bool | float:
+    def run(self, simulation_output: SimulationOutput) -> bool | float | None:
         """
         Run the test.
 
@@ -209,6 +209,9 @@ class SimulationOutputEvaluator(ABC):
 
         """
         value = simulation_output.get(self.quantity, **self.quantity_kwargs)
+        if value is None:
+            logging.error(f"{self.quantity} not found. Skipping test.")
+            return None
 
         simulation_output_ref = simulation_output
         if self.simulation_output_ref is not None:
