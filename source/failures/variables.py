@@ -24,7 +24,13 @@ from util.dicts_output import markdown
 
 @dataclass
 class Variable:
-    """A single variable."""
+    """
+    A single variable.
+
+    It can be a cavity amplitude, absolute phase, relative phase or synchronous
+    phase with an initial value and limits.
+
+    """
 
     name: str
     cavity_name: str
@@ -48,7 +54,12 @@ class Variable:
 
 @dataclass
 class Constraint:
-    """A single constraint."""
+    """
+    A single constraint.
+
+    For now, it can only be a synchronous phase limits.
+
+    """
 
     name: str
     cavity_name: str
