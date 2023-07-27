@@ -197,6 +197,9 @@ class TraceWin(BeamCalculator):
             element_to_index=element_to_index
         )
         simulation_output.z_abs = results['z(m)']
+
+        # FIXME
+        simulation_output.pow_lost = results['Powlost']
         return simulation_output
 
     def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
@@ -443,4 +446,5 @@ def _post_treat(results: dict) -> dict:
             beta /= 10.
         gamma = (1. + alpha**2) / beta
         results[twi] = np.column_stack((alpha, beta, gamma))
+
     return results
