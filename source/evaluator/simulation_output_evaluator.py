@@ -36,18 +36,16 @@ def _do_nothing(*args: np.ndarray | float | None, **kwargs: bool
 
 
 def _difference(value: np.ndarray | float, reference_value: np.ndarray | float,
-                to_absolute: bool = False,
-                ) -> np.ndarray | float:
+                **kwargs: bool) -> np.ndarray | float:
     """Compute the difference."""
     delta = value - reference_value
-    if to_absolute:
-        return np.abs(delta)
     return delta
 
 
 def _relative_difference(
     value: np.ndarray | float, reference_value: np.ndarray | float,
-    to_absolute: bool = False, replace_zeros_by_nan_in_ref: bool = True
+    replace_zeros_by_nan_in_ref: bool = True,
+    **kwargs: bool,
 ) -> np.ndarray | float:
     """Compute the relative difference."""
     if replace_zeros_by_nan_in_ref:
@@ -61,38 +59,35 @@ def _relative_difference(
         reference_value[reference_value == 0.] = np.NaN
 
     delta_rel = (value - reference_value) / reference_value
-    if to_absolute:
-        return np.abs(delta_rel)
     return delta_rel
 
 
-def _rms_error(value: np.ndarray | float, reference_value: np.ndarray | float
-               ) -> float:
+def _rms_error(value: np.ndarray | float, reference_value: np.ndarray | float,
+               **kwargs: bool) -> float:
     """Compute the RMS error."""
     rms = np.sqrt(np.sum((value - reference_value)**2)) / value.shape[0]
     return rms
 
 
-def _maximum(value: np.ndarray) -> float:
+def _maximum(*args: np.ndarray | float, **kwargs: bool) -> float:
     """Return the maximum of `value`. A bit dumb, but adds consistency."""
-    return np.max(value)
+    return np.max(args[0])
 
 
-def _maximum_of_relative_difference(value: np.ndarray | float,
-                                    reference_value: np.ndarray | float,
-                                    **kwargs: bool) -> float:
-    """Compute the maximum of the relative difference."""
-    delta = _relative_difference(value, reference_value, **kwargs)
-    return _maximum(delta)
+def _minimum(*args: np.ndarray | float, **kwargs: bool) -> float:
+    """Return the minimum of `value`. A bit dumb, but adds consistency."""
+    return np.min(args[0])
 
 
-def _relative_difference_of_maxima(value: np.ndarray | float,
-                                   reference_value: np.ndarray | float,
-                                   **kwargs: bool) -> float:
-    """Compute relative difference between maxima of inputs."""
-    delta = _relative_difference(_maximum(value), _maximum(reference_value),
-                                 **kwargs)
-    return delta
+def _absolute(*args: np.ndarray | float, **kwargs: bool) -> np.ndarray:
+    """Return the absolute value `value`. A bit dumb, but adds consistency."""
+    return np.abs(args[0])
+
+
+def _scale_by(*args: np.ndarray | float, scale: np.ndarray | float = 1.,
+              **kwargs) -> np.ndarray | float:
+    """Return `value` scaled by `scale`."""
+    return args[0] * scale
 
 
 # =============================================================================
@@ -170,10 +165,12 @@ class SimulationOutputEvaluator(ABC):
         The SimulationOutput of a nominal `Accelerator`. It is up to the user
         to verify that the `BeamCalculator` is the same between the reference
         and the fixed `SimulationOutput`. The default value is None.
-    post_treater: Callable[[np.ndarray | float, np.ndarray | float],
-                           np.ndarray | float], optional
-        A function that takes `value` as first argument, `ref_value` as second
-        argument and returns the treated data. The default is `do_nothing`.
+    post_treaters: tuple[Callable[[np.ndarray | float, np.ndarray | float],
+                                  np.ndarray | float]], optional
+        A tuple of functions called one after each other. They take `value` as
+        first argument, `ref_value` as second argument. It returns an updated
+        `value`, which is given to the next function in the tuple. The default
+        is (`_do_nothing`,).
     tester : Callable[np.ndarray | float, bool] | None, optional
         A function that takes `value` after post_treatment and returns a
         boolean. The default is None.
@@ -190,8 +187,10 @@ class SimulationOutputEvaluator(ABC):
 
     ref_simulation_output: SimulationOutput | None = None
 
-    post_treater: Callable[[np.ndarray | float, np.ndarray | float],
-                           np.ndarray | float] = _do_nothing
+    post_treaters: tuple[Callable[
+        [np.ndarray | float, np.ndarray | float],
+        np.ndarray | float]
+    ] = (_do_nothing,)
 
     tester: Callable[np.ndarray | float, bool] | None = None
 
@@ -246,11 +245,12 @@ class SimulationOutputEvaluator(ABC):
                 z_abs, value, ref_z_abs, ref_value = resample(
                     z_abs, value, ref_z_abs, ref_value)
 
-        treated_value = self.post_treater(*(value, ref_value))
+        for post_treater in self.post_treaters:
+            value = post_treater(*(value, ref_value))
 
         if self.tester is None:
-            return treated_value
-        return self.tester(treated_value)
+            return value
+        return self.tester(value)
 
     def _create_plot(self) -> None:  # returns fig, axx
         """Prepare the plot."""
@@ -268,8 +268,9 @@ class SimulationOutputEvaluator(ABC):
 PRESETS = {
     "no power loss": {
         'value_getter': lambda s: s.get('pow_lost'),
-        'post_treater': _do_nothing,
+        'post_treaters': (_do_nothing,),
         'tester': partial(_value_is, objective_value=0.),
+        'fignum': 101,
         'markdown': r"$P_{lost}$",
         'descriptor': """Lost power shall be null."""
     },
@@ -277,8 +278,11 @@ PRESETS = {
         'value_getter': lambda s: s.get('eps_zdelta'),
         'ref_value_getter': lambda ref_s, s: s.get('eps_zdelta',
                                                    elt='first', pos='in'),
-        'post_treater': _maximum_of_relative_difference,
-        'tester': partial(_value_is_below, upper_limit=1.2),
+        'post_treaters': (_relative_difference,
+                          partial(_scale_by, scale=100.),
+                          _maximum),
+        'tester': partial(_value_is_below, upper_limit=120.),
+        'fignum': 102,
         'markdown': r"""$\Delta\epsilon_{z\delta} / \epsilon_{zdelta}$ (ref $z=0$)""",
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac."""
@@ -288,7 +292,7 @@ PRESETS = {
         'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
         'ref_value_getter': lambda ref_s, s: ref_s.get('eps_zdelta',
                                                        elt='last', pos='out'),
-        'post_treater': _relative_difference,
+        'post_treaters': (_relative_difference,),
         'markdown': markdown['eps_zdelta'],
         'descriptor': """Relative difference of emittance in [z-delta] plane
                          between fixed and reference linacs."""
