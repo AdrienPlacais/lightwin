@@ -249,8 +249,8 @@ PRESETS = {
     },
     "longitudinal eps at end": {
         'quantity': 'eps_zdelta',
-        'quantity_kwargs': {'elt': 'DR378', 'pos': 'out'},
-        'quantity_ref_kwargs': {'elt': 'DR378', 'pos': 'out'},
+        'quantity_kwargs': {'elt': 'last', 'pos': 'out'},
+        'quantity_ref_kwargs': {'elt': 'last', 'pos': 'out'},
         'simulation_output_ref': 'yes please',
         'post_treat': _relative_difference,
         'descriptor': """
