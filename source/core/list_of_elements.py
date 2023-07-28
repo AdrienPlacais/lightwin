@@ -284,8 +284,8 @@ def equiv_elt(elts: ListOfElements | list[_Element], elt: _Element | str,
     Important: this routine uses the name of the element and not its adress. So
     it will not complain if the _Element object that you asked for is not in
     this list of elements.
-    In the contrary, it was meant to find equivalent cavities between different
-    lists of elements.
+    In the contrary, it was also meant to find equivalent cavities between
+    different lists of elements.
 
     Parameters
     ----------
@@ -309,13 +309,18 @@ def equiv_elt(elts: ListOfElements | list[_Element], elt: _Element | str,
     if not isinstance(elt, str):
         elt = elt.get("elt_name")
 
+    magic_keywords = {"entry": 0, "exit": -1}
     names = [x.get("elt_name") for x in elts]
-    if elt not in names:
+
+    if elt in names:
+        idx = names.index(elt)
+    elif elt in magic_keywords:
+        idx = magic_keywords[elt]
+    else:
         logging.error(f"Element {elt} not found in this list of elements.")
         logging.debug(f"List of elements is:\n{elts}")
         return None
 
-    idx = names.index(elt)
     if to_index:
         return idx
     return elts[idx]
