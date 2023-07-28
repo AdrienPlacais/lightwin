@@ -24,6 +24,8 @@ from util.helper import resample
 
 # =============================================================================
 # Data post treatments
+#  convention: arg[0] is `value` or `treated_value`. arg[1] is
+#  `reference_value`.
 # =============================================================================
 def _do_nothing(*args: np.ndarray | float | None, **kwargs: bool
                 ) -> np.ndarray | float:
