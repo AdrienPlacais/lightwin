@@ -309,7 +309,7 @@ def equiv_elt(elts: ListOfElements | list[_Element], elt: _Element | str,
     if not isinstance(elt, str):
         elt = elt.get("elt_name")
 
-    magic_keywords = {"first": 0, "exit": -1}
+    magic_keywords = {"first": 0, "last": -1}
     names = [x.get("elt_name") for x in elts]
 
     if elt in names:
