@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
 
 # %%
-from evaluator.simulation_output import factory
+from evaluator.simulation_output_evaluator import factory
 s_ref = accelerators[0].simulation_outputs[solv2]
 evaluators = factory(*("no power loss", "longitudinal eps at end" ),
                      reference_simulation_output=s_ref)
