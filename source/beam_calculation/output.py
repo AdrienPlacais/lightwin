@@ -8,6 +8,11 @@ Created on Fri Jun  9 11:56:20 2023.
 This module holds `SimulationOutput`, a class to uniformly store the outputs
 from the different `BeamCalculator`s.
 
+FIXME : clarify difference cav_params vs rf_fields
+FIXME : do I really need the `r_zz_elt` key??
+FIXME : do I really need z_abs? Envelope1D does not uses it while TraceWin
+does.
+
 """
 import logging
 from dataclasses import dataclass
@@ -24,20 +29,52 @@ from util.helper import recursive_items, recursive_getter, range_vals
 
 @dataclass
 class SimulationOutput:
-    """Stores the information that is needed for a fit."""
+    """
+    Stores the information produced by a `BeamCalculator`.
 
-    z_abs: np.ndarray | None = None
-    synch_trajectory: ParticleFullTrajectory | None = None
+    Used for fitting, post-processing, plotting.
 
-    cav_params: dict[str, float | None] | None = None
-    rf_fields: list[dict] | None = None
+    Attributes
+    ----------
+    z_abs : np.ndarray | None, optional
+        Absolute position in the linac in m. The default is None.
+    synch_trajectory : ParticleFullTrajectory | None
+        Holds energy, phase of the synchronous particle.
+    cav_params : dict[str, float | None] | None
+        Holds amplitude, synchronous phase, absolute phase, relative phase of
+        cavities.
+    rf_fields : list[dict] | None
+        Holds amplitude, synchronous phase, absolute phase, relative phase of
+        cavities.
+    r_zz_elt : list[np.ndarray] | None
+        Cumulated transfer matrices in the [z-delta] plane.
+    beam_parameters : BeamParameters | None
+        Holds emittance, Twiss parameters, envelopes in the various phase
+        spaces.
+    element_to_index : Callable[[str | _Element, str | None],
+                                 int | slice] | None
+        Takes an `_Element`, its name, 'first' or 'last' as argument, and
+        returns correspondinf index. Index should be the same in all the arrays
+        attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
+        Used to easily `get` the desired properties at the proper position.
+    in_tw_fashion : pd.DataFrame | None, optional
+        A way to output the `SimulationOutput` in the same way as the `Data`
+        tab of TraceWin. The default is None.
 
-    r_zz_elt: list[np.ndarray] | None = None
-    beam_parameters: BeamParameters | None = None
+    """
+
+    synch_trajectory: ParticleFullTrajectory | None
+
+    cav_params: dict[str, float | None] | None
+    rf_fields: list[dict] | None
+
+    r_zz_elt: list[np.ndarray] | None
+    beam_parameters: BeamParameters | None
 
     element_to_index: Callable[[str | _Element, str | None], int | slice] \
-        | None = None
+        | None
 
+    z_abs: np.ndarray | None = None
     in_tw_fashion: pd.DataFrame | None = None
 
     def __post_init__(self) -> None:
