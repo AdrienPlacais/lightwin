@@ -242,6 +242,7 @@ class SimulationOutputEvaluator(ABC):
 PRESETS = {
     "no power loss": {
         'quantity': 'pow_lost',
+        'post_treat': _do_nothing,
         'test': _value_is,
         'test_kwargs': {'objective_value': 0.},
         'descriptor': """Lost power shall be null."""
