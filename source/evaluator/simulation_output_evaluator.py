@@ -20,6 +20,8 @@ import numpy as np
 
 from beam_calculation.output import SimulationOutput
 from util.helper import resample
+from util.dicts_output import markdown
+from visualization import plot
 
 
 # =============================================================================
@@ -177,6 +179,8 @@ class SimulationOutputEvaluator(ABC):
         boolean. The default is None.
     descriptor : str | None, optional
         A sentence or two to describe what the test is about.
+    markdown : str | None, optional
+        A markdown name for this quantity, used in plots. The default is None.
 
     """
 
@@ -191,7 +195,11 @@ class SimulationOutputEvaluator(ABC):
 
     tester: Callable[np.ndarray | float, bool] | None = None
 
-    descriptor: str | None = None     # or __str__ or __repr__ or even __doc__?
+    descriptor: str | None = None
+    markdown: str | None = None
+
+    fignum: int | None = None
+    plt_kwargs: dict | None = None
 
     def __post_init__(self):
         """Raise warnings."""
@@ -199,6 +207,11 @@ class SimulationOutputEvaluator(ABC):
             logging.warning("No descriptor was given for this evaluator, which"
                             " may be confusing in the long run.")
         self.descriptor = ' '.join(self.descriptor.split())
+
+        if self.markdown is None:
+            self.markdown = 'test'
+        if self.fignum is not None:
+            self._create_plot()
 
     def __repr__(self) -> str:
         """Output the descriptor string."""
@@ -215,6 +228,7 @@ class SimulationOutputEvaluator(ABC):
         bunch of configurations.
 
         """
+        z_abs = None
         value = self.value_getter(simulation_output)
         if value is None:
             logging.error(f"A value misses in {self} test. Skipping test.")
@@ -227,10 +241,10 @@ class SimulationOutputEvaluator(ABC):
 
             if _need_to_resample(value, ref_value):
                 logging.info("Here I needed to resample!")
-                z_m = simulation_output.get('z_m')
-                ref_z_m = self.ref_simulation_output.get('z_m')
-                _, value, _, ref_value = resample(z_m, value,
-                                                  ref_z_m, ref_value)
+                z_abs = simulation_output.get('z_abs')
+                ref_z_abs = self.ref_simulation_output.get('z_abs')
+                z_abs, value, ref_z_abs, ref_value = resample(
+                    z_abs, value, ref_z_abs, ref_value)
 
         treated_value = self.post_treater(*(value, ref_value))
 
@@ -238,12 +252,14 @@ class SimulationOutputEvaluator(ABC):
             return treated_value
         return self.tester(treated_value)
 
-    def plot(self, simulation_output: SimulationOutput):
-        """
-        Plot the quantity, the allowed limits.
-
-        """
-        pass
+    def _create_plot(self) -> None:  # returns fig, axx
+        """Prepare the plot."""
+        fig, axx = plot._create_fig_if_not_exists(axnum=[211, 212],
+                                                  sharex=True,
+                                                  num=self.fignum,
+                                                  clean_fig=False,)
+        axx[0].set_ylabel(self.markdown)
+        # see what are the kwargs for _create_fig_if_not_exists...
 
 
 # =============================================================================
@@ -254,6 +270,7 @@ PRESETS = {
         'value_getter': lambda s: s.get('pow_lost'),
         'post_treater': _do_nothing,
         'tester': partial(_value_is, objective_value=0.),
+        'markdown': r"$P_{lost}$",
         'descriptor': """Lost power shall be null."""
     },
     "longitudinal eps growth": {
@@ -262,6 +279,7 @@ PRESETS = {
                                                    elt='first', pos='in'),
         'post_treater': _maximum_of_relative_difference,
         'tester': partial(_value_is_below, upper_limit=1.2),
+        'markdown': r"""$\Delta\epsilon_{z\delta} / \epsilon_{zdelta}$ (ref $z=0$)""",
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac."""
 
@@ -271,6 +289,7 @@ PRESETS = {
         'ref_value_getter': lambda ref_s, s: ref_s.get('eps_zdelta',
                                                        elt='last', pos='out'),
         'post_treater': _relative_difference,
+        'markdown': markdown['eps_zdelta'],
         'descriptor': """Relative difference of emittance in [z-delta] plane
                          between fixed and reference linacs."""
     }

@@ -30,8 +30,9 @@ class ListOfSimulationOutputEvaluators(list):
 
         evaluators = [SimulationOutputEvaluator(
             ref_simulation_output=ref_simulation_output,
+            fignum=i + 100,
             **kwarg)
-                      for kwarg in kwarguments]
+                      for i, kwarg in enumerate(kwarguments)]
         super().__init__(evaluators)
 
     def run(self, *simulation_outputs: SimulationOutput
