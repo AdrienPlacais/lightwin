@@ -7,7 +7,7 @@ Created on Tue Dec  6 14:33:39 2022.
 
 FIXME get @ elt clash when arg is single: v_cav, phi_s, etc
 """
-
+# %%
 # import os
 import logging
 # from copy import deepcopy
@@ -147,32 +147,18 @@ if __name__ == '__main__':
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time in post beam calculation: {delta_t}")
 
-        # ini_path = FILEPATH.replace('.dat', '.ini')
-        # TODO transfer ini path elsewhere
-        # tw_simu = TraceWinBeamCalculator(post_tw['executable'],
-        #                                  ini_path,
-        #                                  lin.get('out_tw'),
-        #                                  lin.get('dat_filepath'),
-        #                                  post_tw)
-
-#     if 'Fixed' in lin.name:
-#         tracewin_utils.interface.resample_tracewin_results(
-#             ref=accelerators[0].tracewin_simulation,
-#             fix=lin.tracewin_simulation)
-
-#     if 'Fixed' in lin.name:
-#         d_fred = evaluate.fred_tests(accelerators[0], lin)
-#         l_fred.append(d_fred)
-
-#         d_bruce = evaluate.bruce_tests(accelerators[0], lin)
-#         l_bruce.append(d_bruce)
-
-# if break_and_fix:
-#     for _list, name in zip([l_fred, l_bruce],
-#                            ['fred_tests.csv', 'bruce_tests.csv']):
-#         out = pd.DataFrame(_list)
-#         filepath = os.path.join(PROJECT_FOLDER, name)
-#         out.to_csv(filepath)
-
     kwargs = {'save_fig': False, 'clean_fig': True}
     figs = plot.factory(accelerators, my_configs['plots'], **kwargs)
+
+
+# %%
+from evaluator.simulation_output import factory
+s_ref = accelerators[0].simulation_outputs[solv2]
+evaluators = factory(*("no power loss", "longitudinal eps at end" ),
+                     reference_simulation_output=s_ref)
+for e in evaluators:
+    print(f'\n{e}')
+    for a in accelerators:
+        s = a.simulation_outputs[solv2]
+        result = e.run(s)
+        print(result)
