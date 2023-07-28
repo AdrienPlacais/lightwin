@@ -268,21 +268,3 @@ PRESETS = {
             """
     }
 }
-
-
-# =============================================================================
-# Factory
-# =============================================================================
-def factory(*args: str,
-            reference_simulation_output: SimulationOutput | None = None
-            ) -> list[SimulationOutputEvaluator]:
-    """Create evaluators using presets."""
-    kwarguments = [PRESETS[arg] for arg in args]
-
-    for kwarg in kwarguments:
-        if 'simulation_output_ref' in kwarg:
-            kwarg['simulation_output_ref'] = reference_simulation_output
-
-    evaluators = [SimulationOutputEvaluator(**kwarg)
-                  for kwarg in kwarguments]
-    return evaluators
