@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
 
 # %%
-from evaluator.simulation_output_evaluators import (
+from evaluator.list_of_simulation_output_evaluators import (
     ListOfSimulationOutputEvaluators
 )
 
