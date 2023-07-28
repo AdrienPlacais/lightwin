@@ -32,18 +32,18 @@ def _do_nothing(*args: np.ndarray | float | None, **kwargs: bool
 
 
 def _difference(value: np.ndarray | float, reference_value: np.ndarray | float,
-                absolute_value: bool = False,
+                to_absolute: bool = False,
                 ) -> np.ndarray | float:
     """Compute the difference."""
     delta = value - reference_value
-    if absolute_value:
+    if to_absolute:
         return np.abs(delta)
     return delta
 
 
 def _relative_difference(
     value: np.ndarray | float, reference_value: np.ndarray | float,
-    absolute_value: bool = False, replace_zeros_by_nan_in_ref: bool = True
+    to_absolute: bool = False, replace_zeros_by_nan_in_ref: bool = True
 ) -> np.ndarray | float:
     """Compute the relative difference."""
     if replace_zeros_by_nan_in_ref:
@@ -57,7 +57,7 @@ def _relative_difference(
         reference_value[reference_value == 0.] = np.NaN
 
     delta_rel = (value - reference_value) / reference_value
-    if absolute_value:
+    if to_absolute:
         return np.abs(delta_rel)
     return delta_rel
 
@@ -166,9 +166,10 @@ class SimulationOutputEvaluator(ABC):
         The SimulationOutput of a nominal `Accelerator`. It is up to the user
         to verify that the `BeamCalculator` is the same between the reference
         and the fixed `SimulationOutput`. The default value is None.
-    post_treat_name : str
-        A POST_TREATERS key. Will set the operations performed on the value(s)
-        of `quantity`.
+    post_treater: Callable[[np.ndarray | float, np.ndarray | float],
+                           np.ndarray | float], optional
+        A function that takes `value` as first argument, `ref_value` as second
+        argument and returns the treated data. The default is `do_nothing`.
     tester : Callable[np.ndarray | float, bool] | None, optional
         A function that takes `value` after post_treatment and returns a
         boolean. The default is None.
@@ -183,8 +184,8 @@ class SimulationOutputEvaluator(ABC):
 
     ref_simulation_output: SimulationOutput | None = None
 
-    post_treat: Callable = _do_nothing
-    post_treat_kwargs: dict[str, bool] | None = None
+    post_treater: Callable[[np.ndarray | float, np.ndarray | float],
+                           np.ndarray | float] = _do_nothing
 
     tester: Callable[np.ndarray | float, bool] | None = None
 
@@ -196,9 +197,6 @@ class SimulationOutputEvaluator(ABC):
             logging.warning("No descriptor was given for this evaluator, which"
                             " may be confusing in the long run.")
         self.descriptor = ' '.join(self.descriptor.split())
-
-        if self.post_treat_kwargs is None:
-            self.post_treat_kwargs = {}
 
     def __repr__(self) -> str:
         """Output the descriptor string."""
@@ -232,8 +230,7 @@ class SimulationOutputEvaluator(ABC):
                 _, value, _, ref_value = resample(z_m, value,
                                                   ref_z_m, ref_value)
 
-        treated_value = self.post_treat(*(value, ref_value),
-                                        **self.post_treat_kwargs)
+        treated_value = self.post_treater(*(value, ref_value))
 
         if self.tester is None:
             return treated_value
@@ -253,7 +250,7 @@ class SimulationOutputEvaluator(ABC):
 PRESETS = {
     "no power loss": {
         'value_getter': lambda s: s.get('pow_lost'),
-        'post_treat': _do_nothing,
+        'post_treater': _do_nothing,
         'tester': partial(_value_is, objective_value=0.),
         'descriptor': """Lost power shall be null."""
     },
@@ -261,7 +258,7 @@ PRESETS = {
         'value_getter': lambda s: s.get('eps_zdelta'),
         'ref_value_getter': lambda ref_s, s: s.get('eps_zdelta',
                                                    elt='first', pos='in'),
-        'post_treat': _maximum_of_relative_difference,
+        'post_treater': _maximum_of_relative_difference,
         'tester': partial(_value_is_below, upper_limit=1.2),
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac."""
@@ -271,7 +268,7 @@ PRESETS = {
         'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
         'ref_value_getter': lambda ref_s, s: ref_s.get('eps_zdelta',
                                                        elt='last', pos='out'),
-        'post_treat': _relative_difference,
+        'post_treater': _relative_difference,
         'descriptor': """Relative difference of emittance in [z-delta] plane
                          between fixed and reference linacs."""
     }
