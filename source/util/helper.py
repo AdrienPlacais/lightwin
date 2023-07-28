@@ -114,9 +114,9 @@ def resample(x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
     if x_1.shape > x_2.shape:
         y_1 = np.interp(x_2, x_1, y_1)
         x_1 = x_2
-    else:
-        y_2 = np.interp(x_1, x_2, y_2)
-        x_2 = x_1
+        return x_1, y_1, x_2, y_2
+    y_2 = np.interp(x_1, x_2, y_2)
+    x_2 = x_1
     return x_1, y_1, x_2, y_2
 
 
