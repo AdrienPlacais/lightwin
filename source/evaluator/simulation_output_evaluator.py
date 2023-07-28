@@ -79,7 +79,7 @@ def _minimum(*args: np.ndarray | float, **kwargs: bool) -> float:
     return np.min(args[0])
 
 
-def _absolute(*args: np.ndarray | float, **kwargs: bool) -> np.ndarray:
+def _absolute(*args: np.ndarray | float, **kwargs: bool) -> np.ndarray | float:
     """Return the absolute value `value`. A bit dumb, but adds consistency."""
     return np.abs(args[0])
 
