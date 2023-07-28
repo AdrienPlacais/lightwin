@@ -26,13 +26,12 @@ class ListOfSimulationOutputEvaluators(list):
                  ref_simulation_output: SimulationOutput | None = None
                  ) -> None:
         """Create the objects (factory)."""
-        kwarguments = [PRESETS[name] for name in evaluator_names]
+        all_kwargs = [PRESETS[name] for name in evaluator_names]
 
         evaluators = [SimulationOutputEvaluator(
             ref_simulation_output=ref_simulation_output,
-            fignum=i + 100,
-            **kwarg)
-                      for i, kwarg in enumerate(kwarguments)]
+            **kwargs)
+                      for kwargs in all_kwargs]
         super().__init__(evaluators)
 
     def run(self, *simulation_outputs: SimulationOutput
