@@ -201,11 +201,19 @@ class SimulationOutputEvaluator(ABC):
     plt_kwargs: dict | None = None
 
     def __post_init__(self):
-        """Raise warnings."""
+        """Check inputs, create plot if a `fignum` was provided."""
         if self.descriptor is None:
             logging.warning("No descriptor was given for this evaluator, which"
                             " may be confusing in the long run.")
         self.descriptor = ' '.join(self.descriptor.split())
+
+        if not isinstance(self.post_treaters, tuple):
+            logging.warning("You must provide a tuple of post_treaters, even "
+                            "if you want to perform only one operation. "
+                            "Remember: `(lala)` is not a tuple, but `(lala,)` "
+                            "is. Transforming input into a tuple and hoping "
+                            "for the best...")
+            self.post_treaters = tuple(self.post_treaters)
 
         if self.markdown is None:
             self.markdown = 'test'
