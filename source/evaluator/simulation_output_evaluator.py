@@ -12,6 +12,7 @@ though, but rather a `SimulationOutput`.
 """
 import logging
 from typing import Callable, Any
+from functools import partial
 from dataclasses import dataclass
 from abc import ABC
 
@@ -93,35 +94,35 @@ def _relative_difference_of_maxima(value: np.ndarray | float,
 # =============================================================================
 # Testers
 # =============================================================================
-def _value_is_within_limits(value: np.ndarray | float,
+def _value_is_within_limits(treated_value: np.ndarray | float,
                             limits: tuple[np.ndarray | float | None,
                                           np.ndarray | float | None]
                             ) -> bool:
     """Test if the given value is within the given limits."""
-    return _value_is_above(value, limits[0]) \
-        and _value_is_below(value, limits[1])
+    return _value_is_above(treated_value, limits[0]) \
+        and _value_is_below(treated_value, limits[1])
 
 
-def _value_is_above(value: np.ndarray | float,
+def _value_is_above(treated_value: np.ndarray | float,
                     lower_limit: np.ndarray | float | None) -> bool:
     """Test if the given value is above a threshold."""
     if lower_limit is None:
         return True
-    return np.all(value > lower_limit)
+    return np.all(treated_value > lower_limit)
 
 
-def _value_is_below(value: np.ndarray | float,
+def _value_is_below(treated_value: np.ndarray | float,
                     upper_limit: np.ndarray | float | None) -> bool:
     """Test if the given value is below a threshold."""
     if upper_limit is None:
         return True
-    return np.all(value < upper_limit)
+    return np.all(treated_value < upper_limit)
 
 
-def _value_is(value: np.ndarray | float, objective_value: np.ndarray | float,
-              tol: float = 1e-10) -> bool:
+def _value_is(treated_value: np.ndarray | float,
+              objective_value: np.ndarray | float, tol: float = 1e-10) -> bool:
     """Test if the value equals `objective_value`."""
-    return np.all(np.abs(value - objective_value) < tol)
+    return np.all(np.abs(treated_value - objective_value) < tol)
 
 
 # =============================================================================
@@ -168,12 +169,9 @@ class SimulationOutputEvaluator(ABC):
     post_treat_name : str
         A POST_TREATERS key. Will set the operations performed on the value(s)
         of `quantity`.
-    test_name : str | None, optional
-        A TESTERS key. Will set the function transforming values into a
+    tester : Callable[np.ndarray | float, bool] | None, optional
+        A function that takes `value` after post_treatment and returns a
         boolean. The default is None.
-    test_kwargs : dict, optional
-        Keywords arguments for the `test` function. The default is
-        None.
     descriptor : str | None, optional
         A sentence or two to describe what the test is about.
 
@@ -188,10 +186,7 @@ class SimulationOutputEvaluator(ABC):
     post_treat: Callable = _do_nothing
     post_treat_kwargs: dict[str, bool] | None = None
 
-    test: Callable | None = None
-    test_kwargs: dict[
-        str,
-        tuple[np.ndarray | float | None] | np.ndarray | float] | None = None
+    tester: Callable[np.ndarray | float, bool] | None = None
 
     descriptor: str | None = None     # or __str__ or __repr__ or even __doc__?
 
@@ -204,8 +199,6 @@ class SimulationOutputEvaluator(ABC):
 
         if self.post_treat_kwargs is None:
             self.post_treat_kwargs = {}
-        if self.test_kwargs is None:
-            self.test_kwargs = {}
 
     def __repr__(self) -> str:
         """Output the descriptor string."""
@@ -239,13 +232,12 @@ class SimulationOutputEvaluator(ABC):
                 _, value, _, ref_value = resample(z_m, value,
                                                   ref_z_m, ref_value)
 
-        error = self.post_treat(*(value, ref_value), **self.post_treat_kwargs)
+        treated_value = self.post_treat(*(value, ref_value),
+                                        **self.post_treat_kwargs)
 
-        if self.test is None:
-            return error
-
-        test_results = self.test(value, **self.test_kwargs)
-        return test_results
+        if self.tester is None:
+            return treated_value
+        return self.tester(treated_value)
 
     def plot(self, simulation_output: SimulationOutput):
         """
@@ -262,8 +254,7 @@ PRESETS = {
     "no power loss": {
         'value_getter': lambda s: s.get('pow_lost'),
         'post_treat': _do_nothing,
-        'test': _value_is,
-        'test_kwargs': {'objective_value': 0.},
+        'tester': partial(_value_is, objective_value=0.),
         'descriptor': """Lost power shall be null."""
     },
     "longitudinal eps growth": {
@@ -271,8 +262,7 @@ PRESETS = {
         'ref_value_getter': lambda ref_s, s: s.get('eps_zdelta',
                                                    elt='first', pos='in'),
         'post_treat': _maximum_of_relative_difference,
-        'test': _value_is_below,
-        'test_kwargs': {'upper_limit': 1.2},
+        'tester': partial(_value_is_below, upper_limit=1.2),
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac."""
 
