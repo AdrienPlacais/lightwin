@@ -152,13 +152,16 @@ if __name__ == '__main__':
 
 
 # %%
-from evaluator.simulation_output_evaluator import factory
-s_ref = accelerators[0].simulation_outputs[solv2]
-evaluators = factory(*("no power loss", "longitudinal eps at end" ),
-                     reference_simulation_output=s_ref)
-for e in evaluators:
-    print(f'\n{e}')
-    for a in accelerators:
-        s = a.simulation_outputs[solv2]
-        result = e.run(s)
-        print(result)
+from evaluator.simulation_output_evaluators import (
+    ListOfSimulationOutputEvaluators
+)
+
+s_to_study = [accelerator.simulation_outputs[solv2]
+              for accelerator in accelerators]
+s_ref = s_to_study[0]
+
+tests = ("no power loss", "longitudinal eps at end")
+simulation_output_evaluators = ListOfSimulationOutputEvaluators(
+    *tests, reference_simulation_output=s_ref)
+
+simulation_output_evaluators.run(*tuple(s_to_study))
