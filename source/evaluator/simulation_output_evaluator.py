@@ -31,7 +31,14 @@ from visualization import plot
 # =============================================================================
 def _do_nothing(*args: np.ndarray | float | None, **kwargs: bool
                 ) -> np.ndarray | float:
-    """Do nothing."""
+    """
+    Do nothing.
+
+    If you want to plot the data as imported from the `SimulationOutput`, set
+    the first of the `post_treaters` keys to:
+        partial(_do_nothing, to_plot=True)
+
+    """
     return args[0]
 
 
@@ -69,16 +76,6 @@ def _rms_error(value: np.ndarray | float, reference_value: np.ndarray | float,
     return rms
 
 
-def _maximum(*args: np.ndarray | float, **kwargs: bool) -> float:
-    """Return the maximum of `value`. A bit dumb, but adds consistency."""
-    return np.max(args[0])
-
-
-def _minimum(*args: np.ndarray | float, **kwargs: bool) -> float:
-    """Return the minimum of `value`. A bit dumb, but adds consistency."""
-    return np.min(args[0])
-
-
 def _absolute(*args: np.ndarray | float, **kwargs: bool) -> np.ndarray | float:
     """Return the absolute value `value`. A bit dumb, but adds consistency."""
     return np.abs(args[0])
@@ -90,20 +87,31 @@ def _scale_by(*args: np.ndarray | float, scale: np.ndarray | float = 1.,
     return args[0] * scale
 
 
+def _maximum(*args: np.ndarray | float, **kwargs: bool) -> float:
+    """Return the maximum of `value`. A bit dumb, but adds consistency."""
+    return np.max(args[0])
+
+
+def _minimum(*args: np.ndarray | float, **kwargs: bool) -> float:
+    """Return the minimum of `value`. A bit dumb, but adds consistency."""
+    return np.min(args[0])
+
+
 # =============================================================================
 # Testers
 # =============================================================================
 def _value_is_within_limits(treated_value: np.ndarray | float,
                             limits: tuple[np.ndarray | float | None,
-                                          np.ndarray | float | None]
-                            ) -> bool:
+                                          np.ndarray | float | None],
+                            **kwargs: bool) -> bool:
     """Test if the given value is within the given limits."""
     return _value_is_above(treated_value, limits[0]) \
         and _value_is_below(treated_value, limits[1])
 
 
 def _value_is_above(treated_value: np.ndarray | float,
-                    lower_limit: np.ndarray | float | None) -> bool:
+                    lower_limit: np.ndarray | float | None, **kwargs: bool
+                    ) -> bool:
     """Test if the given value is above a threshold."""
     if lower_limit is None:
         return True
@@ -111,7 +119,8 @@ def _value_is_above(treated_value: np.ndarray | float,
 
 
 def _value_is_below(treated_value: np.ndarray | float,
-                    upper_limit: np.ndarray | float | None) -> bool:
+                    upper_limit: np.ndarray | float | None, **kwargs: bool
+                    ) -> bool:
     """Test if the given value is below a threshold."""
     if upper_limit is None:
         return True
@@ -119,7 +128,8 @@ def _value_is_below(treated_value: np.ndarray | float,
 
 
 def _value_is(treated_value: np.ndarray | float,
-              objective_value: np.ndarray | float, tol: float = 1e-10) -> bool:
+              objective_value: np.ndarray | float, tol: float = 1e-10,
+              **kwargs: bool) -> bool:
     """Test if the value equals `objective_value`."""
     return np.all(np.abs(treated_value - objective_value) < tol)
 
@@ -140,6 +150,27 @@ def _need_to_resample(value: np.ndarray | float, ref_value: np.ndarray | float
         return False
 
     return True
+
+
+def _return_value_should_be_plotted(partial_function: Callable) -> bool:
+    """
+    Determine if keyword 'to_plot' was passed and is True.
+
+    This function only works on functions defined by `functools.partial`. If it
+    is not (lambda function, "classic" function), we consider that the plotting
+    was not desired.
+    Then we check if the 'to_plot' keyword was given in the partial definition,
+    and if it is not we also consider that the plot was not wanted.
+
+    """
+    if not isinstance(partial_function, partial):
+        return False
+
+    keywords = partial_function.keywords
+    if 'to_plot' not in keywords:
+        return False
+
+    return keywords['to_plot']
 
 
 # =============================================================================
@@ -174,6 +205,9 @@ class SimulationOutputEvaluator(ABC):
     tester : Callable[np.ndarray | float, bool] | None, optional
         A function that takes `value` after post_treatment and returns a
         boolean. The default is None.
+    fignum : int | None, optional
+        The Figure number. The default is None, in which case no plot is
+        produced.
     descriptor : str | None, optional
         A sentence or two to describe what the test is about.
     markdown : str | None, optional
@@ -198,6 +232,7 @@ class SimulationOutputEvaluator(ABC):
     markdown: str | None = None
 
     fignum: int | None = None
+    main_ax: object | None = None
     plt_kwargs: dict | None = None
 
     def __post_init__(self):
@@ -235,7 +270,7 @@ class SimulationOutputEvaluator(ABC):
         bunch of configurations.
 
         """
-        z_abs = None
+        z_abs = simulation_output.get('z_abs')
         value = self.value_getter(simulation_output)
         if value is None:
             logging.error(f"A value misses in {self} test. Skipping test.")
@@ -248,13 +283,14 @@ class SimulationOutputEvaluator(ABC):
 
             if _need_to_resample(value, ref_value):
                 logging.info("Here I needed to resample!")
-                z_abs = simulation_output.get('z_abs')
                 ref_z_abs = self.ref_simulation_output.get('z_abs')
                 z_abs, value, ref_z_abs, ref_value = resample(
                     z_abs, value, ref_z_abs, ref_value)
 
         for post_treater in self.post_treaters:
             value = post_treater(*(value, ref_value))
+            if _return_value_should_be_plotted(post_treater):
+                self._add_a_value_plot(z_abs, value)
 
         if self.tester is None:
             return value
@@ -267,7 +303,19 @@ class SimulationOutputEvaluator(ABC):
                                                   num=self.fignum,
                                                   clean_fig=False,)
         axx[0].set_ylabel(self.markdown)
+        axx[0].grid(True)
+        self.main_ax = axx[0]
         # see what are the kwargs for _create_fig_if_not_exists...
+
+    def _add_a_value_plot(self, z_data: np.ndarray, value: np.ndarray | float
+                          ) -> None:
+        """Add a line to the plot."""
+        assert self.main_ax is not None
+        if isinstance(value, float) or value.shape == ():
+            # self.main_ax.hline()
+            print('a hline to add')
+            return
+        self.main_ax.plot(z_data, value)
 
 
 # =============================================================================
@@ -276,8 +324,8 @@ class SimulationOutputEvaluator(ABC):
 PRESETS = {
     "no power loss": {
         'value_getter': lambda s: s.get('pow_lost'),
-        'post_treaters': (_do_nothing,),
-        'tester': partial(_value_is, objective_value=0.),
+        'post_treaters': (partial(_do_nothing, to_plot=True),),
+        'tester': partial(_value_is, objective_value=0., to_plot=True),
         'fignum': 101,
         'markdown': r"$P_{lost}$",
         'descriptor': """Lost power shall be null."""
@@ -287,11 +335,11 @@ PRESETS = {
         'ref_value_getter': lambda ref_s, s: s.get('eps_zdelta',
                                                    elt='first', pos='in'),
         'post_treaters': (_relative_difference,
-                          partial(_scale_by, scale=100.),
+                          partial(_scale_by, scale=100., to_plot=True),
                           _maximum),
-        'tester': partial(_value_is_below, upper_limit=120.),
+        'tester': partial(_value_is_below, upper_limit=120., to_plot=True),
         'fignum': 102,
-        'markdown': r"""$\Delta\epsilon_{z\delta} / \epsilon_{zdelta}$ (ref $z=0$)""",
+        'markdown': r"""$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ (ref $z=0$) [%]""",
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac."""
 
