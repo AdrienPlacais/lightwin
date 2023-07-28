@@ -158,10 +158,10 @@ from evaluator.simulation_output_evaluators import (
 
 s_to_study = [accelerator.simulation_outputs[solv2]
               for accelerator in accelerators]
-s_ref = s_to_study[0]
+ref_s = s_to_study[0]
 
 tests = ("no power loss", "longitudinal eps at end")
 simulation_output_evaluators = ListOfSimulationOutputEvaluators(
-    *tests, reference_simulation_output=s_ref)
+    *tests, ref_simulation_output=ref_s)
 
 simulation_output_evaluators.run(*tuple(s_to_study))

@@ -143,7 +143,7 @@ class SimulationOutputEvaluator(ABC):
         `SimulationOutput` under study as arguments, and returns the reference
         value. In general, only one of the arguments will be used. The default
         is None.
-    simulation_output_ref : SimulationOutput | None, optional
+    ref_simulation_output : SimulationOutput | None, optional
         The SimulationOutput of a nominal `Accelerator`. It is up to the user
         to verify that the `BeamCalculator` is the same between the reference
         and the fixed `SimulationOutput`. The default value is None.
@@ -164,7 +164,7 @@ class SimulationOutputEvaluator(ABC):
     ref_value_getter: Callable[[SimulationOutput, SimulationOutput],
                                Any] | None = None
 
-    simulation_output_ref: SimulationOutput | None = None
+    ref_simulation_output: SimulationOutput | None = None
 
     post_treat: Callable = _do_nothing
     post_treat_kwargs: dict[str, bool] | None = None
@@ -208,19 +208,15 @@ class SimulationOutputEvaluator(ABC):
             logging.error(f"A value misses in {self} test. Skipping test.")
             return None
 
-        simulation_output_ref = simulation_output
-        if self.simulation_output_ref is not None:
-            simulation_output_ref = self.simulation_output_ref
-
         ref_value = None
         if self.ref_value_getter is not None:
-            ref_value = self.ref_value_getter(self.simulation_output_ref,
+            ref_value = self.ref_value_getter(self.ref_simulation_output,
                                               simulation_output)
 
             if value.shape != ref_value.shape:
                 logging.info("Here I needed to resample!")
                 z_m = simulation_output.get('z_m')
-                ref_z_m = simulation_output_ref.get('z_m')
+                ref_z_m = self.ref_simulation_output.get('z_m')
                 _, value, _, ref_value = resample(z_m, value,
                                                   ref_z_m, ref_value)
 
@@ -253,9 +249,8 @@ PRESETS = {
     },
     "longitudinal eps at end": {
         'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
-        'ref_value_getter': lambda s_ref, s: s_ref.get('eps_zdelta',
+        'ref_value_getter': lambda ref_s, s: ref_s.get('eps_zdelta',
                                                        elt='last', pos='out'),
-        'simulation_output_ref': 'yes please',
         'post_treat': _relative_difference,
         'descriptor': """
             Relative difference of emittance in [z-delta] plane between fixed
