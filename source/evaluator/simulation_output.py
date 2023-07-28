@@ -11,7 +11,7 @@ though, but rather a `SimulationOutput`.
 
 """
 import logging
-from typing import TypeAlias, Callable
+from typing import Callable
 from dataclasses import dataclass
 from abc import ABC
 
@@ -19,6 +19,7 @@ import numpy as np
 
 from beam_calculation.output import SimulationOutput
 from core.elements import _Element
+from util.helper import resample
 
 
 # =============================================================================
@@ -216,8 +217,16 @@ class SimulationOutputEvaluator(ABC):
         simulation_output_ref = simulation_output
         if self.simulation_output_ref is not None:
             simulation_output_ref = self.simulation_output_ref
+
         reference_value = simulation_output_ref.get(self.quantity,
                                                     **self.quantity_ref_kwargs)
+
+        if value.shape != reference_value.shape:
+            logging.info("Here I needed to resample!")
+            z_m = simulation_output.get('z_m')
+            reference_z_m = simulation_output_ref.get('z_m')
+            z_m, value, reference_z_m, reference_value = \
+                resample(z_m, value, reference_z_m, reference_value)
 
         error = self.post_treat(*(value, reference_value),
                                 **self.post_treat_kwargs)
