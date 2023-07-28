@@ -11,14 +11,13 @@ though, but rather a `SimulationOutput`.
 
 """
 import logging
-from typing import Callable
+from typing import Callable, Any
 from dataclasses import dataclass
 from abc import ABC
 
 import numpy as np
 
 from beam_calculation.output import SimulationOutput
-from core.elements import _Element
 from util.helper import resample
 
 
@@ -135,21 +134,19 @@ class SimulationOutputEvaluator(ABC):
 
     Arguments
     ---------
-    descriptor : str | None, None
-        A sentence or two to describe what the test is about.
-    quantity : str
-        The physical quantity that is compared. Must be understandable by the
-        `SimulationOutput.get` method.
-    quantity_kwargs : dict[_Element | str | bool] | None, optional
-        Keywords arguments for the `SimulationOutput.get` method. The default
+    value_getter : Callable[SimulationOutput, Any]
+        A function that takes the `SimulationOutput` under study as argument,
+        and returns the value to be studied.
+    ref_value_getter : Callable[[SimulationOutput, SimulationOutput],
+                                 Any] | None, optional
+        A function that takes the reference `SimulationOutput` and the
+        `SimulationOutput` under study as arguments, and returns the reference
+        value. In general, only one of the arguments will be used. The default
         is None.
     simulation_output_ref : SimulationOutput | None, optional
         The SimulationOutput of a nominal `Accelerator`. It is up to the user
         to verify that the `BeamCalculator` is the same between the reference
         and the fixed `SimulationOutput`. The default value is None.
-    quantity_ref_kwargs : dict[_Element | str | bool] | None, optional
-        Keywords arguments for the `SimulationOutput.get` method (reference
-        data). The default is None.
     post_treat_name : str
         A POST_TREATERS key. Will set the operations performed on the value(s)
         of `quantity`.
@@ -159,14 +156,15 @@ class SimulationOutputEvaluator(ABC):
     test_kwargs : dict, optional
         Keywords arguments for the `test` function. The default is
         None.
+    descriptor : str | None, optional
+        A sentence or two to describe what the test is about.
 
     """
-    quantity: str
-
-    quantity_kwargs: dict[_Element | str | bool] | None = None
+    value_getter: Callable[SimulationOutput, Any]
+    ref_value_getter: Callable[[SimulationOutput, SimulationOutput],
+                               Any] | None = None
 
     simulation_output_ref: SimulationOutput | None = None
-    quantity_ref_kwargs: dict[_Element | str | bool] | None = None
 
     post_treat: Callable = _do_nothing
     post_treat_kwargs: dict[str, bool] | None = None
@@ -185,10 +183,6 @@ class SimulationOutputEvaluator(ABC):
                             " may be confusing in the long run.")
         self.descriptor = ' '.join(self.descriptor.split())
 
-        if self.quantity_kwargs is None:
-            self.quantity_kwargs = {}
-        if self.quantity_ref_kwargs is None:
-            self.quantity_ref_kwargs = {}
         if self.post_treat_kwargs is None:
             self.post_treat_kwargs = {}
         if self.test_kwargs is None:
@@ -209,27 +203,28 @@ class SimulationOutputEvaluator(ABC):
         bunch of configurations.
 
         """
-        value = simulation_output.get(self.quantity, **self.quantity_kwargs)
+        value = self.value_getter(simulation_output)
         if value is None:
-            logging.error(f"{self.quantity} not found. Skipping test.")
+            logging.error(f"A value misses in {self} test. Skipping test.")
             return None
 
         simulation_output_ref = simulation_output
         if self.simulation_output_ref is not None:
             simulation_output_ref = self.simulation_output_ref
 
-        reference_value = simulation_output_ref.get(self.quantity,
-                                                    **self.quantity_ref_kwargs)
+        ref_value = None
+        if self.ref_value_getter is not None:
+            ref_value = self.ref_value_getter(self.simulation_output_ref,
+                                              simulation_output)
 
-        if value.shape != reference_value.shape:
-            logging.info("Here I needed to resample!")
-            z_m = simulation_output.get('z_m')
-            reference_z_m = simulation_output_ref.get('z_m')
-            z_m, value, reference_z_m, reference_value = \
-                resample(z_m, value, reference_z_m, reference_value)
+            if value.shape != ref_value.shape:
+                logging.info("Here I needed to resample!")
+                z_m = simulation_output.get('z_m')
+                ref_z_m = simulation_output_ref.get('z_m')
+                _, value, _, ref_value = resample(z_m, value,
+                                                  ref_z_m, ref_value)
 
-        error = self.post_treat(*(value, reference_value),
-                                **self.post_treat_kwargs)
+        error = self.post_treat(*(value, ref_value), **self.post_treat_kwargs)
 
         if self.test is None:
             return error
@@ -250,16 +245,16 @@ class SimulationOutputEvaluator(ABC):
 # =============================================================================
 PRESETS = {
     "no power loss": {
-        'quantity': 'pow_lost',
+        'value_getter': lambda s: s.get('pow_lost'),
         'post_treat': _do_nothing,
         'test': _value_is,
         'test_kwargs': {'objective_value': 0.},
         'descriptor': """Lost power shall be null."""
     },
     "longitudinal eps at end": {
-        'quantity': 'eps_zdelta',
-        'quantity_kwargs': {'elt': 'last', 'pos': 'out'},
-        'quantity_ref_kwargs': {'elt': 'last', 'pos': 'out'},
+        'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
+        'ref_value_getter': lambda s_ref, s: s_ref.get('eps_zdelta',
+                                                       elt='last', pos='out'),
         'simulation_output_ref': 'yes please',
         'post_treat': _relative_difference,
         'descriptor': """
