@@ -26,7 +26,7 @@ from util.helper import resample
 # =============================================================================
 def _do_nothing(*args: np.ndarray | float | None, **kwargs: bool
                 ) -> np.ndarray | float:
-    """The most advanced of our tests."""
+    """Do nothing."""
     return args[0]
 
 
@@ -125,6 +125,24 @@ def _value_is(value: np.ndarray | float, objective_value: np.ndarray | float,
 
 
 # =============================================================================
+# Other helpers
+# =============================================================================
+def _need_to_resample(value: np.ndarray | float, ref_value: np.ndarray | float
+                      ) -> bool:
+    """Determine if we need to resample `value` or `ref_value`."""
+    for val in [ref_value, value]:
+        if isinstance(val, float):
+            return False
+        if val.shape == ():
+            return False
+
+    if value.shape == ref_value.shape:
+        return False
+
+    return True
+
+
+# =============================================================================
 # Base class
 # =============================================================================
 @dataclass
@@ -160,6 +178,7 @@ class SimulationOutputEvaluator(ABC):
         A sentence or two to describe what the test is about.
 
     """
+
     value_getter: Callable[SimulationOutput, Any]
     ref_value_getter: Callable[[SimulationOutput, SimulationOutput],
                                Any] | None = None
@@ -213,7 +232,7 @@ class SimulationOutputEvaluator(ABC):
             ref_value = self.ref_value_getter(self.ref_simulation_output,
                                               simulation_output)
 
-            if value.shape != ref_value.shape:
+            if _need_to_resample(value, ref_value):
                 logging.info("Here I needed to resample!")
                 z_m = simulation_output.get('z_m')
                 ref_z_m = self.ref_simulation_output.get('z_m')
@@ -247,14 +266,23 @@ PRESETS = {
         'test_kwargs': {'objective_value': 0.},
         'descriptor': """Lost power shall be null."""
     },
+    "longitudinal eps growth": {
+        'value_getter': lambda s: s.get('eps_zdelta'),
+        'ref_value_getter': lambda ref_s, s: s.get('eps_zdelta',
+                                                   elt='first', pos='in'),
+        'post_treat': _maximum_of_relative_difference,
+        'test': _value_is_below,
+        'test_kwargs': {'upper_limit': 1.2},
+        'descriptor': """Longitudinal emittance should not grow by more than
+                         20% along the linac."""
+
+    },
     "longitudinal eps at end": {
         'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
         'ref_value_getter': lambda ref_s, s: ref_s.get('eps_zdelta',
                                                        elt='last', pos='out'),
         'post_treat': _relative_difference,
-        'descriptor': """
-            Relative difference of emittance in [z-delta] plane between fixed
-            and reference linacs.
-            """
+        'descriptor': """Relative difference of emittance in [z-delta] plane
+                         between fixed and reference linacs."""
     }
 }

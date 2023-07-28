@@ -160,7 +160,7 @@ s_to_study = [accelerator.simulation_outputs[solv2]
               for accelerator in accelerators]
 ref_s = s_to_study[0]
 
-tests = ("no power loss", "longitudinal eps at end")
+tests = ("no power loss", "longitudinal eps growth", "longitudinal eps at end")
 simulation_output_evaluators = ListOfSimulationOutputEvaluators(
     *tests, ref_simulation_output=ref_s)
 
