@@ -58,6 +58,7 @@ markdown = {
     'err_log': "log of rel. error",
     # ListOfElements
     # TraceWin
+    'pow_lost': "Lost power [W]",
     'Powlost': "Lost power [W]",
     'ex': r"Norm. RMS $\epsilon_{xx'}$ [$\pi$mm mrad]",
     'ey': r"Norm. RMS $\epsilon_{yy'}$ [$\pi$mm mrad]",

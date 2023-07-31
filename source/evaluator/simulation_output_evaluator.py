@@ -321,7 +321,7 @@ class SimulationOutputEvaluator(ABC):
         fig, axx = plot._create_fig_if_not_exists(axnum=[211, 212],
                                                   sharex=True,
                                                   num=self.fignum,
-                                                  clean_fig=False,)
+                                                  clean_fig=True,)
         fig.suptitle(self.descriptor, fontsize=14)
         axx[0].set_ylabel(self.markdown)
         axx[0].grid(True)
@@ -354,15 +354,17 @@ class SimulationOutputEvaluator(ABC):
 # Presets
 # =============================================================================
 PRESETS = {
+    # Legacy "fit quality"
+    # Legacy "Fred tests"
     "no power loss": {
         'value_getter': lambda s: s.get('pow_lost'),
         'post_treaters': (partial(_do_nothing, to_plot=True),),
         'tester': partial(_value_is, objective_value=0., to_plot=True),
         'fignum': 101,
-        'markdown': r"$P_{lost}$",
+        'markdown': markdown["pow_lost"],
         'descriptor': """Lost power shall be null."""
     },
-    "longitudinal eps growth": {
+    "longitudinal eps shall not grow too much": {
         'value_getter': lambda s: s.get('eps_zdelta'),
         'ref_value_getter': lambda ref_s, s: s.get('eps_zdelta',
                                                    elt='first', pos='in'),
@@ -371,7 +373,7 @@ PRESETS = {
                           _maximum),
         'tester': partial(_value_is_below, upper_limit=20., to_plot=True),
         'fignum': 102,
-        'markdown': r"""$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ (ref $z=0$) [%]""",
+        'markdown': r"$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ (ref $z=0$) [%]",
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac."""
 
@@ -391,6 +393,7 @@ PRESETS = {
                          by more than 30%."""
 
     },
+    # Legacy "Bruce tests"
     "longitudinal eps at end": {
         'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
         'ref_value_getter': lambda ref_s, s: ref_s.get('eps_zdelta',
@@ -399,5 +402,11 @@ PRESETS = {
         'markdown': markdown['eps_zdelta'],
         'descriptor': """Relative difference of emittance in [z-delta] plane
                          between fixed and reference linacs."""
-    }
+    },
+    "mismatch factor at end": {
+        'value_getter': lambda s: s.get('mismatch_factor',
+                                        elt='last', pos='out'),
+        'markdown': markdown['mismatch_factor'],
+        'descriptor': """Mismatch factor at the end of the linac."""
+    },
 }
