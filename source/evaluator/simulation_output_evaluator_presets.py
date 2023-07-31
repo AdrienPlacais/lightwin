@@ -4,6 +4,10 @@
 Created on Mon Jul 31 13:39:57 2023.
 
 @author: placais
+
+In this module we store predefined arguments to generate
+`SimulationOutputEvaluator`s.
+
 """
 import logging
 from typing import Callable
