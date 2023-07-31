@@ -19,119 +19,13 @@ from abc import ABC
 import numpy as np
 
 from beam_calculation.output import SimulationOutput
+from evaluator import post_treaters
 from util.helper import resample
-from util.dicts_output import markdown
 from visualization import plot
 
 
 # =============================================================================
-# Data post treatments
-#  convention: arg[0] is `value` or `treated_value`. arg[1] is
-#  `reference_value`.
-# =============================================================================
-def _do_nothing(*args: np.ndarray | float | None, **kwargs: bool
-                ) -> np.ndarray | float:
-    """
-    Do nothing.
-
-    If you want to plot the data as imported from the `SimulationOutput`, set
-    the first of the `post_treaters` keys to:
-        partial(_do_nothing, to_plot=True)
-
-    """
-    return args[0]
-
-
-def _difference(value: np.ndarray | float, reference_value: np.ndarray | float,
-                **kwargs: bool) -> np.ndarray | float:
-    """Compute the difference."""
-    delta = value - reference_value
-    return delta
-
-
-def _relative_difference(
-    value: np.ndarray | float, reference_value: np.ndarray | float,
-    replace_zeros_by_nan_in_ref: bool = True,
-    **kwargs: bool,
-) -> np.ndarray | float:
-    """Compute the relative difference."""
-    if replace_zeros_by_nan_in_ref:
-        if not isinstance(reference_value, np.ndarray):
-            logging.warning("You demanded the null values to be removed in "
-                            "the `reference_value` array, but it is not an "
-                            "array. I will set it to an array of size 1.")
-            reference_value = np.array(reference_value)
-
-        reference_value = reference_value.copy()
-        reference_value[reference_value == 0.] = np.NaN
-
-    delta_rel = (value - reference_value) / reference_value
-    return delta_rel
-
-
-def _rms_error(value: np.ndarray | float, reference_value: np.ndarray | float,
-               **kwargs: bool) -> float:
-    """Compute the RMS error."""
-    rms = np.sqrt(np.sum((value - reference_value)**2)) / value.shape[0]
-    return rms
-
-
-def _absolute(*args: np.ndarray | float, **kwargs: bool) -> np.ndarray | float:
-    """Return the absolute value `value`. A bit dumb, but adds consistency."""
-    return np.abs(args[0])
-
-
-def _scale_by(*args: np.ndarray | float, scale: np.ndarray | float = 1.,
-              **kwargs) -> np.ndarray | float:
-    """Return `value` scaled by `scale`."""
-    return args[0] * scale
-
-
-def _maximum(*args: np.ndarray | float, **kwargs: bool) -> float:
-    """Return the maximum of `value`. A bit dumb, but adds consistency."""
-    return np.max(args[0])
-
-
-def _minimum(*args: np.ndarray | float, **kwargs: bool) -> float:
-    """Return the minimum of `value`. A bit dumb, but adds consistency."""
-    return np.min(args[0])
-
-
-# =============================================================================
-# Testers
-# =============================================================================
-def _value_is_within_limits(treated_value: np.ndarray | float,
-                            limits: tuple[np.ndarray | float,
-                                          np.ndarray | float],
-                            **kwargs: bool) -> bool:
-    """Test if the given value is within the given limits."""
-    return _value_is_above(treated_value, limits[0]) \
-        and _value_is_below(treated_value, limits[1])
-
-
-def _value_is_above(treated_value: np.ndarray | float,
-                    lower_limit: np.ndarray | float, **kwargs: bool
-                    ) -> bool:
-    """Test if the given value is above a threshold."""
-    return np.all(treated_value > lower_limit)
-
-
-def _value_is_below(treated_value: np.ndarray | float,
-                    upper_limit: np.ndarray | float, **kwargs: bool
-                    ) -> bool:
-    """Test if the given value is below a threshold."""
-    return np.all(treated_value < upper_limit)
-
-
-def _value_is(treated_value: np.ndarray | float,
-              objective_value: np.ndarray | float, tol: float = 1e-10,
-              **kwargs: bool) -> bool:
-    """Test if the value equals `objective_value`."""
-    return np.all(np.abs(treated_value - objective_value) < tol)
-
-
-# =============================================================================
-# Other helpers
+# Helpers
 # =============================================================================
 def _need_to_resample(value: np.ndarray | float, ref_value: np.ndarray | float
                       ) -> bool:
@@ -239,7 +133,7 @@ class SimulationOutputEvaluator(ABC):
     post_treaters: tuple[Callable[
         [np.ndarray | float, np.ndarray | float],
         np.ndarray | float]
-    ] = (_do_nothing,)
+    ] = (post_treaters.do_nothing,)
 
     tester: Callable[np.ndarray | float, bool] | None = None
 
@@ -348,65 +242,3 @@ class SimulationOutputEvaluator(ABC):
                                      c='r', ls='--', lw=5)
                 continue
             self.main_ax.plot(z_data, lim)
-
-
-# =============================================================================
-# Presets
-# =============================================================================
-PRESETS = {
-    # Legacy "fit quality"
-    # Legacy "Fred tests"
-    "no power loss": {
-        'value_getter': lambda s: s.get('pow_lost'),
-        'post_treaters': (partial(_do_nothing, to_plot=True),),
-        'tester': partial(_value_is, objective_value=0., to_plot=True),
-        'fignum': 101,
-        'markdown': markdown["pow_lost"],
-        'descriptor': """Lost power shall be null."""
-    },
-    "longitudinal eps shall not grow too much": {
-        'value_getter': lambda s: s.get('eps_zdelta'),
-        'ref_value_getter': lambda ref_s, s: s.get('eps_zdelta',
-                                                   elt='first', pos='in'),
-        'post_treaters': (_relative_difference,
-                          partial(_scale_by, scale=100., to_plot=True),
-                          _maximum),
-        'tester': partial(_value_is_below, upper_limit=20., to_plot=True),
-        'fignum': 102,
-        'markdown': r"$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ (ref $z=0$) [%]",
-        'descriptor': """Longitudinal emittance should not grow by more than
-                         20% along the linac."""
-
-    },
-    "max of eps shall not be too high": {
-        'value_getter': lambda s: s.get('eps_zdelta'),
-        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_zdelta')),
-        'post_treaters': (_maximum,
-                          partial(_relative_difference,
-                                  replace_zeros_by_nan_in_ref=False,
-                                  to_plot=True)),
-        'tester': partial(_value_is_below, upper_limit=30., to_plot=True),
-        'fignum': 103,
-        'markdown': r"$\frac{max(\epsilon_{z\delta}) - max(\epsilon_{z\delta}^{ref}))}{max(\epsilon_{z\delta}^{ref})}$",
-        'descriptor': """The maximum of longitudinal emittance should not
-                         exceed the nominal maximum of longitudinal emittance
-                         by more than 30%."""
-
-    },
-    # Legacy "Bruce tests"
-    "longitudinal eps at end": {
-        'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
-        'ref_value_getter': lambda ref_s, s: ref_s.get('eps_zdelta',
-                                                       elt='last', pos='out'),
-        'post_treaters': (_relative_difference,),
-        'markdown': markdown['eps_zdelta'],
-        'descriptor': """Relative difference of emittance in [z-delta] plane
-                         between fixed and reference linacs."""
-    },
-    "mismatch factor at end": {
-        'value_getter': lambda s: s.get('mismatch_factor',
-                                        elt='last', pos='out'),
-        'markdown': markdown['mismatch_factor'],
-        'descriptor': """Mismatch factor at the end of the linac."""
-    },
-}
