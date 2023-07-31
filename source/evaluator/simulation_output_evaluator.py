@@ -101,8 +101,8 @@ def _minimum(*args: np.ndarray | float, **kwargs: bool) -> float:
 # Testers
 # =============================================================================
 def _value_is_within_limits(treated_value: np.ndarray | float,
-                            limits: tuple[np.ndarray | float | None,
-                                          np.ndarray | float | None],
+                            limits: tuple[np.ndarray | float,
+                                          np.ndarray | float],
                             **kwargs: bool) -> bool:
     """Test if the given value is within the given limits."""
     return _value_is_above(treated_value, limits[0]) \
@@ -110,20 +110,16 @@ def _value_is_within_limits(treated_value: np.ndarray | float,
 
 
 def _value_is_above(treated_value: np.ndarray | float,
-                    lower_limit: np.ndarray | float | None, **kwargs: bool
+                    lower_limit: np.ndarray | float, **kwargs: bool
                     ) -> bool:
     """Test if the given value is above a threshold."""
-    if lower_limit is None:
-        return True
     return np.all(treated_value > lower_limit)
 
 
 def _value_is_below(treated_value: np.ndarray | float,
-                    upper_limit: np.ndarray | float | None, **kwargs: bool
+                    upper_limit: np.ndarray | float, **kwargs: bool
                     ) -> bool:
     """Test if the given value is below a threshold."""
-    if upper_limit is None:
-        return True
     return np.all(treated_value < upper_limit)
 
 
@@ -171,6 +167,25 @@ def _return_value_should_be_plotted(partial_function: Callable) -> bool:
         return False
 
     return keywords['to_plot']
+
+
+def _limits_given_in_functoolspartial_args(partial_function: Callable
+                                           ) -> tuple[np.ndarray | float]:
+    """Extract the limits given to a test function."""
+    if not isinstance(partial_function, partial):
+        logging.warning("Given function must be a functools.partial func.")
+        return tuple(np.NaN)
+
+    keywords = partial_function.keywords
+
+    if 'limits' in keywords:
+        return keywords['limits']
+
+    limits = [keywords[key] for key in keywords.keys()
+              if key in ['lower_limit', 'upper_limit', 'objective_value']
+              ]
+    assert len(limits) in [1, 2]
+    return tuple(limits)
 
 
 # =============================================================================
@@ -282,7 +297,6 @@ class SimulationOutputEvaluator(ABC):
                                               simulation_output)
 
             if _need_to_resample(value, ref_value):
-                logging.info("Here I needed to resample!")
                 ref_z_abs = self.ref_simulation_output.get('z_abs')
                 z_abs, value, ref_z_abs, ref_value = resample(
                     z_abs, value, ref_z_abs, ref_value)
@@ -294,7 +308,13 @@ class SimulationOutputEvaluator(ABC):
 
         if self.tester is None:
             return value
-        return self.tester(value)
+
+        test = self.tester(value)
+        if _return_value_should_be_plotted(self.tester):
+            limits = _limits_given_in_functoolspartial_args(self.tester)
+            self._add_a_limit_plot(z_abs, limits)
+
+        return test
 
     def _create_plot(self) -> None:  # returns fig, axx
         """Prepare the plot."""
@@ -304,18 +324,30 @@ class SimulationOutputEvaluator(ABC):
                                                   clean_fig=False,)
         axx[0].set_ylabel(self.markdown)
         axx[0].grid(True)
+        axx[0].set_title(self.descriptor)
         self.main_ax = axx[0]
         # see what are the kwargs for _create_fig_if_not_exists...
 
     def _add_a_value_plot(self, z_data: np.ndarray, value: np.ndarray | float
                           ) -> None:
-        """Add a line to the plot."""
+        """Add (treated) data to the plot."""
         assert self.main_ax is not None
         if isinstance(value, float) or value.shape == ():
-            # self.main_ax.hline()
-            print('a hline to add')
+            self.main_ax.axhline(value, xmin=z_data[0], xmax=z_data[-1])
             return
         self.main_ax.plot(z_data, value)
+
+    def _add_a_limit_plot(self, z_data: np.ndarray,
+                          limit: tuple[np.ndarray | float]) -> None:
+        """Add limits to the plot."""
+        assert self.main_ax is not None
+
+        for lim in limit:
+            if isinstance(lim, float) or lim.shape == ():
+                self.main_ax.axhline(lim, xmin=z_data[0], xmax=z_data[-1],
+                                     c='r', ls='--', lw=5)
+                continue
+            self.main_ax.plot(z_data, lim)
 
 
 # =============================================================================
@@ -337,11 +369,26 @@ PRESETS = {
         'post_treaters': (_relative_difference,
                           partial(_scale_by, scale=100., to_plot=True),
                           _maximum),
-        'tester': partial(_value_is_below, upper_limit=120., to_plot=True),
+        'tester': partial(_value_is_below, upper_limit=20., to_plot=True),
         'fignum': 102,
         'markdown': r"""$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ (ref $z=0$) [%]""",
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac."""
+
+    },
+    "max of eps shall not be too high": {
+        'value_getter': lambda s: s.get('eps_zdelta'),
+        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_zdelta')),
+        'post_treaters': (_maximum,
+                          partial(_relative_difference,
+                                  replace_zeros_by_nan_in_ref=False,
+                                  to_plot=True)),
+        'tester': partial(_value_is_below, upper_limit=30., to_plot=True),
+        'fignum': 103,
+        'markdown': r"$\frac{max(\epsilon_{z\delta}) - max(\epsilon_{z\delta}^{ref}))}{max(\epsilon_{z\delta}^{ref})}$",
+        'descriptor': """The maximum of longitudinal emittance should not
+                         exceed the nominal maximum of longitudinal emittance
+                         by more than 30%."""
 
     },
     "longitudinal eps at end": {
