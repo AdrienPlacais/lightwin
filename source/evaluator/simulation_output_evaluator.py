@@ -322,9 +322,9 @@ class SimulationOutputEvaluator(ABC):
                                                   sharex=True,
                                                   num=self.fignum,
                                                   clean_fig=False,)
+        fig.suptitle(self.descriptor, fontsize=14)
         axx[0].set_ylabel(self.markdown)
         axx[0].grid(True)
-        axx[0].set_title(self.descriptor)
         self.main_ax = axx[0]
         # see what are the kwargs for _create_fig_if_not_exists...
 
