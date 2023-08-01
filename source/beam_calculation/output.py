@@ -15,6 +15,8 @@ does.
 
 """
 import logging
+import os.path
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Callable
 import numpy as np
@@ -103,6 +105,13 @@ class SimulationOutput:
         out += self.synch_trajectory.__str__()
         out += self.beam_parameters.__str__()
         return out
+
+    @property
+    def beam_calculator_information(self) -> str:
+        """Use `out_path` to retrieve information on `BeamCalculator`."""
+        if self.out_path is None:
+            return self.out_folder
+        return get_nth_parent(self.out_path, nth=2)
 
     def has(self, key: str) -> bool:
         """
@@ -214,3 +223,13 @@ class SimulationOutput:
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
         logging.critical("data_in_tw_fashion is bugged")
+
+
+def get_nth_parent(filepath: str, nth: int) -> str:
+    """Return the path of current folder + n."""
+    path_as_list = list(Path(filepath).parts)
+    new_path_as_list = path_as_list[-nth:]
+    new_path = os.path.join(*new_path_as_list)
+    return new_path
+
+

@@ -12,8 +12,6 @@ We also define some factory functions to facilitate their creation.
 
 """
 import logging
-import os.path
-from pathlib import Path
 
 import pandas as pd
 
@@ -47,9 +45,9 @@ class ListOfSimulationOutputEvaluators(list):
             output_info = [f"{evaluator}:"]
             for simulation_output in simulation_outputs:
                 evaluation = evaluator.run(simulation_output)
-                essential_info = get_nth_parent(simulation_output.out_path,
-                                                nth=2)
-                output_info.append(f"{essential_info}: {evaluation}")
+                beam_calculator_info = \
+                    simulation_output.beam_calculator_information
+                output_info.append(f"{beam_calculator_info}: {evaluation}")
             logging.info('\n'.join(output_info))
 
 
@@ -66,14 +64,6 @@ def factory_simulation_output_evaluators_from_presets(
                   for kwargs in all_kwargs]
     list_of_evaluators = ListOfSimulationOutputEvaluators(evaluators)
     return list_of_evaluators
-
-
-def get_nth_parent(filepath: str, nth: int) -> str:
-    """Return the path of current folder + n."""
-    path_as_list = list(Path(filepath).parts)
-    new_path_as_list = path_as_list[-nth:]
-    new_path = os.path.join(*new_path_as_list)
-    return new_path
 
 
 class FaultScenarioSimulationOutputEvaluators:
