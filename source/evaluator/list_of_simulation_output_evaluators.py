@@ -12,6 +12,8 @@ We also define some factory functions to facilitate their creation.
 
 """
 import logging
+import os.path
+from pathlib import Path
 
 import pandas as pd
 
@@ -42,9 +44,13 @@ class ListOfSimulationOutputEvaluators(list):
             ) -> list[bool | float | None]:
         """Call `run` method of every `SimulationOutputEvaluator`."""
         for evaluator in self:
-            logging.info(f"{evaluator}")
+            output_info = [f"{evaluator}:"]
             for simulation_output in simulation_outputs:
-                logging.info(evaluator.run(simulation_output))
+                evaluation = evaluator.run(simulation_output)
+                essential_info = get_nth_parent(simulation_output.out_path,
+                                                nth=2)
+                output_info.append(f"{essential_info}: {evaluation}")
+            logging.info('\n'.join(output_info))
 
 
 def factory_simulation_output_evaluators_from_presets(
@@ -62,12 +68,21 @@ def factory_simulation_output_evaluators_from_presets(
     return list_of_evaluators
 
 
+def get_nth_parent(filepath: str, nth: int) -> str:
+    """Return the path of current folder + n."""
+    path_as_list = list(Path(filepath).parts)
+    new_path_as_list = path_as_list[-nth:]
+    new_path = os.path.join(*new_path_as_list)
+    return new_path
+
+
 class FaultScenarioSimulationOutputEvaluators:
     """
     A more specific class to evaluate settings found for a `FaultScenario`.
 
-    It allows to have a compact pd.DataFrame where several performance
-    indicators at different positions are stored.
+    This class was designed to be used when all the faults of a `FaultScenario`
+    are fixed, to output several performance indicators in a compact way. No
+    plot is produced.
 
     """
 
@@ -177,7 +192,9 @@ class FaultScenarioSimulationOutputEvaluators:
 
     def _output(self, evaluations: pd.DataFrame) -> None:
         """Print out the given pd.DataFrame."""
-        title = "Fit quality (settings in ??????)"
+        title = "Fit quality:"
+        # FIXME
+        title += "(FIXME: settings in FaultScenario, not config_manager)"
         logging.info(pd_output(evaluations, header=title))
 
 
