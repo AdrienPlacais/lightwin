@@ -187,23 +187,19 @@ class Envelope1D(BeamCalculator):
                                                   synchronous=True)
 
         cav_params = [results['cav_params'] for results in single_elts_results]
-        cav_params = {
-            'v_cav_mv': [cav_param['v_cav_mv']
-                         if cav_param is not None else None
-                         for cav_param in cav_params
-                         ],
-            'phi_s': [cav_param['phi_s']
-                      if cav_param is not None else None
-                      for cav_param in cav_params
-                      ],
-        }
+        cav_params = {'v_cav_mv': [cav_param['v_cav_mv']
+                                   if cav_param is not None else None
+                                   for cav_param in cav_params],
+                      'phi_s': [cav_param['phi_s']
+                                if cav_param is not None else None
+                                for cav_param in cav_params],
+                      }
 
-        r_zz_elt = [
-            results['r_zz'][i, :, :]
-            for results in single_elts_results
-            for i in range(results['r_zz'].shape[0])
-        ]
-        tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in, r_zz_elt,
+        r_zz_elt = [results['r_zz'][i, :, :]
+                    for results in single_elts_results
+                    for i in range(results['r_zz'].shape[0])]
+        tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in,
+                                             r_zz_elt,
                                              len(w_kin))
 
         beam_params = BeamParameters(gamma_kin=synch_trajectory.gamma,

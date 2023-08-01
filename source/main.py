@@ -45,7 +45,7 @@ def beam_calc_and_save(accelerator: Accelerator,
     simulation_output = _wrap_beam_calculation(accelerator, beam_calculator,
                                                **kwargs)
     accelerator.keep_settings(simulation_output)
-    accelerator.simulation_outputs[beam_calculator.id] = simulation_output
+    accelerator.keep_simulation_output(simulation_output, beam_calculator.id)
 
 
 def post_beam_calc_and_save(accelerator: Accelerator,
@@ -71,7 +71,7 @@ def post_beam_calc_and_save(accelerator: Accelerator,
                                             accelerator.get('dat_filepath'))
     simulation_output.compute_complementary_data(elts, **kwargs)
 
-    accelerator.simulation_outputs[beam_calculator.id] = simulation_output
+    accelerator.keep_simulation_output(simulation_output, beam_calculator.id)
 
 
 # =============================================================================

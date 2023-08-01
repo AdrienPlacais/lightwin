@@ -38,6 +38,9 @@ class SimulationOutput:
     ----------
     out_folder : str
         Results folder used by the `BeamCalculator` that created this.
+    out_path : str | None
+        Results full filepath. Created by the method
+        Accelerator.keep_simulation_output.
     z_abs : np.ndarray | None, optional
         Absolute position in the linac in m. The default is None.
     synch_trajectory : ParticleFullTrajectory | None
@@ -91,6 +94,7 @@ class SimulationOutput:
             self.elt_idx = [
                 i for i, _ in enumerate(self.cav_params['v_cav_mv'], start=1)
             ]
+        self.out_path: str | None = None
 
     def __str__(self) -> str:
         """Give a resume of the data that is stored."""

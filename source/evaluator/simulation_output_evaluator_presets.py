@@ -31,9 +31,10 @@ PRESETS = {
         'value_getter': lambda s: s.get('pow_lost'),
         'post_treaters': (partial(post_treaters.do_nothing, to_plot=True),),
         'tester': partial(testers.value_is, objective_value=0., to_plot=True),
-        'fignum': 101,
         'markdown': markdown["pow_lost"],
-        'descriptor': """Lost power shall be null."""
+        'descriptor': """Lost power shall be null.""",
+        'plt_kwargs': {'fignum': 101,
+                       'savefig': True},
     },
     "longitudinal eps shall not grow too much": {
         'value_getter': lambda s: s.get('eps_zdelta'),
@@ -45,11 +46,12 @@ PRESETS = {
                           post_treaters.maximum),
         'tester': partial(testers.value_is_below,
                           upper_limit=20., to_plot=True),
-        'fignum': 102,
         'markdown': r"$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ "
                     + r"(ref $z=0$) [%]",
         'descriptor': """Longitudinal emittance should not grow by more than
-                         20% along the linac."""
+                         20% along the linac.""",
+        'plt_kwargs': {'fignum': 102,
+                       'savefig': True},
 
     },
     "max of eps shall not be too high": {
@@ -61,13 +63,14 @@ PRESETS = {
                                   to_plot=True)),
         'tester': partial(testers.value_is_below,
                           upper_limit=30., to_plot=True),
-        'fignum': 103,
         'markdown': r"$\frac{max(\epsilon_{z\delta}) - "
                     + r"max(\epsilon_{z\delta}^{ref}))}"
                     + r"{max(\epsilon_{z\delta}^{ref})}$",
         'descriptor': """The maximum of longitudinal emittance should not
                          exceed the nominal maximum of longitudinal emittance
-                         by more than 30%."""
+                         by more than 30%.""",
+        'plt_kwargs': {'fignum': 103,
+                       'savefig': True},
 
     },
     # Legacy "Bruce tests"

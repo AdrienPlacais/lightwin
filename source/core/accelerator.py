@@ -227,6 +227,19 @@ class Accelerator():
             os.path.basename(self.files['dat_filepath']))
         self._store_settings_in_dat(dat_filepath, save=True)
 
+    def keep_simulation_output(self, simulation_output: SimulationOutput,
+                               beam_calculator_id: str) -> None:
+        """
+        Save `SimulationOutput`. Store info on current `Accelerator` in it.
+
+        In particular, we want to save a results path in the `SimulationOutput`
+        so we can study it and save Figures/study results in the proper folder.
+
+        """
+        simulation_output.out_path = os.path.join(self.get('accelerator_path'),
+                                                  simulation_output.out_folder)
+        self.simulation_outputs[beam_calculator_id] = simulation_output
+
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                           ) -> _Element | None:
         """Give the element where the given index is."""

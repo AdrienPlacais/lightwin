@@ -11,6 +11,7 @@ though, but rather a `SimulationOutput`.
 
 """
 import logging
+import os.path
 from typing import Callable, Any
 from functools import partial
 from dataclasses import dataclass
@@ -140,8 +141,6 @@ class SimulationOutputEvaluator(ABC):
     descriptor: str | None = None
     markdown: str | None = None
 
-    fignum: int | None = None
-    main_ax: object | None = None
     plt_kwargs: dict | None = None
 
     def __post_init__(self):
@@ -161,8 +160,13 @@ class SimulationOutputEvaluator(ABC):
 
         if self.markdown is None:
             self.markdown = 'test'
-        if self.fignum is not None:
-            self._create_plot()
+
+        if self.plt_kwargs is None:
+            self.plt_kwargs = {}
+        self._fig: object | None = None
+        self.main_ax: object | None = None
+        self._create_plot(**self.plt_kwargs)
+
 
     def __repr__(self) -> str:
         """Output the descriptor string."""
@@ -201,6 +205,7 @@ class SimulationOutputEvaluator(ABC):
                 self._add_a_value_plot(z_abs, value)
 
         if self.tester is None:
+            self._save_plot(simulation_output.out_path, **self.plt_kwargs)
             return value
 
         test = self.tester(value)
@@ -208,17 +213,22 @@ class SimulationOutputEvaluator(ABC):
             limits = _limits_given_in_functoolspartial_args(self.tester)
             self._add_a_limit_plot(z_abs, limits)
 
+        self._save_plot(simulation_output.out_path, **self.plt_kwargs)
         return test
 
-    def _create_plot(self) -> None:  # returns fig, axx
+    def _create_plot(self, fignum: int | None = None, **kwargs) -> None:  # returns fig, axx
         """Prepare the plot."""
+        if fignum is None:
+            return
         fig, axx = plot._create_fig_if_not_exists(axnum=[211, 212],
                                                   sharex=True,
-                                                  num=self.fignum,
+                                                  num=fignum,
                                                   clean_fig=True,)
         fig.suptitle(self.descriptor, fontsize=14)
         axx[0].set_ylabel(self.markdown)
         axx[0].grid(True)
+
+        self._fig = fig
         self.main_ax = axx[0]
         # see what are the kwargs for _create_fig_if_not_exists...
 
@@ -242,3 +252,21 @@ class SimulationOutputEvaluator(ABC):
                                      c='r', ls='--', lw=5)
                 continue
             self.main_ax.plot(z_data, lim)
+
+    def _save_plot(self, out_path: str | None, fignum: int | None = None,
+                   savefig: bool = False, **kwargs
+                   ) -> None:
+        """Save the figure if asked, and if `out_path` is defined."""
+        if not savefig or self._fig is None:
+            return
+
+        if out_path is None:
+            logging.error("The attribute `out_path` from `SimuationOutput` is "
+                          "not defined, hence I cannot save the Figure. Did "
+                          "you call the method "
+                          "`Accelerator.keep_simulation_output`?")
+            return
+
+        filename = f"simulation_output_evaluator_{fignum}.png"
+        filepath = os.path.join(out_path, filename)
+        plot._savefig(self._fig, filepath)
