@@ -13,6 +13,7 @@ of the beam in a `ListOfElements`, possibly with a specific
 """
 import logging
 from typing import Any, Callable
+from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from functools import partial
 
@@ -23,6 +24,7 @@ from core.list_of_elements import ListOfElements, equiv_elt
 from core.accelerator import Accelerator
 
 
+@dataclass
 class BeamCalculator(ABC):
     """A generic class to store a beam dynamics solver and its results."""
 

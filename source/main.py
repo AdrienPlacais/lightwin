@@ -20,7 +20,7 @@ from core.accelerator import Accelerator, accelerator_factory
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 # import tracewin_utils.interface
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.factory import create_beam_calculator_object
+from beam_calculation.factory import create_beam_calculator_objects
 from beam_calculation.output import SimulationOutput
 # from util import evaluate
 from visualization import plot
@@ -105,13 +105,15 @@ if __name__ == '__main__':
     # =========================================================================
     # Set up BeamCalculator objects
     # =========================================================================
+    beam_calculators_parameters = (
+        my_configs['beam_calculator'],
+        my_configs['beam_calculator_post'] if perform_post_simulation else None
+    )
+    my_beam_calculators = create_beam_calculator_objects(
+        *beam_calculators_parameters)
     my_beam_calc: BeamCalculator
-    my_beam_calc = create_beam_calculator_object(my_configs['beam_calculator'])
-
     my_beam_calc_post: BeamCalculator | None
-    my_beam_calc_post = create_beam_calculator_object(
-        my_configs['beam_calculator_post']) \
-        if perform_post_simulation else None
+    my_beam_calc, my_beam_calc_post = my_beam_calculators
 
     solv1 = my_beam_calc.id
     solv2 = my_beam_calc_post.id if my_beam_calc_post is not None else None
@@ -153,15 +155,20 @@ if __name__ == '__main__':
 
 # %%
 from evaluator.list_of_simulation_output_evaluators import (
-    ListOfSimulationOutputEvaluators
+    ListOfSimulationOutputEvaluators,
+    factory_simulation_output_evaluators_from_presets
 )
 
 s_to_study = [accelerator.simulation_outputs[solv2]
               for accelerator in accelerators]
 ref_s = s_to_study[0]
 
-tests = ("no power loss", "longitudinal eps growth", "longitudinal eps at end")
-simulation_output_evaluators = ListOfSimulationOutputEvaluators(
-    *tests, ref_simulation_output=ref_s)
+tests = ("no power loss", "longitudinal eps shall not grow too much",
+         "max of eps shall not be too high", "longitudinal eps at end")
+
+simulation_output_evaluators: ListOfSimulationOutputEvaluators
+simulation_output_evaluators = \
+    factory_simulation_output_evaluators_from_presets(
+        *tests, ref_simulation_output=ref_s)
 
 simulation_output_evaluators.run(*tuple(s_to_study))

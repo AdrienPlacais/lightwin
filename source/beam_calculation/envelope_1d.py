@@ -53,6 +53,8 @@ class Envelope1D(BeamCalculator):
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
         self.id = self.__repr__()
+        self.out_folder += "_Envelope1D"
+
         if self.flag_cython:
             try:
                 import beam_calculation.transfer_matrices_c as transf_mat

@@ -9,7 +9,6 @@ This module simply holds a factory to easily create the desired
 `BeamCalculator`.
 
 """
-import logging
 from typing import Any
 
 from beam_calculation.beam_calculator import BeamCalculator
@@ -17,36 +16,45 @@ from beam_calculation.envelope_1d import Envelope1D
 from beam_calculation.tracewin import TraceWin
 
 
-def create_beam_calculator_object(
-        beam_calculator_parameters: dict[str, Any] | None) -> BeamCalculator:
+def create_beam_calculator_objects(
+        *beam_calculators_parameters: dict[str, Any] | None,
+) -> tuple[BeamCalculator | None]:
     """
-    Take the appropriate beam calculator and set it up.
+    Take the appropriate beam calculators and set them up.
 
     Parameters
     ----------
-    beam_calculator_parameters : dict | None
-        Holds beam calculator parameters, as returned by the `config_manager`.
+    *beam_calculator_parameters : dict | None
+        Tuple holding beam calculator parameters, as returned by the
+        `config_manager`.
 
     Returns
     -------
-    beam_calculator : BeamCalculator
-        The solver that will compute propagation of the beam in the
+    beam_calculators : tuple[BeamCalculator | None]
+        The solvers that will compute propagation of the beam in the
         accelerator, set up according to `beam_calculator_parameters`.
 
     """
-    if beam_calculator_parameters is None:
-        return None
+    out_folder = 'beam_calculation'
+    beam_calculators = []
 
-    tool = beam_calculator_parameters['tool']
-    keys_not_handled = ['tool', 'simulation type']
-    clean_parameters = {key: val
-                        for key, val in beam_calculator_parameters.items()
-                        if key not in keys_not_handled}
+    for beam_calculator_parameters in beam_calculators_parameters:
+        if beam_calculator_parameters is None:
+            beam_calculators.append(None)
+            continue
 
-    calculators = {
-        'Envelope1D': Envelope1D,
-        'TraceWin': TraceWin,
-    }
+        tool = beam_calculator_parameters['tool']
+        keys_not_handled = ['tool', 'simulation type']
+        clean_parameters = {key: val
+                            for key, val in beam_calculator_parameters.items()
+                            if key not in keys_not_handled}
 
-    beam_calculator = calculators[tool](**clean_parameters)
-    return beam_calculator
+        calculators = {
+            'Envelope1D': Envelope1D,
+            'TraceWin': TraceWin,
+        }
+
+        beam_calculators.append(calculators[tool](out_folder=out_folder,
+                                                  **clean_parameters))
+        out_folder += '_post'
+    return tuple(beam_calculators)
