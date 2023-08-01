@@ -55,7 +55,7 @@ class Accelerator():
         # Prepare files and folders
         self.files = {
             'dat_filepath': dat_file,
-            'orig_dat_folder': os.path.dirname(dat_file),
+            'original_dat_folder': os.path.dirname(dat_file),  # used only once
             'project_folder': project_folder,
             'dat_filecontent': None,
             'field_map_folder': None,
@@ -161,30 +161,26 @@ class Accelerator():
     def _set_field_map_files_paths(self, elts: list[_Element]
                                    ) -> list[_Element]:
         """Load FIELD_MAP_PATH, remove it from the list of elements."""
-        field_map_basepaths = [basepath
-                               for basepath in elts
-                               if isinstance(basepath, FieldMapPath)]
+        field_map_paths = list(filter(
+            lambda elt: isinstance(elt, FieldMapPath), elts))
+
         # FIELD_MAP_PATH are not physical elements, so we remove them
-        for basepath in field_map_basepaths:
-            elts.remove(basepath)
+        for field_map_path in field_map_paths:
+            elts.remove(field_map_path)
 
-        # If no FIELD_MAP_PATH command was provided, we take field maps in the
-        # .dat dir
-        if len(field_map_basepaths) == 0:
-            field_map_basepaths = [FieldMapPath(
-                ['FIELD_MAP_PATH', self.files['orig_dat_folder']])]
+        if len(field_map_paths) == 0:
+            field_map_paths = list(
+                FieldMapPath(['FIELD_MAP_PATH',
+                              self.files['original_dat_folder']])
+            )
 
-        # If more than one field map folder is provided, raise an error
-        msg = "Change of base folder for field maps currently not supported."
-        assert len(field_map_basepaths) == 1, msg
+        if len(field_map_paths) != 1:
+            logging.error("Change of field maps base folder not supported.")
+            field_map_paths = [field_map_paths[0]]
 
-        # Convert FieldMapPath objects into absolute paths
-        field_map_basepaths = [
-            os.path.join(self.files['orig_dat_folder'],
-                         fm_path.path)
-            for fm_path in field_map_basepaths]
-        self.files['field_map_folder'] = field_map_basepaths[0]
-
+        field_map_paths = [os.path.abspath(field_map_path.path)
+                           for field_map_path in field_map_paths]
+        self.files['field_map_folder'] = field_map_paths[0]
         return elts
 
     def _create_special_getters(self) -> dict:
@@ -309,6 +305,7 @@ def _generate_folders_tree_structure(project_folder: str,
                 (beam_calculation_post_toolname)/
             etc
     """
+    logging.critical(project_folder)
     fault_scenario_paths = [os.path.join(project_folder, f"{i:06d}")
                             for i in range(n_simulations)]
     fault_scenario_paths[0] += '_ref'
