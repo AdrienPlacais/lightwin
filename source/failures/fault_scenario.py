@@ -10,7 +10,6 @@ objets to be fixed, as well as `fault_scenario_factory`, a factory function
 creating all the required `FaultScenario` objects.
 """
 import logging
-from typing import Any
 import os.path
 
 import config_manager as con
@@ -22,6 +21,8 @@ from core.elements import _Element
 from core.accelerator import Accelerator
 from util import debug
 from evaluator import fit_quality
+from evaluator.list_of_simulation_output_evaluators import \
+    FaultScenarioSimulationOutputEvaluators
 
 DISPLAY_CAVITIES_INFO = True
 
@@ -135,6 +136,7 @@ class FaultScenario(list):
             self.info[linac.name + ' cav'] = \
                 debug.output_cavities(linac, DISPLAY_CAVITIES_INFO)
 
+        self.Xevaluate_fit_quality()
         self._evaluate_fit_quality(save=True)
 
         # Legacy, does not work anymore with the new implementation
@@ -206,6 +208,40 @@ class FaultScenario(list):
             fix_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
+
+    def Xevaluate_fit_quality(self, save: bool = True,
+                              id_solver_ref: str | None = None,
+                              id_solver_fix: str | None = None) -> None:
+        """
+        Compute some quantities on the whole linac to see if fit is good.
+
+        Parameters
+        ----------
+        save : bool, optional
+            To tell if you want to save the evaluation. The default is True.
+        id_solver_ref : str | None, optional
+            Id of the solver from which you want reference results. The default
+            is None. In this case, the first solver is taken
+            (`beam_calc_param`).
+        id_solver_fix : str | None, optional
+            Id of the solver from which you want fixed results. The default is
+            None. In this case, the solver is the same as for reference.
+
+        """
+        simulations = self._simulations_that_should_be_compared(id_solver_ref,
+                                                                id_solver_fix)
+
+        quantities_to_evaluate = ('w_kin', 'phi_abs', 'envelope_pos_phiw',
+                                  'envelope_energy_phiw', 'mismatch_factor',
+                                  'eps_phiw')
+        my_evaluator = FaultScenarioSimulationOutputEvaluators(
+            quantities_to_evaluate, [fault for fault in self], simulations)
+        my_evaluator.run(output=True)
+
+        # if save:
+        #     fname = 'evaluations_differences_between_simulation_output.csv'
+        #     out = os.path.join(self.fix_acc.get('beam_calc_path'), fname)
+        #     df_eval.to_csv(out)
 
     def _evaluate_fit_quality(self, save: bool = True,
                               id_solver_ref: str | None = None,

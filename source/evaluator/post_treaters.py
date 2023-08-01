@@ -50,7 +50,7 @@ def relative_difference(
         reference_value = reference_value.copy()
         reference_value[reference_value == 0.] = np.NaN
 
-    delta_rel = (value - reference_value) / reference_value
+    delta_rel = (value - reference_value) / np.abs(reference_value)
     return delta_rel
 
 

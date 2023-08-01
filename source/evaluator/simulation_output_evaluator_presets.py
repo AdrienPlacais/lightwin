@@ -46,7 +46,8 @@ PRESETS = {
         'tester': partial(testers.value_is_below,
                           upper_limit=20., to_plot=True),
         'fignum': 102,
-        'markdown': r"$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ (ref $z=0$) [%]",
+        'markdown': r"$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ "
+                    + r"(ref $z=0$) [%]",
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac."""
 
@@ -61,7 +62,9 @@ PRESETS = {
         'tester': partial(testers.value_is_below,
                           upper_limit=30., to_plot=True),
         'fignum': 103,
-        'markdown': r"$\frac{max(\epsilon_{z\delta}) - max(\epsilon_{z\delta}^{ref}))}{max(\epsilon_{z\delta}^{ref})}$",
+        'markdown': r"$\frac{max(\epsilon_{z\delta}) - "
+                    + r"max(\epsilon_{z\delta}^{ref}))}"
+                    + r"{max(\epsilon_{z\delta}^{ref})}$",
         'descriptor': """The maximum of longitudinal emittance should not
                          exceed the nominal maximum of longitudinal emittance
                          by more than 30%."""
@@ -89,39 +92,62 @@ PRESETS = {
 # =============================================================================
 # Functions to generate presets
 # =============================================================================
-def preset_to_evaluate_fit_once_it_is_over(
-    quantity: str, elt: _Element | str, error: str,
+def presets_for_fault_scenario_rel_diff_at_some_element(
+    quantity: str, elt: _Element | str,
     ref_simulation_output: SimulationOutput
 ) -> dict[str, Callable | int | str | tuple[Callable]]:
     """
     Create the settings to evaluate a difference @ some element exit.
 
-    It is used when a Fault is fixed, to rapidly evaluate the quality of an
-    optimisation.
+    Used for `FaultScenario`s.
 
     """
-    args, kwargs = (quantity), {'elt': elt, 'pos': 'out', 'to_deg': False}
+    kwargs = {'elt': elt, 'pos': 'out', 'to_deg': False}
+
     base_dict = {
-        'value_getter': lambda s: s.get(*args, **kwargs),
-        'ref_value_getter': lambda ref_s, s: ref_s.get(*args, **kwargs),
+        'value_getter': lambda s: s.get(quantity, **kwargs),
+        'ref_value_getter': lambda ref_s, s: ref_s.get(quantity, **kwargs),
         'ref_simulation_output': ref_simulation_output,
+        'post_treaters': (post_treaters.relative_difference,
+                          partial(post_treaters.scale_by, scale=100.)),
         'markdown': markdown[quantity].replace('deg', 'rad'),
-        'descriptor': f"""{error} of {quantity} __place_holder__ between fixed
-                          and reference linacs."""
-    },
+        'descriptor': f"""Relative difference of {quantity} ({elt}) between
+                          fixed and reference linacs."""
+    }
 
-    if error == 'Relative diff. [%]':
-        base_dict['post_treaters'] = (post_treaters.relative_difference,
-                                      partial(post_treaters.scale_by,
-                                              scale=100.))
-        base_dict['descriptor'].replace("__place_holder__", f"@{elt =}")
-        return base_dict
+    if 'mismatch' in quantity:
+        base_dict['ref_value_getter'] = None
+        base_dict['post_treaters'] = (post_treaters.do_nothing,)
+        base_dict['descriptor'].replace(f"Relative difference of {quantity}",
+                                        "Mismatch factor")
 
-    if error == 'RMS [usual units]':
-        base_dict['post_treaters'] = (post_treaters.rms_error,)
-        base_dict['descriptor'].replace("__place_holder__", "over full linac")
-        return base_dict
+    return base_dict
 
-    logging.error(f"{error = } not implemented. I take `_difference` instead.")
-    base_dict['post_treaters'] = (post_treaters.difference,)
+
+def presets_for_fault_scenario_rms_over_full_linac(
+    quantity: str, ref_simulation_output: SimulationOutput
+) -> dict[str, Callable | int | str | tuple[Callable]]:
+    """
+    Create the settings to evaluate a RMS error over full linac.
+
+    Used for `FaultScenario`s.
+
+    """
+    kwargs = {'to_deg': False}
+
+    base_dict = {
+        'value_getter': lambda s: s.get(quantity, **kwargs),
+        'ref_value_getter': lambda ref_s, s: ref_s.get(quantity, **kwargs),
+        'ref_simulation_output': ref_simulation_output,
+        'post_treaters': (post_treaters.rms_error,),
+        'markdown': markdown[quantity].replace('deg', 'rad'),
+        'descriptor': f"""RMS error of {quantity} between fixed and reference
+                          linacs."""
+    }
+
+    if 'mismatch' in quantity:
+        base_dict['value_getter'] = lambda s: np.NaN
+        base_dict['ref_value_getter'] = None
+        base_dict['post_treaters'] = (post_treaters.do_nothing,)
+
     return base_dict
