@@ -73,15 +73,6 @@ def post_beam_calc_and_save(accelerator: Accelerator,
 
     accelerator.simulation_outputs[beam_calculator.id] = simulation_output
 
-    # lin.files["out_tw"] = os.path.join(os.path.dirname(FILEPATH),
-    #                                    'ref')
-    # logging.info(
-    #     "we do not TW recompute reference accelerator. "
-    #     + f"We take TW results from {lin.files['out_tw']}.")
-    # continue
-    # output.save_files(accelerator,
-    #                   data_in_tracewin_style=simulation_output.in_tw_fashion)
-
 
 # =============================================================================
 # Main function
