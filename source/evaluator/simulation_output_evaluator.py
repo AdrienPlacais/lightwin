@@ -167,7 +167,6 @@ class SimulationOutputEvaluator(ABC):
         self.main_ax: object | None = None
         self._create_plot(**self.plt_kwargs)
 
-
     def __repr__(self) -> str:
         """Output the descriptor string."""
         return self.descriptor
@@ -216,7 +215,7 @@ class SimulationOutputEvaluator(ABC):
         self._save_plot(simulation_output.out_path, **self.plt_kwargs)
         return test
 
-    def _create_plot(self, fignum: int | None = None, **kwargs) -> None:  # returns fig, axx
+    def _create_plot(self, fignum: int | None = None, **kwargs) -> None:
         """Prepare the plot."""
         if fignum is None:
             return
