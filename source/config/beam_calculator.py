@@ -25,7 +25,7 @@ TRACEWIN_EXECUTABLES = {  # Should match with your installation
 # Front end
 # =============================================================================
 def test(c_beam_calculator: configparser.SectionProxy) -> None:
-    """Test the appropriate beam_calculator (LightWin or TraceWin)."""
+    """Test the appropriate beam_calculator (Envelope1D or TraceWin)."""
     passed = True
     mandatory = ["tool"]
     for key in mandatory:
@@ -33,7 +33,7 @@ def test(c_beam_calculator: configparser.SectionProxy) -> None:
             logging.error(f"Key {key} is mandatory and missing.")
             passed = False
 
-    valid_tools = {'LightWin': _test_beam_calculator_lightwin,
+    valid_tools = {'Envelope1D': _test_beam_calculator_envelope1d,
                    'TraceWin': _test_beam_calculator_tracewin}
     my_tool = c_beam_calculator["tool"]
     if my_tool not in valid_tools:
@@ -49,7 +49,7 @@ def test(c_beam_calculator: configparser.SectionProxy) -> None:
 
 def config_to_dict(c_beam_calculator: configparser.SectionProxy) -> dict:
     """Call the proper _config_to_dict function."""
-    config_to_dicts = {'LightWin': _config_to_dict_lightwin,
+    config_to_dicts = {'Envelope1D': _config_to_dict_envelope1d,
                        'TraceWin': _config_to_dict_tracewin}
     my_tool = c_beam_calculator["tool"]
     return config_to_dicts[my_tool](c_beam_calculator)
@@ -58,10 +58,10 @@ def config_to_dict(c_beam_calculator: configparser.SectionProxy) -> dict:
 # =============================================================================
 # Testers
 # =============================================================================
-def _test_beam_calculator_lightwin(
+def _test_beam_calculator_envelope1d(
         c_beam_calculator: configparser.SectionProxy) -> bool:
     """
-    Test consistency of the LightWin beam_calculator.
+    Test consistency of the Envelope1D beam_calculator.
 
     FLAF_PHI_ABS: to determine if the phases in the cavities are absolute or
     relative.
@@ -155,7 +155,7 @@ def _test_beam_calculator_tracewin(
 # =============================================================================
 # Config to dict
 # =============================================================================
-def _config_to_dict_lightwin(
+def _config_to_dict_envelope1d(
         c_beam_calculator: configparser.SectionProxy) -> dict:
     """Save beam_calculator info into a dict."""
     beam_calculator = {}

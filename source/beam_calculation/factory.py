@@ -9,6 +9,7 @@ This module simply holds a factory to easily create the desired
 `BeamCalculator`.
 
 """
+import logging
 from typing import Any
 
 from beam_calculation.beam_calculator import BeamCalculator
@@ -24,13 +25,13 @@ def create_beam_calculator_object(
     Parameters
     ----------
     beam_calculator_parameters : dict | None
-        Holds beam calculator parameters, as returned by the config_manager.
+        Holds beam calculator parameters, as returned by the `config_manager`.
 
     Returns
     -------
     beam_calculator : BeamCalculator
         The solver that will compute propagation of the beam in the
-        accelerator, set up according to beam_calculator_parameters.
+        accelerator, set up according to `beam_calculator_parameters`.
 
     """
     if beam_calculator_parameters is None:
@@ -43,7 +44,7 @@ def create_beam_calculator_object(
                         if key not in keys_not_handled}
 
     calculators = {
-        'LightWin': Envelope1D,
+        'Envelope1D': Envelope1D,
         'TraceWin': TraceWin,
     }
 
