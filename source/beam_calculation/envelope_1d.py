@@ -8,15 +8,18 @@ Created on Mon Jun 12 08:24:37 2023.
 This module holds Envelope1D, that inherits from BeamCalculator base class. It
 solves the motion of the particle in Envelope, in 1D.
 
-Methods from `BeamCalculator` that are inherited:
-    __post_init__
-    _generate_element_to_index_func
+Inherited
+---------
+    out_folder
+    __post_init__()
+    _generate_element_to_index_func()
 
-Abstractmethods from `BeamCalculator` that must be defined:
-    run
-    run_with_this
-    init_solver_parameters
-    _generate_simulation_output
+Abstract methods
+----------------
+    run()
+    run_with_this()
+    init_solver_parameters()
+    _generate_simulation_output()
 
 """
 import logging
@@ -37,7 +40,10 @@ from failures.set_of_cavity_settings import SetOfCavitySettings
 
 @dataclass
 class Envelope1D(BeamCalculator):
-    """The fastest beam calculator, adapted to high energies."""
+    """
+    The fastest beam calculator, adapted to high energies.
+
+    """
 
     flag_phi_abs: bool
     flag_cython: bool

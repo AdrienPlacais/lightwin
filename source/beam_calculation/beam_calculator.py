@@ -26,6 +26,8 @@ from core.accelerator import Accelerator
 class BeamCalculator(ABC):
     """A generic class to store a beam dynamics solver and its results."""
 
+    out_folder: str
+
     def __post_init__(self):
         """List the mandatory arguments."""
         self.id: str = self.__repr__()

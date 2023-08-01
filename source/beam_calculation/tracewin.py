@@ -10,15 +10,18 @@ solves the motion of the particles in Envelope or Multipart, in 3D. In contrary
 to Envelope1D solver, it is not a real solver but an interface with TraceWin
 which must be installed on your machine.
 
-Methods from `BeamCalculator` that are inherited:
-    __post_init__
-    _generate_element_to_index_func
+Inherited
+---------
+    out_folder
+    __post_init__()
+    _generate_element_to_index_func()
 
-Abstractmethods from `BeamCalculator` that must be defined:
-    run
-    run_with_this
-    init_solver_parameters
-    _generate_simulation_output
+Abstract methods
+----------------
+    run()
+    run_with_this()
+    init_solver_parameters()
+    _generate_simulation_output()
 
 """
 from dataclasses import dataclass
@@ -77,6 +80,7 @@ class TraceWin(BeamCalculator):
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
         self.id = self.__repr__()
+        self.out_folder += "_TraceWin"
 
         filename = 'tracewin.out'
         if self._is_a_multiparticle_simulation(self.base_kwargs):
