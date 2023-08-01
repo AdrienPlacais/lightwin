@@ -38,8 +38,7 @@ class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
     def __init__(self, name: str, dat_file: str, project_folder: str,
-                 beam_calc_path: str, beam_calc_post_path: str | None,
-                 ) -> None:
+                 accelerator_path: str, out_folders: tuple[str]) -> None:
         """
         Create Accelerator object.
 
@@ -47,6 +46,7 @@ class Accelerator():
         in the list self.
         The data such as the synch phase or the beam energy will be stored in
         the self.synch Particle object.
+
         """
         self.name = name
         self.simulation_outputs: dict[str, SimulationOutput] = {}
@@ -57,10 +57,10 @@ class Accelerator():
             'dat_filepath': dat_file,
             'original_dat_folder': os.path.dirname(dat_file),  # used only once
             'project_folder': project_folder,
+            'accelerator_path': accelerator_path,
             'dat_filecontent': None,
             'field_map_folder': None,
-            'beam_calc_path': beam_calc_path,
-            'beam_calc_post_path': beam_calc_post_path}
+        }
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent = tracewin_utils.load.dat_file(dat_file)
@@ -75,11 +75,9 @@ class Accelerator():
 
         self.files['dat_filecontent'] = dat_filecontent
 
-        self.synch = particle.ParticleInitialState(
-            w_kin=con.E_MEV,
-            phi_abs=0.,
-            synchronous=True
-        )
+        self.synch = particle.ParticleInitialState(w_kin=con.E_MEV,
+                                                   phi_abs=0.,
+                                                   synchronous=True)
 
         self._special_getters = self._create_special_getters()
         self._check_consistency_phases()
@@ -223,7 +221,11 @@ class Accelerator():
             phi_s = simulation_output.cav_params['phi_s'][i]
             elt.keep_rf_field(rf_field, v_cav_mv, phi_s)
 
-        self._store_settings_in_dat(save=True)
+        dat_filepath = os.path.join(
+            self.files['accelerator_path'],
+            simulation_output.out_folder,
+            os.path.basename(self.files['dat_filepath']))
+        self._store_settings_in_dat(dat_filepath, save=True)
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
                           ) -> _Element | None:
@@ -235,7 +237,8 @@ class Accelerator():
         """Return an element from self.elts with the same name."""
         return equiv_elt(self.elts, elt, to_index)
 
-    def _store_settings_in_dat(self, save: bool = True) -> None:
+    def _store_settings_in_dat(self, dat_filepath: str, save: bool = True
+                               ) -> None:
         """Update the dat file, save it if asked."""
         tracewin_utils.interface.update_dat_with_fixed_cavities(
             self.get('dat_filecontent', to_numpy=False),
@@ -244,9 +247,6 @@ class Accelerator():
         )
 
         if save:
-            dat_filepath = os.path.join(
-                self.get('beam_calc_path'),
-                os.path.basename(self.get('dat_filepath')))
             self.files['dat_filepath'] = dat_filepath
             with open(self.get('dat_filepath'), 'w') as file:
                 for line in self.files['dat_filecontent']:
@@ -254,10 +254,10 @@ class Accelerator():
             logging.info(f"New dat saved in {self.get('dat_filepath')}")
 
 
-def accelerator_factory(files: dict[str, str], beam_calculator: dict[str, Any],
+def accelerator_factory(beam_calculators: tuple[object | None],
+                        files: dict[str, str],
                         beam: dict[str, Any],
                         wtf: dict[str, Any] | None = None,
-                        beam_calculator_post: dict[str, Any] | None = None,
                         **kwargs
                         ) -> list[Accelerator]:
     """Create the required Accelerators as well as their output folders."""
@@ -265,28 +265,27 @@ def accelerator_factory(files: dict[str, str], beam_calculator: dict[str, Any],
     if wtf is not None:
         n_simulations = len(wtf['failed']) + 1
 
-    beam_calc_paths, beam_calc_post_paths = _generate_folders_tree_structure(
+    out_folders = tuple([beam_calculator.out_folder
+                        for beam_calculator in beam_calculators
+                        if beam_calculator is not None
+                         ])
+
+    accelerator_paths = _generate_folders_tree_structure(
         project_folder=files['project_folder'],
         n_simulations=n_simulations,
-        tool=beam_calculator['tool'],
-        post_tool=beam_calculator_post['tool']
-        if beam_calculator_post is not None else None
+        out_folders=out_folders
     )
     names = ['Broken' if i > 0 else 'Working' for i in range(n_simulations)]
 
-    accelerators = [Accelerator(name,
-                                **files,
-                                beam_calc_path=beam_calc_path,
-                                beam_calc_post_path=beam_calc_post_path)
-                    for name, beam_calc_path, beam_calc_post_path
-                    in zip(names, beam_calc_paths, beam_calc_post_paths)]
+    accelerators = [Accelerator(name, accelerator_path=accelerator_path,
+                                out_folders=out_folders, **files)
+                    for name, accelerator_path
+                    in zip(names, accelerator_paths)]
     return accelerators
 
 
-def _generate_folders_tree_structure(project_folder: str,
-                                     n_simulations: int,
-                                     tool: str, post_tool: str | None = None
-                                     ) -> tuple[list[str], list[str | None]]:
+def _generate_folders_tree_structure(project_folder: str, n_simulations: int,
+                                     out_folders: tuple[str]) -> None:
     """
     Create the proper folders for every Accelerator.
 
@@ -294,7 +293,7 @@ def _generate_folders_tree_structure(project_folder: str,
 
     where_original_dat_is/
         YYYY.MM.DD_HHhMM_SSs_MILLIms/              <- project_folder
-            000000_ref/                            <- fault_scenario_path
+            000000_ref/                            <- accelerator_path
                 beam_calculation_toolname/         <- beam_calc
                 (beam_calculation_post_toolname)/  <- beam_calc_post
             000001/
@@ -304,23 +303,13 @@ def _generate_folders_tree_structure(project_folder: str,
                 beam_calculation_toolname/
                 (beam_calculation_post_toolname)/
             etc
+
     """
-    logging.critical(project_folder)
-    fault_scenario_paths = [os.path.join(project_folder, f"{i:06d}")
-                            for i in range(n_simulations)]
-    fault_scenario_paths[0] += '_ref'
+    accelerator_paths = [os.path.join(project_folder, f"{i:06d}")
+                         for i in range(n_simulations)]
+    accelerator_paths[0] += '_ref'
 
-    base_beam_calc = f"beam_calculation_{tool}"
-    beam_calc_paths = [os.path.join(fault_scenar, base_beam_calc)
-                       for fault_scenar in fault_scenario_paths]
-    _ = [os.makedirs(beam_calc_path) for beam_calc_path in beam_calc_paths]
-
-    beam_calc_post_paths = [None for fault_scenar in fault_scenario_paths]
-    if post_tool is not None:
-        base_beam_calc_post = f"beam_calculation_post_{post_tool}"
-        beam_calc_post_paths = [os.path.join(fault_scenar, base_beam_calc_post)
-                                for fault_scenar in fault_scenario_paths]
-        _ = [os.makedirs(beam_calc_path)
-             for beam_calc_path in beam_calc_post_paths]
-
-    return beam_calc_paths, beam_calc_post_paths
+    _ = [os.makedirs(os.path.join(fault_scenar, out_folder))
+         for fault_scenar in accelerator_paths
+         for out_folder in out_folders]
+    return accelerator_paths

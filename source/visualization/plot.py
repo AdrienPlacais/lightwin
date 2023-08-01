@@ -4,6 +4,11 @@
 Created on Wed Feb  8 09:35:54 2023.
 
 @author: placais
+
+This module holds a library to produce all these nice plots.
+
+TODO : _plot_structure needs a ListOfElements, not an Accelerator. I think.
+
 """
 
 import os
@@ -131,7 +136,7 @@ def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
         _plot_structure(lin_fix, axx[-1], x_axis=x_axis)
 
         if save_fig:
-            file = os.path.join(lin_fix.get('beam_calc_path'), '..',
+            file = os.path.join(lin_fix.get('accelerator_path'),
                                 f"{evaluation}_{i}.png")
             _savefig(fig, file)
 
@@ -174,7 +179,7 @@ def _plot_preset(str_preset: str, *args: Accelerator,
     axx[-1].set_xlabel(dic.markdown[x_axis])
 
     if save_fig:
-        file = os.path.join(os.path.dirname(args[-1].get('beam_calc_path')),
+        file = os.path.join(args[-1].get('accelerator_path'),
                             f"{str_preset}.png")
         _savefig(fig, file)
 

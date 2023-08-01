@@ -36,6 +36,8 @@ class SimulationOutput:
 
     Attributes
     ----------
+    out_folder : str
+        Results folder used by the `BeamCalculator` that created this.
     z_abs : np.ndarray | None, optional
         Absolute position in the linac in m. The default is None.
     synch_trajectory : ParticleFullTrajectory | None
@@ -62,6 +64,8 @@ class SimulationOutput:
         tab of TraceWin. The default is None.
 
     """
+
+    out_folder: str
 
     synch_trajectory: ParticleFullTrajectory | None
 

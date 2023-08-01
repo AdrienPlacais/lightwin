@@ -154,11 +154,8 @@ class TraceWin(BeamCalculator):
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
         """Set the `path_cal` variable."""
-        # self.path_cal = os.path.abspath('beam_calc_path')
-        # FIXME
-        logging.critical("For now, the TW path_cal is automatically set to the"
-                         " POST calculation path.")
-        self.path_cal = accelerator.get('beam_calc_post_path')
+        self.path_cal = os.path.join(accelerator.get('accelerator_path'),
+                                     self.out_folder)
         assert os.path.exists(self.path_cal)
 
     def _generate_simulation_output(self, elts: ListOfElements
@@ -192,6 +189,7 @@ class TraceWin(BeamCalculator):
 
         element_to_index = self._generate_element_to_index_func(elts)
         simulation_output = SimulationOutput(
+            out_folder=self.out_folder,
             z_abs=results['z(m)'],
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,

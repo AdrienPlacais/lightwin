@@ -121,7 +121,8 @@ if __name__ == '__main__':
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
-    accelerators: list[Accelerator] = accelerator_factory(**my_configs)
+    accelerators: list[Accelerator] = \
+        accelerator_factory(my_beam_calculators, **my_configs)
     beam_calc_and_save(accelerators[0], my_beam_calc)
 
     fault_scenarios: list[FaultScenario]

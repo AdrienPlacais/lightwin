@@ -14,6 +14,7 @@ from core.accelerator import Accelerator
 def save_files(accelerator: Accelerator,
                data_in_tracewin_style: pd.DataFrame | None = None) -> None:
     """Save a new dat with the new linac settings, as well as eval. files."""
+    raise NotImplementedError
     for data, filename in zip([data_in_tracewin_style],
                               ['data_in_tracewin_style.csv']):
         if data is not None:
