@@ -664,52 +664,6 @@ def _sigma_beam_matrices(tm_cumul: np.ndarray, sigma_in: np.ndarray
     return np.array(sigma)
 
 
-def _emittances_all(eps_zdelta: np.ndarray, gamma: np.ndarray
-                    ) -> dict[str, np.ndarray]:
-    """Compute emittances in [phi-W] and [z-z']."""
-    eps = {"eps_zdelta": eps_zdelta,
-           "eps_w": converters.emittance(eps_zdelta, gamma, "zdelta to w"),
-           "eps_z": converters.emittance(eps_zdelta, gamma, "zdelta to z")}
-    return eps
-
-
-def _twiss_zdelta(sigma: np.ndarray, eps_zdelta: np.ndarray) -> np.ndarray:
-    """Transport Twiss parameters along element(s) described by tm_cumul."""
-    n_points = sigma.shape[0]
-    twiss = np.full((n_points, 3), np.NaN)
-
-    for i in range(n_points):
-        twiss[i, :] = np.array([-sigma[i][1, 0],
-                                sigma[i][0, 0] * 10.,
-                                sigma[i][1, 1] / 10.]) / eps_zdelta[i]
-        # beta multiplied by 10 to match TW
-        # gamma divided by 10 to keep beta * gamma - alpha**2 = 1
-    return twiss
-
-
-def _twiss_all(twiss_zdelta: np.ndarray, gamma: np.ndarray) -> np.ndarray:
-    """Compute Twiss parameters in [phi-W] and [z-z']."""
-    twiss = {"twiss_zdelta": twiss_zdelta,
-             "twiss_w": converters.twiss(twiss_zdelta, gamma, "zdelta to w"),
-             "twiss_z": converters.twiss(twiss_zdelta, gamma, "zdelta to z")}
-    return twiss
-
-
-def _envelopes(twiss: np.ndarray, eps: np.ndarray) -> np.ndarray:
-    """Compute beam envelopes in a given plane."""
-    env = np.sqrt(np.column_stack((twiss[:, 1], twiss[:, 2]) * eps))
-    return env
-
-
-def _envelopes_all(twiss: np.ndarray, eps: np.ndarray) -> np.ndarray:
-    """Compute beam envelopes in all the planes."""
-    spa = ('_zdelta', '_w', '_z')
-    env = {'envelopes' + key:
-           _envelopes(twiss['twiss' + key], eps['eps' + key])
-           for key in spa}
-    return env
-
-
 def _phase_space_name_hidden_in_key(key: str) -> bool:
     """Look for the name of a phase-space in a key name."""
     if '_' not in key:
@@ -721,7 +675,7 @@ def _phase_space_name_hidden_in_key(key: str) -> bool:
     return False
 
 
-def _separate_var_from_phase_space(key: str) -> bool:
+def _separate_var_from_phase_space(key: str) -> tuple[str, str]:
     """Separate variable name from phase space name."""
     splitted = key.split('_')
     key = '_'.join(splitted[:-1])
