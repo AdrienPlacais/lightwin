@@ -84,23 +84,56 @@ PRESETS = {
         'plt_kwargs': {'fignum': 112, 'savefig': True},
 
     },
-    "max of eps shall not be too high": {
-        'value_getter': lambda s: s.get('eps_zdelta'),
-        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_zdelta')),
+    "max of 99percent transverse eps_x shall not be too high": {
+        'value_getter': lambda s: s.get('eps_x99'),
+        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_x99')),
         'post_treaters': (post_treaters.maximum,
                           partial(post_treaters.relative_difference,
                                   replace_zeros_by_nan_in_ref=False,
                                   to_plot=True)),
         'tester': partial(testers.value_is_below,
                           upper_limit=30., to_plot=True),
-        'markdown': r"$\frac{max(\epsilon_{z\delta}) - "
-                    + r"max(\epsilon_{z\delta}^{ref}))}"
-                    + r"{max(\epsilon_{z\delta}^{ref})}$",
-        'descriptor': """The maximum of longitudinal emittance should not
-                         exceed the nominal maximum of longitudinal emittance
-                         by more than 30%.""",
-        'plt_kwargs': {'fignum': 103,
-                       'savefig': True},
+        'markdown': r"$\frac{max(\epsilon_{xx'}) - "
+                    + r"max(\epsilon_{xx'}^{ref}))}"
+                    + r"{max(\epsilon_{xx'}^{ref})}$ @ 99%",
+        'descriptor': """The maximum of 99% transverse x emittance should not
+                         exceed the nominal maximum of 99% transverse x
+                         emittance by more than 30%.""",
+        'plt_kwargs': {'fignum': 120, 'savefig': True},
+    },
+    "max of 99percent transverse eps_y shall not be too high": {
+        'value_getter': lambda s: s.get('eps_y99'),
+        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_y99')),
+        'post_treaters': (post_treaters.maximum,
+                          partial(post_treaters.relative_difference,
+                                  replace_zeros_by_nan_in_ref=False,
+                                  to_plot=True)),
+        'tester': partial(testers.value_is_below,
+                          upper_limit=30., to_plot=True),
+        'markdown': r"$\frac{max(\epsilon_{yy'}) - "
+                    + r"max(\epsilon_{yy'}^{ref}))}"
+                    + r"{max(\epsilon_{xx'}^{ref})}$ @ 99%",
+        'descriptor': """The maximum of 99% transverse y emittance should not
+                         exceed the nominal maximum of 99% transverse y
+                         emittance by more than 30%.""",
+        'plt_kwargs': {'fignum': 121, 'savefig': True},
+    },
+    "max of 99percent longitudinal eps shall not be too high": {
+        'value_getter': lambda s: s.get('eps_phiw99'),
+        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_phiw99')),
+        'post_treaters': (post_treaters.maximum,
+                          partial(post_treaters.relative_difference,
+                                  replace_zeros_by_nan_in_ref=False,
+                                  to_plot=True)),
+        'tester': partial(testers.value_is_below,
+                          upper_limit=30., to_plot=True),
+        'markdown': r"$\frac{max(\epsilon_{\phi W}) - "
+                    + r"max(\epsilon_{\phi W}^{ref}))}"
+                    + r"{max(\epsilon_{\phi W}^{ref})}$ @ 99%",
+        'descriptor': """The maximum of 99% longitudinal emittance should not
+                         exceed the nominal maximum of 99% longitudinal
+                         emittance by more than 30%.""",
+        'plt_kwargs': {'fignum': 122, 'savefig': True},
 
     },
     # Legacy "Bruce tests"

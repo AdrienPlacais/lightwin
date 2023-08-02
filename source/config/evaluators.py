@@ -23,7 +23,9 @@ def test(c_evaluators: configparser.SectionProxy) -> None:
         "transverse eps_x shall not grow too much",
         "transverse eps_y shall not grow too much",
         "longitudinal eps shall not grow too much",
-        "max of eps shall not be too high",
+        "max of 99percent transverse eps_x shall not be too high",
+        "max of 99percent transverse eps_y shall not be too high",
+        "max of 99percent longitudinal eps shall not be too high",
         "longitudinal eps at end",
         "mismatch factor at end"
     )
