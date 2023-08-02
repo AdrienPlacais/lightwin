@@ -35,9 +35,9 @@ PRESETS = {
         'plt_kwargs': {'fignum': 101,
                        'savefig': True},
     },
-    "longitudinal eps shall not grow too much": {
-        'value_getter': lambda s: s.get('eps_zdelta'),
-        'ref_value_getter': lambda ref_s, s: s.get('eps_zdelta',
+    "transverse eps_x shall not grow too much": {
+        'value_getter': lambda s: s.get('eps_x'),
+        'ref_value_getter': lambda ref_s, s: s.get('eps_x',
                                                    elt='first', pos='in'),
         'post_treaters': (post_treaters.relative_difference,
                           partial(post_treaters.scale_by,
@@ -45,12 +45,43 @@ PRESETS = {
                           post_treaters.maximum),
         'tester': partial(testers.value_is_below,
                           upper_limit=20., to_plot=True),
-        'markdown': r"$\Delta\epsilon_{z\delta} / \epsilon_{z\delta}$ "
+        'markdown': r"$\Delta\epsilon_{xx'} / \epsilon_{xx'}$ (ref $z=0$) [%]",
+        'descriptor': """Transverse emittance should not grow by more than
+                         20% along the linac.""",
+        'plt_kwargs': {'fignum': 110, 'savefig': True},
+
+    },
+    "transverse eps_y shall not grow too much": {
+        'value_getter': lambda s: s.get('eps_y'),
+        'ref_value_getter': lambda ref_s, s: s.get('eps_y',
+                                                   elt='first', pos='in'),
+        'post_treaters': (post_treaters.relative_difference,
+                          partial(post_treaters.scale_by,
+                                  scale=100., to_plot=True),
+                          post_treaters.maximum),
+        'tester': partial(testers.value_is_below,
+                          upper_limit=20., to_plot=True),
+        'markdown': r"$\Delta\epsilon_{yy'} / \epsilon_{yy'}$ (ref $z=0$) [%]",
+        'descriptor': """Transverse emittance should not grow by more than
+                         20% along the linac.""",
+        'plt_kwargs': {'fignum': 111, 'savefig': True},
+
+    },
+    "longitudinal eps shall not grow too much": {
+        'value_getter': lambda s: s.get('eps_phiw'),
+        'ref_value_getter': lambda ref_s, s: s.get('eps_phiw',
+                                                   elt='first', pos='in'),
+        'post_treaters': (post_treaters.relative_difference,
+                          partial(post_treaters.scale_by,
+                                  scale=100., to_plot=True),
+                          post_treaters.maximum),
+        'tester': partial(testers.value_is_below,
+                          upper_limit=20., to_plot=True),
+        'markdown': r"$\Delta\epsilon_{\phi W} / \epsilon_{\phi W}$ "
                     + r"(ref $z=0$) [%]",
         'descriptor': """Longitudinal emittance should not grow by more than
                          20% along the linac.""",
-        'plt_kwargs': {'fignum': 102,
-                       'savefig': True},
+        'plt_kwargs': {'fignum': 112, 'savefig': True},
 
     },
     "max of eps shall not be too high": {

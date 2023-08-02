@@ -20,6 +20,8 @@ def test(c_evaluators: configparser.SectionProxy) -> None:
     implemented = ['beam_calc_post']
     implemented_presets = (
         "no power loss",
+        "transverse eps_x shall not grow too much",
+        "transverse eps_y shall not grow too much",
         "longitudinal eps shall not grow too much",
         "max of eps shall not be too high",
         "longitudinal eps at end",
