@@ -88,14 +88,13 @@ class BeamParameters:
         self.x99: SinglePhaseSpaceBeamParameters
         self.y99: SinglePhaseSpaceBeamParameters
 
-        self.mismatch_factor: np.ndarray | None
-
     def __str__(self) -> str:
         """Give compact information on the data that is stored."""
         out = "\tBeamParameters:\n"
         out += "\t\t" + range_vals("zdelta.eps", self.zdelta.eps)
         out += "\t\t" + range_vals("zdelta.beta", self.zdelta.beta)
-        out += "\t\t" + range_vals("mismatch", self.mismatch_factor)
+        out += "\t\t" + range_vals("zdelta.mismatch",
+                                   self.zdelta.mismatch_factor)
         return out
 
     def has(self, key: str) -> bool:
@@ -274,16 +273,6 @@ class BeamParameters:
         self.x99.eps = eps_x99
         self.y99.eps = eps_y99
 
-    def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
-        """Compute the mismatch factor."""
-        if ref_twiss_zdelta is None:
-            logging.warning("Attempting to compute a mismatch without "
-                            "reference Twiss parameters.")
-            return
-        self.mismatch_factor = mismatch_factor(ref_twiss_zdelta,
-                                               self.zdelta.twiss,
-                                               transp=True)
-
 
 @dataclass
 class SinglePhaseSpaceBeamParameters:
@@ -304,6 +293,8 @@ class SinglePhaseSpaceBeamParameters:
     eps: np.ndarray | None = None
     envelope_pos: np.ndarray | None = None
     envelope_energy: np.ndarray | None = None
+
+    mismatch_factor: np.ndarray | None = None
 
     def __post_init__(self):
         """Set the default attributes for the zdelta."""
@@ -662,8 +653,31 @@ class SinglePhaseSpaceBeamParameters:
 # =============================================================================
 # Public
 # =============================================================================
-def mismatch_factor(ref: np.ndarray, fix: np.ndarray, transp: bool = False
-                    ) -> float:
+# TODO some interpolation if needed?
+def mismatch_from_objects(ref: SinglePhaseSpaceBeamParameters,
+                          fix: SinglePhaseSpaceBeamParameters,
+                          save_in_fix_object: bool = True
+                          ) -> np.ndarray | None:
+    """Compute the mismatch using two `SinglePhaseSpaceBeamParameters`."""
+    if ref.phase_space != fix.phase_space:
+        logging.warning("You asked for a mismatch factor computed between "
+                        "different phase spaces. I will trust you and continue"
+                        " as if I did not see anything.")
+
+    if ref.twiss.shape != fix.twiss.shape:
+        logging.critical("Shapes are different between the two Twiss arrays. "
+                         "Shall implement interpolation for this... Returning"
+                         " None.")
+        return None
+
+    mism = mismatch_from_arrays(ref.twiss, fix.twiss, transp=True)
+    if save_in_fix_object:
+        fix.mismatch_factor = mism
+    return mism
+
+
+def mismatch_from_arrays(ref: np.ndarray, fix: np.ndarray, transp: bool = False
+                         ) -> np.ndarray:
     """Compute the mismatch factor between two ellipses."""
     assert isinstance(ref, np.ndarray)
     assert isinstance(fix, np.ndarray)

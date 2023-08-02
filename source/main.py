@@ -84,7 +84,7 @@ if __name__ == '__main__':
     MY_CONFIG_FILE = 'myrrha.ini'
     MY_KEYS = {
         'files': 'files',
-        'plots': 'plots.light',
+        'plots': 'plots.complete',
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
         'wtf': 'wtf.quick_debug',

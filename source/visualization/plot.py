@@ -63,7 +63,7 @@ PLOT_PRESETS = {
             ["envelope_pos_phiw", "envelope_energy_zdelta", "struct"],
         'num': 26, 'symetric_plot': True},
     "mismatch_factor": {'x_axis': 'z_abs',
-                        'all_y_axis': ["mismatch_factor", "struct"],
+                        'all_y_axis': ["mismatch_factor_zdelta", "struct"],
                         'num': 27},
 }
 ERROR_PRESETS = {'w_kin_err': {'scale': 1., 'diff': 'simple'},

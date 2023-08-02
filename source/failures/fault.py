@@ -19,7 +19,7 @@ from util.dicts_output import markdown
 from core.elements import _Element, FieldMap
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
-from core.beam_parameters import mismatch_factor
+from core.beam_parameters import mismatch_from_arrays
 from algorithms.least_squares import LeastSquares
 from failures.variables import VariablesAndConstraints
 from failures.set_of_cavity_settings import SetOfCavitySettings
@@ -202,10 +202,9 @@ class Fault:
             for elt in self.elt_eval_objectives
             for key in objectives]
 
-        exceptions = ['mismatch_factor']
         objectives_values = [
             self.ref_acc.get(key, elt=elt, pos='out')
-            if key not in exceptions
+            if 'mismatch_factor' not in key
             else self.ref_acc.get('twiss', elt=elt, pos='out',
                                   phase_space='zdelta')
             for elt in self.elt_eval_objectives
@@ -229,9 +228,8 @@ class Fault:
                 for key, scale in zip(objectives, scales):
                     i_ref += 1
 
-                    # mismatch_factor
-                    if key == 'mismatch_factor':
-                        mism = mismatch_factor(
+                    if key == 'mismatch_factor_zdelta':
+                        mism = mismatch_from_arrays(
                             objectives_values[i_ref],
                             simulation_output.get('twiss', elt=elt, pos='out',
                                                   phase_space='zdelta'))[0]

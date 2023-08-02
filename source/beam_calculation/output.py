@@ -25,7 +25,7 @@ import pandas as pd
 from core.particle import ParticleFullTrajectory
 from core.elements import _Element
 from core.list_of_elements import ListOfElements
-from core.beam_parameters import BeamParameters
+from core.beam_parameters import BeamParameters, mismatch_from_objects
 from util.helper import recursive_items, recursive_getter, range_vals
 
 
@@ -217,9 +217,10 @@ class SimulationOutput:
 
         # self.beam_parameters.compute_full(self.synch_trajectory.gamma)
         if ref_simulation_output is not None:
-            ref_twiss_zdelta = \
-                ref_simulation_output.beam_parameters.zdelta.twiss
-            self.beam_parameters.compute_mismatch(ref_twiss_zdelta)
+            _ = mismatch_from_objects(
+                ref_simulation_output.beam_parameters.zdelta,
+                self.beam_parameters.zdelta,
+                save_in_fix_object=True)
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
         logging.critical("data_in_tw_fashion is bugged")
@@ -231,5 +232,3 @@ def get_nth_parent(filepath: str, nth: int) -> str:
     new_path_as_list = path_as_list[-nth:]
     new_path = os.path.join(*new_path_as_list)
     return new_path
-
-

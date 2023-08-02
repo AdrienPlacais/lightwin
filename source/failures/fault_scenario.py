@@ -230,8 +230,8 @@ class FaultScenario(list):
                                                                 id_solver_fix)
 
         quantities_to_evaluate = ('w_kin', 'phi_abs', 'envelope_pos_phiw',
-                                  'envelope_energy_phiw', 'mismatch_factor',
-                                  'eps_phiw')
+                                  'envelope_energy_phiw', 'eps_phiw',
+                                  'mismatch_factor_zdelta')
         my_evaluator = FaultScenarioSimulationOutputEvaluators(
             quantities_to_evaluate, [fault for fault in self], simulations)
         my_evaluator.run(output=True)

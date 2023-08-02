@@ -36,6 +36,8 @@ markdown = {
     'envelope_energy_phiw': r"Norm. $\sigma_\phi$ @ $1\sigma$ [MeV]",
 
     'mismatch_factor': r"$M$",
+    'mismatch_factor_zdelta': r"$M$",
+
     # Element
     'elt_idx': "Element index",
     'elt number': "Element number",
@@ -91,7 +93,7 @@ plot_kwargs = {
     'envelope_energy_zdelta': {'marker': None},
     'envelope_energy_z': {'marker': None},
     'envelope_energy_phiw': {'marker': None},
-    'mismatch_factor': {'marker': None},
+    'mismatch_factor_zdelta': {'marker': None},
     # Element
     'elt_idx': {'marker': None},
     # RfField
