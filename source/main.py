@@ -7,23 +7,26 @@ Created on Tue Dec  6 14:33:39 2022.
 
 FIXME get @ elt clash when arg is single: v_cav, phi_s, etc
 """
-# %%
-# import os
 import logging
-# from copy import deepcopy
 import time
 import datetime
-# import pandas as pd
 
 import config_manager as conf_man
+
 from core.accelerator import Accelerator, accelerator_factory
+
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
-# import tracewin_utils.interface
+
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_objects
 from beam_calculation.output import SimulationOutput
-# from util import evaluate
+
 from visualization import plot
+
+from evaluator.list_of_simulation_output_evaluators import (
+    ListOfSimulationOutputEvaluators,
+    factory_simulation_output_evaluators_from_presets
+)
 
 
 def _wrap_beam_calculation(accelerator: Accelerator,
@@ -94,8 +97,9 @@ if __name__ == '__main__':
     RECOMPUTE_REFERENCE = False
 
     # =========================================================================
-    # Set up BeamCalculator objects
+    # Set up
     # =========================================================================
+    # Beam calculators
     beam_calculators_parameters = (
         my_configs['beam_calculator'],
         my_configs['beam_calculator_post'] if perform_post_simulation else None
@@ -112,6 +116,7 @@ if __name__ == '__main__':
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
+    # Reference accelerator
     accelerators: list[Accelerator] = \
         accelerator_factory(my_beam_calculators, **my_configs)
     beam_calc_and_save(accelerators[0], my_beam_calc)
@@ -119,6 +124,10 @@ if __name__ == '__main__':
     fault_scenarios: list[FaultScenario]
     fault_scenarios = fault_scenario_factory(accelerators, my_beam_calc,
                                              my_configs['wtf'])
+
+    # =========================================================================
+    # Fix
+    # =========================================================================
     for fault_scenario in fault_scenarios:
         start_time = time.monotonic()
 
@@ -128,6 +137,10 @@ if __name__ == '__main__':
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time in optimisation: {delta_t}")
 
+    # =========================================================================
+    # Check
+    # =========================================================================
+    # Re-run new settings with beam_calc_pos, a priori more precise
     for accelerator in accelerators:
         start_time = time.monotonic()
 
@@ -141,26 +154,21 @@ if __name__ == '__main__':
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time in post beam calculation: {delta_t}")
 
+    # =========================================================================
+    # Post-treat
+    # =========================================================================
     kwargs = {'save_fig': False, 'clean_fig': True}
     figs = plot.factory(accelerators, my_configs['plots'], **kwargs)
 
+    s_to_study = [accelerator.simulation_outputs[solv2]
+                  for accelerator in accelerators]
+    ref_s = s_to_study[0]
 
-# %%
-from evaluator.list_of_simulation_output_evaluators import (
-    ListOfSimulationOutputEvaluators,
-    factory_simulation_output_evaluators_from_presets
-)
+    tests = ("no power loss", "longitudinal eps shall not grow too much",
+             "max of eps shall not be too high", "longitudinal eps at end")
 
-s_to_study = [accelerator.simulation_outputs[solv2]
-              for accelerator in accelerators]
-ref_s = s_to_study[0]
+    simulation_output_evaluators: ListOfSimulationOutputEvaluators = \
+        factory_simulation_output_evaluators_from_presets(
+            *tests, ref_simulation_output=ref_s)
 
-tests = ("no power loss", "longitudinal eps shall not grow too much",
-         "max of eps shall not be too high", "longitudinal eps at end")
-
-simulation_output_evaluators: ListOfSimulationOutputEvaluators
-simulation_output_evaluators = \
-    factory_simulation_output_evaluators_from_presets(
-        *tests, ref_simulation_output=ref_s)
-
-simulation_output_evaluators.run(*tuple(s_to_study))
+    simulation_output_evaluators.run(*tuple(s_to_study))
