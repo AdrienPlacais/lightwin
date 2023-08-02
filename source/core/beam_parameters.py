@@ -524,7 +524,6 @@ class SinglePhaseSpaceBeamParameters:
                                               beta_kin=beta_kin)
         return eps_no_normalisation, eps_normalized
 
-    # FIXME use normalisation/denormalisation from utils.converters instead
     def _compute_eps_from_other_plane(self, eps_orig: np.ndarray, convert: str,
                                       gamma_kin: np.ndarray,
                                       beta_kin: np.ndarray
@@ -557,11 +556,12 @@ class SinglePhaseSpaceBeamParameters:
                                               gamma_kin=gamma_kin,
                                               beta_kin=beta_kin)
 
-        eps_no_normalisation = eps_normalized / (beta_kin * gamma_kin)
-        if self.phase_space == 'z':
-            eps_no_normalisation /= gamma_kin**2
-            return eps_no_normalisation, eps_normalized
-
+        eps_no_normalisation = converters.emittance(
+            eps_normalized,
+            f"de-normalize {self.phase_space}",
+            gamma_kin,
+            beta_kin
+        )
         return eps_no_normalisation, eps_normalized
 
     def _compute_twiss_from_sigma(self, sigma: np.ndarray,
@@ -617,6 +617,8 @@ class SinglePhaseSpaceBeamParameters:
                                       beta_kin=beta_kin)
         self._unpack_twiss(self.twiss)
 
+    # TODO would be possible to skip this with TW, where envelope_pos is
+    # already known
     def _compute_envelopes_from_sigma(self, sigma: np.ndarray
                                       ) -> tuple[np.ndarray, np.ndarray]:
         """
