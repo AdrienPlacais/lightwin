@@ -9,7 +9,6 @@ In this module we store predefined arguments to generate
 `SimulationOutputEvaluator`s.
 
 """
-import logging
 from typing import Callable
 
 from functools import partial

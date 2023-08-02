@@ -30,7 +30,7 @@ import os
 import configparser
 import numpy as np
 
-from config import files, plots, beam_calculator, beam, wtf
+from config import files, plots, beam_calculator, beam, wtf, evaluators
 
 
 # Values that will be available everywhere
@@ -66,6 +66,8 @@ def process_config(config_path: str, config_keys: dict[str, str],
             - beam: the initial beam properties.
             - wtf: for 'what to fit'. Everything related to the fault
                    compensation methodology.
+            - evaluators_post: to set the tests that are run on the newly found
+                               settings. Can be empty.
         Optional keys are:
             - beam_calculator_post: for an additional simulation once the fault
                                     are compensated. Usually, this simulation
@@ -87,6 +89,9 @@ def process_config(config_path: str, config_keys: dict[str, str],
             Dictionary holding all wtf parameters.
         beam_calculator_post : dict
             Holds beam_calculator parameters for the post treatment simulation.
+        evaluators : dict
+            Holds the name of the tests/evaluations presets that will be run
+            during and after the simulation.
 
     """
     # Load config
@@ -95,6 +100,7 @@ def process_config(config_path: str, config_keys: dict[str, str],
     config = configparser.ConfigParser(
         converters={
             'liststr': lambda x: [i.strip() for i in x.split(',')],
+            'tuplestr': lambda x: tuple([i.strip() for i in x.split(',')]),
             'listint': lambda x: [int(i.strip()) for i in x.split(',')],
             'listfloat': lambda x: [float(i.strip()) for i in x.split(',')],
             'faults': lambda x: [[int(i.strip()) for i in y.split(',')]
@@ -184,7 +190,8 @@ TESTERS = {
     'beam_calculator': beam_calculator.test,
     'beam': beam.test,
     'wtf': wtf.test,
-    'beam_calculator_post': beam_calculator.test
+    'beam_calculator_post': beam_calculator.test,
+    'evaluators': evaluators.test,
 }
 
 DICTIONARIZERS = {
@@ -193,5 +200,6 @@ DICTIONARIZERS = {
     'beam_calculator': beam_calculator.config_to_dict,
     'beam': beam.config_to_dict,
     'wtf': wtf.config_to_dict,
-    'beam_calculator_post': beam_calculator.config_to_dict
+    'beam_calculator_post': beam_calculator.config_to_dict,
+    'evaluators': evaluators.config_to_dict,
 }

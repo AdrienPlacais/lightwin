@@ -89,6 +89,7 @@ if __name__ == '__main__':
         'beam': 'beam',
         'wtf': 'wtf.quick_debug',
         'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
+        'evaluators': 'evaluators.classic',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
@@ -164,11 +165,9 @@ if __name__ == '__main__':
                   for accelerator in accelerators]
     ref_s = s_to_study[0]
 
-    tests = ("no power loss", "longitudinal eps shall not grow too much",
-             "max of eps shall not be too high", "longitudinal eps at end")
-
     simulation_output_evaluators: ListOfSimulationOutputEvaluators = \
         factory_simulation_output_evaluators_from_presets(
-            *tests, ref_simulation_output=ref_s)
+            *my_configs['evaluators']['beam_calc_post'],
+            ref_simulation_output=ref_s)
 
     simulation_output_evaluators.run(*tuple(s_to_study))
