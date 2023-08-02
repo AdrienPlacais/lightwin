@@ -81,8 +81,7 @@ def emittance(eps_orig: float | np.ndarray, key: str,
         e_0 = con.E_REST_MEV
     k_1 = 360. * e_0 / lam
     k_2 = gamma_kin * beta_kin
-    # phiw normalisation: (should check this...)
-    # k_3 = k_2 * gamma_kin**2
+    k_3 = k_2 * gamma_kin**2
 
     conversion_constants = {
         "phiw to z": 1. / k_1,
@@ -93,6 +92,10 @@ def emittance(eps_orig: float | np.ndarray, key: str,
         "zdelta to z": 10.,
         "normalize zdelta": k_2,
         "de-normalize zdelta": 1. / k_2,
+        "normalize phiw": k_2,
+        "de-normalize phiw": 1. / k_2,
+        "normalize z": k_3,
+        "de-normalize z": 1. / k_3,
         "normalize x": k_2,
         "de-normalize x": 1. / k_2,
         "normalize y": k_2,
