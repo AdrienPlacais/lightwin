@@ -173,4 +173,4 @@ if __name__ == '__main__':
     simulation_output_evaluators.run(*tuple(s_to_study))
 
 
-b = accelerators[0].simulation_outputs[solv2].beam_parameters
+    b = accelerators[0].simulation_outputs[solv2].beam_parameters

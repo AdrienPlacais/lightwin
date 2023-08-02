@@ -41,6 +41,9 @@ We use the same units and conventions as TraceWin.
         envelope_energy in  [z-delta]           [%]
         envelope_energy in  [z-z']              [mrad]
         envelope_energy in  [Delta phi-Delta W] [MeV]
+
+    Transverse envelopes are in [x-x'] and [y-y'], so same units as [z-z'].
+
     NB: envelopes are at 1-sigma, while they are plotted at 6-sigma by default
     in TraceWin.
     NB2: Envelopes are calculated with un-normalized emittances in the
@@ -263,12 +266,6 @@ class BeamParameters:
         if 'z' in args:
             self.z.init_from_another_plane(*args_for_init, 'zdelta to z')
 
-    def init_transverse_phase_spaces(self, eps_x: np.ndarray, eps_y: np.ndarray
-                                     ) -> None:
-        """Set transverse emittances; envelopes, Twiss, etc not implemented."""
-        self.x.eps = eps_x
-        self.y.eps = eps_y
-
     def init_99percent_phase_spaces(self, eps_phiw99: np.ndarray,
                                     eps_x99: np.ndarray, eps_y99: np.ndarray
                                     ) -> None:
@@ -404,6 +401,8 @@ class SinglePhaseSpaceBeamParameters:
         eps_no_normalisation, eps_normalized = self._compute_eps_from_sigma(
             sigma, gamma_kin, beta_kin)
         self.eps = eps_normalized
+        self._eps_no_norm = eps_no_normalisation
+
         self._compute_twiss_from_sigma(sigma, eps_no_normalisation)
         self.envelope_pos, self.envelope_energy = \
             self._compute_envelopes_from_sigma(sigma)
@@ -416,15 +415,15 @@ class SinglePhaseSpaceBeamParameters:
         """
         Compute sigma matrix from the two top components and emittance.
 
+        sigma matrix is always saved in SI units (m, rad).
+
         Used by the TraceWin solver.
         For the zdelta phase space:
-            Inputs must be in the z-delta phase space, in "practical" units:
-            mm, mrad.
-          ! Note that epsilon_zdelta is in pi.mm.mrad in TraceWin .out files,
-          ! while pi.mm.% is used everywhere else in TraceWin as well as in
-          ! LightWin.
-            For consistency with Envelope1D, [z-delta] sigma matrix is saved in
-            SI units, i.e. m, rad.
+            Inputs must be in "practical" units: mm, mrad.
+            ! Note that epsilon_zdelta is in pi.mm.mrad in TraceWin .out files,
+            ! while pi.mm.% is used everywhere else in TraceWin as well as in
+            ! LightWin.
+        For the transverse phase spaces, units are mm and mrad.
 
         Parameters
         ----------
@@ -446,11 +445,16 @@ class SinglePhaseSpaceBeamParameters:
             it from gamma_kin.
 
         """
+        if self.phase_space not in ['zdelta', 'x', 'y', 'x99', 'y99']:
+            logging.warning("sigma reconstruction in this phase space not "
+                            "tested. The main issue that can appear is with "
+                            "units.")
+
         sigma = _reconstruct_full_sigma_matrix(sigma_00, sigma_01, eps,
                                                eps_is_normalized=True,
                                                gamma_kin=gamma_kin,
                                                beta_kin=beta_kin)
-        if self.phase_space == 'zdelta':
+        if self.phase_space in ['zdelta', 'x', 'y', 'x99', 'y99']:
             sigma *= 1e-6
         self.sigma = sigma
 
@@ -479,34 +483,48 @@ class SinglePhaseSpaceBeamParameters:
                                 beta_kin: np.ndarray) -> tuple[np.ndarray,
                                                                np.ndarray]:
         """
-        Compute eps_zdeta from sigma matrix in pi.mm.%.
+        Compute emittance from sigma matrix.
+
+        For the zdelta phase space:
+            sigma is in SI units
+            emittance is returned in pi.mm.%
+        For the transverse phase spaces:
+            sigma is in SI units
+            emittances is returned in pi.mm.mrad
 
         Parameters
         ----------
         sigma : np.ndarray
             Sigma matrix in SI units.
-        gamma_kin : np.ndarray | None
-            Lorentz gamma factor. If None, raise a warning.
-        beta_kin : np.ndarray | None
-            Lorentz beta factor. If None, raise a warning.
+        gamma_kin : np.ndarray
+            Lorentz gamma factor.
+        beta_kin : np.ndarray
+            Lorentz beta factor.
 
         Returns
         -------
         eps_no_normalisation : np.ndarray
-            Emittance in pi.mm.%, not normalized, in z-dp/p plane.
+            Emittance not normalized.
         eps_normalized : np.ndarray
-            Emittance in pi.mm.%, normalized, in z-dp/p plane.
+            Emittance normalized.
 
         """
-        assert self.phase_space == 'zdelta'
+        assert self.phase_space in ['zdelta', 'x', 'y', 'x99', 'y99']
         eps_no_normalisation = np.array(
             [np.sqrt(np.linalg.det(sigma[i])) for i in range(sigma.shape[0])])
-        eps_no_normalisation *= 1e5
 
-        eps_normalized = eps_no_normalisation * gamma_kin * beta_kin
+        if self.phase_space in ['zdelta']:
+            eps_no_normalisation *= 1e5
+        elif self.phase_space in ['x', 'y', 'x99', 'y99']:
+            eps_no_normalisation *= 1e6
 
+        eps_normalized = converters.emittance(eps_no_normalisation,
+                                              f"normalize {self.phase_space}",
+                                              gamma_kin=gamma_kin,
+                                              beta_kin=beta_kin)
         return eps_no_normalisation, eps_normalized
 
+    # FIXME use normalisation/denormalisation from utils.converters instead
     def _compute_eps_from_other_plane(self, eps_orig: np.ndarray, convert: str,
                                       gamma_kin: np.ndarray,
                                       beta_kin: np.ndarray
@@ -552,29 +570,42 @@ class SinglePhaseSpaceBeamParameters:
         """
         Compute the Twiss parameters using the sigma matrix.
 
+        For the zdelta phase space:
+            sigma is in SI units
+            eps_no_normalisation should be in pi.mm.%
+        For the transverse planes:
+            sigma is in SI units
+            eps_no_normalisation is in pi.mm.mrad
+
         Parameters
         ----------
         sigma : np.ndarray
-            sigma matrix along the linac in the z-dp/p plane. It must be
-            provided in SI units, hence the 1e5 factor.
+            sigma matrix along the linac.
         eps_no_normalisation : np.ndarray
-            Unnormalized emittance in the z-dp/p plane, in pi.mm.% (non-SI).
+            Unnormalized emittance.
 
         Returns
         -------
         Nothing, but set attributes alpha (no units), beta (mm/pi.%), gamma
         (mm.pi/%) and twiss (column_stacking of the three), in the z-dp/p
         plane.
+        In the transverse planes, units are pi mm and mrad instead.
 
         """
-        assert self.eps is not None and self.phase_space == 'zdelta'
+        assert self.phase_space in ['zdelta', 'x', 'y', 'x99', 'y99']
+        assert self.eps is not None
         n_points = sigma.shape[0]
         twiss = np.full((n_points, 3), np.NaN)
 
         for i in range(n_points):
             twiss[i, :] = np.array(
-                [-sigma[i][1, 0], sigma[i][0, 0] * 10., sigma[i][1, 1] / 10.]
-            ) / eps_no_normalisation[i] * 1e5
+                [-sigma[i][1, 0], sigma[i][0, 0], sigma[i][1, 1]]
+            ) / eps_no_normalisation[i] * 1e6
+
+        if self.phase_space == 'zdelta':
+            twiss[:, 0] *= 1e-1
+            twiss[:, 2] *= 1e-2
+
         self._unpack_twiss(twiss)
         self.twiss = twiss
 
@@ -588,11 +619,23 @@ class SinglePhaseSpaceBeamParameters:
 
     def _compute_envelopes_from_sigma(self, sigma: np.ndarray
                                       ) -> tuple[np.ndarray, np.ndarray]:
-        """Compute the envelopes in mm and % in z-deltap/p plane."""
-        assert self.phase_space == 'zdelta'
+        """
+        Compute the envelopes.
+
+        Units are mm for the position envelope in [zdelta], [x-x'], [y-y'].
+
+        Energy envelope:
+            [zdelta]: %
+            [x-x'], [y-y']: mrad
+
+        """
         envelope_pos = np.array([np.sqrt(sigm[0, 0]) for sigm in sigma]) * 1e3
         envelope_energy = np.array([np.sqrt(sigm[1, 1]) for sigm in sigma]
-                                   ) * 1e2
+                                   ) * 1e3
+
+        if self.phase_space == 'zdelta':
+            envelope_energy /= 10.
+
         return envelope_pos, envelope_energy
 
     def compute_envelopes(self, beta: np.ndarray, gamma: np.ndarray,

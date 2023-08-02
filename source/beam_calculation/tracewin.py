@@ -398,6 +398,7 @@ def _beam_param_uniform_with_envelope1d(
         beam_parameters: BeamParameters, results: dict[str, np.ndarray],
         multiparticle: bool = False) -> BeamParameters:
     """Manually set longitudinal phase-spaces in BeamParameters object."""
+    gamma_kin, beta_kin = beam_parameters.gamma_kin, beam_parameters.beta_kin
     beam_parameters.create_phase_spaces('zdelta', 'z', 'phiw')
 
     sigma_00, sigma_01 = results['SizeZ']**2, results['szdp']
@@ -407,17 +408,12 @@ def _beam_param_uniform_with_envelope1d(
         sigma_01,
         eps_normalized,
         eps_is_normalized=True,
-        gamma_kin=beam_parameters.gamma_kin,
-        beta_kin=beam_parameters.beta_kin
+        gamma_kin=gamma_kin,
+        beta_kin=beta_kin
     )
-    beam_parameters.zdelta.init_from_sigma(gamma_kin=beam_parameters.gamma_kin,
-                                           beta_kin=beam_parameters.beta_kin)
+    beam_parameters.zdelta.init_from_sigma(gamma_kin, beta_kin)
 
     beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
-
-    beam_parameters = _add_beam_param_not_supported_by_envelope1d(
-        beam_parameters, results, multiparticle)
-
     return beam_parameters
 
 
@@ -425,17 +421,29 @@ def _add_beam_param_not_supported_by_envelope1d(
         beam_parameters: BeamParameters, results: dict[str, np.ndarray],
         multiparticle: bool = False) -> BeamParameters:
     """Manually set transverse and 99% phase-spaces."""
-    sigma_x_00, sigma_x_01 = None, None
-    eps_x_normalized = results['ex']
-
-    sigma_y_00, sigma_y_01 = None, None
-    eps_y_normalized = results['ey']
-
-    del sigma_x_00, sigma_x_01, sigma_y_00, sigma_y_01
-
+    gamma_kin, beta_kin = beam_parameters.gamma_kin, beam_parameters.beta_kin
     beam_parameters.create_phase_spaces('x', 'y')
-    beam_parameters.init_transverse_phase_spaces(eps_x_normalized,
-                                                 eps_y_normalized)
+
+    sigma_x_00, sigma_x_01 = results['SizeX']**2, results["sxx'"]
+    eps_x_normalized = results['ex']
+    beam_parameters.x.reconstruct_full_sigma_matrix(sigma_x_00,
+                                                    sigma_x_01,
+                                                    eps_x_normalized,
+                                                    eps_is_normalized=True,
+                                                    gamma_kin=gamma_kin,
+                                                    beta_kin=beta_kin)
+    beam_parameters.x.init_from_sigma(gamma_kin, beta_kin)
+
+    sigma_y_00, sigma_y_01 = results['SizeY']**2, results["syy'"]
+    eps_y_normalized = results['ey']
+    beam_parameters.y.reconstruct_full_sigma_matrix(sigma_y_00,
+                                                    sigma_y_01,
+                                                    eps_y_normalized,
+                                                    eps_is_normalized=True,
+                                                    gamma_kin=gamma_kin,
+                                                    beta_kin=beta_kin)
+    beam_parameters.y.init_from_sigma(gamma_kin, beta_kin)
+
     if not multiparticle:
         return beam_parameters
 
