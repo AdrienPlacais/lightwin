@@ -197,7 +197,6 @@ class BeamParameters:
             return out[0]
         return tuple(out)
 
-    # TODO: implement all phase spaces
     def create_phase_spaces(self, *args: str,
                             **kwargs: dict[str, np.ndarray | float]) -> None:
         """

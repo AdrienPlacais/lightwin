@@ -182,11 +182,12 @@ class TraceWin(BeamCalculator):
 
         r_zz_elt = []
 
+        multipart = self._is_a_multiparticle_simulation(self.base_kwargs)
         beam_params = BeamParameters(gamma_kin=results['gamma'])
-        beam_params = _beam_param_uniform_with_envelope1d(
-            beam_params,
-            results,
-            self._is_a_multiparticle_simulation(self.base_kwargs))
+        beam_params = _beam_param_uniform_with_envelope1d(beam_params, results)
+        beam_params = _add_beam_param_not_supported_by_envelope1d(beam_params,
+                                                                  results,
+                                                                  multipart)
 
         rf_fields = []
 
@@ -394,34 +395,47 @@ class TraceWin(BeamCalculator):
 
 
 def _beam_param_uniform_with_envelope1d(
-    beam_parameters: BeamParameters, results: dict[str, np.ndarray],
-    multiparticle: bool = False
-) -> BeamParameters:
-    """Manually set quantities in BeamParamaters object."""
-    sigma_00 = results['SizeZ']**2
-    sigma_01 = results['szdp']
+        beam_parameters: BeamParameters, results: dict[str, np.ndarray],
+        multiparticle: bool = False) -> BeamParameters:
+    """Manually set longitudinal phase-spaces in BeamParameters object."""
+    sigma_00, sigma_01 = results['SizeZ']**2, results['szdp']
     eps_normalized = results['ezdp']
     sigma = beam_parameters.sigma_matrix_from_zdelta_beam_param(sigma_00,
                                                                 sigma_01,
                                                                 eps_normalized)
     beam_parameters.sigma = sigma
-    eps_x, eps_y = results['ex'], results['ey']
-
-    phase_spaces = ('zdelta', 'z', 'phiw', 'x', 'y')
-    if multiparticle:
-        eps_phiw99 = results['ep99']
-        eps_x99, eps_y99 = results['ex99'], results['ey99']
-        phase_spaces = ('zdelta', 'z', 'phiw', 'x', 'y',
-                        'phiw99', 'x99', 'y99')
-    beam_parameters.create_phase_spaces(*phase_spaces)
+    beam_parameters.create_phase_spaces('zdelta', 'z', 'phiw')
     beam_parameters.init_zdelta_from_sigma_matrix(sigma)
     beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
-    beam_parameters.init_transverse_phase_spaces(eps_x, eps_y)
 
-    if multiparticle:
-        beam_parameters.init_99percent_phase_spaces(eps_phiw99, eps_x99,
-                                                    eps_y99)
+    beam_parameters = _add_beam_param_not_supported_by_envelope1d(
+        beam_parameters, results, multiparticle)
 
+    return beam_parameters
+
+
+def _add_beam_param_not_supported_by_envelope1d(
+        beam_parameters: BeamParameters, results: dict[str, np.ndarray],
+        multiparticle: bool = False) -> BeamParameters:
+    """Manually set transverse and 99% phase-spaces."""
+    sigma_x_00, sigma_x_01 = None, None
+    eps_x_normalized = results['ex']
+
+    sigma_y_00, sigma_y_01 = None, None
+    eps_y_normalized = results['ey']
+
+    del sigma_x_00, sigma_x_01, sigma_y_00, sigma_y_01
+
+    beam_parameters.create_phase_spaces('x', 'y')
+    beam_parameters.init_transverse_phase_spaces(eps_x_normalized,
+                                                 eps_y_normalized)
+    if not multiparticle:
+        return beam_parameters
+
+    eps_phiw99 = results['ep99']
+    eps_x99, eps_y99 = results['ex99'], results['ey99']
+    beam_parameters.create_phase_spaces('phiw99', 'x99', 'y99')
+    beam_parameters.init_99percent_phase_spaces(eps_phiw99, eps_x99, eps_y99)
     return beam_parameters
 
 
