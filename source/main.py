@@ -84,12 +84,12 @@ if __name__ == '__main__':
     MY_CONFIG_FILE = 'myrrha.ini'
     MY_KEYS = {
         'files': 'files',
-        'plots': 'plots.essential',
+        'plots': 'plots.light',
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
         'wtf': 'wtf.quick_debug',
         'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
-        'evaluators': 'evaluators.classic',
+        'evaluators': 'evaluators.light',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
@@ -171,3 +171,6 @@ if __name__ == '__main__':
             ref_simulation_output=ref_s)
 
     simulation_output_evaluators.run(*tuple(s_to_study))
+
+
+b = accelerators[0].simulation_outputs[solv2].beam_parameters
