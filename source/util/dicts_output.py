@@ -59,14 +59,11 @@ markdown = {
     # ListOfElements
     # TraceWin
     'pow_lost': "Lost power [W]",
-    'Powlost': "Lost power [W]",
-    'ex': r"Norm. RMS $\epsilon_{xx'}$ [$\pi$mm mrad]",
-    'ey': r"Norm. RMS $\epsilon_{yy'}$ [$\pi$mm mrad]",
-    'ezdp': r"Norm. RMS $\epsilon_{zz'}$ [$\pi$mm mrad]",   # NOT epsilon z dp/p !!
-    'ep': r"Norm. RMS $\epsilon_{\phi W}$ [$\pi$deg MeV]",
-    'ex99': r"Norm. 99% $\epsilon_{xx'}$ [$\pi$mm mrad]",
-    'ey99': r"Norm. 99% $\epsilon_{yy'}$ [$\pi$mm mrad]",
-    'ep99': r"Norm. 99% $\epsilon_{zz'}$ [$\pi$mm mrad]",  # NOT epsilon z dp/p
+    'eps_x': r"Norm. RMS $\epsilon_{xx'}$ [$\pi$mm mrad]",
+    'eps_y': r"Norm. RMS $\epsilon_{yy'}$ [$\pi$mm mrad]",
+    'eps_phiw99': r"Norm. 99% $\epsilon_{zz'}$ [$\pi$mm mrad]",
+    'eps_x99': r"Norm. 99% $\epsilon_{xx'}$ [$\pi$mm mrad]",
+    'eps_y99': r"Norm. 99% $\epsilon_{yy'}$ [$\pi$mm mrad]",
     # util.evaluate
     'relative_var_et': r'$\Delta\epsilon_t / \epsilon_{t, 0}$ [%]',
     'relative_var_ep': r'$\Delta\epsilon_{\phi W} / \epsilon_{\phi W, 0}$ [%]',
@@ -112,36 +109,4 @@ plot_kwargs = {
     'err_rel': {'marker': None},
     'err_log': {'marker': None},
     # ListOfElements
-    # TraceWin
-}
-
-lw_to_tw = {
-    # Accelerator
-    'eps_zdelta': 'ezdp',
-    'envelope_pos_z': 'SizeZ',
-    'envelope_pos_zdelta': 'SizeZ',
-    'envelope_pos_phiw': 'SizeP',
-    'envelope_energy_phiw': 'spW',
-    'envelope_energy_zdelta': 'szdp',
-    # Element
-    'elt_idx': 'Cav#',
-    'elt number': '##',
-    # RfField
-    'v_cav_mv': 'Voltage[MV]',
-    'phi_s': 'SyncPhase[°]',
-    # 'k_e':
-    # Particle
-    'z_abs': 'z(m)',
-    # 'w_kin': Computed in Accelerator.precompute_some_tracewin_results,
-    # 'phi_abs': Computed in Accelerator.precompute_some_tracewin_results,
-    # Misc
-    # List OfElements
-    # TraceWin
-    'lost power': 'Powlost',
-}
-
-lw_to_tw_func = {
-    'envelope_pos_zdelta': lambda x: x * 1e-3,
-    'envelope_energy_zdelta': lambda x: x * 1e-3,
-    'elt_idx': lambda x: x - 1,
 }

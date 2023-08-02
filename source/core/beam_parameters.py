@@ -19,7 +19,7 @@ We use the same units and conventions as TraceWin.
             !!! tracewin.out files).
             !!! Conversion factor is 1 pi.mm.mrad = 10 pi.mm.%
         eps_z      in [z-z']              [pi.mm.mrad]  normalized
-        eps_wphi   in [Delta phi-Delta W] [pi.deg.MeV]  normalized
+        eps_phiw   in [Delta phi-Delta W] [pi.deg.MeV]  normalized
 
     Twiss:
         beta, gamma are Lorentz factors.
@@ -27,12 +27,12 @@ We use the same units and conventions as TraceWin.
 
         beta_zdelta in [z-delta]            [mm/(pi.%)]
         beta_z      in [z-z']               [mm/(pi.mrad)]
-        beta_wphi   in [Delta phi-Delta W]  [deg/(pi.MeV)]
+        beta_phiw   in [Delta phi-Delta W]  [deg/(pi.MeV)]
 
         (same for gamma_z, gamma_z, gamma_zdelta)
 
         Conversions for alpha are easier:
-            alpha_wphi = -alpha_z = -alpha_zdelta
+            alpha_phiw = -alpha_z = -alpha_zdelta
 
     Envelopes:
         envelope_pos in     [z-delta]           [mm]
@@ -63,8 +63,8 @@ from util import converters
 from util.helper import recursive_items, recursive_getter, range_vals
 
 
-PHASE_SPACES = ['zdelta', 'z', 'phiw', 'phiw99',
-                'x', 'y', 'x99', 'y99']
+PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y',
+                'phiw99', 'x99', 'y99')
 
 
 @dataclass
@@ -90,6 +90,9 @@ class BeamParameters:
         self.phiw: SinglePhaseSpaceBeamParameters
         self.x: SinglePhaseSpaceBeamParameters
         self.y: SinglePhaseSpaceBeamParameters
+        self.phiw99: SinglePhaseSpaceBeamParameters
+        self.x99: SinglePhaseSpaceBeamParameters
+        self.y99: SinglePhaseSpaceBeamParameters
 
         self.mismatch_factor: np.ndarray | None
 
@@ -213,34 +216,41 @@ class BeamParameters:
             beta, gamma, eps, twiss, envelope_pos and envelope_energy are
             allowed values.
         """
-        for arg in args:
-            if arg not in ['zdelta', 'z', 'phiw', 'x', 'y']:
-                logging.error(f"Phase space {arg} to be implemented. Will be "
-                              "ignored.")
-                continue
-                # TODO
 
+        for arg in args:
             if arg not in PHASE_SPACES:
                 logging.error(f"Phase space {arg} not recognized. Will be "
                               "ignored.")
+                continue
 
-        if 'zdelta' in args:
-            self.zdelta = SinglePhaseSpaceBeamParameters(
-                'zdelta', kwargs.get('zdelta', None))
-
-        if 'z' in args:
-            self.z = SinglePhaseSpaceBeamParameters(
-                'z', kwargs.get('z', None))
-
-        if 'phiw' in args:
-            self.phiw = SinglePhaseSpaceBeamParameters(
-                'phiw', kwargs.get('phiw', None))
-
-        if 'x' in args:
-            self.x = SinglePhaseSpaceBeamParameters('x', kwargs.get('x', None))
-
-        if 'y' in args:
-            self.y = SinglePhaseSpaceBeamParameters('y', kwargs.get('y', None))
+            phase_space_beam_param = SinglePhaseSpaceBeamParameters(
+                arg,
+                kwargs.get(arg, None)
+            )
+            if arg == 'zdelta':
+                self.zdelta = phase_space_beam_param
+                continue
+            if arg == 'z':
+                self.z = phase_space_beam_param
+                continue
+            if arg == 'phiw':
+                self.phiw = phase_space_beam_param
+                continue
+            if arg == 'x':
+                self.x = phase_space_beam_param
+                continue
+            if arg == 'y':
+                self.y = phase_space_beam_param
+                continue
+            if arg == 'phiw99':
+                self.phiw99 = phase_space_beam_param
+                continue
+            if arg == 'x99':
+                self.x99 = phase_space_beam_param
+                continue
+            if arg == 'y99':
+                self.y99 = phase_space_beam_param
+                continue
 
     def sigma_matrix_from_zdelta_beam_param(
         self, sigma_00: np.ndarray, sigma_01: np.ndarray,
@@ -334,7 +344,7 @@ class BeamParameters:
                          beta_kin)
 
         for arg in args:
-            if arg not in ['phiw', 'z']:
+            if arg not in ('phiw', 'z'):
                 logging.error(f"Phase space conversion zdelta -> {arg} not "
                               "implemented. Ignoring...")
 
@@ -342,6 +352,20 @@ class BeamParameters:
             self.phiw.init_from_another_plane(*args_for_init, 'zdelta to phiw')
         if 'z' in args:
             self.z.init_from_another_plane(*args_for_init, 'zdelta to z')
+
+    def init_transverse_phase_spaces(self, eps_x: np.ndarray, eps_y: np.ndarray
+                                     ) -> None:
+        """Set transverse emittances; envelopes, Twiss, etc not implemented."""
+        self.x.eps = eps_x
+        self.y.eps = eps_y
+
+    def init_99percent_phase_spaces(self, eps_phiw99: np.ndarray,
+                                    eps_x99: np.ndarray, eps_y99: np.ndarray
+                                    ) -> None:
+        """Set 99% emittances; envelopes, Twiss, etc not implemented."""
+        self.phiw99.eps = eps_phiw99
+        self.x99.eps = eps_x99
+        self.y99.eps = eps_y99
 
     def compute_mismatch(self, ref_twiss_zdelta: np.ndarray | None) -> None:
         """Compute the mismatch factor."""
@@ -680,7 +704,7 @@ def _envelopes(twiss: np.ndarray, eps: np.ndarray) -> np.ndarray:
 
 def _envelopes_all(twiss: np.ndarray, eps: np.ndarray) -> np.ndarray:
     """Compute beam envelopes in all the planes."""
-    spa = ['_zdelta', '_w', '_z']
+    spa = ('_zdelta', '_w', '_z')
     env = {'envelopes' + key:
            _envelopes(twiss['twiss' + key], eps['eps' + key])
            for key in spa}

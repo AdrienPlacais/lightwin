@@ -183,7 +183,10 @@ class TraceWin(BeamCalculator):
         r_zz_elt = []
 
         beam_params = BeamParameters(gamma_kin=results['gamma'])
-        beam_params = _beam_param_uniform_with_envelope1d(beam_params, results)
+        beam_params = _beam_param_uniform_with_envelope1d(
+            beam_params,
+            results,
+            self._is_a_multiparticle_simulation(self.base_kwargs))
 
         rf_fields = []
 
@@ -200,7 +203,7 @@ class TraceWin(BeamCalculator):
         )
         simulation_output.z_abs = results['z(m)']
 
-        # FIXME
+        # FIXME attribute was not declared
         simulation_output.pow_lost = results['Powlost']
         return simulation_output
 
@@ -391,21 +394,34 @@ class TraceWin(BeamCalculator):
 
 
 def _beam_param_uniform_with_envelope1d(
-    beam_parameters: BeamParameters, results: dict[str, np.ndarray]
+    beam_parameters: BeamParameters, results: dict[str, np.ndarray],
+    multiparticle: bool = False
 ) -> BeamParameters:
     """Manually set quantities in BeamParamaters object."""
     sigma_00 = results['SizeZ']**2
     sigma_01 = results['szdp']
     eps_normalized = results['ezdp']
-
     sigma = beam_parameters.sigma_matrix_from_zdelta_beam_param(sigma_00,
                                                                 sigma_01,
                                                                 eps_normalized)
     beam_parameters.sigma = sigma
+    eps_x, eps_y = results['ex'], results['ey']
 
-    beam_parameters.create_phase_spaces('zdelta', 'z', 'phiw', 'x', 'y')
+    phase_spaces = ('zdelta', 'z', 'phiw', 'x', 'y')
+    if multiparticle:
+        eps_phiw99 = results['ep99']
+        eps_x99, eps_y99 = results['ex99'], results['ey99']
+        phase_spaces = ('zdelta', 'z', 'phiw', 'x', 'y',
+                        'phiw99', 'x99', 'y99')
+    beam_parameters.create_phase_spaces(*phase_spaces)
     beam_parameters.init_zdelta_from_sigma_matrix(sigma)
     beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
+    beam_parameters.init_transverse_phase_spaces(eps_x, eps_y)
+
+    if multiparticle:
+        beam_parameters.init_99percent_phase_spaces(eps_phiw99, eps_x99,
+                                                    eps_y99)
+
     return beam_parameters
 
 
