@@ -202,10 +202,13 @@ class Envelope1D(BeamCalculator):
                                              r_zz_elt,
                                              len(w_kin))
 
-        beam_params = BeamParameters(gamma_kin=synch_trajectory.gamma,
-                                     tm_cumul=tm_cumul)
+        beam_params = BeamParameters(gamma_kin=synch_trajectory.gamma)
         beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
-        beam_params.init_zdelta_from_cumulated_transfer_matrices()
+        beam_params.zdelta.init_from_cumulated_transfer_matrices(
+            gamma_kin=beam_params.gamma_kin,
+            tm_cumul=tm_cumul,
+            beta_kin=beam_params.beta_kin
+        )
         beam_params.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
 
         element_to_index = self._generate_element_to_index_func(elts)

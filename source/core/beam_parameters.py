@@ -47,9 +47,6 @@ We use the same units and conventions as TraceWin.
     [z-delta] and [z-z'] planes, but they are calculated with normalized
     emittance in the [phi-W] plane.
 
-TODO: handle error on eps_zdelta
-TODO better ellipse plot
-
 """
 from typing import Any
 from dataclasses import dataclass
@@ -71,17 +68,11 @@ PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y',
 class BeamParameters:
     """Hold all emittances, envelopes, etc in various planes."""
 
-    sigma_in: np.ndarray | None = None
-    sigma: np.ndarray | None = None
     gamma_kin: np.ndarray | None = None
     beta_kin: np.ndarray | None = None
-    tm_cumul: np.ndarray | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
-        if self.sigma_in is None:
-            self.sigma_in = con.SIGMA_ZDELTA
-
         if self.beta_kin is None and self.gamma_kin is not None:
             self.beta_kin = converters.energy(self.gamma_kin, 'gamma to beta')
 
@@ -214,8 +205,8 @@ class BeamParameters:
             understandable by SinglePhaseSpaceBeamParameters.__init__: alpha,
             beta, gamma, eps, twiss, envelope_pos and envelope_energy are
             allowed values.
-        """
 
+        """
         for arg in args:
             if arg not in PHASE_SPACES:
                 logging.error(f"Phase space {arg} not recognized. Will be "
@@ -250,86 +241,6 @@ class BeamParameters:
             if arg == 'y99':
                 self.y99 = phase_space_beam_param
                 continue
-
-    def sigma_matrix_from_zdelta_beam_param(
-        self, sigma_00: np.ndarray, sigma_01: np.ndarray,
-        eps_normalized: np.ndarray, gamma_kin: np.ndarray | None = None,
-        beta_kin: np.ndarray | None = None
-    ) -> np.ndarray:
-        """
-        Compute sigma matrix from the two top components and emittance.
-
-        For consistency with TraceWin results files, inputs must be in the
-        z-delta phase space, in "practical" units: mm, mrad.
-          | Note that epsilon_zdelta is in pi.mm.mrad in TraceWin .out files,
-          | while pi.mm.% is used everywhere else in TraceWin as well as in
-          | LightWin.
-
-        For consistency with Envelope1D, output is in z-delta phase space, in
-        SI units: m, rad.
-
-        Parameters
-        ----------
-        sigma_00 : np.ndarray
-            Top-left component of the sigma matrix.
-        sigma_01 : np.ndarray
-            Top-right = bottom-left component of the sigma matrix.
-        eps_normalized : np.ndarray
-            Normalized emittance.
-        gamma_kin : np.ndarray | None = None
-            Lorentz gamma factor. The default is None. In this case, we take
-            the self.gamma_kin attribute.
-        beta_kin : np.ndarray | None = None
-            Lorentz beta factor. The default is None. In this case, we take
-            the self.beta_kin attribute.
-
-        Returns
-        -------
-        sigma : np.ndarray
-            Full sigma matrix along the linac, in the z-delta phase space.
-
-        """
-        if gamma_kin is None:
-            gamma_kin = self.gamma_kin
-        if beta_kin is None:
-            beta_kin = self.beta_kin
-
-        eps_no_normalisation = eps_normalized / (gamma_kin * beta_kin)
-
-        sigma = np.zeros((sigma_00.shape[0], 2, 2))
-        sigma[:, 0, 0] = sigma_00
-        sigma[:, 0, 1] = sigma_01
-        sigma[:, 1, 0] = sigma_01
-        sigma[:, 1, 1] = (eps_no_normalisation**2 + sigma_01**2) / sigma_00
-        return sigma * 1e-6
-
-    def init_zdelta_from_cumulated_transfer_matrices(
-            self, tm_cumul: np.ndarray | None = None,
-            gamma_kin: np.ndarray | None = None,
-            beta_kin: np.ndarray | None = None) -> None:
-        """Compute the sigma matrix from transfer matrix and init zdelta."""
-        if tm_cumul is None:
-            tm_cumul = self.tm_cumul
-        if gamma_kin is None:
-            gamma_kin = self.gamma_kin
-        if beta_kin is None:
-            beta_kin = self.beta_kin
-        sigma = _sigma_beam_matrices(tm_cumul, self.sigma_in)
-        self.sigma = sigma
-        self.zdelta.init_from_sigma(sigma, gamma_kin, beta_kin)
-
-    def init_zdelta_from_sigma_matrix(self, sigma: np.ndarray | None = None,
-                                      gamma_kin: np.ndarray | None = None,
-                                      beta_kin: np.ndarray | None = None
-                                      ) -> None:
-        """Initialize zdelta from an already known sigma matrix."""
-        if sigma is None:
-            sigma = self.sigma
-        if gamma_kin is None:
-            gamma_kin = self.gamma_kin
-        if beta_kin is None:
-            beta_kin = self.beta_kin
-        self.zdelta.init_from_sigma(sigma, gamma_kin, beta_kin)
 
     def init_other_phase_spaces_from_zdelta(
             self, *args: str, gamma_kin: np.ndarray | None = None,
@@ -383,6 +294,10 @@ class SinglePhaseSpaceBeamParameters:
 
     phase_space: str
 
+    sigma_in: np.ndarray | None = None
+    sigma: np.ndarray | None = None
+    tm_cumul: np.ndarray | None = None
+
     twiss: np.ndarray | None = None
 
     alpha: np.ndarray | None = None
@@ -392,6 +307,11 @@ class SinglePhaseSpaceBeamParameters:
     eps: np.ndarray | None = None
     envelope_pos: np.ndarray | None = None
     envelope_energy: np.ndarray | None = None
+
+    def __post_init__(self):
+        """Set the default attributes for the zdelta."""
+        if self.phase_space == 'zdelta' and self.sigma_in is None:
+            self.sigma_in = con.SIGMA_ZDELTA
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -448,9 +368,39 @@ class SinglePhaseSpaceBeamParameters:
             return out[0]
         return tuple(out)
 
-    def init_from_sigma(self, sigma: np.ndarray, gamma_kin: np.ndarray,
-                        beta_kin: np.ndarray) -> None:
-        """Compute Twiss, eps, envelopes just from sigma matrix."""
+    def init_from_cumulated_transfer_matrices(
+            self, gamma_kin: np.ndarray, tm_cumul: np.ndarray | None = None,
+            beta_kin: np.ndarray | None = None) -> None:
+        """
+        Use transfer matrices to compute `sigma`, and then everything.
+
+        Used by the Envelope1D solver.
+        """
+        if self.tm_cumul is None and tm_cumul is None:
+            logging.error("Missing `tm_cumul` to compute beam parameters.")
+            return
+
+        if self.tm_cumul is None:
+            self.tm_cumul = tm_cumul
+        if tm_cumul is None:
+            tm_cumul = self.tm_cumul
+        if beta_kin is None:
+            beta_kin = converters.energy(gamma_kin, 'gamma to beta')
+
+        self.sigma = _sigma_beam_matrices(tm_cumul, self.sigma_in)
+        self.init_from_sigma(gamma_kin, beta_kin)
+
+    def init_from_sigma(self, gamma_kin: np.ndarray, beta_kin: np.ndarray,
+                        sigma: np.ndarray | None = None) -> None:
+        """
+        Compute Twiss, eps, envelopes just from sigma matrix.
+
+        Used by the Envelope1D and TraceWin solvers.
+
+        """
+        if sigma is None:
+            sigma = self.sigma
+
         eps_no_normalisation, eps_normalized = self._compute_eps_from_sigma(
             sigma, gamma_kin, beta_kin)
         self.eps = eps_normalized
@@ -458,15 +408,60 @@ class SinglePhaseSpaceBeamParameters:
         self.envelope_pos, self.envelope_energy = \
             self._compute_envelopes_from_sigma(sigma)
 
+    def reconstruct_full_sigma_matrix(
+        self, sigma_00: np.ndarray, sigma_01: np.ndarray, eps: np.ndarray,
+        eps_is_normalized: bool = True, gamma_kin: np.ndarray | None = None,
+        beta_kin: np.ndarray | None = None,
+    ) -> None:
+        """
+        Compute sigma matrix from the two top components and emittance.
+
+        Used by the TraceWin solver.
+        For the zdelta phase space:
+            Inputs must be in the z-delta phase space, in "practical" units:
+            mm, mrad.
+          ! Note that epsilon_zdelta is in pi.mm.mrad in TraceWin .out files,
+          ! while pi.mm.% is used everywhere else in TraceWin as well as in
+          ! LightWin.
+            For consistency with Envelope1D, [z-delta] sigma matrix is saved in
+            SI units, i.e. m, rad.
+
+        Parameters
+        ----------
+        sigma_00 : np.ndarray
+            Top-left component of the sigma matrix.
+        sigma_01 : np.ndarray
+            Top-right = bottom-left component of the sigma matrix.
+        eps : np.ndarray
+            Emittance.
+        eps_is_normalized : bool, optional
+            To tell if the given emittance is already normalized. The default
+            is True. In this case, it is de-normalized and `gamma_kin` must be
+            given.
+        gamma_kin : np.ndarray | None, optional
+            Lorentz gamma factor. The default is None. It is however mandatory
+            if the emittance is given unnormalized.
+        beta_kin : np.ndarray | None, optional
+            Lorentz beta factor. The default is None. In this case, we compute
+            it from gamma_kin.
+
+        """
+        sigma = _reconstruct_full_sigma_matrix(sigma_00, sigma_01, eps,
+                                               eps_is_normalized=True,
+                                               gamma_kin=gamma_kin,
+                                               beta_kin=beta_kin)
+        if self.phase_space == 'zdelta':
+            sigma *= 1e-6
+        self.sigma = sigma
+
     def init_from_another_plane(self, eps_orig: np.ndarray,
                                 twiss_orig: np.ndarray, gamma_kin: np.ndarray,
                                 beta_kin: np.ndarray, convert: str) -> None:
         """
         Fully initialize from another phase space.
 
-        It needs emittance and Twiss to be used, and computes envelopes. Hence
-        it is not adapted to TraceWin data treatment, as we do not have the
-        Twiss but already have envelopes.
+        Used by the Envelope1D and TraceWin solvers.
+
         """
         eps_no_normalisation, eps_normalized = \
             self._compute_eps_from_other_plane(eps_orig, convert, gamma_kin,
@@ -643,6 +638,66 @@ def mismatch_factor(ref: np.ndarray, fix: np.ndarray, transp: bool = False
 
     mismatch = np.sqrt(.5 * (__r + np.sqrt(__r**2 - 4.))) - 1.
     return mismatch
+
+
+def _reconstruct_full_sigma_matrix(
+    sigma_00: np.ndarray, sigma_01: np.ndarray, eps: np.ndarray,
+    eps_is_normalized: bool = True, gamma_kin: np.ndarray | None = None,
+    beta_kin: np.ndarray | None = None,
+) -> np.ndarray:
+    """
+    Compute sigma matrix from the two top components and emittance.
+
+    For consistency with TraceWin results files, inputs must be in the
+    z-delta phase space, in "practical" units: mm, mrad.
+      | Note that epsilon_zdelta is in pi.mm.mrad in TraceWin .out files,
+      | while pi.mm.% is used everywhere else in TraceWin as well as in
+      | LightWin.
+
+    For consistency with Envelope1D, output is in z-delta phase space, in
+    SI units: m, rad.
+
+    Parameters
+    ----------
+    sigma_00 : np.ndarray
+        Top-left component of the sigma matrix.
+    sigma_01 : np.ndarray
+        Top-right = bottom-left component of the sigma matrix.
+    eps : np.ndarray
+        Emittance.
+    eps_is_normalized : bool, optional
+        To tell if the given emittance is already normalized. The default is
+        True. In this case, it is de-normalized and `gamma_kin` must be given.
+    gamma_kin : np.ndarray | None, optional
+        Lorentz gamma factor. The default is None. It is however mandatory if
+        the emittance is given unnormalized.
+    beta_kin : np.ndarray | None, optional
+        Lorentz beta factor. The default is None. In this case, we compute it
+        from gamma_kin.
+
+    Returns
+    -------
+    sigma : np.ndarray
+        Full sigma matrix along the linac.
+
+    """
+    if eps_is_normalized:
+        if gamma_kin is None:
+            logging.error("It is mandatory to give `gamma_kin` to compute "
+                          "sigma matrix. Aborting calculation of this phase "
+                          "space...")
+            return
+
+        if beta_kin is None:
+            beta_kin = converters.energy(gamma_kin, 'gamma to beta')
+        eps /= (beta_kin * gamma_kin)
+
+    sigma = np.zeros((sigma_00.shape[0], 2, 2))
+    sigma[:, 0, 0] = sigma_00
+    sigma[:, 0, 1] = sigma_01
+    sigma[:, 1, 0] = sigma_01
+    sigma[:, 1, 1] = (eps**2 + sigma_01**2) / sigma_00
+    return sigma  # zdelta* 1e-6
 
 
 # =============================================================================

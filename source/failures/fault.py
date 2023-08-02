@@ -82,7 +82,8 @@ class Fault:
 
         """
         w_kin, phi_abs, tm_cumul = self.ref_acc.get(
-            'w_kin', 'phi_abs', 'tm_cumul', elt=elts[0], pos='in')
+            'w_kin', 'phi_abs', 'tm_cumul',
+            elt=elts[0], pos='in', phase_space='zdelta')
         elts = ListOfElements(elts, w_kin, phi_abs, tm_cumul=tm_cumul,
                               first_init=False)
         return elts

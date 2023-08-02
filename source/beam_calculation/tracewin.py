@@ -398,14 +398,21 @@ def _beam_param_uniform_with_envelope1d(
         beam_parameters: BeamParameters, results: dict[str, np.ndarray],
         multiparticle: bool = False) -> BeamParameters:
     """Manually set longitudinal phase-spaces in BeamParameters object."""
+    beam_parameters.create_phase_spaces('zdelta', 'z', 'phiw')
+
     sigma_00, sigma_01 = results['SizeZ']**2, results['szdp']
     eps_normalized = results['ezdp']
-    sigma = beam_parameters.sigma_matrix_from_zdelta_beam_param(sigma_00,
-                                                                sigma_01,
-                                                                eps_normalized)
-    beam_parameters.sigma = sigma
-    beam_parameters.create_phase_spaces('zdelta', 'z', 'phiw')
-    beam_parameters.init_zdelta_from_sigma_matrix(sigma)
+    beam_parameters.zdelta.reconstruct_full_sigma_matrix(
+        sigma_00,
+        sigma_01,
+        eps_normalized,
+        eps_is_normalized=True,
+        gamma_kin=beam_parameters.gamma_kin,
+        beta_kin=beam_parameters.beta_kin
+    )
+    beam_parameters.zdelta.init_from_sigma(gamma_kin=beam_parameters.gamma_kin,
+                                           beta_kin=beam_parameters.beta_kin)
+
     beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
 
     beam_parameters = _add_beam_param_not_supported_by_envelope1d(
