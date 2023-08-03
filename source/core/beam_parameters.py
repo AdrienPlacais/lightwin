@@ -51,7 +51,7 @@ We use the same units and conventions as TraceWin.
     emittance in the [phi-W] plane.
 
 """
-from typing import Any
+from typing import Any, Self
 from dataclasses import dataclass
 import logging
 
@@ -66,13 +66,25 @@ from util.helper import recursive_items, recursive_getter, range_vals
 PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
                 'phiw99', 'x99', 'y99')
 
+NAME_TO_OBJECT = {
+    'zdelta': lambda bp: bp.zdelta,
+    'z': lambda bp: bp.z,
+    'phiw': lambda bp: bp.phiw,
+    'x': lambda bp: bp.x,
+    'y': lambda bp: bp.y,
+    't': lambda bp: bp.t,
+    'phiw99': lambda bp: bp.phiw99,
+    'x99': lambda bp: bp.x99,
+    'y99': lambda bp: bp.y99,
+}
+
 
 @dataclass
 class BeamParameters:
     """Hold all emittances, envelopes, etc in various planes."""
 
-    gamma_kin: np.ndarray | None = None
-    beta_kin: np.ndarray | None = None
+    gamma_kin: np.ndarray | float | None = None
+    beta_kin: np.ndarray | float | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
@@ -277,6 +289,29 @@ class BeamParameters:
         self.x99.eps = eps_x99
         self.y99.eps = eps_y99
 
+    def subset(self, *phase_spaces: str, elt: _Element | str, pos: str
+               ) -> Self:
+        """Give the desired phase spaces at a given position."""
+        kwargs = {'elt': elt,
+                  'pos': pos,
+                  'to_numpy': False,
+                  'phase_space': None}
+
+        sub_beam_params = BeamParameters()
+        sub_beam_params.create_phase_spaces(*phase_spaces)
+
+        for name_of_phase_space in phase_spaces:
+            if not self.has(name_of_phase_space):
+                continue
+            kwargs['phase_space'] = name_of_phase_space
+
+            sub_phase_space = NAME_TO_OBJECT[name_of_phase_space](
+                sub_beam_params)
+            sub_phase_space.eps = self.get('eps', **kwargs)
+            sub_phase_space.alpha = self.get('alpha', **kwargs)
+            sub_phase_space.beta = self.get('beta', **kwargs)
+        return sub_beam_params
+
 
 @dataclass
 class SinglePhaseSpaceBeamParameters:
@@ -290,11 +325,11 @@ class SinglePhaseSpaceBeamParameters:
 
     twiss: np.ndarray | None = None
 
-    alpha: np.ndarray | None = None
-    beta: np.ndarray | None = None
+    alpha: np.ndarray | float | None = None
+    beta: np.ndarray | float | None = None
     gamma: np.ndarray | None = None
 
-    eps: np.ndarray | None = None
+    eps: np.ndarray | float | None = None
     envelope_pos: np.ndarray | None = None
     envelope_energy: np.ndarray | None = None
 
@@ -667,26 +702,12 @@ class SinglePhaseSpaceBeamParameters:
 # =============================================================================
 # Public
 # =============================================================================
-# Use this more?? FIXME
-name_to_object = {
-    'zdelta': lambda bp: bp.zdelta,
-    'z': lambda bp: bp.z,
-    'phiw': lambda bp: bp.phiw,
-    'x': lambda bp: bp.x,
-    'y': lambda bp: bp.y,
-    't': lambda bp: bp.t,
-    'phiw99': lambda bp: bp.phiw99,
-    'x99': lambda bp: bp.x99,
-    'y99': lambda bp: bp.y99,
-}
-
-
 def mismatch_from_objects(ref: BeamParameters, fix: BeamParameters,
                           *phase_spaces: str,
                           set_transverse_as_average: bool = True) -> None:
     """Compute the mismatchs in the desired phase_spaces."""
     for phase_space in phase_spaces:
-        phase_space_getter = name_to_object[phase_space]
+        phase_space_getter = NAME_TO_OBJECT[phase_space]
 
         bp_ref, bp_fix = phase_space_getter(ref), phase_space_getter(fix)
         bp_fix.mismatch_factor = _mismatch_single_phase_space(bp_ref, bp_fix)
