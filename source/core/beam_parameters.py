@@ -51,7 +51,7 @@ We use the same units and conventions as TraceWin.
     emittance in the [phi-W] plane.
 
 """
-from typing import Any, Self
+from typing import Any, Self, Callable
 from dataclasses import dataclass
 import logging
 
@@ -79,12 +79,29 @@ NAME_TO_OBJECT = {
 }
 
 
+# TODO complete docstring
 @dataclass
 class BeamParameters:
-    """Hold all emittances, envelopes, etc in various planes."""
+    """
+    Hold all emittances, envelopes, etc in various planes.
+
+
+    Attributes
+    ----------
+    element_to_index : Callable[[str | _Element, str | None],
+                                 int | slice] | None, optional
+        Takes an `_Element`, its name, 'first' or 'last' as argument, and
+        returns correspondinf index. Index should be the same in all the arrays
+        attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
+        Used to easily `get` the desired properties at the proper position. The
+        default is None.
+
+    """
 
     gamma_kin: np.ndarray | float | None = None
     beta_kin: np.ndarray | float | None = None
+    element_to_index: Callable[[str | _Element, str | None], int | slice] \
+        | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
@@ -181,15 +198,25 @@ class BeamParameters:
             for stored_key, stored_val in vars(self).items():
                 if stored_key == short_key:
                     val[key] = stored_val
+
+                    if None not in (self.element_to_index, elt):
+                        idx = self.element_to_index(elt=elt, pos=pos)
+                        val[key] = val[key][idx]
+
                     break
 
                 if stored_key == phase_space:
                     val[key] = recursive_getter(
                         short_key, vars(stored_val), to_numpy=False,
-                        none_to_nan=False, elt=elt, pos=pos, **kwargs)
+                        none_to_nan=False, **kwargs)
 
                     if val[key] is None:
                         continue
+
+                    if None not in (self.element_to_index, elt):
+                        idx = self.element_to_index(elt=elt, pos=pos)
+                        val[key] = val[key][idx]
+
                     break
 
         out = [val[key] for key in keys]
@@ -230,7 +257,8 @@ class BeamParameters:
 
             phase_space_beam_param = SinglePhaseSpaceBeamParameters(
                 arg,
-                kwargs.get(arg, None)
+                kwargs.get(arg, None),
+                element_to_index=self.element_to_index,
             )
             if arg == 'zdelta':
                 self.zdelta = phase_space_beam_param
@@ -310,6 +338,7 @@ class BeamParameters:
             sub_phase_space.eps = self.get('eps', **kwargs)
             sub_phase_space.alpha = self.get('alpha', **kwargs)
             sub_phase_space.beta = self.get('beta', **kwargs)
+            sub_phase_space.tm_cumul = self.get('tm_cumul', **kwargs)
         return sub_beam_params
 
 
@@ -335,9 +364,14 @@ class SinglePhaseSpaceBeamParameters:
 
     mismatch_factor: np.ndarray | None = None
 
+    element_to_index: Callable[[str | _Element, str | None], int | slice] \
+        | None = None
+
     def __post_init__(self):
         """Set the default attributes for the zdelta."""
         if self.phase_space == 'zdelta' and self.sigma_in is None:
+            logging.warning("resorted back to a default sigma_zdelta. I should"
+                            "avoid that.")
             self.sigma_in = con.SIGMA_ZDELTA
 
     def has(self, key: str) -> bool:
@@ -381,8 +415,11 @@ class SinglePhaseSpaceBeamParameters:
                 continue
 
             val[key] = recursive_getter(key, vars(self), to_numpy=False,
-                                        none_to_nan=False, elt=elt, pos=pos,
-                                        **kwargs)
+                                        none_to_nan=False, **kwargs)
+
+            if None not in (self.element_to_index, elt):
+                idx = self.element_to_index(elt=elt, pos=pos)
+                val[key] = val[key][idx]
 
         out = [val[key] for key in keys]
         if to_numpy:

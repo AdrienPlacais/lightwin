@@ -182,8 +182,11 @@ class TraceWin(BeamCalculator):
 
         r_zz_elt = []
 
+        element_to_index = self._generate_element_to_index_func(elts)
+
         multipart = self._is_a_multiparticle_simulation(self.base_kwargs)
-        beam_params = BeamParameters(gamma_kin=results['gamma'])
+        beam_params = BeamParameters(gamma_kin=results['gamma'],
+                                     element_to_index=element_to_index)
         beam_params = _beam_param_uniform_with_envelope1d(beam_params, results)
         beam_params = _add_beam_param_not_supported_by_envelope1d(beam_params,
                                                                   results,
@@ -191,7 +194,6 @@ class TraceWin(BeamCalculator):
 
         rf_fields = []
 
-        element_to_index = self._generate_element_to_index_func(elts)
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
             z_abs=results['z(m)'],
