@@ -71,7 +71,7 @@ class ListOfElements(list):
 
         self._l_cav = filter_cav(self)
         logging.info("Successfully created a `ListOfElements` with "
-                     f"{self.w_kin_in = } and {self.phi_abs_in = }")
+                     f"{self.w_kin_in = } MeV and {self.phi_abs_in = } rad.")
 
     @property
     def w_kin_in(self):

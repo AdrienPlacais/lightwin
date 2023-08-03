@@ -4,6 +4,19 @@
 Created on Thu Aug  3 13:37:30 2023.
 
 @author: placais
+
+This module holds two functions to create `ListOfElements` with the proper
+input synchronous particle and beam properties.
+
+The first one, `new_list_of_elements`, is called within the `Accelerator` class
+and generate a full `ListOfElements` from scratch.
+
+The second one, `subset_of_pre_existing_list_of_elements`, is called within the
+`Fault` class and generates a `ListOfElements` that contains only a fraction of
+the linac.
+
+TODO : also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
+
 """
 import logging
 
@@ -33,8 +46,10 @@ def new_list_of_elements(elts: list[_Element],
         A plain list containing all the `_Element` objects of the linac.
     input_particle : ParticleInitialState
         An object to hold initial energy and phase of the particle.
-
-
+    input_beam : BeamParameters
+        Holds the initial properties of the beam. It is pretty light, as
+        Envelope1D does not need a lot of beam properties, and as the ones
+        required by TraceWin are already defined in the `.ini` file.
 
     Returns
     -------
@@ -64,6 +79,11 @@ def subset_of_pre_existing_list_of_elements(
     Factory function used during the fitting process from a `Fault` object.
     During this optimisation process, we compute the propagation of the beam
     only in the smallest possible subset of the linac.
+
+    It creates the proper `input_particle` and `input_beam` objects. In
+    contrary to `new_list_of_elements` function, `input_beam` must contain
+    information on the transverse plane if beam propagation is performed with
+    TraceWin.
 
     Parameters
     ----------
