@@ -11,18 +11,27 @@ cavity failure and to fix it.
 import logging
 from collections.abc import Callable
 from functools import partial
+
 import numpy as np
 
-from beam_calculation.output import SimulationOutput
 import config_manager as con
-from util.dicts_output import markdown
+
 from core.elements import _Element, FieldMap
 from core.list_of_elements import ListOfElements
+from core.list_of_elements_factory import (
+    subset_of_pre_existing_list_of_elements
+)
 from core.accelerator import Accelerator
 from core.beam_parameters import mismatch_from_arrays
-from algorithms.least_squares import LeastSquares
+
+from beam_calculation.output import SimulationOutput
+
 from failures.variables import VariablesAndConstraints
 from failures.set_of_cavity_settings import SetOfCavitySettings
+
+from algorithms.least_squares import LeastSquares
+
+from util.dicts_output import markdown
 
 
 class Fault:
@@ -81,11 +90,15 @@ class Fault:
         Create a `ListOfElements` object from a list of `_Element` objects.
 
         """
-        w_kin, phi_abs, tm_cumul = self.ref_acc.get(
-            'w_kin', 'phi_abs', 'tm_cumul',
-            elt=elts[0], pos='in', phase_space='zdelta')
-        elts = ListOfElements(elts, w_kin, phi_abs, tm_cumul=tm_cumul,
-                              first_init=False)
+        first_solver = list(self.ref_acc.simulation_outputs.keys())[0]
+        simulation_output = self.ref_acc.simulation_outputs[first_solver]
+        elts = subset_of_pre_existing_list_of_elements(elts, simulation_output)
+
+        # w_kin, phi_abs, tm_cumul = self.ref_acc.get(
+        #     'w_kin', 'phi_abs', 'tm_cumul',
+        #     elt=elts[0], pos='in', phase_space='zdelta')
+        # elts = ListOfElements(elts, w_kin, phi_abs, tm_cumul=tm_cumul,
+        #                       first_init=False)
         return elts
 
     def fix(self, beam_calculator_run_with_this: Callable[

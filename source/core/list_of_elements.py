@@ -22,6 +22,8 @@ import numpy as np
 
 import config_manager
 from core.elements import _Element, Freq, Lattice
+from core.beam_parameters import BeamParameters
+from core.particle import ParticleInitialState
 import tracewin_utils.interface
 from util.helper import recursive_items, recursive_getter
 
@@ -29,9 +31,15 @@ from util.helper import recursive_items, recursive_getter
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
-    def __init__(self, elts: list[_Element], w_kin: float, phi_abs: float,
-                 tm_cumul: np.ndarray | None = None, first_init: bool = True,
-                 ) -> None:
+    def __init__(self, elts: list[_Element],
+                 input_particle: ParticleInitialState,
+                 input_beam: BeamParameters, first_init: bool = True) -> None:
+        w_kin = input_particle.w_kin
+        phi_abs = input_particle.phi_abs
+        tm_cumul = input_beam.zdelta.tm_cumul
+    # def __init__(self, elts: list[_Element], w_kin: float, phi_abs: float,
+    #              tm_cumul: np.ndarray | None = None, first_init: bool = True,
+    #              ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.
 
@@ -45,11 +53,10 @@ class ListOfElements(list):
         elts : list[_Element]
             List containing the _Element objects.
         w_kin : float
-            Kinetic energy at the entrance of the first _Element. Must be in
-            MeV.
+            Kinetic energy at the entrance of the first _Element in MeV.
         phi_abs : float
-            Absolute phase at the entrance of the first _Element. Must be in
-            rad, and expressed relative to the bunch frequency.
+            Absolute phase at the entrance of the first _Element in rad, and
+            expressed relative to the bunch frequency.
         tm_cumul : np.ndarray, optional
             Cumulated transfer matrix (2, 2) at the entrance of the first
             _Element. The default is None.

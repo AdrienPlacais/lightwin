@@ -15,10 +15,10 @@ from core.list_of_elements import ListOfElements
 from beam_calculation.output import SimulationOutput
 
 
-def _new_list_of_elements(elts: list[_Element],
-                          input_particle: ParticleInitialState,
-                          input_beam: BeamParameters,
-                          ) -> ListOfElements:
+def new_list_of_elements(elts: list[_Element],
+                         input_particle: ParticleInitialState,
+                         input_beam: BeamParameters,
+                         ) -> ListOfElements:
     """
     Create a new `ListOfElements`.
 
@@ -48,7 +48,7 @@ def _new_list_of_elements(elts: list[_Element],
     return list_of_elements
 
 
-def _subset_of_pre_existing_list_of_elements(
+def subset_of_pre_existing_list_of_elements(
     elts: list[_Element],
     simulation_output: SimulationOutput,
 ) -> ListOfElements:

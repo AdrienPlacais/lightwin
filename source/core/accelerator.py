@@ -24,16 +24,25 @@ import numpy as np
 import pandas as pd
 
 import config_manager as con
+
 import tracewin_utils.interface
 import tracewin_utils.load
+
 from beam_calculation.output import SimulationOutput
-from util.helper import recursive_items, recursive_getter
-from core import particle
+
+from core.particle import ParticleInitialState
+from core.beam_parameters import BeamParameters
 from core.elements import _Element, FieldMapPath
-from core.list_of_elements import ListOfElements, elt_at_this_s_idx, \
-    equiv_elt
+from core.list_of_elements import (ListOfElements,
+                                   elt_at_this_s_idx,
+                                   equiv_elt)
+from core.list_of_elements_factory import new_list_of_elements
+
+from util.helper import recursive_items, recursive_getter
 
 
+# TODO dedicated methods to init self.synch (self.input_particle is better)
+# TODO maybe keep the self.input_beam. And create a dedicated init
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
@@ -67,17 +76,27 @@ class Accelerator():
         elts = tracewin_utils.interface.create_structure(dat_filecontent)
         elts = self._set_field_map_files_paths(elts)
 
-        self.elts = ListOfElements(elts, w_kin=con.E_MEV, phi_abs=0.,
-                                   first_init=True)
+        self.synch = ParticleInitialState(w_kin=con.E_MEV,
+                                          phi_abs=0.,
+                                          synchronous=True)
+        input_particle = self.synch
+
+        # TODO separate this from Accelerator.__init__
+        input_beam = BeamParameters()
+        input_beam.create_phase_spaces('zdelta')
+        input_beam.zdelta.tm_cumul = np.eye(2)
+        input_beam.zdelta.sigma_in = con.SIGMA_ZDELTA
+
+        # self.elts = ListOfElements(elts, w_kin=con.E_MEV, phi_abs=0.,
+        #                            first_init=True)
+        self.elts: ListOfElements = new_list_of_elements(elts,
+                                                         input_particle,
+                                                         input_beam)
 
         tracewin_utils.interface.set_all_electric_field_maps(
             self.files, self.elts.by_section_and_lattice)
 
         self.files['dat_filecontent'] = dat_filecontent
-
-        self.synch = particle.ParticleInitialState(w_kin=con.E_MEV,
-                                                   phi_abs=0.,
-                                                   synchronous=True)
 
         self._special_getters = self._create_special_getters()
         self._check_consistency_phases()

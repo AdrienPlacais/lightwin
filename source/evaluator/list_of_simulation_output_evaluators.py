@@ -149,7 +149,6 @@ class FaultScenarioSimulationOutputEvaluators:
                                                          precision)
         n_columns = len(self.columns)
         evaluations_sorted_by_qty = chunks(formatted_evaluations, n_columns)
-        logging.warning("still need to handle units, %")
 
         for line_label, evaluation in zip(lines_labels,
                                           evaluations_sorted_by_qty):
