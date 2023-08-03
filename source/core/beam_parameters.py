@@ -693,7 +693,6 @@ def mismatch_from_objects(ref: BeamParameters, fix: BeamParameters,
 
     if not set_transverse_as_average:
         return
-    logging.critical('on y est')
 
     if 'x' not in phase_spaces or 'y' not in phase_spaces:
         logging.warning("Transverse planes were not updated. Transverse "

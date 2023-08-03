@@ -89,7 +89,7 @@ if __name__ == '__main__':
         'beam': 'beam',
         'wtf': 'wtf.quick_debug',
         'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
-        'evaluators': 'evaluators.light',
+        'evaluators': 'evaluators.bruce',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
@@ -173,4 +173,4 @@ if __name__ == '__main__':
     simulation_output_evaluators.run(*tuple(s_to_study))
 
 
-    b = accelerators[0].simulation_outputs[solv2].beam_parameters
+    b = accelerators[1].simulation_outputs[solv2].beam_parameters

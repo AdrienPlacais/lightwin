@@ -37,6 +37,7 @@ markdown = {
 
     'mismatch_factor': r"$M$",
     'mismatch_factor_zdelta': r"$M$",
+    'mismatch_factor_t': r"$M_t$",
 
     # Element
     'elt_idx': "Element index",
@@ -63,14 +64,11 @@ markdown = {
     'pow_lost': "Lost power [W]",
     'eps_x': r"Norm. RMS $\epsilon_{xx'}$ [$\pi$mm mrad]",
     'eps_y': r"Norm. RMS $\epsilon_{yy'}$ [$\pi$mm mrad]",
+    'eps_t': r"Norm. RMS $\epsilon_t$ [$\pi$mm mrad]",
     'eps_phiw99': r"Norm. 99% $\epsilon_{zz'}$ [$\pi$mm mrad]",
     'eps_x99': r"Norm. 99% $\epsilon_{xx'}$ [$\pi$mm mrad]",
     'eps_y99': r"Norm. 99% $\epsilon_{yy'}$ [$\pi$mm mrad]",
-    # util.evaluate
-    'relative_var_et': r'$\Delta\epsilon_t / \epsilon_{t, 0}$ [%]',
-    'relative_var_ep': r'$\Delta\epsilon_{\phi W} / \epsilon_{\phi W, 0}$ [%]',
-    'mismatch_t': r'$M_t$',
-    'mismatch_zdp': r'$M_l$',
+
 }
 
 plot_kwargs = {

@@ -27,7 +27,9 @@ def test(c_evaluators: configparser.SectionProxy) -> None:
         "max of 99percent transverse eps_y shall not be too high",
         "max of 99percent longitudinal eps shall not be too high",
         "longitudinal eps at end",
-        "mismatch factor at end"
+        "transverse eps at end",
+        "mismatch factor at end",
+        "transverse mismatch factor at end",
     )
 
     for key in c_evaluators.keys():

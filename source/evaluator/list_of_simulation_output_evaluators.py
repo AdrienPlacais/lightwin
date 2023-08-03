@@ -29,10 +29,7 @@ from util.helper import pd_output
 
 
 class ListOfSimulationOutputEvaluators(list):
-    """
-    A simple list of `SimulationOutputEvaluator`s.
-
-    """
+    """A simple list of `SimulationOutputEvaluator`s."""
 
     def __init__(self, evaluators: list[SimulationOutputEvaluator]) -> None:
         """Create the objects (factory)."""
@@ -61,7 +58,7 @@ def factory_simulation_output_evaluators_from_presets(
     evaluators = [SimulationOutputEvaluator(
         ref_simulation_output=ref_simulation_output,
         **kwargs)
-                  for kwargs in all_kwargs]
+        for kwargs in all_kwargs]
     list_of_evaluators = ListOfSimulationOutputEvaluators(evaluators)
     return list_of_evaluators
 

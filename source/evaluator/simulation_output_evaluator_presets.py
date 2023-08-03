@@ -24,7 +24,6 @@ from util.dicts_output import markdown
 # "static" presets
 # =============================================================================
 PRESETS = {
-    # Legacy "fit quality"
     # Legacy "Fred tests"
     "no power loss": {
         'value_getter': lambda s: s.get('pow_lost'),
@@ -146,12 +145,31 @@ PRESETS = {
         'descriptor': """Relative difference of emittance in [z-delta] plane
                          between fixed and reference linacs."""
     },
+    "transverse eps at end": {
+        'value_getter': lambda s: s.get('eps_t', elt='last', pos='out'),
+        'ref_value_getter': lambda ref_s, s: ref_s.get('eps_t',
+                                                       elt='last', pos='out'),
+        'post_treaters': (post_treaters.relative_difference,),
+        'markdown': markdown['eps_t'],
+        'descriptor': """Relative difference of emittance in transverse plane
+                         between fixed and reference linacs. Transverse
+                         emittance defined as average of two transverse
+                         planes."""
+    },
     "mismatch factor at end": {
         'value_getter': lambda s: s.get('mismatch_factor',
                                         phase_space='zdelta',
                                         elt='last', pos='out'),
         'markdown': markdown['mismatch_factor'],
         'descriptor': """Mismatch factor at the end of the linac."""
+    },
+    "transverse mismatch factor at end": {
+        'value_getter': lambda s: s.get('mismatch_factor_t',
+                                        elt='last', pos='out'),
+        'markdown': markdown['mismatch_factor'],
+        'descriptor': """Transverse mismatch factor at the end of the linac.
+                         Defined as average of two transverse mismatch
+                         factors."""
     },
 }
 

@@ -161,15 +161,14 @@ class SimulationOutput:
                 val[key] = None
                 continue
 
-            val[key] = recursive_getter(key, vars(self), **kwargs)
+            val[key] = recursive_getter(key, vars(self), to_numpy=False,
+                                        **kwargs)
 
-            if val[key] is not None and to_deg and 'phi' in key:
-                if isinstance(val[key], list):
-                    val[key] = [np.rad2deg(angle)
-                                if angle is not None else None
-                                for angle in val[key]]
-                else:
-                    val[key] = np.rad2deg(val[key])
+            if val[key] is None:
+                continue
+
+            if to_deg and 'phi' in key:
+                val[key] = _to_deg(val[key])
 
             if not to_numpy and isinstance(val[key], np.ndarray):
                 val[key] = val[key].tolist()
@@ -230,6 +229,17 @@ class SimulationOutput:
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
         logging.critical("data_in_tw_fashion is bugged")
+
+
+def _to_deg(val: np.ndarray | list | float | None
+            ) -> np.ndarray | list | float | None:
+    """Convert the val[key] into deg if it is not None."""
+    if val is None:
+        return None
+    if isinstance(val, list):
+        return [np.rad2deg(angle) if angle is not None else None
+                for angle in val]
+    return np.rad2deg(val)
 
 
 def get_nth_parent(filepath: str, nth: int) -> str:
