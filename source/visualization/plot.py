@@ -99,48 +99,6 @@ def factory(accelerators: list[Accelerator], plots: dict[str, bool],
     return figs
 
 
-def plot_evaluate(z_m: np.ndarray, reference_values: list[dict],
-                  fixed_values: list[dict], acceptable_values: list[dict],
-                  lin_fix: Accelerator, evaluation: str = 'test',
-                  save_fig: bool = True, num: int = 1) -> None:
-    """Plot data from util.evaluate."""
-    x_axis = 'z_abs'
-
-    for i, (ref, fix, limits) in enumerate(zip(reference_values,
-                                               fixed_values,
-                                               acceptable_values)):
-        n_axes = len(ref) + 1
-        num += 1
-        fig, axx = _create_fig_if_not_exists(n_axes, sharex=True, num=num,
-                                             clean_fig=True)
-        axx[-1].set_xlabel(dic.markdown[x_axis])
-        # TODO : structure plot (needs a linac)
-
-        for ax, (key, ref), fix, lim in zip(axx[:-1], ref.items(),
-                                            fix.values(), limits.values()):
-            ax.set_ylabel(dic.markdown[key])
-            ax.grid(True)
-            ax.plot(z_m, ref, label="TW ref")
-            ax.plot(z_m, fix, label=lin_fix.name)
-
-            for key_lim in ['max', 'min']:
-                if key_lim in lim.keys() and lim[key_lim] is not None:
-                    dat = lim[key_lim]
-                    if isinstance(dat, float):
-                        ax.axhline(dat, c='r', ls='--')
-                        continue
-
-                    ax.plot(z_m, dat, c='r', ls='--')
-
-        axx[0].legend()
-        _plot_structure(lin_fix, axx[-1], x_axis=x_axis)
-
-        if save_fig:
-            file = os.path.join(lin_fix.get('accelerator_path'),
-                                f"{evaluation}_{i}.png")
-            _savefig(fig, file)
-
-
 # =============================================================================
 # Used in factory
 # =============================================================================
