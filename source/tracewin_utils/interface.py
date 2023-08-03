@@ -55,10 +55,11 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
     dat_filecontent : list[list[str]]
         List containing all the lines of dat_filepath.
 
-    Return
-    ------
-    elements_list: list[_Element]
+    Returns
+    -------
+    elements_list : list[_Element]
         List containing all the Element objects.
+
     """
     # Dictionnary linking element nature with correct sub-class
     subclasses_dispatcher = {
@@ -78,7 +79,6 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
          if elem[0] not in TO_BE_IMPLEMENTED]
     )
     elements_list = list(elements_iterable)
-    # Remove END
     return elements_list
 
 
@@ -91,10 +91,7 @@ def give_name(elts: list[_Element]) -> None:
         'SOLENOID': 'SOL',
     }
     for key, value in civil_register.items():
-        sub_list = [elt
-                    for elt in elts
-                    if elt.get('nature') == key
-                    ]
+        sub_list = list(filter(lambda elt: elt.get('nature') == key, elts))
         for i, elt in enumerate(sub_list, start=1):
             elt.elt_info['elt_name'] = value + str(i)
 
@@ -108,9 +105,10 @@ def set_all_electric_field_maps(files: dict, sections: list[list[_Element]]
     Parameters
     ----------
     files : dict
-        Accelerator.files dictionary.
-    sections: list of lists of Element
-        List of sections containing lattices containing Element objects.
+        `Accelerator.files` dictionary.
+    sections : list[list[_Element]]
+        List of sections containing lattices containing `_Element` objects.
+
     """
     filepaths = []
     for i, section in enumerate(sections):
@@ -136,12 +134,14 @@ def get_single_electric_field_map(
     """
     Select the field map file and call the proper loading function.
 
-    Warning, filename is directly extracted from the .dat file used by
-    TraceWin. Thus, the relative filepath may be misunderstood by this
-    script.
-    Also check that the extension of the file is .edz, or manually change
+    Warning, `filename` is directly extracted from the `.dat` file used by
+    TraceWin. Thus, the relative filepath may be misunderstood by this script.
+
+    Also check that the extension of the file is `.edz`, or manually change
     this function.
-    Finally, only 1D electric field map are implemented.
+
+    Only 1D electric field map are implemented.
+
     """
     # FIXME
     cav.field_map_file_name += ".edz"
