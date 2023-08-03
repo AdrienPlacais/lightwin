@@ -35,9 +35,8 @@ def _wrap_beam_calculation(accelerator: Accelerator,
                            ) -> SimulationOutput:
     """Shorthand to init the solver, perform beam calculation."""
     beam_calculator.init_solver_parameters(accelerator)
-    elts = accelerator.elts
-    simulation_output = beam_calculator.run(elts)
-    simulation_output.compute_complementary_data(elts, **kwargs)
+    simulation_output = beam_calculator.run(accelerator.elts)
+    simulation_output.compute_complementary_data(accelerator.elts, **kwargs)
     return simulation_output
 
 
@@ -84,12 +83,12 @@ if __name__ == '__main__':
     MY_CONFIG_FILE = 'myrrha.ini'
     MY_KEYS = {
         'files': 'files',
-        'plots': 'plots.complete',
+        'plots': 'plots.light',
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam': 'beam',
         'wtf': 'wtf.quick_debug',
-        'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
-        'evaluators': 'evaluators.bruce',
+        # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
+        # 'evaluators': 'evaluators.bruce',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
@@ -161,16 +160,16 @@ if __name__ == '__main__':
     kwargs = {'save_fig': False, 'clean_fig': True}
     figs = plot.factory(accelerators, my_configs['plots'], **kwargs)
 
-    s_to_study = [accelerator.simulation_outputs[solv2]
-                  for accelerator in accelerators]
-    ref_s = s_to_study[0]
+    # s_to_study = [accelerator.simulation_outputs[solv2]
+    #               for accelerator in accelerators]
+    # ref_s = s_to_study[0]
 
-    simulation_output_evaluators: ListOfSimulationOutputEvaluators = \
-        factory_simulation_output_evaluators_from_presets(
-            *my_configs['evaluators']['beam_calc_post'],
-            ref_simulation_output=ref_s)
+    # simulation_output_evaluators: ListOfSimulationOutputEvaluators = \
+    #     factory_simulation_output_evaluators_from_presets(
+    #         *my_configs['evaluators']['beam_calc_post'],
+    #         ref_simulation_output=ref_s)
 
-    simulation_output_evaluators.run(*tuple(s_to_study))
+    # simulation_output_evaluators.run(*tuple(s_to_study))
 
 
-    b = accelerators[1].simulation_outputs[solv2].beam_parameters
+    # b = accelerators[1].simulation_outputs[solv2].beam_parameters
