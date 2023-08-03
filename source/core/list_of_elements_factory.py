@@ -7,6 +7,8 @@ Created on Thu Aug  3 13:37:30 2023.
 """
 import logging
 
+import numpy as np
+
 from core.elements import _Element
 from core.particle import ParticleInitialState
 from core.beam_parameters import BeamParameters
@@ -41,6 +43,10 @@ def new_list_of_elements(elts: list[_Element],
         particle and beam properties at its entry.
 
     """
+    logging.info("First initialisation of ListOfElements, ecompassing "
+                 + "all linac. Also removing Lattice and Freq "
+                 + "commands, setting Lattice/Section structures, "
+                 + "_Elements names.")
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
                                       input_beam=input_beam,
@@ -75,6 +81,9 @@ def subset_of_pre_existing_list_of_elements(
         entry.
 
     """
+    logging.info(f"Initalisation of ListOfElements from already initialized "
+                 f"elements: {elts[0]} to {elts[-1]}.")
+
     input_elt, input_pos = elts[0], 'in'
     try:
         _ = simulation_output.get('w_kin', elt=input_elt)
@@ -88,13 +97,18 @@ def subset_of_pre_existing_list_of_elements(
     kwargs = {'elt': input_elt,
               'pos': input_pos,
               'to_numpy': False}
+
     w_kin, phi_abs = simulation_output.get('w_kin', 'phi_abs', **kwargs)
     input_particle = ParticleInitialState(w_kin, phi_abs, synchronous=True)
+
     input_beam: BeamParameters = simulation_output.beam_parameters.subset(
         *('x', 'y', 'z', 'zdelta'), elt=input_elt, pos=input_pos)
+    if np.any(np.isnan(input_beam.zdelta.tm_cumul)):
+        logging.error("Previous transfer matrix was not calculated.")
 
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
                                       input_beam=input_beam,
                                       first_init=False)
+
     return list_of_elements

@@ -34,12 +34,6 @@ class ListOfElements(list):
     def __init__(self, elts: list[_Element],
                  input_particle: ParticleInitialState,
                  input_beam: BeamParameters, first_init: bool = True) -> None:
-        w_kin = input_particle.w_kin
-        phi_abs = input_particle.phi_abs
-        tm_cumul = input_beam.zdelta.tm_cumul
-    # def __init__(self, elts: list[_Element], w_kin: float, phi_abs: float,
-    #              tm_cumul: np.ndarray | None = None, first_init: bool = True,
-    #              ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.
 
@@ -52,44 +46,33 @@ class ListOfElements(list):
         ----------
         elts : list[_Element]
             List containing the _Element objects.
-        w_kin : float
-            Kinetic energy at the entrance of the first _Element in MeV.
-        phi_abs : float
-            Absolute phase at the entrance of the first _Element in rad, and
-            expressed relative to the bunch frequency.
-        tm_cumul : np.ndarray, optional
-            Cumulated transfer matrix (2, 2) at the entrance of the first
-            _Element. The default is None.
+        input_particle : ParticleInitialState
+            An object to hold initial energy and phase of the particle at the
+            entry of the first `_Element`.
+        input_beam : BeamParameters
+            An object to hold emittances, Twiss, sigma beam matrix, etc at the
+            entry of the first `_Element`.
         first_init : bool, optional
             To indicate if this a full linac or only a portion (fit process).
             The default is True.
 
         """
-        super().__init__(elts)
-        self.w_kin_in = w_kin
-        self.phi_abs_in = phi_abs
+        self.w_kin_in = input_particle.w_kin
+        self.phi_abs_in = input_particle.phi_abs
+        self.tm_cumul_in = input_beam.zdelta.tm_cumul
 
+        super().__init__(elts)
         self.by_section_and_lattice: list[list[list[_Element]]] | None = None
         self.by_lattice: list[list[_Element]] | None = None
-        self.tm_cumul_in: np.ndarray | None
 
         if first_init:
-            logging.info("First initialisation of ListOfElements, ecompassing "
-                         + "all linac. Also removing Lattice and Freq "
-                         + "commands, setting Lattice/Section structures, "
-                         + "_Elements names.")
-            self._first_init(tm_cumul)
+            logging.info("Removing Lattice and Freq commands, setting "
+                         " Lattice/Section structures, Elements names.")
+            self._first_init()
 
-        else:
-            logging.info(f"Initalisation of ListOfElements from already "
-                         f"initialized elements: {elts[0]} to {elts[-1]}.")
-
-            if np.any(np.isnan(tm_cumul)):
-                logging.error("Previous transfer matrix was not calculated.")
-            self.tm_cumul_in = tm_cumul
-
-        logging.info(f"{w_kin = }, {phi_abs = }")
         self._l_cav = filter_cav(self)
+        logging.info("Successfully created a `ListOfElements` with "
+                     f"{self.w_kin_in = } and {self.phi_abs_in = }")
 
     @property
     def l_cav(self):
@@ -163,7 +146,7 @@ class ListOfElements(list):
             return out[0]
         return tuple(out)
 
-    def _first_init(self, tm_cumul: np.ndarray | None) -> None:
+    def _first_init(self) -> None:
         """Remove Lattice/Freq commands, set structure, some indexes."""
         by_section_and_lattice, by_lattice, freqs = self.set_structure()
         self.by_section_and_lattice = by_section_and_lattice
@@ -174,14 +157,6 @@ class ListOfElements(list):
         tracewin_utils.interface.give_name(self)
         self._set_generic_electric_field_properties(
             freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
-
-        if tm_cumul is not None:
-            logging.warning(
-                "You do not need to provide a cumulated transfer matrix "
-                + "to initialize this ListOfElements. It starts at the "
-                + "beginning of the linac and the matrix should be the "
-                + "eye matrix. Ignoring your input...")
-        self.tm_cumul_in = np.eye(2)
 
     def set_structure(self) -> tuple[list[list[_Element]],
                                      list[list[list[_Element]]],
