@@ -57,9 +57,8 @@ class ListOfElements(list):
             The default is True.
 
         """
-        self.w_kin_in = input_particle.w_kin
-        self.phi_abs_in = input_particle.phi_abs
-        self.tm_cumul_in = input_beam.zdelta.tm_cumul
+        self.input_particle = input_particle
+        self.input_beam = input_beam
 
         super().__init__(elts)
         self.by_section_and_lattice: list[list[list[_Element]]] | None = None
@@ -73,6 +72,18 @@ class ListOfElements(list):
         self._l_cav = filter_cav(self)
         logging.info("Successfully created a `ListOfElements` with "
                      f"{self.w_kin_in = } and {self.phi_abs_in = }")
+
+    @property
+    def w_kin_in(self):
+        return self.input_particle.w_kin
+
+    @property
+    def phi_abs_in(self):
+        return self.input_particle.phi_abs
+
+    @property
+    def tm_cumul_in(self):
+        return self.input_beam.zdelta.tm_cumul
 
     @property
     def l_cav(self):
