@@ -63,7 +63,7 @@ from util import converters
 from util.helper import recursive_items, recursive_getter, range_vals
 
 
-PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y',
+PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
                 'phiw99', 'x99', 'y99')
 
 
@@ -84,6 +84,7 @@ class BeamParameters:
         self.phiw: SinglePhaseSpaceBeamParameters
         self.x: SinglePhaseSpaceBeamParameters
         self.y: SinglePhaseSpaceBeamParameters
+        self.t: SinglePhaseSpaceBeamParameters
         self.phiw99: SinglePhaseSpaceBeamParameters
         self.x99: SinglePhaseSpaceBeamParameters
         self.y99: SinglePhaseSpaceBeamParameters
@@ -233,6 +234,9 @@ class BeamParameters:
                 continue
             if arg == 'y':
                 self.y = phase_space_beam_param
+                continue
+            if arg == 't':
+                self.t = phase_space_beam_param
                 continue
             if arg == 'phiw99':
                 self.phiw99 = phase_space_beam_param
@@ -470,6 +474,16 @@ class SinglePhaseSpaceBeamParameters:
         self.compute_envelopes(self.twiss[:, 1], self.twiss[:, 2],
                                eps_for_envelope)
 
+    def init_from_averaging_x_and_y(self, x_space: object, y_space: object
+                                    ) -> None:
+        """Create eps for an average transverse plane phase space."""
+        self.eps = .5 * (x_space.eps + y_space.eps)
+        if None not in (x_space.mismatch_factor, y_space.mismatch_factor):
+            self.mismatch_factor = .5 * (x_space.mismatch_factor
+                                         + y_space.mismatch_factor)
+        self.twiss = None
+        self.envelope_pos, self.envelope_energy = None, None
+
     def _compute_eps_from_sigma(self, sigma: np.ndarray, gamma_kin: np.ndarray,
                                 beta_kin: np.ndarray) -> tuple[np.ndarray,
                                                                np.ndarray]:
@@ -653,17 +667,47 @@ class SinglePhaseSpaceBeamParameters:
 # =============================================================================
 # Public
 # =============================================================================
-# TODO some interpolation if needed?
-def mismatch_from_objects(ref: SinglePhaseSpaceBeamParameters,
-                          fix: SinglePhaseSpaceBeamParameters,
-                          save_in_fix_object: bool = True
-                          ) -> np.ndarray | None:
-    """Compute the mismatch using two `SinglePhaseSpaceBeamParameters`."""
-    if ref.phase_space != fix.phase_space:
-        logging.warning("You asked for a mismatch factor computed between "
-                        "different phase spaces. I will trust you and continue"
-                        " as if I did not see anything.")
+# Use this more?? FIXME
+name_to_object = {
+    'zdelta': lambda bp: bp.zdelta,
+    'z': lambda bp: bp.z,
+    'phiw': lambda bp: bp.phiw,
+    'x': lambda bp: bp.x,
+    'y': lambda bp: bp.y,
+    't': lambda bp: bp.t,
+    'phiw99': lambda bp: bp.phiw99,
+    'x99': lambda bp: bp.x99,
+    'y99': lambda bp: bp.y99,
+}
 
+
+def mismatch_from_objects(ref: BeamParameters, fix: BeamParameters,
+                          *phase_spaces: str,
+                          set_transverse_as_average: bool = True) -> None:
+    """Compute the mismatchs in the desired phase_spaces."""
+    for phase_space in phase_spaces:
+        phase_space_getter = name_to_object[phase_space]
+
+        bp_ref, bp_fix = phase_space_getter(ref), phase_space_getter(fix)
+        bp_fix.mismatch_factor = _mismatch_single_phase_space(bp_ref, bp_fix)
+
+    if not set_transverse_as_average:
+        return
+    logging.critical('on y est')
+
+    if 'x' not in phase_spaces or 'y' not in phase_spaces:
+        logging.warning("Transverse planes were not updated. Transverse "
+                        "mismatch may be meaningless.")
+
+    fix.t.mismatch_factor = .5 * (fix.x.mismatch_factor
+                                  + fix.y.mismatch_factor)
+
+
+# TODO some interpolation if needed?
+def _mismatch_single_phase_space(ref: SinglePhaseSpaceBeamParameters,
+                                 fix: SinglePhaseSpaceBeamParameters,
+                                 ) -> np.ndarray | None:
+    """Compute the mismatch using two `SinglePhaseSpaceBeamParameters`."""
     if ref.twiss.shape != fix.twiss.shape:
         logging.critical("Shapes are different between the two Twiss arrays. "
                          "Shall implement interpolation for this... Returning"
@@ -671,8 +715,6 @@ def mismatch_from_objects(ref: SinglePhaseSpaceBeamParameters,
         return None
 
     mism = mismatch_from_arrays(ref.twiss, fix.twiss, transp=True)
-    if save_in_fix_object:
-        fix.mismatch_factor = mism
     return mism
 
 

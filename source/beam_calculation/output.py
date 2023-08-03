@@ -217,10 +217,16 @@ class SimulationOutput:
 
         # self.beam_parameters.compute_full(self.synch_trajectory.gamma)
         if ref_simulation_output is not None:
-            _ = mismatch_from_objects(
-                ref_simulation_output.beam_parameters.zdelta,
-                self.beam_parameters.zdelta,
-                save_in_fix_object=True)
+            phase_spaces, set_transverse_as_average = ('zdelta',), False
+            if 't' in self.beam_parameters.__dir__():
+                phase_spaces = ('zdelta', 'x', 'y')
+                set_transverse_as_average = True
+
+            mismatch_from_objects(
+                ref_simulation_output.beam_parameters,
+                self.beam_parameters,
+                *phase_spaces,
+                set_transverse_as_average=set_transverse_as_average)
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
         logging.critical("data_in_tw_fashion is bugged")

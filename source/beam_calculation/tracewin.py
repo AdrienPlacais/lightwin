@@ -422,7 +422,7 @@ def _add_beam_param_not_supported_by_envelope1d(
         multiparticle: bool = False) -> BeamParameters:
     """Manually set transverse and 99% phase-spaces."""
     gamma_kin, beta_kin = beam_parameters.gamma_kin, beam_parameters.beta_kin
-    beam_parameters.create_phase_spaces('x', 'y')
+    beam_parameters.create_phase_spaces('x', 'y', 't')
 
     sigma_x_00, sigma_x_01 = results['SizeX']**2, results["sxx'"]
     eps_x_normalized = results['ex']
@@ -443,6 +443,11 @@ def _add_beam_param_not_supported_by_envelope1d(
                                                     gamma_kin=gamma_kin,
                                                     beta_kin=beta_kin)
     beam_parameters.y.init_from_sigma(gamma_kin, beta_kin)
+
+    beam_parameters.t.init_from_averaging_x_and_y(
+        beam_parameters.x,
+        beam_parameters.y
+    )
 
     if not multiparticle:
         return beam_parameters
