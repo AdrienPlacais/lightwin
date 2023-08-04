@@ -9,6 +9,7 @@ This module holds all the functions to transfer and convert data between
 LightWin and TraceWin.
 
 TODO insert line skip at each section change in the output.dat
+
 """
 import logging
 import itertools
@@ -61,7 +62,6 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
         List containing all the Element objects.
 
     """
-    # Dictionnary linking element nature with correct sub-class
     subclasses_dispatcher = {
         'QUAD': Quad,
         'DRIFT': Drift,
@@ -97,14 +97,14 @@ def give_name(elts: list[_Element]) -> None:
 
 
 # TODO is it necessary to load all the electric fields when _p?
-def set_all_electric_field_maps(files: dict, sections: list[list[_Element]]
-                                ) -> None:
+def set_all_electric_field_maps(files: dict[str, str | None],
+                                sections: list[list[_Element]]) -> None:
     """
     Load all the filemaps.
 
     Parameters
     ----------
-    files : dict
+    files : dict[str, str | None]
         `Accelerator.files` dictionary.
     sections : list[list[_Element]]
         List of sections containing lattices containing `_Element` objects.
@@ -123,7 +123,7 @@ def set_all_electric_field_maps(files: dict, sections: list[list[_Element]]
                     # For Cython, we need one filepath per section
                     if con.FLAG_CYTHON and len(filepaths) == i:
                         filepaths.append(elt.field_map_file_name)
-    # Init arrays
+
     if con.FLAG_CYTHON:
         tm_c.init_arrays(filepaths)
 
@@ -214,8 +214,9 @@ def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
         idx_elt += 1
 
 
-# FIXME Cannot import Acclerator type (cricular import)
+# FIXME Cannot import Accelerator type (circular import)
 # Maybe this routine would be better in Accelerator?
+# |-> more SimulationOutput
 def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     """Mimick TW's Data tab."""
     larousse = {
@@ -256,34 +257,3 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
 
     data = pd.DataFrame(data, columns=larousse.keys())
     return data
-
-
-def resample_tracewin_results(ref: object,
-                              fix: object) -> None:
-    """Interpolate the `fix` results @ `ref` positions."""
-    logging.critical("resample_tracewin_results should not exist anymore.")
-    logging.critical("resample_tracewin_results should be moved away")
-    ref_results = ref.results_multipart
-    fix_results = fix.results_multipart
-
-    if ref_results is None or fix_results is None:
-        logging.error("At least one multiparticle simulation was not "
-                      + "performed (or not loaded).")
-        return
-
-    z_ref = ref_results['z(m)']
-    z_fix = fix_results['z(m)'].copy()
-
-    for key, val in fix_results.items():
-        if isinstance(val, float):
-            continue
-
-        if val.ndim == 2:
-            for axis in range(val.shape[1]):
-                fix_results[key][:, axis] = np.interp(z_ref, z_fix,
-                                                      val[:, axis])
-            continue
-
-        fix_results[key] = np.interp(z_ref, z_fix, val)
-
-    fix.results_multipart = fix_results
