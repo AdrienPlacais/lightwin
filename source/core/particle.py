@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from typing import Any
 import numpy as np
 
+from tracewin_utils.interface import particle_initial_state_to_command
 from util.helper import recursive_items, recursive_getter, range_vals
 import util.converters as convert
 
@@ -35,6 +36,15 @@ class ParticleInitialState:
     w_kin: float | np.ndarray | list
     phi_abs: float | np.ndarray | list
     synchronous: bool
+    _tracewin_command: list[str] | None = None
+
+    @property
+    def tracewin_command(self) -> list[str]:
+        """Create the energy and phase arguments for TraceWin command."""
+        if self._tracewin_command is None:
+            args = (self.w_kin, self.phi_abs)
+            self._tracewin_command = particle_initial_state_to_command(*args)
+        return self._tracewin_command
 
 
 @dataclass
