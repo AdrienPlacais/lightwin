@@ -64,12 +64,7 @@ def post_beam_calc_and_save(accelerator: Accelerator,
                      "taking from a reference folder.")
         return
 
-    # simulation_output = _wrap_beam_calculation(accelerator, beam_calculator)
-
-    elts = accelerator.elts
-    simulation_output = beam_calculator.run(elts)
-    simulation_output.compute_complementary_data(elts, **kwargs)
-
+    simulation_output = _wrap_beam_calculation(accelerator, beam_calculator)
     accelerator.keep_simulation_output(simulation_output, beam_calculator.id)
 
 
