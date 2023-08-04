@@ -14,6 +14,10 @@ In this module, two classes are defined:
     several `ParticleFullTrajectory` (according to size of the mesh, the
     solver, etc), `ParticleFullTrajectory`s are stored in `SimulationOutput`.
 
+Maybe ParticleFullTrajectory should not inherit from ParticleInitialState...
+Does not bring much and ParticleFullTrajectory should not have a
+tracewin_command.
+
 """
 from dataclasses import dataclass
 from typing import Any
@@ -80,6 +84,11 @@ class ParticleFullTrajectory(ParticleInitialState):
         out += "\t\t" + range_vals("w_kin", self.w_kin)
         out += "\t\t" + range_vals("phi_abs", self.phi_abs)
         return out
+
+    @property
+    def tracewin_command(self) -> list[str]:
+        """Raise an error, this method should be called from InitialPart."""
+        raise IOError("This method should not be used from here.")
 
     def compute_complementary_data(self):
         """Compute some data necessary to do the post-treatment."""
