@@ -17,6 +17,9 @@ the linac.
 
 TODO : also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
 
+Maybe it will be necessary to handle cases where the synch particle is not
+perfectly on the axis?
+
 """
 import os.path
 import logging
@@ -152,25 +155,17 @@ def subset_of_pre_existing_list_of_elements(
                  f"elements: {elts[0]} to {elts[-1]}.")
     logging.warning("Check how TraceWin will deal with incomplete Lattices.")
 
-    input_elt, input_pos = elts[0], 'in'
-    try:
-        _ = simulation_output.get('w_kin', elt=input_elt)
-    except AttributeError:
-        logging.warning("First element of new list of elements is not in the"
-                        " given SimulationOutput. I will consider that the "
-                        "last element of the SimulationOutput if the first of"
-                        "of the new ListOfElements.")
-        input_elt, input_pos = 'last', 'out'
-
+    input_elt, input_pos = _get_initial_element(elts, simulation_output)
     kwargs = {'elt': input_elt,
               'pos': input_pos,
-              'to_numpy': False}
+              'to_numpy': False,
+              'phase_space': None}
 
     w_kin, phi_abs = simulation_output.get('w_kin', 'phi_abs', **kwargs)
     input_particle = ParticleInitialState(w_kin, phi_abs, synchronous=True)
 
     input_beam: BeamParameters = simulation_output.beam_parameters.subset(
-        *('x', 'y', 'z', 'zdelta'), elt=input_elt, pos=input_pos)
+        *('x', 'y', 'z', 'zdelta'), **kwargs)
     if np.any(np.isnan(input_beam.zdelta.tm_cumul)):
         logging.error("Previous transfer matrix was not calculated.")
 
@@ -180,3 +175,19 @@ def subset_of_pre_existing_list_of_elements(
                                       first_init=False)
 
     return list_of_elements
+
+
+def _get_initial_element(elts: list[_Element],
+                         simulation_output: SimulationOutput
+                         ) -> tuple[_Element | str, str]:
+    """Set the `_Element` from which we should take energy, phase, etc."""
+    input_elt, input_pos = elts[0], 'in'
+    try:
+        _ = simulation_output.get('w_kin', elt=input_elt)
+    except AttributeError:
+        logging.warning("First element of new list of elements is not in the"
+                        " given SimulationOutput. I will consider that the "
+                        "last element of the SimulationOutput if the first of"
+                        "of the new ListOfElements.")
+        input_elt, input_pos = 'last', 'out'
+    return input_elt, input_pos

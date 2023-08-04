@@ -317,14 +317,9 @@ class BeamParameters:
         self.x99.eps = eps_x99
         self.y99.eps = eps_y99
 
-    def subset(self, *phase_spaces: str, elt: _Element | str, pos: str
+    def subset(self, *phase_spaces: str, **kwargs: _Element | str | bool | None
                ) -> Self:
         """Give the desired phase spaces at a given position."""
-        kwargs = {'elt': elt,
-                  'pos': pos,
-                  'to_numpy': False,
-                  'phase_space': None}
-
         sub_beam_params = BeamParameters()
         sub_beam_params.create_phase_spaces(*phase_spaces)
 
