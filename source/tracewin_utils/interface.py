@@ -85,7 +85,7 @@ def variables_to_command(warn_skipped: bool = False,
     """
     command = []
 
-    for key, val in kwargs:
+    for key, val in kwargs.items():
         val = _proper_type(key, val)
 
         if np.isnan(val):
@@ -135,7 +135,7 @@ def beam_parameters_to_command(eps_x: float, alpha_x: float, beta_x: float,
     kwargs = {
         'etnx1': eps_x, 'alpx1': alpha_x, 'betx1': beta_x,
         'etny1': eps_y, 'alpy1': alpha_y, 'bety1': beta_y,
-        'etnz1': eps_z, 'alpz1': alpha_z, 'betz1': beta_z,
+        'eln1': eps_z, 'alpz1': alpha_z, 'betz1': beta_z,
     }
     return variables_to_command(**kwargs)
 
