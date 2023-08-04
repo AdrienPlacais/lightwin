@@ -12,7 +12,10 @@ import numpy as np
 TYPES = {
     'hide': None,
     'tab_file': str,
+    'synoptic_file': str,
     'nbr_thread': int,
+    'path_cal': str,
+    'dat_file': str,
     'dst_file1': str,
     'dst_file2': str,
     'current1': float,
@@ -88,7 +91,7 @@ def variables_to_command(warn_skipped: bool = False,
     for key, val in kwargs.items():
         val = _proper_type(key, val)
 
-        if np.isnan(val):
+        if isinstance(val, float) and np.isnan(val):
             if warn_skipped:
                 logging.warning(f"For {key=}, I had a np.NaN value. I ignore "
                                 "this key.")
