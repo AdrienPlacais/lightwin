@@ -79,6 +79,7 @@ class TraceWin(BeamCalculator):
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
+        self.ini_path = os.path.abspath(self.ini_path)
         self.id = self.__repr__()
         self.out_folder += "_TraceWin"
 
@@ -92,8 +93,7 @@ class TraceWin(BeamCalculator):
 
     # TODO what is specific_kwargs for? I should just have a function
     # set_of_cavity_settings_to_kwargs
-    def run(self, elts: ListOfElements, dat_filepath: str,
-            **specific_kwargs) -> None:
+    def run(self, elts: ListOfElements, **specific_kwargs) -> None:
         """
         Run TraceWin.
 
@@ -107,11 +107,10 @@ class TraceWin(BeamCalculator):
 
         """
         return self.run_with_this(set_of_cavity_settings=None, elts=elts,
-                                  dat_filepath=dat_filepath, **specific_kwargs)
+                                  **specific_kwargs)
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
-                      elts: ListOfElements, dat_filepath: str,
-                      **specific_kwargs
+                      elts: ListOfElements, **specific_kwargs
                       ) -> SimulationOutput:
         """
         Perform a simulation with new cavity settings.
@@ -141,7 +140,7 @@ class TraceWin(BeamCalculator):
             if key not in kwargs:
                 kwargs[key] = val
 
-        command = self._set_command(dat_filepath, **kwargs)
+        command = self._set_command(elts.get('path'), **kwargs)
         logging.info(f"Running TW with command {command}...")
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE)
