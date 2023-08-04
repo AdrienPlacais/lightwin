@@ -5,6 +5,10 @@ Created on Mon Dec 13 14:42:41 2021.
 
 @author: placais
 
+??? May be intereseting to create a BeamInitialState, in the same fashion as
+ParticleInitialState. BeamInitialState would be the only one to have a
+tracewin_command.
+
 This module holds everything related to emittances, Twiss parameters,
 envelopes. They are stored in a `SinglePhaseSpaceBeamParameters`, which are
 gathered in a `BeamParameters` class object.
