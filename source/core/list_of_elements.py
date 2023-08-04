@@ -33,7 +33,9 @@ class ListOfElements(list):
 
     def __init__(self, elts: list[_Element],
                  input_particle: ParticleInitialState,
-                 input_beam: BeamParameters, first_init: bool = True) -> None:
+                 input_beam: BeamParameters, first_init: bool = True,
+                 dat_information: dict[str, str | list[list[str]]] = None
+                 ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.
 
@@ -59,6 +61,7 @@ class ListOfElements(list):
         """
         self.input_particle = input_particle
         self.input_beam = input_beam
+        self.dat_information = dat_information
 
         super().__init__(elts)
         self.by_section_and_lattice: list[list[list[_Element]]] | None = None

@@ -69,8 +69,7 @@ def post_beam_calc_and_save(accelerator: Accelerator,
     elts = accelerator.elts
     logging.warning("Need to give TraceWin.run_with_this and run a dat "
                     "filepath. Inconsistent with Envelope1D!!")
-    simulation_output = beam_calculator.run(elts,
-                                            accelerator.get('dat_filepath'))
+    simulation_output = beam_calculator.run(elts, elts.get['path'])
     simulation_output.compute_complementary_data(elts, **kwargs)
 
     accelerator.keep_simulation_output(simulation_output, beam_calculator.id)

@@ -10,13 +10,16 @@ This module holds function to load, modify and create .dat structure files.
 TODO insert line skip at each section change in the output.dat
 
 """
+import os.path
 import logging
+from typing import TypeVar
 import itertools
 
 import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
-from core.list_of_elements import ListOfElements
+# from core.list_of_elements import ListOfElements
+ListOfElements = TypeVar('ListOfElements')
 
 TO_BE_IMPLEMENTED = [
     'SPACE_CHARGE_COMP', 'SET_SYNC_PHASE', 'STEERER',
@@ -40,8 +43,8 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
 
     Returns
     -------
-    elements_list : list[_Element]
-        List containing all the Element objects.
+    elts : list[_Element]
+        List containing all the `_Element` objects.
 
     """
     subclasses_dispatcher = {
@@ -60,8 +63,34 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
         [subclasses_dispatcher[elem[0]](elem) for elem in dat_filecontent
          if elem[0] not in TO_BE_IMPLEMENTED]
     )
-    elements_list = list(elements_iterable)
-    return elements_list
+    elts = list(elements_iterable)
+    return elts
+
+
+def set_field_map_files_paths(elts: list[_Element],
+                              default_field_map_folder: str
+                              ) -> tuple[list[_Element], str]:
+    """Load FIELD_MAP_PATH, remove it from the list of elements."""
+    field_map_paths = list(filter(lambda elt: isinstance(elt, FieldMapPath),
+                                  elts))
+
+    # FIELD_MAP_PATH are not physical elements, so we remove them
+    for field_map_path in field_map_paths:
+        elts.remove(field_map_path)
+
+    if len(field_map_paths) == 0:
+        field_map_paths = list(
+            FieldMapPath(['FIELD_MAP_PATH', default_field_map_folder])
+        )
+
+    if len(field_map_paths) != 1:
+        logging.error("Change of field maps base folder not supported.")
+        field_map_paths = [field_map_paths[0]]
+
+    field_map_paths = [os.path.abspath(field_map_path.path)
+                       for field_map_path in field_map_paths]
+    field_map_folder = field_map_paths[0]
+    return elts, field_map_folder
 
 
 def give_name(elts: list[_Element]) -> None:

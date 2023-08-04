@@ -18,6 +18,7 @@ the linac.
 TODO : also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
 
 """
+import os.path
 import logging
 
 import numpy as np
@@ -27,10 +28,15 @@ from core.particle import ParticleInitialState
 from core.beam_parameters import BeamParameters
 from core.list_of_elements import ListOfElements
 
+import tracewin_utils.load
+from tracewin_utils.dat_files import (create_structure,
+                                      set_field_map_files_paths)
+import tracewin_utils.electric_fields
+
 from beam_calculation.output import SimulationOutput
 
 
-def new_list_of_elements(elts: list[_Element],
+def new_list_of_elements(dat_filepath: str,
                          input_particle: ParticleInitialState,
                          input_beam: BeamParameters,
                          ) -> ListOfElements:
@@ -42,8 +48,8 @@ def new_list_of_elements(elts: list[_Element],
 
     Parameters
     ----------
-    elts : list[_Element]
-        A plain list containing all the `_Element` objects of the linac.
+    dat_filepath : str
+        Path to the `.dat` file (TraceWin).
     input_particle : ParticleInitialState
         An object to hold initial energy and phase of the particle.
     input_beam : BeamParameters
@@ -62,11 +68,52 @@ def new_list_of_elements(elts: list[_Element],
                  + "all linac. Also removing Lattice and Freq "
                  + "commands, setting Lattice/Section structures, "
                  + "_Elements names.")
+
+    dat_filepath = os.path.abspath(dat_filepath)
+    dat_information = {
+        'path': dat_filepath,
+        'content': tracewin_utils.load.dat_file(dat_filepath),
+        'field_map_folder': None,
+    }
+
+    elts, field_map_folder = _dat_filepath_to_plain_list_of_elements(
+        dat_information)
+    dat_information['field_map_folder'] = field_map_folder
+
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
                                       input_beam=input_beam,
+                                      dat_information=dat_information,
                                       first_init=True)
+    tracewin_utils.electric_fields.set_all_electric_field_maps(
+        field_map_folder, list_of_elements.by_section_and_lattice)
     return list_of_elements
+
+
+def _dat_filepath_to_plain_list_of_elements(
+        dat_information: dict[str, str | list[list[str]] | None],
+) -> list[_Element]:
+    """
+    Convert the content of the `.dat` file to a plain list of `_Element`s.
+
+    Parameters
+    ----------
+    dat_information : dict[str, str | list[list[str]] | None]
+        Must contain filepath to `.dat` and content of this file as returned
+        by tracewin_utils.load.dat_file.
+
+    Returns
+    -------
+    elts : list[_Element]
+        Plain list of _Element (not yet a `ListOfElements` object).
+
+    """
+    elts = create_structure(dat_information['content'])
+    elts, field_map_folder = set_field_map_files_paths(
+        elts,
+        default_field_map_folder=os.path.dirname(dat_information['path'])
+    )
+    return elts, field_map_folder
 
 
 def subset_of_pre_existing_list_of_elements(
@@ -103,6 +150,7 @@ def subset_of_pre_existing_list_of_elements(
     """
     logging.info(f"Initalisation of ListOfElements from already initialized "
                  f"elements: {elts[0]} to {elts[-1]}.")
+    logging.warning("Check how TraceWin will deal with incomplete Lattices.")
 
     input_elt, input_pos = elts[0], 'in'
     try:

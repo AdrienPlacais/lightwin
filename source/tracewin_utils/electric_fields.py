@@ -32,15 +32,15 @@ except ModuleNotFoundError:
 
 
 # TODO is it necessary to load all the electric fields when _p?
-def set_all_electric_field_maps(files: dict[str, str | None],
+def set_all_electric_field_maps(field_map_folder: str,
                                 sections: list[list[_Element]]) -> None:
     """
     Load all the filemaps.
 
     Parameters
     ----------
-    files : dict[str, str | None]
-        `Accelerator.files` dictionary.
+    field_map_folder : str
+        Path to the folder where the electric field files are stored.
     sections : list[list[_Element]]
         List of sections containing lattices containing `_Element` objects.
 
@@ -51,7 +51,9 @@ def set_all_electric_field_maps(files: dict[str, str | None],
             for elt in lattice:
                 if elt.get('nature') == 'FIELD_MAP':
                     elt.field_map_file_name = os.path.join(
-                        files['field_map_folder'], elt.field_map_file_name)
+                        field_map_folder,
+                        elt.field_map_file_name
+                    )
                     a_f = elt.acc_field
                     a_f.e_spat, a_f.n_z = _get_single_electric_field_map(elt)
 

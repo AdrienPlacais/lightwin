@@ -25,17 +25,14 @@ import pandas as pd
 
 import config_manager as con
 
-from tracewin_utils.dat_files import (create_structure,
-                                      update_dat_with_fixed_cavities,
+from tracewin_utils.dat_files import (update_dat_with_fixed_cavities,
                                       save_dat_filecontent_to_dat)
-import tracewin_utils.electric_fields
-import tracewin_utils.load
 
 from beam_calculation.output import SimulationOutput
 
 from core.particle import ParticleInitialState
 from core.beam_parameters import BeamParameters
-from core.elements import _Element, FieldMapPath
+from core.elements import _Element
 from core.list_of_elements import (ListOfElements,
                                    elt_at_this_s_idx,
                                    equiv_elt)
@@ -64,20 +61,10 @@ class Accelerator():
         self.simulation_outputs: dict[str, SimulationOutput] = {}
         self.data_in_tw_fashion: pd.DataFrame
 
-        # Prepare files and folders
         self.files = {
-            'dat_filepath': dat_file,
-            'original_dat_folder': os.path.dirname(dat_file),  # used only once
             'project_folder': project_folder,
             'accelerator_path': accelerator_path,
-            'dat_filecontent': None,
-            'field_map_folder': None,
         }
-
-        # Load dat file, clean it up (remove comments, etc), load elements
-        dat_filecontent = tracewin_utils.load.dat_file(dat_file)
-        elts = create_structure(dat_filecontent)
-        elts = self._set_field_map_files_paths(elts)
 
         self.synch = ParticleInitialState(w_kin=con.E_MEV,
                                           phi_abs=0.,
@@ -90,14 +77,10 @@ class Accelerator():
         input_beam.zdelta.tm_cumul = np.eye(2)
         input_beam.zdelta.sigma_in = con.SIGMA_ZDELTA
 
-        self.elts: ListOfElements = new_list_of_elements(elts,
+        self.elts: ListOfElements = new_list_of_elements(dat_file,
                                                          input_particle,
-                                                         input_beam)
-
-        tracewin_utils.electric_fields.set_all_electric_field_maps(
-            self.files, self.elts.by_section_and_lattice)
-
-        self.files['dat_filecontent'] = dat_filecontent
+                                                         input_beam,
+                                                         )
 
         self._special_getters = self._create_special_getters()
         self._check_consistency_phases()
@@ -176,31 +159,6 @@ class Accelerator():
             return out[0]
         return tuple(out)
 
-    def _set_field_map_files_paths(self, elts: list[_Element]
-                                   ) -> list[_Element]:
-        """Load FIELD_MAP_PATH, remove it from the list of elements."""
-        field_map_paths = list(filter(
-            lambda elt: isinstance(elt, FieldMapPath), elts))
-
-        # FIELD_MAP_PATH are not physical elements, so we remove them
-        for field_map_path in field_map_paths:
-            elts.remove(field_map_path)
-
-        if len(field_map_paths) == 0:
-            field_map_paths = list(
-                FieldMapPath(['FIELD_MAP_PATH',
-                              self.files['original_dat_folder']])
-            )
-
-        if len(field_map_paths) != 1:
-            logging.error("Change of field maps base folder not supported.")
-            field_map_paths = [field_map_paths[0]]
-
-        field_map_paths = [os.path.abspath(field_map_path.path)
-                           for field_map_path in field_map_paths]
-        self.files['field_map_folder'] = field_map_paths[0]
-        return elts
-
     def _create_special_getters(self) -> dict:
         """Create a dict of aliases that can be accessed w/ the get method."""
         # FIXME this won't work with new simulation output
@@ -244,7 +202,7 @@ class Accelerator():
         dat_filepath = os.path.join(
             self.files['accelerator_path'],
             simulation_output.out_folder,
-            os.path.basename(self.files['dat_filepath']))
+            os.path.basename(self.elts.dat_information['path']))
         self._store_settings_in_dat(dat_filepath, save=True)
 
     def keep_simulation_output(self, simulation_output: SimulationOutput,
@@ -273,14 +231,16 @@ class Accelerator():
     def _store_settings_in_dat(self, dat_filepath: str, save: bool = True
                                ) -> None:
         """Update the dat file, save it if asked."""
-        dat_filecontent = self.get('dat_filecontent', to_numpy=False)
-        update_dat_with_fixed_cavities(dat_filecontent,
-                                       self.elts,
-                                       self.get('field_map_folder'))
+        dat_filecontent = self.elts.dat_information['content']
+        update_dat_with_fixed_cavities(
+            dat_filecontent,
+            self.elts,
+            self.elts.dat_information['field_map_folder']
+        )
         if not save:
             return
 
-        self.files['dat_filepath'] = dat_filepath
+        self.elts.dat_information['path'] = dat_filepath
         save_dat_filecontent_to_dat(dat_filecontent, dat_filepath)
 
 
