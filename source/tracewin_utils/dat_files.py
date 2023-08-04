@@ -7,12 +7,16 @@ Created on Fri Aug  4 09:24:56 2023.
 
 This module holds function to load, modify and create .dat structure files.
 
+TODO insert line skip at each section change in the output.dat
+
 """
+import logging
 import itertools
 
 import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
+from core.list_of_elements import ListOfElements
 
 TO_BE_IMPLEMENTED = [
     'SPACE_CHARGE_COMP', 'SET_SYNC_PHASE', 'STEERER',
@@ -75,9 +79,9 @@ def give_name(elts: list[_Element]) -> None:
 
 
 def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
-                                   elts: list[_Element], fm_folder: str
+                                   elts: ListOfElements, fm_folder: str
                                    ) -> None:
-    """Create a new dat containing the new linac settings."""
+    """Create a new dat with updated cavity phase and amplitude."""
     idx_elt = 0
 
     phi = {
@@ -101,3 +105,39 @@ def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
             continue
 
         idx_elt += 1
+
+
+def create_dat_from_smaller_list_of_elements(
+        dat_filecontent: list[list[str]], elts: ListOfElements) -> None:
+    """Create a new `.dat` containing only the `_Element`s of `elts`."""
+    idx_elt = 0
+    indexes_to_keep = elts.get('elt_idx', to_numpy=False)
+    smaller_dat_filecontent = []
+
+    for line in dat_filecontent:
+        if line[0] in TO_BE_IMPLEMENTED + NOT_AN_ELEMENT + ['FIELD_MAP_PATH']:
+            smaller_dat_filecontent.append(line)
+            continue
+
+        if idx_elt in indexes_to_keep:
+            smaller_dat_filecontent.append(line)
+        idx_elt += 1
+
+    smaller_dat_filecontent = _remove_empty_lattices(smaller_dat_filecontent)
+    return smaller_dat_filecontent
+
+
+def _remove_empty_lattices(dat_filecontent: list[list[str]]
+                           ) -> list[list[str]]:
+    """Remove useless LATTICE and FREQ commands."""
+    logging.warning("_remove_empty_lattices not implemented.")
+    return dat_filecontent
+
+
+def save_dat_filecontent_to_dat(dat_filecontent: list[list[str]],
+                                dat_filepath: str) -> None:
+    """Save the content of the updated dat to a `.dat`."""
+    with open(dat_filepath, 'w', encoding='utf-8') as file:
+        for line in dat_filecontent:
+            file.write(' '.join(line) + '\n')
+    logging.info(f"New dat saved in {dat_filepath}.")

@@ -5,10 +5,7 @@ Created on Thu Feb 17 15:52:37 2022.
 
 @author: placais
 
-This module holds all the functions to transfer and convert data between
-LightWin and TraceWin.
-
-TODO insert line skip at each section change in the output.dat
+This module holds all the functions to handle TraceWin electric field files.
 
 """
 import logging

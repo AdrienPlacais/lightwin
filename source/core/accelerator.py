@@ -25,7 +25,9 @@ import pandas as pd
 
 import config_manager as con
 
-import tracewin_utils.dat_files
+from tracewin_utils.dat_files import (create_structure,
+                                      update_dat_with_fixed_cavities,
+                                      save_dat_filecontent_to_dat)
 import tracewin_utils.electric_fields
 import tracewin_utils.load
 
@@ -74,7 +76,7 @@ class Accelerator():
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent = tracewin_utils.load.dat_file(dat_file)
-        elts = tracewin_utils.dat_files.create_structure(dat_filecontent)
+        elts = create_structure(dat_filecontent)
         elts = self._set_field_map_files_paths(elts)
 
         self.synch = ParticleInitialState(w_kin=con.E_MEV,
@@ -88,8 +90,6 @@ class Accelerator():
         input_beam.zdelta.tm_cumul = np.eye(2)
         input_beam.zdelta.sigma_in = con.SIGMA_ZDELTA
 
-        # self.elts = ListOfElements(elts, w_kin=con.E_MEV, phi_abs=0.,
-        #                            first_init=True)
         self.elts: ListOfElements = new_list_of_elements(elts,
                                                          input_particle,
                                                          input_beam)
@@ -273,18 +273,15 @@ class Accelerator():
     def _store_settings_in_dat(self, dat_filepath: str, save: bool = True
                                ) -> None:
         """Update the dat file, save it if asked."""
-        tracewin_utils.dat_files.update_dat_with_fixed_cavities(
-            self.get('dat_filecontent', to_numpy=False),
-            self.elts,
-            self.get('field_map_folder')
-        )
+        dat_filecontent = self.get('dat_filecontent', to_numpy=False)
+        update_dat_with_fixed_cavities(dat_filecontent,
+                                       self.elts,
+                                       self.get('field_map_folder'))
+        if not save:
+            return
 
-        if save:
-            self.files['dat_filepath'] = dat_filepath
-            with open(self.get('dat_filepath'), 'w') as file:
-                for line in self.files['dat_filecontent']:
-                    file.write(' '.join(line) + '\n')
-            logging.info(f"New dat saved in {self.get('dat_filepath')}")
+        self.files['dat_filepath'] = dat_filepath
+        save_dat_filecontent_to_dat(dat_filecontent, dat_filepath)
 
 
 def accelerator_factory(beam_calculators: tuple[object | None],
