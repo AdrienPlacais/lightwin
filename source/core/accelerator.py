@@ -25,7 +25,8 @@ import pandas as pd
 
 import config_manager as con
 
-import tracewin_utils.interface
+import tracewin_utils.dat_files
+import tracewin_utils.electric_fields
 import tracewin_utils.load
 
 from beam_calculation.output import SimulationOutput
@@ -73,7 +74,7 @@ class Accelerator():
 
         # Load dat file, clean it up (remove comments, etc), load elements
         dat_filecontent = tracewin_utils.load.dat_file(dat_file)
-        elts = tracewin_utils.interface.create_structure(dat_filecontent)
+        elts = tracewin_utils.dat_files.create_structure(dat_filecontent)
         elts = self._set_field_map_files_paths(elts)
 
         self.synch = ParticleInitialState(w_kin=con.E_MEV,
@@ -93,7 +94,7 @@ class Accelerator():
                                                          input_particle,
                                                          input_beam)
 
-        tracewin_utils.interface.set_all_electric_field_maps(
+        tracewin_utils.electric_fields.set_all_electric_field_maps(
             self.files, self.elts.by_section_and_lattice)
 
         self.files['dat_filecontent'] = dat_filecontent
@@ -272,7 +273,7 @@ class Accelerator():
     def _store_settings_in_dat(self, dat_filepath: str, save: bool = True
                                ) -> None:
         """Update the dat file, save it if asked."""
-        tracewin_utils.interface.update_dat_with_fixed_cavities(
+        tracewin_utils.dat_files.update_dat_with_fixed_cavities(
             self.get('dat_filecontent', to_numpy=False),
             self.elts,
             self.get('field_map_folder')

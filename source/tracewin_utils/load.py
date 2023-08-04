@@ -6,6 +6,7 @@ Created on Wed Jun  7 13:49:23 2023.
 @author: placais
 
 This module holds the function to load and pre-process the TraceWin files.
+
 """
 import logging
 import os.path
@@ -27,6 +28,7 @@ TRACEWIN_IMPORT_DATA_TABLE = {
     'phi_abs_array': 12,
 }
 
+
 def dat_file(dat_filepath: str) -> list[list[str]]:
     """
     Load the dat file, convert it into a list of lines and a list of _Element.
@@ -36,35 +38,29 @@ def dat_file(dat_filepath: str) -> list[list[str]]:
     dat_filepath : string
         Filepath to the .dat file, as understood by TraceWin.
 
-    Return
-    ------
+    Returns
+    -------
     dat_filecontent : list[list[str]]
         List containing all the lines of dat_filepath.
+
     """
     dat_filecontent = []
     logging.warning("Personalized name of elements not handled for now.")
 
-    # Load and read data file
     with open(dat_filepath) as file:
         for line in file:
-            # Remove trailing whitespaces
             line = line.strip()
 
-            # We check that the current line is not empty or that it is not
-            # reduced to a comment only
             if len(line) == 0 or line[0] == ';':
                 continue
 
-            # Remove any trailing comment
             line = line.split(';')[0]
-            # Remove element name
             line = line.split(':')[-1]
             # Remove everything between parenthesis
             # https://stackoverflow.com/questions/14596884/remove-text-between-and
             line = re.sub("([\(\[]).*?([\)\]])", "", line)
 
             dat_filecontent.append(line.split())
-
     return dat_filecontent
 
 
@@ -80,10 +76,11 @@ def results(filepath: str, prop: str) -> np.ndarray:
     prop : string
         Name of the desired property. Must be in d_property.
 
-    Return
-    ------
+    Returns
+    -------
     data_ref: numpy array
         Array containing the desired property.
+
     """
     if not os.path.isfile(filepath):
         logging.warning(
@@ -159,7 +156,7 @@ def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
 
 
 def is_loadable(field_map_file_name: str, geometry: int, aperture_flag: int
-               ) -> bool:
+                ) -> bool:
     """Assert that the options for the FIELD_MAP in the .dat are ok."""
     _, extension = os.path.splitext(field_map_file_name)
     if extension not in FIELD_MAP_LOADERS:
@@ -191,4 +188,3 @@ def is_loadable(field_map_file_name: str, geometry: int, aperture_flag: int
 FIELD_MAP_LOADERS = {
     ".edz": electric_field_1d
 }
-

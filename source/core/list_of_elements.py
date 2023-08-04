@@ -24,7 +24,7 @@ import config_manager
 from core.elements import _Element, Freq, Lattice
 from core.beam_parameters import BeamParameters
 from core.particle import ParticleInitialState
-import tracewin_utils.interface
+import tracewin_utils.dat_files
 from util.helper import recursive_items, recursive_getter
 
 
@@ -165,7 +165,7 @@ class ListOfElements(list):
 
         self.set_structure_related_indexes_of_elements()
 
-        tracewin_utils.interface.give_name(self)
+        tracewin_utils.dat_files.give_name(self)
         self._set_generic_electric_field_properties(
             freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
 
