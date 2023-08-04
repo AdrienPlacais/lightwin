@@ -107,9 +107,7 @@ def give_name(elts: list[_Element]) -> None:
             elt.elt_info['elt_name'] = value + str(i)
 
 
-def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
-                                   elts: ListOfElements, fm_folder: str
-                                   ) -> None:
+def update_dat_with_fixed_cavities(elts: ListOfElements) -> None:
     """Create a new dat with updated cavity phase and amplitude."""
     idx_elt = 0
 
@@ -118,6 +116,9 @@ def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
         False: lambda elt: str(elt.get('phi_0_rel', to_deg=True)),
     }
 
+    dat_filecontent, field_map_folder = elts.get('content',
+                                                 'field_map_folder',
+                                                 to_numpy=False)
     for line in dat_filecontent:
         if line[0] in TO_BE_IMPLEMENTED or line[0] in NOT_AN_ELEMENT:
             continue
@@ -130,7 +131,7 @@ def update_dat_with_fixed_cavities(dat_filecontent: list[list[str]],
             line[10] = str(int(con.FLAG_PHI_ABS))
 
         elif line[0] == 'FIELD_MAP_PATH':
-            line[1] = fm_folder
+            line[1] = field_map_folder
             continue
 
         idx_elt += 1

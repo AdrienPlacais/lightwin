@@ -24,7 +24,9 @@ import config_manager
 from core.elements import _Element, Freq, Lattice
 from core.beam_parameters import BeamParameters
 from core.particle import ParticleInitialState
-import tracewin_utils.dat_files
+from tracewin_utils.dat_files import (give_name,
+                                      update_dat_with_fixed_cavities,
+                                      save_dat_filecontent_to_dat)
 from util.helper import recursive_items, recursive_getter
 
 
@@ -168,7 +170,7 @@ class ListOfElements(list):
 
         self.set_structure_related_indexes_of_elements()
 
-        tracewin_utils.dat_files.give_name(self)
+        give_name(self)
         self._set_generic_electric_field_properties(
             freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
 
@@ -240,6 +242,17 @@ class ListOfElements(list):
             for lattice in section:
                 for elt in lattice:
                     elt.acc_field.set_pulsation_ncell(f_mhz, n_cells)
+
+    def store_settings_in_dat(self, dat_filepath: str, save: bool = True
+                              ) -> None:
+        """Update the dat file, save it if asked."""
+        update_dat_with_fixed_cavities(self)
+        if not save:
+            return
+
+        self.dat_information['path'] = dat_filepath
+        save_dat_filecontent_to_dat(self.get('content', to_numpy=False),
+                                    dat_filepath)
 
 
 def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,

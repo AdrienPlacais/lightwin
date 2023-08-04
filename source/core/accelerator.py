@@ -203,7 +203,7 @@ class Accelerator():
             self.files['accelerator_path'],
             simulation_output.out_folder,
             os.path.basename(self.elts.dat_information['path']))
-        self._store_settings_in_dat(dat_filepath, save=True)
+        self.elts.store_settings_in_dat(dat_filepath, save=True)
 
     def keep_simulation_output(self, simulation_output: SimulationOutput,
                                beam_calculator_id: str) -> None:
@@ -227,21 +227,6 @@ class Accelerator():
                   ) -> _Element | int | None:
         """Return an element from self.elts with the same name."""
         return equiv_elt(self.elts, elt, to_index)
-
-    def _store_settings_in_dat(self, dat_filepath: str, save: bool = True
-                               ) -> None:
-        """Update the dat file, save it if asked."""
-        dat_filecontent = self.elts.dat_information['content']
-        update_dat_with_fixed_cavities(
-            dat_filecontent,
-            self.elts,
-            self.elts.dat_information['field_map_folder']
-        )
-        if not save:
-            return
-
-        self.elts.dat_information['path'] = dat_filepath
-        save_dat_filecontent_to_dat(dat_filecontent, dat_filepath)
 
 
 def accelerator_factory(beam_calculators: tuple[object | None],
