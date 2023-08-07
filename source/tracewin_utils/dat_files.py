@@ -157,6 +157,7 @@ def dat_filecontent_from_smaller_list_of_elements(
         idx_elt += 1
 
     smaller_dat_filecontent = _remove_empty_lattices(smaller_dat_filecontent)
+    smaller_dat_filecontent.append(["END"])
     return smaller_dat_filecontent
 
 
