@@ -116,7 +116,7 @@ def update_dat_with_fixed_cavities(elts: ListOfElements) -> None:
         False: lambda elt: str(elt.get('phi_0_rel', to_deg=True)),
     }
 
-    dat_filecontent, field_map_folder = elts.get('content',
+    dat_filecontent, field_map_folder = elts.get('dat_content',
                                                  'field_map_folder',
                                                  to_numpy=False)
     for line in dat_filecontent:
@@ -137,11 +137,14 @@ def update_dat_with_fixed_cavities(elts: ListOfElements) -> None:
         idx_elt += 1
 
 
-def create_dat_from_smaller_list_of_elements(
-        dat_filecontent: list[list[str]], elts: ListOfElements) -> None:
+def dat_filecontent_from_smaller_list_of_elements(
+        dat_filecontent: list[list[str]],
+        elts: list[_Element]
+) -> list[list[str]]:
     """Create a new `.dat` containing only the `_Element`s of `elts`."""
     idx_elt = 0
-    indexes_to_keep = elts.get('elt_idx', to_numpy=False)
+    indexes_to_keep = [elt.get('elt_idx', to_numpy=False)
+                       for elt in elts]
     smaller_dat_filecontent = []
 
     for line in dat_filecontent:

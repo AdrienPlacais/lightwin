@@ -20,7 +20,14 @@ TODO : also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
 Maybe it will be necessary to handle cases where the synch particle is not
 perfectly on the axis?
 
-TODO : maybe, initialize all the input_particle and input_beam here?
+TODO : maybe, initialize all the input_particle and input_beam here? Right now,
+it is a bit confusing to have it scattered everywhere...
+=======================================================================
+                          input_particle          input_beam
+-----------------------------------------------------------------------
+new list of elements      Accelerator.__init__    func in this module
+subset list of elements   func in this module     BeamParameters method
+=======================================================================
 
 """
 import os.path
@@ -34,8 +41,11 @@ from core.beam_parameters import BeamParameters
 from core.list_of_elements import ListOfElements
 
 import tracewin_utils.load
-from tracewin_utils.dat_files import (create_structure,
-                                      set_field_map_files_paths)
+from tracewin_utils.dat_files import (
+    create_structure,
+    set_field_map_files_paths,
+    dat_filecontent_from_smaller_list_of_elements,
+)
 import tracewin_utils.electric_fields
 
 from beam_calculation.output import SimulationOutput
@@ -171,6 +181,13 @@ def subset_of_pre_existing_list_of_elements(
     logging.info(f"Initalisation of ListOfElements from already initialized "
                  f"elements: {elts[0]} to {elts[-1]}.")
     logging.warning("Check how TraceWin will deal with incomplete Lattices.")
+
+    files = {
+        'dat_filepath': 'bonjoure',
+        'dat_content': dat_filecontent_from_smaller_list_of_elements(elts),
+        'field_map_folder': None,
+    }
+
     logging.critical("`files` dictionary not initialized!")
 
     input_elt, input_pos = _get_initial_element(elts, simulation_output)
@@ -178,9 +195,9 @@ def subset_of_pre_existing_list_of_elements(
               'pos': input_pos,
               'to_numpy': False,
               'phase_space': None}
+    input_particle: ParticleInitialState
+    input_particle = _subset_input_particle(simulation_output, **kwargs)
 
-    w_kin, phi_abs = simulation_output.get('w_kin', 'phi_abs', **kwargs)
-    input_particle = ParticleInitialState(w_kin, phi_abs, synchronous=True)
 
     input_beam: BeamParameters = simulation_output.beam_parameters.subset(
         *('x', 'y', 'z', 'zdelta'), **kwargs)
@@ -190,6 +207,7 @@ def subset_of_pre_existing_list_of_elements(
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
                                       input_beam=input_beam,
+                                      files=files,
                                       first_init=False)
 
     return list_of_elements
@@ -209,3 +227,12 @@ def _get_initial_element(elts: list[_Element],
                         "of the new ListOfElements.")
         input_elt, input_pos = 'last', 'out'
     return input_elt, input_pos
+
+
+def _subset_input_particle(simulation_output: SimulationOutput,
+                           **kwargs: _Element | str | bool | None
+                           ) -> ParticleInitialState:
+    """Create `ParticleInitialState` for an incomplete list of `_Element`s."""
+    w_kin, phi_abs = simulation_output.get('w_kin', 'phi_abs', **kwargs)
+    input_particle = ParticleInitialState(w_kin, phi_abs, synchronous=True)
+    return input_particle

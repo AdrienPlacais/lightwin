@@ -175,7 +175,7 @@ class TraceWin(BeamCalculator):
             if key not in kwargs:
                 kwargs[key] = val
 
-        command = self._set_command(elts.get('path'), **kwargs)
+        command = self._set_command(elts.get('dat_filepath'), **kwargs)
         logging.info(f"Running TW with command {command}...")
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE)

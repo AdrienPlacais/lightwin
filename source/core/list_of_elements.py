@@ -37,7 +37,7 @@ class ListOfElements(list):
     def __init__(self, elts: list[_Element],
                  input_particle: ParticleInitialState,
                  input_beam: BeamParameters, first_init: bool = True,
-                 dat_information: dict[str, str | list[list[str]]] = None
+                 files: dict[str, str | list[list[str]]] = None
                  ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.
@@ -64,7 +64,7 @@ class ListOfElements(list):
         """
         self.input_particle = input_particle
         self.input_beam = input_beam
-        self.dat_information = dat_information
+        self.files = files
 
         super().__init__(elts)
         self.by_section_and_lattice: list[list[list[_Element]]] | None = None
@@ -102,7 +102,7 @@ class ListOfElements(list):
     def tracewin_command(self) -> list[str]:
         """Create the command to give proper initial parameters to TraceWin."""
         if self._tracewin_command is None:
-            dat_filepath = self.get('path', to_numpy=False)
+            dat_filepath = self.get('dat_filepath', to_numpy=False)
             self._tracewin_command = [
                 command_bit
                 for command in [list_of_elements_to_command(dat_filepath),
@@ -266,8 +266,8 @@ class ListOfElements(list):
         if not save:
             return
 
-        self.dat_information['path'] = dat_filepath
-        save_dat_filecontent_to_dat(self.get('content', to_numpy=False),
+        self.files['dat_filepath'] = dat_filepath
+        save_dat_filecontent_to_dat(self.get('dat_content', to_numpy=False),
                                     dat_filepath)
 
 

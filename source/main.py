@@ -162,6 +162,6 @@ if __name__ == '__main__':
     #         ref_simulation_output=ref_s)
 
     # simulation_output_evaluators.run(*tuple(s_to_study))
-
-
-    # b = accelerators[1].simulation_outputs[solv2].beam_parameters
+    # %%
+    loe = accelerators[0].elts
+    cmd = loe.tracewin_command
