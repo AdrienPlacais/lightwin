@@ -30,7 +30,7 @@ subset list of elements   func in this module     BeamParameters method
 =======================================================================
 
 """
-import os.path
+import os
 import logging
 
 import numpy as np
@@ -47,6 +47,7 @@ from tracewin_utils.dat_files import (
     dat_filecontent_from_smaller_list_of_elements,
 )
 import tracewin_utils.electric_fields
+from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
 from beam_calculation.output import SimulationOutput
 
@@ -195,8 +196,6 @@ def subset_of_pre_existing_list_of_elements(
 
     input_beam: BeamParameters = simulation_output.beam_parameters.subset(
         *('x', 'y', 'z', 'zdelta'), **kwargs)
-    if np.any(np.isnan(input_beam.zdelta.tm_cumul)):
-        logging.error("Previous transfer matrix was not calculated.")
 
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
@@ -226,6 +225,10 @@ def _subset_files_dictionary(
     files = {'dat_filepath': dat_filepath,
              'dat_content': dat_content,
              'field_map_folder': field_map_folder}
+
+    logging.warning("Manually creating tmp folder and dat.")
+    os.mkdir(os.path.join(dirname, tmp_folder))
+    save_dat_filecontent_to_dat(dat_content, dat_filepath)
     return files
 
 
