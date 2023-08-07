@@ -145,15 +145,14 @@ def beam_parameters_to_command(eps_x: float, alpha_x: float, beta_x: float,
     return variables_to_command(**kwargs)
 
 
-def particle_initial_state_to_command(w_kin: float, phi_abs: float
+def particle_initial_state_to_command(w_kin: float, z_abs: float
                                       ) -> list[str]:
     """Return a TraceWin command from attributes of `ParticleInitialState`."""
-    if phi_abs > 1e-10:
-        logging.warning("phi_abs different from 0 not yet implemented.")
+    logging.info(f"The given {z_abs = }.")
 
     kwargs = {
         'energy1': w_kin,
-        'zp1': 0.
+        'zp1': z_abs
     }
     return variables_to_command(**kwargs)
 

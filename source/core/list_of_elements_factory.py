@@ -229,7 +229,6 @@ def _subset_files_dictionary(
     return files
 
 
-
 def _get_initial_element(elts: list[_Element],
                          simulation_output: SimulationOutput
                          ) -> tuple[_Element | str, str]:
