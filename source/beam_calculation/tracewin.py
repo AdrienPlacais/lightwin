@@ -102,8 +102,7 @@ class TraceWin(BeamCalculator):
         self.path_cal: str
         self.dat_file: str
 
-    @property
-    def tracewin_command(self) -> list[str]:
+    def tracewin_command(self, **kwargs) -> list[str]:
         """
         Define the 'base' command for TraceWin.
 
@@ -117,14 +116,18 @@ class TraceWin(BeamCalculator):
             (+ `fault_optimisation_tmp_folder`)
 
         """
-        if self._tracewin_command is None:
-            self._tracewin_command = beam_calculator_to_command(
-                self.executable,
-                self.ini_path,
-                self.path_cal,
-                self.base_kwargs,
-            )  # base kwargs?
-        return self._tracewin_command
+        kwargs = kwargs.copy()
+        for key, val in self.base_kwargs.items():
+            if key not in kwargs:
+                kwargs[key] = val
+
+        _tracewin_command = beam_calculator_to_command(
+            self.executable,
+            self.ini_path,
+            self.path_cal,
+            **kwargs,
+        )
+        return _tracewin_command
 
     # TODO what is specific_kwargs for? I should just have a function
     # set_of_cavity_settings_to_kwargs
@@ -176,6 +179,19 @@ class TraceWin(BeamCalculator):
                 kwargs[key] = val
 
         command = self._set_command(elts.get('dat_filepath'), **kwargs)
+
+        if specific_kwargs is None:
+            specific_kwargs = {}
+
+        my_new_command = self.tracewin_command(**specific_kwargs)
+        my_new_command.extend(elts.tracewin_command)
+        logging.error(my_new_command)
+        if 'out_folder' in elts.files:
+            logging.error("manually modifying the tw command")
+            my_new_command[2] = f"path_cal={elts.files['out_folder']}"
+            logging.error(my_new_command)
+            command = my_new_command
+
         logging.info(f"Running TW with command {command}...")
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE)
