@@ -224,7 +224,8 @@ def _subset_files_dictionary(
 
     files = {'dat_filepath': dat_filepath,
              'dat_content': dat_content,
-             'field_map_folder': field_map_folder}
+             'field_map_folder': field_map_folder,
+             'out_folder': os.path.join(dirname, tmp_folder)}
 
     logging.warning("Manually creating tmp folder and dat.")
     os.mkdir(os.path.join(dirname, tmp_folder))

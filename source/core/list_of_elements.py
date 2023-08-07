@@ -109,6 +109,7 @@ class ListOfElements(list):
                                 self.input_particle.tracewin_command,
                                 self.input_beam.tracewin_command]
                 for command_bit in command]
+
         return self._tracewin_command
 
     def has(self, key: str) -> bool:
