@@ -37,10 +37,14 @@ from util.dicts_output import markdown
 class Fault:
     """To handle and fix a single Fault."""
 
-    def __init__(self, ref_acc: Accelerator, fix_acc: Accelerator,
+    def __init__(self,
+                 ref_acc: Accelerator,
+                 fix_acc: Accelerator,
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
-                 failed_cav: list[FieldMap], comp_cav: list[FieldMap],
-                 elt_eval_objectives: list[_Element], elts: list[_Element]
+                 failed_cav: list[FieldMap],
+                 comp_cav: list[FieldMap],
+                 elt_eval_objectives: list[_Element],
+                 elts: list[_Element]
                  ) -> None:
         """
         Create the Fault object.
@@ -89,16 +93,18 @@ class Fault:
         """
         Create a `ListOfElements` object from a list of `_Element` objects.
 
+        We also use the `SimulationOutput` that was calculated with the first
+        solver, on the full linac `ListOfElements`.
+
         """
         first_solver = list(self.ref_acc.simulation_outputs.keys())[0]
-        simulation_output = self.ref_acc.simulation_outputs[first_solver]
-        elts = subset_of_pre_existing_list_of_elements(elts, simulation_output)
 
-        # w_kin, phi_abs, tm_cumul = self.ref_acc.get(
-        #     'w_kin', 'phi_abs', 'tm_cumul',
-        #     elt=elts[0], pos='in', phase_space='zdelta')
-        # elts = ListOfElements(elts, w_kin, phi_abs, tm_cumul=tm_cumul,
-        #                       first_init=False)
+        simulation_output = self.ref_acc.simulation_outputs[first_solver]
+        files_from_full_list_of_elements = self.ref_acc.elts.files
+        elts = subset_of_pre_existing_list_of_elements(
+            elts,
+            simulation_output,
+            files_from_full_list_of_elements)
         return elts
 
     def fix(self, beam_calculator_run_with_this: Callable[

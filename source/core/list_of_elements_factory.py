@@ -104,7 +104,7 @@ def new_list_of_elements(dat_filepath: str,
     return list_of_elements
 
 
-def new_beam_parameters(self, sigma_in_zdelta: np.ndarray) -> BeamParameters:
+def new_beam_parameters(sigma_in_zdelta: np.ndarray) -> BeamParameters:
     """
     Generate a `BeamParameters` objet for the linac entry.
 
@@ -149,6 +149,7 @@ def _dat_filepath_to_plain_list_of_elements(
 def subset_of_pre_existing_list_of_elements(
     elts: list[_Element],
     simulation_output: SimulationOutput,
+    files_from_full_list_of_elements: dict[str, str | list[list[str]]],
 ) -> ListOfElements:
     """
     Create a `ListOfElements` which is a subset of a previous one.
@@ -182,13 +183,7 @@ def subset_of_pre_existing_list_of_elements(
                  f"elements: {elts[0]} to {elts[-1]}.")
     logging.warning("Check how TraceWin will deal with incomplete Lattices.")
 
-    files = {
-        'dat_filepath': 'bonjoure',
-        'dat_content': dat_filecontent_from_smaller_list_of_elements(elts),
-        'field_map_folder': None,
-    }
-
-    logging.critical("`files` dictionary not initialized!")
+    files = _subset_files_dictionary(elts, files_from_full_list_of_elements)
 
     input_elt, input_pos = _get_initial_element(elts, simulation_output)
     kwargs = {'elt': input_elt,
@@ -197,7 +192,6 @@ def subset_of_pre_existing_list_of_elements(
               'phase_space': None}
     input_particle: ParticleInitialState
     input_particle = _subset_input_particle(simulation_output, **kwargs)
-
 
     input_beam: BeamParameters = simulation_output.beam_parameters.subset(
         *('x', 'y', 'z', 'zdelta'), **kwargs)
@@ -211,6 +205,29 @@ def subset_of_pre_existing_list_of_elements(
                                       first_init=False)
 
     return list_of_elements
+
+
+def _subset_files_dictionary(
+    elts: list[_Element],
+    files_from_full_list_of_elements: dict[str, str | list[list[str]]],
+    tmp_folder: str = 'tmp', tmp_dat: str = 'tmp.dat'
+) -> dict[str, str | list[list[str]]]:
+    """Set the new `.dat` file as well as field map folder."""
+    dirname = os.path.dirname(files_from_full_list_of_elements['dat_filepath'])
+    dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
+
+    dat_content = dat_filecontent_from_smaller_list_of_elements(
+        files_from_full_list_of_elements['dat_content'],
+        elts
+    )
+
+    field_map_folder = files_from_full_list_of_elements['field_map_folder']
+
+    files = {'dat_filepath': dat_filepath,
+             'dat_content': dat_content,
+             'field_map_folder': field_map_folder}
+    return files
+
 
 
 def _get_initial_element(elts: list[_Element],
