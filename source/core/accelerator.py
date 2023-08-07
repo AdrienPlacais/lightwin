@@ -36,7 +36,8 @@ from core.elements import _Element
 from core.list_of_elements import (ListOfElements,
                                    elt_at_this_s_idx,
                                    equiv_elt)
-from core.list_of_elements_factory import new_list_of_elements
+from core.list_of_elements_factory import (new_beam_parameters,
+                                           new_list_of_elements)
 
 from util.helper import recursive_items, recursive_getter
 
@@ -70,13 +71,7 @@ class Accelerator():
                                           phi_abs=0.,
                                           synchronous=True)
         input_particle = self.synch
-
-        # TODO separate this from Accelerator.__init__
-        input_beam = BeamParameters()
-        input_beam.create_phase_spaces('zdelta')
-        input_beam.zdelta.tm_cumul = np.eye(2)
-        input_beam.zdelta.sigma_in = con.SIGMA_ZDELTA
-
+        input_beam: BeamParameters = new_beam_parameters(con.SIGMA_ZDELTA)
         self.elts: ListOfElements = new_list_of_elements(dat_file,
                                                          input_particle,
                                                          input_beam,
@@ -207,7 +202,7 @@ class Accelerator():
         dat_filepath = os.path.join(
             self.files['accelerator_path'],
             simulation_output.out_folder,
-            os.path.basename(self.elts.dat_information['path']))
+            os.path.basename(self.elts.files['dat_filepath']))
         self.elts.store_settings_in_dat(dat_filepath, save=True)
 
     def keep_simulation_output(self, simulation_output: SimulationOutput,

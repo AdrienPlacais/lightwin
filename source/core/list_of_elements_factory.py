@@ -20,6 +20,8 @@ TODO : also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
 Maybe it will be necessary to handle cases where the synch particle is not
 perfectly on the axis?
 
+TODO : maybe, initialize all the input_particle and input_beam here?
+
 """
 import os.path
 import logging
@@ -73,35 +75,50 @@ def new_list_of_elements(dat_filepath: str,
                  + "_Elements names.")
 
     dat_filepath = os.path.abspath(dat_filepath)
-    dat_information = {
-        'path': dat_filepath,
-        'content': tracewin_utils.load.dat_file(dat_filepath),
+    files = {
+        'dat_filepath': dat_filepath,
+        'dat_content': tracewin_utils.load.dat_file(dat_filepath),
         'field_map_folder': None,
     }
 
-    elts, field_map_folder = _dat_filepath_to_plain_list_of_elements(
-        dat_information)
-    dat_information['field_map_folder'] = field_map_folder
+    elts, field_map_folder = _dat_filepath_to_plain_list_of_elements(files)
+    files['field_map_folder'] = field_map_folder
 
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
                                       input_beam=input_beam,
-                                      dat_information=dat_information,
+                                      files=files,
                                       first_init=True)
     tracewin_utils.electric_fields.set_all_electric_field_maps(
         field_map_folder, list_of_elements.by_section_and_lattice)
     return list_of_elements
 
 
+def new_beam_parameters(self, sigma_in_zdelta: np.ndarray) -> BeamParameters:
+    """
+    Generate a `BeamParameters` objet for the linac entry.
+
+
+    Called from `Accelerator.__init__`. The returned `input_beam` is the object
+    required by `new_list_of_elements.__init__`.
+
+    """
+    input_beam = BeamParameters()
+    input_beam.create_phase_spaces('zdelta')
+    input_beam.zdelta.tm_cumul = np.eye(2)
+    input_beam.zdelta.sigma_in = sigma_in_zdelta
+    return input_beam
+
+
 def _dat_filepath_to_plain_list_of_elements(
-        dat_information: dict[str, str | list[list[str]] | None],
+        files: dict[str, str | list[list[str]] | None],
 ) -> list[_Element]:
     """
     Convert the content of the `.dat` file to a plain list of `_Element`s.
 
     Parameters
     ----------
-    dat_information : dict[str, str | list[list[str]] | None]
+    files : dict[str, str | list[list[str]] | None]
         Must contain filepath to `.dat` and content of this file as returned
         by tracewin_utils.load.dat_file.
 
@@ -111,10 +128,10 @@ def _dat_filepath_to_plain_list_of_elements(
         Plain list of _Element (not yet a `ListOfElements` object).
 
     """
-    elts = create_structure(dat_information['content'])
+    elts = create_structure(files['dat_content'])
     elts, field_map_folder = set_field_map_files_paths(
         elts,
-        default_field_map_folder=os.path.dirname(dat_information['path'])
+        default_field_map_folder=os.path.dirname(files['dat_filepath'])
     )
     return elts, field_map_folder
 
@@ -154,6 +171,7 @@ def subset_of_pre_existing_list_of_elements(
     logging.info(f"Initalisation of ListOfElements from already initialized "
                  f"elements: {elts[0]} to {elts[-1]}.")
     logging.warning("Check how TraceWin will deal with incomplete Lattices.")
+    logging.critical("`files` dictionary not initialized!")
 
     input_elt, input_pos = _get_initial_element(elts, simulation_output)
     kwargs = {'elt': input_elt,
