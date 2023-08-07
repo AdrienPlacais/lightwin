@@ -86,11 +86,16 @@ class Accelerator():
         self._check_consistency_phases()
 
         self._l_cav = self.elts.l_cav
+        self._tracewin_command: list[str] | None = None
 
     @property
     def l_cav(self):
         """Shortcut to easily get list of cavities."""
         return self.elts.l_cav
+
+    @property
+    def tracewin_command(self):
+        """Create proper TraceWin command with executable and ini."""
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""

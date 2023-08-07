@@ -40,6 +40,8 @@ from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.single_element_tracewin_parameters import (
     SingleElementTraceWinParameters)
 
+from tracewin_utils.interface import beam_calculator_to_command
+
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from core.list_of_elements import ListOfElements
@@ -55,27 +57,36 @@ class TraceWin(BeamCalculator):
 
     The simulation is not necessarily runned.
 
-    Parameters
+    Attributes
     ----------
-    simulation_type : ['X11 full', 'noX11 full', 'noX11 minimal', 'no run']
-        What kind of simulation you want.
+    executable : str
+        Path to the TraceWin executable.
     ini_path : str
-        Path to the .ini TraceWin file.
-    path_cal : str
-        Path to the output folder, where TW results will be stored. Overrides
-        the path_cal defined in .ini.
-    dat_file : str
-        Path to the TraceWin .dat file, with accelerator structure. Overrides
-        the dat_file defined in .ini.
-    **base_kwargs : dict
+        Path to the `.ini` TraceWin file.
+    base_kwargs : dict[str, str | bool | int | None | float]
         TraceWin optional arguments. Override what is defined in .ini, but
-        overriden by specific_arguments in the self.run method.
+        overriden by arguments from `ListOfElements` and `SimulationOutput`.
+    _tracewin_command : list[str] | None, optional
+        Attribute to hold the value of the base command to call TraceWin.
+    id : str
+        Complete name of the solver.
+    out_folder : str
+        Name of the results folder (not a complete path, just a folder name).
+    get_results : Callable
+        Function to call to get the output results.
+    path_cal : str
+        Name of the results folder. Updated at every call of the
+        `init_solver_parameters` method, using `Accelerator.accelerator_path`
+        and `self.out_folder` attributes.
+    dat_file :
+        Base name for the `.dat` file. ??
 
     """
 
     executable: str
     ini_path: str
-    base_kwargs: dict[str, str | int | float]
+    base_kwargs: dict[str, str | int | float | bool | None]
+    _tracewin_command: list[str] | None = None
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
@@ -90,6 +101,30 @@ class TraceWin(BeamCalculator):
 
         self.path_cal: str
         self.dat_file: str
+
+    @property
+    def tracewin_command(self) -> list[str]:
+        """
+        Define the 'base' command for TraceWin.
+
+        This part of the command is the same for every `ListOfElements` and
+        every `Fault`. It sets the TraceWin executable, the `.ini` file.
+        It also defines `base_kwargs`, which should be the same for every
+        calculation.
+        Finally, it sets `path_cal`. But this path is more `ListOfElements`
+        dependent...
+        `Accelerator.accelerator_path` + `out_folder`
+            (+ `fault_optimisation_tmp_folder`)
+
+        """
+        if self._tracewin_command is None:
+            self._tracewin_command = beam_calculator_to_command(
+                self.executable,
+                self.ini_path,
+                self.path_cal,
+                self.base_kwargs,
+            )  # base kwargs?
+        return self._tracewin_command
 
     # TODO what is specific_kwargs for? I should just have a function
     # set_of_cavity_settings_to_kwargs
@@ -152,10 +187,18 @@ class TraceWin(BeamCalculator):
         return simulation_output
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
-        """Set the `path_cal` variable."""
+        """
+        Set the `path_cal` variable.
+
+        We also set the `_tracewin_command` attribute to None, as it must be
+        updated when `path_cal` changes.
+
+        """
         self.path_cal = os.path.join(accelerator.get('accelerator_path'),
                                      self.out_folder)
         assert os.path.exists(self.path_cal)
+
+        self._tracewin_command = None
 
     def _generate_simulation_output(self, elts: ListOfElements
                                     ) -> SimulationOutput:

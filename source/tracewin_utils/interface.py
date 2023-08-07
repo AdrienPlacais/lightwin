@@ -105,13 +105,15 @@ def variables_to_command(warn_skipped: bool = False,
     return command
 
 
-def beam_calculator_to_command(executable: str, ini_path: str, path_cal: str
+def beam_calculator_to_command(executable: str, ini_path: str, path_cal: str,
+                               **base_kwargs: str | int | float | bool | None
                                ) -> list[str]:
     """Give command calling TraceWin according to `BeamCalculator` attribs."""
     kwargs = {
         'ini_path': ini_path,
         'path_cal': path_cal,
     }
+    kwargs = base_kwargs | kwargs
     command = variables_to_command(**kwargs)
     return command.insert(0, executable)
 
