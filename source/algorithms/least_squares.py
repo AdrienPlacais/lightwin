@@ -9,6 +9,7 @@ Class to solve the problem by the least_squares method. Attributes are
 inherited from the parent OptimisationAlgorithm class:
     variables_constraints: VariablesAndConstraints
     compute_residuals: Callable[[dict], np.ndarray]
+
 """
 from dataclasses import dataclass
 import logging
@@ -101,19 +102,29 @@ class LeastSquares(OptimisationAlgorithm):
         my_ke = list(var[var.shape[0] // 2:])
 
         if 'phi_s' in self.variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity, k_e=k_e, phi_s=phi)
+            my_set = [SingleCavitySettings(cavity=cavity,
+                                           k_e=k_e,
+                                           phi_s=phi,
+                                           index=self.elts.index(cavity))
                       for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke, my_phi)]
+                                                  my_ke,
+                                                  my_phi)]
         elif 'phi_0_abs' in self.variable_names:
-            my_set = [
-                SingleCavitySettings(cavity=cavity, k_e=k_e, phi_0_abs=phi)
-                for cavity, k_e, phi in zip(self.compensating_cavities,
-                                            my_ke, my_phi)]
+            my_set = [SingleCavitySettings(cavity=cavity,
+                                           k_e=k_e,
+                                           phi_0=phi,
+                                           index=self.elts.index(cavity))
+                      for cavity, k_e, phi in zip(self.compensating_cavities,
+                                                  my_ke,
+                                                  my_phi)]
         elif 'phi_0_rel' in self.variable_names:
-            my_set = [
-                SingleCavitySettings(cavity=cavity, k_e=k_e, phi_0_rel=phi)
-                for cavity, k_e, phi in zip(self.compensating_cavities,
-                                            my_ke, my_phi)]
+            my_set = [SingleCavitySettings(cavity=cavity,
+                                           k_e=k_e,
+                                           phi_0_rel=phi,
+                                           index=self.elts.index(cavity))
+                      for cavity, k_e, phi in zip(self.compensating_cavities,
+                                                  my_ke,
+                                                  my_phi)]
         else:
             logging.critical("Error in the _create_set_of_cavity_settings")
             return None
