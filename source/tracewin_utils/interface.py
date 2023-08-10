@@ -110,7 +110,6 @@ def beam_calculator_to_command(executable: str, ini_path: str, path_cal: str,
                                ) -> list[str]:
     """Give command calling TraceWin according to `BeamCalculator` attribs."""
     kwargs = {
-        # 'ini_path': ini_path,
         'path_cal': path_cal,
     } | kwargs
     command = variables_to_command(**kwargs)
@@ -146,15 +145,17 @@ def beam_parameters_to_command(eps_x: float, alpha_x: float, beta_x: float,
     return variables_to_command(**kwargs)
 
 
-def particle_initial_state_to_command(w_kin: float, z_abs: float
-                                      ) -> list[str]:
-    """Return a TraceWin command from attributes of `ParticleInitialState`."""
-    logging.info(f"The given {z_abs = }.")
+def particle_initial_state_to_command(w_kin: float) -> list[str]:
+    """
+    Return a TraceWin command from attributes of `ParticleInitialState`.
 
-    kwargs = {
-        'energy1': w_kin,
-        'zp1': z_abs
-    }
+    We could use the `zp` command to modify the phase at the entry of the first
+    element (when it is not the first element of the linac).
+    We rather keep the absolute phase at the beginning of the zone to 0. and
+    modify the `.dat` file in `subset_of_pre_existing_list_of_elements`
+    function in order to always keep the same relative phi_0.
+    """
+    kwargs = {'energy1': w_kin}
     return variables_to_command(**kwargs)
 
 
