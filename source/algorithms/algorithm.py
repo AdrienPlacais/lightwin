@@ -17,7 +17,10 @@ import numpy as np
 
 from failures.variables import VariablesAndConstraints
 from failures.set_of_cavity_settings import SetOfCavitySettings
+
 from beam_calculation.output import SimulationOutput
+
+from core.list_of_elements import ListOfElements
 from core.elements import FieldMap
 
 
@@ -32,6 +35,7 @@ class OptimisationAlgorithm(ABC):
     compensating_cavities: list[FieldMap]
     variable_names: list[str]
     phi_s_fit: bool
+    elts: ListOfElements
 
     def __post_init__(self) -> None:
         """Set the output object."""

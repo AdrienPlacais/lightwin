@@ -140,7 +140,8 @@ class Fault:
             compute_beam_propagation=compute_beam_propagation,
             compensating_cavities=self.comp_cav,
             variable_names=self.variable_names,
-            phi_s_fit=self.wtf['phi_s fit'])
+            phi_s_fit=self.wtf['phi_s fit'],
+            elts=self.elts)
         success, optimized_cavity_settings, self.info = algorithm.optimise()
         return success, optimized_cavity_settings, self.info
 
