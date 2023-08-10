@@ -15,11 +15,15 @@ import logging
 from typing import TypeVar
 import itertools
 
+import numpy as np
+
 import config_manager as con
 from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
                            Freq, FieldMapPath, End)
+
 # from core.list_of_elements import ListOfElements
 ListOfElements = TypeVar('ListOfElements')
+
 
 TO_BE_IMPLEMENTED = [
     'SPACE_CHARGE_COMP', 'SET_SYNC_PHASE', 'STEERER',
@@ -139,21 +143,34 @@ def update_dat_with_fixed_cavities(elts: ListOfElements) -> None:
 
 def dat_filecontent_from_smaller_list_of_elements(
         dat_filecontent: list[list[str]],
-        elts: list[_Element]
+        elts: list[_Element],
+        update_phi_0_abs_to_keep_same_phi_0_rel: bool = True,
+        old_phi_in: float | None = None,
+        new_phi_in: float | None = None,
 ) -> list[list[str]]:
     """Create a new `.dat` containing only the `_Element`s of `elts`."""
     idx_elt = 0
     indexes_to_keep = [elt.get('elt_idx', to_numpy=False)
                        for elt in elts]
     smaller_dat_filecontent = []
-
     for line in dat_filecontent:
         if line[0] in TO_BE_IMPLEMENTED + NOT_AN_ELEMENT + ['FIELD_MAP_PATH']:
             smaller_dat_filecontent.append(line)
             continue
 
         if idx_elt in indexes_to_keep:
-            smaller_dat_filecontent.append(line)
+            smaller_dat_filecontent.append(line.copy())
+
+            if line[0] == 'FIELD_MAP' \
+                    and update_phi_0_abs_to_keep_same_phi_0_rel:
+                idx_in_elts_referential = idx_elt - indexes_to_keep[0]
+                acc_field = elts[idx_in_elts_referential].acc_field
+                new_phi_0 = str(np.rad2deg(
+                    acc_field.update_phi_0_abs_to_adapt_to_new_ref_phase(
+                        old_phi_in,
+                        new_phi_in,
+                        phases_are_bunch=True)))
+                smaller_dat_filecontent[-1][3] = new_phi_0
         idx_elt += 1
 
     smaller_dat_filecontent = _remove_empty_lattices(smaller_dat_filecontent)

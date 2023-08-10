@@ -184,8 +184,6 @@ def subset_of_pre_existing_list_of_elements(
                  f"elements: {elts[0]} to {elts[-1]}.")
     logging.warning("Check how TraceWin will deal with incomplete Lattices.")
 
-    files = _subset_files_dictionary(elts, files_from_full_list_of_elements)
-
     input_elt, input_pos = _get_initial_element(elts, simulation_output)
     kwargs = {'elt': input_elt,
               'pos': input_pos,
@@ -196,6 +194,18 @@ def subset_of_pre_existing_list_of_elements(
 
     input_beam: BeamParameters = simulation_output.beam_parameters.subset(
         *('x', 'y', 'z', 'zdelta'), **kwargs)
+
+    phase_info = {
+        'update_phi_0_abs_to_keep_same_phi_0_rel': True,
+        'old_phi_in': 0.,
+        'new_phi_in': input_particle.phi_abs
+    }
+    logging.warning("The `phase_info` dict, which handles how and if cavities "
+                    "are rephased in the `.dat` file, is hard-coded. It should"
+                    " take config_manager.PHI_ABS_FLAG as input.")
+
+    files = _subset_files_dictionary(elts, files_from_full_list_of_elements,
+                                     **phase_info)
 
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
@@ -209,16 +219,30 @@ def subset_of_pre_existing_list_of_elements(
 def _subset_files_dictionary(
     elts: list[_Element],
     files_from_full_list_of_elements: dict[str, str | list[list[str]]],
-    tmp_folder: str = 'tmp', tmp_dat: str = 'tmp.dat'
+    tmp_folder: str = 'tmp',
+    tmp_dat: str = 'tmp.dat',
+    **phase_info: bool | float,
 ) -> dict[str, str | list[list[str]]]:
-    """Set the new `.dat` file as well as field map folder."""
+    """
+    Set the new `.dat` file as well as field map folder.
+
+    For that we call the function
+    `dat_filecontent_from_smaller_list_of_elements`.
+
+    Absolute phi_0 of cavities can be changed in the process; it is True in
+    particular when the new `ListOfElements` does not start at the very first
+    _Element of the linac, the caalculations are led in relative phase and
+    TraceWin is used for beam calculation. It is handled by the `phase_info`
+    `kwargs`.
+
+    """
     dirname = os.path.dirname(files_from_full_list_of_elements['dat_filepath'])
     dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
 
     dat_content = dat_filecontent_from_smaller_list_of_elements(
         files_from_full_list_of_elements['dat_content'],
-        elts
-    )
+        elts,
+        **phase_info)
 
     field_map_folder = files_from_full_list_of_elements['field_map_folder']
 
