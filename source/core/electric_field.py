@@ -56,7 +56,6 @@ class RfField():
             self.phi_0['phi_0_rel'] = phi_0
             self.phi_0['nominal_rel'] = phi_0
 
-        # self.cav_params = {'v_cav_mv': np.NaN, 'phi_s': np.NaN}
         self.v_cav_mv = np.NaN
         self.phi_s = np.NaN
 
@@ -138,3 +137,9 @@ def phi_0_rel_corresponding_to(phi_0_abs: float, phi_rf_abs: float) -> float:
 def phi_0_abs_corresponding_to(phi_0_rel: float, phi_rf_abs: float) -> float:
     """Calculate a cavity absolute entrance phase from the relative."""
     return np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
+
+
+def phi_0_abs_with_new_phase_reference(phi_0_abs: float, delta_phi_rf: float,
+                                       ) -> float:
+    """Calculate a new absolute entrance phase, when the ref phase changed."""
+    return np.mod(delta_phi_rf + phi_0_abs, 2. * np.pi)
