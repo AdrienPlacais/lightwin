@@ -58,7 +58,7 @@ class ParticleInitialState:
         """Compute the delta_z corresponding to _z_abs (for TraceWin)."""
         if self._z_abs is None:
             beta = convert.energy(self.w_kin, "kin to beta")
-            self._z_abs = self.phi_abs * beta * c / con.OMEGA_0_BUNCH
+            self._z_abs = -self.phi_abs * beta * c / con.OMEGA_0_BUNCH
         return self._z_abs * 1e3
 
 
