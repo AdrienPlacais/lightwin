@@ -75,6 +75,7 @@ class Accelerator():
         self.elts: ListOfElements = new_list_of_elements(dat_file,
                                                          input_particle,
                                                          input_beam,
+                                                         accelerator_path,
                                                          )
 
         self._special_getters = self._create_special_getters()

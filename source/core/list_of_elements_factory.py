@@ -55,6 +55,7 @@ from beam_calculation.output import SimulationOutput
 def new_list_of_elements(dat_filepath: str,
                          input_particle: ParticleInitialState,
                          input_beam: BeamParameters,
+                         accelerator_path: str
                          ) -> ListOfElements:
     """
     Create a new `ListOfElements`.
@@ -72,6 +73,8 @@ def new_list_of_elements(dat_filepath: str,
         Holds the initial properties of the beam. It is pretty light, as
         Envelope1D does not need a lot of beam properties, and as the ones
         required by TraceWin are already defined in the `.ini` file.
+    accelerator_path : str
+        Where results should be stored.
 
     Returns
     -------
@@ -90,6 +93,7 @@ def new_list_of_elements(dat_filepath: str,
         'dat_filepath': dat_filepath,
         'dat_content': tracewin_utils.load.dat_file(dat_filepath),
         'field_map_folder': None,
+        'out_path': accelerator_path
     }
 
     elts, field_map_folder = _dat_filepath_to_plain_list_of_elements(files)
@@ -249,7 +253,7 @@ def _subset_files_dictionary(
     files = {'dat_filepath': dat_filepath,
              'dat_content': dat_content,
              'field_map_folder': field_map_folder,
-             'out_folder': os.path.join(dirname, tmp_folder)}
+             'out_path': os.path.dirname(dat_filepath)}
 
     logging.warning("Manually creating tmp folder and dat.")
     os.mkdir(os.path.join(dirname, tmp_folder))
