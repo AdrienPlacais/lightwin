@@ -102,7 +102,7 @@ class TraceWin(BeamCalculator):
         self.path_cal: str
         self.dat_file: str
 
-    def tracewin_command(self, **kwargs) -> list[str]:
+    def tracewin_command(self, base_path_cal: str, **kwargs) -> list[str]:
         """
         Define the 'base' command for TraceWin.
 
@@ -121,10 +121,14 @@ class TraceWin(BeamCalculator):
             if key not in kwargs:
                 kwargs[key] = val
 
+        path_cal = os.path.join(base_path_cal, self.out_folder)
+        if not os.path.exists(path_cal):
+            os.makedirs(path_cal)
+
         _tracewin_command = beam_calculator_to_command(
             self.executable,
             self.ini_path,
-            self.path_cal,
+            path_cal,
             **kwargs,
         )
         return _tracewin_command
@@ -178,20 +182,12 @@ class TraceWin(BeamCalculator):
             if key not in kwargs:
                 kwargs[key] = val
 
-        command = self._set_command(elts.get('dat_filepath'), **kwargs)
-
         if specific_kwargs is None:
             specific_kwargs = {}
 
-        my_new_command = self.tracewin_command(**specific_kwargs)
-        my_new_command.extend(elts.tracewin_command)
-        logging.error(my_new_command)
-        if 'out_folder' in elts.files:
-            logging.error("manually modifying the tw command")
-            my_new_command[2] = f"path_cal={elts.files['out_folder']}"
-            logging.error(my_new_command)
-            command = my_new_command
-
+        command = self.tracewin_command(elts.get('out_path', to_numpy=False),
+                                        **specific_kwargs)
+        command.extend(elts.tracewin_command)
         logging.info(f"Running TW with command {command}...")
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE)
@@ -282,22 +278,6 @@ class TraceWin(BeamCalculator):
 
             elt.beam_calc_param[self.id] = SingleElementTraceWinParameters(
                 elt.length_m, z_element, s_in, s_out)
-
-    def _set_command(self, dat_file: str, **kwargs) -> str:
-        """Create the command line to launch TraceWin."""
-        arguments_that_tracewin_will_not_understand = ["executable"]
-        command = [self.executable,
-                   self.ini_path,
-                   f"path_cal={self.path_cal}",
-                   f"dat_file={dat_file}"]
-        for key, value in kwargs.items():
-            if key in arguments_that_tracewin_will_not_understand:
-                continue
-            if value is None:
-                command.append(key)
-                continue
-            command.append(key + "=" + str(value))
-        return command
 
     def _is_a_multiparticle_simulation(self, kwargs) -> bool:
         """Tells if you should buy Bitcoins now or wait a few months."""
