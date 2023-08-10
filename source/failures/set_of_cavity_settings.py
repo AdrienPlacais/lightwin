@@ -111,7 +111,7 @@ class SetOfCavitySettings(dict[FieldMap, SingleCavitySettings]):
     """
 
     __cavity_settings: list[SingleCavitySettings]
-    _tracewin_command: list[str] | None
+    _tracewin_command: list[str] | None = None
 
     def __post_init__(self):
         """Create the proper dictionary."""
