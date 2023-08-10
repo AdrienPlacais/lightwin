@@ -102,7 +102,8 @@ class TraceWin(BeamCalculator):
         self.path_cal: str
         self.dat_file: str
 
-    def tracewin_command(self, base_path_cal: str, **kwargs) -> list[str]:
+    def tracewin_command(self, base_path_cal: str, **kwargs
+                         ) -> tuple[list[str], str]:
         """
         Define the 'base' command for TraceWin.
 
@@ -131,7 +132,7 @@ class TraceWin(BeamCalculator):
             path_cal,
             **kwargs,
         )
-        return _tracewin_command
+        return _tracewin_command, path_cal
 
     # TODO what is specific_kwargs for? I should just have a function
     # set_of_cavity_settings_to_kwargs
@@ -185,8 +186,9 @@ class TraceWin(BeamCalculator):
         if specific_kwargs is None:
             specific_kwargs = {}
 
-        command = self.tracewin_command(elts.get('out_path', to_numpy=False),
-                                        **specific_kwargs)
+        command, path_cal = self.tracewin_command(elts.get('out_path',
+                                                           to_numpy=False),
+                                                  **specific_kwargs)
         command.extend(elts.tracewin_command)
         logging.info(f"Running TW with command {command}...")
 
@@ -195,7 +197,7 @@ class TraceWin(BeamCalculator):
         for line in process.stdout:
             print(line)
 
-        simulation_output = self._generate_simulation_output(elts)
+        simulation_output = self._generate_simulation_output(elts, path_cal)
         return simulation_output
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
@@ -212,10 +214,10 @@ class TraceWin(BeamCalculator):
 
         self._tracewin_command = None
 
-    def _generate_simulation_output(self, elts: ListOfElements
+    def _generate_simulation_output(self, elts: ListOfElements, path_cal: str,
                                     ) -> SimulationOutput:
         """Create an object holding all relatable simulation results."""
-        results = self.get_results(post_treat=True)
+        results = self.get_results(path_cal=path_cal, post_treat=True)
 
         self._save_tracewin_meshing_in_elements(elts, results['##'],
                                                 results['z(m)'])
@@ -226,11 +228,11 @@ class TraceWin(BeamCalculator):
             synchronous=True)
 
         # WARNING, different meshing for these files
-        elt_number, pos, tm_cumul = self._load_transfer_matrices()
+        elt_number, pos, tm_cumul = self._load_transfer_matrices(path_cal)
         logging.warning("Manually extracting only the z transf mat.")
         tm_cumul = tm_cumul[:, 4:, 4:]
 
-        cav_params = self._load_cavity_parameters()
+        cav_params = self._load_cavity_parameters(path_cal)
         cav_params = self._cavity_parameters_uniform_with_envelope1d(
             cav_params, len(elts))
 
@@ -285,7 +287,8 @@ class TraceWin(BeamCalculator):
             return kwargs['partran'] == 1
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
 
-    def _load_results(self, filename: str, post_treat: bool = True
+    def _load_results(self, filename: str, path_cal: str,
+                      post_treat: bool = True
                       ) -> dict[str, np.ndarray]:
         """
         Get the TraceWin results.
@@ -302,7 +305,7 @@ class TraceWin(BeamCalculator):
         results : dict[str, np.ndarray]
             Dictionary containing the raw outputs from TraceWin.
         """
-        f_p = os.path.join(self.path_cal, filename)
+        f_p = os.path.join(path_cal, filename)
         n_lines_header = 9
         results = {}
 
@@ -324,7 +327,8 @@ class TraceWin(BeamCalculator):
             return _post_treat(results)
         return results
 
-    def _load_transfer_matrices(self, filename: str = 'Transfer_matrix1.dat',
+    def _load_transfer_matrices(self, path_cal: str,
+                                filename: str = 'Transfer_matrix1.dat',
                                 high_def: bool = False
                                 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
@@ -355,7 +359,7 @@ class TraceWin(BeamCalculator):
                           + "transfer matrices @ element positions.")
             high_def = False
 
-        f_p = os.path.join(self.path_cal, filename)
+        f_p = os.path.join(path_cal, filename)
         data = None
         element_number, position_in_m, transfer_matrix = [], [], []
 
@@ -383,7 +387,8 @@ class TraceWin(BeamCalculator):
         transfer_matrix = np.array(transfer_matrix)
         return element_number, position_in_m, transfer_matrix
 
-    def _load_cavity_parameters(self, filename: str = 'Cav_set_point_res.dat'
+    def _load_cavity_parameters(self, path_cal: str,
+                                filename: str = 'Cav_set_point_res.dat'
                                 ) -> dict[[str], np.ndarray]:
         """
         Get the cavity parameters calculated by TraceWin.
@@ -400,7 +405,7 @@ class TraceWin(BeamCalculator):
             Contains the cavity parameters.
 
         """
-        f_p = os.path.join(self.path_cal, filename)
+        f_p = os.path.join(path_cal, filename)
         n_lines_header = 1
 
         with open(f_p, 'r', encoding='utf-8') as file:
