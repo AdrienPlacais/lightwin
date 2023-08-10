@@ -164,10 +164,28 @@ def set_of_cavity_settings_to_command(*args) -> list[str]:
     raise NotImplementedError
 
 
+def single_cavity_settings_to_command(index: int,
+                                      phi_0: float | None = None,
+                                      k_e: float | None = None,
+                                      abs_flag: int | None = None
+                                      ) -> list[str]:
+    """Set TraceWin command to modify a bash call according to new settings."""
+    kwargs = {
+        f"ele[{index}][3]": phi_0 if phi_0 is not None else np.NaN,
+        f"ele[{index}][6]": k_e if k_e is not None else np.NaN,
+        f"ele[{index}][10]": abs_flag if abs_flag is not None else np.NaN
+    }
+    return variables_to_command(**kwargs)
+
+
 def _proper_type(key: str, value: str | int | float,
                  not_in_dict_warning: bool = True,
                  ) -> str | int | float | None:
     """Check if type of `value` is consistent and try to correct otherwise."""
+    if "ele" in key:
+        return value
+    # no type checking for ele command!
+
     if key not in TYPES:
         if not_in_dict_warning:
             logging.warning(f"The {key = } is not understood by TraceWin, or "
