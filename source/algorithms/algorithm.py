@@ -34,7 +34,6 @@ class OptimisationAlgorithm(ABC):
                                        SimulationOutput]
     compensating_cavities: list[FieldMap]
     variable_names: list[str]
-    phi_s_fit: bool
     elts: ListOfElements
 
     def __post_init__(self) -> None:
