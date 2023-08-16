@@ -219,6 +219,8 @@ class TraceWin(BeamCalculator):
         """Create an object holding all relatable simulation results."""
         results = self.get_results(path_cal=path_cal, post_treat=True)
 
+        results = self._shift_if_not_at_linac_beginning(results, elts)
+
         self._save_tracewin_meshing_in_elements(elts, results['##'],
                                                 results['z(m)'])
 
@@ -265,6 +267,21 @@ class TraceWin(BeamCalculator):
         # FIXME attribute was not declared
         simulation_output.pow_lost = results['Powlost']
         return simulation_output
+
+    def _shift_if_not_at_linac_beginning(self,
+                                         results: dict[str, np.ndarray],
+                                         elts: ListOfElements
+                                         ) -> dict[str, np.ndarray]:
+        """
+        Shift position and phase if `elts` does not start at linac start.
+
+        TraceWin always starts with `z=0` and `phi_abs=0`, even when we are not
+        at the beginning of the linac (sub `.dat`).
+
+        """
+        results['z(m)'] += elts.input_particle.z_in
+        results['phi_abs'] += elts.input_particle.phi_abs
+        return results
 
     def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
                                            elt_numbers: np.ndarray,
@@ -509,6 +526,7 @@ def elts_to_dat(elts: ListOfElements) -> str:
     return str(elts)
 
 
+# warning!! As for now, should be called every time...
 def _post_treat(results: dict) -> dict:
     """Compute and store the missing quantities (envelope or multipart)."""
     results['gamma'] = 1. + results['gama-1']
