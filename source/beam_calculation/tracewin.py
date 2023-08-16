@@ -103,8 +103,8 @@ class TraceWin(BeamCalculator):
         self.dat_file: str
         self._tracewin_command: list[str] | None = None
 
-    def tracewin_command(self, base_path_cal: str, **kwargs
-                         ) -> tuple[list[str], str]:
+    def _tracewin_base_command(self, base_path_cal: str, **kwargs
+                               ) -> tuple[list[str], str]:
         """
         Define the 'base' command for TraceWin.
 
@@ -135,6 +135,33 @@ class TraceWin(BeamCalculator):
         )
         return _tracewin_command, path_cal
 
+    def _tracewin_full_command(
+        self,
+        elts: ListOfElements,
+        set_of_cavity_settings: SetOfCavitySettings | None,
+        **kwargs,
+    ) -> tuple[list[str], str]:
+        """
+        Set the full TraceWin command.
+
+        It contains the 'base' command, which includes every argument that is
+        common to every calculation with this `BeamCalculator`: path to `.ini`
+        file, to executable...
+
+        It contains the `ListOfElements` command: path to the `.dat` file,
+        initial energy and beam properties.
+
+        It can contain some `SetOfCavitySettings` commands: `ele` arguments to
+        modify some cavities tuning.
+
+        """
+        out_path = elts.get('out_path', to_numpy=False)
+        command, path_cal = self._tracewin_base_command(out_path, **kwargs)
+        command.extend(elts.tracewin_command)
+        if set_of_cavity_settings is not None:
+            command.extend(set_of_cavity_settings.tracewin_command)
+        return command, path_cal
+
     # TODO what is specific_kwargs for? I should just have a function
     # set_of_cavity_settings_to_kwargs
     def run(self, elts: ListOfElements, **specific_kwargs) -> None:
@@ -159,8 +186,8 @@ class TraceWin(BeamCalculator):
         """
         Perform a simulation with new cavity settings.
 
-        Calling it with set_of_cavity_settings = None should be the same as
-        calling the plain `run` method.
+        Calling it with `set_of_cavity_settings = None` is the same as calling
+        the plain `run` method.
 
         Parameters
         ----------
@@ -176,28 +203,17 @@ class TraceWin(BeamCalculator):
             single object.
 
         """
-        if set_of_cavity_settings is not None:
-            raise NotImplementedError
-
-        kwargs = specific_kwargs.copy()
-        for key, val in self.base_kwargs.items():
-            if key not in kwargs:
-                kwargs[key] = val
+        if specific_kwargs not in (None, {}):
+            logging.critical(f"{specific_kwargs = }: deprecated.")
 
         if specific_kwargs is None:
             specific_kwargs = {}
 
-        command, path_cal = self.tracewin_command(elts.get('out_path',
-                                                           to_numpy=False),
-                                                  **specific_kwargs)
-        command.extend(elts.tracewin_command)
-        logging.info(f"Running TW with command {command}...")
+        command, path_cal = self._tracewin_full_command(elts,
+                                                        set_of_cavity_settings,
+                                                        **specific_kwargs)
 
-        process = subprocess.Popen(command, stdout=subprocess.PIPE)
-        process.wait()
-        for line in process.stdout:
-            print(line)
-
+        _run_in_bash(command)
         simulation_output = self._generate_simulation_output(elts, path_cal)
         return simulation_output
 
@@ -642,6 +658,19 @@ def _add_beam_param_not_supported_by_envelope1d(
     beam_parameters.create_phase_spaces('phiw99', 'x99', 'y99')
     beam_parameters.init_99percent_phase_spaces(eps_phiw99, eps_x99, eps_y99)
     return beam_parameters
+
+
+# =============================================================================
+# Bash
+# =============================================================================
+def _run_in_bash(command: list[str]) -> None:
+    """Run given command in bash."""
+    output = "\n\t".join(command)
+    logging.info(f"Running command:\n\t{output}")
+    process = subprocess.Popen(command, stdout=subprocess.PIPE)
+    process.wait()
+    for line in process.stdout:
+        print(line)
 
 
 # Not implemented
