@@ -100,7 +100,7 @@ class Fault:
         first_solver = list(self.ref_acc.simulation_outputs.keys())[0]
 
         simulation_output = self.ref_acc.simulation_outputs[first_solver]
-        files_from_full_list_of_elements = self.ref_acc.elts.files
+        files_from_full_list_of_elements = self.fix_acc.elts.files
         elts = subset_of_pre_existing_list_of_elements(
             elts,
             simulation_output,

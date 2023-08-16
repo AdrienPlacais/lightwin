@@ -87,8 +87,9 @@ def new_list_of_elements(dat_filepath: str,
                  + "all linac. Also removing Lattice and Freq "
                  + "commands, setting Lattice/Section structures, "
                  + "_Elements names.")
-
     dat_filepath = os.path.abspath(dat_filepath)
+    logging.info(f"Created with dat_filepath = {dat_filepath}")
+
     files = {
         'dat_filepath': dat_filepath,
         'dat_content': tracewin_utils.load.dat_file(dat_filepath),
@@ -240,8 +241,11 @@ def _subset_files_dictionary(
     `kwargs`.
 
     """
-    dirname = os.path.dirname(files_from_full_list_of_elements['dat_filepath'])
+    dirname = files_from_full_list_of_elements['out_path']
     dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
+    logging.warning("The given dat_filepath is the one of the default .dat. "
+                    "Hence optimization results are stored in base_folder/tmp "
+                    "instead of 00001/beam_calculation/tmp.")
 
     dat_content = dat_filecontent_from_smaller_list_of_elements(
         files_from_full_list_of_elements['dat_content'],
