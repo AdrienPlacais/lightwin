@@ -25,6 +25,7 @@ Abstract methods
 
 """
 from dataclasses import dataclass
+from typing import Callable
 import os
 import logging
 import subprocess
@@ -234,32 +235,21 @@ class TraceWin(BeamCalculator):
         logging.warning("Manually extracting only the z transf mat.")
         tm_cumul = tm_cumul[:, 4:, 4:]
 
-        cav_params = self._load_cavity_parameters(path_cal)
-        cav_params = self._cavity_parameters_uniform_with_envelope1d(
-            cav_params, len(elts))
-
-        r_zz_elt = []
+        cavity_parameters = self._create_cavity_parameters(path_cal,
+                                                           len(elts))
 
         element_to_index = self._generate_element_to_index_func(elts)
-
-        multipart = self._is_a_multiparticle_simulation(self.base_kwargs)
-        beam_params = BeamParameters(gamma_kin=results['gamma'],
-                                     element_to_index=element_to_index)
-        beam_params = _beam_param_uniform_with_envelope1d(beam_params, results)
-        beam_params = _add_beam_param_not_supported_by_envelope1d(beam_params,
-                                                                  results,
-                                                                  multipart)
-
-        rf_fields = []
+        beam_parameters = self._create_beam_parameters(element_to_index,
+                                                       results)
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
             z_abs=results['z(m)'],
             synch_trajectory=synch_trajectory,
-            cav_params=cav_params,
-            r_zz_elt=r_zz_elt,
-            rf_fields=rf_fields,
-            beam_parameters=beam_params,
+            cav_params=cavity_parameters,
+            r_zz_elt=[],
+            rf_fields=[],
+            beam_parameters=beam_parameters,
             element_to_index=element_to_index
         )
         simulation_output.z_abs = results['z(m)']
@@ -404,58 +394,116 @@ class TraceWin(BeamCalculator):
         transfer_matrix = np.array(transfer_matrix)
         return element_number, position_in_m, transfer_matrix
 
-    def _load_cavity_parameters(self, path_cal: str,
-                                filename: str = 'Cav_set_point_res.dat'
-                                ) -> dict[[str], np.ndarray]:
+    def _create_cavity_parameters(self,
+                                  path_cal: str,
+                                  n_elts: int,
+                                  filename: str = 'Cav_set_point_res.dat',
+                                  ) -> list[dict[str, float] | None]:
         """
-        Get the cavity parameters calculated by TraceWin.
+        Load and format a dict containing v_cav and phi_s.
+
+        It has the same format as `Envelope1D` solver format.
 
         Parameters
         ----------
+        path_cal : str
+            Path to the folder where the cavity parameters file is stored.
+        n_elts : int
+            Number of elements under study.
         filename : str, optional
             The name of the cavity parameters file produced by TraceWin. The
             default is 'Cav_set_point_res.dat'.
 
         Returns
         -------
-        cavity_param : dict[[float], np.ndarray]
+        cavity_param : list[dict[str, float] | None]
             Contains the cavity parameters.
 
         """
-        f_p = os.path.join(path_cal, filename)
-        n_lines_header = 1
+        cavity_parameters = _load_cavity_parameters(path_cal, filename)
+        cavity_parameters = _cavity_parameters_uniform_with_envelope1d(
+            cavity_parameters,
+            n_elts
+        )
+        return cavity_parameters
 
-        with open(f_p, 'r', encoding='utf-8') as file:
-            for i, line in enumerate(file):
-                if i == n_lines_header - 1:
-                    headers = line.strip().split()
-                    break
-
-        out = np.loadtxt(f_p, skiprows=n_lines_header)
-        cavity_param = {key: out[:, i] for i, key in enumerate(headers)}
-        logging.debug(f"successfully loaded {f_p}")
-        return cavity_param
-
-    def _cavity_parameters_uniform_with_envelope1d(
-        self, cav_params: dict[str, np.ndarray], n_elts: int
-    ) -> list[None | dict[str, float]]:
-        """Transform the dict so we have the same format as Envelope1D."""
-        cavity_numbers = cav_params['Cav#'].astype(int)
-        v_cav, phi_s = [], []
-        cavity_idx = 0
-        for elt_idx in range(1, n_elts + 1):
-            if elt_idx not in cavity_numbers:
-                v_cav.append(None), phi_s.append(None)
-                continue
-
-            v_cav.append(cav_params['Voltage[MV]'][cavity_idx])
-            phi_s.append(np.deg2rad(cav_params['SyncPhase[°]'][cavity_idx]))
-            cavity_idx += 1
-
-        compliant_cav_params = {'v_cav_mv': v_cav, 'phi_s': phi_s}
-        return compliant_cav_params
+    def _create_beam_parameters(self,
+                                element_to_index: Callable,
+                                results: dict[str, np.ndarray]
+                                ) -> BeamParameters:
+        """Create the `BeamParameters` object, holding eps, Twiss, etc."""
+        multipart = self._is_a_multiparticle_simulation(self.base_kwargs)
+        beam_parameters = BeamParameters(gamma_kin=results['gamma'],
+                                         element_to_index=element_to_index)
+        beam_parameters = _beam_param_uniform_with_envelope1d(beam_parameters,
+                                                              results)
+        beam_parameters = _add_beam_param_not_supported_by_envelope1d(
+            beam_parameters,
+            results,
+            multipart)
+        return beam_parameters
 
 
+# =============================================================================
+# Cavity parameters
+# =============================================================================
+def _load_cavity_parameters(path_cal: str,
+                            filename: str) -> dict[[str], np.ndarray]:
+    """
+    Get the cavity parameters calculated by TraceWin.
+
+    Parameters
+    ----------
+    path_cal : str
+        Path to the folder where the cavity parameters file is stored.
+    filename : str
+        The name of the cavity parameters file produced by TraceWin.
+
+    Returns
+    -------
+    cavity_param : dict[float, np.ndarray]
+        Contains the cavity parameters.
+
+    """
+    f_p = os.path.join(path_cal, filename)
+    n_lines_header = 1
+
+    with open(f_p, 'r', encoding='utf-8') as file:
+        for i, line in enumerate(file):
+            if i == n_lines_header - 1:
+                headers = line.strip().split()
+                break
+
+    out = np.loadtxt(f_p, skiprows=n_lines_header)
+    cavity_parameters = {key: out[:, i] for i, key in enumerate(headers)}
+    logging.debug(f"successfully loaded {f_p}")
+    return cavity_parameters
+
+
+def _cavity_parameters_uniform_with_envelope1d(
+    cavity_parameters: dict[str, np.ndarray],
+    n_elts: int
+) -> list[None | dict[str, float]]:
+    """Transform the dict so we have the same format as Envelope1D."""
+    cavity_numbers = cavity_parameters['Cav#'].astype(int)
+    v_cav, phi_s = [], []
+    cavity_idx = 0
+    for elt_idx in range(1, n_elts + 1):
+        if elt_idx not in cavity_numbers:
+            v_cav.append(None), phi_s.append(None)
+            continue
+
+        v_cav.append(cavity_parameters['Voltage[MV]'][cavity_idx])
+        phi_s.append(np.deg2rad(cavity_parameters['SyncPhase[°]'][cavity_idx]))
+        cavity_idx += 1
+
+    compliant_cavity_parameters = {'v_cav_mv': v_cav, 'phi_s': phi_s}
+    return compliant_cavity_parameters
+
+
+# =============================================================================
+# BeamParameters
+# =============================================================================
 def _beam_param_uniform_with_envelope1d(
         beam_parameters: BeamParameters, results: dict[str, np.ndarray],
         multiparticle: bool = False) -> BeamParameters:
@@ -521,6 +569,7 @@ def _add_beam_param_not_supported_by_envelope1d(
     return beam_parameters
 
 
+# Not implemented
 def elts_to_dat(elts: ListOfElements) -> str:
     """Create a .dat file from elts."""
     return str(elts)
