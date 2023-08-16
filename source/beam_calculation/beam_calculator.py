@@ -54,7 +54,7 @@ class BeamCalculator(ABC):
         """
         Perform a simulation with new cavity settings.
 
-        Calling it with set_of_cavity_settings = None should be the same as
+        Calling it with `set_of_cavity_settings = None` should be the same as
         calling the plain `run` method.
 
         Parameters
@@ -95,19 +95,19 @@ def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
     """
     Convert `elt` + `pos` into a mesh index.
 
-    This way, you can call .get('w_kin', elt='FM5', pos='out') and
+    This way, you can call `.get('w_kin', elt='FM5', pos='out')` and
     systematically get the energy at the exit of FM5, whatever the
     `BeamCalculator` or the mesh size is.
 
     Parameters
     ----------
     _elts : ListOfElements
-        List of `_Element`s where elt should be. Must be set by a
-        functools.partial.
+        List of `_Element`s where `elt` should be. Must be set by a
+        `functools.partial`.
     _shift : int
         Mesh index of first `_Element`. Used when the first `_Element` of
         `_elts` is not the first of the `Accelerator`. Must be set by
-        functools.partial.
+        `functools.partial`.
     _solver_id : str
         Name of the solver, to identify and take the proper
         `SingleElementBeamParameters`.
