@@ -76,9 +76,10 @@ if __name__ == '__main__':
     MY_KEYS = {
         'files': 'files',
         'plots': 'plots.light',
-        'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
+        # 'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
+        'beam_calculator': 'beam_calculator.tracewin.envelope',
         'beam': 'beam',
-        'wtf': 'wtf.quick_debug',
+        'wtf': 'wtf.for_tracewin',
         'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
         # 'evaluators': 'evaluators.bruce',
     }
