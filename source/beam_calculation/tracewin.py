@@ -87,7 +87,6 @@ class TraceWin(BeamCalculator):
     executable: str
     ini_path: str
     base_kwargs: dict[str, str | int | float | bool | None]
-    _tracewin_command: list[str] | None = None
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
@@ -102,6 +101,7 @@ class TraceWin(BeamCalculator):
 
         self.path_cal: str
         self.dat_file: str
+        self._tracewin_command: list[str] | None = None
 
     def tracewin_command(self, base_path_cal: str, **kwargs
                          ) -> tuple[list[str], str]:
@@ -221,7 +221,8 @@ class TraceWin(BeamCalculator):
         results = self._create_main_results_dictionary(path_cal,
                                                        elts.input_particle)
 
-        self._save_tracewin_meshing_in_elements(elts, results['##'],
+        self._save_tracewin_meshing_in_elements(elts,
+                                                results['##'],
                                                 results['z(m)'])
 
         synch_trajectory = ParticleFullTrajectory(w_kin=results['w_kin'],

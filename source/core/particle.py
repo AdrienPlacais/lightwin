@@ -37,7 +37,10 @@ class ParticleInitialState:
     phi_abs: float
     z_in: float
     synchronous: bool
-    _tracewin_command: list[str] | None = None
+
+    def __post_init__(self) -> None:
+        """Declare the `_tracewin_command` attribute."""
+        self._tracewin_command: list[str] | None = None
 
     @property
     def tracewin_command(self) -> list[str]:

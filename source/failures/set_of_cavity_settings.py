@@ -32,16 +32,16 @@ class SingleCavitySettings:
     phi_0_rel: float | None = None
     phi_s: float | None = None
     index: int | None = None
-    _tracewin_command: list[str] | None = None
 
     def __post_init__(self):
-        """Test that only one phase was given."""
+        """Test that only one phase was given. Set `_tracewin_command attr`."""
         if not self._is_valid_phase_input():
             logging.error("You gave SingleCavitySettings several phases... "
                           "Which one should it take? Ignoring phases.")
             self.phi_0_abs = None
             self.phi_0_rel = None
             self.phi_s = None
+        self._tracewin_command: list[str] | None = None
 
     @property
     def tracewin_command(self):
