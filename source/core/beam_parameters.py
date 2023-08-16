@@ -808,7 +808,6 @@ def mismatch_from_objects(ref: BeamParameters, fix: BeamParameters,
                                   + fix.y.mismatch_factor)
 
 
-# TODO some interpolation if needed?
 def _mismatch_single_phase_space(ref: SinglePhaseSpaceBeamParameters,
                                  fix: SinglePhaseSpaceBeamParameters,
                                  z_ref: np.ndarray,
@@ -817,7 +816,6 @@ def _mismatch_single_phase_space(ref: SinglePhaseSpaceBeamParameters,
     """Compute the mismatch using two `SinglePhaseSpaceBeamParameters`."""
     twiss_ref, twiss_fix = ref.twiss, fix.twiss
     if twiss_ref.shape != twiss_fix.shape:
-        logging.info("Twiss have different shapes, interpolating...")
         _, twiss_ref, _, twiss_fix = resample_2d(z_ref, twiss_ref,
                                                  z_fix, twiss_fix)
 
