@@ -171,9 +171,10 @@ def single_cavity_settings_to_command(index: int,
                                       ) -> list[str]:
     """Set TraceWin command to modify a bash call according to new settings."""
     kwargs = {
-        f"ele[{index}][3]": phi_0 if phi_0 is not None else np.NaN,
-        f"ele[{index}][6]": k_e if k_e is not None else np.NaN,
-        f"ele[{index}][10]": abs_flag if abs_flag is not None else np.NaN
+        f"ele[{index + 1}][3]":
+            np.rad2deg(phi_0) if phi_0 is not None else np.NaN,
+        f"ele[{index + 1}][6]": k_e if k_e is not None else np.NaN,
+        f"ele[{index + 1}][10]": abs_flag if abs_flag is not None else np.NaN
     }
     return variables_to_command(**kwargs)
 
