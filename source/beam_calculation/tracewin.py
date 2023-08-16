@@ -20,6 +20,7 @@ Abstract methods
 ----------------
     run()
     run_with_this()
+    post_optimisation_run_with_this()
     init_solver_parameters()
     _generate_simulation_output()
 
@@ -216,6 +217,30 @@ class TraceWin(BeamCalculator):
         _run_in_bash(command, output_command=not is_a_fit)
 
         simulation_output = self._generate_simulation_output(elts, path_cal)
+        return simulation_output
+
+    def post_optimisation_run_with_this(
+        self,
+        optimized_cavity_settings: SetOfCavitySettings,
+        full_elts: ListOfElements,
+        **specific_kwargs
+    ) -> SimulationOutput:
+        """
+        Run TraceWin with optimized cavity settings.
+
+        After the optimisation, we want to re-run TraceWin with the new
+        settings. However, we need to tell it that the linac is bigger than
+        during the optimisation. Concretely, it means:
+            - rephasing the cavities in the compensation zone
+            - updating the `index` `n` of the cavities in the `ele[n][v]`
+            command.
+
+        """
+        optimized_cavity_settings.update_to_full_list_of_elements()
+
+        simulation_output = self.run_with_this(optimized_cavity_settings,
+                                               full_elts,
+                                               **specific_kwargs)
         return simulation_output
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:

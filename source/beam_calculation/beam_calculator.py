@@ -73,6 +73,22 @@ class BeamCalculator(ABC):
         """
 
     @abstractmethod
+    def post_optimisation_run_with_this(
+        self,
+        optimized_cavity_settings: SetOfCavitySettings | None,
+        full_elts: ListOfElements
+    ) -> SimulationOutput:
+        """
+        Run a simulation a simulation after optimisation is over.
+
+        With `Envelope1D`, it just calls the classic `run_with_this`. But with
+        TraceWin, we need to update the `optimized_cavity_settings` as running
+        an optimisation run on a fraction of the linac is pretty different from
+        running a simulation on the whole linac.
+
+        """
+
+    @abstractmethod
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
         """Init some `BeamCalculator` solver parameters."""
 

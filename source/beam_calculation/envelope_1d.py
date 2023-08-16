@@ -18,6 +18,7 @@ Abstract methods
 ----------------
     run()
     run_with_this()
+    post_optimisation_run_with_this()
     init_solver_parameters()
     _generate_simulation_output()
 
@@ -131,6 +132,25 @@ class Envelope1D(BeamCalculator):
         simulation_output = self._generate_simulation_output(
             elts, single_elts_results, rf_fields)
         return simulation_output
+
+    def post_optimisation_run_with_this(
+        self,
+        optimized_cavity_settings: SetOfCavitySettings,
+        full_elts: ListOfElements,
+        **specific_kwargs
+    ) -> SimulationOutput:
+        """
+        Run Envelope1D with optimized cavity settings.
+
+        With this solver, we have nothing to do, nothing to update. Just call
+        the regular `run_with_this` method.
+
+        """
+        simulation_output = self.run_with_this(optimized_cavity_settings,
+                                               full_elts,
+                                               **specific_kwargs)
+        return simulation_output
+
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
         """

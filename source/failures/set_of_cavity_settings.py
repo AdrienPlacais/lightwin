@@ -16,6 +16,8 @@ import numpy as np
 
 from tracewin_utils.interface import single_cavity_settings_to_command
 
+from core.electric_field import phi_0_abs_with_new_phase_reference
+
 from util.helper import recursive_items, recursive_getter
 
 
@@ -42,6 +44,30 @@ class SingleCavitySettings:
             self.phi_0_rel = None
             self.phi_s = None
         self._tracewin_command: list[str] | None = None
+
+    def update_to_full_list_of_elements(self,
+                                        delta_phi_rf: float,
+                                        ) -> None:
+        """
+        Rephase the cavity, change its index.
+
+        When switching from a sub-`ListOfElements` during the optimisation
+        process to the full `ListOfElements` after the optimisation, we must
+        take care of two things when using TraceWin:
+            - index `n` in the `ele[n][v]]` command must be updated;
+            - abs phase must de-de-phased and expressed w.r.t. to the absolute
+            phase of the full `ListOfElements` (not the absolute phase of the
+            sub-`ListOfElements`).
+
+        If we made a simulation with relative phases, we have nothing to
+        change.
+
+        """
+        self.index = self.cavity.get('elt_idx', to_numpy=False)
+
+        if self.phi_0_abs is not None:
+            self.phi_0_abs = phi_0_abs_with_new_phase_reference(self.phi_0_abs,
+                                                                delta_phi_rf)
 
     @property
     def tracewin_command(self):
@@ -127,3 +153,11 @@ class SetOfCavitySettings(dict[FieldMap, SingleCavitySettings]):
             for settings in self.values():
                 self._tracewin_command.extend(settings.tracewin_command)
         return self._tracewin_command
+
+    def update_to_full_list_of_elements(self) -> None:
+        """Update all the `SingleCavitySettings` after optimisation with TW."""
+        for cavity, setting in self.items():
+            new_phi_in = 0. * cavity.acc_field.n_cell
+            old_phi_in = cavity.acc_field.phi_0['new_reference_phase']
+            delta_phi_rf = new_phi_in - old_phi_in
+            setting.update_to_full_list_of_elements(delta_phi_rf)

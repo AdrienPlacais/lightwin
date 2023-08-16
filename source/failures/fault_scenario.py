@@ -109,8 +109,13 @@ class FaultScenario(list):
             info.append(_info)
 
             # Now we recompute full linac
-            simulation_output = self.beam_calculator.run_with_this(
-                optimized_cavity_settings, self.fix_acc.elts)
+            simulation_output = \
+                self.beam_calculator.post_optimisation_run_with_this(
+                    optimized_cavity_settings,
+                    self.fix_acc.elts,
+                )
+            # simulation_output = self.beam_calculator.run_with_this(
+            #     optimized_cavity_settings, self.fix_acc.elts)
             simulation_output.compute_complementary_data(
                 self.fix_acc.elts, ref_simulation_output=ref_simulation_output)
 
