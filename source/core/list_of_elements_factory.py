@@ -281,6 +281,8 @@ def _subset_input_particle(simulation_output: SimulationOutput,
                            **kwargs: _Element | str | bool | None
                            ) -> ParticleInitialState:
     """Create `ParticleInitialState` for an incomplete list of `_Element`s."""
-    w_kin, phi_abs = simulation_output.get('w_kin', 'phi_abs', **kwargs)
-    input_particle = ParticleInitialState(w_kin, phi_abs, synchronous=True)
+    w_kin, phi_abs, z_abs = simulation_output.get('w_kin', 'phi_abs', 'z_abs',
+                                                  **kwargs)
+    input_particle = ParticleInitialState(w_kin, phi_abs, z_abs,
+                                          synchronous=True)
     return input_particle

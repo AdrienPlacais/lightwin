@@ -14,10 +14,6 @@ In this module, two classes are defined:
     several `ParticleFullTrajectory` (according to size of the mesh, the
     solver, etc), `ParticleFullTrajectory`s are stored in `SimulationOutput`.
 
-Maybe ParticleFullTrajectory should not inherit from ParticleInitialState...
-Does not bring much and ParticleFullTrajectory should not have a
-tracewin_command.
-
 """
 from dataclasses import dataclass
 from typing import Any
@@ -37,8 +33,9 @@ class ParticleInitialState:
 
     """
 
-    w_kin: float | np.ndarray | list
-    phi_abs: float | np.ndarray | list
+    w_kin: float
+    phi_abs: float
+    z_in: float
     synchronous: bool
     _tracewin_command: list[str] | None = None
 
@@ -52,7 +49,7 @@ class ParticleInitialState:
 
 
 @dataclass
-class ParticleFullTrajectory(ParticleInitialState):
+class ParticleFullTrajectory:
     """
     Hold the full energy, phase, etc of a particle.
 
@@ -66,6 +63,10 @@ class ParticleFullTrajectory(ParticleInitialState):
         phi = omega_0_rf * t
 
     """
+
+    w_kin: np.ndarray | list
+    phi_abs: np.ndarray | list
+    synchronous: bool
 
     def __post_init__(self):
         """Ensure that LightWin has everything it needs, with proper format."""

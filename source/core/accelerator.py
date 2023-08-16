@@ -69,6 +69,7 @@ class Accelerator():
 
         self.synch = ParticleInitialState(w_kin=con.E_MEV,
                                           phi_abs=0.,
+                                          z_in=0.,
                                           synchronous=True)
         input_particle = self.synch
         input_beam: BeamParameters = new_beam_parameters(con.SIGMA_ZDELTA)
