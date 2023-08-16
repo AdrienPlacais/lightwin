@@ -426,7 +426,10 @@ def _try_this(solver_id: str, cavity_settings: SingleCavitySettings,
         abs_to_rel = False
         return norm_and_phases, abs_to_rel
 
-    norm_and_phases = {key: cavity_settings.get(key)
-                       for key in ['k_e', 'phi_0_abs', 'phi_0_rel']}
+    norm_and_phases = {
+        'k_e': cavity_settings.k_e,
+        'phi_0_abs': cavity_settings.phi_0_abs,
+        'phi_0_rel': cavity_settings.phi_0_rel,
+    }
     abs_to_rel = con.FLAG_PHI_ABS
     return norm_and_phases, abs_to_rel
