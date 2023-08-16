@@ -46,6 +46,7 @@ from tracewin_utils.interface import beam_calculator_to_command
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
+from core.elements import FieldMap
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
@@ -210,13 +211,32 @@ class TraceWin(BeamCalculator):
         if specific_kwargs is None:
             specific_kwargs = {}
 
+        rf_fields = []
+        for elt in elts:
+            if isinstance(set_of_cavity_settings, SetOfCavitySettings):
+                cavity_settings = set_of_cavity_settings.get(elt)
+                if cavity_settings is not None:
+                    rf_fields.append({'k_e': cavity_settings.k_e,
+                                      'phi_0_abs': cavity_settings.phi_0_abs,
+                                      'phi_0_rel': cavity_settings.phi_0_rel})
+                    continue
+
+            if isinstance(elt, FieldMap):
+                rf_fields.append(
+                    {'k_e': elt.acc_field.k_e,
+                     'phi_0_abs': elt.acc_field.phi_0['phi_0_abs'],
+                     'phi_0_rel': elt.acc_field.phi_0['phi_0_rel']})
+                continue
+            rf_fields.append({})
+
         command, path_cal = self._tracewin_full_command(elts,
                                                         set_of_cavity_settings,
                                                         **specific_kwargs)
         is_a_fit = set_of_cavity_settings is not None
         _run_in_bash(command, output_command=not is_a_fit)
 
-        simulation_output = self._generate_simulation_output(elts, path_cal)
+        simulation_output = self._generate_simulation_output(elts, path_cal,
+                                                             rf_fields)
         return simulation_output
 
     def post_optimisation_run_with_this(
@@ -257,8 +277,12 @@ class TraceWin(BeamCalculator):
 
         self._tracewin_command = None
 
-    def _generate_simulation_output(self, elts: ListOfElements, path_cal: str,
-                                    ) -> SimulationOutput:
+    def _generate_simulation_output(
+        self,
+        elts: ListOfElements,
+        path_cal: str,
+        rf_fields: list[dict[str, float | None]],
+    ) -> SimulationOutput:
         """Create an object holding all relatable simulation results."""
         results = self._create_main_results_dictionary(path_cal,
                                                        elts.input_particle)
@@ -278,6 +302,8 @@ class TraceWin(BeamCalculator):
 
         cavity_parameters = self._create_cavity_parameters(path_cal,
                                                            len(elts))
+        rf_fields = self._complete_list_of_rf_fields(rf_fields,
+                                                     cavity_parameters)
 
         element_to_index = self._generate_element_to_index_func(elts)
         beam_parameters = self._create_beam_parameters(element_to_index,
@@ -289,7 +315,7 @@ class TraceWin(BeamCalculator):
             synch_trajectory=synch_trajectory,
             cav_params=cavity_parameters,
             r_zz_elt=[],
-            rf_fields=[],
+            rf_fields=rf_fields,
             beam_parameters=beam_parameters,
             element_to_index=element_to_index
         )
@@ -396,7 +422,7 @@ class TraceWin(BeamCalculator):
                                   path_cal: str,
                                   n_elts: int,
                                   filename: str = 'Cav_set_point_res.dat',
-                                  ) -> list[dict[str, float] | None]:
+                                  ) -> dict[str, list[float | None]]:
         """
         Load and format a dict containing v_cav and phi_s.
 
@@ -424,6 +450,27 @@ class TraceWin(BeamCalculator):
             n_elts
         )
         return cavity_parameters
+
+    def _complete_list_of_rf_fields(
+        self,
+        rf_fields: list[dict[str, float | None]],
+        cavity_parameters: dict[str, list[float | None]]
+    ) -> list[dict[float | None]]:
+        """Create a list holding rf field properties, as `Envelope1D`."""
+        logging.warning("Making hypothesis that given phi_0 is abs.")
+        for i, (v_cav_mv, phi_s, phi_0) in enumerate(
+                zip(cavity_parameters['v_cav_mv'],
+                    cavity_parameters['phi_s'],
+                    cavity_parameters['phi_0'])):
+            if v_cav_mv is None:
+                continue
+            if rf_fields[i]['k_e'] < 1e-10:
+                continue
+            rf_fields[i]['v_cav_mv'] = v_cav_mv
+            rf_fields[i]['phi_s'] = phi_s
+            rf_fields[i]['phi_0_abs'] = phi_0
+
+        return rf_fields
 
     def _create_beam_parameters(self,
                                 element_to_index: Callable,
@@ -566,7 +613,7 @@ def _set_phase_related_results(results: dict[str, np.ndarray],
 # Cavity parameters
 # =============================================================================
 def _load_cavity_parameters(path_cal: str,
-                            filename: str) -> dict[[str], np.ndarray]:
+                            filename: str) -> dict[str, np.ndarray]:
     """
     Get the cavity parameters calculated by TraceWin.
 
@@ -604,18 +651,21 @@ def _cavity_parameters_uniform_with_envelope1d(
 ) -> list[None | dict[str, float]]:
     """Transform the dict so we have the same format as Envelope1D."""
     cavity_numbers = cavity_parameters['Cav#'].astype(int)
-    v_cav, phi_s = [], []
+    v_cav, phi_s, phi_0 = [], [], []
     cavity_idx = 0
     for elt_idx in range(1, n_elts + 1):
         if elt_idx not in cavity_numbers:
-            v_cav.append(None), phi_s.append(None)
+            v_cav.append(None), phi_s.append(None), phi_0.append(None)
             continue
 
         v_cav.append(cavity_parameters['Voltage[MV]'][cavity_idx])
         phi_s.append(np.deg2rad(cavity_parameters['SyncPhase[°]'][cavity_idx]))
+        phi_0.append(np.deg2rad(cavity_parameters['RF_phase[°]'][cavity_idx]))
+
         cavity_idx += 1
 
-    compliant_cavity_parameters = {'v_cav_mv': v_cav, 'phi_s': phi_s}
+    compliant_cavity_parameters = {'v_cav_mv': v_cav, 'phi_s': phi_s,
+                                   'phi_0': phi_0}
     return compliant_cavity_parameters
 
 
