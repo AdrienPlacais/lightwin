@@ -151,7 +151,6 @@ class Envelope1D(BeamCalculator):
                                                **specific_kwargs)
         return simulation_output
 
-
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
         """
         Create the number of steps, meshing, transfer functions for elts.
@@ -224,7 +223,9 @@ class Envelope1D(BeamCalculator):
 
         element_to_index = self._generate_element_to_index_func(elts)
 
-        beam_params = BeamParameters(gamma_kin=synch_trajectory.gamma,
+        beam_params = BeamParameters(z_abs=elts.get('abs_mesh',
+                                                    remove_first=True),
+                                     gamma_kin=synch_trajectory.gamma,
                                      element_to_index=element_to_index)
         beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
         beam_params.zdelta.init_from_cumulated_transfer_matrices(

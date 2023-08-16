@@ -68,7 +68,10 @@ from core.elements import _Element
 from tracewin_utils.interface import beam_parameters_to_command
 
 from util import converters
-from util.helper import recursive_items, recursive_getter, range_vals
+from util.helper import (recursive_items,
+                         recursive_getter,
+                         range_vals,
+                         resample_2d)
 
 
 PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
@@ -106,6 +109,7 @@ class BeamParameters:
 
     """
 
+    z_abs: np.ndarray | None = None
     gamma_kin: np.ndarray | float | None = None
     beta_kin: np.ndarray | float | None = None
     element_to_index: Callable[[str | _Element, str | None], int | slice] \
@@ -412,8 +416,8 @@ class SinglePhaseSpaceBeamParameters:
     def __post_init__(self):
         """Set the default attributes for the zdelta."""
         if self.phase_space == 'zdelta' and self.sigma_in is None:
-            logging.warning("resorted back to a default sigma_zdelta. I should"
-                            "avoid that.")
+            # logging.warning("resorted back to a default sigma_zdelta. I should"
+            #                 "avoid that.")
             self.sigma_in = con.SIGMA_ZDELTA
 
     def has(self, key: str) -> bool:
@@ -785,11 +789,13 @@ def mismatch_from_objects(ref: BeamParameters, fix: BeamParameters,
                           *phase_spaces: str,
                           set_transverse_as_average: bool = True) -> None:
     """Compute the mismatchs in the desired phase_spaces."""
+    z_ref, z_fix = ref.z_abs, fix.z_abs
     for phase_space in phase_spaces:
         phase_space_getter = NAME_TO_OBJECT[phase_space]
 
         bp_ref, bp_fix = phase_space_getter(ref), phase_space_getter(fix)
-        bp_fix.mismatch_factor = _mismatch_single_phase_space(bp_ref, bp_fix)
+        bp_fix.mismatch_factor = _mismatch_single_phase_space(bp_ref, bp_fix,
+                                                              z_ref, z_fix)
 
     if not set_transverse_as_average:
         return
@@ -805,15 +811,17 @@ def mismatch_from_objects(ref: BeamParameters, fix: BeamParameters,
 # TODO some interpolation if needed?
 def _mismatch_single_phase_space(ref: SinglePhaseSpaceBeamParameters,
                                  fix: SinglePhaseSpaceBeamParameters,
+                                 z_ref: np.ndarray,
+                                 z_fix: np.ndarray
                                  ) -> np.ndarray | None:
     """Compute the mismatch using two `SinglePhaseSpaceBeamParameters`."""
-    if ref.twiss.shape != fix.twiss.shape:
-        logging.critical("Shapes are different between the two Twiss arrays. "
-                         "Shall implement interpolation for this... Returning"
-                         " None.")
-        return None
+    twiss_ref, twiss_fix = ref.twiss, fix.twiss
+    if twiss_ref.shape != twiss_fix.shape:
+        logging.info("Twiss have different shapes, interpolating...")
+        _, twiss_ref, _, twiss_fix = resample_2d(z_ref, twiss_ref,
+                                                 z_fix, twiss_fix)
 
-    mism = mismatch_from_arrays(ref.twiss, fix.twiss, transp=True)
+    mism = mismatch_from_arrays(twiss_ref, twiss_fix, transp=True)
     return mism
 
 

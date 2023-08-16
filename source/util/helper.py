@@ -120,6 +120,29 @@ def resample(x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
     return x_1, y_1, x_2, y_2
 
 
+def resample_2d(x_1: np.ndarray, y_1: np.ndarray,
+                x_2: np.ndarray, y_2: np.ndarray
+                ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Downsample 2d y to x_1 or x_2 along second axis."""
+    assert x_1.shape[0] == y_1.shape[0]
+    assert x_2.shape[0] == y_2.shape[0]
+
+    if x_1.shape > x_2.shape:
+        y_out = np.empty(y_2.shape)
+        for axis in range(y_out.shape[1]):
+            y_out[:, axis] = np.interp(x_2, x_1, y_1[:, axis])
+        y_1 = y_out
+        x_1 = x_2
+        return x_1, y_1, x_2, y_2
+
+    y_out = np.empty(y_1.shape)
+    for axis in range(y_out.shape[1]):
+        y_out[:, axis] = np.interp(x_1, x_2, y_2[:, axis])
+    y_2 = y_out
+    x_2 = x_1
+    return x_1, y_1, x_2, y_2
+
+
 def range_vals(name: str, data: np.ndarray | None) -> str:
     """Return formatted first and last value of the `data` array."""
     out = f"{name:15s}"

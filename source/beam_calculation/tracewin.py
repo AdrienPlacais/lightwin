@@ -431,7 +431,8 @@ class TraceWin(BeamCalculator):
                                 ) -> BeamParameters:
         """Create the `BeamParameters` object, holding eps, Twiss, etc."""
         multipart = self._is_a_multiparticle_simulation(self.base_kwargs)
-        beam_parameters = BeamParameters(gamma_kin=results['gamma'],
+        beam_parameters = BeamParameters(z_abs=results['z(m)'],
+                                         gamma_kin=results['gamma'],
                                          element_to_index=element_to_index)
         beam_parameters = _beam_param_uniform_with_envelope1d(beam_parameters,
                                                               results)
