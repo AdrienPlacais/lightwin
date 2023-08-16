@@ -37,8 +37,9 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
                                 for pos in position]
 
     idx_start_compensation_zone = min(fault_idx + comp_idx)
-    # idx_start = 0
-    # logging.warning(f"manually modified the {idx_start = }")
+    idx_start_compensation_zone -= 11
+    logging.warning(f"Manually modified the {idx_start_compensation_zone= } "
+                    "to force start at the beginning of a lattice (TW test).")
     idx_end_compensation_zone = max(objectives_positions_idx)
 
     elts = fix.elts[idx_start_compensation_zone:idx_end_compensation_zone + 1]
@@ -49,10 +50,10 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
 
 def _zone(pos: str, *args) -> int | None:
     """Give compensation zone, and position where objectives are checked."""
-    if pos not in D_POS:
+    if pos not in POSITION_TO_INDEX:
         logging.error(f"Position {pos} not recognized.""")
         return None
-    return D_POS[pos](*args)
+    return POSITION_TO_INDEX[pos](*args)
 
 
 def _end_last_altered_lattice(lin: Accelerator, fault_idx: list[int],
@@ -102,7 +103,7 @@ def _to_elt_idx(lin: Accelerator, indexes: list[int]) -> list[int]:
     return indexes
 
 
-D_POS = {
+POSITION_TO_INDEX = {
     'end of last altered lattice': _end_last_altered_lattice,
     'one lattice after last altered lattice':
         _one_lattice_after_last_altered_lattice,
