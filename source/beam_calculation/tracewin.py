@@ -47,7 +47,7 @@ from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
-from core.particle import ParticleFullTrajectory
+from core.particle import ParticleFullTrajectory, ParticleInitialState
 from core.beam_parameters import BeamParameters
 
 
@@ -218,16 +218,15 @@ class TraceWin(BeamCalculator):
     def _generate_simulation_output(self, elts: ListOfElements, path_cal: str,
                                     ) -> SimulationOutput:
         """Create an object holding all relatable simulation results."""
-        results = self._create_main_results_dictionary(path_cal)
-        results = self._shift_if_not_at_linac_beginning(results, elts)
+        results = self._create_main_results_dictionary(path_cal,
+                                                       elts.input_particle)
 
         self._save_tracewin_meshing_in_elements(elts, results['##'],
                                                 results['z(m)'])
 
-        synch_trajectory = ParticleFullTrajectory(
-            w_kin=results['w_kin'],
-            phi_abs=np.deg2rad(results['phi_abs']),
-            synchronous=True)
+        synch_trajectory = ParticleFullTrajectory(w_kin=results['w_kin'],
+                                                  phi_abs=results['phi_abs'],
+                                                  synchronous=True)
 
         # WARNING, different meshing for these files
         elt_number, pos, tm_cumul = self._load_transfer_matrices(path_cal)
@@ -257,21 +256,6 @@ class TraceWin(BeamCalculator):
         simulation_output.pow_lost = results['Powlost']
         return simulation_output
 
-    def _shift_if_not_at_linac_beginning(self,
-                                         results: dict[str, np.ndarray],
-                                         elts: ListOfElements
-                                         ) -> dict[str, np.ndarray]:
-        """
-        Shift position and phase if `elts` does not start at linac start.
-
-        TraceWin always starts with `z=0` and `phi_abs=0`, even when we are not
-        at the beginning of the linac (sub `.dat`).
-
-        """
-        results['z(m)'] += elts.input_particle.z_in
-        results['phi_abs'] += elts.input_particle.phi_abs
-        return results
-
     def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
                                            elt_numbers: np.ndarray,
                                            z_abs: np.ndarray) -> None:
@@ -294,11 +278,15 @@ class TraceWin(BeamCalculator):
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
 
     def _create_main_results_dictionary(self,
-                                        path_cal: str
+                                        path_cal: str,
+                                        input_particle: ParticleInitialState,
                                         ) -> dict[str, np.ndarray]:
         """Load the TraceWin results, compute common interest quantities."""
         results = self.load_results(path_cal=path_cal)
-        results = _post_treat(results)
+        results = _set_energy_related_results(results)
+        results = _set_phase_related_results(results,
+                                             z_in=input_particle.z_in,
+                                             phi_in=input_particle.phi_abs)
         return results
 
     def _load_transfer_matrices(self, path_cal: str,
@@ -459,11 +447,61 @@ def _load_results_generic(filename: str,
     return results
 
 
-def _post_treat(results: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
-    """Compute and store the complementary quantities."""
+def _set_energy_related_results(results: dict[str, np.ndarray]
+                                ) -> dict[str, np.ndarray]:
+    """
+    Compute the energy from `gama-1` column.
+
+    Parameters
+    ----------
+    results : dict[str, np.ndarray]
+        Dictionary holding the TraceWin results.
+
+    Returns
+    -------
+    results : dict[str, np.ndarray]
+        Same as input, but with `gamma`, `w_kin`, `beta` keys defined.
+
+    """
     results['gamma'] = 1. + results['gama-1']
     results['w_kin'] = convert.energy(results['gamma'], "gamma to kin")
     results['beta'] = convert.energy(results['w_kin'], "kin to beta")
+    return results
+
+
+def _set_phase_related_results(results: dict[str, np.ndarray],
+                               z_in: float,
+                               phi_in: float,
+                               ) -> dict[str, np.ndarray]:
+    """
+    Compute the phases, pos, frequencies.
+
+    Also shift position and phase if `ListOfElements` under study does not
+    start at the beginning of the linac.
+
+    TraceWin always starts with `z=0` and `phi_abs=0`, even when we are not
+    at the beginning of the linac (sub `.dat`).
+
+    Parameters
+    ----------
+    results : dict[str, np.ndarray]
+        Dictionary holding the TraceWin results.
+    z_in : float
+        Absolute position in the linac of the beginning of the linac portion
+        under study (can be 0.).
+    phi_in : float
+        Absolute phase of the synch particle at the beginning of the linac
+        portion under study (can be 0.).
+
+    Returns
+    -------
+    results : dict[str, np.ndarray]
+        Same as input, but with `lambda` and `phi_abs` keys defined. `phi_abs`
+        and `z(m)` keys are modified in order to be 0. at the beginning of the
+        linac, not at the beginning of the `ListOfElements` under study.
+
+    """
+    results['z(m)'] += z_in
     results['lambda'] = c / results['freq'] * 1e-6
 
     omega = 2. * np. pi * results['freq'] * 1e6
@@ -472,27 +510,10 @@ def _post_treat(results: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
     delta_phi = omega * delta_z / (beta * c)
 
     num = results['beta'].shape[0]
-    phi_abs = np.full((num), 0.)
+    phi_abs = np.full((num), phi_in)
     for i in range(num - 1):
         phi_abs[i + 1] = phi_abs[i] + delta_phi[i]
-    results['phi_abs'] = np.rad2deg(phi_abs)
-
-    # Transverse emittance, used in evaluate
-    results['et'] = 0.5 * (results['ex'] + results['ey'])
-
-    # Twiss parameters, used in evaluate
-    for _eps, size, disp, twi in zip(
-            ['ex', 'ey', 'ezdp'],
-            ['SizeX', 'SizeY', 'SizeZ'],
-            ["sxx'", "syy'", 'szdp'],
-            ['twiss_x', 'twiss_y', 'twiss_zdp']):
-        eps = results[_eps] / (results['gamma'] * results['beta'])
-        alpha = -results[disp] / eps
-        beta = results[size]**2 / eps
-        if _eps == 'ezdp':
-            beta /= 10.
-        gamma = (1. + alpha**2) / beta
-        results[twi] = np.column_stack((alpha, beta, gamma))
+    results['phi_abs'] = phi_abs
 
     return results
 
