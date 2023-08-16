@@ -26,8 +26,9 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
 class LeastSquares(OptimisationAlgorithm):
     """Plain least-squares method, efficient for small problems."""
 
-    def optimise(self) -> tuple[bool, SetOfCavitySettings, dict[str,
-                                                                list[float]]]:
+    def optimise(self) -> tuple[bool,
+                                SetOfCavitySettings,
+                                dict[str, list[float]]]:
         """
         Set up the optimisation and solve the problem.
 
@@ -40,6 +41,7 @@ class LeastSquares(OptimisationAlgorithm):
         info : dict[str, list[float]]] | None
             Gives list of solutions, corresponding objective, convergence
             violation if applicable, etc.
+
         """
         kwargs = {'jac': '2-point',     # Default
                   # 'trf' not ideal as jac is not sparse. 'dogbox' may have
@@ -60,7 +62,8 @@ class LeastSquares(OptimisationAlgorithm):
         x_0, bounds = self._format_variables_and_constraints()
         solution = least_squares(
             fun=self._wrapper_residuals,
-            x0=x_0, bounds=bounds,
+            x0=x_0,
+            bounds=bounds,
             **kwargs)
 
         self.solution = solution
@@ -112,7 +115,7 @@ class LeastSquares(OptimisationAlgorithm):
         elif 'phi_0_abs' in self.variable_names:
             my_set = [SingleCavitySettings(cavity=cavity,
                                            k_e=k_e,
-                                           phi_0=phi,
+                                           phi_0_abs=phi,
                                            index=self.elts.index(cavity))
                       for cavity, k_e, phi in zip(self.compensating_cavities,
                                                   my_ke,
