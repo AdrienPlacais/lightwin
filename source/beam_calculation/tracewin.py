@@ -73,7 +73,7 @@ class TraceWin(BeamCalculator):
         Complete name of the solver.
     out_folder : str
         Name of the results folder (not a complete path, just a folder name).
-    get_results : Callable
+    load_results : Callable
         Function to call to get the output results.
     path_cal : str
         Name of the results folder. Updated at every call of the
@@ -98,7 +98,7 @@ class TraceWin(BeamCalculator):
         filename = 'tracewin.out'
         if self._is_a_multiparticle_simulation(self.base_kwargs):
             filename = 'partran1.out'
-        self.get_results = partial(self._load_results, filename=filename)
+        self.load_results = partial(_load_results_generic, filename=filename)
 
         self.path_cal: str
         self.dat_file: str
@@ -218,8 +218,7 @@ class TraceWin(BeamCalculator):
     def _generate_simulation_output(self, elts: ListOfElements, path_cal: str,
                                     ) -> SimulationOutput:
         """Create an object holding all relatable simulation results."""
-        results = self.get_results(path_cal=path_cal, post_treat=True)
-
+        results = self._create_main_results_dictionary(path_cal)
         results = self._shift_if_not_at_linac_beginning(results, elts)
 
         self._save_tracewin_meshing_in_elements(elts, results['##'],
@@ -294,44 +293,12 @@ class TraceWin(BeamCalculator):
             return kwargs['partran'] == 1
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
 
-    def _load_results(self, filename: str, path_cal: str,
-                      post_treat: bool = True
-                      ) -> dict[str, np.ndarray]:
-        """
-        Get the TraceWin results.
-
-        Parameters
-        ----------
-        filename : str
-            Results file produced by TraceWin.
-        post_treat : bool, optional
-            To compute complementary data. The default is True.
-
-        Returns
-        -------
-        results : dict[str, np.ndarray]
-            Dictionary containing the raw outputs from TraceWin.
-        """
-        f_p = os.path.join(path_cal, filename)
-        n_lines_header = 9
-        results = {}
-
-        with open(f_p, 'r', encoding='utf-8') as file:
-            for i, line in enumerate(file):
-                if i == 1:
-                    __mc2, freq, __z, __i, __npart = line.strip().split()
-                if i == n_lines_header:
-                    headers = line.strip().split()
-                    break
-        results['freq'] = float(freq)
-
-        out = np.loadtxt(f_p, skiprows=n_lines_header)
-        for i, key in enumerate(headers):
-            results[key] = out[:, i]
-            logging.debug(f"successfully loaded {f_p}")
-
-        if post_treat:
-            return _post_treat(results)
+    def _create_main_results_dictionary(self,
+                                        path_cal: str
+                                        ) -> dict[str, np.ndarray]:
+        """Load the TraceWin results, compute common interest quantities."""
+        results = self.load_results(path_cal=path_cal)
+        results = _post_treat(results)
         return results
 
     def _load_transfer_matrices(self, path_cal: str,
@@ -442,6 +409,92 @@ class TraceWin(BeamCalculator):
             results,
             multipart)
         return beam_parameters
+
+
+# =============================================================================
+# Main `results` dictionary
+# =============================================================================
+def _load_results_generic(filename: str,
+                          path_cal: str,
+                          ) -> dict[str, np.ndarray]:
+    """
+    Load the TraceWin results.
+
+    This function is not called directly. Instead, every instance of `TraceWin`
+    object has a `load_results` method which calls this function with a default
+    `filename` argument.
+    The value of `filename` depends on the TraceWin simulation that was run:
+    multiparticle or envelope.
+
+    Parameters
+    ----------
+    filename : str
+        Results file produced by TraceWin.
+    path_cal : str
+        Folder where the results file is located.
+
+    Returns
+    -------
+    results : dict[str, np.ndarray]
+        Dictionary containing the raw outputs from TraceWin.
+
+    """
+    f_p = os.path.join(path_cal, filename)
+    n_lines_header = 9
+    results = {}
+
+    with open(f_p, 'r', encoding='utf-8') as file:
+        for i, line in enumerate(file):
+            if i == 1:
+                __mc2, freq, __z, __i, __npart = line.strip().split()
+            if i == n_lines_header:
+                headers = line.strip().split()
+                break
+    results['freq'] = float(freq)
+
+    out = np.loadtxt(f_p, skiprows=n_lines_header)
+    for i, key in enumerate(headers):
+        results[key] = out[:, i]
+        logging.debug(f"successfully loaded {f_p}")
+    return results
+
+
+def _post_treat(results: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    """Compute and store the complementary quantities."""
+    results['gamma'] = 1. + results['gama-1']
+    results['w_kin'] = convert.energy(results['gamma'], "gamma to kin")
+    results['beta'] = convert.energy(results['w_kin'], "kin to beta")
+    results['lambda'] = c / results['freq'] * 1e-6
+
+    omega = 2. * np. pi * results['freq'] * 1e6
+    delta_z = np.diff(results['z(m)'])
+    beta = .5 * (results['beta'][1:] + results['beta'][:-1])
+    delta_phi = omega * delta_z / (beta * c)
+
+    num = results['beta'].shape[0]
+    phi_abs = np.full((num), 0.)
+    for i in range(num - 1):
+        phi_abs[i + 1] = phi_abs[i] + delta_phi[i]
+    results['phi_abs'] = np.rad2deg(phi_abs)
+
+    # Transverse emittance, used in evaluate
+    results['et'] = 0.5 * (results['ex'] + results['ey'])
+
+    # Twiss parameters, used in evaluate
+    for _eps, size, disp, twi in zip(
+            ['ex', 'ey', 'ezdp'],
+            ['SizeX', 'SizeY', 'SizeZ'],
+            ["sxx'", "syy'", 'szdp'],
+            ['twiss_x', 'twiss_y', 'twiss_zdp']):
+        eps = results[_eps] / (results['gamma'] * results['beta'])
+        alpha = -results[disp] / eps
+        beta = results[size]**2 / eps
+        if _eps == 'ezdp':
+            beta /= 10.
+        gamma = (1. + alpha**2) / beta
+        results[twi] = np.column_stack((alpha, beta, gamma))
+
+    return results
 
 
 # =============================================================================
@@ -573,42 +626,3 @@ def _add_beam_param_not_supported_by_envelope1d(
 def elts_to_dat(elts: ListOfElements) -> str:
     """Create a .dat file from elts."""
     return str(elts)
-
-
-# warning!! As for now, should be called every time...
-def _post_treat(results: dict) -> dict:
-    """Compute and store the missing quantities (envelope or multipart)."""
-    results['gamma'] = 1. + results['gama-1']
-    results['w_kin'] = convert.energy(results['gamma'], "gamma to kin")
-    results['beta'] = convert.energy(results['w_kin'], "kin to beta")
-    results['lambda'] = c / results['freq'] * 1e-6
-
-    omega = 2. * np. pi * results['freq'] * 1e6
-    delta_z = np.diff(results['z(m)'])
-    beta = .5 * (results['beta'][1:] + results['beta'][:-1])
-    delta_phi = omega * delta_z / (beta * c)
-
-    num = results['beta'].shape[0]
-    phi_abs = np.full((num), 0.)
-    for i in range(num - 1):
-        phi_abs[i + 1] = phi_abs[i] + delta_phi[i]
-    results['phi_abs'] = np.rad2deg(phi_abs)
-
-    # Transverse emittance, used in evaluate
-    results['et'] = 0.5 * (results['ex'] + results['ey'])
-
-    # Twiss parameters, used in evaluate
-    for _eps, size, disp, twi in zip(
-            ['ex', 'ey', 'ezdp'],
-            ['SizeX', 'SizeY', 'SizeZ'],
-            ["sxx'", "syy'", 'szdp'],
-            ['twiss_x', 'twiss_y', 'twiss_zdp']):
-        eps = results[_eps] / (results['gamma'] * results['beta'])
-        alpha = -results[disp] / eps
-        beta = results[size]**2 / eps
-        if _eps == 'ezdp':
-            beta /= 10.
-        gamma = (1. + alpha**2) / beta
-        results[twi] = np.column_stack((alpha, beta, gamma))
-
-    return results
