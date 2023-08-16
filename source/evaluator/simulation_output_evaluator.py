@@ -183,9 +183,15 @@ class SimulationOutputEvaluator(ABC):
 
         """
         z_abs = simulation_output.get('z_abs')
-        value = self.value_getter(simulation_output)
+        try:
+            value = self.value_getter(simulation_output)
+        except IndexError:
+            logging.error("Mismatch between z_abs and value shapes. Current "
+                          "quantity is probably a mismatch_factor, which "
+                          "was interpolated. Returning None.")
+            value = None
         if value is None:
-            logging.error(f"A value misses in {self} test. Skipping test.")
+            logging.error(f"A value misses in test: {self}. Skipping...")
             return None
 
         ref_value = None

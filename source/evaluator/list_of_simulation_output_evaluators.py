@@ -170,7 +170,9 @@ class FaultScenarioSimulationOutputEvaluators:
 
         fmt = f".{precision}f"
         formatted_evaluations = [f"{evaluation:{fmt}}"
-                                 for evaluation in evaluations]
+                                 if evaluation is not None else 'skipped'
+                                 for evaluation in evaluations
+                                 ]
         formatted_evaluations = [evaluation + unit
                                  for evaluation, unit
                                  in zip(formatted_evaluations, units)]
