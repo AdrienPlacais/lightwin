@@ -212,8 +212,9 @@ class TraceWin(BeamCalculator):
         command, path_cal = self._tracewin_full_command(elts,
                                                         set_of_cavity_settings,
                                                         **specific_kwargs)
+        is_a_fit = set_of_cavity_settings is not None
+        _run_in_bash(command, output_command=not is_a_fit)
 
-        _run_in_bash(command)
         simulation_output = self._generate_simulation_output(elts, path_cal)
         return simulation_output
 
@@ -663,14 +664,22 @@ def _add_beam_param_not_supported_by_envelope1d(
 # =============================================================================
 # Bash
 # =============================================================================
-def _run_in_bash(command: list[str]) -> None:
+def _run_in_bash(command: list[str], output_command: bool = True) -> None:
     """Run given command in bash."""
     output = "\n\t".join(command)
-    logging.info(f"Running command:\n\t{output}")
+    if output_command:
+        logging.info(f"Running command:\n\t{output}")
     process = subprocess.Popen(command, stdout=subprocess.PIPE)
     process.wait()
+
+    exception = False
     for line in process.stdout:
         print(line)
+        exception = True
+
+    if exception:
+        logging.error("A message was returned when executing following "
+                      f"command:\n\t{output}")
 
 
 # Not implemented
