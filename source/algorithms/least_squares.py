@@ -56,11 +56,11 @@ class LeastSquares(OptimisationAlgorithm):
                   # 'loss': 'arctan',
                   'diff_step': None, 'tr_solver': None, 'tr_options': {},
                   'jac_sparsity': None,
-                  'verbose': 2,
+                  'verbose': 0,
                   }
 
         x_0, bounds = self._format_variables_and_constraints()
-        x_0, bounds = _set_new_limits_for_debug()
+        x_0, bounds = _set_new_limits_for_debug_fm9()
 
         solution = least_squares(
             fun=self._wrapper_residuals,
@@ -152,7 +152,28 @@ class LeastSquares(OptimisationAlgorithm):
         logging.debug(info_string)
 
 
-def _set_new_limits_for_debug(tol: float = 1e-8):
+def _set_new_limits_for_debug_fm9(tol: float = 1e-8):
+    """Presets for cavity failure FM4, k=5."""
+    # for phi_0_abs:
+    logging.critical("Overwrite the x_0 and bounds to force TW to "
+                     "converge. phi_0_abs is set")
+    x_0 = np.array([152.429549, 85.203942, 48.346872, 87.115557, 222.882571,
+                    1.444056, 1.555044, 2.005833, 2.688386, 1.828737])
+    x_0[:5] = np.deg2rad(x_0[:5])
+
+    phi_shift_bunch = 119.22643442
+    phi_shift_rf = phi_shift_bunch * 2.
+    delta_phi_rf = phi_shift_rf
+    x_0[:5] = np.mod(delta_phi_rf + x_0[:5], 2. * np.pi)
+    logging.critical("Rephase the cavities for TW to work.")
+
+    bounds = Bounds(x_0 - tol, x_0 + 1e-6)
+    logging.critical(x_0)
+    logging.critical(bounds)
+    return x_0, bounds
+
+
+def _set_new_limits_for_debug_fm4(tol: float = 1e-8):
     """Presets for cavity failure FM4, k=5."""
     # for phi_s:
     # logging.critical("Overwrite the x_0 and bounds to force TW to "
