@@ -211,5 +211,23 @@ def phi_0_abs_corresponding_to(phi_0_rel: float, phi_rf_abs: float) -> float:
 
 def phi_0_abs_with_new_phase_reference(phi_0_abs: float, delta_phi_rf: float,
                                        ) -> float:
-    """Calculate a new absolute entrance phase, when the ref phase changed."""
+    """
+    Calculate a new absolute entrance phase, when the ref phase changed.
+
+    Parameters
+    ----------
+    phi_0_abs : float
+        Absolute entry phase of the cavity.
+    delta_phi_rf : float
+        Change in rf phase (not bunch!). Usually defined as `new_phi - old_phi`
+        where `old_phi` is the entry phase for which `phi_0_abs` is valid.
+
+    Returns
+    -------
+    phi_0_abs : float
+        A new absolute cavity entry phase. The reference phase is now `new_phi`
+        so that calculations will be valid if a different `ListOfElements` is
+        calculated.
+
+    """
     return np.mod(delta_phi_rf + phi_0_abs, 2. * np.pi)
