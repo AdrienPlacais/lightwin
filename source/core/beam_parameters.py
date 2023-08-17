@@ -128,7 +128,7 @@ class BeamParameters:
 
     """
 
-    z_abs: np.ndarray | None = None
+    z_abs: np.ndarray | float | None = None
     gamma_kin: np.ndarray | float | None = None
     beta_kin: np.ndarray | float | None = None
     element_to_index: Callable[[str | _Element, str | None], int | slice] \
@@ -318,10 +318,15 @@ class BeamParameters:
 
         """
         for arg in args:
+            phase_space_kwargs = kwargs.get(arg, None)
+            if phase_space_kwargs is None:
+                phase_space_kwargs = {}
+
             phase_space_beam_param = SinglePhaseSpaceBeamParameters(
                 arg,
-                kwargs.get(arg, None),
-                element_to_index=self.element_to_index)
+                element_to_index=self.element_to_index,
+                **phase_space_kwargs,
+                )
             setattr(self, arg, phase_space_beam_param)
 
     def init_other_phase_spaces_from_zdelta(
