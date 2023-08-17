@@ -260,6 +260,7 @@ class TraceWin(BeamCalculator):
 
         """
         optimized_cavity_settings.update_to_full_list_of_elements()
+        full_elts.store_settings_in_dat(full_elts.files['dat_filepath'])
 
         simulation_output = self.run_with_this(optimized_cavity_settings,
                                                full_elts,
