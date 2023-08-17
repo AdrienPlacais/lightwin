@@ -161,7 +161,8 @@ def _set_new_limits_for_debug_fm9(tol: float = 1e-8):
                     1.444056, 1.555044, 2.005833, 2.688386, 1.828737])
     x_0[:5] = np.deg2rad(x_0[:5])
 
-    phi_shift_bunch = 119.22643442
+    # phi_shift_bunch = 119.22643442  # start from QP5
+    phi_shift_bunch = 157.0512365673894    # start from FM6
     phi_shift_rf = phi_shift_bunch * 2.
     delta_phi_rf = phi_shift_rf
     x_0[:5] = np.mod(delta_phi_rf + x_0[:5], 2. * np.pi)
