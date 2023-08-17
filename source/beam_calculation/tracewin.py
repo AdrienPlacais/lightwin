@@ -300,11 +300,6 @@ class TraceWin(BeamCalculator):
                                                   phi_abs=results['phi_abs'],
                                                   synchronous=True)
 
-        # WARNING, different meshing for these files
-        elt_number, pos, tm_cumul = self._load_transfer_matrices(path_cal)
-        logging.warning("Manually extracting only the z transf mat.")
-        tm_cumul = tm_cumul[:, 4:, 4:]
-
         cavity_parameters = self._create_cavity_parameters(path_cal,
                                                            len(elts))
         rf_fields = self._complete_list_of_rf_fields(rf_fields,
