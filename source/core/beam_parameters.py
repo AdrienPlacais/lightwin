@@ -76,20 +76,7 @@ from util.helper import (recursive_items,
 PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
                 'phiw99', 'x99', 'y99')
 
-NAME_TO_OBJECT = {
-    'zdelta': lambda bp: bp.zdelta,
-    'z': lambda bp: bp.z,
-    'phiw': lambda bp: bp.phiw,
-    'x': lambda bp: bp.x,
-    'y': lambda bp: bp.y,
-    't': lambda bp: bp.t,
-    'phiw99': lambda bp: bp.phiw99,
-    'x99': lambda bp: bp.x99,
-    'y99': lambda bp: bp.y99,
-}
 
-
-# TODO complete docstring
 @dataclass
 class BeamParameters:
     """
@@ -98,6 +85,14 @@ class BeamParameters:
 
     Attributes
     ----------
+    z_abs : np.ndarray | None, optional
+        Absolute position in the linac in m. The default is None.
+    gamma_kin : np.ndarray | float | None, optional
+        Lorentz gamma factor. The default is None.
+    beta_kin : np.ndarray | float | None, optional
+        Lorentz gamma factor. The default is None. If `beta_kin` is not
+        provided but `gamma_kin` is, `beta_kin` is automatically calculated at
+        initialisation.
     element_to_index : Callable[[str | _Element, str | None],
                                  int | slice] | None, optional
         Takes an `_Element`, its name, 'first' or 'last' as argument, and
@@ -105,6 +100,30 @@ class BeamParameters:
         attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
         Used to easily `get` the desired properties at the proper position. The
         default is None.
+    zdelta : SinglePhaseSpaceBeamParameters
+        Holds beam parameters in the [z-zdelta] plane.
+    z : SinglePhaseSpaceBeamParameters
+        Holds beam parameters in the [z-z'] plane.
+    phiw : SinglePhaseSpaceBeamParameters
+        Holds beam parameters in the [phi-W] plane.
+    x : SinglePhaseSpaceBeamParameters
+        Holds beam parameters in the [x-x'] plane. Only used with 3D
+        simulations.
+    y : SinglePhaseSpaceBeamParameters
+        Holds beam parameters in the [y-y'] plane. Only used with 3D
+        simulations.
+    t : SinglePhaseSpaceBeamParameters
+        Holds beam parameters in the [t-t'] (transverse) plane. Only used with
+        3D simulations.
+    phiw99 : SinglePhaseSpaceBeamParameters
+        Holds 99% beam parameters in the [phi-W] plane. Only used with
+        multiparticle simulations.
+    x99 : SinglePhaseSpaceBeamParameters
+        Holds 99% beam parameters in the [x-x'] plane. Only used with
+        multiparticle simulations.
+    y99 : SinglePhaseSpaceBeamParameters
+        Holds 99% beam parameters in the [y-y'] plane. Only used with
+        multiparticle simulations.
 
     """
 
@@ -269,7 +288,7 @@ class BeamParameters:
                                     "defined, keeping default inputs from the "
                                     "`.ini.`.")
             else:
-                phase_space = NAME_TO_OBJECT[phase_space_name](self)
+                phase_space = getattr(self, phase_space_name)
                 eps, alpha, beta = _to_float_if_necessary(
                     *phase_space.get('eps', 'alpha', 'beta')
                 )
@@ -277,17 +296,17 @@ class BeamParameters:
             args.extend((eps, alpha, beta))
         return beam_parameters_to_command(*args)
 
-
-    def create_phase_spaces(self, *args: str,
-                            **kwargs: dict[str, np.ndarray | float]) -> None:
+    def create_phase_spaces(self,
+                            *args: str,
+                            **kwargs: dict[str, np.ndarray | float | None]
+                            ) -> None:
         """
-        Create the desired phase spaces.
+        Recursively create the phase spaces with their initial values.
 
         Parameters
         ----------
         *args : str
-            Name of the phase spaces to be created. Must be in PHASE_SPACES.
-            FIXME : not all implemented
+            Name of the phase spaces to be created.
         **kwargs : dict[str, np.ndarray | float]
             Keyword arguments to directly initialize properties in some phase
             spaces. Name of the keyword argument must correspond to a phase
@@ -298,43 +317,11 @@ class BeamParameters:
 
         """
         for arg in args:
-            if arg not in PHASE_SPACES:
-                logging.error(f"Phase space {arg} not recognized. Will be "
-                              "ignored.")
-                continue
-
             phase_space_beam_param = SinglePhaseSpaceBeamParameters(
                 arg,
                 kwargs.get(arg, None),
-                element_to_index=self.element_to_index,
-            )
-            if arg == 'zdelta':
-                self.zdelta = phase_space_beam_param
-                continue
-            if arg == 'z':
-                self.z = phase_space_beam_param
-                continue
-            if arg == 'phiw':
-                self.phiw = phase_space_beam_param
-                continue
-            if arg == 'x':
-                self.x = phase_space_beam_param
-                continue
-            if arg == 'y':
-                self.y = phase_space_beam_param
-                continue
-            if arg == 't':
-                self.t = phase_space_beam_param
-                continue
-            if arg == 'phiw99':
-                self.phiw99 = phase_space_beam_param
-                continue
-            if arg == 'x99':
-                self.x99 = phase_space_beam_param
-                continue
-            if arg == 'y99':
-                self.y99 = phase_space_beam_param
-                continue
+                element_to_index=self.element_to_index)
+            setattr(self, arg, phase_space_beam_param)
 
     def init_other_phase_spaces_from_zdelta(
             self, *args: str, gamma_kin: np.ndarray | None = None,
@@ -364,25 +351,6 @@ class BeamParameters:
         self.phiw99.eps = eps_phiw99
         self.x99.eps = eps_x99
         self.y99.eps = eps_y99
-
-    def subset(self, *phase_spaces: str, **kwargs: _Element | str | bool | None
-               ) -> Self:
-        """Give the desired phase spaces at a given position."""
-        sub_beam_params = BeamParameters()
-        sub_beam_params.create_phase_spaces(*phase_spaces)
-
-        for name_of_phase_space in phase_spaces:
-            if not self.has(name_of_phase_space):
-                continue
-            kwargs['phase_space'] = name_of_phase_space
-
-            sub_phase_space = NAME_TO_OBJECT[name_of_phase_space](
-                sub_beam_params)
-            sub_phase_space.eps = self.get('eps', **kwargs)
-            sub_phase_space.alpha = self.get('alpha', **kwargs)
-            sub_phase_space.beta = self.get('beta', **kwargs)
-            sub_phase_space.tm_cumul = self.get('tm_cumul', **kwargs)
-        return sub_beam_params
 
 
 @dataclass
@@ -459,6 +427,9 @@ class SinglePhaseSpaceBeamParameters:
 
             val[key] = recursive_getter(key, vars(self), to_numpy=False,
                                         none_to_nan=False, **kwargs)
+
+            if val[key] is None:
+                continue
 
             if None not in (self.element_to_index, elt):
                 idx = self.element_to_index(elt=elt, pos=pos)
@@ -788,9 +759,7 @@ def mismatch_from_objects(ref: BeamParameters, fix: BeamParameters,
     """Compute the mismatchs in the desired phase_spaces."""
     z_ref, z_fix = ref.z_abs, fix.z_abs
     for phase_space in phase_spaces:
-        phase_space_getter = NAME_TO_OBJECT[phase_space]
-
-        bp_ref, bp_fix = phase_space_getter(ref), phase_space_getter(fix)
+        bp_ref, bp_fix = getattr(ref, phase_space), getattr(fix, phase_space)
         bp_fix.mismatch_factor = _mismatch_single_phase_space(bp_ref, bp_fix,
                                                               z_ref, z_fix)
 

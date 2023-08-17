@@ -20,15 +20,6 @@ TODO : also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
 Maybe it will be necessary to handle cases where the synch particle is not
 perfectly on the axis?
 
-TODO : maybe, initialize all the input_particle and input_beam here? Right now,
-it is a bit confusing to have it scattered everywhere...
-=======================================================================
-                          input_particle          input_beam
------------------------------------------------------------------------
-new list of elements      func in this module     func in this module
-subset list of elements   func in this module     BeamParameters method
-=======================================================================
-
 """
 import os
 import logging
@@ -52,6 +43,9 @@ from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 from beam_calculation.output import SimulationOutput
 
 
+# =============================================================================
+# New (whole) list of elements, called from `Accelerator`
+# =============================================================================
 def new_list_of_elements(dat_filepath: str,
                          accelerator_path: str,
                          **kwargs: float | np.ndarray,
@@ -98,9 +92,8 @@ def new_list_of_elements(dat_filepath: str,
     elts, field_map_folder = _dat_filepath_to_plain_list_of_elements(files)
     files['field_map_folder'] = field_map_folder
 
-    input_particle = new_input_particle(**kwargs)
-    input_beam = new_beam_parameters(**kwargs)
-
+    input_particle = _new_input_particle(**kwargs)
+    input_beam = _new_beam_parameters(**kwargs)
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
                                       input_beam=input_beam,
@@ -111,10 +104,10 @@ def new_list_of_elements(dat_filepath: str,
     return list_of_elements
 
 
-def new_input_particle(w_kin: float,
-                       phi_abs: float,
-                       z_in: float,
-                       **kwargs: np.ndarray) -> ParticleInitialState:
+def _new_input_particle(w_kin: float,
+                        phi_abs: float,
+                        z_in: float,
+                        **kwargs: np.ndarray) -> ParticleInitialState:
     """Create a `ParticleInitialState` for a full `ListOfElements`."""
     input_particle = ParticleInitialState(w_kin=w_kin,
                                           phi_abs=phi_abs,
@@ -123,8 +116,8 @@ def new_input_particle(w_kin: float,
     return input_particle
 
 
-def new_beam_parameters(sigma_in_zdelta: np.ndarray,
-                        **kwargs: float) -> BeamParameters:
+def _new_beam_parameters(sigma_in_zdelta: np.ndarray,
+                         **kwargs: float) -> BeamParameters:
     """
     Generate a `BeamParameters` objet for the linac entry.
 
@@ -166,6 +159,9 @@ def _dat_filepath_to_plain_list_of_elements(
     return elts, field_map_folder
 
 
+# =============================================================================
+# Partial list of elements, called from `Fault`
+# =============================================================================
 def subset_of_pre_existing_list_of_elements(
     elts: list[_Element],
     simulation_output: SimulationOutput,
@@ -176,7 +172,7 @@ def subset_of_pre_existing_list_of_elements(
 
     Factory function used during the fitting process from a `Fault` object.
     During this optimisation process, we compute the propagation of the beam
-    only in the smallest possible subset of the linac.
+    only on the smallest possible subset of the linac.
 
     It creates the proper `input_particle` and `input_beam` objects. In
     contrary to `new_list_of_elements` function, `input_beam` must contain
@@ -208,11 +204,12 @@ def subset_of_pre_existing_list_of_elements(
               'pos': input_pos,
               'to_numpy': False,
               'phase_space': None}
-    input_particle: ParticleInitialState
     input_particle = _subset_input_particle(simulation_output, **kwargs)
 
-    input_beam: BeamParameters = simulation_output.beam_parameters.subset(
-        *('x', 'y', 'z', 'zdelta'), **kwargs)
+    # input_beam: BeamParameters = simulation_output.beam_parameters.subset(
+    #     *('x', 'y', 'z', 'zdelta'), **kwargs)
+    input_beam: BeamParameters = _subset_beam_parameters(simulation_output,
+                                                         **kwargs)
 
     phase_info = {
         'update_phi_0_abs_to_keep_same_phi_0_rel': True,
@@ -301,3 +298,55 @@ def _subset_input_particle(simulation_output: SimulationOutput,
     input_particle = ParticleInitialState(w_kin, phi_abs, z_abs,
                                           synchronous=True)
     return input_particle
+
+
+def _subset_beam_parameters(simulation_output: SimulationOutput,
+                            **kwargs: _Element | str | bool | None
+                            ) -> BeamParameters:
+    """Create `BeamParameters` for an incomplete list of `_Element`s."""
+    input_beam = BeamParameters()
+
+    phase_spaces = _required_phase_spaces(simulation_output.is_3d,
+                                          simulation_output.is_multiparticle)
+    quantities = _required_quantities()
+    beam_param_kwargs = _get_quantities_from_phase_spaces(
+        phase_spaces,
+        quantities,
+        simulation_output.beam_parameters,
+        **kwargs)
+    input_beam.create_phase_spaces(*phase_spaces, **beam_param_kwargs)
+
+    return input_beam
+
+
+def _required_phase_spaces(is_3d: bool, is_multiparticle: bool) -> tuple[str]:
+    """Give necessary phase spaces according to `SimulationOutput` flags."""
+    phase_spaces = ('z', 'zdelta')
+    if is_3d:
+        phase_spaces = ('x', 'y', 't', 'z', 'zdelta')
+    if is_multiparticle:
+        phase_spaces = ('x', 'y', 't', 'z', 'zdelta', 'x99', 'y99', 'wphi99')
+    return phase_spaces
+
+
+def _required_quantities() -> tuple[str]:
+    """Give quantities to set."""
+    return ('eps', 'alpha', 'beta', 'tm_cumul')
+
+
+def _get_quantities_from_phase_spaces(phase_spaces: tuple[str],
+                                      quantities: tuple[str],
+                                      full_beam_parameters: BeamParameters,
+                                      **kwargs: _Element | str | bool | None
+                                      ) -> dict[str, dict[str, float | None]]:
+    """Get desired quantities at proper place in every phase space."""
+    beam_param_kwargs = {phase_space_name: None
+                         for phase_space_name in phase_spaces}
+
+    for phase_space_name in phase_spaces:
+        phase_space = getattr(full_beam_parameters, phase_space_name)
+
+        beam_param_kwargs[phase_space_name] = {
+            quantity: phase_space.get(quantity, **kwargs)
+            for quantity in quantities}
+    return beam_param_kwargs
