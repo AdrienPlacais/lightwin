@@ -231,7 +231,8 @@ class SimulationOutput:
                 set_transverse_as_average=set_transverse_as_average)
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
-        logging.critical("data_in_tw_fashion is bugged")
+        # FIXME
+        logging.warning("data_in_tw_fashion is bugged")
 
 
 def _to_deg(val: np.ndarray | list | float | None
