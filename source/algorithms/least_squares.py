@@ -55,11 +55,13 @@ class LeastSquares(OptimisationAlgorithm):
                   # 'x_scale': 'jac',
                   # 'loss': 'arctan',
                   'diff_step': None, 'tr_solver': None, 'tr_options': {},
-                  'jac_sparsity': None
-                  # 'verbose': debugs['verbose']
+                  'jac_sparsity': None,
+                  'verbose': 2,
                   }
 
         x_0, bounds = self._format_variables_and_constraints()
+        x_0, bounds = _set_new_limits_for_debug()
+
         solution = least_squares(
             fun=self._wrapper_residuals,
             x0=x_0,
@@ -148,3 +150,24 @@ class LeastSquares(OptimisationAlgorithm):
         info_string += f"optimality: {sol.optimality}\nstatus: {sol.status}\n"
         info_string += f"success: {sol.success}\nsolution: {sol.x}\n"
         logging.debug(info_string)
+
+
+def _set_new_limits_for_debug(tol: float = 1e-8):
+    """Presets for cavity failure FM4, k=5."""
+    # for phi_s:
+    # logging.critical("Overwrite the x_0 and bounds to force TW to "
+    #                  "converge. phi_s is set")
+    # x_0 = np.array([-27.003321, -27.001312, -47.017256, -39.001792,
+    #                 -27.631254,
+    # for phi_0_abs:
+    logging.critical("Overwrite the x_0 and bounds to force TW to "
+                     "converge. phi_0_abs is set")
+    x_0 = np.array([71.209656, 335.166472, 78.531206, 190.415816,
+                    149.608622,
+    # the rest is always the same
+                    1.614713, 1.607485, 1.9268, 1.942578, 1.851571])
+    x_0[:5] = np.deg2rad(x_0[:5])
+    bounds = Bounds(x_0 - tol, x_0 + 1e-6)
+    logging.critical(x_0)
+    logging.critical(bounds)
+    return x_0, bounds
