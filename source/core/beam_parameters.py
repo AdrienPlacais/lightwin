@@ -70,8 +70,7 @@ from tracewin_utils.interface import beam_parameters_to_command
 from util import converters
 from util.helper import (recursive_items,
                          recursive_getter,
-                         range_vals,
-                         resample_2d)
+                         range_vals)
 
 
 PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
@@ -816,8 +815,7 @@ def _mismatch_single_phase_space(ref: SinglePhaseSpaceBeamParameters,
     """Compute the mismatch using two `SinglePhaseSpaceBeamParameters`."""
     twiss_ref, twiss_fix = ref.twiss, fix.twiss
     if twiss_ref.shape != twiss_fix.shape:
-        _, twiss_ref, _, twiss_fix = resample_2d(z_ref, twiss_ref,
-                                                 z_fix, twiss_fix)
+        twiss_ref = _resample_twiss_on_fix(z_ref, twiss_ref, z_fix)
 
     mism = mismatch_from_arrays(twiss_ref, twiss_fix, transp=True)
     return mism
@@ -964,3 +962,14 @@ def _to_float_if_necessary(eps: float | np.ndarray, alpha: float | np.ndarray,
                         for parameter, is_float in zip((eps, alpha, beta),
                                                        are_floats)]
     return tuple(output_as_floats)
+
+
+def _resample_twiss_on_fix(z_ref: np.ndarray, twiss_ref: np.ndarray,
+                           z_fix: np.ndarray) -> np.ndarray:
+    """Interpolate ref Twiss on fix Twiss to compute mismatch afterwards."""
+    n_points = z_fix.shape[0]
+    out = np.empty((n_points, 3))
+
+    for axis in range(out.shape[1]):
+        out[:, axis] = np.interp(z_fix, z_ref, twiss_ref[:, axis])
+    return out
