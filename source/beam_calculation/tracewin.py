@@ -256,6 +256,8 @@ class TraceWin(BeamCalculator):
             - updating the `index` `n` of the cavities in the `ele[n][v]`
             command.
 
+        Note that at this point, the .dat has not been updated yet.
+
         """
         optimized_cavity_settings.update_to_full_list_of_elements()
 
