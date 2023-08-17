@@ -22,6 +22,7 @@ Abstract methods
     init_solver_parameters()
     _generate_simulation_output()
     is_a_multiparticle_simulation
+    is_a_3d_simulation
 
 """
 import logging
@@ -249,5 +250,10 @@ class Envelope1D(BeamCalculator):
 
     @property
     def is_a_multiparticle_simulation(self) -> bool:
+        """Return False."""
+        return False
+
+    @property
+    def is_a_3d_simulation(self) -> bool:
         """Return False."""
         return False

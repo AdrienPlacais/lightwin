@@ -24,6 +24,7 @@ Abstract methods
     init_solver_parameters()
     _generate_simulation_output()
     is_a_multiparticle_simulation
+    is_a_3d_simulation
 
 """
 from dataclasses import dataclass
@@ -346,10 +347,15 @@ class TraceWin(BeamCalculator):
 
     @property
     def is_a_multiparticle_simulation(self) -> bool:
-        """Tells if you should buy Bitcoins now or wait a few months."""
+        """Tell if you should buy Bitcoins now or wait a few months."""
         if 'partran' in self.base_kwargs:
             return self.base_kwargs['partran'] == 1
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
+
+    @property
+    def is_a_3d_simulation(self) -> bool:
+        """Tell if the simulation is in 3D."""
+        return True
 
     def _create_main_results_dictionary(self,
                                         path_cal: str,

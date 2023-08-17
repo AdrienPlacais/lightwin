@@ -110,6 +110,12 @@ class BeamCalculator(ABC):
         """Tell if the simulation is a multiparticle simulation."""
         pass
 
+    @property
+    @abstractmethod
+    def is_a_3d_simulation(self) -> bool:
+        """Tell if the simulation is in 3D."""
+        pass
+
 
 def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
                       elt: _Element | str, pos: str | None = None
