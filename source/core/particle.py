@@ -20,7 +20,7 @@ from typing import Any
 import numpy as np
 
 from tracewin_utils.interface import particle_initial_state_to_command
-from util.helper import recursive_items, recursive_getter, range_vals
+from util.helper import recursive_items, recursive_getter, range_vals_object
 import util.converters as convert
 
 
@@ -80,8 +80,8 @@ class ParticleFullTrajectory:
     def __str__(self) -> str:
         """Show amplitude of phase and energy."""
         out = "\tParticleFullTrajectory:\n"
-        out += "\t\t" + range_vals("w_kin", self.w_kin)
-        out += "\t\t" + range_vals("phi_abs", self.phi_abs)
+        out += "\t\t" + range_vals_object(self, "w_kin")
+        out += "\t\t" + range_vals_object(self, "phi_abs")
         return out
 
     @property

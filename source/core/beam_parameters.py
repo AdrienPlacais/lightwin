@@ -70,7 +70,8 @@ from tracewin_utils.interface import beam_parameters_to_command
 from util import converters
 from util.helper import (recursive_items,
                          recursive_getter,
-                         range_vals)
+                         range_vals,
+                         range_vals_object)
 
 
 PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
@@ -384,6 +385,14 @@ class SinglePhaseSpaceBeamParameters:
             # logging.warning("resorted back to a default sigma_zdelta. I should"
             #                 "avoid that.")
             self.sigma_in = con.SIGMA_ZDELTA
+
+    def __str__(self) -> str:
+        """Show amplitude of some of the attributes."""
+        out = f"\tSinglePhaseSpaceBeamParameters {self.phase_space}:\n"
+        for key in ('alpha', 'beta', 'eps', 'envelope_pos', 'envelope_energy',
+                    'mismatch_factor'):
+            out += "\t\t" + range_vals_object(self, key)
+        return out
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
