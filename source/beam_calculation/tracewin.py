@@ -5,10 +5,17 @@ Created on Wed Jun  7 16:13:16 2023.
 
 @author: placais
 
-This module holds TraceWin, that inherits from BeamCalculator base class. It
-solves the motion of the particles in Envelope or Multipart, in 3D. In contrary
-to Envelope1D solver, it is not a real solver but an interface with TraceWin
-which must be installed on your machine.
+This module holds `TraceWin`, that inherits from `BeamCalculator` base class.
+It solves the motion of the particles in Envelope or Multipart, in 3D. In
+contrary to `Envelope1D` solver, it is not a real solver but an interface with
+`TraceWin` which must be installed on your machine.
+
+Warning: `TraceWin` behavior with relative phases is undetermined. You should
+ensure that you are working with ABSOLUTE phases, i.e. that last argument of
+`FIELD_MAP` commands is `1`.
+You can run a simulation with `Envelope1D` solver and `flag_phi_abs=True`. The
+`.dat` file created in the `000001_ref` folder should be the original `.dat`
+but converted to absolute phases.
 
 Inherited
 ---------
@@ -25,6 +32,8 @@ Abstract methods
     _generate_simulation_output()
     is_a_multiparticle_simulation
     is_a_3d_simulation
+
+FIXME allow TW to work with relative phases. Will have to handle rf_fields too.
 
 """
 from dataclasses import dataclass
@@ -94,6 +103,9 @@ class TraceWin(BeamCalculator):
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
+        logging.warning("TraceWin solver currently cannot work with relative "
+                        "phases (last arg of FIELD_MAP should be 1). You "
+                        "should check this, because I will not.")
         self.ini_path = os.path.abspath(self.ini_path)
         self.id = self.__repr__()
         self.out_folder += "_TraceWin"
@@ -366,66 +378,6 @@ class TraceWin(BeamCalculator):
                                              phi_in=input_particle.phi_abs)
         return results
 
-    def _load_transfer_matrices(self, path_cal: str,
-                                filename: str = 'Transfer_matrix1.dat',
-                                high_def: bool = False
-                                ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Get the full transfer matrices calculated by TraceWin.
-
-        Parameters
-        ----------
-        filename : str, optional
-            The name of the transfer matrix file produced by TraceWin. The
-            default is 'Transfer_matrix1.dat'.
-        high_def : bool, optional
-            To get the transfer matrices at all the solver step, instead at the
-            elements exit only. The default is False. Currently not
-            implemented.
-
-        Returns
-        -------
-        element_number : np.ndarray
-            Number of the elements.
-        position_in_m : np.ndarray
-            Position of the elements.
-        transfer_matrix : np.ndarray
-            Cumulated transfer matrices of the elements.
-
-        """
-        if high_def:
-            logging.error("High definition not implemented. Can only import"
-                          + "transfer matrices @ element positions.")
-            high_def = False
-
-        f_p = os.path.join(path_cal, filename)
-        data = None
-        element_number, position_in_m, transfer_matrix = [], [], []
-
-        with open(f_p, 'r', encoding='utf-8') as file:
-            for i, line in enumerate(file):
-                if i % 7 == 0:
-                    # Get element # and position
-                    data = line.split()
-                    element_number.append(int(data[1]))
-                    position_in_m.append(float(data[3]))
-
-                    # Re-initialize data
-                    data = []
-                    continue
-
-                data.append([float(dat) for dat in line.split()])
-
-                # Save transfer matrix
-                if (i + 1) % 7 == 0:
-                    transfer_matrix.append(data)
-        logging.debug(f"successfully loaded {f_p}")
-
-        element_number = np.array(element_number)
-        position_in_m = np.array(position_in_m)
-        transfer_matrix = np.array(transfer_matrix)
-        return element_number, position_in_m, transfer_matrix
-
     def _create_cavity_parameters(self,
                                   path_cal: str,
                                   n_elts: int,
@@ -465,7 +417,6 @@ class TraceWin(BeamCalculator):
         cavity_parameters: dict[str, list[float | None]]
     ) -> list[dict[float | None]]:
         """Create a list holding rf field properties, as `Envelope1D`."""
-        logging.warning("Making hypothesis that given phi_0 is abs.")
         for i, (v_cav_mv, phi_s, phi_0) in enumerate(
                 zip(cavity_parameters['v_cav_mv'],
                     cavity_parameters['phi_s'],
@@ -746,6 +697,70 @@ def _add_beam_param_not_supported_by_envelope1d(
 
 
 # =============================================================================
+# Transfer matrix file, currently not used
+# =============================================================================
+def _load_transfer_matrices(path_cal: str,
+                            filename: str = 'Transfer_matrix1.dat',
+                            high_def: bool = False
+                            ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Get the full transfer matrices calculated by TraceWin.
+
+    Parameters
+    ----------
+    filename : str, optional
+        The name of the transfer matrix file produced by TraceWin. The
+        default is 'Transfer_matrix1.dat'.
+    high_def : bool, optional
+        To get the transfer matrices at all the solver step, instead at the
+        elements exit only. The default is False. Currently not
+        implemented.
+
+    Returns
+    -------
+    element_number : np.ndarray
+        Number of the elements.
+    position_in_m : np.ndarray
+        Position of the elements.
+    transfer_matrix : np.ndarray
+        Cumulated transfer matrices of the elements.
+
+    """
+    if high_def:
+        logging.error("High definition not implemented. Can only import"
+                      + "transfer matrices @ element positions.")
+        high_def = False
+
+    f_p = os.path.join(path_cal, filename)
+    data = None
+    element_number, position_in_m, transfer_matrix = [], [], []
+
+    with open(f_p, 'r', encoding='utf-8') as file:
+        for i, line in enumerate(file):
+            if i % 7 == 0:
+                # Get element # and position
+                data = line.split()
+                element_number.append(int(data[1]))
+                position_in_m.append(float(data[3]))
+
+                # Re-initialize data
+                data = []
+                continue
+
+            data.append([float(dat) for dat in line.split()])
+
+            # Save transfer matrix
+            if (i + 1) % 7 == 0:
+                transfer_matrix.append(data)
+    logging.debug(f"successfully loaded {f_p}")
+
+    element_number = np.array(element_number)
+    position_in_m = np.array(position_in_m)
+    transfer_matrix = np.array(transfer_matrix)
+    return element_number, position_in_m, transfer_matrix
+
+
+# =============================================================================
 # Bash
 # =============================================================================
 def _run_in_bash(command: list[str], output_command: bool = True) -> None:
@@ -764,9 +779,3 @@ def _run_in_bash(command: list[str], output_command: bool = True) -> None:
     if exception:
         logging.warning("A message was returned when executing following "
                         f"command:\n\t{output}")
-
-
-# Not implemented
-def elts_to_dat(elts: ListOfElements) -> str:
-    """Create a .dat file from elts."""
-    return str(elts)
