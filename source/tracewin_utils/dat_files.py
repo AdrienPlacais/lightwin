@@ -178,10 +178,11 @@ def dat_filecontent_from_smaller_list_of_elements(
     return smaller_dat_filecontent
 
 
+# FIXME not implemented. Low priority
 def _remove_empty_lattices(dat_filecontent: list[list[str]]
                            ) -> list[list[str]]:
     """Remove useless LATTICE and FREQ commands."""
-    logging.warning("_remove_empty_lattices not implemented.")
+    logging.debug("_remove_empty_lattices not implemented.")
     return dat_filecontent
 
 

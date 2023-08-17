@@ -7,6 +7,8 @@ Created on Wed Jun  7 13:49:23 2023.
 
 This module holds the function to load and pre-process the TraceWin files.
 
+TODO : handle personalized name of elements
+
 """
 import logging
 import os.path
@@ -45,7 +47,7 @@ def dat_file(dat_filepath: str) -> list[list[str]]:
 
     """
     dat_filecontent = []
-    logging.warning("Personalized name of elements not handled for now.")
+    logging.info("Personalized name of elements not handled for now.")
 
     with open(dat_filepath) as file:
         for line in file:

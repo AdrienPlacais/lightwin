@@ -197,7 +197,6 @@ def subset_of_pre_existing_list_of_elements(
     """
     logging.info(f"Initalisation of ListOfElements from already initialized "
                  f"elements: {elts[0]} to {elts[-1]}.")
-    logging.warning("Check how TraceWin will deal with incomplete Lattices.")
 
     input_elt, input_pos = _get_initial_element(elts, simulation_output)
     kwargs = {'elt': input_elt,
@@ -267,7 +266,6 @@ def _subset_files_dictionary(
              'field_map_folder': field_map_folder,
              'out_path': os.path.dirname(dat_filepath)}
 
-    logging.warning("Manually creating tmp folder and dat.")
     os.mkdir(os.path.join(dirname, tmp_folder))
     save_dat_filecontent_to_dat(dat_content, dat_filepath)
     return files

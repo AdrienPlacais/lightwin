@@ -116,14 +116,14 @@ if __name__ == '__main__':
     beam_calc_and_save(accelerators[0], my_beam_calc)
     # FIXME dirty patch to initialize _element_to_index function
     if "TraceWin" in solv1:
-        logging.error("Fault initialisation requires initialisation of a "
-                      "sub-ListOfElements. It requires the initialisation of "
-                      "a _element_to_index method, which in turn requires the "
-                      "_Element.beam_calc_param to be initialized."
-                      "No problem with Envelope1D, as it is performed by "
-                      "Envelope1D.init_solver_parameters. "
-                      "But with TraceWin, we need a first simulation to link "
-                      "an index in the .out file to a position in the linac.")
+        logging.info("Fault initialisation requires initialisation of a "
+                     "sub-ListOfElements. It requires the initialisation of "
+                     "a _element_to_index method, which in turn requires the "
+                     "_Element.beam_calc_param to be initialized. "
+                     "No problem with Envelope1D, as it is performed by "
+                     "Envelope1D.init_solver_parameters. "
+                     "But with TraceWin, we need a first simulation to link "
+                     "an index in the .out file to a position in the linac.")
         beam_calc_and_save(accelerators[1], my_beam_calc)
 
     fault_scenarios: list[FaultScenario]
