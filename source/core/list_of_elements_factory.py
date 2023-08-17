@@ -304,7 +304,11 @@ def _subset_beam_parameters(simulation_output: SimulationOutput,
                             **kwargs: _Element | str | bool | None
                             ) -> BeamParameters:
     """Create `BeamParameters` for an incomplete list of `_Element`s."""
-    input_beam = BeamParameters()
+    z_abs, gamma_kin, beta_kin = simulation_output.get(
+        *('z_abs', 'gamma', 'beta'), **kwargs)
+    input_beam = BeamParameters(z_abs=z_abs,
+                                gamma_kin=gamma_kin,
+                                beta_kin=beta_kin)
 
     phase_spaces = _required_phase_spaces(simulation_output.is_3d,
                                           simulation_output.is_multiparticle)
