@@ -24,12 +24,37 @@ from core.elements import _Element
 
 
 def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
-                      comp_idx: list[int]) -> tuple[list[_Element],
-                                                    list[_Element]]:
+                      comp_idx: list[int], need_full_lattices: bool = False
+                      ) -> tuple[list[_Element], list[_Element]]:
     """
     Tell what is the zone to recompute.
 
     We use in this routine element indexes, not cavity indexes.
+
+    Parameters
+    ----------
+    fix : Accelerator
+        `Accelerator` beeing fixed.
+    wtf : dict
+        Holds information on what to fit.
+    fault_idx : list[int]
+        Cavity index of the faults, directly converted to element index in the
+        routine.
+    comp_idx : list[int]
+        Cavity index of the compensating cavities, directly converted to
+        element index in the routine.
+    need_full_lattices : bool, optional
+        If you want the compensation zone to encompass full lattices only. It
+        is a little bit slower as more `_Element`s are calculated. Plus, it has
+        no impact even with `TraceWin` solver. Keeping it in case it has an
+        impact that I did not see.
+
+    Returns
+    -------
+    elts : list[_Element]
+        `_Element`s of the compensation zone.
+    objectives_positions : list[int]
+        Position in `elts` of where objectives should be matched.
 
     """
     position = wtf['position']
@@ -41,10 +66,13 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
                                 for pos in position]
 
     idx_start_compensation_zone = min(fault_idx + comp_idx)
-    idx_start_compensation_zone = _reduce_idx_start_to_include_full_lattice(
-        idx_start_compensation_zone,
-        fix
-    )
+
+    if need_full_lattices:
+        idx_start_compensation_zone = \
+            _reduce_idx_start_to_include_full_lattice(
+                idx_start_compensation_zone,
+                fix)
+
     idx_end_compensation_zone = max(objectives_positions_idx)
 
     elts = fix.elts[idx_start_compensation_zone:idx_end_compensation_zone + 1]
