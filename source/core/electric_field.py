@@ -149,22 +149,6 @@ class RfField():
         self.omega0_rf = 2e6 * np.pi * f_mhz
         self.n_cell = n_cell
 
-    # FIXME : still used? nominal_rel still used?
-    def rephase_cavity(self, phi_rf_abs: float) -> None:
-        """
-        Rephase cavity to ensure that `phi_0_rel` is the same as nominal case.
-
-        In other words, we want the particle to enter with the same relative
-        phase as in the nominal linac.
-
-        """
-        assert self.phi_0['nominal_rel'] is not None
-        self.phi_0['phi_0_rel'] = self.phi_0['nominal_rel']
-        self.phi_0['phi_0_abs'] = phi_0_abs_corresponding_to(
-            self.phi_0['phi_0_rel'],
-            phi_rf_abs
-        )
-
     def update_phi_0_abs_to_adapt_to_new_ref_phase(
             self,
             old_phi_in: float,
