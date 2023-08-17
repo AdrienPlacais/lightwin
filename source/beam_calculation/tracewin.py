@@ -23,6 +23,7 @@ Abstract methods
     post_optimisation_run_with_this()
     init_solver_parameters()
     _generate_simulation_output()
+    is_a_multiparticle_simulation
 
 """
 from dataclasses import dataclass
@@ -97,7 +98,7 @@ class TraceWin(BeamCalculator):
         self.out_folder += "_TraceWin"
 
         filename = 'tracewin.out'
-        if self._is_a_multiparticle_simulation(self.base_kwargs):
+        if self.is_a_multiparticle_simulation:
             filename = 'partran1.out'
         self.load_results = partial(_load_results_generic, filename=filename)
 
@@ -340,10 +341,11 @@ class TraceWin(BeamCalculator):
             elt.beam_calc_param[self.id] = SingleElementTraceWinParameters(
                 elt.length_m, z_element, s_in, s_out)
 
-    def _is_a_multiparticle_simulation(self, kwargs) -> bool:
+    @property
+    def is_a_multiparticle_simulation(self) -> bool:
         """Tells if you should buy Bitcoins now or wait a few months."""
-        if 'partran' in kwargs:
-            return kwargs['partran'] == 1
+        if 'partran' in self.base_kwargs:
+            return self.base_kwargs['partran'] == 1
         return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
 
     def _create_main_results_dictionary(self,
@@ -477,7 +479,7 @@ class TraceWin(BeamCalculator):
                                 results: dict[str, np.ndarray]
                                 ) -> BeamParameters:
         """Create the `BeamParameters` object, holding eps, Twiss, etc."""
-        multipart = self._is_a_multiparticle_simulation(self.base_kwargs)
+        multipart = self.is_a_multiparticle_simulation
         beam_parameters = BeamParameters(z_abs=results['z(m)'],
                                          gamma_kin=results['gamma'],
                                          element_to_index=element_to_index)
@@ -754,8 +756,8 @@ def _run_in_bash(command: list[str], output_command: bool = True) -> None:
         exception = True
 
     if exception:
-        logging.error("A message was returned when executing following "
-                      f"command:\n\t{output}")
+        logging.warning("A message was returned when executing following "
+                        f"command:\n\t{output}")
 
 
 # Not implemented

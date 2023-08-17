@@ -21,6 +21,7 @@ Abstract methods
     post_optimisation_run_with_this()
     init_solver_parameters()
     _generate_simulation_output()
+    is_a_multiparticle_simulation
 
 """
 import logging
@@ -245,3 +246,8 @@ class Envelope1D(BeamCalculator):
             element_to_index=element_to_index
         )
         return simulation_output
+
+    @property
+    def is_a_multiparticle_simulation(self) -> bool:
+        """Return False."""
+        return False

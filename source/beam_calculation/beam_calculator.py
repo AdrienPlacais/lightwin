@@ -104,6 +104,12 @@ class BeamCalculator(ABC):
         return partial(_element_to_index, _elts=elts, _shift=shift,
                        _solver_id=self.id)
 
+    @property
+    @abstractmethod
+    def is_a_multiparticle_simulation(self) -> bool:
+        """Tell if the simulation is a multiparticle simulation."""
+        pass
+
 
 def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
                       elt: _Element | str, pos: str | None = None
