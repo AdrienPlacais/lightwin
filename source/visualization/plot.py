@@ -8,6 +8,9 @@ Created on Wed Feb  8 09:35:54 2023.
 This module holds a library to produce all these nice plots.
 
 TODO : _plot_structure needs a ListOfElements, not an Accelerator. I think.
+TODO : better detection of what is a multiparticle simulation and what is not.
+Currently looking for "'partran': 0" in the name of the solver, making the
+assumption that multipart is the default. But it depends on the .ini...
 
 """
 
@@ -176,9 +179,11 @@ def _single_simulation_data(axis: str, simulation_output: SimulationOutput
     return data
 
 
-def _single_simulation_all_data(x_axis: str, y_axis: str,
+def _single_simulation_all_data(x_axis: str,
+                                y_axis: str,
                                 simulation_output: SimulationOutput
-                                ) -> tuple[np.ndarray, np.ndarray,
+                                ) -> tuple[np.ndarray,
+                                           np.ndarray,
                                            dict | None]:
     """Get x data, y data, kwargs from a SimulationOutput."""
     x_data = _single_simulation_data(x_axis, simulation_output)
@@ -197,9 +202,12 @@ def _single_simulation_all_data(x_axis: str, y_axis: str,
     return x_data, y_data, plt_kwargs
 
 
-def _single_accelerator_all_simulations_data(
-        x_axis: str, y_axis: str, accelerator: Accelerator
-) -> tuple[list[np.ndarray], list[np.ndarray], list[dict[str, Any]]]:
+def _single_accelerator_all_simulations_data(x_axis: str,
+                                             y_axis: str,
+                                             accelerator: Accelerator
+                                             ) -> tuple[list[np.ndarray],
+                                                        list[np.ndarray],
+                                                        list[dict[str, Any]]]:
     """Get x_data, y_data, kwargs from all SimulationOutputs of Accelerator."""
     x_data, y_data, plt_kwargs = [], [], []
     ls = '-'
@@ -207,6 +215,10 @@ def _single_accelerator_all_simulations_data(
         x_dat, y_dat, plt_kw = _single_simulation_all_data(x_axis, y_axis,
                                                            simulation_output)
         short_solver = solver.split('(')[0]
+        if 'TraceWin' in solver:
+            if "'partran': 0" not in solver:
+                short_solver += " (multipart)"
+
         plt_kw['label'] = ' '.join([accelerator.name, short_solver])
         plt_kw['ls'] = ls
         ls = '--'
