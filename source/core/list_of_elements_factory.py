@@ -25,7 +25,7 @@ it is a bit confusing to have it scattered everywhere...
 =======================================================================
                           input_particle          input_beam
 -----------------------------------------------------------------------
-new list of elements      Accelerator.__init__    func in this module
+new list of elements      func in this module     func in this module
 subset list of elements   func in this module     BeamParameters method
 =======================================================================
 
@@ -53,9 +53,8 @@ from beam_calculation.output import SimulationOutput
 
 
 def new_list_of_elements(dat_filepath: str,
-                         input_particle: ParticleInitialState,
-                         input_beam: BeamParameters,
-                         accelerator_path: str
+                         accelerator_path: str,
+                         **kwargs: float | np.ndarray,
                          ) -> ListOfElements:
     """
     Create a new `ListOfElements`.
@@ -83,12 +82,11 @@ def new_list_of_elements(dat_filepath: str,
         particle and beam properties at its entry.
 
     """
-    logging.info("First initialisation of ListOfElements, ecompassing "
-                 + "all linac. Also removing Lattice and Freq "
-                 + "commands, setting Lattice/Section structures, "
-                 + "_Elements names.")
     dat_filepath = os.path.abspath(dat_filepath)
-    logging.info(f"Created with dat_filepath = {dat_filepath}")
+    logging.info("First initialisation of ListOfElements, ecompassing all "
+                 "linac. Also removing Lattice and Freq commands, setting "
+                 "Lattice/Section structures, _Elements names. "
+                 f"Created with dat_filepath = {dat_filepath}")
 
     files = {
         'dat_filepath': dat_filepath,
@@ -100,6 +98,9 @@ def new_list_of_elements(dat_filepath: str,
     elts, field_map_folder = _dat_filepath_to_plain_list_of_elements(files)
     files['field_map_folder'] = field_map_folder
 
+    input_particle = new_input_particle(**kwargs)
+    input_beam = new_beam_parameters(**kwargs)
+
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
                                       input_beam=input_beam,
@@ -110,7 +111,20 @@ def new_list_of_elements(dat_filepath: str,
     return list_of_elements
 
 
-def new_beam_parameters(sigma_in_zdelta: np.ndarray) -> BeamParameters:
+def new_input_particle(w_kin: float,
+                       phi_abs: float,
+                       z_in: float,
+                       **kwargs: np.ndarray) -> ParticleInitialState:
+    """Create a `ParticleInitialState` for a full `ListOfElements`."""
+    input_particle = ParticleInitialState(w_kin=w_kin,
+                                          phi_abs=phi_abs,
+                                          z_in=z_in,
+                                          synchronous=True)
+    return input_particle
+
+
+def new_beam_parameters(sigma_in_zdelta: np.ndarray,
+                        **kwargs: float) -> BeamParameters:
     """
     Generate a `BeamParameters` objet for the linac entry.
 

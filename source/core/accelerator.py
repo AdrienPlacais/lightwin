@@ -25,25 +25,18 @@ import pandas as pd
 
 import config_manager as con
 
-from tracewin_utils.dat_files import (update_dat_with_fixed_cavities,
-                                      save_dat_filecontent_to_dat)
-
 from beam_calculation.output import SimulationOutput
 
 from core.particle import ParticleInitialState
-from core.beam_parameters import BeamParameters
 from core.elements import _Element
 from core.list_of_elements import (ListOfElements,
                                    elt_at_this_s_idx,
                                    equiv_elt)
-from core.list_of_elements_factory import (new_beam_parameters,
-                                           new_list_of_elements)
+from core.list_of_elements_factory import new_list_of_elements
 
 from util.helper import recursive_items, recursive_getter
 
 
-# TODO dedicated methods to init self.synch (self.input_particle is better)
-# TODO maybe keep the self.input_beam. And create a dedicated init
 class Accelerator():
     """Class holding the list of the accelerator's elements."""
 
@@ -62,22 +55,16 @@ class Accelerator():
         self.simulation_outputs: dict[str, SimulationOutput] = {}
         self.data_in_tw_fashion: pd.DataFrame
 
-        self.files = {
-            'project_folder': project_folder,
-            'accelerator_path': accelerator_path,
-        }
+        self.files = {'project_folder': project_folder,
+                      'accelerator_path': accelerator_path}
 
-        self.synch = ParticleInitialState(w_kin=con.E_MEV,
-                                          phi_abs=0.,
-                                          z_in=0.,
-                                          synchronous=True)
-        input_particle = self.synch
-        input_beam: BeamParameters = new_beam_parameters(con.SIGMA_ZDELTA)
-        self.elts: ListOfElements = new_list_of_elements(dat_file,
-                                                         input_particle,
-                                                         input_beam,
-                                                         accelerator_path,
-                                                         )
+        kwargs = {'w_kin': con.E_MEV,
+                  'phi_abs': 0.,
+                  'z_in': 0.,
+                  'sigma_in_zdelta': con.SIGMA_ZDELTA}
+        self.elts: ListOfElements
+        self.elts = new_list_of_elements(dat_file, accelerator_path, **kwargs)
+        # self.synch: ParticleInitialState = self.elts.input_particle
 
         self._special_getters = self._create_special_getters()
         self._check_consistency_phases()
@@ -89,10 +76,6 @@ class Accelerator():
     def l_cav(self):
         """Shortcut to easily get list of cavities."""
         return self.elts.l_cav
-
-    @property
-    def tracewin_command(self):
-        """Create proper TraceWin command with executable and ini."""
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
