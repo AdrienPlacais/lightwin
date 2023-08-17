@@ -264,9 +264,6 @@ class BeamParameters:
     @property
     def tracewin_command(self) -> list[str]:
         """Return the proper input beam parameters command."""
-        logging.critical("Do not forget to initialize all the required phase"
-                         "spaces!!")
-
         _tracewin_command = self._create_tracewin_command()
         return _tracewin_command
 
