@@ -113,7 +113,6 @@ class BeamParameters:
     beta_kin: np.ndarray | float | None = None
     element_to_index: Callable[[str | _Element, str | None], int | slice] \
         | None = None
-    _tracewin_command: list[str] | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
@@ -248,9 +247,8 @@ class BeamParameters:
         logging.critical("Do not forget to initialize all the required phase"
                          "spaces!!")
 
-        if self._tracewin_command is None:
-            self._tracewin_command = self._create_tracewin_command()
-        return self._tracewin_command
+        _tracewin_command = self._create_tracewin_command()
+        return _tracewin_command
 
     def _create_tracewin_command(self, warn_missing_phase_space: bool = True
                                  ) -> list[str]:

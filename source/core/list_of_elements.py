@@ -86,8 +86,6 @@ class ListOfElements(list):
         logging.info("Successfully created a `ListOfElements` with "
                      f"{self.w_kin_in = } MeV and {self.phi_abs_in = } rad.")
 
-        self._tracewin_command: list[str] | None = None
-
     @property
     def w_kin_in(self):
         return self.input_particle.w_kin
@@ -108,16 +106,15 @@ class ListOfElements(list):
     @property
     def tracewin_command(self) -> list[str]:
         """Create the command to give proper initial parameters to TraceWin."""
-        if self._tracewin_command is None:
-            dat_filepath = self.get('dat_filepath', to_numpy=False)
-            self._tracewin_command = [
-                command_bit
-                for command in [list_of_elements_to_command(dat_filepath),
-                                self.input_particle.tracewin_command,
-                                self.input_beam.tracewin_command]
-                for command_bit in command]
+        dat_filepath = self.get('dat_filepath', to_numpy=False)
+        _tracewin_command = [
+            command_bit
+            for command in [list_of_elements_to_command(dat_filepath),
+                            self.input_particle.tracewin_command,
+                            self.input_beam.tracewin_command]
+            for command_bit in command]
 
-        return self._tracewin_command
+        return _tracewin_command
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""

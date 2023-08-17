@@ -38,17 +38,12 @@ class ParticleInitialState:
     z_in: float
     synchronous: bool
 
-    def __post_init__(self) -> None:
-        """Declare the `_tracewin_command` attribute."""
-        self._tracewin_command: list[str] | None = None
-
     @property
     def tracewin_command(self) -> list[str]:
         """Create the energy and phase arguments for TraceWin command."""
-        if self._tracewin_command is None:
-            args = (self.w_kin,)
-            self._tracewin_command = particle_initial_state_to_command(*args)
-        return self._tracewin_command
+        args = (self.w_kin,)
+        _tracewin_command = particle_initial_state_to_command(*args)
+        return _tracewin_command
 
 
 @dataclass
