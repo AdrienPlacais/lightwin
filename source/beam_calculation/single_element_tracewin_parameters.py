@@ -10,6 +10,7 @@ Abstract Base Class `SingleElementCalculatorParameters`.
 It is currently not necessary.
 
 """
+import logging
 import numpy as np
 
 from beam_calculation.single_element_beam_calculator_parameters import (
@@ -32,7 +33,12 @@ class SingleElementTraceWinParameters(SingleElementCalculatorParameters):
         self.abs_mesh = z_of_this_element_from_tw
         self.rel_mesh = self.abs_mesh - self.abs_mesh[0]
 
-        assert np.abs(length_m - self.rel_mesh[-1]) < 1e-10
+        if np.abs(length_m - self.rel_mesh[-1]) > 1e-2:
+            logging.error("Mismatch between length of the linac in the `.out` "
+                          "file and what is expected. Maybe an error was "
+                          "raised during execution of `TraceWin` and the "
+                          "`.out` file is incomplete? In this case, check "
+                          "`_add_dummy_data` in `tracewin` module.")
 
         self.s_in = s_in
         self.s_out = s_out

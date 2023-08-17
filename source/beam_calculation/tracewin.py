@@ -114,6 +114,7 @@ class TraceWin(BeamCalculator):
         if self.is_a_multiparticle_simulation:
             filename = 'partran1.out'
         self.load_results = partial(_load_results_generic, filename=filename)
+        self._filename = filename
 
         self.path_cal: str
         self.dat_file: str
@@ -247,10 +248,11 @@ class TraceWin(BeamCalculator):
                                                         set_of_cavity_settings,
                                                         **specific_kwargs)
         is_a_fit = set_of_cavity_settings is not None
-        _run_in_bash(command, output_command=not is_a_fit)
+        exception = _run_in_bash(command, output_command=not is_a_fit)
 
         simulation_output = self._generate_simulation_output(elts, path_cal,
-                                                             rf_fields)
+                                                             rf_fields,
+                                                             exception)
         return simulation_output
 
     def post_optimisation_run_with_this(
@@ -299,10 +301,19 @@ class TraceWin(BeamCalculator):
         elts: ListOfElements,
         path_cal: str,
         rf_fields: list[dict[str, float | None]],
+        exception: bool
     ) -> SimulationOutput:
         """Create an object holding all relatable simulation results."""
+        if exception:
+            filepath = os.path.join(path_cal, self._filename)
+            _remove_incomplete_line(filepath)
+            _add_dummy_data(filepath, elts)
+
         results = self._create_main_results_dictionary(path_cal,
                                                        elts.input_particle)
+
+        if exception:
+            results = _remove_invalid_values(results)
 
         self._save_tracewin_meshing_in_elements(elts,
                                                 results['##'],
@@ -368,7 +379,7 @@ class TraceWin(BeamCalculator):
 
     def _create_main_results_dictionary(self,
                                         path_cal: str,
-                                        input_particle: ParticleInitialState,
+                                        input_particle: ParticleInitialState
                                         ) -> dict[str, np.ndarray]:
         """Load the TraceWin results, compute common interest quantities."""
         results = self.load_results(path_cal=path_cal)
@@ -453,8 +464,7 @@ class TraceWin(BeamCalculator):
 # Main `results` dictionary
 # =============================================================================
 def _load_results_generic(filename: str,
-                          path_cal: str,
-                          ) -> dict[str, np.ndarray]:
+                          path_cal: str) -> dict[str, np.ndarray]:
     """
     Load the TraceWin results.
 
@@ -478,6 +488,7 @@ def _load_results_generic(filename: str,
 
     """
     f_p = os.path.join(path_cal, filename)
+
     n_lines_header = 9
     results = {}
 
@@ -495,6 +506,21 @@ def _load_results_generic(filename: str,
         results[key] = out[:, i]
         logging.debug(f"successfully loaded {f_p}")
     return results
+
+
+def _remove_invalid_values(results: dict[str, np.ndarray]
+                           ) -> dict[str, np.ndarray]:
+    """Remove invalid values that appear when `exception` is True."""
+    results['SizeX'] = _0_to_NaN(results['SizeX'])
+    results['SizeY'] = _0_to_NaN(results['SizeY'])
+    results['SizeZ'] = _0_to_NaN(results['SizeZ'])
+    return results
+
+
+def _0_to_NaN(data: np.ndarray) -> np.ndarray:
+    """Replace 0 by np.NaN in given array."""
+    data[np.where(data == 0.)] = np.NaN
+    return data
 
 
 def _set_energy_related_results(results: dict[str, np.ndarray]
@@ -640,6 +666,7 @@ def _beam_param_uniform_with_envelope1d(
 
     sigma_00, sigma_01 = results['SizeZ']**2, results['szdp']
     eps_normalized = results['ezdp']
+
     beam_parameters.zdelta.reconstruct_full_sigma_matrix(
         sigma_00,
         sigma_01,
@@ -761,9 +788,68 @@ def _load_transfer_matrices(path_cal: str,
 
 
 # =============================================================================
+# Handle errors
+# =============================================================================
+def _remove_incomplete_line(filepath: str) -> None:
+    """Remove incomplete line from `.out` file."""
+    n_lines_header = 9
+    i_last_valid = -1
+    with open(filepath, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    for i, line in enumerate(lines):
+        if i < n_lines_header:
+            continue
+
+        if i == n_lines_header:
+            n_columns = len(line.split())
+
+        if len(line.split()) != n_columns:
+            i_last_valid = i
+            break
+
+    if i_last_valid == -1:
+        return
+    logging.warning(f"Not enough columns in `.out` after line {i_last_valid}. "
+                    "Removing all lines after this one...")
+    with open(filepath, 'w', encoding='utf-8') as file:
+        for i, line in enumerate(lines):
+            if i >= i_last_valid:
+                break
+            file.write(line)
+
+
+def _add_dummy_data(filepath: str, elts: ListOfElements) -> None:
+    """
+    Add dummy data at the end of the `.out` to reach end of linac.
+
+    We also round the column 'z', to avoid a too big mismatch between the z
+    column and what we should have.
+
+    """
+    with open(filepath, 'r+', encoding='utf-8') as file:
+        for line in file:
+            pass
+        last_idx_in_file = int(line.split()[0])
+        last_element_in_file = elts[last_idx_in_file - 1]
+
+        if last_element_in_file is not elts[-1]:
+            logging.warning("Incomplete `.out` file. Trying to complete with "
+                            "dummy data...")
+            elts_to_add = elts[last_idx_in_file:]
+            last_pos = np.round(float(line.split()[1]), 4)
+            for i, elt in enumerate(elts_to_add, start=last_idx_in_file + 1):
+                last_pos += elt.get('length_m', to_numpy=False)
+                new_line = line.split()
+                new_line[0] = str(i)
+                new_line[1] = str(last_pos)
+                new_line = ' '.join(new_line) + '\n'
+                file.write(new_line)
+
+
+# =============================================================================
 # Bash
 # =============================================================================
-def _run_in_bash(command: list[str], output_command: bool = True) -> None:
+def _run_in_bash(command: list[str], output_command: bool = True) -> bool:
     """Run given command in bash."""
     output = "\n\t".join(command)
     if output_command:
@@ -779,3 +865,4 @@ def _run_in_bash(command: list[str], output_command: bool = True) -> None:
     if exception:
         logging.warning("A message was returned when executing following "
                         f"command:\n\t{output}")
+    return exception
