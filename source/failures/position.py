@@ -26,10 +26,14 @@ from core.elements import _Element
 def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
                       comp_idx: list[int]) -> tuple[list[_Element],
                                                     list[_Element]]:
-    """Tell what is the zone to recompute."""
+    """
+    Tell what is the zone to recompute.
+
+    We use in this routine element indexes, not cavity indexes.
+
+    """
     position = wtf['position']
 
-    # We need ELEMENT indexes, not cavity.
     fault_idx = _to_elt_idx(fix, fault_idx)
     comp_idx = _to_elt_idx(fix, comp_idx)
 
@@ -37,9 +41,10 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
                                 for pos in position]
 
     idx_start_compensation_zone = min(fault_idx + comp_idx)
-    idx_start_compensation_zone -= 11
-    logging.warning(f"Manually modified the {idx_start_compensation_zone= } "
-                    "to force start at the beginning of a lattice (TW test).")
+    idx_start_compensation_zone = _reduce_idx_start_to_include_full_lattice(
+        idx_start_compensation_zone,
+        fix
+    )
     idx_end_compensation_zone = max(objectives_positions_idx)
 
     elts = fix.elts[idx_start_compensation_zone:idx_end_compensation_zone + 1]
@@ -95,6 +100,17 @@ def _end_linac(lin: Accelerator, fault_idx: list[int],
                comp_idx: list[int]) -> int:
     """Evaluate objective at the end of the linac."""
     return lin.elts[-1].get('elt_idx')
+
+
+def _reduce_idx_start_to_include_full_lattice(idx: int, lin: Accelerator
+                                              ) -> int:
+    """Force compensation zone to start at the 1st element of lattice."""
+    logging.warning("Changed compensation zone to include full lattices only.")
+    elt = lin.elts[idx]
+    lattice_idx = elt.get('lattice', to_numpy=False)
+    elt = lin.elts.by_lattice[lattice_idx][0]
+    idx = elt.get('elt_idx', to_numpy=False)
+    return idx
 
 
 def _to_elt_idx(lin: Accelerator, indexes: list[int]) -> list[int]:
