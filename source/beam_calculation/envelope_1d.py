@@ -239,6 +239,8 @@ class Envelope1D(BeamCalculator):
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
+            is_multiparticle=self.is_a_multiparticle_simulation,
+            is_3d=self.is_a_3d_simulation,
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
             r_zz_elt=r_zz_elt,

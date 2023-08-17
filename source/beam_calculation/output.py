@@ -40,11 +40,10 @@ class SimulationOutput:
     ----------
     out_folder : str
         Results folder used by the `BeamCalculator` that created this.
-    out_path : str | None
-        Results full filepath. Created by the method
-        Accelerator.keep_simulation_output.
-    z_abs : np.ndarray | None, optional
-        Absolute position in the linac in m. The default is None.
+    is_multiparticle : bool
+        Tells if the simulation is a multiparticle simulation.
+    is_3D : bool
+        Tells if the simulation is in 3D.
     synch_trajectory : ParticleFullTrajectory | None
         Holds energy, phase of the synchronous particle.
     cav_params : dict[str, float | None] | None
@@ -64,6 +63,8 @@ class SimulationOutput:
         returns correspondinf index. Index should be the same in all the arrays
         attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
         Used to easily `get` the desired properties at the proper position.
+    z_abs : np.ndarray | None, optional
+        Absolute position in the linac in m. The default is None.
     in_tw_fashion : pd.DataFrame | None, optional
         A way to output the `SimulationOutput` in the same way as the `Data`
         tab of TraceWin. The default is None.
@@ -71,6 +72,8 @@ class SimulationOutput:
     """
 
     out_folder: str
+    is_multiparticle: bool
+    is_3d: bool
 
     synch_trajectory: ParticleFullTrajectory | None
 
