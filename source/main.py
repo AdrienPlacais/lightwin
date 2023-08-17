@@ -75,11 +75,12 @@ if __name__ == '__main__':
     MY_CONFIG_FILE = 'myrrha.ini'
     MY_KEYS = {
         'files': 'files',
-        'plots': 'plots.light',
+        'plots': 'plots.complete',
         # 'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         'beam_calculator': 'beam_calculator.tracewin.envelope',
         'beam': 'beam',
         'wtf': 'wtf.for_tracewin',
+        # 'wtf': 'wtf.k_out_of_n',
         'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
         # 'evaluators': 'evaluators.bruce',
     }
@@ -161,7 +162,7 @@ if __name__ == '__main__':
     # =========================================================================
     # Post-treat
     # =========================================================================
-    kwargs = {'save_fig': False, 'clean_fig': True}
+    kwargs = {'save_fig': True, 'clean_fig': True}
     figs = plot.factory(accelerators, my_configs['plots'], **kwargs)
 
     # s_to_study = [accelerator.simulation_outputs[solv2]
