@@ -108,7 +108,7 @@ class Fault:
         return elts
 
     def fix(self, beam_calculator_run_with_this: Callable[
-            [SetOfCavitySettings, ListOfElements, bool], SimulationOutput]
+        [SetOfCavitySettings, ListOfElements, bool], SimulationOutput]
             ) -> tuple[bool, SetOfCavitySettings, dict]:
         """
         Fix the Fault.
@@ -173,6 +173,9 @@ class Fault:
 
         for cav, stat in zip(cavities, status):
             cav.update_status(stat)
+        self.elts.store_settings_in_dat(self.elts.files['dat_filepath'],
+                                        save=True)
+
 
     def _set_design_space(self) -> VariablesAndConstraints:
         """
