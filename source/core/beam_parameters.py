@@ -284,7 +284,12 @@ class BeamParameters:
             if phase_space_name not in self.__dir__():
                 eps, alpha, beta = np.NaN, np.NaN, np.NaN
 
-                if warn_missing_phase_space:
+                phase_spaces_are_needed = \
+                    (isinstance(self.z_abs, np.ndarray)
+                        and self.z_abs[0] > 1e-10) \
+                    or (isinstance(self.z_abs, float) and self.z_abs > 1e-10)
+
+                if warn_missing_phase_space and phase_spaces_are_needed:
                     logging.warning(f"{phase_space_name} phase space not "
                                     "defined, keeping default inputs from the "
                                     "`.ini.`.")
