@@ -116,8 +116,8 @@ def _test_beam_calculator_tracewin(
     simulation_type = c_beam_calculator["simulation type"]
     if simulation_type not in TRACEWIN_EXECUTABLES:
         logging.error(f"The simulation type {simulation_type} was not "
-                      + "recognized. Authorized values: "
-                      + f"{TRACEWIN_EXECUTABLES.keys()}")
+                      "recognized. Authorized values: "
+                      f"{TRACEWIN_EXECUTABLES.keys()}")
         return False
 
     tw_exe = TRACEWIN_EXECUTABLES[simulation_type]
@@ -128,21 +128,21 @@ def _test_beam_calculator_tracewin(
 
     if not os.path.isfile(tw_exe):
         logging.error(f"The TraceWin executable was not found: {tw_exe}. You "
-                      + "should update the TRACEWIN_EXECUTABLES dictionary in "
-                      + "config/beam_calculator.py.")
+                      "should update the TRACEWIN_EXECUTABLES dictionary in "
+                      "config/beam_calculator.py.")
         return False
     c_beam_calculator["executable"] = tw_exe
 
-    # TODO: implement all TW options
     for key in c_beam_calculator.keys():
         if "Ele" in key:
-            logging.error("Are you trying to use the Ele[n][v] key? It is not "
-                          + "implemented and may clash with LightWin.")
+            logging.error("Are you trying to use the Ele[n][v] key? Please "
+                          "directly modify your `.dat` to avoid clash with "
+                          "LightWin.")
             return False
 
         if key == "Synoptic_file":
             logging.error("Not implemented as I am not sure how this should "
-                          + "work.")
+                          "work.")
             return False
 
         if key in ['partran', 'toutatis']:
