@@ -253,7 +253,29 @@ def _all_accelerators_data(
         x_data, y_data, plt_kwargs = _compute_error(x_data, y_data, plt_kwargs,
                                                     fun_error)
 
+    plt_kwargs = _avoid_similar_labels(plt_kwargs)
+
     return x_data, y_data, plt_kwargs
+
+
+def _avoid_similar_labels(plt_kwargs: list[dict]) -> list[dict]:
+    """Append a number at the end of labels in doublons."""
+    my_labels = []
+    for kwargs in plt_kwargs:
+        label = kwargs['label']
+        if label not in my_labels:
+            my_labels.append(label)
+            continue
+
+        while kwargs['label'] in my_labels:
+            try:
+                i = int(label[-1])
+                kwargs['label'][-1] = str(i + 1)
+            except ValueError:
+                kwargs['label'] += '_0'
+
+        my_labels.append(kwargs['label'])
+    return plt_kwargs
 
 
 # Error related
