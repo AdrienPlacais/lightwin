@@ -19,7 +19,7 @@ from pymoo.core.algorithm import Algorithm
 from pymoo.core.result import Result
 from pymoo.optimize import minimize
 
-from algorithms.algorithm import OptimisationAlgorithm
+from optimisation.algorithms.algorithm import OptimisationAlgorithm
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
 from failures.variables import VariablesAndConstraints

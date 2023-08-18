@@ -29,8 +29,8 @@ from beam_calculation.output import SimulationOutput
 from failures.variables import VariablesAndConstraints
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
-from algorithms.least_squares import LeastSquares
-from algorithms.nsga import NSGA
+from optimisation.algorithms.least_squares import LeastSquares
+from optimisation.algorithms.nsga import NSGA
 
 from util.dicts_output import markdown
 
@@ -135,7 +135,7 @@ class Fault:
         compute_beam_propagation = partial(beam_calculator_run_with_this,
                                            elts=self.elts)
 
-        algorithm = NSGA(
+        algorithm = LeastSquares(
             variables_constraints=variables_constraints,
             compute_beam_propagation=compute_beam_propagation,
             compute_residuals=compute_residuals,
