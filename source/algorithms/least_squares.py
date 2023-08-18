@@ -24,39 +24,8 @@ class LeastSquares(OptimisationAlgorithm):
     """
     Plain least-squares method, efficient for small problems.
 
-    All the attributes are inherited from the Abstract Base Class
-    `OptimisationAlgorithm`.
-
-    Attributes
-    ----------
-    variables_constraints : VariablesAndConstraints
-        Holds the initial value and bounds of the variables, as well as the
-        bounds for the constraints.
-    compensating_cavities : list[FieldMap]
-        Cavity objects used to compensate for the faults.
-    variable_names : list[str]
-        Name of the variables.
-    elts : ListOfElements
-        Holds the whole compensation zone under study.
-    solution : dict
-        Holds information on the solution that was found.
-
-    Methods
-    -------
-    compute_beam_propagation: Callable[SetOfCavitySettings, SimulationOutput]
-        Method to compute propagation of the beam with the given cavity
-        settings. Defined by a `BeamCalculator.run_with_this` method, the
-        positional argument `elts` being set by a `functools.partial`.
-    compute_residuals : Callable[SimulationOutput, np.ndarray]
-        Method to compute residuals from a `SimulationOutput`.
-
-    Abstract methods
-    ----------------
-    optimise : Callable[None, [bool,
-                               SetOfCavitySettings,
-                               dict[str, list[float] | None]
-    _format_variables_and_constraints : Callable[None, Any]
-    _create_set_of_cavity_settings : Callable[np.ndarray, SetOfCavitySettings]
+    All the attributes but `solution` are inherited from the Abstract Base
+    Class `OptimisationAlgorithm`.
 
     """
 
@@ -117,7 +86,7 @@ class LeastSquares(OptimisationAlgorithm):
 
     def _format_variables_and_constraints(self
                                           ) -> tuple[np.ndarray, Bounds]:
-        """Return design space as expected by scipy.least_squares."""
+        """Return design space as expected by `scipy.least_squares`."""
         x_0 = np.array([var.x_0
                         for var in self.variables_constraints.variables])
         _bounds = np.array([var.limits
@@ -127,7 +96,7 @@ class LeastSquares(OptimisationAlgorithm):
 
     def _create_set_of_cavity_settings(self, var: np.ndarray
                                        ) -> SetOfCavitySettings:
-        """Transform the array given by least_squares to a generic object."""
+        """Transform the array given by `least_squares` to a generic object."""
         # FIXME
         my_phi = list(var[:var.shape[0] // 2])
         my_ke = list(var[var.shape[0] // 2:])
