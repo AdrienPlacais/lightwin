@@ -39,8 +39,8 @@ ax_type = matplotlib.axes._axes.Axes
 font = {'family': 'serif', 'size': 25}
 plt.rc('font', **font)
 plt.rcParams['axes.prop_cycle'] = cycler(color=Dark2_8.mpl_colors)
-plt.rcParams["figure.figsize"] = (19.2, 11.24)
-plt.rcParams["figure.dpi"] = 25
+plt.rcParams["figure.figsize"] = (9.2, 5.62)
+plt.rcParams["figure.dpi"] = 100
 
 FALLBACK_PRESETS = {'x_axis': 'z_abs',
                     'plot_section': True, 'clean_fig': False, 'sharex': True}
