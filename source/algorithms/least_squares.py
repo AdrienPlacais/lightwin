@@ -60,7 +60,7 @@ class LeastSquares(OptimisationAlgorithm):
                   }
 
         x_0, bounds = self._format_variables_and_constraints()
-        x_0, bounds = _set_new_limits_for_debug_fm9()
+        # x_0, bounds = _set_new_limits_for_debug_fm9()
 
         solution = least_squares(
             fun=self._wrapper_residuals,
