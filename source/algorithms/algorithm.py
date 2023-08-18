@@ -53,7 +53,7 @@ class OptimisationAlgorithm(ABC):
         Method to compute propagation of the beam with the given cavity
         settings. Defined by a `BeamCalculator.run_with_this` method, the
         positional argument `elts` being set by a `functools.partial`.
-    compute_residuals : Callable[SimulationOutput, np.ndarray]
+    compute_residuals : Callable[SimulationOutput, Any]
         Method to compute residuals from a `SimulationOutput`.
 
     Abstract methods
@@ -62,7 +62,7 @@ class OptimisationAlgorithm(ABC):
                                SetOfCavitySettings,
                                dict[str, list[float] | None]
     _format_variables_and_constraints : Callable[None, Any]
-    _create_set_of_cavity_settings : Callable[np.ndarray, SetOfCavitySettings]
+    _create_set_of_cavity_settings : Callable[Any, SetOfCavitySettings]
 
     """
 
@@ -114,8 +114,7 @@ class OptimisationAlgorithm(ABC):
         return residuals
 
     @abstractmethod
-    def _create_set_of_cavity_settings(self, var: np.ndarray
-                                       ) -> SetOfCavitySettings:
+    def _create_set_of_cavity_settings(self, var: Any) -> SetOfCavitySettings:
         """
         Make generic the `var`, specific to each optimisation algorithm.
 
