@@ -5,10 +5,7 @@ Created on Wed May 31 16:01:48 2023.
 
 @author: placais
 
-Class to solve the problem by the least_squares method. Attributes are
-inherited from the parent OptimisationAlgorithm class:
-    variables_constraints: VariablesAndConstraints
-    compute_residuals: Callable[[dict], np.ndarray]
+This module holds `LeastSquares`, a simple and fast optimisation method.
 
 """
 from dataclasses import dataclass
@@ -24,7 +21,44 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
 
 @dataclass
 class LeastSquares(OptimisationAlgorithm):
-    """Plain least-squares method, efficient for small problems."""
+    """
+    Plain least-squares method, efficient for small problems.
+
+    All the attributes are inherited from the Abstract Base Class
+    `OptimisationAlgorithm`.
+
+    Attributes
+    ----------
+    variables_constraints : VariablesAndConstraints
+        Holds the initial value and bounds of the variables, as well as the
+        bounds for the constraints.
+    compensating_cavities : list[FieldMap]
+        Cavity objects used to compensate for the faults.
+    variable_names : list[str]
+        Name of the variables.
+    elts : ListOfElements
+        Holds the whole compensation zone under study.
+    solution : dict
+        Holds information on the solution that was found.
+
+    Methods
+    -------
+    compute_beam_propagation: Callable[SetOfCavitySettings, SimulationOutput]
+        Method to compute propagation of the beam with the given cavity
+        settings. Defined by a `BeamCalculator.run_with_this` method, the
+        positional argument `elts` being set by a `functools.partial`.
+    compute_residuals : Callable[SimulationOutput, np.ndarray]
+        Method to compute residuals from a `SimulationOutput`.
+
+    Abstract methods
+    ----------------
+    optimise : Callable[None, [bool,
+                               SetOfCavitySettings,
+                               dict[str, list[float] | None]
+    _format_variables_and_constraints : Callable[None, Any]
+    _create_set_of_cavity_settings : Callable[np.ndarray, SetOfCavitySettings]
+
+    """
 
     def optimise(self) -> tuple[bool,
                                 SetOfCavitySettings,
@@ -62,15 +96,14 @@ class LeastSquares(OptimisationAlgorithm):
         x_0, bounds = self._format_variables_and_constraints()
         # x_0, bounds = _set_new_limits_for_debug_fm9()
 
-        solution = least_squares(
-            fun=self._wrapper_residuals,
-            x0=x_0,
-            bounds=bounds,
-            **kwargs)
+        solution = least_squares(fun=self._wrapper_residuals,
+                                 x0=x_0,
+                                 bounds=bounds,
+                                 **kwargs)
 
         self.solution = solution
-        optimized_cavity_settings = \
-            self._create_set_of_cavity_settings(solution.x)
+        optimized_cavity_settings = self._create_set_of_cavity_settings(
+            solution.x)
         # TODO: output some info could be much more clear by using the __str__
         # methods of the various objects.
 
@@ -91,13 +124,6 @@ class LeastSquares(OptimisationAlgorithm):
                             for var in self.variables_constraints.variables])
         bounds = Bounds(_bounds[:, 0], _bounds[:, 1])
         return x_0, bounds
-
-    def _wrapper_residuals(self, var: np.ndarray):
-        """Unpack arguments, compute residuals."""
-        cav_settings = self._create_set_of_cavity_settings(var)
-        simulation_output = self.compute_beam_propagation(cav_settings)
-        residuals = self.compute_residuals(simulation_output)
-        return residuals
 
     def _create_set_of_cavity_settings(self, var: np.ndarray
                                        ) -> SetOfCavitySettings:

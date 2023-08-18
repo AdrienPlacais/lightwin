@@ -108,7 +108,7 @@ class Fault:
         return elts
 
     def fix(self, beam_calculator_run_with_this: Callable[
-        [SetOfCavitySettings, ListOfElements, bool], SimulationOutput]
+        [SetOfCavitySettings, ListOfElements], SimulationOutput]
             ) -> tuple[bool, SetOfCavitySettings, dict]:
         """
         Fix the Fault.
@@ -116,7 +116,7 @@ class Fault:
         Parameters
         ----------
         beam_calculator_run_with_this : Callable[[
-                SetOfCavitySettings, ListOfElements, bool], SimulationOutput]
+                SetOfCavitySettings, ListOfElements], SimulationOutput]
             The `run_with_this` method from a `BeamCalculator` object.
 
         Returns
@@ -136,8 +136,8 @@ class Fault:
 
         algorithm = LeastSquares(
             variables_constraints=variables_constraints,
-            compute_residuals=compute_residuals,
             compute_beam_propagation=compute_beam_propagation,
+            compute_residuals=compute_residuals,
             compensating_cavities=self.comp_cav,
             variable_names=self.variable_names,
             elts=self.elts)
