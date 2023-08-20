@@ -270,12 +270,13 @@ def _test_objective(c_wtf: configparser.SectionProxy) -> bool:
     implemented = [
         'w_kin', 'phi_abs', 'mismatch_factor_zdelta',
         'eps_zdelta', 'beta_zdelta', 'gamma_zdelta', 'alpha_zdelta',
-        'M_11', 'M_12', 'M_22', 'M_21']
+        ]
 
     if not all(obj in implemented for obj in objectives):
         logging.error("At least one objective was not recognized.")
         logging.info("""To add your own objective, make sure that:
-                     1. it can be returned by the Accelerator.get() method;
+                     1. it can be returned by the SimulationOutput.get() "
+                     "method;
                      2. it is present in the util.d_output dictionaries;
                      3. it is in the above 'implemented' dict.""")
         return False
@@ -324,7 +325,26 @@ def _test_position(c_wtf: configparser.SectionProxy) -> bool:
 
 
 def _test_scale_objective(c_wtf: configparser.SectionProxy) -> bool:
-    """Specific test for the key 'scale objective' of what_to_fit."""
+    """
+    Specific test for the key 'scale objective' of what_to_fit.
+
+    The number of scales must be the number of objectives times the number of
+    positions. You can provide `0.` to skip an objective at a specific
+    position. For example:
+
+    `scale objective` = 1., 2., 3., 0., 0., 0., 0., 8.
+    `positions` = 'end of last comp lattice', 'end of linac'
+    `objectives` = 'w_kin', 'phi_abs', 'mismatch_factor_zdelta', 'beta_zdelta'
+
+    Here, we will try to minimize:
+        1 * delta energy    | @ and of last compensating lattice
+        2 * delta phi_abs   | @ and of last compensating lattice
+        3 * mismatch factor | @ and of last compensating lattice
+        8 * beta            | @ end of linac
+
+    This behavior can be modified in optimisation.parameters.factories.
+
+    """
     objectives = c_wtf.getliststr('objective')
     positions = c_wtf.getliststr('position')
 

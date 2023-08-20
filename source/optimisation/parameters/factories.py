@@ -11,9 +11,12 @@ import numpy as np
 
 from optimisation.parameters.variable import Variable
 from optimisation.parameters.constraint import Constraint
+from optimisation.parameters.objective import Objective
 
 from core.list_of_elements import ListOfElements, equiv_elt
-from core.elements import FieldMap
+from core.elements import FieldMap, _Element
+
+from beam_calculation.output import SimulationOutput
 
 
 # =============================================================================
@@ -75,11 +78,52 @@ def constraint_factory(preset: str,
                                     limits=limits_calculator(**kwargs)
                                     )
             constraints.append(constraint)
+
     message = [str(constraint) for constraint in constraints]
     message.insert(0, "Constraints generated from presets in optimisation."
                    "parameters.factories:")
     logging.info('\n'.join(message))
     return constraints
+
+
+def objective_factory(objective_names: list[str],
+                      objective_scales: list[float],
+                      objective_elements: list[_Element],
+                      reference_simulation_output: SimulationOutput,
+                      objective_positions: list[str] | None = None,
+                      ) -> list[Objective]:
+    """Create the required `Objective` objects."""
+    objectives = []
+    idx_scale = 0
+
+    if objective_positions is None:
+        objective_positions = ['out' for element in objective_elements]
+
+    for element, position in zip(objective_elements, objective_positions):
+        for objective_name in objective_names:
+            scale = objective_scales[idx_scale]
+
+            if scale == 0.:
+                continue
+
+            kwargs = {
+                'name': objective_name,
+                'scale': scale,
+                'element': element,
+                'pos': position,
+                'reference_simulation_output': reference_simulation_output
+            }
+            if 'mismatch_factor' in objective_name:
+                del kwargs['reference_simulation_output']
+                kwargs['reference_value'] = 0.
+            objective = Objective(**kwargs)
+            objectives.append(objective)
+            idx_scale += 1
+
+    message = [objective.ref for ref in objectives]
+    message.insert(0, "Objectives and their initial values:")
+    logging.info('\n'.join(message))
+    return objectives
 
 
 # =============================================================================
