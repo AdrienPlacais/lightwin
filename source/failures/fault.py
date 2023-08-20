@@ -26,9 +26,12 @@ from core.beam_parameters import mismatch_from_arrays
 
 from beam_calculation.output import SimulationOutput
 
-from failures.variables import VariablesAndConstraints
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
+from optimisation.parameters.variable import Variable
+from optimisation.parameters.constraint import Constraint
+from optimisation.parameters.factories import (variable_factory,
+                                               constraint_factory)
 from optimisation.algorithms.least_squares import LeastSquares
 from optimisation.algorithms.nsga import NSGA
 
@@ -130,13 +133,14 @@ class Fault:
             Useful information, such as the best solution.
 
         """
-        variables_constraints = self._set_design_space()
+        variables, constraints = self._set_design_space()
         compute_residuals, info_objectives = self._select_objective()
         compute_beam_propagation = partial(beam_calculator_run_with_this,
                                            elts=self.elts)
 
         algorithm = LeastSquares(
-            variables_constraints=variables_constraints,
+            variables=variables,
+            constraints=constraints,
             compute_beam_propagation=compute_beam_propagation,
             compute_residuals=compute_residuals,
             compensating_cavities=self.comp_cav,
@@ -177,7 +181,7 @@ class Fault:
         self.elts.store_settings_in_dat(self.elts.files['dat_filepath'],
                                         save=True)
 
-    def _set_design_space(self) -> VariablesAndConstraints:
+    def _set_design_space(self) -> tuple[list[Variable], list[Constraint]]:
         """
         Set initial conditions and boundaries for the fit.
 
@@ -186,33 +190,34 @@ class Fault:
 
         Returns
         -------
-        variables_constraints : VariablesAndConstraints
-            Holds variables, their initial values, their limits, and
-            constraints.
+        variables : list[Variable]
+            Holds variables, their initial values, their limits.
+        constraints : list[Constraint]
+            Holds constraints and their limits.
 
         """
-        variables = ['phi_0_rel', 'k_e']
+        variable_names = ['phi_0_rel', 'k_e']
         if con.FLAG_PHI_ABS:
-            variables = ['phi_0_abs', 'k_e']
+            variable_names = ['phi_0_abs', 'k_e']
         if self.wtf['phi_s fit']:
-            variables = ['phi_s', 'k_e']
-
-        constraints = ['phi_s']
-        # FIXME should not be initialized if not used
-
-        # FIXME not clean
-        self.variable_names = variables
+            variable_names = ['phi_s', 'k_e']
 
         global_compensation = 'global' in self.wtf['strategy']
-        kwargs = {'global_compensation': global_compensation}
+        variables = variable_factory(preset=con.LINAC,
+                                     variable_names=variable_names,
+                                     compensating_cavities=self.comp_cav,
+                                     ref_elts=self.ref_acc.elts,
+                                     global_compensation=global_compensation)
+        # FIXME should not be initialized if not used
+        # FIXME not clean
+        self.variable_names = variable_names
 
-        variables_constraints = VariablesAndConstraints(
-            con.LINAC, self.ref_acc, self.comp_cav, variables, constraints,
-            **kwargs)
-
-        logging.info("Design space (handled in failures.variables, not "
-                     f".ini):\n{variables_constraints}")
-        return variables_constraints
+        constraint_names = ['phi_s']
+        constraints = constraint_factory(preset=con.LINAC,
+                                         constraint_names=constraint_names,
+                                         compensating_cavities=self.comp_cav,
+                                         ref_elts=self.ref_acc.elts)
+        return variables, constraints
 
     def _select_objective(self) -> tuple[Callable, list[str]]:
         """Set optimisation objective."""

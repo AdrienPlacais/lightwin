@@ -16,7 +16,8 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import numpy as np
 
-from failures.variables import VariablesAndConstraints
+from optimisation.parameters.variable import Variable
+from optimisation.parameters.constraint import Constraint
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from beam_calculation.output import SimulationOutput
@@ -35,9 +36,6 @@ class OptimisationAlgorithm(ABC):
 
     Attributes
     ----------
-    variables_constraints : VariablesAndConstraints
-        Holds the initial value and bounds of the variables, as well as the
-        bounds for the constraints.
     compensating_cavities : list[FieldMap]
         Cavity objects used to compensate for the faults.
     variable_names : list[str]
@@ -46,6 +44,10 @@ class OptimisationAlgorithm(ABC):
         Holds the whole compensation zone under study.
     solution : dict
         Holds information on the solution that was found.
+    variables : list[Variable]
+        Holds variables, their initial values, their limits.
+    constraints : list[Constraint] | None, optional
+        Holds constraints and their limits. The default is None.
 
     Methods
     -------
@@ -66,12 +68,13 @@ class OptimisationAlgorithm(ABC):
 
     """
 
-    variables_constraints: VariablesAndConstraints
     compute_beam_propagation: Callable[SetOfCavitySettings, SimulationOutput]
     compute_residuals: Callable[SimulationOutput, np.ndarray]
     compensating_cavities: list[FieldMap]
     variable_names: list[str]
     elts: ListOfElements
+    variables: list[Variable]
+    constraints: list[Constraint] | None = None
 
     def __post_init__(self) -> None:
         """Set the output object."""

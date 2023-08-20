@@ -88,9 +88,9 @@ class LeastSquares(OptimisationAlgorithm):
                                           ) -> tuple[np.ndarray, Bounds]:
         """Return design space as expected by `scipy.least_squares`."""
         x_0 = np.array([var.x_0
-                        for var in self.variables_constraints.variables])
+                        for var in self.variables])
         _bounds = np.array([var.limits
-                            for var in self.variables_constraints.variables])
+                            for var in self.variables])
         bounds = Bounds(_bounds[:, 0], _bounds[:, 1])
         return x_0, bounds
 

@@ -1,7 +1,8 @@
+__pycache__/
+*.py[cod]
+
 archives/
 data/*
-*/__pycache__/*
-*/*/__pycache__/*
 source/build/
 source/untitled*.py
 *.ini_******

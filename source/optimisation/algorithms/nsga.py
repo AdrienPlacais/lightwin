@@ -20,9 +20,7 @@ from pymoo.core.result import Result
 from pymoo.optimize import minimize
 
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
-from failures.set_of_cavity_settings import (SetOfCavitySettings,
-                                             SingleCavitySettings)
-from failures.variables import VariablesAndConstraints
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
 @dataclass
@@ -88,7 +86,7 @@ class NSGA(OptimisationAlgorithm):
     @property
     def _n_var(self) -> int:
         """Number of variables."""
-        return len(self.variables_constraints.variables)
+        return len(self.variables)
 
     @property
     def _n_obj(self) -> int:
@@ -100,18 +98,18 @@ class NSGA(OptimisationAlgorithm):
     def _n_ieq_constraints(self) -> int:
         """Number of inequality constraints."""
         logging.warning("Number of constraints manually set.")
-        return len(self.variables_constraints.constraints) * 2
+        return len(self.constraints) * 2
 
     @property
     def _xl(self) -> np.ndarray:
         """Return variables lower limits."""
-        lower = [var.limits[0] for var in self.variables_constraints.variables]
+        lower = [var.limits[0] for var in self.variables]
         return np.array(lower)
 
     @property
     def _xu(self) -> np.ndarray:
         """Return variables upper limits."""
-        upper = [var.limits[1] for var in self.variables_constraints.variables]
+        upper = [var.limits[1] for var in self.variables]
         return np.array(upper)
 
     def _wrapper_residuals(self, var: np.ndarray) -> tuple[np.ndarray,

@@ -23,26 +23,34 @@ def variable_factory(preset: str,
                      variable_names: list[str],
                      compensating_cavities: list[FieldMap],
                      ref_elts: ListOfElements,
+                     global_compensation: bool = False,
                      ) -> list[Variable]:
     """Create the necessary `Variable` objects."""
     variables = []
+
     for var_name in variable_names:
         initial_value_calculator = INITIAL_VALUE_CALCULATORS[var_name]
         limits_calculator = LIMITS_CALCULATORS[var_name]
 
         for cavity in compensating_cavities:
+            ref_cav = equiv_elt(ref_elts, cavity)
             kwargs = {
                 'preset': preset,
-                'ref_cav': equiv_elt(ref_elts, cavity),
+                'ref_cav': ref_cav,
                 'ref_elts': ref_elts,
-                'global_compensation': False
+                'global_compensation': global_compensation,
             }
             variable = Variable(name=var_name,
                                 cavity_name=str(cavity),
-                                x_0=initial_value_calculator(**kwargs),
+                                x_0=initial_value_calculator(ref_cav),
                                 limits=limits_calculator(**kwargs)
                                 )
             variables.append(variable)
+
+    message = [str(variable) for variable in variables]
+    message.insert(0, "Variables generated from presets in optimisation."
+                   "parameters.factories:")
+    logging.info('\n'.join(message))
     return variables
 
 
@@ -54,7 +62,6 @@ def constraint_factory(preset: str,
     """Create the necessary `Constraint` objects."""
     constraints = []
     for var_name in constraint_names:
-        initial_value_calculator = INITIAL_VALUE_CALCULATORS[var_name]
         limits_calculator = LIMITS_CALCULATORS[var_name]
 
         for cavity in compensating_cavities:
@@ -65,10 +72,13 @@ def constraint_factory(preset: str,
             }
             constraint = Constraint(name=var_name,
                                     cavity_name=str(cavity),
-                                    x_0=initial_value_calculator(**kwargs),
                                     limits=limits_calculator(**kwargs)
                                     )
             constraints.append(constraint)
+    message = [str(constraint) for constraint in constraints]
+    message.insert(0, "Constraints generated from presets in optimisation."
+                   "parameters.factories:")
+    logging.info('\n'.join(message))
     return constraints
 
 
@@ -107,7 +117,7 @@ def _limits_k_e(preset: str | None = None,
         k_e_this_section = [cav.get('k_e', to_numpy=False)
                             for cav in ref_elts
                             if cav.idx['section'] == this_section]
-        upper = np.max(k_e_this_section) * 1.3
+        upper = np.nanmax(k_e_this_section) * 1.3
 
         return (lower, upper)
 
