@@ -75,6 +75,7 @@ class OptimisationAlgorithm(ABC):
     elts: ListOfElements
     variables: list[Variable]
     constraints: list[Constraint] | None = None
+    compute_constraints: Callable[SimulationOutput, np.ndarray] | None = None
 
     def __post_init__(self) -> None:
         """Set the output object."""

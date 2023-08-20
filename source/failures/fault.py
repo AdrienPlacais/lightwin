@@ -12,6 +12,8 @@ import logging
 from collections.abc import Callable
 from functools import partial
 
+import numpy as np
+
 import config_manager as con
 
 from core.elements import _Element, FieldMap
@@ -131,7 +133,8 @@ class Fault:
             Useful information, such as the best solution.
 
         """
-        variables, constraints = self._set_design_space()
+        variables = self._set_variables()
+        constraints, compute_constraints = self._set_constraints()
 
         solv1 = list(self.ref_acc.simulation_outputs.keys())[0]
         reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
@@ -148,13 +151,15 @@ class Fault:
                                            elts=self.elts)
 
         algorithm = LeastSquares(
-            variables=variables,
-            constraints=constraints,
             compute_beam_propagation=compute_beam_propagation,
             compute_residuals=compute_residuals,
             compensating_cavities=self.comp_cav,
             variable_names=self.variable_names,
-            elts=self.elts)
+            elts=self.elts,
+            variables=variables,
+            constraints=constraints,
+            compute_constraints=compute_constraints,
+        )
         success, optimized_cavity_settings, self.info = algorithm.optimise()
         return success, optimized_cavity_settings, self.info
 
@@ -190,7 +195,7 @@ class Fault:
         self.elts.store_settings_in_dat(self.elts.files['dat_filepath'],
                                         save=True)
 
-    def _set_design_space(self) -> tuple[list[Variable], list[Constraint]]:
+    def _set_variables(self) -> list[Variable]:
         """
         Set initial conditions and boundaries for the fit.
 
@@ -201,8 +206,6 @@ class Fault:
         -------
         variables : list[Variable]
             Holds variables, their initial values, their limits.
-        constraints : list[Constraint]
-            Holds constraints and their limits.
 
         """
         variable_names = ['phi_0_rel', 'k_e']
@@ -220,13 +223,29 @@ class Fault:
         # FIXME should not be initialized if not used
         # FIXME not clean
         self.variable_names = variable_names
+        return variables
 
+    def _set_constraints(
+        self
+    ) -> tuple[list[Constraint], Callable[[SimulationOutput], np.ndarray]]:
+        """
+        Set the constraints for the fit.
+
+        Returns
+        -------
+        constraints : list[Constraint]
+            List containing the `Constraint` objects.
+        compute_constraints : Callable[SimulationOutput, np.ndarray]
+            Compute the constraint violation for a given `SimulationOutput`.
+
+        """
         constraint_names = ['phi_s']
-        constraints = constraint_factory(preset=con.LINAC,
-                                         constraint_names=constraint_names,
-                                         compensating_cavities=self.comp_cav,
-                                         ref_elts=self.ref_acc.elts)
-        return variables, constraints
+        constraints, compute_constraints = constraint_factory(
+            preset=con.LINAC,
+            constraint_names=constraint_names,
+            compensating_cavities=self.comp_cav,
+            ref_elts=self.ref_acc.elts)
+        return constraints, compute_constraints
 
     def get_x_sol_in_real_phase(self) -> None:
         """

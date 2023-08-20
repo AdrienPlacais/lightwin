@@ -81,7 +81,7 @@ if __name__ == '__main__':
         'beam': 'beam',
         # 'wtf': 'wtf.for_tracewin',
         'wtf': 'wtf.k_out_of_n',
-        'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
+        # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
         # 'evaluators': 'evaluators.bruce',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)

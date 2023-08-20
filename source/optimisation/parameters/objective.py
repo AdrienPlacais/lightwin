@@ -10,7 +10,6 @@ objective.
 
 """
 import logging
-from dataclasses import dataclass
 
 from core.elements import _Element
 from core.beam_parameters import mismatch_from_arrays
@@ -18,7 +17,6 @@ from core.beam_parameters import mismatch_from_arrays
 from beam_calculation.output import SimulationOutput
 
 
-@dataclass
 class Objective:
     """
     Holds an objective, its ideal value, methods to evaluate it.

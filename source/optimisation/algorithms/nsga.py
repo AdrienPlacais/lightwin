@@ -33,8 +33,6 @@ class NSGA(OptimisationAlgorithm):
 
     """
 
-    compute_constraints: Callable | None = None
-
     def optimise(self) -> tuple[bool,
                                 SetOfCavitySettings,
                                 dict[str, list[float]]]:

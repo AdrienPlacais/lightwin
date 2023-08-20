@@ -63,8 +63,32 @@ def constraint_factory(preset: str,
                        constraint_names: list[str],
                        compensating_cavities: list[FieldMap],
                        ref_elts: ListOfElements,
-                       ) -> list[Constraint]:
-    """Create the necessary `Constraint` objects."""
+                       ) -> tuple[list[Constraint],
+                                  Callable[SimulationOutput, np.ndarray]]:
+    """
+    Create the necessary `Constraint` objects.
+
+    Parameters
+    ----------
+    preset : str
+        Name of the linac, used to select proper phi_s policy.
+    constraint_names : list[str]
+        List of the names of the quantities under constraint.
+    compensating_cavities : list[FieldMap]
+        List of the compensating cavities in which constraint must be
+        evaluated.
+    ref_elts : ListOfElements
+        Reference list of elements, with reference (nominal) phi_s in
+        particular.
+
+    Returns
+    -------
+    constraints : list[Constraint]
+        List containing the `Constraint` objects.
+    compute_constraints : Callable[SimulationOutput, np.ndarray]
+        Compute the constraint violation for a given `SimulationOutput`.
+
+    """
     constraints = []
     for var_name in constraint_names:
         limits_calculator = LIMITS_CALCULATORS[var_name]
@@ -85,7 +109,10 @@ def constraint_factory(preset: str,
     message.insert(0, "Constraints generated from presets in optimisation."
                    "parameters.factories:")
     logging.info('\n'.join(message))
-    return constraints
+
+    compute_constraints = partial(_compute_constraints,
+                                  constraints=constraints)
+    return constraints, compute_constraints
 
 
 def objective_factory(names: list[str],
@@ -249,7 +276,7 @@ INITIAL_VALUE_CALCULATORS = {
 
 
 # =============================================================================
-# Presets for constraints
+# Presets, helpers for constraints
 # =============================================================================
 def _constraints_phi_s(preset: str | None = None,
                        ref_cav: FieldMap | None = None,
@@ -282,6 +309,20 @@ def _constraints_phi_s(preset: str | None = None,
 CONSTRAINTS_CALCULATORS = {
     'phi_s': _constraints_phi_s
 }
+
+
+def _compute_constraints(constraints: list[Constraint],
+                         simulation_output: SimulationOutput) -> np.ndarray:
+    """Compute constraint violation for given `SimulationOutput`."""
+    constraints_with_tuples = [constraint.evaluate(simulation_output)
+                               for constraint in constraints]
+    constraint_violation = [
+        single_constraint
+        for constraint_with_tuples in constraints_with_tuples
+        for single_constraint in constraint_with_tuples
+        if ~np.isnan(single_constraint)
+    ]
+    return np.array(constraint_violation)
 
 
 # =============================================================================

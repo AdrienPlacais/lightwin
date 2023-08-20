@@ -46,12 +46,23 @@ class Constraint:
         if self.name not in IMPLEMENTED:
             logging.warning("Constraint not tested.")
 
+        self._to_deg = False
+        self._to_numpy = False
+
     def __str__(self) -> str:
         """Output constraint name and limits."""
         out = f"{markdown[self.name]:20} {self.cavity_name:15}      "
         out += f"limits={self.limits_fmt[0]:>8.3f} {self.limits_fmt[1]:>8.3f}"
         return out
 
+    @property
+    def kwargs(self) -> dict[str, bool]:
+        """Return the `kwargs` to send a `get` method."""
+        _kwargs = {'to_deg': self._to_deg,
+                   'to_numpy': self._to_numpy}
+        return _kwargs
+
+    @property
     def n_constraints(self) -> int:
         """
         Return number of embedded constraints in this object.
@@ -61,11 +72,10 @@ class Constraint:
         """
         return np.where(~np.isnan(np.array(self.limits)))[0].shape[0]
 
-    def get_value(self, simulation_output: SimulationOutput, **kwargs: bool
-                  ) -> float:
+    def get_value(self, simulation_output: SimulationOutput) -> float:
         """Get from the `SimulationOutput` the quantity called `self.name`."""
         elt = equiv_elt(simulation_output.elts, self.cavity_name)
-        return elt.get(self.name, **kwargs)
+        return elt.get(self.name, **self.kwargs)
 
     def evaluate(self, simulation_output: SimulationOutput, **kwargs
                  ) -> tuple[float, float]:
