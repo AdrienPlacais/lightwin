@@ -63,7 +63,7 @@ class Constraint:
 
     def get_value(self, simulation_output: SimulationOutput, **kwargs: bool
                   ) -> float:
-        """Get from the `SimulationOutput the quantity called `self.name`."""
+        """Get from the `SimulationOutput` the quantity called `self.name`."""
         elt = equiv_elt(simulation_output.elts, self.cavity_name)
         return elt.get(self.name, **kwargs)
 
