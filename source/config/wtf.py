@@ -332,7 +332,7 @@ def _test_scale_objective(c_wtf: configparser.SectionProxy) -> bool:
     positions. You can provide `0.` to skip an objective at a specific
     position. For example:
 
-    `scale objective` = 1., 2., 3., 0., 0., 0., 0., 8.
+    `scale objective` = 1., 2., 3., 0., 0., 6., 0., 8.
     `positions` = 'end of last comp lattice', 'end of linac'
     `objectives` = 'w_kin', 'phi_abs', 'mismatch_factor_zdelta', 'beta_zdelta'
 
@@ -340,7 +340,8 @@ def _test_scale_objective(c_wtf: configparser.SectionProxy) -> bool:
         1 * delta energy    | @ and of last compensating lattice
         2 * delta phi_abs   | @ and of last compensating lattice
         3 * mismatch factor | @ and of last compensating lattice
-        8 * beta            | @ end of linac
+        6 * delta phi_abs   | @ end of linac
+        8 * delta beta      | @ end of linac
 
     This behavior can be modified in optimisation.parameters.factories.
 
