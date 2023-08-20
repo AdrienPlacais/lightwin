@@ -52,6 +52,15 @@ class Constraint:
         out += f"limits={self.limits_fmt[0]:>8.3f} {self.limits_fmt[1]:>8.3f}"
         return out
 
+    def n_constraints(self) -> int:
+        """
+        Return number of embedded constraints in this object.
+
+        A lower + and upper bound count as two constraints.
+
+        """
+        return np.where(~np.isnan(np.array(self.limits)))[0].shape[0]
+
     def get_value(self, simulation_output: SimulationOutput, **kwargs: bool
                   ) -> float:
         """Get from the `SimulationOutput the quantity called `self.name`."""

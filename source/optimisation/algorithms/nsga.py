@@ -97,8 +97,8 @@ class NSGA(OptimisationAlgorithm):
     @property
     def _n_ieq_constraints(self) -> int:
         """Number of inequality constraints."""
-        logging.warning("Number of constraints manually set.")
-        return len(self.constraints) * 2
+        return sum([constraint.n_constraints
+                    for constraint in self.constraints])
 
     @property
     def _xl(self) -> np.ndarray:
