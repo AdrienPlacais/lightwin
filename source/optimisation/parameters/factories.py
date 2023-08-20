@@ -6,6 +6,8 @@ Created on Fri Aug 18 17:44:41 2023.
 @author: placais
 """
 import logging
+from typing import Callable
+from functools import partial
 
 import numpy as np
 
@@ -86,44 +88,74 @@ def constraint_factory(preset: str,
     return constraints
 
 
-def objective_factory(objective_names: list[str],
-                      objective_scales: list[float],
-                      objective_elements: list[_Element],
+def objective_factory(names: list[str],
+                      scales: list[float],
+                      elements: list[_Element],
                       reference_simulation_output: SimulationOutput,
-                      objective_positions: list[str] | None = None,
-                      ) -> list[Objective]:
-    """Create the required `Objective` objects."""
+                      positions: list[str] | None = None,
+                      ) -> tuple[list[Objective],
+                                 Callable[SimulationOutput, np.ndarray]]:
+    """Create the required `Objective` objects.
+
+    Parameters
+    ----------
+    names : list[str]
+        Name of the objectives. All individual objectives have to work with the
+        `SimulationOutput.get` method.
+    scales : list[float]
+        List of the scales for every `_Element` and every objective. If you
+        have 5 objectives, the 5 first `scale` will be applied to the 5
+        objectives at the first `_Element`, the 5 following at the second
+        `_Element`, etc.
+    elements : list[_Element]
+        List of `_Element` where objectives should be evaluated.
+    reference_simulation_output : SimulationOutput
+        A `SimulationOutput` on the reference linac (no fault).
+    positions : list[float] | None, optional
+        Where objectives should be evaluated for each `_Element`. The default
+        is None, which comes back to evaluating objective at the exit of every
+        `_Element`.
+
+    Returns
+    -------
+    objectives : list[Objective]
+        A list of the `Objective` objects.
+    compute_residuals : Callable[SimulationOutput, np.ndarray]
+        A function that takes in a `SimulationOutput` and returns the residues
+        of every objective w.r.t the reference one.
+
+    """
     objectives = []
     idx_scale = 0
 
-    if objective_positions is None:
-        objective_positions = ['out' for element in objective_elements]
+    if positions is None:
+        positions = ['out' for element in elements]
 
-    for element, position in zip(objective_elements, objective_positions):
-        for objective_name in objective_names:
-            scale = objective_scales[idx_scale]
+    for element, position in zip(elements, positions):
+        for name in names:
+            scale = scales[idx_scale]
 
             if scale == 0.:
                 continue
 
             kwargs = {
-                'name': objective_name,
+                'name': name,
                 'scale': scale,
                 'element': element,
                 'pos': position,
                 'reference_simulation_output': reference_simulation_output
             }
-            if 'mismatch_factor' in objective_name:
-                del kwargs['reference_simulation_output']
-                kwargs['reference_value'] = 0.
+
             objective = Objective(**kwargs)
             objectives.append(objective)
             idx_scale += 1
 
-    message = [objective.ref for ref in objectives]
-    message.insert(0, "Objectives and their initial values:")
+    message = [objective.ref for objective in objectives]
+    message.insert(0, "Objectives, scales, initial values:")
     logging.info('\n'.join(message))
-    return objectives
+
+    compute_residuals = partial(_compute_residuals, objectives=objectives)
+    return objectives, compute_residuals
 
 
 # =============================================================================
@@ -250,3 +282,14 @@ def _constraints_phi_s(preset: str | None = None,
 CONSTRAINTS_CALCULATORS = {
     'phi_s': _constraints_phi_s
 }
+
+
+# =============================================================================
+# Helper for objectives
+# =============================================================================
+def _compute_residuals(objectives: list[Objective],
+                       simulation_output: SimulationOutput) -> np.ndarray:
+    """Compute residuals on given `Objectives` for given `SimulationOutput`."""
+    residuals = [objective.evaluate(simulation_output)
+                 for objective in objectives]
+    return np.array(residuals)

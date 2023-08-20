@@ -13,6 +13,7 @@ import logging
 from dataclasses import dataclass
 
 from core.elements import _Element
+from core.beam_parameters import mismatch_from_arrays
 
 from beam_calculation.output import SimulationOutput
 
@@ -39,6 +40,14 @@ class Objective:
         self._to_deg = False
         self._to_numpy = False
 
+        if 'mismatch_factor' in self.name:
+            logging.warning("Some dirty patches installed to make mismatch "
+                            "work. FIXME")
+            # 1: manual edit of .get_value method
+            # 2: manual edit of .evaluate method
+            # 3: manual edit of .ref property
+            # 4: manual edit of .this method
+
         if reference_simulation_output is not None:
             self.reference_value = self.get_value(reference_simulation_output)
             if reference_value is not None:
@@ -57,18 +66,24 @@ class Objective:
 
     def __str__(self) -> str:
         """Give objective information value."""
-        message = f"{self.name:>10} @elt {self.element:>5} ({self.pos:>3}) | "
-        message += f"{self.scale:>5} | "
+        message = f"{self.name:>23} @elt {str(self.element):>5} "
+        message += f"({self.pos:>3}) | {self.scale:>5} | "
+        return message
 
     @property
     def ref(self) -> str:
         """Give `self.__str__` but with objective value of objective."""
+        if 'mismatch_factor' in self.name:
+            return str(self) + f"{self.reference_value}"
         return str(self) + f"{self.reference_value:>10}"
 
     def this(self, simulation_output: SimulationOutput) -> str:
         """Give `self.__str__` but with evaluation of objective."""
         value = self.get_value(simulation_output)
         residue = self.evaluate(value)
+        if 'mismatch_factor' in self.name:
+            message = str(self) + f"{self.value} -> residue: {residue:>10}"
+            return message
         message = str(self) + f"{self.value:>10} -> residue: {residue:>10}"
         return message
 
@@ -83,6 +98,12 @@ class Objective:
 
     def get_value(self, simulation_output: SimulationOutput) -> float:
         """Get from the `SimulationOutput` the quantity called `self.name`."""
+        if 'mismatch_factor' in self.name:
+            value = simulation_output.get('twiss_zdelta',
+                                          elt=self.element,
+                                          pos=self.pos,
+                                          to_numpy=True)
+            return value
         return simulation_output.get(self.name, **self.kwargs)
 
     def evaluate(self, simulation_output: SimulationOutput | float) -> float:
@@ -104,5 +125,9 @@ class Objective:
         """
         value = simulation_output
         if isinstance(simulation_output, SimulationOutput):
-            value = simulation_output.get_value(simulation_output)
+            value = self.get_value(simulation_output)
+
+        if 'mismatch_factor' in self.name:
+            return mismatch_from_arrays(self.reference_value,
+                                        value)[0] * self.scale
         return self.scale * (value - self.reference_value)

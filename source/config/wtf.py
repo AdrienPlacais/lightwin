@@ -329,7 +329,7 @@ def _test_scale_objective(c_wtf: configparser.SectionProxy) -> bool:
     Specific test for the key 'scale objective' of what_to_fit.
 
     The number of scales must be the number of objectives times the number of
-    positions. You can provide `0.` to skip an objective at a specific
+    positions. You can provide `0.` to skip a specific objective at a specific
     position. For example:
 
     `scale objective` = 1., 2., 3., 0., 0., 6., 0., 8.

@@ -113,7 +113,7 @@ class OptimisationAlgorithm(ABC):
         """Compute residuals from an array of variable values."""
         cav_settings = self._create_set_of_cavity_settings(var)
         simulation_output = self.compute_beam_propagation(cav_settings)
-        residuals = self.compute_residuals(simulation_output)
+        residuals = self.compute_residuals(simulation_output=simulation_output)
         return residuals
 
     @abstractmethod

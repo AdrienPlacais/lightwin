@@ -30,8 +30,11 @@ from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from optimisation.parameters.variable import Variable
 from optimisation.parameters.constraint import Constraint
+from optimisation.parameters.objective import Objective
 from optimisation.parameters.factories import (variable_factory,
-                                               constraint_factory)
+                                               constraint_factory,
+                                               objective_factory)
+
 from optimisation.algorithms.least_squares import LeastSquares
 from optimisation.algorithms.nsga import NSGA
 
@@ -134,7 +137,17 @@ class Fault:
 
         """
         variables, constraints = self._set_design_space()
-        compute_residuals, info_objectives = self._select_objective()
+
+        solv1 = list(self.ref_acc.simulation_outputs.keys())[0]
+        reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
+
+        objectives, compute_residuals = objective_factory(
+            names=self.wtf['objective'],
+            scales=self.wtf['scale objective'],
+            elements=self.elt_eval_objectives,
+            reference_simulation_output=reference_simulation_output,
+            positions=None)
+
         compute_beam_propagation = partial(beam_calculator_run_with_this,
                                            elts=self.elts)
 
@@ -218,57 +231,6 @@ class Fault:
                                          compensating_cavities=self.comp_cav,
                                          ref_elts=self.ref_acc.elts)
         return variables, constraints
-
-    def _select_objective(self) -> tuple[Callable, list[str]]:
-        """Set optimisation objective."""
-        objectives = self.wtf['objective']
-        scales = self.wtf['scale objective']
-
-        info_objectives = [
-            f"{markdown[key].replace('[deg]', '[rad]')} @{elt = }"
-            for elt in self.elt_eval_objectives
-            for key in objectives]
-
-        objectives_values = [
-            self.ref_acc.get(key, elt=elt, pos='out')
-            if 'mismatch_factor' not in key
-            else self.ref_acc.get('twiss', elt=elt, pos='out',
-                                  phase_space='zdelta')
-            for elt in self.elt_eval_objectives
-            for key in objectives]
-
-        # TODO move to util/output
-        output = "Objectives:\n"
-        output +=\
-            f"   {'Objective:':>35} | {'Scale:':>6} | {'Initial value'}\n"
-        for i, (info, scale, objective) in enumerate(
-                zip(info_objectives, scales, objectives_values)):
-            output += f"{i}: {info:>35} | {scale:>6} | {objective}\n"
-        logging.info(output)
-
-        def compute_residuals(simulation_output: SimulationOutput
-                              ) -> np.ndarray:
-            """Compute difference between ref value and simulation output."""
-            i_ref = -1
-            residues = []
-            for elt in self.elt_eval_objectives:
-                for key, scale in zip(objectives, scales):
-                    i_ref += 1
-
-                    if key == 'mismatch_factor_zdelta':
-                        mism = mismatch_from_arrays(
-                            objectives_values[i_ref],
-                            simulation_output.get('twiss', elt=elt, pos='out',
-                                                  phase_space='zdelta'))[0]
-                        residues.append(mism * scale)
-                        continue
-
-                    residues.append(
-                        (objectives_values[i_ref]
-                         - simulation_output.get(key, elt=elt, pos='out'))
-                        * scale)
-            return np.array(residues)
-        return compute_residuals, info_objectives
 
     def get_x_sol_in_real_phase(self) -> None:
         """
