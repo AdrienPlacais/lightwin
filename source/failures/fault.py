@@ -12,8 +12,6 @@ import logging
 from collections.abc import Callable
 from functools import partial
 
-import numpy as np
-
 import config_manager as con
 
 from core.elements import _Element, FieldMap
@@ -22,7 +20,6 @@ from core.list_of_elements_factory import (
     subset_of_pre_existing_list_of_elements
 )
 from core.accelerator import Accelerator
-from core.beam_parameters import mismatch_from_arrays
 
 from beam_calculation.output import SimulationOutput
 
@@ -37,8 +34,6 @@ from optimisation.parameters.factories import (variable_factory,
 
 from optimisation.algorithms.least_squares import LeastSquares
 from optimisation.algorithms.nsga import NSGA
-
-from util.dicts_output import markdown
 
 
 class Fault:
@@ -141,6 +136,7 @@ class Fault:
         solv1 = list(self.ref_acc.simulation_outputs.keys())[0]
         reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
 
+        objectives: list[Objective]
         objectives, compute_residuals = objective_factory(
             names=self.wtf['objective'],
             scales=self.wtf['scale objective'],
