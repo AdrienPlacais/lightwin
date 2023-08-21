@@ -291,7 +291,7 @@ def _test_opti_method(c_wtf: configparser.SectionProxy) -> bool:
                       + "optimisation algorithm it should use.")
         return False
 
-    implemented = ['least_squares', 'PSO']
+    implemented = ['least_squares', 'least_squares_penalty', 'nsga']
     # TODO: specific testing for each method (look at the kwargs)
     if c_wtf['opti method'] not in implemented:
         logging.error("Algorithm not implemented.")

@@ -32,6 +32,7 @@ from optimisation.parameters.factories import (
 )
 
 from optimisation.algorithms.least_squares import LeastSquares
+from optimisation.algorithms.least_squares_penalty import LeastSquaresPenalty
 from optimisation.algorithms.nsga import NSGA
 
 
@@ -138,6 +139,12 @@ class Fault:
         self.objectives: list[Objective] = args[3]
         self.compute_residuals = args[4]
 
+        algorithms = {
+            'least_squares': LeastSquares,
+            'least_squares_penalty': LeastSquaresPenalty,
+            'nsga': NSGA}
+        self._algorithm_class = algorithms[wtf['opti method']]
+
     def fix(self, beam_calculator_run_with_this: Callable[
         [SetOfCavitySettings, ListOfElements], SimulationOutput]
             ) -> tuple[bool, SetOfCavitySettings, dict]:
@@ -163,7 +170,7 @@ class Fault:
         compute_beam_propagation = partial(beam_calculator_run_with_this,
                                            elts=self.elts)
 
-        algorithm = LeastSquares(
+        algorithm = self._algorithm_class(
             compute_beam_propagation=compute_beam_propagation,
             objectives=self.objectives,
             compute_residuals=self.compute_residuals,
@@ -173,6 +180,7 @@ class Fault:
             constraints=self.constraints,
             compute_constraints=self.compute_constraints,
         )
+        self.algorithm_instance = algorithm
         success, optimized_cavity_settings, self.info = algorithm.optimise()
         return success, optimized_cavity_settings, self.info
 
