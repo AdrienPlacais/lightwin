@@ -205,7 +205,7 @@ def variable_constraint_objective_factory(
         variable_names = ['phi_s', 'k_e']
     global_compensation = 'global' in wtf['strategy']
     # variables = variable_factory_fm4(
-    variables = variable_factory_fm4(
+    variables = variable_factory(
         preset=preset,
         variable_names=variable_names,
         compensating_cavities=compensating_cavities,
@@ -315,7 +315,7 @@ def variable_factory_fm4(preset: str,
                          global_compensation: bool = False,
                          ) -> list[Variable]:
     """Create the necessary `Variable` objects."""
-    tol = 1e-1
+    tol = 1e-2
     logging.warning("`Variable`s manually set to ease convergence.")
     variables = []
 

@@ -14,13 +14,18 @@ import logging
 
 import numpy as np
 
-from pymoo.core.problem import ElementwiseProblem
+from pymoo.core.problem import Problem, ElementwiseProblem
 from pymoo.core.algorithm import Algorithm
+from pymoo.core.evaluator import Evaluator
+from pymoo.core.population import Population
 from pymoo.core.result import Result
+
+from pymoo.operators.selection.tournament import TournamentSelection
+from pymoo.operators.sampling.lhs import LHS
 
 from pymoo.optimize import minimize
 
-from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.algorithms.moo.nsga3 import NSGA3
 
 from pymoo.termination.default import DefaultMultiObjectiveTermination
 
@@ -62,16 +67,23 @@ class NSGA(OptimisationAlgorithm):
             violation if applicable, etc.
 
         """
-        problem = MyElementwiseProblem(
+        problem: Problem = MyElementwiseProblem(
             _wrapper_residuals=self._wrapper_residuals,
             **self._problem_arguments)
 
-        algorithm = self._set_algorithm()
+        bias_init = True
+        initial_population = None
+        n_pop = 200
+        if bias_init:
+            initial_population = self._set_population(problem, n_pop)
+
+        algorithm = self._set_algorithm(sampling=initial_population)
         termination = self._set_termination()
 
         result: Result = minimize(problem=problem,
                                   algorithm=algorithm,
                                   termination=termination,
+                                  selection=TournamentSelection,
                                   # seed=None,
                                   verbose=True,
                                   # display=None,
@@ -82,11 +94,9 @@ class NSGA(OptimisationAlgorithm):
         success = True
 
         # add least squares solution
-        x_0 = np.array([var.x_0 for var in self.variables])
-        result.X = np.vstack((result.X, x_0))
-
-        f, g = self._wrapper_residuals(x_0)
-        result.F = np.vstack((result.F, f))
+        # result.X = np.vstack((result.X, self.x_0))
+        # f, g = self._wrapper_residuals(self.x_0)
+        # result.F = np.vstack((result.F, f))
         # result.G.append(g)
 
         set_of_cavity_settings, info = self._best_solution(result)
@@ -131,6 +141,22 @@ class NSGA(OptimisationAlgorithm):
         upper = [var.limits[1] for var in self.variables]
         return np.array(upper)
 
+    @property
+    def x_0(self) -> np.ndarray:
+        """Return initial value used in `LeastSquares'."""
+        return np.array([var.x_0 for var in self.variables])
+
+    @property
+    def x_max_k_e(self) -> np.ndarray:
+        """Return a solution with maximum electric fields."""
+        x_max = []
+        for var in self.variables:
+            if var.name == 'k_e':
+                x_max.append(var.limits[1])
+                continue
+            x_max.append(var.x_0)
+        return x_max
+
     def _wrapper_residuals(self, var: np.ndarray
                            ) -> tuple[np.ndarray, np.ndarray]:
         """Compute residuals from an array of variable values."""
@@ -141,9 +167,9 @@ class NSGA(OptimisationAlgorithm):
         constraints = self.compute_constraints(simulation_output)
         return np.abs(objective), constraints
 
-    def _set_algorithm(self) -> Algorithm:
+    def _set_algorithm(self, *args, **kwargs) -> Algorithm:
         """Set `pymoo`s `Algorithm` object."""
-        algorithm = NSGA2()
+        algorithm = NSGA3(*args, **kwargs)
         return algorithm
 
     def _set_termination(self) -> DefaultMultiObjectiveTermination:
@@ -153,6 +179,17 @@ class NSGA(OptimisationAlgorithm):
                                                        xtol=1e-8,
                                                        ftol=1e-8)
         return termination
+
+    def _set_population(self, problem: Problem, n_pop: int) -> Population:
+        """Set population, with some predefined individuals."""
+        sampling = LHS()
+        initial_variables = sampling(problem, n_pop).get('X')
+        initial_variables[0, :] = self.x_0
+        initial_variables[1, :] = self.x_max_k_e
+
+        initial_population = Population.new("X", initial_variables)
+        Evaluator().eval(problem, initial_population)
+        return initial_population
 
     def _create_set_of_cavity_settings(self, var: np.ndarray
                                        ) -> SetOfCavitySettings:
@@ -212,6 +249,7 @@ class NSGA(OptimisationAlgorithm):
             result.X[idx_best])
         info = {'X': result.X[idx_best],
                 'F': result.F[idx_best]}
+        logging.info(f"I choose {info['F']} (idx {idx_best})")
         return set_of_cavity_settings, info
 
     def _format_variables_and_constraints(self) -> None:
@@ -241,8 +279,8 @@ def _characteristic_points(result: Result) -> dict[str, np.ndarray]:
     ideal_idx = result.F.argmin(axis=0)
     ideal = result.F.min(axis=0)
 
-    ideal_idx_bis = result.F[:-1].argmin(axis=0)
-    ideal_bis = result.F[:-1].min(axis=0)
+    # ideal_idx_bis = result.F[:-1].argmin(axis=0)
+    # ideal_bis = result.F[:-1].min(axis=0)
 
     nadir_idx = result.F.argmax(axis=0)
     nadir = result.F.max(axis=0)
@@ -250,7 +288,7 @@ def _characteristic_points(result: Result) -> dict[str, np.ndarray]:
     logging.info(
         f"Manually added: idx {result.F.shape[0] - 1}\n"
         f"Ideal points are {ideal} (idx {ideal_idx})\n"
-        f"(without manually added lsq: {ideal_bis} @ {ideal_idx_bis}\n"
+        # f"(without manually added lsq: {ideal_bis} @ {ideal_idx_bis}\n"
         f"Nadir points are {nadir} (idx {nadir_idx})")
     approx = {'ideal': ideal,
               'nadir': nadir}
