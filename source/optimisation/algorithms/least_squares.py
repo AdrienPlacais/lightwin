@@ -67,7 +67,6 @@ class LeastSquares(OptimisationAlgorithm):
                   }
 
         x_0, bounds = self._format_variables_and_constraints()
-        # x_0, bounds = _set_new_limits_for_debug_fm9()
 
         solution = least_squares(fun=self._wrapper_residuals,
                                  x0=x_0,
@@ -151,46 +150,3 @@ class LeastSquares(OptimisationAlgorithm):
         info_string += f"optimality: {sol.optimality}\nstatus: {sol.status}\n"
         info_string += f"success: {sol.success}\nsolution: {sol.x}\n"
         logging.debug(info_string)
-
-
-def _set_new_limits_for_debug_fm9(tol: float = 1e-8):
-    """Presets for cavity failure FM4, k=5."""
-    # for phi_0_abs:
-    logging.critical("Overwrite the x_0 and bounds to force TW to "
-                     "converge. phi_0_abs is set")
-    x_0 = np.array([152.429549, 85.203942, 48.346872, 87.115557, 222.882571,
-                    1.444056, 1.555044, 2.005833, 2.688386, 1.828737])
-    x_0[:5] = np.deg2rad(x_0[:5])
-
-    # phi_shift_bunch = 119.22643442  # start from QP5
-    phi_shift_bunch = 157.0512365673894    # start from FM6
-    phi_shift_rf = phi_shift_bunch * 2.
-    delta_phi_rf = phi_shift_rf
-    x_0[:5] = np.mod(delta_phi_rf + x_0[:5], 2. * np.pi)
-    logging.critical("Rephase the cavities for TW to work.")
-
-    bounds = Bounds(x_0 - tol, x_0 + 1e-6)
-    logging.critical(x_0)
-    logging.critical(bounds)
-    return x_0, bounds
-
-
-def _set_new_limits_for_debug_fm4(tol: float = 1e-8):
-    """Presets for cavity failure FM4, k=5."""
-    # for phi_s:
-    # logging.critical("Overwrite the x_0 and bounds to force TW to "
-    #                  "converge. phi_s is set")
-    # x_0 = np.array([-27.003321, -27.001312, -47.017256, -39.001792,
-    #                 -27.631254,
-    # for phi_0_abs:
-    logging.critical("Overwrite the x_0 and bounds to force TW to "
-                     "converge. phi_0_abs is set")
-    x_0 = np.array([71.209656, 335.166472, 78.531206, 190.415816,
-                    149.608622,
-    # the rest is always the same
-                    1.614713, 1.607485, 1.9268, 1.942578, 1.851571])
-    x_0[:5] = np.deg2rad(x_0[:5])
-    bounds = Bounds(x_0 - tol, x_0 + 1e-6)
-    logging.critical(x_0)
-    logging.critical(bounds)
-    return x_0, bounds

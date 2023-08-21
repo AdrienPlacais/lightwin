@@ -194,6 +194,7 @@ def variable_constraint_objective_factory(
     wtf: dict[str, list[str] | list[float] | str],
     phi_abs: bool,
 ) -> tuple[list[Variable],
+           list[Constraint],
            Callable[[SimulationOutput], np.ndarray],
            Callable[[SimulationOutput], np.ndarray]]:
     """Shorthand to create necessary object in `Fault`."""
@@ -203,13 +204,14 @@ def variable_constraint_objective_factory(
     if wtf['phi_s fit']:
         variable_names = ['phi_s', 'k_e']
     global_compensation = 'global' in wtf['strategy']
-    variables = variable_factory(preset=preset,
-                                 variable_names=variable_names,
-                                 compensating_cavities=compensating_cavities,
-                                 reference_elts=reference_elts,
-                                 global_compensation=global_compensation)
+    variables = variable_factory_fm4(
+        preset=preset,
+        variable_names=variable_names,
+        compensating_cavities=compensating_cavities,
+        reference_elts=reference_elts,
+        global_compensation=global_compensation)
 
-    _, compute_constraints = constraint_factory(
+    constraints, compute_constraints = constraint_factory(
         preset=preset,
         constraint_names=['phi_s'],
         compensating_cavities=compensating_cavities,
@@ -222,7 +224,7 @@ def variable_constraint_objective_factory(
         reference_simulation_output=reference_simulation_output,
         positions=None)
 
-    return variables, compute_constraints, compute_residuals
+    return variables, constraints, compute_constraints, compute_residuals
 
 
 # =============================================================================
@@ -304,6 +306,37 @@ LIMITS_CALCULATORS = {
 }
 
 
+def variable_factory_fm4(preset: str,
+                         variable_names: list[str],
+                         compensating_cavities: list[FieldMap],
+                         reference_elts: ListOfElements,
+                         global_compensation: bool = False,
+                         ) -> list[Variable]:
+    """Create the necessary `Variable` objects."""
+    tol = 1e-8
+    logging.warning("`Variable`s manually set to ease convergence.")
+    variables = []
+
+    for var_name in variable_names:
+        initial_value_calculator = INITIAL_VALUE_FM4[var_name]
+
+        for cavity in compensating_cavities:
+            x_0 = initial_value_calculator[str(cavity)]
+            limits = (x_0 - tol, x_0 + tol)
+            variable = Variable(name=var_name,
+                                cavity_name=str(cavity),
+                                x_0=x_0,
+                                limits=limits
+                                )
+            variables.append(variable)
+
+    message = [str(variable) for variable in variables]
+    message.insert(0, "Variables generated from presets in optimisation."
+                   "parameters.factories:")
+    logging.info('\n'.join(message))
+    return variables
+
+
 # =============================================================================
 # Presets for variable initial values
 # =============================================================================
@@ -351,8 +384,8 @@ CONSTRAINTS_CALCULATORS = {
 }
 
 
-def _compute_constraints(constraints: list[Constraint],
-                         simulation_output: SimulationOutput) -> np.ndarray:
+def _compute_constraints(simulation_output: SimulationOutput,
+                         constraints: list[Constraint]) -> np.ndarray:
     """Compute constraint violation for given `SimulationOutput`."""
     constraints_with_tuples = [constraint.evaluate(simulation_output)
                                for constraint in constraints]
@@ -368,9 +401,30 @@ def _compute_constraints(constraints: list[Constraint],
 # =============================================================================
 # Helper for objectives
 # =============================================================================
-def _compute_residuals(objectives: list[Objective],
-                       simulation_output: SimulationOutput) -> np.ndarray:
+def _compute_residuals(simulation_output: SimulationOutput,
+                       objectives: list[Objective]) -> np.ndarray:
     """Compute residuals on given `Objectives` for given `SimulationOutput`."""
     residuals = [objective.evaluate(simulation_output)
                  for objective in objectives]
     return np.array(residuals)
+
+
+# =============================================================================
+# Reduce design space
+# =============================================================================
+INITIAL_VALUE_FM4 = {
+    'phi_0_abs': {
+        'FM1': 1.2428429564125352,
+        'FM2': 5.849758478693384,
+        'FM3': 1.370628110261926,
+        'FM5': 3.323382937071699,
+        'FM6': 2.611163043271624
+    },
+    'k_e': {
+        'FM1': 1.614713,
+        'FM2': 1.607485,
+        'FM3': 1.9268,
+        'FM5': 1.942578,
+        'FM6': 1.851571,
+    }
+}
