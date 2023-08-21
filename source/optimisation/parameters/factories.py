@@ -344,8 +344,8 @@ def variable_factory_fm4(preset: str,
 # =============================================================================
 INITIAL_VALUE_CALCULATORS = {
     'k_e': lambda cav: cav.get('k_e', to_numpy=False),
-    'phi_0_rel': lambda cav: 0.,
-    'phi_0_abs': lambda cav: 0.,
+    'phi_0_rel': lambda cav: cav.get('phi_0_rel', to_numpy=False),
+    'phi_0_abs': lambda cav: cav.get('phi_0_abs', to_numpy=False),
     'phi_s': lambda cav: cav.get('phi_s', to_numpy=False),
 }
 
