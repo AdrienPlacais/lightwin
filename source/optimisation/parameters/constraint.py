@@ -45,6 +45,7 @@ class Constraint:
 
         if self.name not in IMPLEMENTED:
             logging.warning("Constraint not tested.")
+        # in particular: phi_s is hard-coded in get_value!!
 
         self._to_deg = False
         self._to_numpy = False
@@ -74,13 +75,17 @@ class Constraint:
 
     def get_value(self, simulation_output: SimulationOutput) -> float:
         """Get from the `SimulationOutput` the quantity called `self.name`."""
-        elt = equiv_elt(simulation_output.elts, self.cavity_name)
-        return elt.get(self.name, **self.kwargs)
+        # patch
+        elts = simulation_output.element_to_index.keywords['_elts']
+        elt = equiv_elt(elts, self.cavity_name)
+        idx = elts.index(elt)
+        return simulation_output.cav_params['phi_s'][idx]
+        # return elt.get(self.name, **self.kwargs)
 
-    def evaluate(self, simulation_output: SimulationOutput, **kwargs
+    def evaluate(self, simulation_output: SimulationOutput
                  ) -> tuple[float, float]:
-        """Check if constraint is respected."""
-        value = self.get_value(simulation_output, **kwargs)
-        const = (value - self.limits[0],
-                 self.limits[1] - value)
+        """Check if constraint is respected. They should be < 0."""
+        value = self.get_value(simulation_output)
+        const = (self.limits[0] - value,
+                 value - self.limits[1])
         return const

@@ -204,6 +204,7 @@ def variable_constraint_objective_factory(
     if wtf['phi_s fit']:
         variable_names = ['phi_s', 'k_e']
     global_compensation = 'global' in wtf['strategy']
+    # variables = variable_factory_fm4(
     variables = variable_factory_fm4(
         preset=preset,
         variable_names=variable_names,
@@ -217,14 +218,15 @@ def variable_constraint_objective_factory(
         compensating_cavities=compensating_cavities,
         reference_elts=reference_elts)
 
-    _, compute_residuals = objective_factory(
+    objectives, compute_residuals = objective_factory(
         names=wtf['objective'],
         scales=wtf['scale objective'],
         elements=elements_eval_objective,
         reference_simulation_output=reference_simulation_output,
         positions=None)
 
-    return variables, constraints, compute_constraints, compute_residuals
+    return variables, constraints, compute_constraints, \
+        objectives, compute_residuals
 
 
 # =============================================================================
@@ -313,7 +315,7 @@ def variable_factory_fm4(preset: str,
                          global_compensation: bool = False,
                          ) -> list[Variable]:
     """Create the necessary `Variable` objects."""
-    tol = 1e-8
+    tol = 1e-1
     logging.warning("`Variable`s manually set to ease convergence.")
     variables = []
 

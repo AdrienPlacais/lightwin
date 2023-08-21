@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import numpy as np
 
+from optimisation.parameters.objective import Objective
 from optimisation.parameters.variable import Variable
 from optimisation.parameters.constraint import Constraint
 from failures.set_of_cavity_settings import SetOfCavitySettings
@@ -69,6 +70,7 @@ class OptimisationAlgorithm(ABC):
     compute_residuals: Callable[SimulationOutput, np.ndarray]
     compensating_cavities: list[FieldMap]
     elts: ListOfElements
+    objectives: list[Objective]
     variables: list[Variable]
     constraints: list[Constraint] | None = None
     compute_constraints: Callable[SimulationOutput, np.ndarray] | None = None

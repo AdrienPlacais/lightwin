@@ -24,7 +24,9 @@ from beam_calculation.output import SimulationOutput
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
+from optimisation.parameters.objective import Objective
 from optimisation.parameters.variable import Variable
+from optimisation.parameters.constraint import Constraint
 from optimisation.parameters.factories import (
     variable_constraint_objective_factory
 )
@@ -50,6 +52,8 @@ class Fault:
         `elt_eval_objectives`.
     variables : list[Variable]
         Holds information on the optimisation variables.
+    constraints : list[Constraint] | None
+        Holds infomation on the optimisation constraints.
 
     Methods
     -------
@@ -119,8 +123,7 @@ class Fault:
             files_from_full_list_of_elements,
         )
 
-        variables, compute_constraints, compute_residuals = \
-            variable_constraint_objective_factory(
+        args = variable_constraint_objective_factory(
                 preset=con.LINAC,
                 reference_elts=reference_elts,
                 reference_simulation_output=reference_simulation_output,
@@ -129,9 +132,11 @@ class Fault:
                 wtf=wtf,
                 phi_abs=con.FLAG_PHI_ABS
             )
-        self.variables: list[Variable] = variables
-        self.compute_constraints = compute_constraints
-        self.compute_residuals = compute_residuals
+        self.variables: list[Variable] = args[0]
+        self.constraints: list[Constraint] = args[1]
+        self.compute_constraints = args[2]
+        self.objectives: list[Objective] = args[3]
+        self.compute_residuals = args[4]
 
     def fix(self, beam_calculator_run_with_this: Callable[
         [SetOfCavitySettings, ListOfElements], SimulationOutput]
@@ -158,12 +163,14 @@ class Fault:
         compute_beam_propagation = partial(beam_calculator_run_with_this,
                                            elts=self.elts)
 
-        algorithm = LeastSquares(
+        algorithm = NSGA(
             compute_beam_propagation=compute_beam_propagation,
+            objectives=self.objectives,
             compute_residuals=self.compute_residuals,
             compensating_cavities=self.compensating_cavities,
             elts=self.elts,
             variables=self.variables,
+            constraints=self.constraints,
             compute_constraints=self.compute_constraints,
         )
         success, optimized_cavity_settings, self.info = algorithm.optimise()
