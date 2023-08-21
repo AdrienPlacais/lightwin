@@ -12,7 +12,7 @@ This module simply holds the function to build the Cython module(s).
 from setuptools import setup
 from Cython.Build import cythonize
 
-setup(ext_modules=cythonize("beam_calculation/transfer_matrices_c.pyx",))
+setup(ext_modules=cythonize("beam_calculation/envelope_1d/transfer_matrices_c.pyx",))
       #                       compiler_directives={'boundscheck': False,
       #                                            'nonecheck': False,
       #                                            'wraparound': False}
@@ -20,6 +20,6 @@ setup(ext_modules=cythonize("beam_calculation/transfer_matrices_c.pyx",))
       # )
 # To compile, go to LightWin/source/ and enter:
 # python3 util/setup.py build_ext --inplace
-# and manually move the .so in beam_calculation/ #FIXME
+# and manually move the .so in beam_calculation/envelope_1d #FIXME
 # IMPORTANT: in some interpreters such as Spyder, .so are loaded at the startup
 # of the software. Hence, you must restart the kernel after each compilation
