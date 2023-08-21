@@ -287,15 +287,15 @@ class FieldMap(_Element):
             'n_cell': self.get('n_cell')
         }
 
-        if status in ['nominal', 'rephased (ok)', 'compensate (ok)',
-                      'compensate (not ok)']:
+        if status in ('nominal', 'rephased (ok)', 'compensate (ok)',
+                      'compensate (not ok)'):
             norm_and_phases, abs_to_rel = _get_from(self.acc_field)
 
-        elif status in ['rephased (in progress)']:
+        elif status in ('rephased (in progress)'):
             norm_and_phases, abs_to_rel = _get_from(self.acc_field,
                                                     force_rephasing=True)
 
-        elif status in ['compensate (in progress)']:
+        elif status in ('compensate (in progress)'):
             assert isinstance(cavity_settings, SingleCavitySettings)
             norm_and_phases, abs_to_rel = \
                 _try_this(solver_id, cavity_settings, w_kin_in, self,

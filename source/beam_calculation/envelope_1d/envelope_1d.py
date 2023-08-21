@@ -29,16 +29,18 @@ import logging
 from dataclasses import dataclass
 
 from core.particle import ParticleFullTrajectory
+from core.elements import FieldMap
 from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
 from core.accelerator import Accelerator
 from core.beam_parameters import BeamParameters
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
-from beam_calculation.single_element_envelope_1d_parameters import (
-    SingleElementEnvelope1DParameters)
+from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
+    SingleElementEnvelope1DParameters
 
-from failures.set_of_cavity_settings import SetOfCavitySettings
+from failures.set_of_cavity_settings import (SetOfCavitySettings,
+                                             SingleCavitySettings)
 
 
 @dataclass
@@ -60,13 +62,15 @@ class Envelope1D(BeamCalculator):
 
         if self.flag_cython:
             try:
-                import beam_calculation.transfer_matrices_c as transf_mat
+                import beam_calculation.envelope_1d.transfer_matrices_c as \
+                    transf_mat
             except ModuleNotFoundError:
                 logging.error("Cython version of transfer_matrices was not "
                               + "compiled. Check util/setup.py.")
                 raise ModuleNotFoundError("Cython not compiled.")
         else:
-            import beam_calculation.transfer_matrices_p as transf_mat
+            import beam_calculation.envelope_1d.transfer_matrices_p as \
+                transf_mat
         self.transf_mat_module = transf_mat
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
@@ -259,3 +263,53 @@ class Envelope1D(BeamCalculator):
     def is_a_3d_simulation(self) -> bool:
         """Return False."""
         return False
+
+    def _proper_rf_field_kwards(
+        self,
+        cavity: FieldMap,
+        new_cavity_settings: SingleCavitySettings | None = None,
+    ) -> dict:
+        """Return the proper rf field according to the cavity status."""
+        rf_param = {
+            'omega0_rf': cavity.get('omega0_rf'),
+            'e_spat': cavity.acc_field.e_spat,
+            'section_idx': cavity.idx['section'],
+            'n_cell': cavity.get('n_cell')
+        }
+
+        getter = RF_FIELD_GETTERS[cavity.status]
+        rf_param = rf_param | getter(cavity=cavity,
+                                     new_cavity_settings=new_cavity_settings)
+        return rf_param
+
+
+def _no_rf_field(*args, **kwargs) -> dict:
+    """Return an empty dict."""
+    return {}
+
+
+def _rf_field_kwargs_from_element(cavity: FieldMap) -> dict:
+    """Get the data from the `FieldMap` object."""
+    rf_param = {
+        'k_e': cavity.acc_field.k_e,
+        'phi_0_rel': None,
+        'phi_0_abs': cavity.acc_field.phi_0_abs,
+    }
+    return rf_param
+
+
+def _rf_field_from_single_cavity_settings(
+    new_cavity_settings: SingleCavitySettings
+) -> dict:
+    """Get the data from the `SingleCavitySettings` object."""
+
+
+RF_FIELD_GETTERS = {
+    'none': _no_rf_field,
+    'failed': _no_rf_field,
+    'nominal': _rf_field_kwargs_from_element,
+    'rephased (ok)': _rf_field_kwargs_from_element,
+    'compensate (ok)': _rf_field_kwargs_from_element,
+    'compensate (not ok)': _rf_field_kwargs_from_element,
+    'compensate (in progress)': _rf_field_from_single_cavity_settings,
+}

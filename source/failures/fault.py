@@ -163,7 +163,7 @@ class Fault:
         compute_beam_propagation = partial(beam_calculator_run_with_this,
                                            elts=self.elts)
 
-        algorithm = NSGA(
+        algorithm = LeastSquares(
             compute_beam_propagation=compute_beam_propagation,
             objectives=self.objectives,
             compute_residuals=self.compute_residuals,

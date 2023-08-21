@@ -12,8 +12,8 @@ This module simply holds a factory to easily create the desired
 from typing import Any
 
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.envelope_1d import Envelope1D
-from beam_calculation.tracewin import TraceWin
+from beam_calculation.envelope_1d.envelope_1d import Envelope1D
+from beam_calculation.tracewin.tracewin import TraceWin
 
 
 def create_beam_calculator_objects(

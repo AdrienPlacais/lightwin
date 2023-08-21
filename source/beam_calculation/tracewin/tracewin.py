@@ -50,7 +50,7 @@ import util.converters as convert
 
 from beam_calculation.output import SimulationOutput
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.single_element_tracewin_parameters import (
+from beam_calculation.tracewin.single_element_tracewin_parameters import (
     SingleElementTraceWinParameters)
 
 from tracewin_utils.interface import beam_calculator_to_command
