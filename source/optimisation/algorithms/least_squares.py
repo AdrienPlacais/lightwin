@@ -29,6 +29,10 @@ class LeastSquares(OptimisationAlgorithm):
 
     """
 
+    def __post_init__(self) -> None:
+        """Set additional information."""
+        self.supports_constraints = False
+
     def optimise(self) -> tuple[bool,
                                 SetOfCavitySettings,
                                 dict[str, list[float]]]:
@@ -101,7 +105,9 @@ class LeastSquares(OptimisationAlgorithm):
         my_phi = list(var[:var.shape[0] // 2])
         my_ke = list(var[var.shape[0] // 2:])
 
-        if 'phi_s' in self.variable_names:
+        variable_names = [variable.name for variable in self.variables]
+
+        if 'phi_s' in variable_names:
             my_set = [SingleCavitySettings(cavity=cavity,
                                            k_e=k_e,
                                            phi_s=phi,
@@ -109,7 +115,7 @@ class LeastSquares(OptimisationAlgorithm):
                       for cavity, k_e, phi in zip(self.compensating_cavities,
                                                   my_ke,
                                                   my_phi)]
-        elif 'phi_0_abs' in self.variable_names:
+        elif 'phi_0_abs' in variable_names:
             my_set = [SingleCavitySettings(cavity=cavity,
                                            k_e=k_e,
                                            phi_0_abs=phi,
@@ -117,7 +123,7 @@ class LeastSquares(OptimisationAlgorithm):
                       for cavity, k_e, phi in zip(self.compensating_cavities,
                                                   my_ke,
                                                   my_phi)]
-        elif 'phi_0_rel' in self.variable_names:
+        elif 'phi_0_rel' in variable_names:
             my_set = [SingleCavitySettings(cavity=cavity,
                                            k_e=k_e,
                                            phi_0_rel=phi,

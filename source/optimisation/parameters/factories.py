@@ -27,7 +27,7 @@ from beam_calculation.output import SimulationOutput
 def variable_factory(preset: str,
                      variable_names: list[str],
                      compensating_cavities: list[FieldMap],
-                     ref_elts: ListOfElements,
+                     reference_elts: ListOfElements,
                      global_compensation: bool = False,
                      ) -> list[Variable]:
     """Create the necessary `Variable` objects."""
@@ -38,11 +38,11 @@ def variable_factory(preset: str,
         limits_calculator = LIMITS_CALCULATORS[var_name]
 
         for cavity in compensating_cavities:
-            ref_cav = equiv_elt(ref_elts, cavity)
+            ref_cav = equiv_elt(reference_elts, cavity)
             kwargs = {
                 'preset': preset,
                 'ref_cav': ref_cav,
-                'ref_elts': ref_elts,
+                'reference_elts': reference_elts,
                 'global_compensation': global_compensation,
             }
             variable = Variable(name=var_name,
@@ -62,9 +62,9 @@ def variable_factory(preset: str,
 def constraint_factory(preset: str,
                        constraint_names: list[str],
                        compensating_cavities: list[FieldMap],
-                       ref_elts: ListOfElements,
+                       reference_elts: ListOfElements,
                        ) -> tuple[list[Constraint],
-                                  Callable[SimulationOutput, np.ndarray]]:
+                                  Callable[[SimulationOutput], np.ndarray]]:
     """
     Create the necessary `Constraint` objects.
 
@@ -77,7 +77,7 @@ def constraint_factory(preset: str,
     compensating_cavities : list[FieldMap]
         List of the compensating cavities in which constraint must be
         evaluated.
-    ref_elts : ListOfElements
+    reference_elts : ListOfElements
         Reference list of elements, with reference (nominal) phi_s in
         particular.
 
@@ -85,7 +85,7 @@ def constraint_factory(preset: str,
     -------
     constraints : list[Constraint]
         List containing the `Constraint` objects.
-    compute_constraints : Callable[SimulationOutput, np.ndarray]
+    compute_constraints : Callable[[SimulationOutput], np.ndarray]
         Compute the constraint violation for a given `SimulationOutput`.
 
     """
@@ -96,8 +96,8 @@ def constraint_factory(preset: str,
         for cavity in compensating_cavities:
             kwargs = {
                 'preset': preset,
-                'ref_cav': equiv_elt(ref_elts, cavity),
-                'ref_elts': ref_elts,
+                'ref_cav': equiv_elt(reference_elts, cavity),
+                'reference_elts': reference_elts,
             }
             constraint = Constraint(name=var_name,
                                     cavity_name=str(cavity),
@@ -121,7 +121,7 @@ def objective_factory(names: list[str],
                       reference_simulation_output: SimulationOutput,
                       positions: list[str] | None = None,
                       ) -> tuple[list[Objective],
-                                 Callable[SimulationOutput, np.ndarray]]:
+                                 Callable[[SimulationOutput], np.ndarray]]:
     """Create the required `Objective` objects.
 
     Parameters
@@ -147,7 +147,7 @@ def objective_factory(names: list[str],
     -------
     objectives : list[Objective]
         A list of the `Objective` objects.
-    compute_residuals : Callable[SimulationOutput, np.ndarray]
+    compute_residuals : Callable[[SimulationOutput], np.ndarray]
         A function that takes in a `SimulationOutput` and returns the residues
         of every objective w.r.t the reference one.
 
@@ -185,12 +185,52 @@ def objective_factory(names: list[str],
     return objectives, compute_residuals
 
 
+def variable_constraint_objective_factory(
+    preset: str,
+    reference_simulation_output: SimulationOutput,
+    reference_elts: ListOfElements,
+    elements_eval_objective: ListOfElements,
+    compensating_cavities: list[FieldMap],
+    wtf: dict[str, list[str] | list[float] | str],
+    phi_abs: bool,
+) -> tuple[list[Variable],
+           Callable[[SimulationOutput], np.ndarray],
+           Callable[[SimulationOutput], np.ndarray]]:
+    """Shorthand to create necessary object in `Fault`."""
+    variable_names = ['phi_0_rel', 'k_e']
+    if phi_abs:
+        variable_names = ['phi_0_abs', 'k_e']
+    if wtf['phi_s fit']:
+        variable_names = ['phi_s', 'k_e']
+    global_compensation = 'global' in wtf['strategy']
+    variables = variable_factory(preset=preset,
+                                 variable_names=variable_names,
+                                 compensating_cavities=compensating_cavities,
+                                 reference_elts=reference_elts,
+                                 global_compensation=global_compensation)
+
+    _, compute_constraints = constraint_factory(
+        preset=preset,
+        constraint_names=['phi_s'],
+        compensating_cavities=compensating_cavities,
+        reference_elts=reference_elts)
+
+    _, compute_residuals = objective_factory(
+        names=wtf['objective'],
+        scales=wtf['scale objective'],
+        elements=elements_eval_objective,
+        reference_simulation_output=reference_simulation_output,
+        positions=None)
+
+    return variables, compute_constraints, compute_residuals
+
+
 # =============================================================================
 # Presets for variable limits
 # =============================================================================
 def _limits_k_e(preset: str | None = None,
                 ref_cav: FieldMap | None = None,
-                ref_elts: ListOfElements | None = None,
+                reference_elts: ListOfElements | None = None,
                 global_compensation: bool = False,
                 **kwargs
                 ) -> tuple[float | None]:
@@ -207,7 +247,7 @@ def _limits_k_e(preset: str | None = None,
         return (lower, upper)
 
     if preset == 'MYRRHA':
-        if ref_elts is None:
+        if reference_elts is None:
             logging.error("The reference ListOfElements is required for MYRRHA"
                           " preset.")
             return (None, None)
@@ -218,7 +258,7 @@ def _limits_k_e(preset: str | None = None,
         # Maximum: maximum of section + 30%
         this_section = ref_cav.idx['section']
         k_e_this_section = [cav.get('k_e', to_numpy=False)
-                            for cav in ref_elts
+                            for cav in reference_elts
                             if cav.idx['section'] == this_section]
         upper = np.nanmax(k_e_this_section) * 1.3
 

@@ -7,12 +7,11 @@ Created on Thu May 18 15:46:38 2023.
 
 This module holds the class `Fault`. Its purpose is to hold information on a
 cavity failure and to fix it.
+
 """
 import logging
 from collections.abc import Callable
 from functools import partial
-
-import numpy as np
 
 import config_manager as con
 
@@ -21,32 +20,64 @@ from core.list_of_elements import ListOfElements
 from core.list_of_elements_factory import (
     subset_of_pre_existing_list_of_elements
 )
-from core.accelerator import Accelerator
-
 from beam_calculation.output import SimulationOutput
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from optimisation.parameters.variable import Variable
-from optimisation.parameters.constraint import Constraint
-from optimisation.parameters.objective import Objective
-from optimisation.parameters.factories import (variable_factory,
-                                               constraint_factory,
-                                               objective_factory)
+from optimisation.parameters.factories import (
+    variable_constraint_objective_factory
+)
 
 from optimisation.algorithms.least_squares import LeastSquares
 from optimisation.algorithms.nsga import NSGA
 
 
 class Fault:
-    """To handle and fix a single Fault."""
+    """
+    To handle and fix a single failure.
+
+    Attributes
+    ----------
+    failed_cavities : list[FieldMap]
+        Holds the failed cavities.
+    compensating_cavities : list[FieldMap]
+        Holds the compensating cavities.
+    elts : ListOfElements
+        Holds the portion of the linac that will be computed again and again in
+        the optimisation process. It is as short as possible, but must contain
+        all `failed_cavities`, `compensating_cavities` and
+        `elt_eval_objectives`.
+    variables : list[Variable]
+        Holds information on the optimisation variables.
+
+    Methods
+    -------
+    compute_constraints : Callable[[SimulationOutput], np.ndarray] | None
+        Compute the constraint violation for a given `SimulationOutput`.
+    compute_residuals : Callable[[SimulationOutput], np.ndarray]
+        A function that takes in a `SimulationOutput` and returns the residues
+        of every objective w.r.t the reference one.
+    fix : Callable[[Callable], tuple[bool, SetOfCavitySettings, dict]]
+        Creates the `OptimisationAlgorithm` object and fix the fault. Needs the
+        `run_with_this` method from the proper `BeamCalculator` as argument.
+    update_cavities_status : Callable[[None], None]
+        Change the `status` of the cavities at the start and the end of the
+        optimisation process. Changing the cavities status can modify the
+        `FieldMap` objects. In particular, `k_e` is set to 0. when a cavity is
+        broken. Also updates the `.dat` file.
+    get_x_sol_in_real_phase : Callable[[None], None]
+        Set phi_0_abs or phi_0_rel from the given phi_s.
+
+    """
 
     def __init__(self,
-                 ref_acc: Accelerator,
-                 fix_acc: Accelerator,
+                 reference_elts: ListOfElements,
+                 reference_simulation_output: SimulationOutput,
+                 files_from_full_list_of_elements: dict[str, str | list[str]],
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
-                 failed_cav: list[FieldMap],
-                 comp_cav: list[FieldMap],
+                 failed_cavities: list[FieldMap],
+                 compensating_cavities: list[FieldMap],
                  elt_eval_objectives: list[_Element],
                  elts: list[_Element]
                  ) -> None:
@@ -55,61 +86,52 @@ class Fault:
 
         Parameters
         ----------
-        ref_acc : Accelerator
-            The reference `Accelerator` (nominal `Accelerator`).
-        fix_acc : Accelerator
-            The broken `Accelerator` to be fixed.
+        reference_elts : ListOfElements
+            `ListOfElements` from reference linac, holding in particular the
+            original cavity settings.
+        reference_simulation_output : SimulationOutput
+            Nominal simulation.
+        files_from_full_list_of_elements : dict
+            `files` attribute from the linac under fixing. Used to set
+            calculation paths.
         wtf : dict[str, str | int | bool | list[str] | list[float]]
             What To Fit dictionary. Holds information on the fixing method.
-        failed_cav : list[FieldMap]
+        failed_cavities : list[FieldMap]
             Holds the failed cavities.
-        comp_cav : list[FieldMap]
+        compensating_cavities : list[FieldMap]
             Holds the compensating cavities.
         elt_eval_objectives : list[_Element]
             `_Element`s at which exit objectives are evaluated.
         elts : list[_Element]
             Holds the portion of the linac that will be computed again and
             again in the optimisation process. It is as short as possible, but
-            must contain all `failed_cav`, `comp_cav` and
+            must contain all `failed_cavities`, `compensating_cavities` and
             `elt_eval_objectives`.
 
         """
-        self.ref_acc, self.fix_acc = ref_acc, fix_acc
-        self.wtf = wtf
-        self.failed_cav, self.comp_cav = failed_cav, comp_cav
-        self.elts = self._create_list_of_elements(elts)
-        self.elt_eval_objectives = elt_eval_objectives
+        self.failed_cavities = failed_cavities
+        self.compensating_cavities = compensating_cavities
 
-        self.fit_info = {
-            'X': [],                # Solution
-            'X_0': [],              # Initial guess
-            'X_lim': [],            # Bounds
-            'X_info': [],           # Name of variables for output
-            'X_in_real_phase': [],  # See get_x_sol_in_real_phase
-            'F': [],                # Final objective values
-            'hist_F': [],           # Objective evaluations
-            'F_info': [],           # Name of objectives for output
-            'G': [],                # Constraints
-            'resume': None,         # For output
-        }
-
-    def _create_list_of_elements(self, elts: list[_Element]) -> ListOfElements:
-        """
-        Create a `ListOfElements` object from a list of `_Element` objects.
-
-        We also use the `SimulationOutput` that was calculated with the first
-        solver, on the full linac `ListOfElements`.
-
-        """
-        first_solver = list(self.ref_acc.simulation_outputs.keys())[0]
-
-        simulation_output = self.ref_acc.simulation_outputs[first_solver]
-        files_from_full_list_of_elements = self.fix_acc.elts.files
-        elts = subset_of_pre_existing_list_of_elements(
+        self.elts: ListOfElements
+        self.elts = subset_of_pre_existing_list_of_elements(
             elts,
-            simulation_output,
-            files_from_full_list_of_elements)
-        return elts
+            reference_simulation_output,
+            files_from_full_list_of_elements,
+        )
+
+        variables, compute_constraints, compute_residuals = \
+            variable_constraint_objective_factory(
+                preset=con.LINAC,
+                reference_elts=reference_elts,
+                reference_simulation_output=reference_simulation_output,
+                elements_eval_objective=elt_eval_objectives,
+                compensating_cavities=self.compensating_cavities,
+                wtf=wtf,
+                phi_abs=con.FLAG_PHI_ABS
+            )
+        self.variables: list[Variable] = variables
+        self.compute_constraints = compute_constraints
+        self.compute_residuals = compute_residuals
 
     def fix(self, beam_calculator_run_with_this: Callable[
         [SetOfCavitySettings, ListOfElements], SimulationOutput]
@@ -133,32 +155,16 @@ class Fault:
             Useful information, such as the best solution.
 
         """
-        variables = self._set_variables()
-        constraints, compute_constraints = self._set_constraints()
-
-        solv1 = list(self.ref_acc.simulation_outputs.keys())[0]
-        reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
-
-        objectives: list[Objective]
-        objectives, compute_residuals = objective_factory(
-            names=self.wtf['objective'],
-            scales=self.wtf['scale objective'],
-            elements=self.elt_eval_objectives,
-            reference_simulation_output=reference_simulation_output,
-            positions=None)
-
         compute_beam_propagation = partial(beam_calculator_run_with_this,
                                            elts=self.elts)
 
         algorithm = LeastSquares(
             compute_beam_propagation=compute_beam_propagation,
-            compute_residuals=compute_residuals,
-            compensating_cavities=self.comp_cav,
-            variable_names=self.variable_names,
+            compute_residuals=self.compute_residuals,
+            compensating_cavities=self.compensating_cavities,
             elts=self.elts,
-            variables=variables,
-            constraints=constraints,
-            compute_constraints=compute_constraints,
+            variables=self.variables,
+            compute_constraints=self.compute_constraints,
         )
         success, optimized_cavity_settings, self.info = algorithm.optimise()
         return success, optimized_cavity_settings, self.info
@@ -172,9 +178,10 @@ class Fault:
             return
 
         if optimisation == 'not started':
-            cavities = self.failed_cav + self.comp_cav
-            status = ['failed' for cav in self.failed_cav]
-            status += ['compensate (in progress)' for cav in self.comp_cav]
+            cavities = self.failed_cavities + self.compensating_cavities
+            status = ['failed' for cav in self.failed_cavities]
+            status += ['compensate (in progress)'
+                       for cav in self.compensating_cavities]
 
             if {cav.get('status') for cav in cavities} != {'nominal'}:
                 logging.error("At least one compensating or failed cavity is "
@@ -185,7 +192,7 @@ class Fault:
         elif optimisation == 'finished':
             assert success is not None
 
-            cavities = self.comp_cav
+            cavities = self.compensating_cavities
             status = ['compensate (ok)' for cav in cavities]
             if not success:
                 status = ['compensate (not ok)' for cav in cavities]
@@ -194,58 +201,6 @@ class Fault:
             cav.update_status(stat)
         self.elts.store_settings_in_dat(self.elts.files['dat_filepath'],
                                         save=True)
-
-    def _set_variables(self) -> list[Variable]:
-        """
-        Set initial conditions and boundaries for the fit.
-
-        In the returned arrays, first half of components are initial phases
-        phi_0, while second half of components are norms.
-
-        Returns
-        -------
-        variables : list[Variable]
-            Holds variables, their initial values, their limits.
-
-        """
-        variable_names = ['phi_0_rel', 'k_e']
-        if con.FLAG_PHI_ABS:
-            variable_names = ['phi_0_abs', 'k_e']
-        if self.wtf['phi_s fit']:
-            variable_names = ['phi_s', 'k_e']
-
-        global_compensation = 'global' in self.wtf['strategy']
-        variables = variable_factory(preset=con.LINAC,
-                                     variable_names=variable_names,
-                                     compensating_cavities=self.comp_cav,
-                                     ref_elts=self.ref_acc.elts,
-                                     global_compensation=global_compensation)
-        # FIXME should not be initialized if not used
-        # FIXME not clean
-        self.variable_names = variable_names
-        return variables
-
-    def _set_constraints(
-        self
-    ) -> tuple[list[Constraint], Callable[[SimulationOutput], np.ndarray]]:
-        """
-        Set the constraints for the fit.
-
-        Returns
-        -------
-        constraints : list[Constraint]
-            List containing the `Constraint` objects.
-        compute_constraints : Callable[SimulationOutput, np.ndarray]
-            Compute the constraint violation for a given `SimulationOutput`.
-
-        """
-        constraint_names = ['phi_s']
-        constraints, compute_constraints = constraint_factory(
-            preset=con.LINAC,
-            constraint_names=constraint_names,
-            compensating_cavities=self.comp_cav,
-            ref_elts=self.ref_acc.elts)
-        return constraints, compute_constraints
 
     def get_x_sol_in_real_phase(self) -> None:
         """
@@ -265,7 +220,7 @@ class Fault:
         if con.FLAG_PHI_ABS:
             key = 'phi_0_abs'
 
-        for i, cav in enumerate(self.comp_cav):
+        for i, cav in enumerate(self.compensating_cavities):
             x_in_real_phase[i] = cav.acc_field.phi_0[key]
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase

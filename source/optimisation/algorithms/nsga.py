@@ -33,6 +33,10 @@ class NSGA(OptimisationAlgorithm):
 
     """
 
+    def __post_init__(self) -> None:
+        """Set additional information."""
+        self.supports_constraints = True
+
     def optimise(self) -> tuple[bool,
                                 SetOfCavitySettings,
                                 dict[str, list[float]]]:

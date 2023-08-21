@@ -65,10 +65,14 @@ class FaultScenario(list):
         self.info_other_sol = info_other_sol
         self.info = {}
 
+        solv1 = list(self.ref_acc.simulation_outputs.keys())[0]
+        reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
+
         gathered_fault_idx, gathered_comp_idx = \
             strategy.sort_and_gather_faults(fix_acc, wtf, fault_idx, comp_idx)
 
         faults = []
+        files_from_full_list_of_elements = fix_acc.elts.files
         for fault, comp in zip(gathered_fault_idx, gathered_comp_idx):
             elts_subset, objectives_positions = \
                 position.compensation_zone(fix_acc, wtf, fault, comp)
@@ -76,15 +80,16 @@ class FaultScenario(list):
             faulty_cavities = [fix_acc.l_cav[i] for i in fault]
             compensating_cavities = [fix_acc.l_cav[i] for i in comp]
 
-            faults.append(
-                Fault(ref_acc=self.ref_acc,
-                      fix_acc=self.fix_acc,
-                      wtf=self.wtf,
-                      failed_cav=faulty_cavities,
-                      comp_cav=compensating_cavities,
-                      elt_eval_objectives=objectives_positions,
-                      elts=elts_subset)
-            )
+            fault = Fault(
+                reference_elts=self.ref_acc.elts,
+                reference_simulation_output=reference_simulation_output,
+                files_from_full_list_of_elements=files_from_full_list_of_elements,
+                wtf=self.wtf,
+                failed_cavities=faulty_cavities,
+                compensating_cavities=compensating_cavities,
+                elt_eval_objectives=objectives_positions,
+                elts=elts_subset)
+            faults.append(fault)
         super().__init__(faults)
 
         if not con.FLAG_PHI_ABS:

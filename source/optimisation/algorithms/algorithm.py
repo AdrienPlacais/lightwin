@@ -26,7 +26,6 @@ from core.list_of_elements import ListOfElements
 from core.elements import FieldMap
 
 
-# TODO check if variable_names could be in variables_constraints?
 # TODO check if it is necessary to pass out the whole elts to
 # OptimisationAlgorithm?
 @dataclass
@@ -38,8 +37,6 @@ class OptimisationAlgorithm(ABC):
     ----------
     compensating_cavities : list[FieldMap]
         Cavity objects used to compensate for the faults.
-    variable_names : list[str]
-        Name of the variables.
     elts : ListOfElements
         Holds the whole compensation zone under study.
     solution : dict
@@ -71,7 +68,6 @@ class OptimisationAlgorithm(ABC):
     compute_beam_propagation: Callable[SetOfCavitySettings, SimulationOutput]
     compute_residuals: Callable[SimulationOutput, np.ndarray]
     compensating_cavities: list[FieldMap]
-    variable_names: list[str]
     elts: ListOfElements
     variables: list[Variable]
     constraints: list[Constraint] | None = None
@@ -80,6 +76,7 @@ class OptimisationAlgorithm(ABC):
     def __post_init__(self) -> None:
         """Set the output object."""
         self.solution: dict
+        self.supports_constraints: bool
 
     @abstractmethod
     def optimise(self) -> tuple[bool,
