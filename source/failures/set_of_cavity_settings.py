@@ -37,7 +37,7 @@ class SingleCavitySettings:
 
     def __post_init__(self):
         """Test that only one phase was given. Set `_tracewin_command attr`."""
-        if not self._is_valid_phase_input():
+        if not self._is_valid_phase_input:
             logging.error("You gave SingleCavitySettings several phases... "
                           "Which one should it take? Ignoring phases.")
             self.phi_0_abs = None
@@ -73,8 +73,7 @@ class SingleCavitySettings:
         phi_0_abs = self._tracewin_phi_0_abs(delta_phi_bunch)
         tracewin_command = single_cavity_settings_to_command(self.index,
                                                              phi_0_abs,
-                                                             self.k_e,
-                                                             abs_flag=True)
+                                                             self.k_e)
         return tracewin_command
 
     def has(self, key: str) -> bool:
@@ -114,7 +113,7 @@ class SingleCavitySettings:
             return False
         return True
 
-    def _tracewin_phi_0_abs(self, delta_phi_bunch: float = 0.) -> float:
+    def _tracewin_phi_0_abs(self, delta_phi_bunch: float) -> float:
         """
         Return the proper absolute entry phase of the cavity.
 
@@ -131,10 +130,10 @@ class SingleCavitySettings:
 
         Parameters
         ----------
-        delta_phi_bunch : float, optional
+        delta_phi_bunch : float
             Difference between the absolute entry phase of the `ListOfElements`
             under study and the entry phase of the `ListOfElements` for which
-            given phi_0_abs is valid. The default is 0.
+            given phi_0_abs is valid.
 
         Returns
         -------
