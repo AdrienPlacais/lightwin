@@ -176,7 +176,9 @@ class TraceWin(BeamCalculator):
         command, path_cal = self._tracewin_base_command(out_path, **kwargs)
         command.extend(elts.tracewin_command)
         if set_of_cavity_settings is not None:
-            command.extend(set_of_cavity_settings.tracewin_command)
+            command.extend(set_of_cavity_settings.tracewin_command(
+                delta_phi_bunch=elts.input_particle.phi_abs
+            ))
         return command, path_cal
 
     # TODO what is specific_kwargs for? I should just have a function
@@ -244,10 +246,13 @@ class TraceWin(BeamCalculator):
                 continue
             rf_fields.append({})
 
-        command, path_cal = self._tracewin_full_command(elts,
-                                                        set_of_cavity_settings,
-                                                        **specific_kwargs)
+        command, path_cal = self._tracewin_full_command(
+            elts,
+            set_of_cavity_settings,
+            **specific_kwargs)
         is_a_fit = set_of_cavity_settings is not None
+        if is_a_fit:
+            logging.error(command)
         exception = _run_in_bash(command, output_command=not is_a_fit)
 
         simulation_output = self._generate_simulation_output(elts, path_cal,

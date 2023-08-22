@@ -43,7 +43,6 @@ class SingleCavitySettings:
             self.phi_0_abs = None
             self.phi_0_rel = None
             self.phi_s = None
-        self._tracewin_command: list[str] | None = None
 
     def update_to_full_list_of_elements(self,
                                         delta_phi_rf: float,
@@ -69,28 +68,14 @@ class SingleCavitySettings:
             self.phi_0_abs = phi_0_abs_with_new_phase_reference(self.phi_0_abs,
                                                                 delta_phi_rf)
 
-    @property
-    def tracewin_command(self):
+    def tracewin_command(self, delta_phi_bunch: float = 0.) -> list[str]:
         """Call the function from `tracewin_utils` to modify TraceWin call."""
-        if self._tracewin_command is None:
-            abs_flag = None
-            if self.phi_0_rel is not None:
-                logging.warning("Relative phase in command line for TW not "
-                                "validated yet.")
-                abs_flag = 0
-            phi = next(phase for phase in [self.phi_0_abs, self.phi_0_rel,
-                                           self.phi_s]
-                       if phase is not None)
-            self._tracewin_command = single_cavity_settings_to_command(
-                self.index,
-                phi,
-                self.k_e,
-                abs_flag
-            )
-            if self.phi_s is not None:
-                logging.error("Synchronous phase in command line for TW not "
-                              "implemented.")
-        return self._tracewin_command
+        phi_0_abs = self._tracewin_phi_0_abs(delta_phi_bunch)
+        tracewin_command = single_cavity_settings_to_command(self.index,
+                                                             phi_0_abs,
+                                                             self.k_e,
+                                                             abs_flag=True)
+        return tracewin_command
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -119,6 +104,7 @@ class SingleCavitySettings:
 
         return tuple(out)
 
+    @property
     def _is_valid_phase_input(self) -> bool:
         """Assert that no more than one phase was given as input."""
         phases = [self.phi_0_abs, self.phi_0_rel, self.phi_s]
@@ -127,6 +113,49 @@ class SingleCavitySettings:
         if number_of_given_phases > 1:
             return False
         return True
+
+    def _tracewin_phi_0_abs(self, delta_phi_bunch: float = 0.) -> float:
+        """
+        Return the proper absolute entry phase of the cavity.
+
+        The attribute `self.phi_0_abs` is only valid if the beam has a null
+        absolute phase at the entry of the linac. When working with `TraceWin`,
+        the beam has an absolute phase at the entry of the compensation zone.
+        Hence we compute the new `phi_0_abs` that will be properly taken into
+        account.
+
+        Three figure cases, according to the nature of the input:
+            - phi_0_rel
+            - phi_0_abs (phi_abs = 0. at entry of `ListOfElements`)
+            - phi_s
+
+        Parameters
+        ----------
+        delta_phi_bunch : float, optional
+            Difference between the absolute entry phase of the `ListOfElements`
+            under study and the entry phase of the `ListOfElements` for which
+            given phi_0_abs is valid. The default is 0.
+
+        Returns
+        -------
+        phi_0 : float
+            New absolute phase.
+
+        """
+        if not self._is_valid_phase_input:
+            logging.error("More than one phase was given.")
+
+        if self.phi_0_abs is not None:
+            phi_0_abs = phi_0_abs_with_new_phase_reference(
+                self.phi_0_abs,
+                delta_phi_bunch * self.cavity.acc_field.n_cell)
+            return phi_0_abs
+
+        if self.phi_0_rel is not None:
+            raise NotImplementedError
+
+        if self.phi_s is not None:
+            raise NotImplementedError
 
 
 @dataclass
@@ -137,7 +166,6 @@ class SetOfCavitySettings(dict[FieldMap, SingleCavitySettings]):
     """
 
     __cavity_settings: list[SingleCavitySettings]
-    _tracewin_command: list[str] | None = None
 
     def __post_init__(self):
         """Create the proper dictionary."""
@@ -145,14 +173,14 @@ class SetOfCavitySettings(dict[FieldMap, SingleCavitySettings]):
                   for single_setting in self.__cavity_settings}
         super().__init__(my_set)
 
-    @property
-    def tracewin_command(self):
+    def tracewin_command(self, delta_phi_bunch = 0.):
         """Set TraceWin command modifier for current settings."""
-        if self._tracewin_command is None:
-            self._tracewin_command = []
-            for settings in self.values():
-                self._tracewin_command.extend(settings.tracewin_command)
-        return self._tracewin_command
+        _tracewin_command = []
+        for settings in self.values():
+            _tracewin_command.extend(
+                settings.tracewin_command(delta_phi_bunch=delta_phi_bunch)
+            )
+        return _tracewin_command
 
     def update_to_full_list_of_elements(self) -> None:
         """Update all the `SingleCavitySettings` after optimisation with TW."""
