@@ -157,8 +157,8 @@ class FaultScenario(list):
         """
         logging.warning(
             "The phases in the broken linac are relative. It may be more "
-            + "relatable to use absolute phases, as it would avoid the "
-            + "rephasing of the linac at each cavity.")
+            "relatable to use absolute phases, as it would avoid the rephasing"
+            " of the linac at each cavity.")
         cavities = self.fix_acc.l_cav
         first_failed_cavity = self[0].failed_cav[0]
         first_failed_index = cavities.index(first_failed_cavity)
