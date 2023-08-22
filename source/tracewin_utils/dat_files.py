@@ -120,12 +120,8 @@ def update_field_maps_in_dat(
     """
     Create a new dat with given elements and settings.
 
-    Before an optimisation:
-        amplitudes of failed cavities are set to 0
-        absolute phases are modified if the first `_Element` is not the first
-        of the linac
-    After an optimisation:
-        amplitudes, phases have their new settings
+    In constrary to `dat_filecontent_from_smaller_list_of_elements`, does not
+    modify the number of `_Element`s in the .dat.
 
     """
     idx_elt = 0
@@ -152,45 +148,16 @@ def update_field_maps_in_dat(
         idx_elt += 1
 
 
-def update_dat_with_fixed_cavities(elts: ListOfElements) -> None:
-    """Create a new dat with updated cavity phase and amplitude."""
-    idx_elt = 0
-
-    phi = {
-        True: lambda elt: str(elt.get('phi_0_abs', to_deg=True)),
-        False: lambda elt: str(elt.get('phi_0_rel', to_deg=True)),
-    }
-
-    dat_filecontent, field_map_folder = elts.get('dat_content',
-                                                 'field_map_folder',
-                                                 to_numpy=False)
-    for line in dat_filecontent:
-        if line[0] in TO_BE_IMPLEMENTED or line[0] in NOT_AN_ELEMENT:
-            continue
-
-        if line[0] == 'FIELD_MAP':
-            elt = elts[idx_elt]
-            line[3] = phi[con.FLAG_PHI_ABS](elt)
-            line[6] = str(elt.get('k_e'))
-            # '1' if True, '0' if False
-            line[10] = str(int(con.FLAG_PHI_ABS))
-
-        elif line[0] == 'FIELD_MAP_PATH':
-            line[1] = field_map_folder
-            continue
-
-        idx_elt += 1
-
-
 def dat_filecontent_from_smaller_list_of_elements(
         dat_filecontent: list[list[str]],
         elts: list[_Element],
-        delta_phi_bunch: float = 0.,
 ) -> list[list[str]]:
     """
     Create a new `.dat` containing only the `_Element`s of `elts`.
 
-    Properties of the FIELD_MAP, i.e. amplitude and phase, remain untouched.
+    Properties of the FIELD_MAP, i.e. amplitude and phase, remain untouched, as
+    it is the job of `update_field_maps_in_dat`.
+
     """
     idx_elt = 0
     indexes_to_keep = [elt.get('elt_idx', to_numpy=False)
@@ -225,4 +192,4 @@ def save_dat_filecontent_to_dat(dat_content: list[list[str]],
     with open(dat_path, 'w', encoding='utf-8') as file:
         for line in dat_content:
             file.write(' '.join(line) + '\n')
-    logging.critical(f"New dat saved in {dat_path}.")
+    logging.info(f"New dat saved in {dat_path}.")

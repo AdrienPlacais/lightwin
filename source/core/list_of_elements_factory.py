@@ -204,23 +204,17 @@ def subset_of_pre_existing_list_of_elements(
               'to_numpy': False,
               'phase_space': None}
     input_particle = _subset_input_particle(simulation_output, **kwargs)
-
-    # input_beam: BeamParameters = simulation_output.beam_parameters.subset(
-    #     *('x', 'y', 'z', 'zdelta'), **kwargs)
     input_beam: BeamParameters = _subset_beam_parameters(simulation_output,
                                                          **kwargs)
 
-    phase_info = {
-        'update_phi_0_abs_to_keep_same_phi_0_rel': True,
-        'old_phi_in': 0.,
-        'new_phi_in': input_particle.phi_abs
-    }
     logging.warning("The `phase_info` dict, which handles how and if cavities "
                     "are rephased in the `.dat` file, is hard-coded. It should"
                     " take config_manager.PHI_ABS_FLAG as input.")
 
-    files = _subset_files_dictionary(elts, files_from_full_list_of_elements,
-                                     **phase_info)
+    files = _subset_files_dictionary(
+        elts,
+        files_from_full_list_of_elements,
+    )
 
     list_of_elements = ListOfElements(elts=elts,
                                       input_particle=input_particle,
@@ -236,28 +230,15 @@ def _subset_files_dictionary(
     files_from_full_list_of_elements: dict[str, str | list[list[str]]],
     tmp_folder: str = 'tmp',
     tmp_dat: str = 'tmp.dat',
-    **phase_info: bool | float,
 ) -> dict[str, str | list[list[str]]]:
-    """
-    Set the new `.dat` file as well as field map folder.
-
-    For that we call the function
-    `dat_filecontent_from_smaller_list_of_elements`.
-
-    Absolute phi_0 of cavities can be changed in the process; it is True in
-    particular when the new `ListOfElements` does not start at the very first
-    _Element of the linac, the caalculations are led in relative phase and
-    TraceWin is used for beam calculation. It is handled by the `phase_info`
-    `kwargs`.
-
-    """
+    """Set the new `.dat` file containing only `_Element` of `elts`."""
     dirname = files_from_full_list_of_elements['out_path']
     dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
 
     dat_content = dat_filecontent_from_smaller_list_of_elements(
         files_from_full_list_of_elements['dat_content'],
         elts,
-        **phase_info)
+    )
 
     field_map_folder = files_from_full_list_of_elements['field_map_folder']
 
@@ -269,6 +250,20 @@ def _subset_files_dictionary(
     os.mkdir(os.path.join(dirname, tmp_folder))
     save_dat_filecontent_to_dat(dat_content, dat_filepath)
     return files
+
+
+def _delta_phi_for_tracewin(phi_at_entry_of_compensation_zone: float) -> float:
+    """
+    Give new absolute phases for `TraceWin`.
+
+    In `TraceWin`, the absolute phase at the entrance of the compensation zone
+    is 0, while it is not in the rest of the code. Hence we must rephase the
+    cavities in the subset.
+
+    """
+    phi_at_linac_entry = 0.
+    delta_phi_bunch = phi_at_entry_of_compensation_zone - phi_at_linac_entry
+    return delta_phi_bunch
 
 
 def _get_initial_element(elts: list[_Element],
