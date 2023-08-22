@@ -111,6 +111,47 @@ def give_name(elts: list[_Element]) -> None:
             elt.elt_info['elt_name'] = value + str(i)
 
 
+def update_field_maps_in_dat(
+    elts: ListOfElements,
+    new_phases: dict[_Element, float],
+    new_k_e: dict[_Element, float],
+    new_abs_phase_flag: dict[_Element, float]
+) -> None:
+    """
+    Create a new dat with given elements and settings.
+
+    Before an optimisation:
+        amplitudes of failed cavities are set to 0
+        absolute phases are modified if the first `_Element` is not the first
+        of the linac
+    After an optimisation:
+        amplitudes, phases have their new settings
+
+    """
+    idx_elt = 0
+    dat_filecontent, field_map_folder = elts.get('dat_content',
+                                                 'field_map_folder',
+                                                 to_numpy=False)
+    for line in dat_filecontent:
+        if line[0] in TO_BE_IMPLEMENTED or line[0] in NOT_AN_ELEMENT:
+            continue
+
+        if line[0] == 'FIELD_MAP_PATH':
+            line[1] = field_map_folder
+            continue
+
+        if line[0] == 'FIELD_MAP':
+            elt = elts[idx_elt]
+            if elt in new_phases:
+                line[3] = str(np.rad2deg(new_phases[elt]))
+            if elt in new_k_e:
+                line[6] = str(new_k_e[elt])
+            if elt in new_abs_phase_flag:
+                line[10] = str(new_abs_phase_flag[elt])
+
+        idx_elt += 1
+
+
 def update_dat_with_fixed_cavities(elts: ListOfElements) -> None:
     """Create a new dat with updated cavity phase and amplitude."""
     idx_elt = 0
@@ -144,11 +185,13 @@ def update_dat_with_fixed_cavities(elts: ListOfElements) -> None:
 def dat_filecontent_from_smaller_list_of_elements(
         dat_filecontent: list[list[str]],
         elts: list[_Element],
-        update_phi_0_abs_to_keep_same_phi_0_rel: bool = True,
-        old_phi_in: float | None = None,
-        new_phi_in: float | None = None,
+        delta_phi_bunch: float = 0.,
 ) -> list[list[str]]:
-    """Create a new `.dat` containing only the `_Element`s of `elts`."""
+    """
+    Create a new `.dat` containing only the `_Element`s of `elts`.
+
+    Properties of the FIELD_MAP, i.e. amplitude and phase, remain untouched.
+    """
     idx_elt = 0
     indexes_to_keep = [elt.get('elt_idx', to_numpy=False)
                        for elt in elts]
@@ -161,16 +204,6 @@ def dat_filecontent_from_smaller_list_of_elements(
         if idx_elt in indexes_to_keep:
             smaller_dat_filecontent.append(line.copy())
 
-            if line[0] == 'FIELD_MAP' \
-                    and update_phi_0_abs_to_keep_same_phi_0_rel:
-                idx_in_elts_referential = idx_elt - indexes_to_keep[0]
-                acc_field = elts[idx_in_elts_referential].acc_field
-                new_phi_0 = str(np.rad2deg(
-                    acc_field.update_phi_0_abs_to_adapt_to_new_ref_phase(
-                        old_phi_in,
-                        new_phi_in,
-                        phases_are_bunch=True)))
-                smaller_dat_filecontent[-1][3] = new_phi_0
         idx_elt += 1
 
     smaller_dat_filecontent = _remove_empty_lattices(smaller_dat_filecontent)
@@ -186,10 +219,10 @@ def _remove_empty_lattices(dat_filecontent: list[list[str]]
     return dat_filecontent
 
 
-def save_dat_filecontent_to_dat(dat_filecontent: list[list[str]],
-                                dat_filepath: str) -> None:
+def save_dat_filecontent_to_dat(dat_content: list[list[str]],
+                                dat_path: str) -> None:
     """Save the content of the updated dat to a `.dat`."""
-    with open(dat_filepath, 'w', encoding='utf-8') as file:
-        for line in dat_filecontent:
+    with open(dat_path, 'w', encoding='utf-8') as file:
+        for line in dat_content:
             file.write(' '.join(line) + '\n')
-    logging.info(f"New dat saved in {dat_filepath}.")
+    logging.critical(f"New dat saved in {dat_path}.")

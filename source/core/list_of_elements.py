@@ -21,13 +21,18 @@ from functools import partial
 import numpy as np
 
 import config_manager
-from core.elements import _Element, Freq, Lattice
+
+from core.elements import _Element, Freq, Lattice, FieldMap
 from core.beam_parameters import BeamParameters
 from core.particle import ParticleInitialState
+from core.electric_field import phi_0_abs_with_new_phase_reference
+
 from tracewin_utils.dat_files import (give_name,
                                       update_dat_with_fixed_cavities,
+                                      update_field_maps_in_dat,
                                       save_dat_filecontent_to_dat)
 from tracewin_utils.interface import list_of_elements_to_command
+
 from util.helper import recursive_items, recursive_getter
 
 
@@ -264,16 +269,63 @@ class ListOfElements(list):
                 for elt in lattice:
                     elt.acc_field.set_pulsation_ncell(f_mhz, n_cells)
 
-    def store_settings_in_dat(self, dat_filepath: str, save: bool = True
+    def store_settings_in_dat(self,
+                              dat_filepath: str,
+                              save: bool = True
                               ) -> None:
         """Update the dat file, save it if asked."""
-        update_dat_with_fixed_cavities(self)
+        update_field_maps_in_dat(
+            self,
+            new_phases=self._stored_phi_0_abs_rephased,
+            new_k_e=self._stored_k_e,
+            new_abs_phase_flag=self._stored_abs_phase_flag)
+
+        # update_dat_with_fixed_cavities(self)
         if not save:
             return
 
         self.files['dat_filepath'] = dat_filepath
         save_dat_filecontent_to_dat(self.get('dat_content', to_numpy=False),
                                     dat_filepath)
+
+    @property
+    def _stored_k_e(self) -> dict[FieldMap, float]:
+        """Get the `k_e` properties from `_Element`s of `self`."""
+        k_e = {cavity: cavity.get('k_e') for cavity in self.l_cav}
+        return k_e
+
+    @property
+    def _stored_abs_phase_flag(self) -> dict[FieldMap, float]:
+        """Get the `abs_phase` flags from `_Element`s of `self`."""
+        logging.warning("default abs phase stored in dat")
+        abs_phase_flag = {cavity: 1 for cavity in self.l_cav}
+        return abs_phase_flag
+
+    @property
+    def _stored_phi_0_abs(self):
+        """Return the `phi_0_abs` properties from `self`."""
+        phi_0_abs = {cavity: cavity.get('phi_0_abs') for cavity in self.l_cav}
+        return phi_0_abs
+
+    @property
+    def _stored_phi_0_abs_rephased(self):
+        """
+        Return the `phi_0_abs` properties from `self`, rephased w.r.t `phi_in`.
+
+        Necessary for `TraceWin` and used in `.dat` files.
+        Would mess with `Envelope1D`, do not use it to update `acc_field` from
+        `FieldMap`.
+
+        """
+        delta_phi_bunch = self.input_particle.phi_abs
+        phi_0_abs_rephased = {
+            cavity: phi_0_abs_with_new_phase_reference(
+                phi_0_abs,
+                delta_phi_bunch * cavity.acc_field.n_cell
+            )
+            for cavity, phi_0_abs in self._stored_phi_0_abs.items()
+        }
+        return phi_0_abs_rephased
 
 
 def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
