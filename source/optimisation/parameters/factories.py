@@ -284,7 +284,7 @@ def _limits_k_e(preset: str | None = None,
 
 def _limits_phi_0(**kwargs) -> tuple[float | None]:
     """Limits for the relative or absolute cavity phase."""
-    return (0, 4 * np.pi)
+    return (-2. * np.pi, 2 * np.pi)
 
 
 def _limits_phi_s(**kwargs) -> tuple[float | None]:
