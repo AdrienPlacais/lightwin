@@ -315,16 +315,29 @@ def variable_factory_fm4(preset: str,
                          global_compensation: bool = False,
                          ) -> list[Variable]:
     """Create the necessary `Variable` objects."""
-    tol = 1e-2
+    # tol = 1e0
     logging.warning("`Variable`s manually set to ease convergence.")
     variables = []
 
     for var_name in variable_names:
         initial_value_calculator = INITIAL_VALUE_FM4[var_name]
+        limits_calculator = LIMITS_CALCULATORS[var_name]
 
         for cavity in compensating_cavities:
             x_0 = initial_value_calculator[str(cavity)]
-            limits = (x_0 - tol, x_0 + tol)
+
+            # limits = (x_0 - tol, x_0 + tol)
+
+            ref_cav = equiv_elt(reference_elts, cavity)
+            kwargs = {
+                'preset': preset,
+                'ref_cav': ref_cav,
+                'reference_elts': reference_elts,
+                'global_compensation': global_compensation,
+            }
+
+            limits = limits_calculator(**kwargs)
+
             variable = Variable(name=var_name,
                                 cavity_name=str(cavity),
                                 x_0=x_0,

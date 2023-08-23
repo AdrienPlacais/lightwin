@@ -80,13 +80,13 @@ if __name__ == '__main__':
     MY_KEYS = {
         'files': 'files',
         'plots': 'plots.complete',
-        'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
-        # 'beam_calculator': 'beam_calculator.tracewin.envelope',
+        # 'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
+        'beam_calculator': 'beam_calculator.tracewin.envelope',
         'beam': 'beam',
         # 'wtf': 'wtf.for_tracewin',
         'wtf': 'wtf.k_out_of_n',
         # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
-        # 'evaluators': 'evaluators.bruce',
+        # 'evaluators': 'evaluators.fred',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
@@ -180,5 +180,6 @@ if __name__ == '__main__':
 
     # simulation_output_evaluators.run(*tuple(s_to_study))
     # %%
-    loe = accelerators[0].elts
-    cmd = loe.tracewin_command
+    a = fault_scenario[0].algorithm_instance
+    s = accelerators[1].simulation_outputs[solv1]
+    a.compute_constraints(s)

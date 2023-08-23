@@ -54,16 +54,14 @@ class LeastSquares(OptimisationAlgorithm):
                   # 'trf' not ideal as jac is not sparse. 'dogbox' may have
                   # difficulties with rank-defficient jacobian.
                   'method': 'dogbox',
-                  'ftol': 1e-8, 'gtol': 1e-8,   # Default
-                  # Solver is sometimes 'lazy' and ends with xtol
-                  # termination condition, while settings are clearly not
-                  #  optimized
+                  'ftol': 1e-10,
+                  'gtol': 1e-8,
                   'xtol': 1e-8,
                   # 'x_scale': 'jac',
                   # 'loss': 'arctan',
                   'diff_step': None, 'tr_solver': None, 'tr_options': {},
                   'jac_sparsity': None,
-                  'verbose': 0,
+                  'verbose': 2,
                   }
 
         x_0, bounds = self._format_variables_and_constraints()

@@ -11,6 +11,7 @@ Abstract methods are mandatory and a TypeError will be raised if you try to
 create your own algorithm and omit them.
 
 """
+import logging
 from typing import Callable, Any
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
@@ -114,6 +115,7 @@ class OptimisationAlgorithm(ABC):
         cav_settings = self._create_set_of_cavity_settings(var)
         simulation_output = self.compute_beam_propagation(cav_settings)
         residuals = self.compute_residuals(simulation_output=simulation_output)
+        # logging.warning(f"{var = }\n{residuals = }")
         return residuals
 
     @abstractmethod

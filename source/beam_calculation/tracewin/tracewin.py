@@ -200,7 +200,8 @@ class TraceWin(BeamCalculator):
                                   **specific_kwargs)
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
-                      elts: ListOfElements, **specific_kwargs
+                      elts: ListOfElements,
+                      **specific_kwargs
                       ) -> SimulationOutput:
         """
         Perform a simulation with new cavity settings.
@@ -212,7 +213,7 @@ class TraceWin(BeamCalculator):
         ----------
         set_of_cavity_settings : SetOfCavitySettings | None
             Holds the norms and phases of the compensating cavities.
-        elts: ListOfElements
+        elts : ListOfElements
             List of elements in which the beam should be propagated.
 
         Returns
@@ -251,8 +252,6 @@ class TraceWin(BeamCalculator):
             set_of_cavity_settings,
             **specific_kwargs)
         is_a_fit = set_of_cavity_settings is not None
-        if is_a_fit:
-            logging.error(command)
         exception = _run_in_bash(command, output_command=not is_a_fit)
 
         simulation_output = self._generate_simulation_output(elts, path_cal,
@@ -278,8 +277,21 @@ class TraceWin(BeamCalculator):
 
         Note that at this point, the .dat has not been updated yet.
 
+        Parameters
+        ----------
+        optimized_cavity_settings : SetOfCavitySettings
+            Optimized parameters.
+        full_elts : ListOfElements
+            Contains the full linac.
+
+        Returns
+        -------
+        simulation_output : SimulationOutput
+            Necessary information on the run.
+
         """
-        optimized_cavity_settings.update_to_full_list_of_elements()
+        # optimized_cavity_settings.update_to_full_list_of_elements()
+        optimized_cavity_settings.re_set_elements_index_to_absolute_value()
         full_elts.store_settings_in_dat(full_elts.files['dat_filepath'])
 
         simulation_output = self.run_with_this(optimized_cavity_settings,

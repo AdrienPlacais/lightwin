@@ -53,4 +53,4 @@ class LeastSquaresPenalty(LeastSquares):
         n_violated = violated_constraints.shape[0]
         if n_violated == 0:
             return 1.
-        return 1. + np.sum(n_violated)
+        return 1. + np.sum(n_violated) * 10.
