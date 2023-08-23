@@ -34,6 +34,7 @@ from optimisation.parameters.factories import (
 from optimisation.algorithms.least_squares import LeastSquares
 from optimisation.algorithms.least_squares_penalty import LeastSquaresPenalty
 from optimisation.algorithms.nsga import NSGA
+from optimisation.algorithms.downhill_simplex import DownhillSimplex
 
 
 class Fault:
@@ -142,7 +143,11 @@ class Fault:
         algorithms = {
             'least_squares': LeastSquares,
             'least_squares_penalty': LeastSquaresPenalty,
-            'nsga': NSGA}
+            'nsga': NSGA,
+            'downhill_simplex': DownhillSimplex,
+            'nelder_mead': DownhillSimplex,
+            'experimental': DownhillSimplex,
+        }
         self._algorithm_class = algorithms[wtf['opti method']]
 
     def fix(self, beam_calculator_run_with_this: Callable[

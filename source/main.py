@@ -179,7 +179,3 @@ if __name__ == '__main__':
     #         ref_simulation_output=ref_s)
 
     # simulation_output_evaluators.run(*tuple(s_to_study))
-    # %%
-    a = fault_scenario[0].algorithm_instance
-    s = accelerators[1].simulation_outputs[solv1]
-    a.compute_constraints(s)

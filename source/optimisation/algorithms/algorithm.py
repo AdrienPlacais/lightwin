@@ -115,8 +115,11 @@ class OptimisationAlgorithm(ABC):
         cav_settings = self._create_set_of_cavity_settings(var)
         simulation_output = self.compute_beam_propagation(cav_settings)
         residuals = self.compute_residuals(simulation_output=simulation_output)
-        # logging.warning(f"{var = }\n{residuals = }")
         return residuals
+
+    def _norm_wrapper_residuals(self, var: np.ndarray) -> float:
+        """Compute norm of residues vector from an array of variable values."""
+        return np.linalg.norm(self._wrapper_residuals(var))
 
     @abstractmethod
     def _create_set_of_cavity_settings(self, var: Any) -> SetOfCavitySettings:
