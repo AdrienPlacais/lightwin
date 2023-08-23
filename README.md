@@ -31,6 +31,6 @@ TODO
 TODO : file from TW?
 
 ## Documentation
-To generate an interactive documentation, you must ensure that you have the packages `sphinx` and `sphinx_rtd_theme` (see `INSTALL.md` for packages installation).
+To generate an interactive documentation, you must ensure that you have the packages `sphinx`, `sphinx_rtd_theme` and `myst-parser` (see `INSTALL.md` for packages installation).
 Go to the `LightWin/docs` folder and run: `make html`.
 On Windows, `make.bat html` should do the trick (untested).
