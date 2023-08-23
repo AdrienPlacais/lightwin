@@ -20,12 +20,16 @@ release = '3.0.1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx_rtd_theme",
-    "sphinx.ext.todo",
-    "sphinx.ext.viewcode",
-    "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
+    "sphinx.ext.autodoc",
+    "sphinx_rtd_theme",
+    "myst_parser",
+    "sphinx.ext.todo",
+    # "sphinx.ext.viewcode",
 ]
+add_module_names = False
+default_role = 'literal'
+todo_include_todos = True
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'experimental']
