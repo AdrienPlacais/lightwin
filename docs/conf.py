@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath("../source/"))
 project = 'LightWin'
 copyright = '2023, A. Plaçais, F. Bouly'
 author = 'A. Plaçais, F. Bouly'
-release = '3.0.1'
+release = '3.1.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
