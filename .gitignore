@@ -1,6 +1,8 @@
 __pycache__/
 *.py[cod]
 
+doc/_build/
+
 archives/
 data/*
 source/build/
@@ -19,6 +21,7 @@ source/untitled*.py
 *.prof
 *.so
 *.swp
+*.swo
 
 !data/full_energy_and_MT.txt
 !data/Vcav_and_phis.txt
