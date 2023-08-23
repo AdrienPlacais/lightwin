@@ -31,7 +31,6 @@ templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'experimental']
 
 
-
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
@@ -40,3 +39,10 @@ html_theme_options = {
     "display_version": True,
 }
 html_static_path = ['_static']
+
+
+# -- Options for LaTeX output ------------------------------------------------
+# https://stackoverflow.com/questions/28454217/how-to-avoid-the-too-deeply-nested-error-when-creating-pdfs-with-sphinx
+latex_elements = {
+    'preamble': r'\usepackage{enumitem}\setlistdepth{99}'
+}
