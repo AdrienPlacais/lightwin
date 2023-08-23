@@ -290,7 +290,6 @@ class TraceWin(BeamCalculator):
             Necessary information on the run.
 
         """
-        # optimized_cavity_settings.update_to_full_list_of_elements()
         optimized_cavity_settings.re_set_elements_index_to_absolute_value()
         full_elts.store_settings_in_dat(full_elts.files['dat_filepath'])
 

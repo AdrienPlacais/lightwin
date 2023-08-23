@@ -55,30 +55,6 @@ class SingleCavitySettings:
         """
         self.index = self.cavity.get('elt_idx', to_numpy=False)
 
-    def update_to_full_list_of_elements(self,
-                                        delta_phi_rf: float,
-                                        ) -> None:
-        """
-        Rephase the cavity, change its index.
-
-        When switching from a sub-`ListOfElements` during the optimisation
-        process to the full `ListOfElements` after the optimisation, we must
-        take care of two things when using TraceWin:
-            - index `n` in the `ele[n][v]]` command must be updated;
-            - abs phase must de-de-phased and expressed w.r.t. to the absolute
-            phase of the full `ListOfElements` (not the absolute phase of the
-            sub-`ListOfElements`).
-
-        If we made a simulation with relative phases, we have nothing to
-        change.
-
-        """
-        self.index = self.cavity.get('elt_idx', to_numpy=False)
-
-        if self.phi_0_abs is not None:
-            self.phi_0_abs = phi_0_abs_with_new_phase_reference(self.phi_0_abs,
-                                                                delta_phi_rf)
-
     def tracewin_command(self, delta_phi_bunch: float = 0.) -> list[str]:
         """Call the function from `tracewin_utils` to modify TraceWin call."""
         phi_0_abs = self._tracewin_phi_0_abs(delta_phi_bunch)
@@ -183,7 +159,7 @@ class SetOfCavitySettings(dict[FieldMap, SingleCavitySettings]):
                   for single_setting in self.__cavity_settings}
         super().__init__(my_set)
 
-    def tracewin_command(self, delta_phi_bunch = 0.):
+    def tracewin_command(self, delta_phi_bunch: float = 0.) -> list[str]:
         """Set TraceWin command modifier for current settings."""
         _tracewin_command = []
         for settings in self.values():
@@ -191,16 +167,6 @@ class SetOfCavitySettings(dict[FieldMap, SingleCavitySettings]):
                 settings.tracewin_command(delta_phi_bunch=delta_phi_bunch)
             )
         return _tracewin_command
-
-    # ??? not needed in reality as phases are defined with proper ref in
-    # SetOfCavitySettings
-    def update_to_full_list_of_elements(self) -> None:
-        """Update all the `SingleCavitySettings` after optimisation with TW."""
-        for cavity, setting in self.items():
-            new_phi_in = 0. * cavity.acc_field.n_cell
-            old_phi_in = cavity.acc_field.phi_0['new_reference_phase']
-            delta_phi_rf = new_phi_in - old_phi_in
-            setting.update_to_full_list_of_elements(delta_phi_rf)
 
     def re_set_elements_index_to_absolute_value(self) -> None:
         """Update cavities index to properly set `ele[n][v]` commands."""
