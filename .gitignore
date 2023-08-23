@@ -162,6 +162,7 @@ cython_debug/
 # LightWin
 archives/
 data/
+images/
 source/build/
 source/untitled*.py
 # *.ini_******
