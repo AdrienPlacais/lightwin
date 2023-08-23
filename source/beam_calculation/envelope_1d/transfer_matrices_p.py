@@ -31,6 +31,7 @@ def e_func(z, e_spat, phi, phi_0):
     Give the electric field at position z and phase phi.
 
     The field is normalized and should be multiplied by k_e.
+
     """
     return e_spat(z) * np.cos(phi + phi_0)
 
@@ -61,6 +62,7 @@ def rk4(u, du, x, dx):
     ------
     delta_u : real
         Variation of u between x and x+dx.
+
     """
     half_dx = .5 * dx
     k_1 = du(x, u)
@@ -115,22 +117,23 @@ def z_field_map_rk4(d_z: float, gamma_in: float, n_steps: int,
     gamma_phi[0, 1] = 0.
 
     # Define the motion function to integrate
-    def du(z, u):
+    def du(z: float, u: np.ndarray) -> np.ndarray:
         """
         Compute variation of energy and phase.
 
         Parameters
         ----------
-        z : real
+        z : float
             Position where variation is calculated.
-        u : np.array
+        u : np.ndarray
             First component is gamma. Second is phase in rad.
 
         Return
         ------
-        v : np.array
+        v : np.ndarray
             First component is delta gamma / delta z in MeV / m.
             Second is delta phase / delta_z in rad / m.
+
         """
         v0 = k_k * e_func(z, e_spat, u[1], phi_0_rel)
         beta = np.sqrt(1. - u[0]**-2)
@@ -166,8 +169,12 @@ def z_field_map_rk4(d_z: float, gamma_in: float, n_steps: int,
     return r_zz, gamma_phi[1:, :], itg_field
 
 
-def z_field_map_leapfrog(d_z: float, gamma_in: float, n_steps: int,
-                         omega0_rf: float, k_e: float, phi_0_rel: float,
+def z_field_map_leapfrog(d_z: float,
+                         gamma_in: float,
+                         n_steps: int,
+                         omega0_rf: float,
+                         k_e: float,
+                         phi_0_rel: float,
                          e_spat: Callable[[float, np.ndarray, float, float],
                                           float],
                          **kwargs) -> tuple[np.ndarray, np.ndarray, float]:
@@ -177,15 +184,16 @@ def z_field_map_leapfrog(d_z: float, gamma_in: float, n_steps: int,
     This method is less precise than RK4. However, it is much faster.
 
     Classic leapfrog method:
-        speed(i+0.5) = speed(i-0.5) + accel(i) * dt
-        pos(i+1)     = pos(i)       + speed(i+0.5) * dt
+    speed(i+0.5) = speed(i-0.5) + accel(i) * dt
+    pos(i+1)     = pos(i)       + speed(i+0.5) * dt
 
     Here, dt is not fixed but dz.
-        z(i+1) += dz
-        t(i+1) = t(i) + dz / (c beta(i+1/2))
+    z(i+1) += dz
+    t(i+1) = t(i) + dz / (c beta(i+1/2))
     (time and space variables are on whole steps)
-        beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
+    beta calculated from W(i+1/2) = W(i-1/2) + qE(i)dz
     (speed/energy is on half steps)
+
     """
     z_rel = 0.
     itg_field = 0.
@@ -244,8 +252,13 @@ def z_field_map_leapfrog(d_z: float, gamma_in: float, n_steps: int,
     return r_zz, gamma_phi[1:, :], itg_field
 
 
-def z_thin_lense(gamma_in, gamma_out, gamma_phi_m, half_dz,
-                 delta_gamma_m_max, phi_0, omega0_rf):
+def z_thin_lense(gamma_in: float,
+                 gamma_out: float,
+                 gamma_phi_m: float,
+                 half_dz: float,
+                 delta_gamma_m_max: float,
+                 phi_0: float,
+                 omega0_rf: float) -> np.ndarray:
     """
     Thin lense approximation: drift-acceleration-drift.
 
@@ -261,10 +274,16 @@ def z_thin_lense(gamma_in, gamma_out, gamma_phi_m, half_dz,
         Half a spatial step in m.
     delta_gamma_m_max : float
         Max gamma increase if the cos(phi + phi_0) of the acc. field is 1.
-    phi_0 :
+    phi_0 : float
         Input phase of the cavity.
-    omega0_rf :
+    omega0_rf : float
         Pulsation of the cavity.
+
+    Return
+    ------
+    r_zz_array : np.ndarray
+        Transfer matrix of the thin lense.
+
     """
     # Used for tm components
     beta_m = np.sqrt(1. - gamma_phi_m[0]**-2)

@@ -6,7 +6,7 @@ Created on Fri Jul 28 15:07:54 2023.
 @author: placais
 
 In this module we define `ListOfSimulationOutputEvaluators`, to regroup several
-`SimulationOutputEvaluator`s.
+`SimulationOutputEvaluator` s.
 
 We also define some factory functions to facilitate their creation.
 
@@ -29,7 +29,7 @@ from util.helper import pd_output
 
 
 class ListOfSimulationOutputEvaluators(list):
-    """A simple list of `SimulationOutputEvaluator`s."""
+    """A simple list of `SimulationOutputEvaluator` s."""
 
     def __init__(self, evaluators: list[SimulationOutputEvaluator]) -> None:
         """Create the objects (factory)."""
@@ -52,7 +52,7 @@ def factory_simulation_output_evaluators_from_presets(
     *evaluator_names: str,
     ref_simulation_output: SimulationOutput | None = None
 ) -> ListOfSimulationOutputEvaluators:
-    """Create the `ListOfSimulationOutputEvaluators` using PRESETS."""
+    """Create the `ListOfSimulationOutputEvaluators` using `PRESETS`."""
     all_kwargs = [PRESETS[name] for name in evaluator_names]
 
     evaluators = [SimulationOutputEvaluator(
@@ -97,7 +97,7 @@ class FaultScenarioSimulationOutputEvaluators:
 
         It is at the end of each compensation zone, plus at the exit of
         additional elements if given.
-        Also set `columns` to  ease pandas DataFrame creation.
+        Also set `columns` to  ease `pandas` `DataFrame` creation.
 
         """
         elts = [fault.elts[-1] for fault in faults]
@@ -114,7 +114,7 @@ class FaultScenarioSimulationOutputEvaluators:
     def _create_simulation_output_evaluators(
             self, ref_simulation_output: SimulationOutput
     ) -> list[SimulationOutputEvaluator]:
-        """Create the proper `SimulationOutputEvaluator`s."""
+        """Create the proper `SimulationOutputEvaluator` s."""
         evaluators = []
         for qty in self.quantities:
             for elt in self.elts:
@@ -138,7 +138,7 @@ class FaultScenarioSimulationOutputEvaluators:
 
     def _to_pandas_dataframe(self, evaluations: list[float | bool | None],
                              precision: int = 3) -> pd.DataFrame:
-        """Convert all the evaluations to a compact pd.DataFrame."""
+        """Convert all the evaluations to a compact `pd.DataFrame`."""
         lines_labels = [markdown[qty].replace('deg', 'rad')
                         for qty in self.quantities]
 
@@ -179,7 +179,7 @@ class FaultScenarioSimulationOutputEvaluators:
         return formatted_evaluations
 
     def _output(self, evaluations: pd.DataFrame) -> None:
-        """Print out the given pd.DataFrame."""
+        """Print out the given `pd.DataFrame`."""
         title = "Fit quality:"
         # FIXME
         title += "(FIXME: settings in FaultScenario, not config_manager)"
@@ -188,7 +188,7 @@ class FaultScenarioSimulationOutputEvaluators:
 
 def chunks(lst: list, n_size: int) -> list[list]:
     """
-    Yield successive n-sized chunks from lst.
+    Yield successive `n-siz` ed chunks from lst.
 
     https://stackoverflow.com/questions/312443/how-do-i-split-a-list-into-equally-sized-chunks
     """

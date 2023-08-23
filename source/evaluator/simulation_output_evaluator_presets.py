@@ -6,7 +6,7 @@ Created on Mon Jul 31 13:39:57 2023.
 @author: placais
 
 In this module we store predefined arguments to generate
-`SimulationOutputEvaluator`s.
+`SimulationOutputEvaluator` s.
 
 """
 from typing import Callable
@@ -184,7 +184,7 @@ def presets_for_fault_scenario_rel_diff_at_some_element(
     """
     Create the settings to evaluate a difference @ some element exit.
 
-    Used for `FaultScenario`s.
+    Used for `FaultScenario` s.
 
     """
     kwargs = {'elt': elt, 'pos': 'out', 'to_deg': False}
@@ -215,7 +215,7 @@ def presets_for_fault_scenario_rms_over_full_linac(
     """
     Create the settings to evaluate a RMS error over full linac.
 
-    Used for `FaultScenario`s.
+    Used for `FaultScenario` s.
 
     """
     kwargs = {'to_deg': False}

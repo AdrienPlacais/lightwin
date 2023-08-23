@@ -21,7 +21,7 @@ def do_nothing(*args: np.ndarray | float | None, **kwargs: bool
 
     If you want to plot the data as imported from the `SimulationOutput`, set
     the first of the `post_treaters` keys to:
-        partial(_do_nothing, to_plot=True)
+    partial(_do_nothing, to_plot=True)
 
     """
     return args[0]

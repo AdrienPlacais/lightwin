@@ -8,7 +8,7 @@ Created on Mon Jun 12 08:26:52 2023.
 This module holds the base class `BeamCalculator`. It computes the propagation
 of the beam in a `ListOfElements`, possibly with a specific
 `SetOfCavitySettings` (optimisation process). It should create
-`SimulationOutput`s.
+`SimulationOutput`.
 
 """
 import logging

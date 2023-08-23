@@ -6,7 +6,7 @@ Created on Fri Jun  9 11:56:20 2023.
 @author: placais
 
 This module holds `SimulationOutput`, a class to uniformly store the outputs
-from the different `BeamCalculator`s.
+from the different `BeamCalculator` s.
 
 FIXME : clarify difference cav_params vs rf_fields
 FIXME : do I really need the `r_zz_elt` key??
@@ -90,7 +90,7 @@ class SimulationOutput:
     in_tw_fashion: pd.DataFrame | None = None
 
     def __post_init__(self) -> None:
-        """Save complementary data, such as _Elements indexes."""
+        """Save complementary data, such as `_Element` indexes."""
         self.elt_idx: list[int]
         if self.cav_params is None:
             logging.error("Failed to init SimulationOutput.elt_idx as "
