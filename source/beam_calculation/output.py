@@ -9,7 +9,9 @@ This module holds `SimulationOutput`, a class to uniformly store the outputs
 from the different `BeamCalculator` s.
 
 FIXME : clarify difference cav_params vs rf_fields
+
 FIXME : do I really need the `r_zz_elt` key??
+
 FIXME : do I really need z_abs? Envelope1D does not uses it while TraceWin
 does.
 
@@ -58,7 +60,7 @@ class SimulationOutput:
         Holds emittance, Twiss parameters, envelopes in the various phase
         spaces.
     element_to_index : Callable[[str | _Element, str | None],
-                                 int | slice] | None
+    int | slice] | None
         Takes an `_Element`, its name, 'first' or 'last' as argument, and
         returns correspondinf index. Index should be the same in all the arrays
         attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
@@ -122,6 +124,7 @@ class SimulationOutput:
 
         We also call the beam_parameters.has, as it is designed to handle the
         alias (twiss_zdelta <-> zdelta.twiss).
+
         """
         return key in recursive_items(vars(self)) \
             or self.beam_parameters.has(key)

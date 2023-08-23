@@ -5,35 +5,37 @@ Created on Wed Jun  7 16:13:16 2023.
 
 @author: placais
 
-This module holds `TraceWin`, that inherits from `BeamCalculator` base class.
-It solves the motion of the particles in Envelope or Multipart, in 3D. In
-contrary to `Envelope1D` solver, it is not a real solver but an interface with
-`TraceWin` which must be installed on your machine.
+This module holds :class:`TraceWin`, that inherits from :class:`BeamCalculator`
+base class.  It solves the motion of the particles in envelope or multipart, in
+3D. In contrary to :class:`Envelope1D` solver, it is not a real solver but an
+interface with ``TraceWin`` which must be installed on your machine.
 
-Warning: `TraceWin` behavior with relative phases is undetermined. You should
-ensure that you are working with ABSOLUTE phases, i.e. that last argument of
-`FIELD_MAP` commands is `1`.
-You can run a simulation with `Envelope1D` solver and `flag_phi_abs=True`. The
-`.dat` file created in the `000001_ref` folder should be the original `.dat`
-but converted to absolute phases.
+Warning: :class:`TraceWin` behavior with relative phases is undetermined. You
+should ensure that you are working with ABSOLUTE phases, i.e. that last
+argument of ``FIELD_MAP`` commands is ``1``.
+You can run a simulation with :class:`Envelope1D` solver and ``flag_phi_abs=
+True``. The ``.dat`` file created in the ``000001_ref`` folder should be the
+original ``.dat`` but converted to absolute phases.
 
 Inherited
 ---------
-    out_folder
-    __post_init__()
-    _generate_element_to_index_func()
+    ``out_folder``
+    :func:`__post_init__`
+    :func:`_generate_element_to_index_func`
 
 Abstract methods
 ----------------
-    run()
-    run_with_this()
-    post_optimisation_run_with_this()
-    init_solver_parameters()
-    _generate_simulation_output()
-    is_a_multiparticle_simulation
-    is_a_3d_simulation
+    :func:`run`
+    :func:`run_with_this`
+    :func:`post_optimisation_run_with_this`
+    :func:`init_solver_parameters`
+    :func:`_generate_simulation_output`
+    :func:`is_a_multiparticle_simulation`
+    :func:`is_a_3d_simulation`
 
-FIXME allow TW to work with relative phases. Will have to handle rf_fields too.
+.. todo::
+    Allow TW to work with relative phases. Will have to handle ``rf_fields``
+    too.
 
 """
 from dataclasses import dataclass
@@ -76,10 +78,11 @@ class TraceWin(BeamCalculator):
     executable : str
         Path to the TraceWin executable.
     ini_path : str
-        Path to the `.ini` TraceWin file.
+        Path to the ``.ini`` TraceWin file.
     base_kwargs : dict[str, str | bool | int | None | float]
-        TraceWin optional arguments. Override what is defined in .ini, but
-        overriden by arguments from `ListOfElements` and `SimulationOutput`.
+        TraceWin optional arguments. Override what is defined in ``.ini``, but
+        overriden by arguments from :class:`ListOfElements` and
+        :class:`SimulationOutput`.
     _tracewin_command : list[str] | None, optional
         Attribute to hold the value of the base command to call TraceWin.
     id : str
@@ -90,10 +93,10 @@ class TraceWin(BeamCalculator):
         Function to call to get the output results.
     path_cal : str
         Name of the results folder. Updated at every call of the
-        `init_solver_parameters` method, using `Accelerator.accelerator_path`
-        and `self.out_folder` attributes.
+        :func:`init_solver_parameters` method, using
+        ``Accelerator.accelerator_path`` and ``self.out_folder`` attributes.
     dat_file :
-        Base name for the `.dat` file. ??
+        Base name for the ``.dat`` file. ??
 
     """
 
@@ -125,14 +128,15 @@ class TraceWin(BeamCalculator):
         """
         Define the 'base' command for TraceWin.
 
-        This part of the command is the same for every `ListOfElements` and
-        every `Fault`. It sets the TraceWin executable, the `.ini` file.
-        It also defines `base_kwargs`, which should be the same for every
-        calculation.
-        Finally, it sets `path_cal`. But this path is more `ListOfElements`
+        This part of the command is the same for every :class:`ListOfElements`
+        and every :class:`Fault`. It sets the TraceWin executable, the ``.ini``
+        file.  It also defines ``base_kwargs``, which should be the same for
+        every calculation.
+        Finally, it sets ``path_cal``.
+        But this path is more :class:`ListOfElements`
         dependent...
-        `Accelerator.accelerator_path` + `out_folder`
-            (+ `fault_optimisation_tmp_folder`)
+        ``Accelerator.accelerator_path`` + ``out_folder``
+            (+ ``fault_optimisation_tmp_folder``)
 
         """
         kwargs = kwargs.copy()
@@ -162,14 +166,14 @@ class TraceWin(BeamCalculator):
         Set the full TraceWin command.
 
         It contains the 'base' command, which includes every argument that is
-        common to every calculation with this `BeamCalculator`: path to `.ini`
-        file, to executable...
+        common to every calculation with this :class:`BeamCalculator`: path to
+        ``.ini`` file, to executable...
 
-        It contains the `ListOfElements` command: path to the `.dat` file,
-        initial energy and beam properties.
+        It contains the :class:`ListOfElements` command: path to the ``.dat``
+        file, initial energy and beam properties.
 
-        It can contain some `SetOfCavitySettings` commands: `ele` arguments to
-        modify some cavities tuning.
+        It can contain some :class:`SetOfCavitySettings` commands: ``ele``
+        arguments to modify some cavities tuning.
 
         """
         out_path = elts.get('out_path', to_numpy=False)
@@ -190,10 +194,10 @@ class TraceWin(BeamCalculator):
         Parameters
         ----------
         elts : ListOfElements
-            List of _Elements in which you want the beam propagated.
+        List of :class:`_Element` s in which you want the beam propagated.
         **specific_kwargs : dict
-            TraceWin optional arguments. Overrides what is defined in
-            base_kwargs and .ini.
+            ``TraceWin`` optional arguments. Overrides what is defined in
+            ``base_kwargs`` and ``.ini``.
 
         """
         return self.run_with_this(set_of_cavity_settings=None, elts=elts,
@@ -206,8 +210,8 @@ class TraceWin(BeamCalculator):
         """
         Perform a simulation with new cavity settings.
 
-        Calling it with `set_of_cavity_settings = None` is the same as calling
-        the plain `run` method.
+        Calling it with ``set_of_cavity_settings = None`` is the same as
+        calling the plain :func:`run` method.
 
         Parameters
         ----------
@@ -271,11 +275,11 @@ class TraceWin(BeamCalculator):
         After the optimisation, we want to re-run TraceWin with the new
         settings. However, we need to tell it that the linac is bigger than
         during the optimisation. Concretely, it means:
-            - rephasing the cavities in the compensation zone
-            - updating the `index` `n` of the cavities in the `ele[n][v]`
-            command.
+            * rephasing the cavities in the compensation zone
+            * updating the ``index`` ``n`` of the cavities in the ``ele[n][v]``
+              command.
 
-        Note that at this point, the .dat has not been updated yet.
+        Note that at this point, the ``.dat`` has not been updated yet.
 
         Parameters
         ----------
@@ -300,10 +304,10 @@ class TraceWin(BeamCalculator):
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
         """
-        Set the `path_cal` variable.
+        Set the ``path_cal`` variable.
 
-        We also set the `_tracewin_command` attribute to None, as it must be
-        updated when `path_cal` changes.
+        We also set the ``_tracewin_command`` attribute to None, as it must be
+        updated when ``path_cal`` changes.
 
         """
         self.path_cal = os.path.join(accelerator.get('accelerator_path'),
@@ -413,7 +417,7 @@ class TraceWin(BeamCalculator):
         """
         Load and format a dict containing v_cav and phi_s.
 
-        It has the same format as `Envelope1D` solver format.
+        It has the same format as :class:`Envelope1D` solver format.
 
         Parameters
         ----------
@@ -443,7 +447,7 @@ class TraceWin(BeamCalculator):
         rf_fields: list[dict[str, float | None]],
         cavity_parameters: dict[str, list[float | None]]
     ) -> list[dict[float | None]]:
-        """Create a list holding rf field properties, as `Envelope1D`."""
+        """Create a list with rf field properties, as :class:`Envelope1D`."""
         for i, (v_cav_mv, phi_s, phi_0) in enumerate(
                 zip(cavity_parameters['v_cav_mv'],
                     cavity_parameters['phi_s'],
@@ -462,7 +466,7 @@ class TraceWin(BeamCalculator):
                                 element_to_index: Callable,
                                 results: dict[str, np.ndarray]
                                 ) -> BeamParameters:
-        """Create the `BeamParameters` object, holding eps, Twiss, etc."""
+        """Create the :class:`BeamParameters` object, holding eps, Twiss..."""
         multipart = self.is_a_multiparticle_simulation
         beam_parameters = BeamParameters(z_abs=results['z(m)'],
                                          gamma_kin=results['gamma'],
@@ -484,10 +488,10 @@ def _load_results_generic(filename: str,
     """
     Load the TraceWin results.
 
-    This function is not called directly. Instead, every instance of `TraceWin`
-    object has a `load_results` method which calls this function with a default
-    `filename` argument.
-    The value of `filename` depends on the TraceWin simulation that was run:
+    This function is not called directly. Instead, every instance of
+    :class:`TraceWin` object has a :func:`load_results` method which calls this
+    function with a default ``filename`` argument.
+    The value of ``filename`` depends on the TraceWin simulation that was run:
     multiparticle or envelope.
 
     Parameters
@@ -526,7 +530,7 @@ def _load_results_generic(filename: str,
 
 def _remove_invalid_values(results: dict[str, np.ndarray]
                            ) -> dict[str, np.ndarray]:
-    """Remove invalid values that appear when `exception` is True."""
+    """Remove invalid values that appear when ``exception`` is True."""
     results['SizeX'] = _0_to_NaN(results['SizeX'])
     results['SizeY'] = _0_to_NaN(results['SizeY'])
     results['SizeZ'] = _0_to_NaN(results['SizeZ'])
@@ -542,7 +546,7 @@ def _0_to_NaN(data: np.ndarray) -> np.ndarray:
 def _set_energy_related_results(results: dict[str, np.ndarray]
                                 ) -> dict[str, np.ndarray]:
     """
-    Compute the energy from `gama-1` column.
+    Compute the energy from ``gama-1`` column.
 
     Parameters
     ----------
@@ -552,7 +556,7 @@ def _set_energy_related_results(results: dict[str, np.ndarray]
     Returns
     -------
     results : dict[str, np.ndarray]
-        Same as input, but with `gamma`, `w_kin`, `beta` keys defined.
+        Same as input, but with ``gamma``, ``w_kin``, ``beta`` keys defined.
 
     """
     results['gamma'] = 1. + results['gama-1']
@@ -568,11 +572,11 @@ def _set_phase_related_results(results: dict[str, np.ndarray],
     """
     Compute the phases, pos, frequencies.
 
-    Also shift position and phase if `ListOfElements` under study does not
-    start at the beginning of the linac.
+    Also shift position and phase if :class:`ListOfElements` under study does
+    not start at the beginning of the linac.
 
-    TraceWin always starts with `z=0` and `phi_abs=0`, even when we are not
-    at the beginning of the linac (sub `.dat`).
+    TraceWin always starts with ``z=0`` and ``phi_abs=0``, even when we are not
+    at the beginning of the linac (sub ``.dat``).
 
     Parameters
     ----------
@@ -588,9 +592,11 @@ def _set_phase_related_results(results: dict[str, np.ndarray],
     Returns
     -------
     results : dict[str, np.ndarray]
-        Same as input, but with `lambda` and `phi_abs` keys defined. `phi_abs`
-        and `z(m)` keys are modified in order to be 0. at the beginning of the
-        linac, not at the beginning of the `ListOfElements` under study.
+        Same as input, but with ``lambda`` and ``phi_abs`` keys defined.
+        ``phi_abs``
+        and ``z(m)`` keys are modified in order to be 0. at the beginning of
+        the linac, not at the beginning of the :class:`ListOfElements` under
+        study.
 
     """
     results['z(m)'] += z_in
@@ -807,7 +813,7 @@ def _load_transfer_matrices(path_cal: str,
 # Handle errors
 # =============================================================================
 def _remove_incomplete_line(filepath: str) -> None:
-    """Remove incomplete line from `.out` file."""
+    """Remove incomplete line from ``.out`` file."""
     n_lines_header = 9
     i_last_valid = -1
     with open(filepath, 'r', encoding='utf-8') as file:
@@ -836,7 +842,7 @@ def _remove_incomplete_line(filepath: str) -> None:
 
 def _add_dummy_data(filepath: str, elts: ListOfElements) -> None:
     """
-    Add dummy data at the end of the `.out` to reach end of linac.
+    Add dummy data at the end of the ``.out`` to reach end of linac.
 
     We also round the column 'z', to avoid a too big mismatch between the z
     column and what we should have.
