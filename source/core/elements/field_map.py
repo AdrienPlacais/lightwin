@@ -54,6 +54,8 @@ class FieldMap(Element):
                                  phi_0=np.deg2rad(float(elem[3])))
         self.update_status('nominal')
 
+        self.field_map_folder: str
+
     def rf_param(self, solver_id: str, phi_bunch_abs: float, w_kin_in: float,
                  cavity_settings: SingleCavitySettings | None = None) -> dict:
         """
