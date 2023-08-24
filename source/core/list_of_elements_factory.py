@@ -28,6 +28,7 @@ import logging
 import numpy as np
 
 from core.elements.element import Element
+from core.commands.command import Command, FieldMapPath
 from core.particle import ParticleInitialState
 from core.beam_parameters import BeamParameters
 from core.list_of_elements import ListOfElements
@@ -35,7 +36,6 @@ from core.list_of_elements import ListOfElements
 import tracewin_utils.load
 from tracewin_utils.dat_files import (
     create_structure,
-    set_field_map_files_paths,
     dat_filecontent_from_smaller_list_of_elements,
 )
 import tracewin_utils.electric_fields
@@ -79,9 +79,7 @@ def new_list_of_elements(dat_filepath: str,
     """
     dat_filepath = os.path.abspath(dat_filepath)
     logging.info("First initialisation of ListOfElements, ecompassing all "
-                 "linac. Also removing Lattice and Freq commands, setting "
-                 "Lattice/Section structures, Elements names. "
-                 f"Created with dat_filepath = {dat_filepath}")
+                 f"linac. Created with dat_filepath = {dat_filepath}")
 
     files = {
         'dat_filepath': dat_filepath,
@@ -100,6 +98,8 @@ def new_list_of_elements(dat_filepath: str,
                                       input_beam=input_beam,
                                       files=files,
                                       first_init=True)
+    logging.error("I think that set_all_electric_field_maps can be done in "
+                  "Commands. also set a default value!")
     tracewin_utils.electric_fields.set_all_electric_field_maps(
         field_map_folder, list_of_elements.by_section_and_lattice)
     return list_of_elements
@@ -136,7 +136,7 @@ def _new_beam_parameters(sigma_in_zdelta: np.ndarray,
 
 def _dat_filepath_to_plain_list_of_elements(
         files: dict[str, str | list[list[str]] | None],
-) -> list[Element]:
+) -> tuple[list[Element], str]:
     """
     Convert the content of the `.dat` file to a plain list of `Element`s.
 
@@ -150,14 +150,23 @@ def _dat_filepath_to_plain_list_of_elements(
     -------
     elts : list[Element]
         Plain list of Element (not yet a `ListOfElements` object).
+    field_map_folder : str
+        Absolute path to the storage of field maps.
 
     """
-    elts = create_structure(files['dat_content'])
-    elts, field_map_folder = set_field_map_files_paths(
-        elts,
-        default_field_map_folder=os.path.dirname(files['dat_filepath'])
-    )
-    return elts, field_map_folder
+    elts_n_commands: list[Element | Command]
+    elts_n_commands = create_structure(files['dat_content'])
+
+    elts = list(filter(lambda elt: isinstance(elt, Element),
+                       elts_n_commands))
+
+    # Legacy
+    logging.error("Handle field map folder better.")
+    field_map_folder = list(filter(
+        lambda field_map_path: isinstance(field_map_path, FieldMapPath),
+        elts_n_commands))[0].path
+
+    return elts, os.path.abspath(field_map_folder)
 
 
 # =============================================================================

@@ -33,7 +33,7 @@ TRACEWIN_IMPORT_DATA_TABLE = {
 
 def dat_file(dat_filepath: str) -> list[list[str]]:
     """
-    Load the dat file, convert it into a list of lines and a list of Element.
+    Load the dat file and convert it into a list of lines.
 
     Parameters
     ----------

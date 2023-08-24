@@ -10,12 +10,11 @@ This module holds function to load, modify and create .dat structure files.
 TODO insert line skip at each section change in the output.dat
 
 """
-import os.path
 import logging
 from typing import TypeVar
-import itertools
 
 import numpy as np
+import config_manager as con
 
 from core.elements.element import Element
 from core.elements.quad import Quad
@@ -25,6 +24,7 @@ from core.elements.solenoid import Solenoid
 
 from core.commands.command import (
     COMMANDS,
+    Command,
     End,
     FieldMapPath,
     Freq,
@@ -95,39 +95,54 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[Element]:
         'SUPERPOSE_MAP': SuperposeMap,
     }
 
-    elements_iterable = itertools.takewhile(
-        lambda elt: not isinstance(elt, End),
-        [subclasses_dispatcher[elem[0]](elem) for elem in dat_filecontent
-         if elem[0] not in TO_BE_IMPLEMENTED]
-    )
-    elts = list(elements_iterable)
-    return elts
+    # elements_iterable = itertools.takewhile(
+    #     lambda elt: not isinstance(elt, End),
+    #     [subclasses_dispatcher[elem[0]](elem) for elem in dat_filecontent
+    #      if elem[0] not in TO_BE_IMPLEMENTED]
+    # )
+    # elts = list(elements_iterable)
+
+    elts_n_cmds = [subclasses_dispatcher[line[0]](line)
+                   for line in dat_filecontent
+                   if line[0] not in TO_BE_IMPLEMENTED]
+    elts_n_cmds = _apply_commands(elts_n_cmds)
+    _check_consistency(elts_n_cmds)
+    return elts_n_cmds
 
 
-def set_field_map_files_paths(elts: list[Element],
-                              default_field_map_folder: str
-                              ) -> tuple[list[Element], str]:
-    """Load FIELD_MAP_PATH, remove it from the list of elements."""
-    field_map_paths = list(filter(lambda elt: isinstance(elt, FieldMapPath),
-                                  elts))
+def _apply_commands(elts_n_cmds: list[Element | Command]
+                    ) -> list[Element | Command]:
+    """Apply all the commands that are implemented."""
+    kwargs = {'freq_bunch': con.F_BUNCH_MHZ,
+              }
 
-    # FIELD_MAP_PATH are not physical elements, so we remove them
-    for field_map_path in field_map_paths:
-        elts.remove(field_map_path)
+    index = 0
+    while index < len(elts_n_cmds):
+        elt_or_cmd = elts_n_cmds[index]
 
-    if len(field_map_paths) == 0:
-        field_map_paths = list(
-            FieldMapPath(['FIELD_MAP_PATH', default_field_map_folder])
-        )
+        if isinstance(elt_or_cmd, Command):
+            if elt_or_cmd.is_implemented:
+                elts_n_cmds = elt_or_cmd.apply(elts_n_cmds, **kwargs)
+        index += 1
+    return elts_n_cmds
 
-    if len(field_map_paths) != 1:
-        logging.error("Change of field maps base folder not supported.")
-        field_map_paths = [field_map_paths[0]]
 
-    field_map_paths = [os.path.abspath(field_map_path.path)
-                       for field_map_path in field_map_paths]
-    field_map_folder = field_map_paths[0]
-    return elts, field_map_folder
+# Handle when no lattice
+def _check_consistency(elts_n_cmds: list[Element | Command]) -> None:
+    """Check that every element has a lattice index."""
+    elts = list(filter(lambda elt: isinstance(elt, Element),
+                       elts_n_cmds))
+    for elt in elts:
+        if elt.get('lattice', to_numpy=False) is None:
+            logging.error("At least one Element is outside of any lattice. "
+                          "This may cause problems...")
+            break
+
+    for elt in elts:
+        if elt.get('section', to_numpy=False) is None:
+            logging.error("At least one Element is outside of any section. "
+                          "This may cause problems...")
+            break
 
 
 def give_name(elts: list[Element]) -> None:
@@ -144,6 +159,7 @@ def give_name(elts: list[Element]) -> None:
             elt.elt_info['elt_name'] = value + str(i)
 
 
+# TO UPDATE ?
 def update_field_maps_in_dat(
     elts: ListOfElements,
     new_phases: dict[Element, float],
@@ -158,9 +174,9 @@ def update_field_maps_in_dat(
 
     """
     idx_elt = 0
-    dat_filecontent, field_map_folder = elts.get('dat_content',
-                                                 'field_map_folder',
-                                                 to_numpy=False)
+    dat_filecontent = elts.files['dat_content']
+    field_map_folder = elts.files['field_map_folder']
+
     for line in dat_filecontent:
         if line[0] in TO_BE_IMPLEMENTED or line[0] in COMMANDS:
             continue
@@ -181,6 +197,7 @@ def update_field_maps_in_dat(
         idx_elt += 1
 
 
+# TO UPDATE
 def dat_filecontent_from_smaller_list_of_elements(
         dat_filecontent: list[list[str]],
         elts: list[Element],

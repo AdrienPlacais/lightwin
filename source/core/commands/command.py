@@ -10,6 +10,9 @@ This module holds all the commands.
 .. todo::
     Implement a dummy command, that will not be considered but will be kept.
 
+.. todo::
+    initialize commands with their index to avoid determining it every time
+
 """
 import logging
 from typing import Self
@@ -32,7 +35,7 @@ COMMANDS = [
 class Command(ABC):
     """A generic Command class."""
 
-    implemented: bool
+    is_implemented: bool
 
     @abstractmethod
     def apply(self,
@@ -47,7 +50,7 @@ class End(Command):
     """The end of the linac."""
 
     def __init__(self, line: list[str]) -> None:
-        self.implemented = True
+        self.is_implemented = True
 
     def apply(self,
               elts_n_cmds: list[Element | Self],
@@ -55,14 +58,14 @@ class End(Command):
               ) -> list[Element | Self]:
         """Remove everything in ``elts_n_cmds`` after this object."""
         end_index = elts_n_cmds.index(self)
-        return elts_n_cmds[end_index + 1]
+        return elts_n_cmds[:end_index + 1]
 
 
 class FieldMapPath(Command):
     """Used to get the base path of field maps."""
 
     def __init__(self, line: list[str]) -> None:
-        self.implemented = True
+        self.is_implemented = True
         self.path = line[1]
 
     def apply(self,
@@ -73,7 +76,7 @@ class FieldMapPath(Command):
 
         """
         index = elts_n_cmds.index(self)
-        for elt_or_cmd in elts_n_cmds[index:]:
+        for elt_or_cmd in elts_n_cmds[index + 1:]:
             if isinstance(elt_or_cmd, FieldMap):
                 elt_or_cmd.field_map_folder = self.path
 
@@ -86,26 +89,26 @@ class Freq(Command):
     """Used to get the frequency of every Section."""
 
     def __init__(self, line: list[str]) -> None:
-        self.implemented = True
+        self.is_implemented = True
         self.f_rf_mhz = float(line[1])
 
     def apply(self,
               elts_n_cmds: list[Element | Self],
-              f_bunch: float | None = None,
+              freq_bunch: float | None = None,
               **kwargs: float
               ) -> list[Element | Self]:
         """Set :class:`FieldMap` freq, number of cells up to next :class:`Freq`
 
         """
-        if f_bunch is None:
+        if freq_bunch is None:
             logging.warning("The bunch frequency was not provided. Setting it "
                             "to RF frequency...")
-            f_bunch = self.f_rf_mhz
+            freq_bunch = self.f_rf_mhz
 
         index = elts_n_cmds.index(self)
-        for elt_or_cmd in elts_n_cmds[index:]:
+        for elt_or_cmd in elts_n_cmds[index + 1:]:
             if isinstance(elt_or_cmd, FieldMap):
-                n_cells = int(self.f_rf_mhz / f_bunch)
+                n_cells = int(self.f_rf_mhz / freq_bunch)
                 elt_or_cmd.acc_field.set_pulsation_ncell(self.f_rf_mhz,
                                                          n_cells)
 
@@ -118,17 +121,17 @@ class Lattice(Command):
     """Used to get the number of elements per lattice."""
 
     def __init__(self, line: list[str]) -> None:
-        self.implemented = True
+        self.is_implemented = True
         self.n_lattice = int(line[1])
 
         self.n_macro_lattice = 1
         if len(line) > 2:
             self.n_macro_lattice = int(line[2])
 
-            if self.n_macro_lattice != 1:
+            if self.n_macro_lattice > 1:
                 logging.warning("Macro-lattice not implemented. LightWin will "
                                 "consider that number of macro-lattice per "
-                                "lattice is 1.")
+                                "lattice is 1 or 0.")
 
     def apply(self,
               elts_n_cmds: list[Element | Self],
@@ -142,7 +145,7 @@ class Lattice(Command):
         current_section_number = self._current_section_number(elts_n_cmds)
 
         index_in_current_lattice = 0
-        for elt_or_cmd in elts_n_cmds[index:]:
+        for elt_or_cmd in elts_n_cmds[index + 1:]:
             if isinstance(elt_or_cmd, Lattice | LatticeEnd):
                 return elts_n_cmds
 
@@ -207,7 +210,7 @@ class LatticeEnd(Command):
     """Dummy class."""
 
     def __init__(self, line: list[str]) -> None:
-        self.implemented = True
+        self.is_implemented = True
 
     def apply(self,
               elts_n_cmds: list[Element | Self],
@@ -221,7 +224,7 @@ class SuperposeMap(Command):
     """Dummy class."""
 
     def __init__(self, line: list[str]) -> None:
-        self.implemented = False
+        self.is_implemented = False
 
     def apply(self,
               elts_n_cmds: list[Element | Self],

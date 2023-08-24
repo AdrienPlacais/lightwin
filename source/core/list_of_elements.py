@@ -24,7 +24,6 @@ import config_manager
 
 from core.elements.element import Element
 from core.elements.field_map import FieldMap
-from core.commands.command import Freq, Lattice, LatticeEnd
 
 from core.beam_parameters import BeamParameters
 from core.particle import ParticleInitialState
@@ -85,8 +84,6 @@ class ListOfElements(list):
         self.by_lattice: list[list[Element]] | None = None
 
         if first_init:
-            logging.info("Removing Lattice and Freq commands, setting "
-                         " Lattice/Section structures, Elements names.")
             self._first_init()
 
         self._l_cav = filter_cav(self)
@@ -236,85 +233,15 @@ class ListOfElements(list):
         return tuple(out)
 
     def _first_init(self) -> None:
-        """Remove Lattice/Freq commands, set structure, some indexes."""
-        by_section_and_lattice, by_lattice, freqs = self.set_structure()
-        self.by_section_and_lattice = by_section_and_lattice
-        self.by_lattice = by_lattice
+        """Set structure, elements name, some indexes."""
+        by_section = _group_elements_by_section(self)
+        self.by_lattice = _group_elements_by_lattice(self)
+        self.by_section_and_lattice = _group_elements_by_section_and_lattice(
+            by_section)
 
-        self.set_structure_related_indexes_of_elements()
-
+        for i, elt in enumerate(self):
+            elt.idx['elt_idx'] = i
         give_name(self)
-        self._set_generic_electric_field_properties(
-            freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
-
-    def set_structure(self) -> tuple[list[list[Element]],
-                                     list[list[list[Element]]],
-                                     list[Freq]]:
-        """
-        Use Freq/Lattice commands to set structure of the accelerator.
-
-        Also remove these commands from the :class:`ListOfElements`.
-
-        Returns
-        -------
-        elts_by_section_and_lattice : list[list[list[Element]]]
-            Level 1: Sections. Level 2: Lattices. Level 3: list of Elements
-            in the Lattice.
-        elts_by_lattice : list[list[Element]]
-            Level 1: Lattices. Level 2: list of Elements in the Lattice.
-        frequencies: list[Freq]
-            Contains the Frequency object corresponding to every Section.
-
-        """
-        lattices, frequencies = _lattices_and_frequencies(self)
-        if len(lattices) == 0:
-            logging.error("No Lattice or Frequency object detected. Maybe the "
-                          "ListOfElements.structured method was already "
-                          "performed?")
-
-        _elts_by_section = _group_elements_by_section(self, lattices)
-
-        to_exclude = (Lattice, Freq)
-        filtered_elts = _filter_out(self, to_exclude)
-        _elts_by_section = _filter_out(_elts_by_section, to_exclude)
-        super().__init__(filtered_elts)
-
-        elts_by_section_and_lattice = _group_elements_by_section_and_lattice(
-            _elts_by_section, lattices)
-        elts_by_lattice = _group_elements_by_lattice(
-            elts_by_section_and_lattice, lattices)
-
-        return elts_by_section_and_lattice, elts_by_lattice, frequencies
-
-    def set_structure_related_indexes_of_elements(self) -> None:
-        """Set useful indexes, related to the structure of the linac."""
-        # Absolute Element index
-        for elt in self:
-            elt.idx['elt_idx'] = self.index(elt)
-
-        # Number of the Section
-        for i, section in enumerate(self.by_section_and_lattice):
-            for lattice in section:
-                for element in lattice:
-                    element.idx['section'] = i
-
-        # Number of the lattice (not reset to 0 @ each new lattice)
-        for i, lattice in enumerate(self.by_lattice):
-            for elt in lattice:
-                elt.idx['lattice'] = i
-
-    def _set_generic_electric_field_properties(self, freqs: list[Freq],
-                                               freq_bunch: float) -> None:
-        """Set omega0, n_cells in cavities (used with every BeamCalculator)."""
-        assert len(self.by_section_and_lattice) == len(freqs)
-
-        for i, section in enumerate(self.by_section_and_lattice):
-            f_mhz = freqs[i].f_rf_mhz
-            n_cells = int(f_mhz / freq_bunch)
-
-            for lattice in section:
-                for elt in lattice:
-                    elt.acc_field.set_pulsation_ncell(f_mhz, n_cells)
 
     def store_settings_in_dat(self,
                               dat_filepath: str,
@@ -442,55 +369,38 @@ def elt_at_this_s_idx(elts: ListOfElements | list[Element, ...],
     return None
 
 
-def _lattices_and_frequencies(elts: list[Element]
-                              ) -> tuple[list[Lattice],
-                                         list[Freq]]:
-    """Get Lattice and Freq objects, which convey every Section information."""
-    lattices = list(filter(lambda elt: isinstance(elt, Lattice), elts))
-    frequencies = list(filter(lambda elt: isinstance(elt, Freq), elts))
-
-    idx_lattice_start = [elts.index(latt) for latt in lattices]
-    idx_freq_start = [elts.index(freq) for freq in frequencies]
-    distance = np.array(idx_lattice_start) - np.array(idx_freq_start)
-    if not np.all(distance == -1):
-        logging.error("FREQ commands do no directly follow LATTICE commands. "
-                      "Check your .dat file.")
-
-    return lattices, frequencies
-
-
-def _group_elements_by_section(elts: list[Element], lattices: list[Lattice]
+def _group_elements_by_section(elts: list[Element],
                                ) -> list[list[Element]]:
-    """Regroup the Element belonging to the same Section."""
-    idx_lattice_change = [elts.index(latt) for latt in lattices]
-    slice_starts = idx_lattice_change
-    slice_ends = idx_lattice_change[1:] + [None]
-    elts_grouped_by_section = [
-        elts[start:stop]
-        for start, stop in zip(slice_starts, slice_ends)]
-
-    return elts_grouped_by_section
-
-
-def _group_elements_by_lattice(
-    elts_by_sec_and_latt: list[list[list[Element]]], lattices: list[Lattice]
-) -> list[list[Element]]:
-    """Regroup the Element belonging to the same Lattice."""
-    elts_grouped_by_lattice = []
-    for by_section in elts_by_sec_and_latt:
-        for by_lattice in by_section:
-            elts_grouped_by_lattice.append(by_lattice)
-    return elts_grouped_by_lattice
+    """Group elements by section."""
+    n_sections = elts[-1].idx['section'] + 1
+    by_section = [
+        list(filter(lambda elt: elt.idx['section'] == current_section, elts))
+        for current_section in range(n_sections)
+    ]
+    return by_section
 
 
 def _group_elements_by_section_and_lattice(
-        elts_by_sec: list[list[Element]], lattices: list[Lattice]
-        ) -> list[list[list[Element]]]:
+        by_section: list[list[Element]],
+) -> list[list[list[Element]]]:
     """Regroup Elements by Section and then by Lattice."""
-    elts_by_section_and_lattice = [
-        _slice(elts_of_a_section, n_in_slice=latt.n_lattice)
-        for elts_of_a_section, latt in zip(elts_by_sec, lattices)]
-    return elts_by_section_and_lattice
+    by_section_and_lattice = [
+        _group_elements_by_lattice(section)
+        for section in by_section
+    ]
+    return by_section_and_lattice
+
+
+def _group_elements_by_lattice(elts: list[Element],
+                               ) -> list[list[Element]]:
+    """Regroup the Element belonging to the same Lattice."""
+    idx_first_lattice = elts[0].idx['lattice']
+    n_lattices = elts[-1].idx['lattice'] + 1
+    by_lattice = [
+        list(filter(lambda elt: elt.idx['lattice'] == current_lattice, elts))
+        for current_lattice in range(idx_first_lattice, n_lattices)
+    ]
+    return by_lattice
 
 
 def _slice(unsliced: list, n_in_slice: int) -> list[list]:
