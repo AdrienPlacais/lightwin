@@ -15,8 +15,7 @@ from scipy.optimize import least_squares, Bounds
 import numpy as np
 
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
-from failures.set_of_cavity_settings import (SetOfCavitySettings,
-                                             SingleCavitySettings)
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
 @dataclass

@@ -15,7 +15,8 @@ import pandas as pd
 import numpy as np
 
 import config_manager as con
-from core.elements import _Element, FieldMap
+from core.elements.element import Element
+from core.elements.elements.field_map import FieldMap
 import tracewin_utils.load
 
 
@@ -33,7 +34,7 @@ except ModuleNotFoundError:
 
 # TODO is it necessary to load all the electric fields when _p?
 def set_all_electric_field_maps(field_map_folder: str,
-                                sections: list[list[_Element]]) -> None:
+                                sections: list[list[Element]]) -> None:
     """
     Load all the filemaps.
 
@@ -41,8 +42,8 @@ def set_all_electric_field_maps(field_map_folder: str,
     ----------
     field_map_folder : str
         Path to the folder where the electric field files are stored.
-    sections : list[list[_Element]]
-        List of sections containing lattices containing `_Element` objects.
+    sections : list[list[Element]]
+        List of sections containing lattices containing `Element` objects.
 
     """
     filepaths = []

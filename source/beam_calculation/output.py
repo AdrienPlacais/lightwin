@@ -25,7 +25,7 @@ import numpy as np
 import pandas as pd
 
 from core.particle import ParticleFullTrajectory
-from core.elements import _Element
+from core.elements.element import Element
 from core.list_of_elements import ListOfElements
 from core.beam_parameters import BeamParameters, mismatch_from_objects
 from util.helper import recursive_items, recursive_getter, range_vals
@@ -59,9 +59,9 @@ class SimulationOutput:
     beam_parameters : BeamParameters | None
         Holds emittance, Twiss parameters, envelopes in the various phase
         spaces.
-    element_to_index : Callable[[str | _Element, str | None],
+    element_to_index : Callable[[str | Element, str | None],
     int | slice] | None
-        Takes an `_Element`, its name, 'first' or 'last' as argument, and
+        Takes an `Element`, its name, 'first' or 'last' as argument, and
         returns correspondinf index. Index should be the same in all the arrays
         attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
         Used to easily `get` the desired properties at the proper position.
@@ -85,14 +85,14 @@ class SimulationOutput:
     r_zz_elt: list[np.ndarray] | None
     beam_parameters: BeamParameters | None
 
-    element_to_index: Callable[[str | _Element, str | None], int | slice] \
+    element_to_index: Callable[[str | Element, str | None], int | slice] \
         | None
 
     z_abs: np.ndarray | None = None
     in_tw_fashion: pd.DataFrame | None = None
 
     def __post_init__(self) -> None:
-        """Save complementary data, such as `_Element` indexes."""
+        """Save complementary data, such as `Element` indexes."""
         self.elt_idx: list[int]
         if self.cav_params is None:
             logging.error("Failed to init SimulationOutput.elt_idx as "
@@ -130,7 +130,7 @@ class SimulationOutput:
             or self.beam_parameters.has(key)
 
     def get(self, *keys: str, to_numpy: bool = True, to_deg: bool = False,
-            elt: _Element | None = None, pos: str | None = None,
+            elt: Element | None = None, pos: str | None = None,
             none_to_nan: bool = False, **kwargs: str | bool | None) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -144,11 +144,11 @@ class SimulationOutput:
             default is True.
         to_deg : bool, optional
             To apply np.rad2deg function over every `key` containing the string
-        elt : _Element | None, optional
-            If provided, return the attributes only at the considered _Element.
+        elt : Element | None, optional
+            If provided, return the attributes only at the considered Element.
         pos : 'in' | 'out' | None
             If you want the attribute at the entry, exit, or in the whole
-            _Element.
+            Element.
         none_to_nan : bool, optional
             To convert None to np.NaN. The default is False.
         **kwargs : str | bool | None
@@ -209,7 +209,7 @@ class SimulationOutput:
         Parameters
         ----------
         elts : ListOfElements
-            Must be a full ListOfElements, containing all the _Elements of the
+            Must be a full ListOfElements, containing all the Elements of the
             linac.
         ref_twiss_zdelta : np.ndarray | None, optional
             A reference array of Twiss parameters. If provided, it allows the

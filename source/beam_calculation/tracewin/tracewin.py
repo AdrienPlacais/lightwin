@@ -59,7 +59,7 @@ from tracewin_utils.interface import beam_calculator_to_command
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
-from core.elements import FieldMap
+from core.elements.elements.field_map import FieldMap
 from core.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
@@ -194,7 +194,7 @@ class TraceWin(BeamCalculator):
         Parameters
         ----------
         elts : ListOfElements
-        List of :class:`_Element` s in which you want the beam propagated.
+        List of :class:`Element` s in which you want the beam propagated.
         **specific_kwargs : dict
             ``TraceWin`` optional arguments. Overrides what is defined in
             ``base_kwargs`` and ``.ini``.

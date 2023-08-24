@@ -19,7 +19,7 @@ from functools import partial
 
 from beam_calculation.output import SimulationOutput
 from failures.set_of_cavity_settings import SetOfCavitySettings
-from core.elements import _Element
+from core.elements.element import Element
 from core.list_of_elements import ListOfElements, equiv_elt
 from core.accelerator import Accelerator
 
@@ -97,7 +97,7 @@ class BeamCalculator(ABC):
         """Transform the output of `BeamCalculator` to a `SimulationOutput`."""
 
     def _generate_element_to_index_func(self, elts: ListOfElements
-                                        ) -> Callable[[_Element, str | None],
+                                        ) -> Callable[[Element, str | None],
                                                       int | slice]:
         """Create the func to easily get data at proper mesh index."""
         shift = elts[0].beam_calc_param[self.id].s_in
@@ -118,7 +118,7 @@ class BeamCalculator(ABC):
 
 
 def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
-                      elt: _Element | str, pos: str | None = None
+                      elt: Element | str, pos: str | None = None
                       ) -> int | slice:
     """
     Convert `elt` + `pos` into a mesh index.
@@ -130,19 +130,19 @@ def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
     Parameters
     ----------
     _elts : ListOfElements
-        List of `_Element`s where `elt` should be. Must be set by a
+        List of `Element`s where `elt` should be. Must be set by a
         `functools.partial`.
     _shift : int
-        Mesh index of first `_Element`. Used when the first `_Element` of
+        Mesh index of first `Element`. Used when the first `Element` of
         `_elts` is not the first of the `Accelerator`. Must be set by
         `functools.partial`.
     _solver_id : str
         Name of the solver, to identify and take the proper
         `SingleElementBeamParameters`.
-    elt : _Element | str
+    elt : Element | str
         Element of which you want the index.
     pos : 'in' | 'out' | None, optional
-        Index of entry or exit of the `_Element`. If None, return full
+        Index of entry or exit of the `Element`. If None, return full
         indexes array. The default is None.
 
     """

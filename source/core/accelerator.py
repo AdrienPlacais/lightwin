@@ -27,8 +27,7 @@ import config_manager as con
 
 from beam_calculation.output import SimulationOutput
 
-from core.particle import ParticleInitialState
-from core.elements import _Element
+from core.elements.element import Element
 from core.list_of_elements import (ListOfElements,
                                    elt_at_this_s_idx,
                                    equiv_elt)
@@ -82,7 +81,7 @@ class Accelerator():
         return key in recursive_items(vars(self))
 
     def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
-            elt: str | _Element | None = None, **kwargs: bool | str) -> Any:
+            elt: str | Element | None = None, **kwargs: bool | str) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
@@ -95,11 +94,11 @@ class Accelerator():
             default is True.
         none_to_nan : bool, optional
             To convert None to np.NaN. The default is False.
-        elt : str | _Element | None, optional
+        elt : str | Element | None, optional
             If provided, and if the desired keys are in SimulationOutput, the
-            attributes will be given over the _Element only. You can provide an
-            _Element name, such as `QP1`. If the given _Element is not in the
-            Accelerator.ListOfElements, the _Element with the same name that is
+            attributes will be given over the Element only. You can provide an
+            Element name, such as `QP1`. If the given Element is not in the
+            Accelerator.ListOfElements, the Element with the same name that is
             present in this list will be used.
         **kwargs : bool | str
             Other arguments passed to recursive getter.
@@ -177,7 +176,7 @@ class Accelerator():
                 + "cavities.")
 
     def keep_settings(self, simulation_output: SimulationOutput) -> None:
-        """Save cavity parameters in _Elements and new .dat file."""
+        """Save cavity parameters in Elements and new .dat file."""
         for i, (elt, rf_field) in enumerate(zip(self.elts,
                                                 simulation_output.rf_fields)):
             v_cav_mv = simulation_output.cav_params['v_cav_mv'][i]
@@ -204,12 +203,12 @@ class Accelerator():
         self.simulation_outputs[beam_calculator_id] = simulation_output
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False
-                          ) -> _Element | None:
+                          ) -> Element | None:
         """Give the element where the given index is."""
         return elt_at_this_s_idx(self.elts, s_idx, show_info)
 
-    def equiv_elt(self, elt: _Element | str, to_index: bool = False
-                  ) -> _Element | int | None:
+    def equiv_elt(self, elt: Element | str, to_index: bool = False
+                  ) -> Element | int | None:
         """Return an element from self.elts with the same name."""
         return equiv_elt(self.elts, elt, to_index)
 

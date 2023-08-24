@@ -15,7 +15,8 @@ from functools import partial
 
 import config_manager as con
 
-from core.elements import _Element, FieldMap
+from core.elements.element import Element
+from core.elements.elements.field_map import FieldMap
 from core.list_of_elements import ListOfElements
 from core.list_of_elements_factory import (
     subset_of_pre_existing_list_of_elements
@@ -86,8 +87,8 @@ class Fault:
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  failed_cavities: list[FieldMap],
                  compensating_cavities: list[FieldMap],
-                 elt_eval_objectives: list[_Element],
-                 elts: list[_Element]
+                 elt_eval_objectives: list[Element],
+                 elts: list[Element]
                  ) -> None:
         """
         Create the Fault object.
@@ -108,9 +109,9 @@ class Fault:
             Holds the failed cavities.
         compensating_cavities : list[FieldMap]
             Holds the compensating cavities.
-        elt_eval_objectives : list[_Element]
-            `_Element`s at which exit objectives are evaluated.
-        elts : list[_Element]
+        elt_eval_objectives : list[Element]
+            `Element`s at which exit objectives are evaluated.
+        elts : list[Element]
             Holds the portion of the linac that will be computed again and
             again in the optimisation process. It is as short as possible, but
             must contain all `failed_cavities`, `compensating_cavities` and

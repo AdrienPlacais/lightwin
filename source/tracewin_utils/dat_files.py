@@ -17,26 +17,53 @@ import itertools
 
 import numpy as np
 
-import config_manager as con
-from core.elements import (_Element, Quad, Drift, FieldMap, Solenoid, Lattice,
-                           Freq, FieldMapPath, End)
+from core.elements.element import Element
+from core.elements.elements.quad import Quad
+from core.elements.elements.drift import Drift
+from core.elements.elements.field_map import FieldMap
+from core.elements.elements.solenoid import Solenoid
+
+from core.elements.commands import Lattice, Freq, FieldMapPath, End
 
 # from core.list_of_elements import ListOfElements
 ListOfElements = TypeVar('ListOfElements')
 
 
 TO_BE_IMPLEMENTED = [
-    'SPACE_CHARGE_COMP', 'SET_SYNC_PHASE', 'STEERER',
-    'ADJUST', 'ADJUST_STEERER', 'ADJUST_STEERER_BX', 'ADJUST_STEERER_BY',
-    'DIAG_SIZE', 'DIAG_DSIZE', 'DIAG_DSIZE2', 'DIAG_DSIZE3', 'DIAG_DSIZE4',
-    'DIAG_DENERGY', 'DIAG_ENERGY', 'DIAG_TWISS', 'DIAG_WAIST',
-    'DIAG_POSITION', 'DIAG_DPHASE',
-    'ERROR_CAV_NCPL_STAT', 'ERROR_CAV_NCPL_DYN',
-    'SET_ADV', 'LATTICE_END', 'SHIFT', 'THIN_STEERING', 'APERTURE']
-NOT_AN_ELEMENT = ['LATTICE', 'FREQ']
+    'SPACE_CHARGE_COMP',
+    'SET_SYNC_PHASE',
+    'STEERER',
+    'ADJUST',
+    'ADJUST_STEERER',
+    'ADJUST_STEERER_BX',
+    'ADJUST_STEERER_BY',
+    'DIAG_SIZE',
+    'DIAG_DSIZE',
+    'DIAG_DSIZE2',
+    'DIAG_DSIZE3',
+    'DIAG_DSIZE4',
+    'DIAG_DENERGY',
+    'DIAG_ENERGY',
+    'DIAG_TWISS',
+    'DIAG_WAIST',
+    'DIAG_POSITION',
+    'DIAG_DPHASE',
+    'ERROR_CAV_NCPL_STAT',
+    'ERROR_CAV_NCPL_DYN',
+    'SET_ADV',
+    'SHIFT',
+    'THIN_STEERING',
+    'APERTURE',
+]
+NOT_AN_ELEMENT = [
+    'FREQ',
+    'LATTICE',
+    'LATTICE_END',
+    'SUPERPOSE_MAP',
+]
 
 
-def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
+def create_structure(dat_filecontent: list[list[str]]) -> list[Element]:
     """
     Create structure using the loaded dat file.
 
@@ -47,8 +74,8 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
 
     Returns
     -------
-    elts : list[_Element]
-        List containing all the `_Element` objects.
+    elts : list[Element]
+        List containing all the `Element` objects.
 
     """
     subclasses_dispatcher = {
@@ -71,9 +98,9 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[_Element]:
     return elts
 
 
-def set_field_map_files_paths(elts: list[_Element],
+def set_field_map_files_paths(elts: list[Element],
                               default_field_map_folder: str
-                              ) -> tuple[list[_Element], str]:
+                              ) -> tuple[list[Element], str]:
     """Load FIELD_MAP_PATH, remove it from the list of elements."""
     field_map_paths = list(filter(lambda elt: isinstance(elt, FieldMapPath),
                                   elts))
@@ -97,7 +124,7 @@ def set_field_map_files_paths(elts: list[_Element],
     return elts, field_map_folder
 
 
-def give_name(elts: list[_Element]) -> None:
+def give_name(elts: list[Element]) -> None:
     """Give a name (the same as TW) to every element."""
     civil_register = {
         'QUAD': 'QP',
@@ -113,15 +140,15 @@ def give_name(elts: list[_Element]) -> None:
 
 def update_field_maps_in_dat(
     elts: ListOfElements,
-    new_phases: dict[_Element, float],
-    new_k_e: dict[_Element, float],
-    new_abs_phase_flag: dict[_Element, float]
+    new_phases: dict[Element, float],
+    new_k_e: dict[Element, float],
+    new_abs_phase_flag: dict[Element, float]
 ) -> None:
     """
     Create a new dat with given elements and settings.
 
     In constrary to `dat_filecontent_from_smaller_list_of_elements`, does not
-    modify the number of `_Element`s in the .dat.
+    modify the number of `Element`s in the .dat.
 
     """
     idx_elt = 0
@@ -150,10 +177,10 @@ def update_field_maps_in_dat(
 
 def dat_filecontent_from_smaller_list_of_elements(
         dat_filecontent: list[list[str]],
-        elts: list[_Element],
+        elts: list[Element],
 ) -> list[list[str]]:
     """
-    Create a new `.dat` containing only the `_Element`s of `elts`.
+    Create a new `.dat` containing only the `Element`s of `elts`.
 
     Properties of the FIELD_MAP, i.e. amplitude and phase, remain untouched, as
     it is the job of `update_field_maps_in_dat`.

@@ -32,8 +32,7 @@ from pymoo.termination.default import DefaultMultiObjectiveTermination
 from pymoo.mcdm.pseudo_weights import PseudoWeights
 
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
-from failures.set_of_cavity_settings import (SetOfCavitySettings,
-                                             SingleCavitySettings)
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
 @dataclass

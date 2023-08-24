@@ -14,7 +14,7 @@ from typing import Callable
 from functools import partial
 import numpy as np
 
-from core.elements import _Element
+from core.elements.element import Element
 from beam_calculation.output import SimulationOutput
 from evaluator import post_treaters, testers
 from util.dicts_output import markdown
@@ -178,7 +178,7 @@ PRESETS = {
 # Functions to generate presets
 # =============================================================================
 def presets_for_fault_scenario_rel_diff_at_some_element(
-    quantity: str, elt: _Element | str,
+    quantity: str, elt: Element | str,
     ref_simulation_output: SimulationOutput
 ) -> dict[str, Callable | int | str | tuple[Callable]]:
     """

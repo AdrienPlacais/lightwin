@@ -6,12 +6,12 @@ Created on Thu Nov 10 15:11:55 2022.
 @author: placais
 
 In this module we define the `ListOfElements` object. This type of object is
-a list of `_Element`s, with some additional methods.
+a list of `Element`s, with some additional methods.
 
 It is created in two contexts:
-    - `Accelerator.elts`: holds all the `_Element`s of the linac.
+    - `Accelerator.elts`: holds all the `Element`s of the linac.
     - `Fault.elts`, also called in `FaultScenario`: it holds only a fraction of
-    the linac `_Element`s. Beam will be propagated a huge number of time during
+    the linac `Element`s. Beam will be propagated a huge number of time during
     optimisation process, so we recompute only the strict necessary.
 
 """
@@ -22,7 +22,10 @@ import numpy as np
 
 import config_manager
 
-from core.elements import _Element, Freq, Lattice, FieldMap
+from core.elements.element import Element
+from core.elements.elements.field_map import FieldMap
+from core.elements.commands import Freq, Lattice
+
 from core.beam_parameters import BeamParameters
 from core.particle import ParticleInitialState
 from core.electric_field import phi_0_abs_with_new_phase_reference
@@ -38,7 +41,7 @@ from util.helper import recursive_items, recursive_getter
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
-    def __init__(self, elts: list[_Element],
+    def __init__(self, elts: list[Element],
                  input_particle: ParticleInitialState,
                  input_beam: BeamParameters, first_init: bool = True,
                  files: dict[str, str | list[list[str]]] = None
@@ -53,14 +56,14 @@ class ListOfElements(list):
 
         Parameters
         ----------
-        elts : list[_Element]
-            List containing the _Element objects.
+        elts : list[Element]
+            List containing the Element objects.
         input_particle : ParticleInitialState
             An object to hold initial energy and phase of the particle at the
-            entry of the first `_Element`.
+            entry of the first `Element`.
         input_beam : BeamParameters
             An object to hold emittances, Twiss, sigma beam matrix, etc at the
-            entry of the first `_Element`.
+            entry of the first `Element`.
         first_init : bool, optional
             To indicate if this a full linac or only a portion (fit process).
             The default is True.
@@ -78,8 +81,8 @@ class ListOfElements(list):
         self.files = files
 
         super().__init__(elts)
-        self.by_section_and_lattice: list[list[list[_Element]]] | None = None
-        self.by_lattice: list[list[_Element]] | None = None
+        self.by_section_and_lattice: list[list[list[Element]]] | None = None
+        self.by_lattice: list[list[Element]] | None = None
 
         if first_init:
             logging.info("Removing Lattice and Freq commands, setting "
@@ -109,13 +112,13 @@ class ListOfElements(list):
 
     @property
     def _stored_k_e(self) -> dict[FieldMap, float]:
-        """Get the `k_e` properties from `_Element`s of `self`."""
+        """Get the `k_e` properties from `Element`s of `self`."""
         k_e = {cavity: cavity.get('k_e') for cavity in self.l_cav}
         return k_e
 
     @property
     def _stored_abs_phase_flag(self) -> dict[FieldMap, float]:
-        """Get the `abs_phase` flags from `_Element`s of `self`."""
+        """Get the `abs_phase` flags from `Element`s of `self`."""
         abs_phase_flag = {cavity: int(config_manager.FLAG_PHI_ABS)
                           for cavity in self.l_cav}
         return abs_phase_flag
@@ -171,14 +174,14 @@ class ListOfElements(list):
             key in recursive_items(vars(self[0]))
 
     def get(self, *keys: str, to_numpy: bool = True,
-            remove_first: bool = False, **kwargs: bool | str | _Element | None
+            remove_first: bool = False, **kwargs: bool | str | Element | None
             ) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
-        This method also looks into the first `_Element` of `self`. If the
-        desired `key` is in this `_Element`, we recursively get `key` from
-        every `_Element` and concatenate the output.
+        This method also looks into the first `Element` of `self`. If the
+        desired `key` is in this `Element`, we recursively get `key` from
+        every `Element` and concatenate the output.
 
         Parameters
         ----------
@@ -188,13 +191,13 @@ class ListOfElements(list):
             If you want the list output to be converted to a np.ndarray. The
             default is True.
         remove_first : bool, optional
-            If you want to remove the first item of every `_Element`'s `key`.
-            It the _Element is the first of the list, we do not remove its
+            If you want to remove the first item of every `Element`'s `key`.
+            It the Element is the first of the list, we do not remove its
             first item.
-            It is useful when the last item of an `_Element` is the same as the
-            first item of the next `_Element`. For example, `z_abs`. The
+            It is useful when the last item of an `Element` is the same as the
+            first item of the next `Element`. For example, `z_abs`. The
             default is False.
-        **kwargs : bool | str | _Element | None
+        **kwargs : bool | str | Element | None
             Other arguments passed to recursive getter.
 
         Returns
@@ -210,7 +213,7 @@ class ListOfElements(list):
                 val[key] = None
                 continue
 
-            # Specific case: key is in _Element
+            # Specific case: key is in Element
             if self[0].has(key):
                 for elt in self:
                     data = elt.get(key, to_numpy=False, **kwargs)
@@ -244,8 +247,8 @@ class ListOfElements(list):
         self._set_generic_electric_field_properties(
             freqs, freq_bunch=config_manager.F_BUNCH_MHZ)
 
-    def set_structure(self) -> tuple[list[list[_Element]],
-                                     list[list[list[_Element]]],
+    def set_structure(self) -> tuple[list[list[Element]],
+                                     list[list[list[Element]]],
                                      list[Freq]]:
         """
         Use Freq/Lattice commands to set structure of the accelerator.
@@ -254,11 +257,11 @@ class ListOfElements(list):
 
         Returns
         -------
-        elts_by_section_and_lattice : list[list[list[_Element]]]
-            Level 1: Sections. Level 2: Lattices. Level 3: list of _Elements
+        elts_by_section_and_lattice : list[list[list[Element]]]
+            Level 1: Sections. Level 2: Lattices. Level 3: list of Elements
             in the Lattice.
-        elts_by_lattice : list[list[_Element]]
-            Level 1: Lattices. Level 2: list of _Elements in the Lattice.
+        elts_by_lattice : list[list[Element]]
+            Level 1: Lattices. Level 2: list of Elements in the Lattice.
         frequencies: list[Freq]
             Contains the Frequency object corresponding to every Section.
 
@@ -285,7 +288,7 @@ class ListOfElements(list):
 
     def set_structure_related_indexes_of_elements(self) -> None:
         """Set useful indexes, related to the structure of the linac."""
-        # Absolute _Element index
+        # Absolute Element index
         for elt in self:
             elt.idx['elt_idx'] = self.index(elt)
 
@@ -322,7 +325,7 @@ class ListOfElements(list):
 
         Important notice
         ----------------
-        The phases of the cavities are rephased if the first `_Element` in
+        The phases of the cavities are rephased if the first `Element` in
         `self` is not the first of the linac. This way, the beam enters each
         cavity with the intended phase in `TraceWin`.
 
@@ -373,33 +376,33 @@ def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
     return cumulated_transfer_matrices
 
 
-def equiv_elt(elts: ListOfElements | list[_Element], elt: _Element | str,
-              to_index: bool = False) -> _Element | int | None:
+def equiv_elt(elts: ListOfElements | list[Element], elt: Element | str,
+              to_index: bool = False) -> Element | int | None:
     """
     Return an element from elts that has the same name as elt.
 
     Important: this routine uses the name of the element and not its adress. So
-    it will not complain if the _Element object that you asked for is not in
+    it will not complain if the Element object that you asked for is not in
     this list of elements.
     In the contrary, it was also meant to find equivalent cavities between
     different lists of elements.
 
     Parameters
     ----------
-    elts : ListOfElements | list[_Element]
+    elts : ListOfElements | list[Element]
         List of elements where you want the position.
-    elt : _Element | str
+    elt : Element | str
         Element of which you want the position. If you give a str, it should be
-        the name of an _Element. If it is an _Element, we take its name in the
+        the name of an Element. If it is an Element, we take its name in the
         routine. Magic keywords 'first', 'last' are also accepted.
     to_index : bool, optional
-        If True, the function returns the index of the _Element instead of the
-        _Element itself.
+        If True, the function returns the index of the Element instead of the
+        Element itself.
 
     Returns
     -------
-    _Element | int | None
-        Equivalent _Element, position in list of elements, or None if not
+    Element | int | None
+        Equivalent Element, position in list of elements, or None if not
         found.
 
     """
@@ -423,9 +426,9 @@ def equiv_elt(elts: ListOfElements | list[_Element], elt: _Element | str,
     return elts[idx]
 
 
-def elt_at_this_s_idx(elts: ListOfElements | list[_Element, ...],
+def elt_at_this_s_idx(elts: ListOfElements | list[Element, ...],
                       s_idx: int, show_info: bool = False
-                      ) -> _Element | None:
+                      ) -> Element | None:
     """Give the element where the given index is."""
     for elt in elts:
         if s_idx in range(elt.idx['s_in'], elt.idx['s_out']):
@@ -439,7 +442,7 @@ def elt_at_this_s_idx(elts: ListOfElements | list[_Element, ...],
     return None
 
 
-def _lattices_and_frequencies(elts: list[_Element]
+def _lattices_and_frequencies(elts: list[Element]
                               ) -> tuple[list[Lattice], list[Freq]]:
     """Get Lattice and Freq objects, which convey every Section information."""
     lattices = list(filter(lambda elt: isinstance(elt, Lattice), elts))
@@ -454,9 +457,9 @@ def _lattices_and_frequencies(elts: list[_Element]
     return lattices, frequencies
 
 
-def _group_elements_by_section(elts: list[_Element], lattices: list[Lattice]
-                               ) -> list[list[_Element]]:
-    """Regroup the _Element belonging to the same Section."""
+def _group_elements_by_section(elts: list[Element], lattices: list[Lattice]
+                               ) -> list[list[Element]]:
+    """Regroup the Element belonging to the same Section."""
     idx_lattice_change = [elts.index(latt) for latt in lattices]
     slice_starts = idx_lattice_change
     slice_ends = idx_lattice_change[1:] + [None]
@@ -468,9 +471,9 @@ def _group_elements_by_section(elts: list[_Element], lattices: list[Lattice]
 
 
 def _group_elements_by_lattice(
-    elts_by_sec_and_latt: list[list[list[_Element]]], lattices: list[Lattice]
-) -> list[list[_Element]]:
-    """Regroup the _Element belonging to the same Lattice."""
+    elts_by_sec_and_latt: list[list[list[Element]]], lattices: list[Lattice]
+) -> list[list[Element]]:
+    """Regroup the Element belonging to the same Lattice."""
     elts_grouped_by_lattice = []
     for by_section in elts_by_sec_and_latt:
         for by_lattice in by_section:
@@ -479,9 +482,9 @@ def _group_elements_by_lattice(
 
 
 def _group_elements_by_section_and_lattice(
-        elts_by_sec: list[list[_Element]], lattices: list[Lattice]
-        ) -> list[list[list[_Element]]]:
-    """Regroup _Elements by Section and then by Lattice."""
+        elts_by_sec: list[list[Element]], lattices: list[Lattice]
+        ) -> list[list[list[Element]]]:
+    """Regroup Elements by Section and then by Lattice."""
     elts_by_section_and_lattice = [
         _slice(elts_of_a_section, n_in_slice=latt.n_lattice)
         for elts_of_a_section, latt in zip(elts_by_sec, lattices)]
@@ -499,7 +502,7 @@ def _slice(unsliced: list, n_in_slice: int) -> list[list]:
     return sliced
 
 
-# actually, type of elements and outputs is Nested[list[_Element]]
+# actually, type of elements and outputs is Nested[list[Element]]
 def _filter_out(elements: Any, to_exclude: tuple[type]) -> Any:
     """Filter out `to_exclude` types while keeping the input list structure."""
     if isinstance(elements[0], list):
@@ -514,8 +517,8 @@ def _filter_out(elements: Any, to_exclude: tuple[type]) -> Any:
     return elements
 
 
-def filter_elts(elts: ListOfElements | list[_Element], key: str, val: Any
-                ) -> list[_Element]:
+def filter_elts(elts: ListOfElements | list[Element], key: str, val: Any
+                ) -> list[Element]:
     """Shortcut for filtering elements according to (key, val)."""
     return list(filter(lambda elt: elt.get(key) == val, elts))
 

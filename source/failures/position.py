@@ -25,12 +25,12 @@ the linac that I need to recompute again and again during the fit?
 import logging
 
 from core.accelerator import Accelerator
-from core.elements import _Element
+from core.elements.element import Element
 
 
 def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
                       comp_idx: list[int], need_full_lattices: bool = False
-                      ) -> tuple[list[_Element], list[_Element]]:
+                      ) -> tuple[list[Element], list[Element]]:
     """
     Tell what is the zone to recompute.
 
@@ -50,14 +50,14 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
         element index in the routine.
     need_full_lattices : bool, optional
         If you want the compensation zone to encompass full lattices only. It
-        is a little bit slower as more ``_Element`` are calculated. Plus,
+        is a little bit slower as more ``Element`` are calculated. Plus,
         it has no impact even with :class:`TraceWin` solver. Keeping it in case
         it has an impact that I did not see.
 
     Returns
     -------
-    elts : list[_Element]
-        ``_Element`` objects of the compensation zone.
+    elts : list[Element]
+        ``Element`` objects of the compensation zone.
     objectives_positions : list[int]
         Position in ``elts`` of where objectives should be matched.
 

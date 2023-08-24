@@ -24,7 +24,7 @@ from beam_calculation.single_element_beam_calculator_parameters import (
 
 class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
     """
-    Holds the parameters to compute beam propagation in an _Element.
+    Holds the parameters to compute beam propagation in an Element.
 
     has and get method inherited from SingleElementCalculatorParameters parent
     class.
@@ -77,7 +77,7 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
                                     is_accelerating: bool, elt_status: str,
                                     **rf_field_kwargs) -> dict:
         """
-        Calculate beam propagation in the _Element.
+        Calculate beam propagation in the Element.
 
         This wrapping is not very Pythonic, should be removed in the future.
         """

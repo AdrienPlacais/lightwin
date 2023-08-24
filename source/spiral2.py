@@ -5,11 +5,7 @@ Created on Tue Dec  6 14:33:39 2022.
 OG lsq:
 [2.02104786e-08 9.98014116e-09 9.82799129e-08] (idx 13)
 
-I choose [0.02295649 0.06968992 0.04768734] (idx 88)
-I choose [0.00091583 0.00184761 0.08856848] (idx 33)
 @author: placais
-
-FIXME get @ elt clash when arg is single: v_cav, phi_s, etc
 """
 import logging
 import time
@@ -76,17 +72,15 @@ def post_beam_calc_and_save(accelerator: Accelerator,
 # Main function
 # =============================================================================
 if __name__ == '__main__':
-    MY_CONFIG_FILE = 'myrrha.ini'
+    MY_CONFIG_FILE = '../data/SPIRAL2_post_scraper/lightwin.ini'
     MY_KEYS = {
         'files': 'files',
-        'plots': 'plots.complete',
-        'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
-        # 'beam_calculator': 'beam_calculator.tracewin.envelope',
-        'beam': 'beam',
-        # 'wtf': 'wtf.for_tracewin',
-        'wtf': 'wtf.k_out_of_n',
-        # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
-        # 'evaluators': 'evaluators.fred',
+        'plots': 'plots.essential',
+        'beam_calculator': 'beam_calculator.fit',
+        'beam': 'beam.My_particle',
+        'wtf': 'wtf.quick_debug',
+        # 'beam_calculator_post': 'beam_calculator_post.tracewin',
+        # 'evaluators': 'evaluators.classic',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
 
@@ -137,45 +131,34 @@ if __name__ == '__main__':
     # =========================================================================
     # Fix
     # =========================================================================
-    for fault_scenario in fault_scenarios:
-        start_time = time.monotonic()
+    # for fault_scenario in fault_scenarios:
+    #     start_time = time.monotonic()
 
-        fault_scenario.fix_all()
+    #     fault_scenario.fix_all()
 
-        end_time = time.monotonic()
-        delta_t = datetime.timedelta(seconds=end_time - start_time)
-        logging.info(f"Elapsed time in optimisation: {delta_t}")
+    #     end_time = time.monotonic()
+    #     delta_t = datetime.timedelta(seconds=end_time - start_time)
+    #     logging.info(f"Elapsed time in optimisation: {delta_t}")
 
-    # =========================================================================
-    # Check
-    # =========================================================================
-    # Re-run new settings with beam_calc_pos, a priori more precise
-    for accelerator in accelerators:
-        start_time = time.monotonic()
+    # # =========================================================================
+    # # Check
+    # # =========================================================================
+    # # Re-run new settings with beam_calc_pos, a priori more precise
+    # for accelerator in accelerators:
+    #     start_time = time.monotonic()
 
-        ref_simulation_output = None
-        if accelerator != accelerators[0] and solv2 is not None:
-            ref_simulation_output = accelerators[0].simulation_outputs[solv2]
-        post_beam_calc_and_save(accelerator, my_beam_calc_post,
-                                ref_simulation_output=ref_simulation_output)
+    #     ref_simulation_output = None
+    #     if accelerator != accelerators[0] and solv2 is not None:
+    #         ref_simulation_output = accelerators[0].simulation_outputs[solv2]
+    #     post_beam_calc_and_save(accelerator, my_beam_calc_post,
+    #                             ref_simulation_output=ref_simulation_output)
 
-        end_time = time.monotonic()
-        delta_t = datetime.timedelta(seconds=end_time - start_time)
-        logging.info(f"Elapsed time in post beam calculation: {delta_t}")
+    #     end_time = time.monotonic()
+    #     delta_t = datetime.timedelta(seconds=end_time - start_time)
+    #     logging.info(f"Elapsed time in post beam calculation: {delta_t}")
 
     # =========================================================================
     # Post-treat
     # =========================================================================
     kwargs = {'save_fig': True, 'clean_fig': True}
     figs = plot.factory(accelerators, my_configs['plots'], **kwargs)
-
-    # s_to_study = [accelerator.simulation_outputs[solv2]
-    #               for accelerator in accelerators]
-    # ref_s = s_to_study[0]
-
-    # simulation_output_evaluators: ListOfSimulationOutputEvaluators = \
-    #     factory_simulation_output_evaluators_from_presets(
-    #         *my_configs['evaluators']['beam_calc_post'],
-    #         ref_simulation_output=ref_s)
-
-    # simulation_output_evaluators.run(*tuple(s_to_study))

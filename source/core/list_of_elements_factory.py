@@ -15,7 +15,8 @@ The second one, `subset_of_pre_existing_list_of_elements`, is called within the
 `Fault` class and generates a `ListOfElements` that contains only a fraction of
 the linac.
 
-TODO : also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
+.. todo::
+    Also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
 
 Maybe it will be necessary to handle cases where the synch particle is not
 perfectly on the axis?
@@ -26,7 +27,7 @@ import logging
 
 import numpy as np
 
-from core.elements import _Element
+from core.elements.element import Element
 from core.particle import ParticleInitialState
 from core.beam_parameters import BeamParameters
 from core.list_of_elements import ListOfElements
@@ -72,14 +73,14 @@ def new_list_of_elements(dat_filepath: str,
     Returns
     -------
     list_of_elements : ListOfElements
-        Contains all the `_Elements` of the linac, as well as the proper
+        Contains all the `Elements` of the linac, as well as the proper
         particle and beam properties at its entry.
 
     """
     dat_filepath = os.path.abspath(dat_filepath)
     logging.info("First initialisation of ListOfElements, ecompassing all "
                  "linac. Also removing Lattice and Freq commands, setting "
-                 "Lattice/Section structures, _Elements names. "
+                 "Lattice/Section structures, Elements names. "
                  f"Created with dat_filepath = {dat_filepath}")
 
     files = {
@@ -135,9 +136,9 @@ def _new_beam_parameters(sigma_in_zdelta: np.ndarray,
 
 def _dat_filepath_to_plain_list_of_elements(
         files: dict[str, str | list[list[str]] | None],
-) -> list[_Element]:
+) -> list[Element]:
     """
-    Convert the content of the `.dat` file to a plain list of `_Element`s.
+    Convert the content of the `.dat` file to a plain list of `Element`s.
 
     Parameters
     ----------
@@ -147,8 +148,8 @@ def _dat_filepath_to_plain_list_of_elements(
 
     Returns
     -------
-    elts : list[_Element]
-        Plain list of _Element (not yet a `ListOfElements` object).
+    elts : list[Element]
+        Plain list of Element (not yet a `ListOfElements` object).
 
     """
     elts = create_structure(files['dat_content'])
@@ -163,7 +164,7 @@ def _dat_filepath_to_plain_list_of_elements(
 # Partial list of elements, called from `Fault`
 # =============================================================================
 def subset_of_pre_existing_list_of_elements(
-    elts: list[_Element],
+    elts: list[Element],
     simulation_output: SimulationOutput,
     files_from_full_list_of_elements: dict[str, str | list[list[str]]],
 ) -> ListOfElements:
@@ -181,8 +182,8 @@ def subset_of_pre_existing_list_of_elements(
 
     Parameters
     ----------
-    elts : list[_Element]
-        A plain list containing the `_Element` objects that the object should
+    elts : list[Element]
+        A plain list containing the `Element` objects that the object should
         contain.
     simulation_output : SimulationOutput
         Holds the results of the pre-existing `ListOfElements`.
@@ -190,7 +191,7 @@ def subset_of_pre_existing_list_of_elements(
     Returns
     -------
     list_of_elements : ListOfElements
-        Contains all the `_Elements` that will be recomputed during the
+        Contains all the `Elements` that will be recomputed during the
         optimisation, as well as the proper particle and beam properties at its
         entry.
 
@@ -226,12 +227,12 @@ def subset_of_pre_existing_list_of_elements(
 
 
 def _subset_files_dictionary(
-    elts: list[_Element],
+    elts: list[Element],
     files_from_full_list_of_elements: dict[str, str | list[list[str]]],
     tmp_folder: str = 'tmp',
     tmp_dat: str = 'tmp.dat',
 ) -> dict[str, str | list[list[str]]]:
-    """Set the new `.dat` file containing only `_Element` of `elts`."""
+    """Set the new `.dat` file containing only `Element` of `elts`."""
     dirname = files_from_full_list_of_elements['out_path']
     dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
 
@@ -266,10 +267,10 @@ def _delta_phi_for_tracewin(phi_at_entry_of_compensation_zone: float) -> float:
     return delta_phi_bunch
 
 
-def _get_initial_element(elts: list[_Element],
+def _get_initial_element(elts: list[Element],
                          simulation_output: SimulationOutput
-                         ) -> tuple[_Element | str, str]:
-    """Set the `_Element` from which we should take energy, phase, etc."""
+                         ) -> tuple[Element | str, str]:
+    """Set the `Element` from which we should take energy, phase, etc."""
     input_elt, input_pos = elts[0], 'in'
     try:
         _ = simulation_output.get('w_kin', elt=input_elt)
@@ -283,9 +284,9 @@ def _get_initial_element(elts: list[_Element],
 
 
 def _subset_input_particle(simulation_output: SimulationOutput,
-                           **kwargs: _Element | str | bool | None
+                           **kwargs: Element | str | bool | None
                            ) -> ParticleInitialState:
-    """Create `ParticleInitialState` for an incomplete list of `_Element`s."""
+    """Create `ParticleInitialState` for an incomplete list of `Element`s."""
     w_kin, phi_abs, z_abs = simulation_output.get('w_kin', 'phi_abs', 'z_abs',
                                                   **kwargs)
     input_particle = ParticleInitialState(w_kin, phi_abs, z_abs,
@@ -294,9 +295,9 @@ def _subset_input_particle(simulation_output: SimulationOutput,
 
 
 def _subset_beam_parameters(simulation_output: SimulationOutput,
-                            **kwargs: _Element | str | bool | None
+                            **kwargs: Element | str | bool | None
                             ) -> BeamParameters:
-    """Create `BeamParameters` for an incomplete list of `_Element`s."""
+    """Create `BeamParameters` for an incomplete list of `Element`s."""
     z_abs, gamma_kin, beta_kin = simulation_output.get(
         *('z_abs', 'gamma', 'beta'), **kwargs)
     input_beam = BeamParameters(z_abs=z_abs,
@@ -334,7 +335,7 @@ def _required_quantities() -> tuple[str]:
 def _get_quantities_from_phase_spaces(phase_spaces: tuple[str],
                                       quantities: tuple[str],
                                       full_beam_parameters: BeamParameters,
-                                      **kwargs: _Element | str | bool | None
+                                      **kwargs: Element | str | bool | None
                                       ) -> dict[str, dict[str, float | None]]:
     """Get desired quantities at proper place in every phase space."""
     beam_param_kwargs = {phase_space_name: None

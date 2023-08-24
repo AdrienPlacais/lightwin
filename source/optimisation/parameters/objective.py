@@ -11,7 +11,7 @@ objective.
 """
 import logging
 
-from core.elements import _Element
+from core.elements.element import Element
 from core.beam_parameters import mismatch_from_arrays
 
 from beam_calculation.output import SimulationOutput
@@ -26,7 +26,7 @@ class Objective:
     def __init__(self,
                  name: str,
                  scale: float,
-                 element: _Element | str,
+                 element: Element | str,
                  pos: str,
                  reference_simulation_output: SimulationOutput | None = None,
                  reference_value: float | None = None) -> None:
@@ -86,7 +86,7 @@ class Objective:
         return message
 
     @property
-    def kwargs(self) -> dict[str, _Element | str | bool]:
+    def kwargs(self) -> dict[str, Element | str | bool]:
         """Return the `kwargs` to send a `get` method."""
         _kwargs = {'elt': self.element,
                    'pos': self.pos,

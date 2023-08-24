@@ -16,7 +16,9 @@ from optimisation.parameters.constraint import Constraint
 from optimisation.parameters.objective import Objective
 
 from core.list_of_elements import ListOfElements, equiv_elt
-from core.elements import FieldMap, _Element
+from core.elements.elements.field_map import FieldMap
+from core.elements.element import Element
+
 
 from beam_calculation.output import SimulationOutput
 
@@ -117,7 +119,7 @@ def constraint_factory(preset: str,
 
 def objective_factory(names: list[str],
                       scales: list[float],
-                      elements: list[_Element],
+                      elements: list[Element],
                       reference_simulation_output: SimulationOutput,
                       positions: list[str] | None = None,
                       ) -> tuple[list[Objective],
@@ -130,18 +132,18 @@ def objective_factory(names: list[str],
         Name of the objectives. All individual objectives have to work with the
         `SimulationOutput.get` method.
     scales : list[float]
-        List of the scales for every `_Element` and every objective. If you
+        List of the scales for every `Element` and every objective. If you
         have 5 objectives, the 5 first `scale` will be applied to the 5
-        objectives at the first `_Element`, the 5 following at the second
-        `_Element`, etc.
-    elements : list[_Element]
-        List of `_Element` where objectives should be evaluated.
+        objectives at the first `Element`, the 5 following at the second
+        `Element`, etc.
+    elements : list[Element]
+        List of `Element` where objectives should be evaluated.
     reference_simulation_output : SimulationOutput
         A `SimulationOutput` on the reference linac (no fault).
     positions : list[float] | None, optional
-        Where objectives should be evaluated for each `_Element`. The default
+        Where objectives should be evaluated for each `Element`. The default
         is None, which comes back to evaluating objective at the exit of every
-        `_Element`.
+        `Element`.
 
     Returns
     -------

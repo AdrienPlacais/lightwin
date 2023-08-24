@@ -17,7 +17,7 @@ from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
 from failures.fault import Fault
 from failures import strategy, position
-from core.elements import _Element
+from core.elements.element import Element
 from core.accelerator import Accelerator
 from util import debug
 from evaluator.list_of_simulation_output_evaluators import \
@@ -249,8 +249,8 @@ class FaultScenario(list):
         #     df_eval.to_csv(out)
 
     def _set_evaluation_elements(self,
-                                 additional_elt: list[_Element] | None = None,
-                                 ) -> dict[str, _Element]:
+                                 additional_elt: list[Element] | None = None,
+                                 ) -> dict[str, Element]:
         """Set a the proper list of where to check the fit quality."""
         evaluation_elements = [fault.elts[-1] for fault in self]
         if additional_elt is not None:

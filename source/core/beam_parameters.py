@@ -55,7 +55,7 @@ We use the same units and conventions as TraceWin.
     emittance in the [phi-W] plane.
 
 """
-from typing import Any, Self, Callable
+from typing import Any, Callable
 from dataclasses import dataclass
 import logging
 
@@ -63,7 +63,7 @@ import numpy as np
 
 import config_manager as con
 
-from core.elements import _Element
+from core.elements.element import Element
 
 from tracewin_utils.interface import beam_parameters_to_command
 
@@ -94,9 +94,9 @@ class BeamParameters:
         Lorentz gamma factor. The default is None. If `beta_kin` is not
         provided but `gamma_kin` is, `beta_kin` is automatically calculated at
         initialisation.
-    element_to_index : Callable[[str | _Element, str | None],
+    element_to_index : Callable[[str | Element, str | None],
                                  int | slice] | None, optional
-        Takes an `_Element`, its name, 'first' or 'last' as argument, and
+        Takes an `Element`, its name, 'first' or 'last' as argument, and
         returns correspondinf index. Index should be the same in all the arrays
         attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
         Used to easily `get` the desired properties at the proper position. The
@@ -131,7 +131,7 @@ class BeamParameters:
     z_abs: np.ndarray | float | None = None
     gamma_kin: np.ndarray | float | None = None
     beta_kin: np.ndarray | float | None = None
-    element_to_index: Callable[[str | _Element, str | None], int | slice] \
+    element_to_index: Callable[[str | Element, str | None], int | slice] \
         | None = None
 
     def __post_init__(self) -> None:
@@ -171,7 +171,7 @@ class BeamParameters:
         return key in recursive_items(vars(self))
 
     def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
-            elt: _Element | None = None, pos: str | None = None,
+            elt: Element | None = None, pos: str | None = None,
             phase_space: str | None = None, **kwargs: Any) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -193,11 +193,11 @@ class BeamParameters:
             default is True.
         none_to_nan : bool, optional
             To convert None to np.NaN. The default is True.
-        elt : _Element | None, optional
-            If provided, return the attributes only at the considered _Element.
+        elt : Element | None, optional
+            If provided, return the attributes only at the considered Element.
         pos : 'in' | 'out' | None
             If you want the attribute at the entry, exit, or in the whole
-            _Element.
+            Element.
         phase_space : ['z', 'zdelta', 'phi_w', 'x', 'y'] | None, optional
             Phase space in which you want the key. The default is None. In this
             case, the quantities from the zdelta phase space are taken.
@@ -383,7 +383,7 @@ class SinglePhaseSpaceBeamParameters:
 
     mismatch_factor: np.ndarray | None = None
 
-    element_to_index: Callable[[str | _Element, str | None], int | slice] \
+    element_to_index: Callable[[str | Element, str | None], int | slice] \
         | None = None
 
     def __post_init__(self):
@@ -406,7 +406,7 @@ class SinglePhaseSpaceBeamParameters:
         return key in recursive_items(vars(self))
 
     def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
-            elt: _Element | None = None, pos: str | None = None,
+            elt: Element | None = None, pos: str | None = None,
             **kwargs: Any) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -420,11 +420,11 @@ class SinglePhaseSpaceBeamParameters:
             default is True.
         none_to_nan : bool, optional
             To convert None to np.NaN. The default is True.
-        elt : _Element | None, optional
-            If provided, return the attributes only at the considered _Element.
+        elt : Element | None, optional
+            If provided, return the attributes only at the considered Element.
         pos : 'in' | 'out' | None
             If you want the attribute at the entry, exit, or in the whole
-            _Element.
+            Element.
         **kwargs: Any
             Other arguments passed to recursive getter.
 

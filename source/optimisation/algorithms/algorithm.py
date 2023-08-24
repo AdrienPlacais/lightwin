@@ -30,7 +30,7 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
 from beam_calculation.output import SimulationOutput
 
 from core.list_of_elements import ListOfElements
-from core.elements import FieldMap
+from core.elements.elements.field_map import FieldMap
 
 
 @dataclass

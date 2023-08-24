@@ -15,7 +15,7 @@ import logging
 
 import pandas as pd
 
-from core.elements import _Element
+from core.elements.element import Element
 from failures.fault import Fault
 from beam_calculation.output import SimulationOutput
 from evaluator.simulation_output_evaluator import SimulationOutputEvaluator
@@ -75,7 +75,7 @@ class FaultScenarioSimulationOutputEvaluators:
 
     def __init__(self, quantities: tuple[str], faults: list[Fault],
                  simulation_outputs: tuple[SimulationOutputEvaluator],
-                 additional_elts: tuple[_Element | str] | None = None
+                 additional_elts: tuple[Element | str] | None = None
                  ) -> None:
         self.quantities = quantities
 
@@ -90,8 +90,8 @@ class FaultScenarioSimulationOutputEvaluators:
 
     def _set_evaluation_elements(
         self, faults: list[Fault],
-        additional_elts: tuple[_Element | str] | None = None
-    ) -> tuple[list[_Element | str], list[str]]:
+        additional_elts: tuple[Element | str] | None = None
+    ) -> tuple[list[Element | str], list[str]]:
         """
         Set where the relative difference of `quantities` will be evaluated.
 

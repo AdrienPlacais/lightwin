@@ -19,7 +19,7 @@ from beam_calculation.single_element_beam_calculator_parameters import (
 
 class SingleElementTraceWinParameters(SingleElementCalculatorParameters):
     """
-    Holds meshing and indexes of _Elements.
+    Holds meshing and indexes of Elements.
 
     Unnecessary for TraceWin, but useful to link the meshing in TraceWin to
     other simulations. Hence, it is not created by the init_solver_parameters
