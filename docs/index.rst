@@ -10,7 +10,6 @@ Welcome to LightWin's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
 
 .. autosummary::
    :toctree: _autosummary

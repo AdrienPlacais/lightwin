@@ -5,12 +5,12 @@ Created on Wed May 17 09:08:47 2023.
 
 @author: placais
 
-This module holds `FaultScenario`, a list-based class holding all the `Fault`
-objets to be fixed, as well as `fault_scenario_factory`, a factory function
-creating all the required `FaultScenario` objects.
+This module holds :class:`FaultScenario`, a list-based class holding all the
+:class:`Fault` to be fixed, as well as :func:`fault_scenario_factory`, a
+factory function creating all the required :class:`FaultScenario` objects.
+
 """
 import logging
-import os.path
 
 import config_manager as con
 from beam_calculation.beam_calculator import BeamCalculator
@@ -41,19 +41,19 @@ class FaultScenario(list):
         Parameters
         ----------
         ref_acc : Accelerator
-            The reference `Accelerator` (nominal `Accelerator`).
+            The reference linac (nominal or baseline).
         fix_acc : Accelerator
-            The broken `Accelerator` to be fixed.
+            The broken linac to be fixed.
     beam_calculator : BeamCalculator
         The solver that will be called during the optimisation process.
         wtf : dict[str, str | int | bool | list[str] | list[float]]
             What To Fit dictionary. Holds information on the fixing method.
         fault_idx : list[int | list[int]]
-            List containing the position of the errors. If `strategy` is
+            List containing the position of the errors. If ``strategy`` is
             manual, it is a list of lists (faults already gathered).
         comp_idx : list[list[int]], optional
             List containing the position of the compensating cavities. If
-            `strategy` is manual, it must be provided. The default is None.
+            ``strategy`` is manual, it must be provided. The default is None.
         info_other_sol : list, optional
             Contains information on another fit, for comparison purposes. The
             default is None.
@@ -101,7 +101,7 @@ class FaultScenario(list):
         self._transfer_phi0_from_ref_to_broken()
 
     def fix_all(self) -> None:
-        """Fix all the `Fault`s."""
+        """Fix all the :class:`Fault`."""
         success, info = [], []
         ref_simulation_output = \
             self.ref_acc.simulation_outputs[self.beam_calculator.id]
@@ -200,7 +200,7 @@ class FaultScenario(list):
 
         If the absolute initial phases are not kept between reference and
         broken linac, it comes down to rephasing the linac. This is what we
-        want to avoid when `con.FLAG_PHI_ABS == True`.
+        want to avoid when ``con.FLAG_PHI_ABS == True``.
 
         """
         ref_cavities = self.ref_acc.l_cav
@@ -227,7 +227,7 @@ class FaultScenario(list):
         id_solver_ref : str | None, optional
             Id of the solver from which you want reference results. The default
             is None. In this case, the first solver is taken
-            (`beam_calc_param`).
+            (``beam_calc_param``).
         id_solver_fix : str | None, optional
             Id of the solver from which you want fixed results. The default is
             None. In this case, the solver is the same as for reference.
@@ -261,7 +261,7 @@ class FaultScenario(list):
     def _simulations_that_should_be_compared(
         self, id_solver_ref: str | None, id_solver_fix: str | None
     ) -> tuple[SimulationOutput, SimulationOutput]:
-        """Get proper SimulationOutputs for comparison."""
+        """Get proper :class:`SimulationOutput` for comparison."""
         if id_solver_ref is None:
             id_solver_ref = list(self.ref_acc.simulation_outputs.keys())[0]
 
@@ -284,13 +284,13 @@ def fault_scenario_factory(
     wtf: dict[str, str | int | bool | list[str] | list[float]]
 ) -> list[FaultScenario]:
     """
-    Create the `FaultScenario` objects (factory template).
+    Create the :class:`FaultScenario` objects (factory template).
 
     Parameters
     ----------
     accelerators : list[Accelerator]
-        Holds all the linacs. The first one must be the reference
-        `Accelerator`, while all the others will be to be fixed.
+        Holds all the linacs. The first one must be the reference linac,
+        while all the others will be to be fixed.
     beam_calculator : BeamCalculator
         The solver that will be called during the optimisation process.
     wtf : dict[str, str | int | bool | list[str] | list[float]]
@@ -299,8 +299,8 @@ def fault_scenario_factory(
     Returns
     -------
     fault_scenarios : list[FaultScenario]
-        Holds all the initialized `FaultScenario` objects, holding their
-        already initialied `Fault` objects.
+    Holds all the initialized :class:`FaultScenario` objects, holding their
+    already initialied :class:`Fault` objects.
 
     """
     scenarios_fault_idx = wtf.pop('failed')

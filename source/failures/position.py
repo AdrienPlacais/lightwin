@@ -5,16 +5,21 @@ Created on Thu May 18 12:21:37 2023.
 
 @author: placais
 
-Here we define the function related to the 'position' key of the what_to_fit
-dictionary. In particular, it answers the question:
-    Given this set of faults and compensating cavities, what is the portion of
-    the linac that I need to recompute again and again during the fit?
+Here we define the function related to the 'position' key of the
+``what_to_fit`` dictionary. In particular, it answers the question:
+given this set of faults and compensating cavities, what is the portion of
+the linac that I need to recompute again and again during the fit?
 
-In this module, the indexes are ELEMENT indexes, not cavity.
-In contrary to the optimisation.strategy module, here we do one fault at a time
-(a fault can encompass several faulty cavities that are to be fixed together).
+.. important::
+    In this module, the indexes are ELEMENT indexes, not cavity.
 
-TODO end_section, elt_name
+.. important::
+    In contrary to the :mod:`failures.strategy` module, here we do one
+    fault at a time (a fault can encompass several faulty cavities that are to
+    be fixed together).
+
+.. todo::
+    end_section, elt_name
 
 """
 import logging
@@ -45,16 +50,16 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
         element index in the routine.
     need_full_lattices : bool, optional
         If you want the compensation zone to encompass full lattices only. It
-        is a little bit slower as more `_Element`s are calculated. Plus, it has
-        no impact even with `TraceWin` solver. Keeping it in case it has an
-        impact that I did not see.
+        is a little bit slower as more ``_Element`` are calculated. Plus,
+        it has no impact even with :class:`TraceWin` solver. Keeping it in case
+        it has an impact that I did not see.
 
     Returns
     -------
     elts : list[_Element]
-        `_Element`s of the compensation zone.
+        ``_Element`` objects of the compensation zone.
     objectives_positions : list[int]
-        Position in `elts` of where objectives should be matched.
+        Position in ``elts`` of where objectives should be matched.
 
     """
     position = wtf['position']
