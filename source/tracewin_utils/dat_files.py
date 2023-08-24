@@ -23,7 +23,15 @@ from core.elements.elements.drift import Drift
 from core.elements.elements.field_map import FieldMap
 from core.elements.elements.solenoid import Solenoid
 
-from core.elements.commands import Lattice, Freq, FieldMapPath, End
+from core.elements.commands import (
+    COMMANDS,
+    End,
+    FieldMapPath,
+    Freq,
+    Lattice,
+    LatticeEnd,
+    SuperposeMap,
+)
 
 # from core.list_of_elements import ListOfElements
 ListOfElements = TypeVar('ListOfElements')
@@ -55,12 +63,6 @@ TO_BE_IMPLEMENTED = [
     'THIN_STEERING',
     'APERTURE',
 ]
-NOT_AN_ELEMENT = [
-    'FREQ',
-    'LATTICE',
-    'LATTICE_END',
-    'SUPERPOSE_MAP',
-]
 
 
 def create_structure(dat_filecontent: list[list[str]]) -> list[Element]:
@@ -79,14 +81,18 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[Element]:
 
     """
     subclasses_dispatcher = {
-        'QUAD': Quad,
+        # Elements
         'DRIFT': Drift,
         'FIELD_MAP': FieldMap,
+        'QUAD': Quad,
         'SOLENOID': Solenoid,
-        'LATTICE': Lattice,
-        'FREQ': Freq,
-        'FIELD_MAP_PATH': FieldMapPath,
+        # Commands
         'END': End,
+        'FIELD_MAP_PATH': FieldMapPath,
+        'FREQ': Freq,
+        'LATTICE': Lattice,
+        'LATTICE_END': LatticeEnd,
+        'SUPERPOSE_MAP': SuperposeMap,
     }
 
     elements_iterable = itertools.takewhile(
@@ -156,7 +162,7 @@ def update_field_maps_in_dat(
                                                  'field_map_folder',
                                                  to_numpy=False)
     for line in dat_filecontent:
-        if line[0] in TO_BE_IMPLEMENTED or line[0] in NOT_AN_ELEMENT:
+        if line[0] in TO_BE_IMPLEMENTED or line[0] in COMMANDS:
             continue
 
         if line[0] == 'FIELD_MAP_PATH':
@@ -191,7 +197,7 @@ def dat_filecontent_from_smaller_list_of_elements(
                        for elt in elts]
     smaller_dat_filecontent = []
     for line in dat_filecontent:
-        if line[0] in TO_BE_IMPLEMENTED + NOT_AN_ELEMENT + ['FIELD_MAP_PATH']:
+        if line[0] in TO_BE_IMPLEMENTED + COMMANDS + ['FIELD_MAP_PATH']:
             smaller_dat_filecontent.append(line)
             continue
 
