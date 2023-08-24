@@ -5,7 +5,7 @@ Created on Fri Aug 18 11:57:32 2023.
 
 @author: placais
 
-This module holds `NSGA`, a genetic algorithm for optimisation.
+This module holds ``NSGA``, a genetic algorithm for optimisation.
 
 """
 from dataclasses import dataclass
@@ -38,13 +38,7 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
 
 @dataclass
 class NSGA(OptimisationAlgorithm):
-    """
-    Non-dominated Sorted Genetic Algorithm, an algorithm handling constraints.
-
-    All the attributes but `solution` are inherited from the Abstract Base
-    Class `OptimisationAlgorithm`.
-
-    """
+    """Non-dominated Sorted Genetic Algorithm."""
 
     def __post_init__(self) -> None:
         """Set additional information."""
@@ -104,42 +98,20 @@ class NSGA(OptimisationAlgorithm):
 
     @property
     def _problem_arguments(self) -> dict[str, int | np.ndarray]:
-        """Gather arguments required for `ElementwiseProblem`."""
-        kwargs = {'n_var': self._n_var,
-                  'n_obj': self._n_obj,
-                  'n_ieq_constr': self._n_ieq_constr,
-                  'xl': self._xl,
-                  'xu': self._xu}
+        """Gather arguments required for :class:`ElementwiseProblem`."""
+        _xl, _xu = self._format_variables()
+        kwargs = {'n_var': self.n_var,
+                  'n_obj': self.n_obj,
+                  'n_ieq_constr': self.n_constr,
+                  'xl': _xl,
+                  'xu': _xu}
         return kwargs
 
-    @property
-    def _n_var(self) -> int:
-        """Number of variables."""
-        return len(self.variables)
-
-    @property
-    def _n_obj(self) -> int:
-        """Number of objectives."""
-        logging.warning("Number of objectives manually set.")
-        return 3
-
-    @property
-    def _n_ieq_constr(self) -> int:
-        """Number of inequality constraints."""
-        return sum([constraint.n_constraints
-                    for constraint in self.constraints])
-
-    @property
-    def _xl(self) -> np.ndarray:
-        """Return variables lower limits."""
-        lower = [var.limits[0] for var in self.variables]
-        return np.array(lower)
-
-    @property
-    def _xu(self) -> np.ndarray:
-        """Return variables upper limits."""
-        upper = [var.limits[1] for var in self.variables]
-        return np.array(upper)
+    def _format_variables(self) -> tuple[np.ndarray, np.ndarray]:
+        """Format :class:`Variable` for this algorithm."""
+        _xl = [var.limits[0] for var in self.variables]
+        _xu = [var.limits[1] for var in self.variables]
+        return _xl, _xu
 
     @property
     def x_0(self) -> np.ndarray:
@@ -191,48 +163,6 @@ class NSGA(OptimisationAlgorithm):
         Evaluator().eval(problem, initial_population)
         return initial_population
 
-    def _create_set_of_cavity_settings(self, var: np.ndarray
-                                       ) -> SetOfCavitySettings:
-        """Transform the object given by NSGA to a generic object."""
-        # set_of_cavity_settings = result.f
-        # return set_of_cavity_settings
-        # FIXME
-        my_phi = list(var[:var.shape[0] // 2])
-        my_ke = list(var[var.shape[0] // 2:])
-
-        variable_names = [variable.name for variable in self.variables]
-
-        if 'phi_s' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_s=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        elif 'phi_0_abs' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_0_abs=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        elif 'phi_0_rel' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_0_rel=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        else:
-            logging.critical("Error in the _create_set_of_cavity_settings")
-            return None
-
-        my_set = SetOfCavitySettings(my_set)
-        return my_set
-
     def _best_solution(self, result: Result) -> tuple[SetOfCavitySettings,
                                                       dict[str, np.ndarray]]:
         """Take the "best" solution."""
@@ -251,10 +181,6 @@ class NSGA(OptimisationAlgorithm):
                 'F': result.F[idx_best]}
         logging.info(f"I choose {info['F']} (idx {idx_best})")
         return set_of_cavity_settings, info
-
-    def _format_variables_and_constraints(self) -> None:
-        """Legacy?"""
-        pass
 
 
 class MyElementwiseProblem(ElementwiseProblem):

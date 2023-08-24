@@ -35,6 +35,8 @@ from optimisation.algorithms.least_squares import LeastSquares
 from optimisation.algorithms.least_squares_penalty import LeastSquaresPenalty
 from optimisation.algorithms.nsga import NSGA
 from optimisation.algorithms.downhill_simplex import DownhillSimplex
+from optimisation.algorithms.downhill_simplex_penalty import \
+    DownhillSimplexPenalty
 
 
 class Fault:
@@ -146,7 +148,7 @@ class Fault:
             'nsga': NSGA,
             'downhill_simplex': DownhillSimplex,
             'nelder_mead': DownhillSimplex,
-            'experimental': DownhillSimplex,
+            'experimental': DownhillSimplexPenalty,
         }
         self._algorithm_class = algorithms[wtf['opti method']]
 

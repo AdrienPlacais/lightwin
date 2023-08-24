@@ -5,7 +5,7 @@ Created on Wed May 31 16:01:48 2023.
 
 @author: placais
 
-This module holds `LeastSquares`, a simple and fast optimisation method.
+This module holds :class:`LeastSquares`, a simple and fast optimisation method.
 
 """
 from dataclasses import dataclass
@@ -24,8 +24,21 @@ class LeastSquares(OptimisationAlgorithm):
     """
     Plain least-squares method, efficient for small problems.
 
-    All the attributes but `solution` are inherited from the Abstract Base
-    Class `OptimisationAlgorithm`.
+    It does not support constraints. One approach to put constraints on the
+    synchronous phase is to set ``phi_s_fit`` to ``True``, making the
+    synchronous phase a bounded variable.
+
+    Notes
+    -----
+    Works very well with :class:`Envelope1D`, has issues converging with
+    :class:`TraceWin`.
+
+    All the attributes but ``solution`` are inherited from the Abstract Base
+    Class :class:`OptimisationAlgorithm`.
+
+    See also
+    --------
+    :class:`LeastSquaresPenalty`
 
     """
 
@@ -50,21 +63,8 @@ class LeastSquares(OptimisationAlgorithm):
             violation if applicable, etc.
 
         """
-        kwargs = {'jac': '2-point',     # Default
-                  # 'trf' not ideal as jac is not sparse. 'dogbox' may have
-                  # difficulties with rank-defficient jacobian.
-                  'method': 'dogbox',
-                  'ftol': 1e-10,
-                  'gtol': 1e-8,
-                  'xtol': 1e-8,
-                  # 'x_scale': 'jac',
-                  # 'loss': 'arctan',
-                  'diff_step': None, 'tr_solver': None, 'tr_options': {},
-                  'jac_sparsity': None,
-                  'verbose': 2,
-                  }
-
-        x_0, bounds = self._format_variables_and_constraints()
+        kwargs = self._algorithm_parameters()
+        x_0, bounds = self._format_variables()
 
         solution = least_squares(fun=self._wrapper_residuals,
                                  x0=x_0,
@@ -85,58 +85,32 @@ class LeastSquares(OptimisationAlgorithm):
                 }
         return success, optimized_cavity_settings, info
 
-    def _format_variables_and_constraints(self
-                                          ) -> tuple[np.ndarray, Bounds]:
-        """Return design space as expected by `scipy.least_squares`."""
-        x_0 = np.array([var.x_0
-                        for var in self.variables])
-        _bounds = np.array([var.limits
-                            for var in self.variables])
+    def _algorithm_parameters(self) -> dict:
+        """Create the ``kwargs`` for the optimisation."""
+        kwargs = {'jac': '2-point',     # Default
+                  # 'trf' not ideal as jac is not sparse. 'dogbox' may have
+                  # difficulties with rank-defficient jacobian.
+                  'method': 'dogbox',
+                  'ftol': 1e-10,
+                  'gtol': 1e-8,
+                  'xtol': 1e-8,
+                  # 'x_scale': 'jac',
+                  # 'loss': 'arctan',
+                  'diff_step': None, 'tr_solver': None, 'tr_options': {},
+                  'jac_sparsity': None,
+                  'verbose': 2,
+                  }
+        return kwargs
+
+    def _format_variables(self) -> tuple[np.ndarray, Bounds]:
+        """Convert the :class:`Variable`s to an array and :class:`Bounds`."""
+        x_0 = np.array([var.x_0 for var in self.variables])
+        _bounds = np.array([var.limits for var in self.variables])
         bounds = Bounds(_bounds[:, 0], _bounds[:, 1])
         return x_0, bounds
 
-    def _create_set_of_cavity_settings(self, var: np.ndarray
-                                       ) -> SetOfCavitySettings:
-        """Transform the array given by `least_squares` to a generic object."""
-        # FIXME
-        my_phi = list(var[:var.shape[0] // 2])
-        my_ke = list(var[var.shape[0] // 2:])
-
-        variable_names = [variable.name for variable in self.variables]
-
-        if 'phi_s' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_s=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        elif 'phi_0_abs' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_0_abs=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        elif 'phi_0_rel' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_0_rel=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        else:
-            logging.critical("Error in the _create_set_of_cavity_settings")
-            return None
-
-        my_set = SetOfCavitySettings(my_set)
-        return my_set
-
     def _output_some_info(self) -> None:
-        """Show the most useful data from least_squares."""
+        """Show the most useful data from :func:`least_squares`."""
         sol = self.solution
         info_string = "Objective functions results:\n"
         for i, fun in enumerate(sol.fun):

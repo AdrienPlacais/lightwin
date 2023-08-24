@@ -15,8 +15,7 @@ from scipy.optimize import minimize, Bounds
 import numpy as np
 
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
-from failures.set_of_cavity_settings import (SetOfCavitySettings,
-                                             SingleCavitySettings)
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
 @dataclass
@@ -26,6 +25,10 @@ class DownhillSimplex(OptimisationAlgorithm):
 
     All the attributes but ``solution`` are inherited from the Abstract Base
     Class :class:`OptimisationAlgorithm`.
+
+    See also
+    --------
+    :class:`DownhillSimplexPenalty`
 
     """
 
@@ -50,14 +53,8 @@ class DownhillSimplex(OptimisationAlgorithm):
             violation if applicable, etc.
 
         """
-        kwargs = {'method': 'Nelder-Mead',
-                  'options': {
-                      'adaptive': True,
-                      'disp': True,
-                  },
-                  }
-
-        x_0, bounds = self._format_variables_and_constraints()
+        kwargs = self._algorithm_parameters()
+        x_0, bounds = self._format_variables()
 
         solution = minimize(fun=self._norm_wrapper_residuals,
                             x0=x_0,
@@ -78,55 +75,22 @@ class DownhillSimplex(OptimisationAlgorithm):
                 }
         return success, optimized_cavity_settings, info
 
-    def _format_variables_and_constraints(self
-                                          ) -> tuple[np.ndarray, Bounds]:
-        """Return design space as expected by :func:`scipy.minimize`."""
-        x_0 = np.array([var.x_0
-                        for var in self.variables])
-        _bounds = np.array([var.limits
-                            for var in self.variables])
+    def _algorithm_parameters(self) -> dict:
+        """Create the ``kwargs`` for the optimisation."""
+        kwargs = {'method': 'Nelder-Mead',
+                  'options': {
+                      'adaptive': True,
+                      'disp': True,
+                  },
+                  }
+        return kwargs
+
+    def _format_variables(self) -> tuple[np.ndarray, Bounds]:
+        """Convert the :class:`Variable`s to an array and :class:`Bounds`."""
+        x_0 = np.array([var.x_0 for var in self.variables])
+        _bounds = np.array([var.limits for var in self.variables])
         bounds = Bounds(_bounds[:, 0], _bounds[:, 1])
         return x_0, bounds
-
-    def _create_set_of_cavity_settings(self, var: np.ndarray
-                                       ) -> SetOfCavitySettings:
-        """Transform the array given by algorithm to a generic object."""
-        # FIXME
-        my_phi = list(var[:var.shape[0] // 2])
-        my_ke = list(var[var.shape[0] // 2:])
-
-        variable_names = [variable.name for variable in self.variables]
-
-        if 'phi_s' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_s=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        elif 'phi_0_abs' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_0_abs=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        elif 'phi_0_rel' in variable_names:
-            my_set = [SingleCavitySettings(cavity=cavity,
-                                           k_e=k_e,
-                                           phi_0_rel=phi,
-                                           index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        else:
-            logging.critical("Error in the _create_set_of_cavity_settings")
-            return None
-
-        my_set = SetOfCavitySettings(my_set)
-        return my_set
 
     def _output_some_info(self) -> None:
         """Show the most useful data from least_squares."""
