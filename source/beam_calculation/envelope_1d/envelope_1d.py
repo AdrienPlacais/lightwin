@@ -29,7 +29,7 @@ import logging
 from dataclasses import dataclass
 
 from core.particle import ParticleFullTrajectory
-from core.elements.elements.field_map import FieldMap
+from core.elements.field_map import FieldMap
 from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
 from core.accelerator import Accelerator
 from core.beam_parameters import BeamParameters

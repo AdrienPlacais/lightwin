@@ -16,7 +16,7 @@ import numpy as np
 
 import config_manager as con
 from core.elements.element import Element
-from core.elements.elements.field_map import FieldMap
+from core.elements.field_map import FieldMap
 import tracewin_utils.load
 
 

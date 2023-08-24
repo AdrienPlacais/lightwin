@@ -23,8 +23,8 @@ import numpy as np
 import config_manager
 
 from core.elements.element import Element
-from core.elements.elements.field_map import FieldMap
-from core.elements.commands import Freq, Lattice
+from core.elements.field_map import FieldMap
+from core.commands.command import Freq, Lattice, LatticeEnd
 
 from core.beam_parameters import BeamParameters
 from core.particle import ParticleInitialState
@@ -253,7 +253,7 @@ class ListOfElements(list):
         """
         Use Freq/Lattice commands to set structure of the accelerator.
 
-        Also remove these commands from the ListOfElements.
+        Also remove these commands from the :class:`ListOfElements`.
 
         Returns
         -------
@@ -269,8 +269,8 @@ class ListOfElements(list):
         lattices, frequencies = _lattices_and_frequencies(self)
         if len(lattices) == 0:
             logging.error("No Lattice or Frequency object detected. Maybe the "
-                          + "ListOfElements.structured method was already "
-                          + "performed?")
+                          "ListOfElements.structured method was already "
+                          "performed?")
 
         _elts_by_section = _group_elements_by_section(self, lattices)
 
@@ -443,17 +443,21 @@ def elt_at_this_s_idx(elts: ListOfElements | list[Element, ...],
 
 
 def _lattices_and_frequencies(elts: list[Element]
-                              ) -> tuple[list[Lattice], list[Freq]]:
+                              ) -> tuple[list[Lattice],
+                                         # list[LatticeEnd],
+                                         list[Freq]]:
     """Get Lattice and Freq objects, which convey every Section information."""
     lattices = list(filter(lambda elt: isinstance(elt, Lattice), elts))
+    lattices_end = list(filter(lambda elt: isinstance(elt, LatticeEnd), elts))
     frequencies = list(filter(lambda elt: isinstance(elt, Freq), elts))
 
-    idx_lattice_change = [elts.index(latt) for latt in lattices]
-    idx_freq_change = [elts.index(freq) for freq in frequencies]
-    distance = np.array(idx_lattice_change) - np.array(idx_freq_change)
+    idx_lattice_start = [elts.index(latt) for latt in lattices]
+    idx_freq_start = [elts.index(freq) for freq in frequencies]
+    distance = np.array(idx_lattice_start) - np.array(idx_freq_start)
     if not np.all(distance == -1):
         logging.error("FREQ commands do no directly follow LATTICE commands. "
-                      + "Check your .dat file.")
+                      "Check your .dat file.")
+
     return lattices, frequencies
 
 

@@ -18,12 +18,12 @@ import itertools
 import numpy as np
 
 from core.elements.element import Element
-from core.elements.elements.quad import Quad
-from core.elements.elements.drift import Drift
-from core.elements.elements.field_map import FieldMap
-from core.elements.elements.solenoid import Solenoid
+from core.elements.quad import Quad
+from core.elements.drift import Drift
+from core.elements.field_map import FieldMap
+from core.elements.solenoid import Solenoid
 
-from core.elements.commands import (
+from core.commands.command import (
     COMMANDS,
     End,
     FieldMapPath,

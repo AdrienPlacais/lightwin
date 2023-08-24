@@ -16,7 +16,7 @@ from optimisation.parameters.constraint import Constraint
 from optimisation.parameters.objective import Objective
 
 from core.list_of_elements import ListOfElements, equiv_elt
-from core.elements.elements.field_map import FieldMap
+from core.elements.field_map import FieldMap
 from core.elements.element import Element
 
 

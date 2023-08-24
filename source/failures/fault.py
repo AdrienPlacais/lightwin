@@ -16,7 +16,7 @@ from functools import partial
 import config_manager as con
 
 from core.elements.element import Element
-from core.elements.elements.field_map import FieldMap
+from core.elements.field_map import FieldMap
 from core.list_of_elements import ListOfElements
 from core.list_of_elements_factory import (
     subset_of_pre_existing_list_of_elements
