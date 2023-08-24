@@ -22,12 +22,13 @@ release = '3.1.2'
 extensions = [
     "sphinx.ext.napoleon",      # handle numpy style
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx_rtd_theme",         # ReadTheDocs theme
     "myst_parser",              # still useful?
     "sphinx.ext.todo",          # allow use of TODO
     # "sphinx.ext.viewcode",
-    "sphinx_automodapi.automodapi",
 ]
+autosummary_generate = True
 add_module_names = False
 default_role = 'literal'
 todo_include_todos = True

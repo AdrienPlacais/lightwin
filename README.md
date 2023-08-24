@@ -34,7 +34,6 @@ TODO : file from TW?
 To generate an interactive documentation, you you will need following packages:
  - `sphinx`
  - `sphinx_rtd_theme`
- - `sphinx-automodapi`
  - `myst-parser`
 (see `INSTALL.md` for packages installation).
 
