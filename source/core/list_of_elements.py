@@ -444,11 +444,9 @@ def elt_at_this_s_idx(elts: ListOfElements | list[Element, ...],
 
 def _lattices_and_frequencies(elts: list[Element]
                               ) -> tuple[list[Lattice],
-                                         # list[LatticeEnd],
                                          list[Freq]]:
     """Get Lattice and Freq objects, which convey every Section information."""
     lattices = list(filter(lambda elt: isinstance(elt, Lattice), elts))
-    lattices_end = list(filter(lambda elt: isinstance(elt, LatticeEnd), elts))
     frequencies = list(filter(lambda elt: isinstance(elt, Freq), elts))
 
     idx_lattice_start = [elts.index(latt) for latt in lattices]
