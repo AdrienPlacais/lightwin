@@ -156,36 +156,31 @@ class OptimisationAlgorithm(ABC):
         """
         my_phi = list(var[:var.shape[0] // 2])
         my_ke = list(var[var.shape[0] // 2:])
+        my_vars = zip(self.compensating_cavities, my_ke, my_phi)
 
-        variable_names = [variable.name for variable in self.variables]
-
-        if 'phi_s' in variable_names:
+        if 'phi_s' in self.variable_names:
             my_set = [SingleCavitySettings(cavity=cavity,
                                            k_e=k_e,
                                            phi_s=phi,
                                            index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        elif 'phi_0_abs' in variable_names:
+                      for cavity, k_e, phi in my_vars]
+            return SetOfCavitySettings(my_set)
+
+        if 'phi_0_abs' in self.variable_names:
             my_set = [SingleCavitySettings(cavity=cavity,
                                            k_e=k_e,
                                            phi_0_abs=phi,
                                            index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        elif 'phi_0_rel' in variable_names:
+                      for cavity, k_e, phi in my_vars]
+            return SetOfCavitySettings(my_set)
+
+        if 'phi_0_rel' in self.variable_names:
             my_set = [SingleCavitySettings(cavity=cavity,
                                            k_e=k_e,
                                            phi_0_rel=phi,
                                            index=self.elts.index(cavity))
-                      for cavity, k_e, phi in zip(self.compensating_cavities,
-                                                  my_ke,
-                                                  my_phi)]
-        else:
-            logging.critical("Error in the _create_set_of_cavity_settings")
-            return None
+                      for cavity, k_e, phi in my_vars]
+            return SetOfCavitySettings(my_set)
 
-        my_set = SetOfCavitySettings(my_set)
-        return my_set
+        logging.critical("Error in the _create_set_of_cavity_settings")
+        return None
