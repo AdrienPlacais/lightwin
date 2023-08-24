@@ -20,12 +20,13 @@ release = '3.1.2'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx.ext.napoleon",
+    "sphinx.ext.napoleon",      # handle numpy style
     "sphinx.ext.autodoc",
-    "sphinx_rtd_theme",
-    "myst_parser",
-    "sphinx.ext.todo",
+    "sphinx_rtd_theme",         # ReadTheDocs theme
+    "myst_parser",              # still useful?
+    "sphinx.ext.todo",          # allow use of TODO
     # "sphinx.ext.viewcode",
+    "sphinx_automodapi.automodapi",
 ]
 add_module_names = False
 default_role = 'literal'

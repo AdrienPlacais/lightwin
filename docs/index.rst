@@ -12,6 +12,8 @@ Welcome to LightWin's documentation!
 
    modules
 
+.. automodsum:: module
+
 
 
 Indices and tables
