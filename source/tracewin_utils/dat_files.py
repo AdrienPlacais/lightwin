@@ -233,7 +233,6 @@ def give_name(elts: list[Element]) -> None:
             elt.elt_info['elt_name'] = value + str(i)
 
 
-# Check if could use dat_content instead of re-creating it
 def update_field_maps_in_dat(
     elts: ListOfElements,
     new_phases: dict[Element, float],
@@ -247,9 +246,6 @@ def update_field_maps_in_dat(
     modify the number of `Element`s in the .dat.
 
     """
-    dat_content = [elt_or_cmd.line
-                   for elt_or_cmd in elts.files['elts_n_cmds']]
-
     dat_content: list[list[str]] = []
     for elt_or_cmd in elts.files['elts_n_cmds']:
         line = elt_or_cmd.line

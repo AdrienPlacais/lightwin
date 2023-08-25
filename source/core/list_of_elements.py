@@ -14,6 +14,10 @@ It is created in two contexts:
     the linac `Element`s. Beam will be propagated a huge number of time during
     optimisation process, so we recompute only the strict necessary.
 
+.. todo::
+    Delete ``dat_content``, which does the same thing as ``elts_n_cmds`` but
+    less good
+
 """
 import logging
 from typing import Any
@@ -71,6 +75,7 @@ class ListOfElements(list):
             files/folders of the object. The keys are:
                 dat_filepath : path to the `.dat` file
                 dat_content : list of list of str, holding content of the `dat`
+                elts_n_cmds : list of objects representing dat content
                 out_folder : where calculation results should be stored
 
         """
@@ -268,8 +273,9 @@ class ListOfElements(list):
             return
 
         self.files['dat_filepath'] = dat_filepath
-        save_dat_filecontent_to_dat(self.get('dat_content', to_numpy=False),
-                                    dat_filepath)
+        dat_content = [elt_or_cmd.line
+                       for elt_or_cmd in self.files['elts_n_cmds']]
+        save_dat_filecontent_to_dat(dat_content, dat_filepath)
 
 
 def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
