@@ -71,7 +71,6 @@ class ListOfElements(list):
             files/folders of the object. The keys are:
                 dat_filepath : path to the `.dat` file
                 dat_content : list of list of str, holding content of the `dat`
-                field_map_folder : where field map files are stored.
                 out_folder : where calculation results should be stored
 
         """

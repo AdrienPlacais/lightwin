@@ -247,9 +247,6 @@ def update_field_maps_in_dat(
     modify the number of `Element`s in the .dat.
 
     """
-    # idx_elt = 0
-    # dat_filecontent = elts.files['dat_content']
-    # field_map_folder = elts.files['field_map_folder']
     dat_content = [elt_or_cmd.line
                    for elt_or_cmd in elts.files['elts_n_cmds']]
 

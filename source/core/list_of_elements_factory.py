@@ -83,16 +83,13 @@ def new_list_of_elements(dat_filepath: str,
     files = {
         'dat_filepath': dat_filepath,
         'dat_content': tracewin_utils.load.dat_file(dat_filepath),
-        'field_map_folder': None,
         'out_path': accelerator_path,
         'elts_n_cmds': list[Element | Command],
     }
 
-    elts_n_cmds, field_map_folder = \
-        _dat_filepath_to_plain_list_of_elements(files)
+    elts_n_cmds = _dat_filepath_to_plain_list_of_elements(files)
     elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
 
-    files['field_map_folder'] = field_map_folder
     files['elts_n_cmds'] = elts_n_cmds
 
     input_particle = _new_input_particle(**kwargs)
@@ -136,7 +133,7 @@ def _new_beam_parameters(sigma_in_zdelta: np.ndarray,
 
 def _dat_filepath_to_plain_list_of_elements(
         files: dict[str, str | list[list[str]] | None],
-) -> tuple[list[Element | Command], str]:
+) -> list[Element | Command]:
     """
     Convert the content of the `.dat` file to a plain list of `Element`s.
 
@@ -150,19 +147,10 @@ def _dat_filepath_to_plain_list_of_elements(
     -------
     elts_n_cmds : list[Element | Command]
         List containing all objects from the ``.dat`` file.
-    field_map_folder : str
-        Absolute path to the storage of field maps.
 
     """
     elts_n_cmds = create_structure(**files)
-
-    # Legacy
-    logging.error("Handle field map folder better.")
-    field_map_folder = list(filter(
-        lambda field_map_path: isinstance(field_map_path, FieldMapPath),
-        elts_n_cmds))[0].path
-    logging.warning('dirty add returned value')
-    return elts_n_cmds, os.path.abspath(field_map_folder)
+    return elts_n_cmds
 
 
 # =============================================================================
@@ -246,12 +234,9 @@ def _subset_files_dictionary(
         elts,
     )
 
-    field_map_folder = files_from_full_list_of_elements['field_map_folder']
-
     files = {'dat_filepath': dat_filepath,
              'dat_content': dat_content,
              'elts_n_cmds': elts_n_cmds,
-             'field_map_folder': field_map_folder,
              'out_path': os.path.dirname(dat_filepath)}
 
     os.mkdir(os.path.join(dirname, tmp_folder))
