@@ -133,26 +133,30 @@ def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
 
     """
     f_z = []
+    try:
+        with open(path, 'r', encoding='utf-8') as file:
+            for i, line in enumerate(file):
+                if i == 0:
+                    line_splitted = line.split(' ')
 
-    with open(path, 'r', encoding='utf-8') as file:
-        for i, line in enumerate(file):
-            if i == 0:
-                line_splitted = line.split(' ')
+                    # Sometimes the separator is a tab and not a space:
+                    if len(line_splitted) < 2:
+                        line_splitted = line.split('\t')
 
-                # Sometimes the separator is a tab and not a space:
-                if len(line_splitted) < 2:
-                    line_splitted = line.split('\t')
+                    n_z = int(line_splitted[0])
+                    # Sometimes there are several spaces or tabs between numbers
+                    zmax = float(line_splitted[-1])
+                    continue
 
-                n_z = int(line_splitted[0])
-                # Sometimes there are several spaces or tabs between numbers
-                zmax = float(line_splitted[-1])
-                continue
+                if i == 1:
+                    norm = float(line)
+                    continue
 
-            if i == 1:
-                norm = float(line)
-                continue
-
-            f_z.append(float(line))
+                f_z.append(float(line))
+    except UnicodeDecodeError:
+        logging.error("File could not be loaded. Check that it is non-binary."
+                      "Returning nothing and trying to continue without it.")
+        return None, None, None, None
 
     return n_z, zmax, norm, np.array(f_z)
 

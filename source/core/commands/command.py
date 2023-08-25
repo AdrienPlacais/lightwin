@@ -321,6 +321,51 @@ class LatticeEnd(Command):
         return elts_n_cmds
 
 
+class Shift(Command):
+    """Dummy class."""
+
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+        super().__init__(line, dat_idx, is_implemented=False)
+
+    def set_influenced_elements(self,
+                                elts_n_cmds: list[Element | Self],
+                                **kwargs: float
+                                ) -> None:
+        """Determine the index of the elements concerned by :func:`apply`."""
+        start = self.idx['dat_idx']
+        stop = start + 1
+        self.idx['influenced'] = slice(start, stop)
+
+    def apply(self,
+              elts_n_cmds: list[Element | Self],
+              **kwargs: float
+              ) -> list[Element | Self]:
+        logging.error("Shift not implemented.")
+        return elts_n_cmds
+
+
+class Steerer(Command):
+    """Dummy class."""
+
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+        super().__init__(line, dat_idx, is_implemented=False)
+
+    def set_influenced_elements(self,
+                                elts_n_cmds: list[Element | Self],
+                                **kwargs: float
+                                ) -> None:
+        """Determine the index of the elements concerned by :func:`apply`."""
+        start = self.idx['dat_idx']
+        stop = start + 1
+        self.idx['influenced'] = slice(start, stop)
+
+    def apply(self,
+              elts_n_cmds: list[Element | Self],
+              **kwargs: float
+              ) -> list[Element | Self]:
+        logging.error("Steerer not implemented.")
+        return elts_n_cmds
+
 class SuperposeMap(Command):
     """Dummy class."""
 

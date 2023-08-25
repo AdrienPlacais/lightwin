@@ -46,10 +46,12 @@ import config_manager as con
 from core.element_or_command import Dummy
 
 from core.elements.element import Element
-from core.elements.quad import Quad
+from core.elements.aperture import Aperture
 from core.elements.drift import Drift
 from core.elements.field_map import FieldMap
+from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
+from core.elements.thin_steering import ThinSteering
 
 from core.commands.command import (Command,
                                    End,
@@ -57,6 +59,8 @@ from core.commands.command import (Command,
                                    Freq,
                                    Lattice,
                                    LatticeEnd,
+                                   Shift,
+                                   Steerer,
                                    SuperposeMap,
                                    )
 
@@ -81,9 +85,9 @@ except ModuleNotFoundError:
 ListOfElements = TypeVar('ListOfElements')
 
 
-
 def create_structure(dat_content: list[list[str]],
                      dat_filepath: str,
+                     force_a_lattice_to_each_element: bool = True,
                      **kwargs: str) -> list[Element | Command]:
     """
     Create structure using the loaded ``.dat`` file.
@@ -94,18 +98,24 @@ def create_structure(dat_content: list[list[str]],
         List containing all the lines of ``dat_filepath``.
     dat_path : str
         Absolute path to the ``.dat``.
+    force_a_lattice_to_each_element : bool
+        To force each element to have a lattice.
 
     Returns
     -------
     elts : list[Element]
-    List containing all the :class:`Element` objects.
+        List containing all the :class:`Element` objects.
 
     """
     elts_n_cmds = _create_element_n_command_objects(dat_content, dat_filepath)
     elts_n_cmds = _apply_commands(elts_n_cmds)
 
+    elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
+    if force_a_lattice_to_each_element:
+        _force_a_lattice_for_every_element(elts)
+
     field_maps = list(filter(lambda field_map: isinstance(field_map, FieldMap),
-                             elts_n_cmds))
+                             elts))
     _load_electromagnetic_fields(field_maps)
 
     _check_consistency(elts_n_cmds)
@@ -119,16 +129,20 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
     """Initialize the :class:`Element` and :class:`Command`."""
     subclasses_dispatcher = {
         # Elements
+        'APERTURE': Aperture,
         'DRIFT': Drift,
         'FIELD_MAP': FieldMap,
         'QUAD': Quad,
         'SOLENOID': Solenoid,
+        'THIN_STEERING': ThinSteering,
         # Commands
         'END': End,
         'FIELD_MAP_PATH': FieldMapPath,
         'FREQ': Freq,
         'LATTICE': Lattice,
         'LATTICE_END': LatticeEnd,
+        'SHIFT': Shift,
+        'STEERER': Steerer,
         'SUPERPOSE_MAP': SuperposeMap,
     }
     kwargs = {'default_field_map_folder': dat_filepath}
@@ -174,9 +188,10 @@ def _load_electromagnetic_fields(field_maps: list[FieldMap]) -> None:
 
         field_map.set_full_path(extensions)
 
-        e_spat, n_z = load_field_map_file(field_map)
-        field_map.e_spat = e_spat
-        field_map.n_z = n_z
+        args = load_field_map_file(field_map)
+        if args is not None:
+            field_map.e_spat = args[0]
+            field_map.n_z = args[1]
 
     if con.FLAG_CYTHON:
         _load_electromagnetic_fields_for_cython(field_maps)
@@ -216,6 +231,67 @@ def _check_consistency(elts_n_cmds: list[Element | Command]) -> None:
             logging.error("At least one Element is outside of any section. "
                           "This may cause problems...")
             break
+
+
+def _force_a_lattice_for_every_element(elts: list[Element]) -> None:
+    """
+    Give a lattice index to every element.
+
+    Elements before the first LATTICE command will be in the same lattice as
+    the elements after the first LATTICE command.
+
+    Elements after the first LATTICE command will be in the previous lattice.
+
+    Example
+    -------
+    .. list-table ::
+        :widths: 10 10 10
+        :header-rows: 1
+
+        * - Element/Command
+          - Lattice before
+          - Lattice after
+        * - ``QP1``
+          - None
+          - 0
+        * - ``DR1``
+          - None
+          - 0
+        * - ``LATTICE``
+          -
+          -
+        * - ``QP2``
+          - 0
+          - 0
+        * - ``DR2``
+          - 0
+          - 0
+        * - ``END LATTICE``
+          -
+          -
+        * - ``QP3``
+          - None
+          - 0
+        * - ``LATTICE``
+          -
+          -
+        * - ``DR3``
+          - 1
+          - 1
+        * - ``END LATTICE``
+          -
+          -
+        * - ``QP4``
+          - None
+          - 1
+    """
+    idx_lattice = 0
+    for elt in elts:
+        idx = elt.idx['lattice']
+        if idx is None:
+            elt.idx['lattice'] = idx_lattice
+            continue
+        idx_lattice = idx
 
 
 def give_name(elts: list[Element]) -> None:

@@ -137,11 +137,18 @@ def load_field_map_file(
             logging.info("Field map extension not handled.")
             continue
 
+        if len(extension) > 1:
+            logging.info("Loading of several field_maps not handled")
+            continue
+
         import_function = tracewin_utils.load.FIELD_MAP_LOADERS[extension]
 
         # this will require an update if I want to implement new field map
         # extensions
         n_z, zmax, norm, f_z = import_function(file_name)
+        if n_z is None:
+            return None, None
+
         assert _is_a_valid_electric_field(n_z,
                                           zmax,
                                           norm,
