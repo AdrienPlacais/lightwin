@@ -88,6 +88,7 @@ ListOfElements = TypeVar('ListOfElements')
 def create_structure(dat_content: list[list[str]],
                      dat_filepath: str,
                      force_a_lattice_to_each_element: bool = True,
+                     force_a_section_to_each_element: bool = True,
                      **kwargs: str) -> list[Element | Command]:
     """
     Create structure using the loaded ``.dat`` file.
@@ -111,6 +112,8 @@ def create_structure(dat_content: list[list[str]],
     elts_n_cmds = _apply_commands(elts_n_cmds)
 
     elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
+    if force_a_section_to_each_element:
+        _force_a_section_for_every_element(elts)
     if force_a_lattice_to_each_element:
         _force_a_lattice_for_every_element(elts)
 
@@ -231,6 +234,17 @@ def _check_consistency(elts_n_cmds: list[Element | Command]) -> None:
             logging.error("At least one Element is outside of any section. "
                           "This may cause problems...")
             break
+
+
+def _force_a_section_for_every_element(elts: list[Element]) -> None:
+    """Give a section index to every element."""
+    idx_section = 0
+    for elt in elts:
+        idx = elt.idx['section']
+        if idx is None:
+            elt.idx['section'] = idx_section
+            continue
+        idx_section = idx
 
 
 def _force_a_lattice_for_every_element(elts: list[Element]) -> None:

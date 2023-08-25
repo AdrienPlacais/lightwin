@@ -134,11 +134,11 @@ def load_field_map_file(
         _, extension = os.path.splitext(file_name)
 
         if extension not in tracewin_utils.load.FIELD_MAP_LOADERS:
-            logging.info("Field map extension not handled.")
+            logging.debug("Field map extension not handled.")
             continue
 
         if len(extension) > 1:
-            logging.info("Loading of several field_maps not handled")
+            logging.debug("Loading of several field_maps not handled")
             continue
 
         import_function = tracewin_utils.load.FIELD_MAP_LOADERS[extension]
