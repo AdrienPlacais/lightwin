@@ -161,6 +161,7 @@ def _dat_filepath_to_plain_list_of_elements(
     field_map_folder = list(filter(
         lambda field_map_path: isinstance(field_map_path, FieldMapPath),
         elts_n_cmds))[0].path
+    logging.warning('dirty add returned value')
     return elts_n_cmds, os.path.abspath(field_map_folder)
 
 
@@ -240,7 +241,7 @@ def _subset_files_dictionary(
     dirname = files_from_full_list_of_elements['out_path']
     dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
 
-    dat_content = dat_filecontent_from_smaller_list_of_elements(
+    dat_content, elts_n_cmds = dat_filecontent_from_smaller_list_of_elements(
         files_from_full_list_of_elements['elts_n_cmds'],
         elts,
     )
@@ -249,6 +250,7 @@ def _subset_files_dictionary(
 
     files = {'dat_filepath': dat_filepath,
              'dat_content': dat_content,
+             'elts_n_cmds': elts_n_cmds,
              'field_map_folder': field_map_folder,
              'out_path': os.path.dirname(dat_filepath)}
 

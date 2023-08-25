@@ -233,7 +233,7 @@ def give_name(elts: list[Element]) -> None:
             elt.elt_info['elt_name'] = value + str(i)
 
 
-# TO UPDATE !
+# Check if could use dat_content instead of re-creating it
 def update_field_maps_in_dat(
     elts: ListOfElements,
     new_phases: dict[Element, float],
@@ -247,34 +247,30 @@ def update_field_maps_in_dat(
     modify the number of `Element`s in the .dat.
 
     """
-    idx_elt = 0
-    dat_filecontent = elts.files['dat_content']
-    field_map_folder = elts.files['field_map_folder']
+    # idx_elt = 0
+    # dat_filecontent = elts.files['dat_content']
+    # field_map_folder = elts.files['field_map_folder']
+    dat_content = [elt_or_cmd.line
+                   for elt_or_cmd in elts.files['elts_n_cmds']]
 
-    for line in dat_filecontent:
-        if line[0] in TO_BE_IMPLEMENTED or line[0] in COMMANDS:
-            continue
+    dat_content: list[list[str]] = []
+    for elt_or_cmd in elts.files['elts_n_cmds']:
+        line = elt_or_cmd.line
 
-        if line[0] == 'FIELD_MAP_PATH':
-            line[1] = field_map_folder
-            continue
+        if elt_or_cmd in new_phases:
+            line[3] = str(np.rad2deg(new_phases[elt_or_cmd]))
+        if elt_or_cmd in new_k_e:
+            line[6] = str(new_k_e[elt_or_cmd])
+        if elt_or_cmd in new_abs_phase_flag:
+            line[10] = str(new_abs_phase_flag[elt_or_cmd])
 
-        if line[0] == 'FIELD_MAP':
-            elt = elts[idx_elt]
-            if elt in new_phases:
-                line[3] = str(np.rad2deg(new_phases[elt]))
-            if elt in new_k_e:
-                line[6] = str(new_k_e[elt])
-            if elt in new_abs_phase_flag:
-                line[10] = str(new_abs_phase_flag[elt])
-
-        idx_elt += 1
+        dat_content.append(line)
 
 
 def dat_filecontent_from_smaller_list_of_elements(
     original_elts_n_cmds: list[Element | Command],
     elts: list[Element],
-) -> list[list[str]]:
+) -> list[list[str], list[Element | Command]]:
     """
     Create a ``.dat`` with only elements of ``elts`` (and concerned commands).
 
@@ -286,6 +282,7 @@ def dat_filecontent_from_smaller_list_of_elements(
     last_index = indexes_to_keep[-1] + 1
 
     new_dat_filecontent: list[list[str]] = []
+    new_elts_n_cmds: list[Element | Command] = []
     for i, elt_or_cmd in enumerate(original_elts_n_cmds[:last_index]):
         element_to_keep = (isinstance(elt_or_cmd, Element | Dummy)
                            and elt_or_cmd.idx['dat_idx'] in indexes_to_keep)
@@ -297,10 +294,12 @@ def dat_filecontent_from_smaller_list_of_elements(
             continue
 
         new_dat_filecontent.append(elt_or_cmd.line)
+        new_elts_n_cmds.append(elt_or_cmd)
 
     end = original_elts_n_cmds[-1]
     new_dat_filecontent.append(end.line)
-    return new_dat_filecontent
+    new_elts_n_cmds.append(end)
+    return new_dat_filecontent, new_elts_n_cmds
 
 
 def save_dat_filecontent_to_dat(dat_content: list[list[str]],
