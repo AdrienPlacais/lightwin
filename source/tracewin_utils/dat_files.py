@@ -16,22 +16,23 @@ from typing import TypeVar
 import numpy as np
 import config_manager as con
 
+from core.element_or_command import Dummy
+
 from core.elements.element import Element
 from core.elements.quad import Quad
 from core.elements.drift import Drift
 from core.elements.field_map import FieldMap
 from core.elements.solenoid import Solenoid
 
-from core.commands.command import (
-    COMMANDS,
-    Command,
-    End,
-    FieldMapPath,
-    Freq,
-    Lattice,
-    LatticeEnd,
-    SuperposeMap,
-)
+from core.commands.command import (COMMANDS,
+                                   Command,
+                                   End,
+                                   FieldMapPath,
+                                   Freq,
+                                   Lattice,
+                                   LatticeEnd,
+                                   SuperposeMap,
+                                   )
 
 from tracewin_utils.electromagnetic_fields import (
     geom_to_field_map_type,
@@ -140,9 +141,11 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
     # )
     # elts = list(elements_iterable)
 
-    elts_n_cmds = [subclasses_dispatcher[line[0]](line, **kwargs)
-                   for line in dat_content
-                   if line[0] not in TO_BE_IMPLEMENTED]
+    elts_n_cmds = [subclasses_dispatcher[line[0]](line, dat_idx, **kwargs)
+                   if line[0] not in TO_BE_IMPLEMENTED
+                   else Dummy(line, dat_idx)
+                   for dat_idx, line in enumerate(dat_content)
+                   ]
     return elts_n_cmds
 
 
@@ -157,6 +160,7 @@ def _apply_commands(elts_n_cmds: list[Element | Command]
         elt_or_cmd = elts_n_cmds[index]
 
         if isinstance(elt_or_cmd, Command):
+            elt_or_cmd.set_influenced_elements(elts_n_cmds)
             if elt_or_cmd.is_implemented:
                 elts_n_cmds = elt_or_cmd.apply(elts_n_cmds, **kwargs)
         index += 1
@@ -272,6 +276,39 @@ def update_field_maps_in_dat(
                 line[10] = str(new_abs_phase_flag[elt])
 
         idx_elt += 1
+
+
+def new_dat_filecontent_from_smaller_list_of_elements(
+    dat_filecontent: list[list[str]],
+    original_elts_n_cmds: list[Element | Command],
+    elts: list[Element],
+) -> list[list[str]]:
+    """
+    Create a ``.dat`` with only elements of ``elts`` (and concerned commands).
+
+    Properties of the FIELD_MAP, i.e. amplitude and phase, remain untouched, as
+    it is the job of :func:`update_field_maps_in_dat`.
+
+    """
+    indexes_to_keep = [elt.get('dat_idx', to_numpy=False) for elt in elts]
+    last_index = indexes_to_keep[-1]
+
+    new_dat_filecontent: list[list[str]] = []
+    for i, elt_or_cmd in enumerate(original_elts_n_cmds[:last_index]):
+        element_to_keep = (isinstance(elt_or_cmd, Element | Dummy)
+                           and elt_or_cmd.idx['dat_idx'] in indexes_to_keep)
+
+        useful_command = (isinstance(elt_or_cmd, Command)
+                          and elt_or_cmd.concerns_one_of(indexes_to_keep))
+
+        if not (element_to_keep or useful_command):
+            continue
+
+        new_dat_filecontent.append(elt_or_cmd.dat_line)
+
+    end = original_elts_n_cmds[-1]
+    new_dat_filecontent.append(end.dat_line)
+    return new_dat_filecontent
 
 
 # TO UPDATE

@@ -7,11 +7,9 @@ Created on Wed Sep 22 10:26:19 2021.
 
 This module holds all the commands.
 
-.. todo::
-    Implement a dummy command, that will not be considered but will be kept.
-
-.. todo::
-    initialize commands with their index to avoid determining it every time
+.. warning::
+    As for now, if ``is_implemented`` is ``False``, the command will still
+    appear in the ``.dat`` subset! Is this what I want?
 
 """
 import logging
@@ -33,9 +31,49 @@ COMMANDS = [
 
 
 class Command(ABC):
-    """A generic Command class."""
+    """
+    A generic Command class.
 
+    Parameters
+    ----------
+    idx : dict[str, int]
+        Dictionary holding useful indexes. Keys are ``'dat_idx'`` (position in
+        the ``.dat`` file) and ``'influenced_elements'`` (position in the
+        ``.dat`` file of the elements concerned by current command).
+    is_implemented : bool
+        Determine if implementation of current command is over. If not, it will
+        be skipped and its :func:`apply` method will not be used. Its
+        ``influenced_elements`` will not be set either.
+    line : list[str]
+        Line in the ``.dat`` file corresponding to current command.
+
+    See also
+    --------
+    :func:`core.list_of_elements_factory.subset_of_pre_existing_list_of_elements`
+    :func:`tracewin_utils.dat_files.`dat_filecontent_from_smaller_list_of_elements`
+
+    """
+
+    idx: dict[str, int | slice]
     is_implemented: bool
+    line: list[str]
+
+    def __init__(self, line: list[str],
+                 dat_idx: int,
+                 is_implemented: bool) -> None:
+        """Instantiate mandatory attributes."""
+        self.idx = {'dat_idx': dat_idx,
+                    'influenced': slice}
+        self.is_implemented = is_implemented
+        self.line = line
+
+    @abstractmethod
+    def set_influenced_elements(self,
+                                elts_n_cmds: list[Element | Self],
+                                **kwargs: float
+                                ) -> None:
+        """Determine the index of the elements concerned by :func:`apply`."""
+        self.idx['influenced'] = slice(0, 1)
 
     @abstractmethod
     def apply(self,
@@ -45,28 +83,69 @@ class Command(ABC):
         """Apply the command."""
         return elts_n_cmds
 
+    def concerns_one_of(self, dat_indexes: list[int]) -> bool:
+        """
+        Tell if ``self`` concerns an element, which ``dat_idx`` is given.
+
+        Internally, we convert the ``self.idx['concerned']`` from a
+        :class:`set` to a :class:`list` object and check intersections with
+        ``dat_indexes``.
+
+        Parameters
+        ----------
+        dat_indexes : list[int]
+            Indexes in the ``.dat`` file of the sub-list of elements under
+            creation.
+
+        """
+        idx_concerned = range(self.idx['concerned'].start,
+                              self.idx['concerned'].stop)
+        idx_concerned = [i for i in idx_concerned]
+
+        intersect = list(set(idx_concerned), dat_indexes)
+        return len(intersect) > 0
+
 
 class End(Command):
     """The end of the linac."""
 
-    def __init__(self, line: list[str], **kwargs: str) -> None:
-        self.is_implemented = True
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+        super().__init__(line, dat_idx, is_implemented=True)
+
+    def set_influenced_elements(self, *args, **kwargs: float) -> None:
+        """Determine the index of the element concerned by :func:`apply`."""
+        start = 0
+        stop = self.idx['dat_idx'] + 1
+        self.idx['influenced'] = slice(start, stop)
 
     def apply(self,
               elts_n_cmds: list[Element | Self],
               **kwargs: float
               ) -> list[Element | Self]:
         """Remove everything in ``elts_n_cmds`` after this object."""
-        end_index = elts_n_cmds.index(self)
-        return elts_n_cmds[:end_index + 1]
+        return elts_n_cmds[self.idx['influenced']]
 
 
 class FieldMapPath(Command):
     """Used to get the base path of field maps."""
 
-    def __init__(self, line: list[str], **kwargs: str) -> None:
-        self.is_implemented = True
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+        super().__init__(line, dat_idx, is_implemented=True)
         self.path = line[1]
+
+    def set_influenced_elements(self,
+                                elts_n_cmds: list[Element | Self],
+                                **kwargs: float
+                                ) -> None:
+        """Determine the index of the elements concerned by :func:`apply`."""
+        start = self.idx['dat_idx'] + 1
+        stop = start
+        for elt_or_cmd in elts_n_cmds[start:]:
+            if isinstance(elt_or_cmd, FieldMapPath):
+                self.idx['influenced'] = slice(start, stop)
+                return
+            stop += 1
+        self.idx['influenced'] = slice(start, stop)
 
     def apply(self,
               elts_n_cmds: list[Element | Self],
@@ -75,22 +154,32 @@ class FieldMapPath(Command):
         """Set :class:`FieldMap` field folder up to next :class:`FieldMapPath`
 
         """
-        index = elts_n_cmds.index(self)
-        for elt_or_cmd in elts_n_cmds[index + 1:]:
+        for elt_or_cmd in elts_n_cmds[self.idx['influenced']]:
             if isinstance(elt_or_cmd, FieldMap):
                 elt_or_cmd.field_map_folder = self.path
-
-            if isinstance(elt_or_cmd, FieldMapPath):
-                return elts_n_cmds
         return elts_n_cmds
 
 
 class Freq(Command):
     """Used to get the frequency of every Section."""
 
-    def __init__(self, line: list[str], **kwargs: str) -> None:
-        self.is_implemented = True
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+        super().__init__(line, dat_idx, is_implemented=True)
         self.f_rf_mhz = float(line[1])
+
+    def set_influenced_elements(self,
+                                elts_n_cmds: list[Element | Self],
+                                **kwargs: float
+                                ) -> None:
+        """Determine the index of the elements concerned by :func:`apply`."""
+        start = self.idx['dat_idx'] + 1
+        stop = start
+        for elt_or_cmd in elts_n_cmds[start:]:
+            if isinstance(elt_or_cmd, Freq):
+                self.idx['influenced'] = slice(start, stop)
+                return
+            stop += 1
+        self.idx['influenced'] = slice(start, stop)
 
     def apply(self,
               elts_n_cmds: list[Element | Self],
@@ -105,23 +194,19 @@ class Freq(Command):
                             "to RF frequency...")
             freq_bunch = self.f_rf_mhz
 
-        index = elts_n_cmds.index(self)
-        for elt_or_cmd in elts_n_cmds[index + 1:]:
+        for elt_or_cmd in elts_n_cmds[self.idx['influenced']]:
             if isinstance(elt_or_cmd, FieldMap):
                 n_cells = int(self.f_rf_mhz / freq_bunch)
                 elt_or_cmd.acc_field.set_pulsation_ncell(self.f_rf_mhz,
                                                          n_cells)
-
-            if isinstance(elt_or_cmd, Freq):
-                return elts_n_cmds
         return elts_n_cmds
 
 
 class Lattice(Command):
     """Used to get the number of elements per lattice."""
 
-    def __init__(self, line: list[str], **kwargs: str) -> None:
-        self.is_implemented = True
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+        super().__init__(line, dat_idx, is_implemented=True)
         self.n_lattice = int(line[1])
 
         self.n_macro_lattice = 1
@@ -133,22 +218,34 @@ class Lattice(Command):
                                 "consider that number of macro-lattice per "
                                 "lattice is 1 or 0.")
 
+    def set_influenced_elements(self,
+                                elts_n_cmds: list[Element | Self],
+                                **kwargs: float
+                                ) -> None:
+        """Determine the index of the elements concerned by :func:`apply`."""
+        start = self.idx['dat_idx'] + 1
+        stop = start
+        for elt_or_cmd in elts_n_cmds[start:]:
+            if isinstance(elt_or_cmd, Lattice | LatticeEnd):
+                self.idx['influenced'] = slice(start, stop)
+                return
+
+            stop += 1
+        self.idx['influenced'] = slice(start, stop)
+
     def apply(self,
               elts_n_cmds: list[Element | Self],
               **kwargs: float
               ) -> list[Element | Self]:
         """Set lattice section number of elements in current lattice."""
-        index = elts_n_cmds.index(self)
+        index = self.idx['dat_idx']
 
         current_lattice_number = self._current_lattice_number(elts_n_cmds,
                                                               index)
         current_section_number = self._current_section_number(elts_n_cmds)
 
         index_in_current_lattice = 0
-        for elt_or_cmd in elts_n_cmds[index + 1:]:
-            if isinstance(elt_or_cmd, Lattice | LatticeEnd):
-                return elts_n_cmds
-
+        for elt_or_cmd in elts_n_cmds[self.idx['influenced']]:
             if isinstance(elt_or_cmd, SuperposeMap):
                 logging.error("SuperposeMap not implemented. Will mess with "
                               "indexes...")
@@ -209,8 +306,22 @@ class Lattice(Command):
 class LatticeEnd(Command):
     """Dummy class."""
 
-    def __init__(self, line: list[str], **kwargs: str) -> None:
-        self.is_implemented = True
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+        super().__init__(line, dat_idx, is_implemented=True)
+
+    def set_influenced_elements(self,
+                                elts_n_cmds: list[Element | Self],
+                                **kwargs: float
+                                ) -> None:
+        """Determine the index of the elements concerned by :func:`apply`."""
+        start = self.idx['dat_idx']
+        stop = start
+        for elt_or_cmd in elts_n_cmds[start:]:
+            if isinstance(elt_or_cmd, Lattice):
+                self.idx['influenced'] = slice(start, stop)
+                return
+            stop += 1
+        self.idx['influenced'] = slice(start, stop)
 
     def apply(self,
               elts_n_cmds: list[Element | Self],
@@ -223,8 +334,17 @@ class LatticeEnd(Command):
 class SuperposeMap(Command):
     """Dummy class."""
 
-    def __init__(self, line: list[str], **kwargs: str) -> None:
-        self.is_implemented = False
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+        super().__init__(line, dat_idx, is_implemented=False)
+
+    def set_influenced_elements(self,
+                                elts_n_cmds: list[Element | Self],
+                                **kwargs: float
+                                ) -> None:
+        """Determine the index of the elements concerned by :func:`apply`."""
+        start = self.idx['dat_idx']
+        stop = start + 2
+        self.idx['influenced'] = slice(start, stop)
 
     def apply(self,
               elts_n_cmds: list[Element | Self],

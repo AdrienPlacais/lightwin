@@ -32,13 +32,10 @@ from beam_calculation.single_element_beam_calculator_parameters import (
    SingleElementCalculatorParameters)
 
 
-# =============================================================================
-# Element class
-# =============================================================================
 class Element():
     """Generic element."""
 
-    def __init__(self, line: list[str], **kwargs: str) -> None:
+    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """
         Init parameters common to all elements.
 
@@ -48,7 +45,7 @@ class Element():
             A valid line of the ``.dat`` file.
 
         """
-        self.__line = line
+        self.line = line
         self.elt_info = {
             'elt_name': None,
             'nature': line[0],
@@ -60,7 +57,10 @@ class Element():
         # accelerating field.
         self.acc_field = RfField()
 
-        self.idx = {'elt_idx': None, 'lattice': None, 'section': None}
+        self.idx = {'dat_idx': dat_idx,
+                    'elt_idx': None,
+                    'lattice': None,
+                    'section': None}
         self.beam_calc_param: dict[str, SingleElementCalculatorParameters] = {}
 
     def __str__(self) -> str:
@@ -69,7 +69,7 @@ class Element():
     def __repr__(self) -> str:
         # if self.elt_info['status'] not in ['none', 'nominal']:
         #     logging.warning("Element properties where changed.")
-        # return f"{self.__class__}(line={self.__line})"
+        # return f"{self.__class__}(line={self.line})"
         return self.__str__()
 
     def has(self, key: str) -> bool:
