@@ -28,6 +28,13 @@ extensions = [
     "sphinx.ext.todo",          # allow use of TODO
     # "sphinx.ext.viewcode",
 ]
+
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "private-members": True
+}
+
 # autosummary_generate = True
 add_module_names = False
 default_role = 'literal'
