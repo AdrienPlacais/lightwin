@@ -12,6 +12,22 @@ optimisation.algorithms.algorithm module
    :undoc-members:
    :show-inheritance:
 
+optimisation.algorithms.downhill\_simplex module
+------------------------------------------------
+
+.. automodule:: optimisation.algorithms.downhill_simplex
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+optimisation.algorithms.downhill\_simplex\_penalty module
+---------------------------------------------------------
+
+.. automodule:: optimisation.algorithms.downhill_simplex_penalty
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 optimisation.algorithms.least\_squares module
 ---------------------------------------------
 

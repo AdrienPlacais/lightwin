@@ -32,24 +32,7 @@ Welcome to LightWin's documentation!
    :maxdepth: 3
    :caption: Contents:
 
-   beam_calculation
-   beam_calculation.tracewin
-   beam_calculation.envelope_1d
-   config
-   config_manager
-   constants
-   core
-   core.commands
-   core.elements
-   evaluator
-   failures
-   optimisation
-   optimisation.algorithms
-   optimisation.parameters
-   tracewin_utils
-   util
-   visualization
-
+   modules
 
 Indices and tables
 ==================

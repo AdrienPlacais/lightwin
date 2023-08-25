@@ -1,6 +1,15 @@
 core package
 ============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   core.commands
+   core.elements
+
 Submodules
 ----------
 
@@ -24,14 +33,6 @@ core.electric\_field module
 ---------------------------
 
 .. automodule:: core.electric_field
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-core.elements module
---------------------
-
-.. automodule:: core.elements
    :members:
    :undoc-members:
    :show-inheritance:

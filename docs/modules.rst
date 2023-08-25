@@ -13,6 +13,7 @@ source
    failures
    main
    optimisation
+   spiral2
    tracewin_utils
    util
    visualization

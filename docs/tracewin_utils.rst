@@ -12,10 +12,10 @@ tracewin\_utils.dat\_files module
    :undoc-members:
    :show-inheritance:
 
-tracewin\_utils.electric\_fields module
----------------------------------------
+tracewin\_utils.electromagnetic\_fields module
+----------------------------------------------
 
-.. automodule:: tracewin_utils.electric_fields
+.. automodule:: tracewin_utils.electromagnetic_fields
    :members:
    :undoc-members:
    :show-inheritance:
