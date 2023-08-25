@@ -7,7 +7,34 @@ Created on Fri Aug  4 09:24:56 2023.
 
 This module holds function to load, modify and create .dat structure files.
 
-TODO insert line skip at each section change in the output.dat
+.. todo::
+    Insert line skip at each section change in the output.dat
+
+Non-exhaustive list of non implemented commands:
+    'SPACE_CHARGE_COMP',
+    'SET_SYNC_PHASE',
+    'STEERER',
+    'ADJUST',
+    'ADJUST_STEERER',
+    'ADJUST_STEERER_BX',
+    'ADJUST_STEERER_BY',
+    'DIAG_SIZE',
+    'DIAG_DSIZE',
+    'DIAG_DSIZE2',
+    'DIAG_DSIZE3',
+    'DIAG_DSIZE4',
+    'DIAG_DENERGY',
+    'DIAG_ENERGY',
+    'DIAG_TWISS',
+    'DIAG_WAIST',
+    'DIAG_POSITION',
+    'DIAG_DPHASE',
+    'ERROR_CAV_NCPL_STAT',
+    'ERROR_CAV_NCPL_DYN',
+    'SET_ADV',
+    'SHIFT',
+    'THIN_STEERING',
+    'APERTURE',
 
 """
 import logging
@@ -24,8 +51,7 @@ from core.elements.drift import Drift
 from core.elements.field_map import FieldMap
 from core.elements.solenoid import Solenoid
 
-from core.commands.command import (COMMANDS,
-                                   Command,
+from core.commands.command import (Command,
                                    End,
                                    FieldMapPath,
                                    Freq,
@@ -54,33 +80,6 @@ except ModuleNotFoundError:
 # from core.list_of_elements import ListOfElements
 ListOfElements = TypeVar('ListOfElements')
 
-
-TO_BE_IMPLEMENTED = [
-    'SPACE_CHARGE_COMP',
-    'SET_SYNC_PHASE',
-    'STEERER',
-    'ADJUST',
-    'ADJUST_STEERER',
-    'ADJUST_STEERER_BX',
-    'ADJUST_STEERER_BY',
-    'DIAG_SIZE',
-    'DIAG_DSIZE',
-    'DIAG_DSIZE2',
-    'DIAG_DSIZE3',
-    'DIAG_DSIZE4',
-    'DIAG_DENERGY',
-    'DIAG_ENERGY',
-    'DIAG_TWISS',
-    'DIAG_WAIST',
-    'DIAG_POSITION',
-    'DIAG_DPHASE',
-    'ERROR_CAV_NCPL_STAT',
-    'ERROR_CAV_NCPL_DYN',
-    'SET_ADV',
-    'SHIFT',
-    'THIN_STEERING',
-    'APERTURE',
-]
 
 
 def create_structure(dat_content: list[list[str]],

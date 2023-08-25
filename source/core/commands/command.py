@@ -20,16 +20,6 @@ from core.elements.element import Element
 from core.elements.field_map import FieldMap
 
 
-COMMANDS = [
-    # 'END',
-    # 'FIELD_MAP_PATH',
-    'FREQ',
-    'LATTICE',
-    'LATTICE_END',
-    'SUPERPOSE_MAP',
-]
-
-
 class Command(ABC):
     """
     A generic Command class.
