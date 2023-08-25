@@ -123,6 +123,107 @@ def _is_a_valid_electric_field(n_z: int, zmax: float, norm: float,
     return True
 
 
+def geom_to_field_map_type(geom: int,
+                           remove_no_field: bool = True
+                           ) -> dict[str, str]:
+    """
+    Determine the field map type from TW ``geom`` parameter.
+
+    Notes
+    -----
+    Last compatibility check: TraceWin v2.22.1.0
+
+    """
+    figures = [int(i) for i in str(abs(geom))]
+    field_types = ('static electric field',
+                   'static magnetic field',
+                   'RF electric field',
+                   'RF magnetic field',
+                   '3D aperture map')
+    field_geometries = {
+        0: 'no field',
+        1: '1D: F(z)',
+        2: 'not available',
+        3: 'not available',
+        4: '2D cylindrical static or RF electric field',
+        5: '2D cylindrical static or RF magnetic field',
+        6: '2D cartesian field',
+        7: '3D cartesian field',
+        8: '3D cylindrical field',
+        9: '1D: G(z)',
+    }
+    out = {field_type: field_geometries[figure]
+           for figure, field_type in zip(figures, field_types)}
+    if 'not available' in out.values():
+        logging.warning("At least one invalid field geometry was given in the "
+                        ".dat.")
+    if not remove_no_field:
+        return out
+
+    for key in out:
+        if key == 0:
+            del out[key]
+    return out
+
+
+def file_map_extensions(field_map_type: dict[str, str]
+                        ) -> dict[str, list[str]]:
+    """
+    Get the proper field map extensions.
+
+    Parameters
+    ----------
+    field_map_type : dict[str, str]
+        Dictionary which keys are the type of electromagnetic field, and values
+        are the geometry.
+
+    Returns
+    -------
+    extensions : dict[str, list[str]]
+        Dictionary with the same keys as input. The values are lists containing
+        all the extensions of the files to load (no "." in front of extension).
+
+    Notes
+    -----
+    Last compatibility check: TraceWin v2.22.1.0
+
+    """
+    extensions = {field_type: None
+                  for field_type in field_map_type}
+
+    char_1 = {'electric': 'e', 'magnetic': 'b'}
+    char_2 = {'static': 's', 'RF': 'd'}
+    char_3 = {'1D:': ['z'],
+              '2D cylindrical': ['r', 'z', 'q'],
+              '2D cartesian': ['x', 'y'],
+              '3D cartesian': ['x', 'y', 'z'],
+              '3D cylindrical': ['r', 'q', 'z']
+              }
+
+    for field_type, geometry in field_map_type.items():
+        if geometry == 'not available':
+            continue
+
+        if field_type == '3D aperture map':
+            extensions[field_type] = ['ouv']
+            continue
+
+        splitted = field_type.split(' ')
+        base_extension = [char_1.get(splitted[1], None),
+                          char_2.get(splitted[0], None)]
+
+        geometry_as_a_key = geometry.split(' ')
+        if geometry_as_a_key[0] == '1D:':
+            geometry_as_a_key = geometry_as_a_key[0]
+        else:
+            geometry_as_a_key = geometry_as_a_key[:2].join(' ')
+
+        extension = [base_extension + [last_char]
+                     for last_char in char_3[geometry_as_a_key]]
+        extensions[field_type] = extension
+    return extensions
+
+
 # FIXME Cannot import Accelerator type (circular import)
 # Maybe this routine would be better in Accelerator?
 # |-> more SimulationOutput
