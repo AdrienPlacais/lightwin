@@ -37,6 +37,7 @@ import tracewin_utils.load
 from tracewin_utils.dat_files import (
     create_structure,
     dat_filecontent_from_smaller_list_of_elements,
+    new_dat_filecontent_from_smaller_list_of_elements,
 )
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
@@ -87,7 +88,8 @@ def new_list_of_elements(dat_filepath: str,
         'out_path': accelerator_path
     }
 
-    elts, field_map_folder = _dat_filepath_to_plain_list_of_elements(files)
+    elts, field_map_folder, elts_n_cmds = \
+        _dat_filepath_to_plain_list_of_elements(files)
     files['field_map_folder'] = field_map_folder
 
     input_particle = _new_input_particle(**kwargs)
@@ -97,6 +99,8 @@ def new_list_of_elements(dat_filepath: str,
                                       input_beam=input_beam,
                                       files=files,
                                       first_init=True)
+    logging.warning("dirty add attribute")
+    list_of_elements.files['elts_n_cmds'] = elts_n_cmds
     return list_of_elements
 
 
@@ -160,8 +164,8 @@ def _dat_filepath_to_plain_list_of_elements(
     field_map_folder = list(filter(
         lambda field_map_path: isinstance(field_map_path, FieldMapPath),
         elts_n_commands))[0].path
-
-    return elts, os.path.abspath(field_map_folder)
+    logging.warning('dirty add returned value')
+    return elts, os.path.abspath(field_map_folder), elts_n_commands
 
 
 # =============================================================================
@@ -242,6 +246,11 @@ def _subset_files_dictionary(
 
     dat_content = dat_filecontent_from_smaller_list_of_elements(
         files_from_full_list_of_elements['dat_content'],
+        elts,
+    )
+
+    dat_content = new_dat_filecontent_from_smaller_list_of_elements(
+        files_from_full_list_of_elements['elts_n_cmds'],
         elts,
     )
 

@@ -279,7 +279,6 @@ def update_field_maps_in_dat(
 
 
 def new_dat_filecontent_from_smaller_list_of_elements(
-    dat_filecontent: list[list[str]],
     original_elts_n_cmds: list[Element | Command],
     elts: list[Element],
 ) -> list[list[str]]:
@@ -291,7 +290,7 @@ def new_dat_filecontent_from_smaller_list_of_elements(
 
     """
     indexes_to_keep = [elt.get('dat_idx', to_numpy=False) for elt in elts]
-    last_index = indexes_to_keep[-1]
+    last_index = indexes_to_keep[-1] + 1
 
     new_dat_filecontent: list[list[str]] = []
     for i, elt_or_cmd in enumerate(original_elts_n_cmds[:last_index]):
@@ -304,10 +303,10 @@ def new_dat_filecontent_from_smaller_list_of_elements(
         if not (element_to_keep or useful_command):
             continue
 
-        new_dat_filecontent.append(elt_or_cmd.dat_line)
+        new_dat_filecontent.append(elt_or_cmd.line)
 
     end = original_elts_n_cmds[-1]
-    new_dat_filecontent.append(end.dat_line)
+    new_dat_filecontent.append(end.line)
     return new_dat_filecontent
 
 

@@ -87,7 +87,7 @@ class Command(ABC):
         """
         Tell if ``self`` concerns an element, which ``dat_idx`` is given.
 
-        Internally, we convert the ``self.idx['concerned']`` from a
+        Internally, we convert the ``self.idx['influenced']`` from a
         :class:`set` to a :class:`list` object and check intersections with
         ``dat_indexes``.
 
@@ -98,11 +98,11 @@ class Command(ABC):
             creation.
 
         """
-        idx_concerned = range(self.idx['concerned'].start,
-                              self.idx['concerned'].stop)
-        idx_concerned = [i for i in idx_concerned]
+        idx_influenced = range(self.idx['influenced'].start,
+                               self.idx['influenced'].stop)
+        idx_influenced = [i for i in idx_influenced]
 
-        intersect = list(set(idx_concerned), dat_indexes)
+        intersect = list(set(idx_influenced).intersection(dat_indexes))
         return len(intersect) > 0
 
 
