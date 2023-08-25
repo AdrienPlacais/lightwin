@@ -157,37 +157,6 @@ def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
     return n_z, zmax, norm, np.array(f_z)
 
 
-# Legacy
-def is_loadable(field_map_file_name: str, geometry: int, aperture_flag: int
-                ) -> bool:
-    """Assert that the options for the FIELD_MAP in the .dat are ok."""
-    _, extension = os.path.splitext(field_map_file_name)
-    if extension not in FIELD_MAP_LOADERS:
-        logging.error(f"Field map file extension is {extension}, "
-                      + f"while only {FIELD_MAP_LOADERS.keys()} are "
-                      + "implemented.")
-        return False
-
-    if geometry < 0:
-        logging.error("Second order off-axis development not implemented.")
-        return False
-
-    field_nature = int(np.log10(geometry))
-    if field_nature != 2:
-        logging.error("Only RF electric fields implemented.")
-        return False
-
-    field_geometry = int(str(geometry)[0])
-    if field_geometry != 1:
-        logging.error("Only 1D field implemented.")
-        return False
-
-    if aperture_flag > 0:
-        logging.warning("Space charge compensation maps not implemented.")
-
-    return True
-
-
 FIELD_MAP_LOADERS = {
     ".edz": electric_field_1d
 }

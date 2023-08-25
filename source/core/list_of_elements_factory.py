@@ -38,7 +38,6 @@ from tracewin_utils.dat_files import (
     create_structure,
     dat_filecontent_from_smaller_list_of_elements,
 )
-from tracewin_utils.electromagnetic_fields import set_all_electric_field_maps
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
 from beam_calculation.output import SimulationOutput
@@ -98,10 +97,6 @@ def new_list_of_elements(dat_filepath: str,
                                       input_beam=input_beam,
                                       files=files,
                                       first_init=True)
-    # logging.error("I think that set_all_electric_field_maps can be done in "
-    #               "Commands. also set a default value!")
-    # set_all_electric_field_maps(field_map_folder,
-    #                             list_of_elements.by_section_and_lattice)
     return list_of_elements
 
 

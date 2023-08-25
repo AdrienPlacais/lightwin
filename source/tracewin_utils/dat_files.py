@@ -104,11 +104,12 @@ def create_structure(dat_content: list[list[str]],
     elts_n_cmds = _create_element_n_command_objects(dat_content, dat_filepath)
     elts_n_cmds = _apply_commands(elts_n_cmds)
 
-    _load_electromagnetic_fields(list(filter(
-        lambda field_map: isinstance(field_map, FieldMap),
-        elts_n_cmds)))
+    field_maps = list(filter(lambda field_map: isinstance(field_map, FieldMap),
+                             elts_n_cmds))
+    _load_electromagnetic_fields(field_maps)
 
     _check_consistency(elts_n_cmds)
+
     return elts_n_cmds
 
 
