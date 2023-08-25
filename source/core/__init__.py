@@ -1,5 +1,5 @@
 """
-In this folder, we keep the most central modules, that hold the structure of
-the linac, its elements, its particles, the main parameters of the beam.
+This module holds the most central submodules and packages. They define the
+structure of the accelerator, the elements, the main parameters of the beam.
 
 """

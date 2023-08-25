@@ -1,11 +1,8 @@
 """
-This package holds all the base class :class:`Element` and its derivatived
-classes.
+This package holds the base class :class:`Element` and the other elements that
+inherit from it.
 
 .. todo::
     Implement a dummy element, that will not be considered but will be kept.
-
-.. todo::
-    ``elem`` in the init should be ``line`` for consistency.
 
 """

@@ -5,8 +5,8 @@ Created on Wed Sep 22 10:26:19 2021.
 
 @author: placais
 
-This module holds `Element`, the base parent class that is then declined in
-Drift, FieldMap, etc.
+This module holds :class:`Element`, the base parent class that is then declined
+in Drift, FieldMap, etc.
 
 .. todo::
     check FLAG_PHI_S_FIT
@@ -36,27 +36,25 @@ from beam_calculation.single_element_beam_calculator_parameters import (
 # Element class
 # =============================================================================
 class Element():
-    """Generic element. _ ensures that it is not called from another module."""
+    """Generic element."""
 
-    def __init__(self, elem: list[str]) -> None:
+    def __init__(self, line: list[str]) -> None:
         """
         Init parameters common to all elements.
 
-        Some attributes, such as length_m for FIELD_MAP, are stored differently
-        and will be changed later.
-
         Parameters
         ----------
-        elem : list of string
-            A valid line of the .dat file.
+        line : list of string
+            A valid line of the ``.dat`` file.
+
         """
-        self.__elem = elem
+        self.__line = line
         self.elt_info = {
             'elt_name': None,
-            'nature': elem[0],
+            'nature': line[0],
             'status': 'none',    # Only make sense for cavities
         }
-        self.length_m = 1e-3 * float(elem[1])
+        self.length_m = 1e-3 * float(line[1])
 
         # By default, an element is non accelerating and has a dummy
         # accelerating field.
@@ -71,7 +69,7 @@ class Element():
     def __repr__(self) -> str:
         # if self.elt_info['status'] not in ['none', 'nominal']:
         #     logging.warning("Element properties where changed.")
-        # return f"{self.__class__}(elem={self.__elem})"
+        # return f"{self.__class__}(line={self.__line})"
         return self.__str__()
 
     def has(self, key: str) -> bool:
@@ -124,6 +122,7 @@ class Element():
 
         We also ensure that the value new_status is correct. If the new value
         is 'failed', we also set the norm of the electric field to 0.
+
         """
         assert self.elt_info['nature'] == 'FIELD_MAP', 'The status of an ' + \
             'element only makes sense for cavities.'
@@ -153,7 +152,7 @@ class Element():
 
     def keep_rf_field(self, rf_field: dict, v_cav_mv: float, phi_s: float,
                       ) -> None:
-        """Save data calculated by BeamCalculator.run_with_this."""
+        """Save data calculated by :func:`BeamCalculator.run_with_this`."""
         if rf_field != {}:
             self.acc_field.v_cav_mv = v_cav_mv
             self.acc_field.phi_s = phi_s
@@ -170,7 +169,7 @@ class Element():
         Parameters
         ----------
         solver_id : str
-            Identificator of the BeamCalculator.
+        Identificator of the :class:`BeamCalculator`.
         phi_bunch_abs : float
             Absolute phase of the particle (bunch frequency).
         w_kin_in : float
@@ -189,6 +188,6 @@ class Element():
         return {}
 
     def is_accelerating(self) -> bool:
-        """Say if this Element is accelerating or not."""
+        """Say if this element is accelerating or not."""
         return self.get('nature') == 'FIELD_MAP' \
             and self.get('status') != 'failed'

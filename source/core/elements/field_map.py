@@ -5,10 +5,16 @@ Created on Wed Sep 22 10:26:19 2021.
 
 @author: placais
 
-This module holds a `FieldMap`.
+This module holds a :class:`FieldMap`.
 
 .. todo::
     Handle the different kind of field_maps...
+
+.. todo::
+    Handle the SET_SYNCH_PHASE command
+
+.. todo::
+    Hande phi_s fitting with :class:`beam_calculation.tracewin.Tracewin`
 
 """
 import logging
@@ -31,30 +37,27 @@ from failures.set_of_cavity_settings import SingleCavitySettings
 class FieldMap(Element):
     """A generic ``FIELD_MAP``."""
 
-    def __init__(self, elem: list[str]) -> None:
-        n_attributes = len(elem) - 1
+    def __init__(self, line: list[str]) -> None:
+        n_attributes = len(line) - 1
         assert n_attributes in [9, 10]
 
-        super().__init__(elem)
-        self.geometry = int(elem[1])
-        self.length_m = 1e-3 * float(elem[2])
-        self.aperture_flag = int(elem[8])               # K_a
+        super().__init__(line)
+        self.geometry = int(line[1])
+        self.length_m = 1e-3 * float(line[2])
+        self.aperture_flag = int(line[8])               # K_a
         # FIXME according to doc, may also be float
-        self.field_map_file_name = str(elem[9])         # FileName
 
-        try:
-            absolute_phase_flag = int(elem[10])    # P
-        except IndexError:
-            # Relative by default
-            elem.append('0')
-            absolute_phase_flag = int(elem[10])
-
-        self.acc_field = RfField(k_e=float(elem[6]),
-                                 absolute_phase_flag=bool(absolute_phase_flag),
-                                 phi_0=np.deg2rad(float(elem[3])))
-        self.update_status('nominal')
-
+        self.field_map_file_name = str(line[9])         # FileName
         self.field_map_folder: str
+
+        if len(line) == 10:
+            line.append('1')
+        absolute_phase_flag = int(line[10])
+
+        self.acc_field = RfField(k_e=float(line[6]),
+                                 absolute_phase_flag=bool(absolute_phase_flag),
+                                 phi_0=np.deg2rad(float(line[3])))
+        self.update_status('nominal')
 
     def rf_param(self, solver_id: str, phi_bunch_abs: float, w_kin_in: float,
                  cavity_settings: SingleCavitySettings | None = None) -> dict:

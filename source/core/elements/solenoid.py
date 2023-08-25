@@ -5,7 +5,7 @@ Created on Wed Sep 22 10:26:19 2021.
 
 @author: placais
 
-This module holds :class`Solenoid`.
+This module holds :class:`Solenoid`.
 
 """
 
@@ -13,9 +13,10 @@ from core.elements.element import Element
 
 
 class Solenoid(Element):
-    """Sub-class of Element, with parameters specific to SOLENOIDs."""
+    """A partially defined solenoid."""
 
-    def __init__(self, elem: list[str]) -> None:
-        n_attributes = len(elem) - 1
+    def __init__(self, line: list[str]) -> None:
+        """Check number of attributes."""
+        n_attributes = len(line) - 1
         assert n_attributes == 3
-        super().__init__(elem)
+        super().__init__(line)
