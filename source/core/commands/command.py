@@ -49,7 +49,7 @@ class Command(ABC):
 class End(Command):
     """The end of the linac."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         self.is_implemented = True
 
     def apply(self,
@@ -64,7 +64,7 @@ class End(Command):
 class FieldMapPath(Command):
     """Used to get the base path of field maps."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         self.is_implemented = True
         self.path = line[1]
 
@@ -88,7 +88,7 @@ class FieldMapPath(Command):
 class Freq(Command):
     """Used to get the frequency of every Section."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         self.is_implemented = True
         self.f_rf_mhz = float(line[1])
 
@@ -120,7 +120,7 @@ class Freq(Command):
 class Lattice(Command):
     """Used to get the number of elements per lattice."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         self.is_implemented = True
         self.n_lattice = int(line[1])
 
@@ -209,7 +209,7 @@ class Lattice(Command):
 class LatticeEnd(Command):
     """Dummy class."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         self.is_implemented = True
 
     def apply(self,
@@ -223,7 +223,7 @@ class LatticeEnd(Command):
 class SuperposeMap(Command):
     """Dummy class."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         self.is_implemented = False
 
     def apply(self,

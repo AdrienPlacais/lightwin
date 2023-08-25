@@ -14,7 +14,7 @@ from core.elements.element import Element
 class Quad(Element):
     """A partially defined quadrupole."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         """Check number of attributes, set gradient."""
         n_attributes = len(line) - 1
         assert n_attributes in range(3, 10)

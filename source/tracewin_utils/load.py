@@ -157,6 +157,7 @@ def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
     return n_z, zmax, norm, np.array(f_z)
 
 
+# Legacy
 def is_loadable(field_map_file_name: str, geometry: int, aperture_flag: int
                 ) -> bool:
     """Assert that the options for the FIELD_MAP in the .dat are ok."""

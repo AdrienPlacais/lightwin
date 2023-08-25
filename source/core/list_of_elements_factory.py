@@ -38,7 +38,7 @@ from tracewin_utils.dat_files import (
     create_structure,
     dat_filecontent_from_smaller_list_of_elements,
 )
-import tracewin_utils.electric_fields
+from tracewin_utils.electromagnetic_fields import set_all_electric_field_maps
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
 from beam_calculation.output import SimulationOutput
@@ -98,10 +98,10 @@ def new_list_of_elements(dat_filepath: str,
                                       input_beam=input_beam,
                                       files=files,
                                       first_init=True)
-    logging.error("I think that set_all_electric_field_maps can be done in "
-                  "Commands. also set a default value!")
-    tracewin_utils.electric_fields.set_all_electric_field_maps(
-        field_map_folder, list_of_elements.by_section_and_lattice)
+    # logging.error("I think that set_all_electric_field_maps can be done in "
+    #               "Commands. also set a default value!")
+    # set_all_electric_field_maps(field_map_folder,
+    #                             list_of_elements.by_section_and_lattice)
     return list_of_elements
 
 
@@ -149,13 +149,13 @@ def _dat_filepath_to_plain_list_of_elements(
     Returns
     -------
     elts : list[Element]
-        Plain list of Element (not yet a `ListOfElements` object).
+        Plain list of Element (not yet a :class:`ListOfElements` object).
     field_map_folder : str
         Absolute path to the storage of field maps.
 
     """
     elts_n_commands: list[Element | Command]
-    elts_n_commands = create_structure(files['dat_content'])
+    elts_n_commands = create_structure(**files)
 
     elts = list(filter(lambda elt: isinstance(elt, Element),
                        elts_n_commands))

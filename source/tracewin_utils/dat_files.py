@@ -33,6 +33,23 @@ from core.commands.command import (
     SuperposeMap,
 )
 
+from tracewin_utils.electromagnetic_fields import (
+    geom_to_field_map_type,
+    file_map_extensions,
+    load_field_map_file,
+)
+
+try:
+    import beam_calculation.envelope_1d.transfer_matrices_c as tm_c
+except ModuleNotFoundError:
+    MESSAGE = 'Cython module not compilated. Check elements.py and setup.py'\
+        + ' for more information.'
+    if con.FLAG_CYTHON:
+        raise ModuleNotFoundError(MESSAGE)
+    logging.warning(MESSAGE)
+    # Load Python version as Cython to allow the execution of the code.
+    import beam_calculation.envelope_1d.transfer_matrices_p as tm_c
+
 # from core.list_of_elements import ListOfElements
 ListOfElements = TypeVar('ListOfElements')
 
@@ -65,21 +82,40 @@ TO_BE_IMPLEMENTED = [
 ]
 
 
-def create_structure(dat_filecontent: list[list[str]]) -> list[Element]:
+def create_structure(dat_content: list[list[str]],
+                     dat_filepath: str,
+                     **kwargs: str) -> list[Element | Command]:
     """
-    Create structure using the loaded dat file.
+    Create structure using the loaded ``.dat`` file.
 
     Parameters
     ----------
-    dat_filecontent : list[list[str]]
-        List containing all the lines of dat_filepath.
+    dat_content : list[list[str]]
+        List containing all the lines of ``dat_filepath``.
+    dat_path : str
+        Absolute path to the ``.dat``.
 
     Returns
     -------
     elts : list[Element]
-        List containing all the `Element` objects.
+    List containing all the :class:`Element` objects.
 
     """
+    elts_n_cmds = _create_element_n_command_objects(dat_content, dat_filepath)
+    elts_n_cmds = _apply_commands(elts_n_cmds)
+
+    _load_electromagnetic_fields(list(filter(
+        lambda field_map: isinstance(field_map, FieldMap),
+        elts_n_cmds)))
+
+    _check_consistency(elts_n_cmds)
+    return elts_n_cmds
+
+
+def _create_element_n_command_objects(dat_content: list[list[str]],
+                                      dat_filepath: str
+                                      ) -> list[Element | Command]:
+    """Initialize the :class:`Element` and :class:`Command`."""
     subclasses_dispatcher = {
         # Elements
         'DRIFT': Drift,
@@ -94,6 +130,7 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[Element]:
         'LATTICE_END': LatticeEnd,
         'SUPERPOSE_MAP': SuperposeMap,
     }
+    kwargs = {'default_field_map_folder': dat_filepath}
 
     # elements_iterable = itertools.takewhile(
     #     lambda elt: not isinstance(elt, End),
@@ -102,11 +139,9 @@ def create_structure(dat_filecontent: list[list[str]]) -> list[Element]:
     # )
     # elts = list(elements_iterable)
 
-    elts_n_cmds = [subclasses_dispatcher[line[0]](line)
-                   for line in dat_filecontent
+    elts_n_cmds = [subclasses_dispatcher[line[0]](line, **kwargs)
+                   for line in dat_content
                    if line[0] not in TO_BE_IMPLEMENTED]
-    elts_n_cmds = _apply_commands(elts_n_cmds)
-    _check_consistency(elts_n_cmds)
     return elts_n_cmds
 
 
@@ -125,6 +160,47 @@ def _apply_commands(elts_n_cmds: list[Element | Command]
                 elts_n_cmds = elt_or_cmd.apply(elts_n_cmds, **kwargs)
         index += 1
     return elts_n_cmds
+
+
+def _load_electromagnetic_fields(field_maps: list[FieldMap]) -> None:
+    """
+    Load field map files.
+
+    As for now, only 1D RF electric field are handled by :class:`Envelope1D`.
+    With :class:`TraceWin`, every field is supported.
+
+    """
+    for field_map in field_maps:
+        field_map_types = geom_to_field_map_type(field_map.geometry,
+                                                 remove_no_field=True)
+        extensions = file_map_extensions(field_map_types)
+
+        field_map.set_full_path(extensions)
+
+        e_spat, n_z = load_field_map_file(field_map)
+        field_map.e_spat = e_spat
+        field_map.n_z = n_z
+
+    if con.FLAG_CYTHON:
+        _load_electromagnetic_fields_for_cython(field_maps)
+
+
+def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
+                                            ) -> None:
+    """Load one electric field per section."""
+    valid_files = [field_map.field_map_file_name
+                   for field_map in field_maps
+                   if field_map.e_spat is not None
+                   and field_map.n_z is not None]
+    # Trick to remouve duplicates and keep order
+    valid_files = list(dict.fromkeys(valid_files))
+
+    for valid_file in valid_files:
+        if isinstance(valid_file, list):
+            logging.error("A least one FieldMap still has several file maps, "
+                          "which Cython will not support. Skipping...")
+            valid_files.remove(valid_file)
+    tm_c.init_arrays(valid_files)
 
 
 # Handle when no lattice

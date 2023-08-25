@@ -38,7 +38,7 @@ from beam_calculation.single_element_beam_calculator_parameters import (
 class Element():
     """Generic element."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         """
         Init parameters common to all elements.
 

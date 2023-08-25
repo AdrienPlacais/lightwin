@@ -19,6 +19,8 @@ This module holds a :class:`FieldMap`.
 """
 import logging
 from typing import Any
+import os.path
+
 import numpy as np
 
 from scipy.optimize import minimize_scalar
@@ -37,7 +39,11 @@ from failures.set_of_cavity_settings import SingleCavitySettings
 class FieldMap(Element):
     """A generic ``FIELD_MAP``."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self,
+                 line: list[str],
+                 default_field_map_folder: str,
+                 **kwargs) -> None:
+        """Set most of attributes defined in ``TraceWin``."""
         n_attributes = len(line) - 1
         assert n_attributes in [9, 10]
 
@@ -45,10 +51,12 @@ class FieldMap(Element):
         self.geometry = int(line[1])
         self.length_m = 1e-3 * float(line[2])
         self.aperture_flag = int(line[8])               # K_a
+        if self.aperture_flag > 0:
+            logging.warning("Space charge compensation maps not handled.")
         # FIXME according to doc, may also be float
 
-        self.field_map_file_name = str(line[9])         # FileName
-        self.field_map_folder: str
+        self.field_map_file_name: str | list[str] = str(line[9])   # FileName
+        self.field_map_folder = default_field_map_folder
 
         if len(line) == 10:
             line.append('1')
@@ -59,6 +67,27 @@ class FieldMap(Element):
                                  phi_0=np.deg2rad(float(line[3])))
         self.update_status('nominal')
 
+    def set_full_path(self, extensions: dict[str, list[str]]) -> None:
+        """
+        Set absolute paths with extensions of electromagnetic files.
+
+        Parameters
+        ----------
+        extensions : dict[str, list[str]]
+            Keys are nature of the field, values are a list of extensions
+            corresponding to it without a period.
+
+        See also
+        --------
+        :func:`tracewin_utils.electromagnetic_fields.file_map_extensions`
+
+        """
+        self.field_map_file_name = [os.path.join(
+            self.field_map_folder,
+            self.field_map_file_name + '.' + ext)
+            for extension in extensions.values()
+            for ext in extension]
+
     def rf_param(self, solver_id: str, phi_bunch_abs: float, w_kin_in: float,
                  cavity_settings: SingleCavitySettings | None = None) -> dict:
         """
@@ -67,7 +96,7 @@ class FieldMap(Element):
         Parameters
         ----------
         solver_id : str
-        Identificator of the :class:`BeamCalculator`.
+            Identificator of the :class:`BeamCalculator`.
         phi_bunch_abs : float
             Absolute phase of the particle (bunch frequency).
         w_kin_in : float

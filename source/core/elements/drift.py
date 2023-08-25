@@ -15,7 +15,7 @@ from core.elements.element import Element
 class Drift(Element):
     """A simple drift tube."""
 
-    def __init__(self, line: list[str]) -> None:
+    def __init__(self, line: list[str], **kwargs: str) -> None:
         """Check that number of attributes is valid."""
         n_attributes = len(line) - 1
         assert n_attributes in [2, 3, 5]

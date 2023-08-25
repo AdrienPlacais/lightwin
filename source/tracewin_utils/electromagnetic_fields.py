@@ -33,6 +33,7 @@ except ModuleNotFoundError:
 
 
 # TODO is it necessary to load all the electric fields when _p?
+# Legacy
 def set_all_electric_field_maps(field_map_folder: str,
                                 sections: list[list[Element]]) -> None:
     """
@@ -66,6 +67,7 @@ def set_all_electric_field_maps(field_map_folder: str,
         tm_c.init_arrays(filepaths)
 
 
+# Legacy
 def _get_single_electric_field_map(
     cav: FieldMap) -> tuple[Callable[[float | np.ndarray], float | np.ndarray],
                             int]:
@@ -102,8 +104,9 @@ def _get_single_electric_field_map(
     return e_spat, n_z
 
 
+# Legacy
 def _is_a_valid_electric_field(n_z: int, zmax: float, norm: float,
-                              f_z: np.ndarray, cavity_length: float) -> bool:
+                               f_z: np.ndarray, cavity_length: float) -> bool:
     """Assert that the electric field that we loaded is valid."""
     if f_z.shape[0] != n_z + 1:
         logging.error(f"The electric field file should have {n_z + 1} "
@@ -134,7 +137,7 @@ def geom_to_field_map_type(geom: int,
     Last compatibility check: TraceWin v2.22.1.0
 
     """
-    figures = [int(i) for i in str(abs(geom))]
+    figures = [int(i) for i in f"{abs(geom):0>5}"]
     field_types = ('static electric field',
                    'static magnetic field',
                    'RF electric field',
@@ -160,9 +163,9 @@ def geom_to_field_map_type(geom: int,
     if not remove_no_field:
         return out
 
-    for key in out:
-        if key == 0:
-            del out[key]
+    for key in list(out):
+        if out[key] == 'no field':
+            out.pop(key)
     return out
 
 
@@ -216,12 +219,54 @@ def file_map_extensions(field_map_type: dict[str, str]
         if geometry_as_a_key[0] == '1D:':
             geometry_as_a_key = geometry_as_a_key[0]
         else:
-            geometry_as_a_key = geometry_as_a_key[:2].join(' ')
+            geometry_as_a_key = ' '.join(geometry_as_a_key[:2])
 
         extension = [base_extension + [last_char]
                      for last_char in char_3[geometry_as_a_key]]
-        extensions[field_type] = extension
+        extensions[field_type] = [''.join(ext) for ext in extension]
     return extensions
+
+
+def load_field_map_file(
+    field_map: FieldMap
+) -> tuple[Callable[[float | np.ndarray], float | np.ndarray], int]:
+    """
+    Go across the field map file names and load the first recognized.
+
+    For now, only `.edz` files (1D electric RF) are implemented. This will be a
+    problem with :class:`Envelope1D`, but :class:`TraceWin` does not care.
+
+    """
+    for file_name in field_map.field_map_file_name:
+        _, extension = os.path.splitext(file_name)
+
+        if extension not in tracewin_utils.load.FIELD_MAP_LOADERS:
+            logging.info("Field map extension not handled.")
+            continue
+
+        import_function = tracewin_utils.load.FIELD_MAP_LOADERS[extension]
+
+        # this will require an update if I want to implement new field map
+        # extensions
+        n_z, zmax, norm, f_z = import_function(file_name)
+        assert _is_a_valid_electric_field(n_z,
+                                          zmax,
+                                          norm,
+                                          f_z,
+                                          field_map.length_m), \
+            f"Error loading {field_map}'s field map."
+
+        z_cavity_array = np.linspace(0., zmax, n_z + 1) / norm
+
+        def e_spat(pos: float | np.ndarray) -> float | np.ndarray:
+            return np.interp(x=pos, xp=z_cavity_array, fp=f_z,
+                             left=0., right=0.)
+
+        # Patch to keep one filepath per FieldMap. Will require an update in
+        # the future...
+        field_map.field_map_file_name = file_name
+
+        return e_spat, n_z
 
 
 # FIXME Cannot import Accelerator type (circular import)
