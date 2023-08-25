@@ -278,7 +278,7 @@ def update_field_maps_in_dat(
         idx_elt += 1
 
 
-def new_dat_filecontent_from_smaller_list_of_elements(
+def dat_filecontent_from_smaller_list_of_elements(
     original_elts_n_cmds: list[Element | Command],
     elts: list[Element],
 ) -> list[list[str]]:
@@ -308,45 +308,6 @@ def new_dat_filecontent_from_smaller_list_of_elements(
     end = original_elts_n_cmds[-1]
     new_dat_filecontent.append(end.line)
     return new_dat_filecontent
-
-
-# TO UPDATE
-def dat_filecontent_from_smaller_list_of_elements(
-        dat_filecontent: list[list[str]],
-        elts: list[Element],
-) -> list[list[str]]:
-    """
-    Create a new `.dat` containing only the `Element`s of `elts`.
-
-    Properties of the FIELD_MAP, i.e. amplitude and phase, remain untouched, as
-    it is the job of `update_field_maps_in_dat`.
-
-    """
-    idx_elt = 0
-    indexes_to_keep = [elt.get('elt_idx', to_numpy=False)
-                       for elt in elts]
-    smaller_dat_filecontent = []
-    for line in dat_filecontent:
-        if line[0] in TO_BE_IMPLEMENTED + COMMANDS + ['FIELD_MAP_PATH']:
-            smaller_dat_filecontent.append(line)
-            continue
-
-        if idx_elt in indexes_to_keep:
-            smaller_dat_filecontent.append(line.copy())
-
-        idx_elt += 1
-
-    smaller_dat_filecontent = _remove_empty_lattices(smaller_dat_filecontent)
-    smaller_dat_filecontent.append(["END"])
-    return smaller_dat_filecontent
-
-
-# FIXME not implemented. Low priority
-def _remove_empty_lattices(dat_filecontent: list[list[str]]
-                           ) -> list[list[str]]:
-    """Remove useless LATTICE and FREQ commands."""
-    logging.debug("_remove_empty_lattices not implemented.")
-    return dat_filecontent
 
 
 def save_dat_filecontent_to_dat(dat_content: list[list[str]],

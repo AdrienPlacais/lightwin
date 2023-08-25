@@ -37,7 +37,6 @@ import tracewin_utils.load
 from tracewin_utils.dat_files import (
     create_structure,
     dat_filecontent_from_smaller_list_of_elements,
-    new_dat_filecontent_from_smaller_list_of_elements,
 )
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
@@ -85,12 +84,16 @@ def new_list_of_elements(dat_filepath: str,
         'dat_filepath': dat_filepath,
         'dat_content': tracewin_utils.load.dat_file(dat_filepath),
         'field_map_folder': None,
-        'out_path': accelerator_path
+        'out_path': accelerator_path,
+        'elts_n_cmds': list[Element | Command],
     }
 
-    elts, field_map_folder, elts_n_cmds = \
+    elts_n_cmds, field_map_folder = \
         _dat_filepath_to_plain_list_of_elements(files)
+    elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
+
     files['field_map_folder'] = field_map_folder
+    files['elts_n_cmds'] = elts_n_cmds
 
     input_particle = _new_input_particle(**kwargs)
     input_beam = _new_beam_parameters(**kwargs)
@@ -99,8 +102,6 @@ def new_list_of_elements(dat_filepath: str,
                                       input_beam=input_beam,
                                       files=files,
                                       first_init=True)
-    logging.warning("dirty add attribute")
-    list_of_elements.files['elts_n_cmds'] = elts_n_cmds
     return list_of_elements
 
 
@@ -135,7 +136,7 @@ def _new_beam_parameters(sigma_in_zdelta: np.ndarray,
 
 def _dat_filepath_to_plain_list_of_elements(
         files: dict[str, str | list[list[str]] | None],
-) -> tuple[list[Element], str]:
+) -> tuple[list[Element | Command], str]:
     """
     Convert the content of the `.dat` file to a plain list of `Element`s.
 
@@ -147,25 +148,20 @@ def _dat_filepath_to_plain_list_of_elements(
 
     Returns
     -------
-    elts : list[Element]
-        Plain list of Element (not yet a :class:`ListOfElements` object).
+    elts_n_cmds : list[Element | Command]
+        List containing all objects from the ``.dat`` file.
     field_map_folder : str
         Absolute path to the storage of field maps.
 
     """
-    elts_n_commands: list[Element | Command]
-    elts_n_commands = create_structure(**files)
-
-    elts = list(filter(lambda elt: isinstance(elt, Element),
-                       elts_n_commands))
+    elts_n_cmds = create_structure(**files)
 
     # Legacy
     logging.error("Handle field map folder better.")
     field_map_folder = list(filter(
         lambda field_map_path: isinstance(field_map_path, FieldMapPath),
-        elts_n_commands))[0].path
-    logging.warning('dirty add returned value')
-    return elts, os.path.abspath(field_map_folder), elts_n_commands
+        elts_n_cmds))[0].path
+    return elts_n_cmds, os.path.abspath(field_map_folder)
 
 
 # =============================================================================
@@ -245,11 +241,6 @@ def _subset_files_dictionary(
     dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
 
     dat_content = dat_filecontent_from_smaller_list_of_elements(
-        files_from_full_list_of_elements['dat_content'],
-        elts,
-    )
-
-    dat_content = new_dat_filecontent_from_smaller_list_of_elements(
         files_from_full_list_of_elements['elts_n_cmds'],
         elts,
     )
