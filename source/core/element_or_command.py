@@ -14,6 +14,7 @@ element/command.
     would be much more consistent and pythonic.
 
 """
+import logging
 from abc import ABC
 
 
@@ -36,6 +37,17 @@ class ElementOrCommand(ABC):
 class Dummy(ElementOrCommand):
     """An object corresponding to a non-implemented element or command."""
 
-    def __init__(self, line: list[str], dat_idx: dict[str, str | slice]
+    def __init__(self, line: list[str],
+                 dat_idx: dict[str, str | slice],
+                 warning: bool = False,
                  ) -> None:
         super().__init__(line, dat_idx, is_implemented=False)
+        if warning:
+            logging.warning("A dummy element was added as the corresponding "
+                            "element or command is not implemented. If the "
+                            "BeamCalculator is Envelope1D, this may be a "
+                            "problem. In particular if the missing element "
+                            "has a length that is non-zero. You can disable "
+                            "this warning in tracewin_utils.dat_files._create"
+                            "_element_n_command_objects. Line with a problem:"
+                            f"\n{line}")

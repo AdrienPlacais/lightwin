@@ -134,16 +134,9 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
     }
     kwargs = {'default_field_map_folder': dat_filepath}
 
-    # elements_iterable = itertools.takewhile(
-    #     lambda elt: not isinstance(elt, End),
-    #     [subclasses_dispatcher[elem[0]](elem) for elem in dat_filecontent
-    #      if elem[0] not in TO_BE_IMPLEMENTED]
-    # )
-    # elts = list(elements_iterable)
-
     elts_n_cmds = [subclasses_dispatcher[line[0]](line, dat_idx, **kwargs)
-                   if line[0] not in TO_BE_IMPLEMENTED
-                   else Dummy(line, dat_idx)
+                   if line[0] in subclasses_dispatcher
+                   else Dummy(line, dat_idx, warning=True)
                    for dat_idx, line in enumerate(dat_content)
                    ]
     return elts_n_cmds
@@ -240,7 +233,7 @@ def give_name(elts: list[Element]) -> None:
             elt.elt_info['elt_name'] = value + str(i)
 
 
-# TO UPDATE ?
+# TO UPDATE !
 def update_field_maps_in_dat(
     elts: ListOfElements,
     new_phases: dict[Element, float],
