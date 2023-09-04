@@ -205,8 +205,8 @@ def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
     """Load one electric field per section."""
     valid_files = [field_map.field_map_file_name
                    for field_map in field_maps
-                   if field_map.e_spat is not None
-                   and field_map.n_z is not None]
+                   if field_map.acc_field.e_spat is not None
+                   and field_map.acc_field.n_z is not None]
     # Trick to remouve duplicates and keep order
     valid_files = list(dict.fromkeys(valid_files))
 
