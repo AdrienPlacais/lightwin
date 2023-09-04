@@ -75,7 +75,10 @@ class Element():
         self.beam_calc_param: dict[str, SingleElementCalculatorParameters] = {}
 
     def __str__(self) -> str:
-        return self.elt_info['elt_name']
+        out = self.elt_info['elt_name']
+        if out is None:
+            out = self.line
+        return out
 
     def __repr__(self) -> str:
         # if self.elt_info['status'] not in ['none', 'nominal']:
