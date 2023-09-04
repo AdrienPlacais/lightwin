@@ -186,9 +186,8 @@ class Freq(Command):
 
         for elt_or_cmd in elts_n_cmds[self.idx['influenced']]:
             if isinstance(elt_or_cmd, FieldMap):
-                n_cells = int(self.f_rf_mhz / freq_bunch)
-                elt_or_cmd.acc_field.set_pulsation_ncell(self.f_rf_mhz,
-                                                         n_cells)
+                n_cell = int(self.f_rf_mhz / freq_bunch)
+                elt_or_cmd.acc_field.set_pulsation_ncell(self.f_rf_mhz, n_cell)
         return elts_n_cmds
 
 
