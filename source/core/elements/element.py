@@ -61,10 +61,12 @@ class Element():
 
         self.idx = {'dat_idx': dat_idx,
                     'elt_idx': None,
+                    'increment_elt_idx': True,
                     'lattice': None,
-                    'section': None,
                     'idx_in_lattice': None,
-                    'increment_idx': True}
+                    'increment_lattice_idx': True,
+                    'section': None,
+                    }
         self.beam_calc_param: dict[str, SingleElementCalculatorParameters] = {}
 
     def __str__(self) -> str:

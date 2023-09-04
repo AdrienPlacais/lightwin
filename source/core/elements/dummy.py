@@ -7,9 +7,6 @@ Created on Fri Aug 25 20:27:52 2023.
 
 This module holds :class:`DummyElement`. It does nothing.
 
-.. todo::
-    Should be ignored by lattice
-
 """
 
 from core.elements.element import Element
@@ -25,4 +22,5 @@ class DummyElement(Element):
         """Force an element with null-length, with no index."""
         super().__init__(line, dat_idx)
         self.length_m = 0.
-        self.idx['increment_idx'] = False
+        self.idx['increment_lattice_idx'] = False
+        self.idx['increment_elt_idx'] = True

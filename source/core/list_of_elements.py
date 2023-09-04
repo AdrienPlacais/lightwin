@@ -243,8 +243,9 @@ class ListOfElements(list):
         self.by_section_and_lattice = _group_elements_by_section_and_lattice(
             by_section)
 
-        elts_with_a_number = list(filter(lambda elt: elt.idx['increment_idx'],
-                                         self))
+        elts_with_a_number = list(filter(
+            lambda elt: elt.idx['increment_elt_idx'],
+            self))
         for i, elt in enumerate(elts_with_a_number):
             elt.idx['elt_idx'] = i
         give_name(self)

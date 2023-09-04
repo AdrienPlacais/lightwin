@@ -89,8 +89,7 @@ def new_list_of_elements(dat_filepath: str,
     }
 
     elts_n_cmds = _dat_filepath_to_plain_list_of_elements(files)
-    elts = list(filter(lambda elt: (isinstance(elt, Element)
-                                    and not isinstance(elt, DummyElement)),
+    elts = list(filter(lambda elt: (isinstance(elt, Element)),
                        elts_n_cmds))
 
     files['elts_n_cmds'] = elts_n_cmds

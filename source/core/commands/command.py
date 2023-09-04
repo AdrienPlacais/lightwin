@@ -472,7 +472,8 @@ class SuperposeMap(Command):
         z_0 = None
         for elt_or_cmd in elts_n_cmds_to_merge:
             if isinstance(elt_or_cmd, SuperposeMap):
-                z_0 = self.z_0
+                z_0 = elt_or_cmd.z_0
+                continue
 
             if isinstance(elt_or_cmd, FieldMap):
                 if z_0 is None:
@@ -481,9 +482,8 @@ class SuperposeMap(Command):
                     z_0 = 0.
 
                 z_1 = z_0 + elt_or_cmd.length_m
-                length = z_1 - z_0
-                if length > z_max:
-                    z_max = length
+                if z_1 > z_max:
+                    z_max = z_1
                 z_0 = None
         return z_max
 
