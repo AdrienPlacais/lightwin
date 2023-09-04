@@ -450,8 +450,6 @@ class SuperposeMap(Command):
         is replaced by a SuperposedFieldMap.
 
         """
-        logging.error("Calling SuperposeMap.")
-
         elts_n_cmds_to_merge = elts_n_cmds[self.idx['influenced']]
         total_length = self._total_length(elts_n_cmds_to_merge)
 

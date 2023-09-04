@@ -154,8 +154,18 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
     }
     kwargs = {'default_field_map_folder': dat_filepath}
 
-    elts_n_cmds = [subclasses_dispatcher[line[0]](line, dat_idx, **kwargs)
-                   if line[0] in subclasses_dispatcher
+    classes = []
+    for line in dat_content:
+        if line[0] in subclasses_dispatcher:
+            classes.append(subclasses_dispatcher[line[0]])
+            continue
+        if line[2] in subclasses_dispatcher:
+            classes.append(subclasses_dispatcher[line[2]])
+            continue
+        classes.append(None)
+
+    elts_n_cmds = [classes[dat_idx](line, dat_idx, **kwargs)
+                   if classes[dat_idx] is not None
                    else Dummy(line, dat_idx, warning=True)
                    for dat_idx, line in enumerate(dat_content)
                    ]
@@ -325,11 +335,13 @@ def give_name(elts: list[Element]) -> None:
     for key, value in civil_register.items():
         sub_list = list(filter(lambda elt: isinstance(elt, key), elts))
         for i, elt in enumerate(sub_list, start=1):
-            elt.elt_info['elt_name'] = value + str(i)
+            if elt.elt_info['elt_name'] is None:
+                elt.elt_info['elt_name'] = value + str(i)
     other_elements = list(filter(lambda elt: type(elt) not in civil_register,
                           elts))
     for i, elt in enumerate(other_elements, start=1):
-        elt.elt_info['elt_name'] = 'ELT' + str(i)
+        if elt.elt_info['elt_name'] is None:
+            elt.elt_info['elt_name'] = 'ELT' + str(i)
 
 
 def update_field_maps_in_dat(

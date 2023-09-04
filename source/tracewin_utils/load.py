@@ -47,7 +47,7 @@ def dat_file(dat_filepath: str) -> list[list[str]]:
 
     """
     dat_filecontent = []
-    logging.info("Personalized name of elements not handled for now.")
+    # logging.info("Personalized name of elements not handled for now.")
 
     with open(dat_filepath) as file:
         for line in file:
@@ -57,7 +57,7 @@ def dat_file(dat_filepath: str) -> list[list[str]]:
                 continue
 
             line = line.split(';')[0]
-            line = line.split(':')[-1]
+            # line = line.split(':')[-1]
             # Remove everything between parenthesis
             # https://stackoverflow.com/questions/14596884/remove-text-between-and
             line = re.sub("([\(\[]).*?([\)\]])", "", line)
@@ -144,7 +144,8 @@ def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
                         line_splitted = line.split('\t')
 
                     n_z = int(line_splitted[0])
-                    # Sometimes there are several spaces or tabs between numbers
+                    # Sometimes there are several spaces or tabs between
+                    # numbers
                     zmax = float(line_splitted[-1])
                     continue
 

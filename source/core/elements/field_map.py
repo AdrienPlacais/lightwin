@@ -45,10 +45,10 @@ class FieldMap(Element):
                  default_field_map_folder: str,
                  **kwargs) -> None:
         """Set most of attributes defined in ``TraceWin``."""
+        super().__init__(line, dat_idx)
         n_attributes = len(line) - 1
         assert n_attributes in [9, 10]
 
-        super().__init__(line, dat_idx)
         self.geometry = int(line[1])
         self.length_m = 1e-3 * float(line[2])
         self.aperture_flag = int(line[8])               # K_a

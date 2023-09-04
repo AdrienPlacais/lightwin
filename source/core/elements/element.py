@@ -47,12 +47,17 @@ class Element():
             Position in the ``.dat`` file.
 
         """
-        self.line = line
+        elt_name = None
+        if line[1] == ':':
+            elt_name = line[0]
+            del line[1]
+            del line[0]
         self.elt_info = {
-            'elt_name': None,
+            'elt_name': elt_name,
             'nature': line[0],
             'status': 'none',    # Only make sense for cavities
         }
+        self.line = line
         self.length_m = 1e-3 * float(line[1])
 
         # By default, an element is non accelerating and has a dummy
