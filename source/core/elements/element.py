@@ -43,6 +43,8 @@ class Element():
         ----------
         line : list of string
             A valid line of the ``.dat`` file.
+        dat_idx : int
+            Position in the ``.dat`` file.
 
         """
         self.line = line
@@ -60,7 +62,9 @@ class Element():
         self.idx = {'dat_idx': dat_idx,
                     'elt_idx': None,
                     'lattice': None,
-                    'section': None}
+                    'section': None,
+                    'idx_in_lattice': None,
+                    'increment_idx': True}
         self.beam_calc_param: dict[str, SingleElementCalculatorParameters] = {}
 
     def __str__(self) -> str:
