@@ -48,6 +48,7 @@ from core.element_or_command import Dummy
 from core.elements.element import Element
 from core.elements.aperture import Aperture
 from core.elements.drift import Drift
+from core.elements.dummy import DummyElement
 from core.elements.field_map import FieldMap
 from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
@@ -112,10 +113,13 @@ def create_structure(dat_content: list[list[str]],
     elts_n_cmds = _apply_commands(elts_n_cmds)
 
     elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
+    elts_no_dummies = list(filter(
+        lambda elt: not isinstance(elt, DummyElement),
+        elts))
     if force_a_section_to_each_element:
-        _force_a_section_for_every_element(elts)
+        _force_a_section_for_every_element(elts_no_dummies)
     if force_a_lattice_to_each_element:
-        _force_a_lattice_for_every_element(elts)
+        _force_a_lattice_for_every_element(elts_no_dummies)
 
     field_maps = list(filter(lambda field_map: isinstance(field_map, FieldMap),
                              elts))
@@ -236,10 +240,11 @@ def _check_consistency(elts_n_cmds: list[Element | Command]) -> None:
             break
 
 
-def _force_a_section_for_every_element(elts: list[Element]) -> None:
+def _force_a_section_for_every_element(elts_without_dummies: list[Element]
+                                       ) -> None:
     """Give a section index to every element."""
     idx_section = 0
-    for elt in elts:
+    for elt in elts_without_dummies:
         idx = elt.idx['section']
         if idx is None:
             elt.idx['section'] = idx_section
@@ -247,7 +252,8 @@ def _force_a_section_for_every_element(elts: list[Element]) -> None:
         idx_section = idx
 
 
-def _force_a_lattice_for_every_element(elts: list[Element]) -> None:
+def _force_a_lattice_for_every_element(elts_without_dummies: list[Element]
+                                       ) -> None:
     """
     Give a lattice index to every element.
 
@@ -300,7 +306,7 @@ def _force_a_lattice_for_every_element(elts: list[Element]) -> None:
           - 1
     """
     idx_lattice = 0
-    for elt in elts:
+    for elt in elts_without_dummies:
         idx = elt.idx['lattice']
         if idx is None:
             elt.idx['lattice'] = idx_lattice
