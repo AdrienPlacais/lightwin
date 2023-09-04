@@ -243,7 +243,9 @@ class ListOfElements(list):
         self.by_section_and_lattice = _group_elements_by_section_and_lattice(
             by_section)
 
-        for i, elt in enumerate(self):
+        elts_with_a_number = list(filter(lambda elt: elt.idx['increment_idx'],
+                                         self))
+        for i, elt in enumerate(elts_with_a_number):
             elt.idx['elt_idx'] = i
         give_name(self)
 
@@ -402,7 +404,9 @@ def _group_elements_by_lattice(elts: list[Element],
     idx_first_lattice = elts[0].idx['lattice']
     n_lattices = elts[-1].idx['lattice'] + 1
     by_lattice = [
-        list(filter(lambda elt: elt.idx['lattice'] == current_lattice, elts))
+        list(filter(lambda elt: (elt.idx['lattice'] is not None
+                                 and elt.idx['lattice'] == current_lattice),
+                    elts))
         for current_lattice in range(idx_first_lattice, n_lattices)
     ]
     return by_lattice
