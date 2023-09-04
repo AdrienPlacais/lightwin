@@ -8,7 +8,7 @@ Created on Mon Apr 11 14:46:05 2022.
 This module simply holds the function to build the Cython module(s).
 
 To compile, go to `LightWin/source/` and enter:
-```python3 util/setup.py build_ext --inplace```
+``python3 util/setup.py build_ext --inplace``
 and manually move the `.so` in `beam_calculation/envelope_1d` #FIXME
 
 IMPORTANT: in some interpreters such as Spyder, `.so` are loaded at the startup
