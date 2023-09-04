@@ -16,6 +16,7 @@ import cmath
 import numpy as np
 
 from util.helper import recursive_items, recursive_getter
+import config_manager as con
 
 
 def compute_param_cav(integrated_field, status):
@@ -95,8 +96,8 @@ class RfField():
         self.v_cav_mv = np.NaN
         self.phi_s = np.NaN
 
-        # Initialized later as it depends on the Section the cavity is in
-        self.omega0_rf, self.n_cell = None, None
+        # Default values, overwritten by the FREQ command
+        self.set_pulsation_ncell(con.F_BUNCH_MHZ, 1)
 
         # Depends on beam_computer, but also on n_cell
         self.n_z = None

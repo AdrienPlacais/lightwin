@@ -67,8 +67,6 @@ class FieldMap(Element):
                                  absolute_phase_flag=bool(absolute_phase_flag),
                                  phi_0=np.deg2rad(float(line[3])))
         self.update_status('nominal')
-        # self.acc_field.n_cell = 1
-        # logging.warning("Manually set a number of cells to 1")
 
     def set_full_path(self, extensions: dict[str, list[str]]) -> None:
         """
