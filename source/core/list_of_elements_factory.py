@@ -28,6 +28,7 @@ import logging
 import numpy as np
 
 from core.elements.element import Element
+from core.elements.dummy import DummyElement
 from core.commands.command import Command, FieldMapPath
 from core.particle import ParticleInitialState
 from core.beam_parameters import BeamParameters
@@ -88,7 +89,9 @@ def new_list_of_elements(dat_filepath: str,
     }
 
     elts_n_cmds = _dat_filepath_to_plain_list_of_elements(files)
-    elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
+    elts = list(filter(lambda elt: (isinstance(elt, Element)
+                                    and not isinstance(elt, DummyElement)),
+                       elts_n_cmds))
 
     files['elts_n_cmds'] = elts_n_cmds
 

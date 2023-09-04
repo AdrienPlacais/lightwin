@@ -317,15 +317,19 @@ def _force_a_lattice_for_every_element(elts_without_dummies: list[Element]
 def give_name(elts: list[Element]) -> None:
     """Give a name (the same as TW) to every element."""
     civil_register = {
-        'QUAD': 'QP',
-        'DRIFT': 'DR',
-        'FIELD_MAP': 'FM',
-        'SOLENOID': 'SOL',
+        Quad: 'QP',
+        Drift: 'DR',
+        FieldMap: 'FM',
+        Solenoid: 'SOL',
     }
     for key, value in civil_register.items():
-        sub_list = list(filter(lambda elt: elt.get('nature') == key, elts))
+        sub_list = list(filter(lambda elt: isinstance(elt, key), elts))
         for i, elt in enumerate(sub_list, start=1):
             elt.elt_info['elt_name'] = value + str(i)
+    other_elements = list(filter(lambda elt: type(elt) not in civil_register,
+                          elts))
+    for i, elt in enumerate(other_elements, start=1):
+        elt.elt_info['elt_name'] = 'ELT' + str(i)
 
 
 def update_field_maps_in_dat(

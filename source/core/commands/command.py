@@ -401,7 +401,7 @@ class SuperposeMap(Command):
     """
 
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
-        super().__init__(line, dat_idx, is_implemented=False)
+        super().__init__(line, dat_idx, is_implemented=True)
         self.z_0 = float(line[1]) * 1e-3
 
     def set_influenced_elements(self,
@@ -459,11 +459,12 @@ class SuperposeMap(Command):
             self._update_class(elts_n_cmds_to_merge, total_length)
 
         elts_after_self = list(filter(lambda elt: isinstance(elt, Element),
-                                      elts_n_cmds[self.idx['dat_idx']:]))
+                                      elts_n_cmds[self.idx['dat_idx'] + 1:]))
         # Elements do not have an element index yet, so this should be useless
         # self._decrement_element_indexes(elts_after_self, number_of_superposed)
         self._decrement_lattice_indexes(elts_after_self, number_of_superposed)
 
+        elts_n_cmds[self.idx['influenced']] = elts_n_cmds_to_merge
         return elts_n_cmds
 
     def _total_length(self, elts_n_cmds_to_merge: list[Element | Command]
@@ -472,7 +473,7 @@ class SuperposeMap(Command):
         z_max = 0.
         z_0 = None
         for elt_or_cmd in elts_n_cmds_to_merge:
-            if isinstance(elt_or_cmd, Self):
+            if isinstance(elt_or_cmd, SuperposeMap):
                 z_0 = self.z_0
 
             if isinstance(elt_or_cmd, FieldMap):
@@ -517,9 +518,6 @@ class SuperposeMap(Command):
                                    number_of_superposed: int) -> None:
         """Decrement element indexes to take removed elements into account."""
         for elt in elts_after_self:
-            if isinstance(elt, SuperposedFieldMap):
-                continue
-
             if elt.idx['idx_elt'] is None:
                 continue
 
@@ -532,9 +530,6 @@ class SuperposeMap(Command):
                                    number_of_superposed: int) -> None:
         """Decrement some lattice numbers to take removed elts into account."""
         for i, elt in enumerate(elts_after_self):
-            if isinstance(elt, SuperposedFieldMap):
-                continue
-
             if elt.idx['lattice'] is None:
                 continue
 

@@ -25,5 +25,4 @@ class DummyElement(Element):
         """Force an element with null-length, with no index."""
         super().__init__(line, dat_idx)
         self.length_m = 0.
-        self.name += " (dummy)"
         self.idx['increment_idx'] = False
