@@ -460,8 +460,6 @@ class SuperposeMap(Command):
 
         elts_after_self = list(filter(lambda elt: isinstance(elt, Element),
                                       elts_n_cmds[self.idx['dat_idx'] + 1:]))
-        # Elements do not have an element index yet, so this should be useless
-        # self._decrement_element_indexes(elts_after_self, number_of_superposed)
         self._decrement_lattice_indexes(elts_after_self, number_of_superposed)
 
         elts_n_cmds[self.idx['influenced']] = elts_n_cmds_to_merge
@@ -513,18 +511,6 @@ class SuperposeMap(Command):
                 total_length=total_length)
             superposed_field_map_is_already_inserted = True
         return elts_n_cmds_to_merge, number_of_superposed
-
-    def _decrement_element_indexes(self, elts_after_self: list[Element],
-                                   number_of_superposed: int) -> None:
-        """Decrement element indexes to take removed elements into account."""
-        for elt in elts_after_self:
-            if elt.idx['idx_elt'] is None:
-                continue
-
-            if not elt.idx['increment_idx']:
-                continue
-
-            elt.idx['elt_idx'] -= number_of_superposed - 1
 
     def _decrement_lattice_indexes(self, elts_after_self: list[Element],
                                    number_of_superposed: int) -> None:
