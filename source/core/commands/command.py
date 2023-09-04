@@ -354,7 +354,9 @@ class Steerer(Command):
                                 **kwargs: float
                                 ) -> None:
         """Determine the index of the elements concerned by :func:`apply`."""
-        start = self.idx['dat_idx']
+        next_element = list(filter(lambda elt: isinstance(elt, Element),
+                                   elts_n_cmds[self.idx['dat_idx']:]))[0]
+        start = next_element.idx['dat_idx']
         stop = start + 1
         self.idx['influenced'] = slice(start, stop)
 
@@ -364,6 +366,7 @@ class Steerer(Command):
               ) -> list[Element | Self]:
         logging.error("Steerer not implemented.")
         return elts_n_cmds
+
 
 class SuperposeMap(Command):
     """Dummy class."""
