@@ -122,7 +122,8 @@ def file_map_extensions(field_map_type: dict[str, str]
 
 def load_field_map_file(
     field_map: FieldMap
-) -> tuple[Callable[[float | np.ndarray], float | np.ndarray], int]:
+) -> tuple[Callable[[float | np.ndarray], float | np.ndarray] | None,
+           int | None]:
     """
     Go across the field map file names and load the first recognized.
 
@@ -130,15 +131,15 @@ def load_field_map_file(
     problem with :class:`Envelope1D`, but :class:`TraceWin` does not care.
 
     """
+    if len(field_map.field_map_file_name) > 1:
+            logging.debug("Loading of several field_maps not handled")
+            return None, None
+
     for file_name in field_map.field_map_file_name:
         _, extension = os.path.splitext(file_name)
 
         if extension not in tracewin_utils.load.FIELD_MAP_LOADERS:
             logging.debug("Field map extension not handled.")
-            continue
-
-        if len(extension) > 1:
-            logging.debug("Loading of several field_maps not handled")
             continue
 
         import_function = tracewin_utils.load.FIELD_MAP_LOADERS[extension]

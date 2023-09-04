@@ -193,8 +193,8 @@ def _load_electromagnetic_fields(field_maps: list[FieldMap]) -> None:
 
         args = load_field_map_file(field_map)
         if args is not None:
-            field_map.e_spat = args[0]
-            field_map.n_z = args[1]
+            field_map.acc_field.e_spat = args[0]
+            field_map.acc_field.n_z = args[1]
 
     if con.FLAG_CYTHON:
         _load_electromagnetic_fields_for_cython(field_maps)
