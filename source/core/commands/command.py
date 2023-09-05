@@ -91,7 +91,6 @@ class Command(ABC):
             creation.
 
         """
-        print(type(self.idx['influenced']), type(self))
         idx_influenced = range(self.idx['influenced'].start,
                                self.idx['influenced'].stop)
         idx_influenced = [i for i in idx_influenced]
