@@ -454,6 +454,9 @@ class TraceWin(BeamCalculator):
                     cavity_parameters['phi_0'])):
             if v_cav_mv is None:
                 continue
+            # patch for superpose_map
+            if 'k_e' not in rf_fields[i]:
+                continue
             if rf_fields[i]['k_e'] < 1e-10:
                 continue
             rf_fields[i]['v_cav_mv'] = v_cav_mv
