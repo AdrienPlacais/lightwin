@@ -29,8 +29,8 @@ class Objective:
                  element: Element | str,
                  pos: str,
                  reference_simulation_output: SimulationOutput | None = None,
-                 reference_value: float | None = None) -> None:
-        """Set complementary `get` flags, reference value."""
+                 reference_value: tuple[float] | float | None = None) -> None:
+        """Set complementary :func:`get` flags, reference value."""
         self.name = name
         self.scale = scale
         self.element = element
@@ -49,17 +49,17 @@ class Objective:
         if reference_simulation_output is not None:
             self.reference_value = self.get_value(reference_simulation_output)
             if reference_value is not None:
-                logging.warning("You must provide `Objective` a reference "
-                                "simulation output or value. Using reference "
-                                "simulation output...")
+                logging.warning("You must provide :class:`Objective` a "
+                                "reference simulation output or value. Using "
+                                "reference simulation output...")
             return
         if reference_value is not None:
             self.reference_value = reference_value
             return
 
-        logging.error("You must provide `Objective` a reference (ideal) value "
-                      "or a reference `SimulationOutput`. Setting reference "
-                      "value to 0.")
+        logging.error("You must provide :class:`Objective` a reference (ideal "
+                      " value or a reference :class:`SimulationOutput`. "
+                      "Setting reference value to 0.")
         self.reference_value = 0.
 
     def __str__(self) -> str:
@@ -73,6 +73,8 @@ class Objective:
         """Give `self.__str__` but with objective value of objective."""
         if 'mismatch_factor' in self.name:
             return str(self) + f"{self.reference_value}"
+        if isinstance(self.reference_value, tuple):
+            return str(self) + f"within {self.reference_value}"
         return str(self) + f"{self.reference_value:>10}"
 
     def this(self, simulation_output: SimulationOutput) -> str:
@@ -128,4 +130,10 @@ class Objective:
         if 'mismatch_factor' in self.name:
             return mismatch_from_arrays(self.reference_value,
                                         value)[0] * self.scale
+        if isinstance(self.reference_value, tuple):
+            if value < self.reference_value[0]:
+                return self.scale * (value - self.reference_value[0])**2
+            if value > self.reference_value[1]:
+                return self.scale * (value - self.reference_value[1])**2
+            return 0.
         return self.scale * (value - self.reference_value)
