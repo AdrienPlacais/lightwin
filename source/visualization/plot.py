@@ -29,8 +29,14 @@ from palettable.colorbrewer.qualitative import Dark2_8
 from cycler import cycler
 
 from util import helper
+
 from core.accelerator import Accelerator
+from core.elements.drift import Drift
+from core.elements.field_map import FieldMap
+from core.elements.quad import Quad
+
 from beam_calculation.output import SimulationOutput
+
 import util.dicts_output as dic
 
 figure_type = matplotlib.figure.Figure
@@ -462,10 +468,10 @@ def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
 # =============================================================================
 def _plot_structure(linac, ax, x_axis='z_abs'):
     """Plot a structure of the linac under study."""
-    d_elem_plot = {
-        'DRIFT': _plot_drift,
-        'QUAD': _plot_quad,
-        'FIELD_MAP': _plot_field_map,
+    type_to_plot_func = {
+        Drift: _plot_drift,
+        Quad: _plot_quad,
+        FieldMap: _plot_field_map,
     }
     d_x_axis = {  # first element is patch dimension. second is x limits
         'z_abs': lambda elt, i: [
@@ -481,8 +487,8 @@ def _plot_structure(linac, ax, x_axis='z_abs'):
 
     for i, elt in enumerate(linac.elts):
         kwargs = d_x_axis[x_axis](elt, i)[0]
-        ax.add_patch(d_elem_plot[elt.get('nature', to_numpy=False)](
-            elt, **kwargs))
+        plot_func = type_to_plot_func.get(type(elt), _plot_drift)
+        ax.add_patch(plot_func(elt, **kwargs))
 
     ax.set_xlim(d_x_axis[x_axis](elt, i)[1])
     ax.set_yticklabels([])
