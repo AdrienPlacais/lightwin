@@ -149,6 +149,7 @@ class Fault:
             'nsga': NSGA,
             'downhill_simplex': DownhillSimplex,
             'nelder_mead': DownhillSimplex,
+            'nelder_mead_penalty': DownhillSimplexPenalty,
             'experimental': DownhillSimplexPenalty,
         }
         self._algorithm_class = algorithms[wtf['opti method']]
