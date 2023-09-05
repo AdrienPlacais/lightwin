@@ -90,7 +90,8 @@ class ListOfElements(list):
         if first_init:
             self._first_init()
 
-        self._l_cav = filter_cav(self)
+        # self._l_cav = filter_cav(self)
+        self._l_cav = list(filter(lambda cav: isinstance(cav, FieldMap), self))
         logging.info("Successfully created a `ListOfElements` with "
                      f"{self.w_kin_in = } MeV and {self.phi_abs_in = } rad.")
 
@@ -133,11 +134,11 @@ class ListOfElements(list):
     @property
     def _stored_phi_0_abs_rephased(self):
         """
-        Return the `phi_0_abs` properties from `self`, rephased w.r.t `phi_in`.
+        Return the ``phi_0_abs`` from ``self``, rephased w.r.t ``phi_in``.
 
-        Necessary for `TraceWin` and used in `.dat` files.
-        Would mess with `Envelope1D`, do not use it to update `acc_field` from
-        `FieldMap`.
+        Necessary for :class:`TraceWin` and used in ``.dat`` files.
+        Would mess with :class:`Envelope1D`. Do not use it to update
+        ``acc_field`` from :class:`FieldMap`.
 
         """
         delta_phi_bunch = self.input_particle.phi_abs
@@ -445,4 +446,5 @@ def filter_elts(elts: ListOfElements | list[Element], key: str, val: Any
     return list(filter(lambda elt: elt.get(key) == val, elts))
 
 
+# Legacy, prefer sorting on the type
 filter_cav = partial(filter_elts, key='nature', val='FIELD_MAP')
