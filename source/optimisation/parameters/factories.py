@@ -279,6 +279,15 @@ def _limits_k_e(preset: str | None = None,
 
         return (lower, upper)
 
+    if preset == 'SPIRAL2':
+        # Minimum: reference - 5%
+        lower = ref_k_e * 0.95
+
+        # Maximum: reference + 5%
+        upper = ref_k_e * 1.05
+
+        return (lower, upper)
+
     logging.error("k_e has no limits implemented for the preset "
                   f"{preset}. Check optimisation.parameters.factories module.")
     return (None, None)
@@ -388,6 +397,15 @@ def _constraints_phi_s(preset: str | None = None,
 
         # Maximum: 0deg or reference + 50%           (reminder: phi_s < 0)
         upper = min(0., ref_phi_s * (1. - 0.5))
+
+        return (lower, upper)
+
+    if preset == 'SPIRAL2':
+        # Minimum: -90deg
+        lower = -np.pi / 2.
+
+        # Maximum: 0deg or reference + 50%           (reminder: phi_s < 0)
+        upper = min(0., ref_phi_s * (1. - 0.4))
 
         return (lower, upper)
 
