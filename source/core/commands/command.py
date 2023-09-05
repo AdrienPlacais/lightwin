@@ -40,7 +40,7 @@ class Command(ABC):
     line : list[str]
         Line in the ``.dat`` file corresponding to current command.
 
-    See also
+    See Also
     --------
     :func:`core.list_of_elements_factory.subset_of_pre_existing_list_of_elements`
     :func:`tracewin_utils.dat_files.`dat_filecontent_from_smaller_list_of_elements`
@@ -91,6 +91,7 @@ class Command(ABC):
             creation.
 
         """
+        print(type(self.idx['influenced']), type(self))
         idx_influenced = range(self.idx['influenced'].start,
                                self.idx['influenced'].stop)
         idx_influenced = [i for i in idx_influenced]
@@ -114,8 +115,26 @@ class DummyCommand(Command):
 
     def apply(self, elts_n_cmds: list[Element | Self], **kwargs: float
               ) -> list[Element | Self]:
+        """Do nothing."""
         logging.error("DummyElement not implemented.")
         return elts_n_cmds
+
+    def concerns_one_of(self, dat_indexes: list[int]) -> bool:
+        """
+        Tell if ``self`` concerns an element, which ``dat_idx`` is given.
+
+        Internally, we convert the ``self.idx['influenced']`` from a
+        :class:`set` to a :class:`list` object and check intersections with
+        ``dat_indexes``.
+
+        Parameters
+        ----------
+        dat_indexes : list[int]
+            Indexes in the ``.dat`` file of the sub-list of elements under
+            creation.
+
+        """
+        return False
 
 
 class End(Command):
@@ -163,7 +182,11 @@ class FieldMapPath(Command):
               elts_n_cmds: list[Element | Self],
               **kwargs: float
               ) -> list[Element | Self]:
-        """Set :class:`FieldMap` field folder up to next :class:`FieldMapPath`
+        """
+        Set :class:`FieldMap` field folder up.
+
+        If another :class:`FieldMapPath` is found, we stop and this command
+        will be applied later.
 
         """
         for elt_or_cmd in elts_n_cmds[self.idx['influenced']]:
@@ -198,7 +221,11 @@ class Freq(Command):
               freq_bunch: float | None = None,
               **kwargs: float
               ) -> list[Element | Self]:
-        """Set :class:`FieldMap` freq, number of cells up to next :class:`Freq`
+        """
+        Set :class:`FieldMap` frequency, number of cells.
+
+        If another :class:`Freq` is found, we stop and the new :class:`Freq`
+        will be dealt with later.
 
         """
         if freq_bunch is None:
@@ -362,6 +389,7 @@ class Shift(Command):
               elts_n_cmds: list[Element | Self],
               **kwargs: float
               ) -> list[Element | Self]:
+        """Do nothing."""
         logging.error("Shift not implemented.")
         return elts_n_cmds
 
@@ -387,6 +415,7 @@ class Steerer(Command):
               elts_n_cmds: list[Element | Self],
               **kwargs: float
               ) -> list[Element | Self]:
+        """Do nothing."""
         logging.error("Steerer not implemented.")
         return elts_n_cmds
 
