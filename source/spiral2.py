@@ -78,7 +78,7 @@ if __name__ == '__main__':
         'beam_calculator': 'beam_calculator.fit',
         'beam': 'beam.My_particle',
         'wtf': 'wtf.quick_debug',
-        # 'beam_calculator_post': 'beam_calculator_post.tracewin',
+        'beam_calculator_post': 'beam_calculator_post.tracewin',
         # 'evaluators': 'evaluators.classic',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
