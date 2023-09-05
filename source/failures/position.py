@@ -131,6 +131,17 @@ def _end_last_failed_lattice(lin: Accelerator, fault_idx: list[int],
     return idx_eval
 
 
+def _one_lattice_after_last_failed_lattice(lin: Accelerator,
+                                           fault_idx: list[int],
+                                           comp_idx: list[int]) -> int:
+    """Evaluate 1 lattice after end of the last lattice w/ a failed cavity."""
+    idx_after = max(fault_idx) + 1
+    idx_lattice_after = lin.elts[idx_after].get('lattice')
+    idx_eval = lin.elts.by_lattice[idx_lattice_after][-1].get('elt_idx',
+                                                              to_numpy=False)
+    return idx_eval
+
+
 def _end_linac(lin: Accelerator, fault_idx: list[int],
                comp_idx: list[int]) -> int:
     """Evaluate objective at the end of the linac."""
@@ -159,5 +170,7 @@ POSITION_TO_INDEX = {
     'one lattice after last altered lattice':
         _one_lattice_after_last_altered_lattice,
     'end of last failed lattice': _end_last_failed_lattice,
+    'one lattice after last failed lattice':
+        _one_lattice_after_last_failed_lattice,
     'end of linac': _end_linac,
 }

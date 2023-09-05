@@ -316,6 +316,8 @@ def _test_position(c_wtf: configparser.SectionProxy) -> bool:
         'one lattice after last altered lattice',
         # End of last lattice with a failed cavity
         'end of last failed lattice',
+        # One lattice after last lattice with a failed cavity
+        'one lattice after last failed lattice',
         # End of linac
         'end of linac',
     ]
