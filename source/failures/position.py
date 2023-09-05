@@ -71,6 +71,8 @@ def compensation_zone(fix: Accelerator, wtf: dict, fault_idx: list[int],
                                 for pos in position]
 
     idx_start_compensation_zone = min(fault_idx + comp_idx)
+    idx_start_compensation_zone = 0
+    logging.warning("Manually set start of compensation zone to linac start")
 
     if need_full_lattices:
         idx_start_compensation_zone = \
