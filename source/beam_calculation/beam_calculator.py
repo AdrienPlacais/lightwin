@@ -117,39 +117,48 @@ class BeamCalculator(ABC):
         pass
 
 
-def _element_to_index(_elts: ListOfElements, _shift: int, _solver_id: str,
-                      elt: Element | str, pos: str | None = None
+def _element_to_index(_elts: ListOfElements,
+                      _shift: int,
+                      _solver_id: str,
+                      elt: Element | str,
+                      pos: str | None = None,
+                      return_elt_idx: bool = False,
                       ) -> int | slice:
     """
-    Convert `elt` + `pos` into a mesh index.
+    Convert ``elt`` and ``pos`` into a mesh index.
 
-    This way, you can call `.get('w_kin', elt='FM5', pos='out')` and
+    This way, you can call :func:`get('w_kin', elt='FM5', pos='out')` and
     systematically get the energy at the exit of FM5, whatever the
-    `BeamCalculator` or the mesh size is.
+    :class:`BeamCalculator` or the mesh size is.
 
     Parameters
     ----------
     _elts : ListOfElements
-        List of `Element`s where `elt` should be. Must be set by a
-        `functools.partial`.
+        List of :class:`Element` where ``elt`` should be. Must be set by a
+        :func:`functools.partial`.
     _shift : int
-        Mesh index of first `Element`. Used when the first `Element` of
-        `_elts` is not the first of the `Accelerator`. Must be set by
-        `functools.partial`.
+        Mesh index of first :class:`Element`. Used when the first
+        :class:`Element` of ``_elts`` is not the first of the
+        :class:`Accelerator`. Must be set by :func:`functools.partial`.
     _solver_id : str
         Name of the solver, to identify and take the proper
-        `SingleElementBeamParameters`.
+        :class:`SingleElementBeamParameters`.
     elt : Element | str
         Element of which you want the index.
     pos : 'in' | 'out' | None, optional
-        Index of entry or exit of the `Element`. If None, return full
+        Index of entry or exit of the :class:`Element`. If None, return full
         indexes array. The default is None.
+    return_elt_idx : bool, optional
+        If True, the returned index is the position of the element in
+        ``_elts``.
 
     """
     if isinstance(elt, str):
         elt = equiv_elt(elts=_elts, elt=elt)
 
     beam_calc_param = elt.beam_calc_param[_solver_id]
+    if return_elt_idx:
+        return _elts.index(elt)
     if pos is None:
         return slice(beam_calc_param.s_in - _shift,
                      beam_calc_param.s_out - _shift + 1)

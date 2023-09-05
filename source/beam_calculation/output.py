@@ -180,7 +180,11 @@ class SimulationOutput:
                 val[key] = val[key].tolist()
 
             if None not in (self.element_to_index, elt):
-                idx = self.element_to_index(elt=elt, pos=pos)
+                return_elt_idx = False
+                if key in ('v_cav_mv', 'phi_s'):
+                    return_elt_idx = True
+                idx = self.element_to_index(elt=elt, pos=pos,
+                                            return_elt_idx=return_elt_idx)
                 val[key] = val[key][idx]
 
         out = [np.array(val[key])

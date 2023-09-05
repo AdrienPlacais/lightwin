@@ -2,14 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Dec  6 14:33:39 2022.
-OG lsq:
-[2.02104786e-08 9.98014116e-09 9.82799129e-08] (idx 13)
 
-I choose [0.02295649 0.06968992 0.04768734] (idx 88)
-I choose [0.00091583 0.00184761 0.08856848] (idx 33)
 @author: placais
 
-FIXME get @ elt clash when arg is single: v_cav, phi_s, etc
 """
 import logging
 import time
