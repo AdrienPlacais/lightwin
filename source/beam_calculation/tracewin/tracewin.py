@@ -902,7 +902,9 @@ def _add_dummy_data(filepath: str, elts: ListOfElements) -> None:
 # =============================================================================
 # Bash
 # =============================================================================
-def _run_in_bash(command: list[str], output_command: bool = True) -> bool:
+def _run_in_bash(command: list[str],
+                 output_command: bool = True,
+                 output_error: bool = False) -> bool:
     """Run given command in bash."""
     output = "\n\t".join(command)
     if output_command:
@@ -912,10 +914,11 @@ def _run_in_bash(command: list[str], output_command: bool = True) -> bool:
 
     exception = False
     for line in process.stdout:
-        print(line)
+        if output_error:
+            print(line)
         exception = True
 
-    if exception:
+    if exception and output_error:
         logging.warning("A message was returned when executing following "
                         f"command:\n\t{output}")
     return exception
