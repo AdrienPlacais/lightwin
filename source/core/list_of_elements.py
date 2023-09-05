@@ -346,7 +346,7 @@ def equiv_elt(elts: ListOfElements | list[Element], elt: Element | str,
         elt = elt.get("elt_name")
 
     magic_keywords = {"first": 0, "last": -1}
-    names = [x.get("elt_name") for x in elts]
+    names = [x.elt_info["elt_name"] for x in elts]
 
     if elt in names:
         idx = names.index(elt)
