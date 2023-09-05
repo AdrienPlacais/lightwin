@@ -323,7 +323,29 @@ class TraceWin(BeamCalculator):
         rf_fields: list[dict[str, float | None]],
         exception: bool
     ) -> SimulationOutput:
-        """Create an object holding all relatable simulation results."""
+        """
+        Create an object holding all relatable simulation results.
+
+        Parameters
+        ----------
+        elts : ListOfElements
+            Contains all elements or only a fraction or all the elements.
+        path_cal : str
+            Path to results folder.
+        rf_fields : list[dict[str, float | None]]
+            List of dicts which are empty if corresponding element has no rf
+            field, and has keys ``'k_e'``, ``'phi_0_abs'`` and ``'phi_0_rel'``
+            otherwise.
+        exception : bool
+            Indicates if the run was unsuccessful or not.
+
+        Returns
+        -------
+        simulation_output : SimulationOutput
+            Holds all relatable data in a consistent way between the different
+            :class:`BeamCalculator` objects.
+
+        """
         if exception:
             filepath = os.path.join(path_cal, self._filename)
             _remove_incomplete_line(filepath)
