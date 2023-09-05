@@ -21,6 +21,8 @@ from core.elements.dummy import DummyElement
 from core.elements.field_map import FieldMap
 from core.elements.superposed_field_map import SuperposedFieldMap
 
+from core.electric_field import RfField
+
 
 class Command(ABC):
     """
@@ -501,12 +503,16 @@ class SuperposeMap(Command):
 
             if superposed_field_map_is_already_inserted:
                 elts_n_cmds_to_merge[i] = DummyElement(*args)
+                elts_n_cmds_to_merge[i].nature = 'SUPERPOSED_FIELD_MAP'
+                elts_n_cmds_to_merge[i].acc_field = RfField()
                 number_of_superposed += 1
                 continue
 
             elts_n_cmds_to_merge[i] = SuperposedFieldMap(
                 *args,
                 total_length=total_length)
+            elts_n_cmds_to_merge[i].nature = 'SUPERPOSED_FIELD_MAP'
+            elts_n_cmds_to_merge[i].acc_field = RfField()
             superposed_field_map_is_already_inserted = True
         return elts_n_cmds_to_merge, number_of_superposed
 
