@@ -34,7 +34,7 @@ class SingleElementTraceWinParameters(SingleElementCalculatorParameters):
         self.rel_mesh = self.abs_mesh - self.abs_mesh[0]
 
         if np.abs(length_m - self.rel_mesh[-1]) > 1e-2:
-            logging.error("Mismatch between length of the linac in the `.out` "
+            logging.debug("Mismatch between length of the linac in the `.out` "
                           "file and what is expected. Maybe an error was "
                           "raised during execution of `TraceWin` and the "
                           "`.out` file is incomplete? In this case, check "
