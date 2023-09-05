@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Dec  6 14:33:39 2022.
-OG lsq:
-[2.02104786e-08 9.98014116e-09 9.82799129e-08] (idx 13)
 
 @author: placais
+
 """
 import logging
 import time
@@ -131,31 +130,31 @@ if __name__ == '__main__':
     # =========================================================================
     # Fix
     # =========================================================================
-    # for fault_scenario in fault_scenarios:
-    #     start_time = time.monotonic()
+    for fault_scenario in fault_scenarios:
+        start_time = time.monotonic()
 
-    #     fault_scenario.fix_all()
+        fault_scenario.fix_all()
 
-    #     end_time = time.monotonic()
-    #     delta_t = datetime.timedelta(seconds=end_time - start_time)
-    #     logging.info(f"Elapsed time in optimisation: {delta_t}")
+        end_time = time.monotonic()
+        delta_t = datetime.timedelta(seconds=end_time - start_time)
+        logging.info(f"Elapsed time in optimisation: {delta_t}")
 
-    # # =========================================================================
-    # # Check
-    # # =========================================================================
-    # # Re-run new settings with beam_calc_pos, a priori more precise
-    # for accelerator in accelerators:
-    #     start_time = time.monotonic()
+    # =========================================================================
+    # Check
+    # =========================================================================
+    # Re-run new settings with beam_calc_pos, a priori more precise
+    for accelerator in accelerators:
+        start_time = time.monotonic()
 
-    #     ref_simulation_output = None
-    #     if accelerator != accelerators[0] and solv2 is not None:
-    #         ref_simulation_output = accelerators[0].simulation_outputs[solv2]
-    #     post_beam_calc_and_save(accelerator, my_beam_calc_post,
-    #                             ref_simulation_output=ref_simulation_output)
+        ref_simulation_output = None
+        if accelerator != accelerators[0] and solv2 is not None:
+            ref_simulation_output = accelerators[0].simulation_outputs[solv2]
+        post_beam_calc_and_save(accelerator, my_beam_calc_post,
+                                ref_simulation_output=ref_simulation_output)
 
-    #     end_time = time.monotonic()
-    #     delta_t = datetime.timedelta(seconds=end_time - start_time)
-    #     logging.info(f"Elapsed time in post beam calculation: {delta_t}")
+        end_time = time.monotonic()
+        delta_t = datetime.timedelta(seconds=end_time - start_time)
+        logging.info(f"Elapsed time in post beam calculation: {delta_t}")
 
     # =========================================================================
     # Post-treat
