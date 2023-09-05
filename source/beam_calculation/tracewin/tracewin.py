@@ -453,8 +453,9 @@ class TraceWin(BeamCalculator):
 
         Returns
         -------
-        cavity_param : list[dict[str, float] | None]
-            Contains the cavity parameters.
+        cavity_param : dict[str, list[float | None]]
+            Contains the cavity parameters. Keys are ``'v_cav_mv'`` and
+            ``'phi_s'``.
 
         """
         cavity_parameters = _load_cavity_parameters(path_cal, filename)
@@ -476,9 +477,14 @@ class TraceWin(BeamCalculator):
                     cavity_parameters['phi_0'])):
             if v_cav_mv is None:
                 continue
+
             # patch for superpose_map
             if 'k_e' not in rf_fields[i]:
+                cavity_parameters['v_cav_mv'][i] = None
+                cavity_parameters['phi_s'][i] = None
+                cavity_parameters['phi_0'][i] = None
                 continue
+
             if rf_fields[i]['k_e'] < 1e-10:
                 continue
             rf_fields[i]['v_cav_mv'] = v_cav_mv
