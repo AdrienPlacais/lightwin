@@ -5,8 +5,8 @@ Created on Fri Aug 18 17:26:56 2023.
 
 @author: placais
 
-This module holds `Objective`, a generic object to hold an optimisation problem
-objective.
+This module holds :class:`Objective`, a generic object to hold an optimisation
+problem objective.
 
 """
 import logging

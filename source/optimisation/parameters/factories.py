@@ -124,34 +124,34 @@ def objective_factory(names: list[str],
                       positions: list[str] | None = None,
                       ) -> tuple[list[Objective],
                                  Callable[[SimulationOutput], np.ndarray]]:
-    """Create the required `Objective` objects.
+    """
+    Create the required `Objective` objects.
 
     Parameters
     ----------
     names : list[str]
-        Name of the objectives. All individual objectives have to work with the
-        `SimulationOutput.get` method.
+        Name of the objectives. All individual objectives have to return
+        something when injected in the :func:`SimulationOutput.get` method.
     scales : list[float]
-        List of the scales for every `Element` and every objective. If you
-        have 5 objectives, the 5 first `scale` will be applied to the 5
-        objectives at the first `Element`, the 5 following at the second
-        `Element`, etc.
+        List of the scales for every element and every objective. If you have
+        5 objectives, the 5 first ``scale`` will be applied to the 5 objectives
+        at the first element, the 5 following at the second element, etc.
     elements : list[Element]
-        List of `Element` where objectives should be evaluated.
+        List of :class:`Element` where objectives should be evaluated.
     reference_simulation_output : SimulationOutput
-        A `SimulationOutput` on the reference linac (no fault).
+        A :class:`SimulationOutput` on the reference linac (no fault).
     positions : list[float] | None, optional
-        Where objectives should be evaluated for each `Element`. The default
+        Where objectives should be evaluated for each element. The default
         is None, which comes back to evaluating objective at the exit of every
-        `Element`.
+        element.
 
     Returns
     -------
     objectives : list[Objective]
-        A list of the `Objective` objects.
+        A list of the objectives.
     compute_residuals : Callable[[SimulationOutput], np.ndarray]
-        A function that takes in a `SimulationOutput` and returns the residues
-        of every objective w.r.t the reference one.
+        A function that takes in a :class:`SimulationOutput` and returns the
+        residues of every objective w.r.t the reference one.
 
     """
     objectives = []
@@ -186,6 +186,72 @@ def objective_factory(names: list[str],
     compute_residuals = partial(_compute_residuals, objectives=objectives)
     return objectives, compute_residuals
 
+
+def special_objective_factory(
+    preset: str,
+    name: str,
+    scale: float,
+    cavities: list[FieldMap],
+    reference_elts: ListOfElements,
+) -> tuple[list[Objective], Callable[[SimulationOutput], np.ndarray]]:
+    """
+    Create additional objectives.
+
+    As for now, only supports the synchronous phases. They require a specific
+    treatment as they must be within two bounds, instead of beeing close to an
+    objective value. Plus, they are not evaluated at some elements exit, but
+    rather on a set of cavities.
+
+    Parameters
+    ----------
+    preset : str
+        Name of the linac, used to select proper phi_s policy.
+    name : {'phi_s'}
+        Name of the special objective. Have to return something when injected
+        in the :func:`SimulationOutput.get` method.
+    scale : float
+        Scaling.
+    cavities : list[FieldMap]
+        List of :class:`FieldMap` where objectives should be evaluated.
+    reference_elts : ListOfElements
+        Reference list of elements, with reference (nominal) phi_s in
+        particular.
+
+    Returns
+    -------
+    objectives : list[Objective]
+        A list of the objectives.
+    compute_residuals : Callable[[SimulationOutput], np.ndarray]
+        A function that takes in a :class:`SimulationOutput` and returns the
+        residues of every objective w.r.t the reference one.
+
+    """
+    objectives = []
+    assert name == 'phi_s'
+    pos = 'out'
+    limits_calculator = LIMITS_CALCULATORS[name]
+
+    for cavity in cavities:
+        kwargs = {
+            'preset': preset,
+            'ref_cav': equiv_elt(reference_elts, cavity),
+            'reference_elts': reference_elts,
+        }
+        limits = limits_calculator(**kwargs)
+        objective = Objective(name=name,
+                              scale=scale,
+                              element=cavity,
+                              pos=pos,
+                              reference_simulation_output=None,
+                              reference_value=limits)
+        objectives.append(objective)
+
+    message = [objective.ref for objective in objectives]
+    message.insert(0, "Objectives, scales, initial values:")
+    logging.info('\n'.join(message))
+
+    compute_residuals = partial(_compute_residuals, objectives=objectives)
+    return objectives, compute_residuals
 
 def variable_constraint_objective_factory(
     preset: str,
@@ -226,6 +292,17 @@ def variable_constraint_objective_factory(
         elements=elements_eval_objective,
         reference_simulation_output=reference_simulation_output,
         positions=None)
+
+    logging.warning("Manually added synchronous phases as objectives.")
+    spec_objectives, spec_compute_residuals = special_objective_factory(
+        preset=preset,
+        name='phi_s',
+        scale=50.,
+        cavities=compensating_cavities,
+        reference_elts=reference_elts
+    )
+    objectives += spec_objectives
+    compute_residuals = partial(_compute_residuals, objectives=objectives)
 
     return variables, constraints, compute_constraints, \
         objectives, compute_residuals
