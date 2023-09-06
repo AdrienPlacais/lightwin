@@ -40,16 +40,30 @@ class ObjectiveFactory(ABC):
         The reference simulation of the reference linac.
     elts_of_compensating_zone : list[Element]
         All the elements in the compensating zone.
+    need_to_add_element_to_compensating_zone : bool
+        True when the objectives should be checked outside of the compensating
+        zone (e.g. one lattice after last compensating zone). In this case,
+        ``elts_of_compensating_zone`` should be updated and returned to the
+        rest of the code.
 
     """
 
     def __init__(self,
                  reference: SimulationOutput,
-                 elts_of_compensating_zone: list[Element]
+                 elts_of_compensating_zone: list[Element],
+                 need_to_add_element_to_compensating_zone: bool,
                  ) -> None:
         """Set the necessary arguments."""
         self.reference = reference
         self.elts_of_compensating_zone = elts_of_compensating_zone
+
+        self.need_to_add_element_to_compensating_zone = \
+            need_to_add_element_to_compensating_zone
+        if need_to_add_element_to_compensating_zone:
+            raise NotImplementedError("Current objective needs to be evaluated"
+                                      " outside of the compensation zone. "
+                                      "Hence it should be extended, which is "
+                                      "currently not supported.")
 
     @abstractmethod
     def _get_positions(self) -> list[Element]:
@@ -332,6 +346,7 @@ def variable_constraint_objective_factory(
     objective_factory_instance = objective_factory(
         reference=reference_simulation_output,
         elts_of_compensating_zone=elts_of_compensating_zone,
+        need_to_add_element_to_compensating_zone=False,
     )
     objectives = objective_factory_instance.get_objectives()
     compute_residuals = partial(_compute_residuals, objectives=objectives)

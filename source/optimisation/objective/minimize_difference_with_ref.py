@@ -12,8 +12,8 @@ quantity between the reference linac and the linac under tuning.
 import logging
 
 from optimisation.objective.objective import Objective
+
 from core.elements.element import Element
-from core.beam_parameters import mismatch_from_arrays
 
 from beam_calculation.output import SimulationOutput
 
@@ -91,15 +91,15 @@ class MinimizeDifferenceWithRef(Objective):
 
     def _check_ideal_value(self) -> None:
         """Assert the the reference value is a float."""
-        if not isinstance(self.ideal_value):
+        if not isinstance(self.ideal_value, float):
             logging.warning(f"Tried to get {self.get_key} with "
                             f"{self.get_kwargs}, which returned "
                             f"{self.ideal_value} instead of a float.")
 
-    def evaluate(self, simulation_output: SimulationOutput | float) -> float:
+    def evaluate(self, simulation_output: SimulationOutput) -> float:
         value = self._value_getter(simulation_output)
         return self._compute_residues(value)
 
     def _compute_residues(self, value: float) -> float:
         """Compute the residues."""
-        return self.weight(value - self.ideal_value)
+        return self.weight * (value - self.ideal_value)

@@ -32,13 +32,6 @@ class Objective(ABC):
     ideal_value : float | tuple[float], optional
         The ideal value or range of values that we should tend to.
 
-    Methods
-    -------
-    evaluate : Callable[[SimulationOutput | float], float]
-        A method that computes the residues over the current objective.
-    current_value : Callable[[SimulationOutput | float], str]
-        Give value of current objective and residue.
-
     """
 
     def __init__(self,
@@ -49,7 +42,7 @@ class Objective(ABC):
                  ) -> None:
         self.name = name
         self.weight = weight
-        self.descriptor = descriptor
+        self.descriptor = descriptor.replace('\n', ' ')
         self.ideal_value = ideal_value
 
     @abstractmethod
