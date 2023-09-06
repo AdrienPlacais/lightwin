@@ -18,7 +18,7 @@ from optimisation.parameters.constraint import Constraint
 from optimisation.objective.objective import Objective
 from optimisation.objective.minimize_difference_with_ref import \
     MinimizeDifferenceWithRef
-from optimisation.objective.mismatch import MinimizeMismatch
+from optimisation.objective.minimize_mismatch import MinimizeMismatch
 
 from core.list_of_elements import ListOfElements, equiv_elt
 from core.elements.field_map import FieldMap
