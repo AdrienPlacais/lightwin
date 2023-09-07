@@ -12,11 +12,10 @@ objective will inherit.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-import numpy as np
-
 from beam_calculation.output import SimulationOutput
 
 
+@dataclass
 class Objective(ABC):
     """
     Holds an objective and methods to evaluate it.
@@ -34,27 +33,27 @@ class Objective(ABC):
 
     """
 
-    def __init__(self,
-                 name: str,
-                 weight: float,
-                 descriptor: str | None = None,
-                 ideal_value: float | tuple[float] = None
-                 ) -> None:
-        self.name = name
-        self.weight = weight
-        self.descriptor = descriptor.replace('\n', ' ')
-        self.ideal_value = ideal_value
+    name: str
+    weight: float
+    descriptor: str | None = None
+    ideal_value: tuple[float] | float | None = None
+
+    def __post_init__(self) -> None:
+        """Avoid line jumps in the descriptor."""
+        if self.descriptor is None:
+            self.descriptor = ''
+            return
+        self.descriptor = ' '.join(self.descriptor.split())
 
     @abstractmethod
     def __str__(self) -> str:
         """Output info on what is this objective about."""
 
-    def str_header(self) -> str:
+    @staticmethod
+    def str_header() -> str:
         """Give a header to explain what :func:`__str__` returns."""
-        header = "=*50" + "\n"
-        header += f"{'What, where, etc':>40} | {'wgt.':>5} | "
+        header = f"{'What, where, etc':>40} | {'wgt.':>5} | "
         header += f"{'ideal val':>10}"
-        header += "\n" + "-*50"
         return header
 
     @abstractmethod
@@ -62,12 +61,11 @@ class Objective(ABC):
                       ) -> str:
         """Give value of current objective and residue."""
 
-    def current_value_header(self) -> str:
+    @staticmethod
+    def current_value_header() -> str:
         """Give a header to explain what :func:`current_value` returns."""
-        header = "=*50" + "\n"
-        header += f"{'What, where, etc':>40} | {'wgt.':>5} | "
+        header = f"{'What, where, etc':>40} | {'wgt.':>5} | "
         header += f"{'current val':>10} | {'residue':>10}"
-        header += "\n" + "-*50"
         return header
 
     @abstractmethod

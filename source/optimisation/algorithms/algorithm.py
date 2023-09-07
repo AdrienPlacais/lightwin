@@ -21,9 +21,9 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import numpy as np
 
-from optimisation.parameters.objective import Objective
-from optimisation.parameters.variable import Variable
-from optimisation.parameters.constraint import Constraint
+from optimisation.objective.objective import Objective
+from optimisation.design_space.variable import Variable
+from optimisation.design_space.constraint import Constraint
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
 

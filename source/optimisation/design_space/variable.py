@@ -5,7 +5,7 @@ Created on Fri Aug 18 17:25:02 2023.
 
 @author: placais
 
-This module holds the class `Variable`, which stores an optimisation variable
+This module holds class:`Variable`, which stores an optimisation variable
 with its name, bounds, initial value, etc.
 
 """
@@ -47,7 +47,14 @@ class Variable:
 
     def __str__(self) -> str:
         """Output variable name, initial value and limits."""
-        out = f"{markdown[self.name]:20} {self.cavity_name:5} "
-        out += f"x_0={self.x_0_fmt:>8.3f}   "
-        out += f"limits={self.limits_fmt[0]:>8.3f} {self.limits_fmt[1]:>8.3f}"
+        out = f"{markdown[self.name]:25} | {self.cavity_name:15} | "
+        out += f"{self.x_0_fmt:>8.3f} | "
+        out += f"{self.limits_fmt[0]:>9.3f} | {self.limits_fmt[1]:>9.3f}"
         return out
+
+    @staticmethod
+    def str_header() -> str:
+        """Give information on what :func:`__str__` is about."""
+        header = f"{'Variable':<25} | {'Element':<15} | {'x_0':<8} | "
+        header += f"{'Lower lim':<9} | {'Upper lim':<9}"
+        return header

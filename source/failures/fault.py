@@ -17,7 +17,7 @@ import config_manager as con
 
 from core.elements.element import Element
 from core.elements.field_map import FieldMap
-from core.list_of_elements import ListOfElements
+from core.list_of_elements import ListOfElements, equiv_elt
 from core.list_of_elements_factory import (
     subset_of_pre_existing_list_of_elements
 )
@@ -25,12 +25,14 @@ from beam_calculation.output import SimulationOutput
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
-from optimisation.parameters.objective import Objective
-from optimisation.parameters.variable import Variable
-from optimisation.parameters.constraint import Constraint
-from optimisation.parameters.factories import (
-    variable_constraint_objective_factory
+from optimisation.objective.objective import Objective
+from optimisation.objective.factory import (
+    get_objectives_and_residuals_function
 )
+from optimisation.design_space.variable import Variable
+from optimisation.design_space.constraint import Constraint
+from optimisation.design_space.factory import \
+    get_design_space_and_constraint_function
 
 from optimisation.algorithms.least_squares import LeastSquares
 from optimisation.algorithms.least_squares_penalty import LeastSquaresPenalty
@@ -123,27 +125,30 @@ class Fault:
         self.failed_cavities = failed_cavities
         self.compensating_cavities = compensating_cavities
 
-        self.elts: ListOfElements
-        self.elts = subset_of_pre_existing_list_of_elements(
+        self.elts: ListOfElements = subset_of_pre_existing_list_of_elements(
             elts,
             reference_simulation_output,
             files_from_full_list_of_elements,
         )
 
-        args = variable_constraint_objective_factory(
-                preset=con.LINAC,
-                reference_elts=reference_elts,
-                reference_simulation_output=reference_simulation_output,
-                elements_eval_objective=elt_eval_objectives,
-                compensating_cavities=self.compensating_cavities,
-                wtf=wtf,
-                phi_abs=con.FLAG_PHI_ABS
-            )
-        self.variables: list[Variable] = args[0]
-        self.constraints: list[Constraint] = args[1]
-        self.compute_constraints = args[2]
-        self.objectives: list[Objective] = args[3]
-        self.compute_residuals = args[4]
+        design_space_preset = 'unconstrained'
+        reference_cavities = [equiv_elt(reference_elts, cavity)
+                              for cavity in self.compensating_cavities]
+        design_space = get_design_space_and_constraint_function(
+            con.LINAC,
+            design_space_preset,
+            reference_cavities,
+            self.compensating_cavities
+        )
+        self.variables, self.constraints, self.compute_constraints = \
+            design_space
+
+        objective_preset = 'simple_ADS'
+        self.objectives, self.compute_residuals = \
+            get_objectives_and_residuals_function(objective_preset,
+                                                  reference_simulation_output,
+                                                  self.elts
+                                                  )
 
         algorithms = {
             'least_squares': LeastSquares,
