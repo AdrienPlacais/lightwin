@@ -19,11 +19,11 @@ def test(c_wtf: configparser.SectionProxy) -> None:
     """Test the 'what_to_fit' dictionaries."""
     tests = {'failed and idx': _test_failed_and_idx,
              'strategy': _test_strategy,
-             'objective': _test_objective,
-             'scale objective': _test_scale_objective,
-             'opti method': _test_objective,
-             'position': _test_position,
+             'objective_preset': _test_objective_preset,
+             'design_space_preset': _test_design_space_preset,
+             'opti method': _test_opti_method,
              'misc': _test_misc,
+             'position': _test_position,
              }
     for key, test in tests.items():
         if not test(c_wtf):
@@ -36,8 +36,8 @@ def config_to_dict(c_wtf: configparser.SectionProxy) -> dict:
     wtf = {}
     # Special getters
     getter = {
-        'objective': c_wtf.getliststr,
-        'scale objective': c_wtf.getlistfloat,
+        'objective_preset': c_wtf.get,
+        'design_space_preset': c_wtf.get,
         'position': c_wtf.getliststr,
         'failed': c_wtf.getfaults,
         'manual list': c_wtf.getgroupedfaults,
@@ -259,50 +259,54 @@ def _test_strategy_global_downstream(c_wtf: configparser.SectionProxy) -> bool:
     return _test_strategy_global(c_wtf)
 
 
-def _test_objective(c_wtf: configparser.SectionProxy) -> bool:
-    """Specific test for the key 'objective' of what_to_fit."""
-    if 'objective' not in c_wtf.keys():
-        logging.error("You must provide 'objective' to tell LightWin what it "
-                      + "should fit.")
+def _test_objective_preset(c_wtf: configparser.SectionProxy) -> bool:
+    """Specific test for the key 'objective_preset' of what_to_fit."""
+    if 'objective_preset' not in c_wtf.keys():
+        logging.error("You must provide 'objective_preset' to tell LightWin"
+                      " what it should fit.")
         return False
+    implemented = ('simple_ADS',
+                   'experimental'
+                   )
 
-    objectives = c_wtf.getliststr('objective')
-    implemented = [
-        'w_kin', 'phi_abs', 'mismatch_factor_zdelta',
-        'eps_zdelta', 'beta_zdelta', 'gamma_zdelta', 'alpha_zdelta',
-        ]
-
-    if not all(obj in implemented for obj in objectives):
-        logging.error("At least one objective was not recognized.")
-        logging.info("""To add your own objective, make sure that:
-                     1. it can be returned by the SimulationOutput.get() "
-                     "method;
-                     2. it is present in the util.d_output dictionaries;
-                     3. it is in the above 'implemented' dict.""")
+    objective_preset = c_wtf.get('objective_preset')
+    if objective_preset not in implemented:
+        logging.error(f"Objective preset {objective_preset} was not "
+                      "recognized. Check that is is implemented in "
+                      "optimisation.objective.factory and that you added it "
+                      "to the list of implemented in config.wtf.")
         return False
-
     return True
 
 
-def _test_opti_method(c_wtf: configparser.SectionProxy) -> bool:
-    """Test the optimisation method."""
-    if 'opti method' not in c_wtf.keys():
-        logging.error("You must provide 'opti method' to tell LightWin what "
-                      + "optimisation algorithm it should use.")
+def _test_design_space_preset(c_wtf: configparser.SectionProxy) -> bool:
+    """Specific test for the key 'design_space_preset' of what_to_fit."""
+    if 'design_space_preset' not in c_wtf.keys():
+        logging.error("You must provide 'design_space_preset' to tell LightWin"
+                      " what it should fit.")
         return False
 
-    implemented = ('least_squares', 'least_squares_penalty', 'nsga',
-                   'downhill_simplex', 'nelder_mead',
-                   'experimental')
-    # TODO: specific testing for each method (look at the kwargs)
-    if c_wtf['opti method'] not in implemented:
-        logging.error("Algorithm not implemented.")
+    design_space_preset = c_wtf.get('design_space_preset')
+    implemented = ('unconstrained',
+                   'constrained_sync_phase',
+                   'sync_phase_as_variable',
+                   'FM4_MYRRHA',
+                   'experimental'
+                   )
+    if design_space_preset not in implemented:
+        logging.error(f"Objective preset {design_space_preset} was not "
+                      "recognized. Check that is is implemented in "
+                      "optimisation.design_space.factory and that you added it"
+                      " to the list of implemented in config.wtf.")
         return False
     return True
 
 
 def _test_position(c_wtf: configparser.SectionProxy) -> bool:
     """Test where the objectives are evaluated."""
+    logging.warning("Position key still exists but is doublon with "
+                    "objective_preset and design_space_preset. Will be "
+                    "necessary to refactor.")
     if 'position' not in c_wtf.keys():
         logging.error("You must provide 'position' to tell LightWin where "
                       + "objectives should be evaluated.")
@@ -328,43 +332,20 @@ def _test_position(c_wtf: configparser.SectionProxy) -> bool:
     return True
 
 
-def _test_scale_objective(c_wtf: configparser.SectionProxy) -> bool:
-    """
-    Specific test for the key 'scale objective' of what_to_fit.
+def _test_opti_method(c_wtf: configparser.SectionProxy) -> bool:
+    """Test the optimisation method."""
+    if 'opti method' not in c_wtf.keys():
+        logging.error("You must provide 'opti method' to tell LightWin what "
+                      + "optimisation algorithm it should use.")
+        return False
 
-    The number of scales must be the number of objectives times the number of
-    positions. You can provide `0.` to skip a specific objective at a specific
-    position. For example:
-
-    `scale objective` = 1., 2., 3., 0., 0., 6., 0., 8.
-    `positions` = 'end of last comp lattice', 'end of linac'
-    `objectives` = 'w_kin', 'phi_abs', 'mismatch_factor_zdelta', 'beta_zdelta'
-
-    Here, we will try to minimize:
-        1 * delta energy    | @ and of last compensating lattice
-        2 * delta phi_abs   | @ and of last compensating lattice
-        3 * mismatch factor | @ and of last compensating lattice
-        6 * delta phi_abs   | @ end of linac
-        8 * delta beta      | @ end of linac
-
-    This behavior can be modified in optimisation.parameters.factories.
-
-    """
-    objectives = c_wtf.getliststr('objective')
-    positions = c_wtf.getliststr('position')
-
-    if 'scale objective' in c_wtf.keys():
-        scales = c_wtf.getlistfloat('scale objective')
-        if len(scales) != len(objectives) * len(positions):
-            logging.error("If you want to scale the objectives by a factor, "
-                          + "you must provide a list of scale factors (one "
-                          + "scale factor per objective and per position).")
-            return False
-    else:
-        scales = [1. for x in range(len(objectives) * len(positions))]
-        c_wtf['scale objective'] = ', '.join(map(str, scales))
-        logging.warning("Scale of objectives not specified. Use default.")
-
+    implemented = ('least_squares', 'least_squares_penalty', 'nsga',
+                   'downhill_simplex', 'nelder_mead',
+                   'experimental')
+    # TODO: specific testing for each method (look at the kwargs)
+    if c_wtf['opti method'] not in implemented:
+        logging.error("Algorithm not implemented.")
+        return False
     return True
 
 
