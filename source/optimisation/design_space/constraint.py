@@ -14,8 +14,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from core.list_of_elements import equiv_elt
-
 from beam_calculation.output import SimulationOutput
 
 from util.dicts_output import markdown
@@ -59,7 +57,7 @@ class Constraint:
     @staticmethod
     def str_header() -> str:
         """Give information on what :func:`__str__` is about."""
-        header = f"{'Variable':<25} | {'Element':<15} | {'x_0':<8} | "
+        header = f"{'Constraint':<25} | {'Element':<15} | {'x_0':<8} | "
         header += f"{'Lower lim':<9} | {'Upper lim':<9}"
         return header
 

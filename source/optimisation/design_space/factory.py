@@ -297,11 +297,10 @@ def get_design_space_and_constraint_function(
     """Instantiante design space factory and create design space."""
     design_space_factory = _read_design_space(design_space_preset)
 
-    design_space_factory_instance = design_space_factory(
-        preset=linac_name,
-        reference_cavities=reference_cavities,
-        compensating_cavities=compensating_cavities,
-    )
+    design_space_factory_instance = design_space_factory(linac_name,
+                                                         reference_cavities,
+                                                         compensating_cavities,
+                                                         )
 
     variables = design_space_factory_instance.get_variables()
     constraints = design_space_factory_instance.get_constraints()

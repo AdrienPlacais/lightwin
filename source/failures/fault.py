@@ -131,7 +131,7 @@ class Fault:
             files_from_full_list_of_elements,
         )
 
-        design_space_preset = 'unconstrained'
+        design_space_preset = wtf['design_space_preset']
         reference_cavities = [equiv_elt(reference_elts, cavity)
                               for cavity in self.compensating_cavities]
         design_space = get_design_space_and_constraint_function(
@@ -143,11 +143,14 @@ class Fault:
         self.variables, self.constraints, self.compute_constraints = \
             design_space
 
-        objective_preset = 'simple_ADS'
+        objective_preset = wtf['objective_preset']
         self.objectives, self.compute_residuals = \
-            get_objectives_and_residuals_function(objective_preset,
+            get_objectives_and_residuals_function(con.LINAC,
+                                                  objective_preset,
                                                   reference_simulation_output,
-                                                  self.elts
+                                                  self.elts,
+                                                  failed_cavities,
+                                                  reference_elts,
                                                   )
 
         algorithms = {

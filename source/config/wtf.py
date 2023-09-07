@@ -266,6 +266,7 @@ def _test_objective_preset(c_wtf: configparser.SectionProxy) -> bool:
                       " what it should fit.")
         return False
     implemented = ('simple_ADS',
+                   'sync_phase_as_objective_ADS',
                    'experimental'
                    )
 
