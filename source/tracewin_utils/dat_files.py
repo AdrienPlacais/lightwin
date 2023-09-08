@@ -90,7 +90,9 @@ def create_structure(dat_content: list[list[str]],
                      dat_filepath: str,
                      force_a_lattice_to_each_element: bool = True,
                      force_a_section_to_each_element: bool = True,
-                     **kwargs: str) -> list[Element | Command]:
+                     load_electromagnetic_files: bool = True,
+                     check_consistency: bool = True,
+                     **kwargs: str | float) -> list[Element | Command]:
     """
     Create structure using the loaded ``.dat`` file.
 
@@ -100,8 +102,17 @@ def create_structure(dat_content: list[list[str]],
         List containing all the lines of ``dat_filepath``.
     dat_path : str
         Absolute path to the ``.dat``.
+    force_a_section_to_each_element : bool
+        To force each element to have a section.
     force_a_lattice_to_each_element : bool
         To force each element to have a lattice.
+    load_electromagnetic_files : bool
+        Load the files for the FIELD_MAPs.
+    check_consistency : bool
+        Check the structure of the accelerator, in particular lattices and
+        sections.
+    **kwargs : float
+        Dict transmitted to commands. Must contain the bunch frequency in MHz.
 
     Returns
     -------
@@ -110,7 +121,7 @@ def create_structure(dat_content: list[list[str]],
 
     """
     elts_n_cmds = _create_element_n_command_objects(dat_content, dat_filepath)
-    elts_n_cmds = _apply_commands(elts_n_cmds)
+    elts_n_cmds = _apply_commands(elts_n_cmds, **kwargs)
 
     elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
     elts_no_dummies = list(filter(
@@ -123,9 +134,11 @@ def create_structure(dat_content: list[list[str]],
 
     field_maps = list(filter(lambda field_map: isinstance(field_map, FieldMap),
                              elts))
-    _load_electromagnetic_fields(field_maps)
+    if load_electromagnetic_files:
+        _load_electromagnetic_fields(field_maps)
 
-    _check_consistency(elts_n_cmds)
+    if check_consistency:
+        _check_consistency(elts_n_cmds)
 
     return elts_n_cmds
 
@@ -172,12 +185,10 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
     return elts_n_cmds
 
 
-def _apply_commands(elts_n_cmds: list[Element | Command]
+def _apply_commands(elts_n_cmds: list[Element | Command],
+                    **kwargs: float,
                     ) -> list[Element | Command]:
     """Apply all the commands that are implemented."""
-    kwargs = {'freq_bunch': con.F_BUNCH_MHZ,
-              }
-
     index = 0
     while index < len(elts_n_cmds):
         elt_or_cmd = elts_n_cmds[index]

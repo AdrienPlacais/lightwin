@@ -47,7 +47,6 @@ def dat_file(dat_filepath: str) -> list[list[str]]:
 
     """
     dat_filecontent = []
-    # logging.info("Personalized name of elements not handled for now.")
 
     with open(dat_filepath) as file:
         for line in file:
@@ -66,6 +65,22 @@ def dat_file(dat_filepath: str) -> list[list[str]]:
     return dat_filecontent
 
 
+def table_structure_file(filepath: str,
+                         ) -> list[list[str]]:
+    """Load the file produced by ``Data`` ``Save table to file``."""
+    file_content = []
+    with open(filepath, 'r', encoding='utf-8') as file:
+        for line in file:
+            line_content = line.split()
+
+            try:
+                int(line_content[0])
+            except ValueError:
+                continue
+            file_content.append(line_content)
+    return file_content
+
+
 def results(filepath: str, prop: str) -> np.ndarray:
     """
     Load a property from TraceWin's "Data" table.
@@ -74,7 +89,7 @@ def results(filepath: str, prop: str) -> np.ndarray:
     ----------
     filepath : string
         Path to results file. It must be saved from TraceWin:
-            Data > Save table to file.
+        ``Data`` > ``Save table to file``.
     prop : string
         Name of the desired property. Must be in d_property.
 

@@ -28,8 +28,7 @@ import logging
 import numpy as np
 
 from core.elements.element import Element
-from core.elements.dummy import DummyElement
-from core.commands.command import Command, FieldMapPath
+from core.commands.command import Command
 from core.particle import ParticleInitialState
 from core.beam_parameters import BeamParameters
 from core.list_of_elements import ListOfElements
@@ -42,6 +41,8 @@ from tracewin_utils.dat_files import (
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
 from beam_calculation.output import SimulationOutput
+
+import config_manager as con
 
 
 # =============================================================================
@@ -134,7 +135,7 @@ def _new_beam_parameters(sigma_in_zdelta: np.ndarray,
 
 
 def _dat_filepath_to_plain_list_of_elements(
-        files: dict[str, str | list[list[str]] | None],
+        files: dict[str, str | list[list[str]] | float | None],
 ) -> list[Element | Command]:
     """
     Convert the content of the `.dat` file to a plain list of `Element`s.
@@ -142,8 +143,8 @@ def _dat_filepath_to_plain_list_of_elements(
     Parameters
     ----------
     files : dict[str, str | list[list[str]] | None]
-        Must contain filepath to `.dat` and content of this file as returned
-        by tracewin_utils.load.dat_file.
+        Must contain filepath to ``.dat`` and content of this file as returned
+        by :func:`tracewin_utils.load.dat_file`.
 
     Returns
     -------
@@ -151,7 +152,7 @@ def _dat_filepath_to_plain_list_of_elements(
         List containing all objects from the ``.dat`` file.
 
     """
-    elts_n_cmds = create_structure(**files)
+    elts_n_cmds = create_structure(freq_bunch=con.F_BUNCH_MHZ, **files)
     return elts_n_cmds
 
 
