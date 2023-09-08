@@ -77,7 +77,7 @@ class Element():
     def __str__(self) -> str:
         out = self.elt_info['elt_name']
         if out is None:
-            out = self.line
+            out = str(self.line)
         return out
 
     def __repr__(self) -> str:

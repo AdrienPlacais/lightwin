@@ -60,6 +60,14 @@ class Command(ABC):
         self.is_implemented = is_implemented
         self.line = line
 
+    def __str__(self) -> str:
+        """Give information on current command."""
+        return str(self.line)
+
+    def __repr__(self) -> str:
+        """Give information on current command."""
+        return str(self)
+
     @abstractmethod
     def set_influenced_elements(self,
                                 elts_n_cmds: list[Element | Self],
