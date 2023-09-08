@@ -243,13 +243,15 @@ class ListOfElements(list):
         self.by_lattice = _group_elements_by_lattice(self)
         self.by_section_and_lattice = _group_elements_by_section_and_lattice(
             by_section)
+        self._set_element_indexes()
 
+    def _set_element_indexes(self) -> None:
+        """Set the element index."""
         elts_with_a_number = list(filter(
-            lambda elt: elt.idx['increment_elt_idx'],
-            self))
+            lambda elt: elt.idx['increment_elt_idx'], self))
+
         for i, elt in enumerate(elts_with_a_number):
             elt.idx['elt_idx'] = i
-        give_name(self)
 
     def store_settings_in_dat(self,
                               dat_filepath: str,

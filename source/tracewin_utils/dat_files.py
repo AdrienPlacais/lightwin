@@ -121,9 +121,11 @@ def create_structure(dat_content: list[list[str]],
 
     """
     elts_n_cmds = _create_element_n_command_objects(dat_content, dat_filepath)
-    elts_n_cmds = _apply_commands(elts_n_cmds, **kwargs)
+    elts_n_cmds = _apply_commands(elts_n_cmds, kwargs['freq_bunch'])
 
     elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
+    give_name(elts)
+
     elts_no_dummies = list(filter(
         lambda elt: not isinstance(elt, DummyElement),
         elts))
@@ -186,7 +188,7 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
 
 
 def _apply_commands(elts_n_cmds: list[Element | Command],
-                    **kwargs: float,
+                    freq_bunch: float,
                     ) -> list[Element | Command]:
     """Apply all the commands that are implemented."""
     index = 0
@@ -196,7 +198,8 @@ def _apply_commands(elts_n_cmds: list[Element | Command],
         if isinstance(elt_or_cmd, Command):
             elt_or_cmd.set_influenced_elements(elts_n_cmds)
             if elt_or_cmd.is_implemented:
-                elts_n_cmds = elt_or_cmd.apply(elts_n_cmds, **kwargs)
+                elts_n_cmds = elt_or_cmd.apply(elts_n_cmds,
+                                               freq_bunch=freq_bunch)
         index += 1
     return elts_n_cmds
 
