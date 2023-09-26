@@ -229,7 +229,7 @@ class FM4_MYRRHA(DesignSpaceFactory):
     """Factory to set reduce design space around a pre-existing solution."""
 
     def __post_init__(self):
-        """Checl that we are in the proper case."""
+        """Check that we are in the proper case."""
         assert self.preset == 'MYRRHA'
         assert [str(cav) for cav in self.compensating_cavities] == [
             'FM1', 'FM2', 'FM3', 'FM5', 'FM6']
@@ -272,6 +272,43 @@ class FM4_MYRRHA(DesignSpaceFactory):
         return constraints
 
 
+class OneCavityMegaPower(DesignSpaceFactory):
+    """Factory to have a cavity with huge power margins."""
+
+    def __post_init__(self) -> None:
+        """Check that we are in the proper case."""
+        assert len(self.compensating_cavities) == 1, \
+            "This case is designed to have ONE compensating cavities (but " \
+            "with huge power margins, so that it can compensate anything)."
+
+    def get_variables(self) -> list[Variable]:
+        """Return normal variables, except very high k_e."""
+        variables = []
+        for var_name in ('phi_0_abs', 'k_e'):
+            for cavity in self.compensating_cavities:
+                ref_cav = equiv_elt(self.reference_cavities, cavity)
+
+                limits=self._get_limits_from_preset(var_name, ref_cav)
+                if var_name == 'k_e':
+                    limits = (limits[0], 10. * limits[1])
+
+                variable = Variable(
+                    name=var_name,
+                    cavity_name=str(cavity),
+                    x_0=self._get_initial_value_from_preset(var_name, ref_cav),
+                    limits=limits,
+                )
+                variables.append(variable)
+        self._output_variables(variables)
+        return variables
+
+    def get_constraints(self) -> list[Constraint]:
+        """Return no constraint."""
+        constraints = []
+        self._output_constraints(constraints)
+        return constraints
+
+
 def _read_design_space(design_space_preset: str) -> DesignSpaceFactory:
     """Return proper factory."""
     factories = {
@@ -279,6 +316,7 @@ def _read_design_space(design_space_preset: str) -> DesignSpaceFactory:
         'constrained_sync_phase': ConstrainedSyncPhase,
         'sync_phase_as_variable': SyncPhaseAsVariable,
         'FM4_MYRRHA': FM4_MYRRHA,
+        'one_cavity_mega_power': OneCavityMegaPower,
     }
     return factories[design_space_preset]
 
@@ -297,10 +335,11 @@ def get_design_space_and_constraint_function(
     """Instantiante design space factory and create design space."""
     design_space_factory = _read_design_space(design_space_preset)
 
-    design_space_factory_instance = design_space_factory(linac_name,
-                                                         reference_cavities,
-                                                         compensating_cavities,
-                                                         )
+    design_space_factory_instance = design_space_factory(
+        linac_name,
+        reference_cavities,
+        compensating_cavities,
+        )
 
     variables = design_space_factory_instance.get_variables()
     constraints = design_space_factory_instance.get_constraints()

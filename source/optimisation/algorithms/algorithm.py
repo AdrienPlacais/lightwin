@@ -62,6 +62,7 @@ class OptimisationAlgorithm(ABC):
         Method to compute residuals from a :class:`SimulationOutput`.
     compute_constraints : Callable[[SimulationOutput], np.ndarray] | None, optional
         Method to compute constraint violation. The default is None.
+
     """
 
     compensating_cavities: list[FieldMap]
@@ -146,7 +147,8 @@ class OptimisationAlgorithm(ABC):
         """Compute norm of residues vector from an array of variable values."""
         return np.linalg.norm(self._wrapper_residuals(var))
 
-    def _create_set_of_cavity_settings(self, var: Any) -> SetOfCavitySettings:
+    def _create_set_of_cavity_settings(self, var: Any
+                                       ) -> SetOfCavitySettings | None:
         """
         Make generic the ``var``, specific to each optimisation algorithm.
 

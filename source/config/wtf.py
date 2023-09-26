@@ -292,6 +292,7 @@ def _test_design_space_preset(c_wtf: configparser.SectionProxy) -> bool:
                    'constrained_sync_phase',
                    'sync_phase_as_variable',
                    'FM4_MYRRHA',
+                   'one_cavity_mega_power',
                    'experimental'
                    )
     if design_space_preset not in implemented:
@@ -341,8 +342,8 @@ def _test_opti_method(c_wtf: configparser.SectionProxy) -> bool:
         return False
 
     implemented = ('least_squares', 'least_squares_penalty', 'nsga',
-                   'downhill_simplex', 'nelder_mead',
-                   'experimental')
+                   'downhill_simplex', 'nelder_mead', 'differential_evolution',
+                   'explorator', 'experimental')
     # TODO: specific testing for each method (look at the kwargs)
     if c_wtf['opti method'] not in implemented:
         logging.error("Algorithm not implemented.")

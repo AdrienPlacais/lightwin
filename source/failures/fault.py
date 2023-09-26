@@ -42,6 +42,7 @@ from optimisation.algorithms.downhill_simplex_penalty import \
     DownhillSimplexPenalty
 from optimisation.algorithms.differential_evolution import \
     DifferentialEvolution
+from optimisation.algorithms.explorator import Explorator
 
 
 class Fault:
@@ -160,7 +161,9 @@ class Fault:
             'downhill_simplex': DownhillSimplex,
             'nelder_mead': DownhillSimplex,
             'nelder_mead_penalty': DownhillSimplexPenalty,
-            'experimental': DifferentialEvolution,
+            'differential_evolution': DifferentialEvolution,
+            'explorator': Explorator,
+            'experimental': Explorator,
         }
         self._algorithm_class = algorithms[wtf['opti method']]
 
