@@ -65,7 +65,8 @@ class Constraint:
     def kwargs(self) -> dict[str, bool]:
         """Return the `kwargs` to send a `get` method."""
         _kwargs = {'to_deg': self._to_deg,
-                   'to_numpy': self._to_numpy}
+                   'to_numpy': self._to_numpy,
+                   'elt': self.cavity_name}
         return _kwargs
 
     @property

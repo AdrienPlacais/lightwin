@@ -19,6 +19,7 @@ from typing import Callable
 from functools import partial
 
 import numpy as np
+from scipy.optimize import NonlinearConstraint
 
 from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
@@ -65,6 +66,7 @@ class DesignSpaceFactory(ABC):
     def _get_initial_value_from_preset(self,
                                        variable: str,
                                        reference_cavity: FieldMap,
+                                       preset: str | None = None,
                                        **kwargs) -> float:
         """Select initial value for given preset and parameter.
 
@@ -76,6 +78,9 @@ class DesignSpaceFactory(ABC):
             The variable from which you want the limits.
         reference_cavity : FieldMap | None, optional
             The cavity in its nominal tuning. The default is None.
+        preset : str | None, optional
+            Key of the ``INITIAL_VALUE_GETTERS`` dict to select proper initial
+            value. The default is None, in which case we take ``self.preset``.
 
         Returns
         -------
@@ -83,13 +88,16 @@ class DesignSpaceFactory(ABC):
             Initial value.
 
         """
-        return INITIAL_VALUE_GETTERS[self.preset](
+        if preset is None:
+            preset = self.preset
+        return INITIAL_VALUE_GETTERS[preset](
             variable,
             reference_cavity=reference_cavity)
 
     def _get_limits_from_preset(self,
                                 variable: str,
                                 reference_cavity: FieldMap | None = None,
+                                preset: str | None = None,
                                 **kwargs) -> tuple[float | None]:
         """
         Select limits for given preset and parameter.
@@ -102,6 +110,9 @@ class DesignSpaceFactory(ABC):
             The variable from which you want the limits.
         reference_cavity : FieldMap | None, optional
             The cavity in its nominal tuning. The default is None.
+        preset : str | None, optional
+            Key of the ``LIMITS_GETTERS`` dict to select proper initial value.
+            The default is None, in which case we take ``self.preset``.
 
         Returns
         -------
@@ -109,7 +120,9 @@ class DesignSpaceFactory(ABC):
             Lower and upper limit for current variable.
 
         """
-        return LIMITS_GETTERS[self.preset](
+        if preset is None:
+            preset = self.preset
+        return LIMITS_GETTERS[preset](
             variable,
             reference_cavity=reference_cavity,
             reference_cavities=self.reference_cavities)
@@ -185,7 +198,7 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
     def get_constraints(self) -> list[Constraint]:
         """Return constraint on synchronous phase."""
         constraints = []
-        for constraint_name in ('phi_s'):
+        for constraint_name in ('phi_s',):
             for cavity in self.compensating_cavities:
                 ref_cav = equiv_elt(self.reference_elements, cavity)
                 constraint = Constraint(
@@ -288,7 +301,7 @@ class OneCavityMegaPower(DesignSpaceFactory):
             for cavity in self.compensating_cavities:
                 ref_cav = equiv_elt(self.reference_cavities, cavity)
 
-                limits=self._get_limits_from_preset(var_name, ref_cav)
+                limits = self._get_limits_from_preset(var_name, ref_cav)
                 if var_name == 'k_e':
                     limits = (limits[0], 10. * limits[1])
 
@@ -303,8 +316,19 @@ class OneCavityMegaPower(DesignSpaceFactory):
         return variables
 
     def get_constraints(self) -> list[Constraint]:
-        """Return no constraint."""
+        """Return constraint on synchronous phase."""
         constraints = []
+        for constraint_name in ('phi_s',):
+            for cavity in self.compensating_cavities:
+                ref_cav = equiv_elt(self.reference_cavities, cavity)
+                constraint = Constraint(
+                    name=constraint_name,
+                    cavity_name=str(cavity),
+                    limits=self._get_limits_from_preset(constraint_name,
+                                                        ref_cav,
+                                                        preset='MYRRHA'),
+                )
+                constraints.append(constraint)
         self._output_constraints(constraints)
         return constraints
 
@@ -369,7 +393,7 @@ def _compute_constraints(simulation_output: SimulationOutput,
 # =============================================================================
 def _initial_value_myrrha(variable: str,
                           reference_cavity: FieldMap | None = None,
-                          **kwargs) -> float:
+                          **kwargs) -> float | None:
     """Set the initial value for a quantity in MYRRHA ADS linac."""
     reference_value = reference_cavity.get(variable, to_numpy=False)
     myrrha_initial_value = {
@@ -379,7 +403,7 @@ def _initial_value_myrrha(variable: str,
         'phi_0_abs': lambda reference_value: reference_value,
     }
     if variable not in myrrha_initial_value:
-        logging.error("Preset MYRRHA has no preset for {variable}.")
+        logging.error(f"Preset MYRRHA has no preset for {variable}.")
         return None
     return myrrha_initial_value[variable](reference_value)
 
@@ -396,7 +420,7 @@ def _initial_value_jaea(variable: str,
         'phi_0_abs': lambda reference_value: reference_value,
     }
     if variable not in jaea_initial_value:
-        logging.error("Preset JAEA has no preset for {variable}.")
+        logging.error(f"Preset JAEA has no preset for {variable}.")
         return None
     return jaea_initial_value[variable](reference_value)
 
@@ -413,7 +437,7 @@ def _initial_value_spiral2(variable: str,
         'phi_0_abs': lambda reference_value: reference_value,
     }
     if variable not in spiral2_initial_value:
-        logging.error("Preset SPIRAL2 has no preset for {variable}.")
+        logging.error(f"Preset SPIRAL2 has no preset for {variable}.")
         return None
     return spiral2_initial_value[variable](reference_value)
 
@@ -471,7 +495,7 @@ def _limits_myrrha(variable: str,
         'phi_0_abs': lambda reference_value: (-2. * np.pi, 2. * np.pi),
     }
     if variable not in myrrha_limits:
-        logging.error("Preset MYRRHA has no preset for {variable}.")
+        logging.error(f"Preset MYRRHA has no preset for {variable}.")
         return (None, None)
     return myrrha_limits[variable](reference_value)
 
@@ -494,7 +518,7 @@ def _limits_jaea(variable: str,
         'phi_0_abs': lambda reference_value: (-2. * np.pi, 2. * np.pi),
     }
     if variable not in jaea_limits:
-        logging.error("Preset JAEA has no preset for {variable}.")
+        logging.error(f"Preset JAEA has no preset for {variable}.")
         return (None, None)
     return jaea_limits[variable](reference_value)
 
@@ -517,7 +541,7 @@ def _limits_spiral2(variable: str,
         'phi_0_abs': lambda reference_value: (-2. * np.pi, 2. * np.pi),
     }
     if variable not in spiral2_limits:
-        logging.error("Preset SPIRAL2 has no preset for {variable}.")
+        logging.error(f"Preset SPIRAL2 has no preset for {variable}.")
         return (None, None)
     return spiral2_limits[variable](reference_value)
 
