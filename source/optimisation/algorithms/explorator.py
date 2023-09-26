@@ -16,6 +16,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
 from mpl_toolkits import mplot3d
 
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
@@ -62,11 +63,16 @@ class Explorator(OptimisationAlgorithm):
         self._check_dimensions()
         kwargs = self._algorithm_parameters()
         variable_mesh, variables_comb = self._generate_combinations(**kwargs)
-        objective_values = np.array([self._norm_wrapper_residuals(var)
-                                     for var in variables_comb])
-        objective_mesh = self._results_as_mesh(objective_values, **kwargs)
 
-        axes = self._output_some_info(variable_mesh, objective_mesh)
+        results = [self._wrapper_residuals(var) for var in variables_comb]
+        objective_values = np.array([res[0] for res in results])
+        are_constraints_ok = np.array([res[1] for res in results])
+
+        objective_mesh = self._results_as_mesh(objective_values, **kwargs)
+        constraint_mesh = self._results_as_mesh(are_constraints_ok, **kwargs)
+
+        axes = self._output_some_info(variable_mesh, objective_mesh,
+                                      constraint_mesh)
 
         best_idx = np.nanargmin(objective_values)
         info = {'X': variables_comb[best_idx],
@@ -88,7 +94,7 @@ class Explorator(OptimisationAlgorithm):
 
     def _algorithm_parameters(self) -> dict:
         """Create the ``kwargs`` for the optimisation."""
-        kwargs = {'n_points': 20}
+        kwargs = {'n_points': 10}
         return kwargs
 
     def _generate_combinations(self, n_points: int = 10, **kwargs
@@ -109,20 +115,47 @@ class Explorator(OptimisationAlgorithm):
         variables_combinations = np.concatenate(variables_mesh.T)
         return variables_mesh, variables_combinations
 
+    def _wrapper_residuals(self, var: np.ndarray
+                           ) -> tuple[float, bool]:
+        """Give norm of residual and if phi_s constraint is respected."""
+        cav_settings = self._create_set_of_cavity_settings(var)
+        simulation_output = self.compute_beam_propagation(cav_settings)
+        residuals = self.compute_residuals(simulation_output=simulation_output)
+        constraints_evaluations = self.compute_constraints(simulation_output)
+        is_ok = constraints_evaluations[0] < 0. \
+            and constraints_evaluations[1] < 0.
+        return np.linalg.norm(residuals), is_ok
+
     def _results_as_mesh(self, objective_values: np.ndarray,
                          n_points: int = 10, **kwargs) -> np.ndarray:
         """Reformat the results for plotting purposes."""
         return objective_values.reshape((n_points, n_points)).T
 
-    def _output_some_info(self, variable_mesh: np.ndarray,
-                          objective_mesh: np.ndarray) -> mplot3d.Axes3D:
+    def _output_some_info(self,
+                          variable_mesh: np.ndarray,
+                          objective_mesh: np.ndarray,
+                          constraint_mesh: np.ndarray) -> mplot3d.Axes3D:
         """Plot the design space."""
         fig = plt.figure(30)
         axes = fig.add_subplot(projection='3d')
         axes.set_xlabel(markdown[self.variable_names[0]].replace('deg', 'rad'))
         axes.set_ylabel(markdown[self.variable_names[1]].replace('deg', 'rad'))
         axes.set_zlabel('Objective')
-        axes.plot_wireframe(variable_mesh[0], variable_mesh[1], objective_mesh)
+
+        colors = cm.Set1(constraint_mesh)
+        rcount, ccount, _ = colors.shape
+        axes.plot_wireframe(variable_mesh[0],
+                            variable_mesh[1],
+                            objective_mesh,
+                            rcount=rcount,
+                            ccount=ccount,
+                            )
+        for i in range(len(variable_mesh[0])):
+            axes.scatter(variable_mesh[0][i],
+                         variable_mesh[1][i],
+                         objective_mesh[i],
+                         s=50,
+                         c=colors[i])
         plt.show()
         return axes
 
