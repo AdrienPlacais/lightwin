@@ -66,12 +66,15 @@ class Explorator(OptimisationAlgorithm):
                                      for var in variables_comb])
         objective_mesh = self._results_as_mesh(objective_values, **kwargs)
 
-        self._output_some_info(variable_mesh, objective_mesh)
+        axes = self._output_some_info(variable_mesh, objective_mesh)
 
         best_idx = np.nanargmin(objective_values)
         info = {'X': variables_comb[best_idx],
                 'F': objective_values[best_idx]
                 }
+
+        self._add_the_best_point(axes, info['X'], info['F'])
+
         optimized_cavity_settings = self._create_set_of_cavity_settings(
             info['X'])
         return True, optimized_cavity_settings, info
@@ -112,7 +115,7 @@ class Explorator(OptimisationAlgorithm):
         return objective_values.reshape((n_points, n_points)).T
 
     def _output_some_info(self, variable_mesh: np.ndarray,
-                          objective_mesh: np.ndarray) -> None:
+                          objective_mesh: np.ndarray) -> mplot3d.Axes3D:
         """Plot the design space."""
         fig = plt.figure(30)
         axes = fig.add_subplot(projection='3d')
@@ -121,3 +124,9 @@ class Explorator(OptimisationAlgorithm):
         axes.set_zlabel('Objective')
         axes.plot_wireframe(variable_mesh[0], variable_mesh[1], objective_mesh)
         plt.show()
+        return axes
+
+    def _add_the_best_point(self, axes: mplot3d.Axes3D, var: np.ndarray,
+                            obj: np.ndarray) -> None:
+        """Add the best solution to the plot."""
+        axes.scatter3D(var[0], var[1], obj, s=100, c='r')
