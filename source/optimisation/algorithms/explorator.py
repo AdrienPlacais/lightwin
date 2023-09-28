@@ -43,9 +43,12 @@ class Explorator(OptimisationAlgorithm):
         """Set additional information."""
         self.supports_constraints = True
 
-    def optimise(self) -> tuple[bool,
-                                SetOfCavitySettings | None,
-                                dict[str, list[float]]]:
+    def optimise(self,
+                 keep_history: bool = True,
+                 save_history: bool = True,
+                 ) -> tuple[bool,
+                            SetOfCavitySettings | None,
+                            dict[str, list[float]]]:
         """
         Set up the optimisation and solve the problem.
 
@@ -80,11 +83,17 @@ class Explorator(OptimisationAlgorithm):
             criterion="minimize norm of objective"
         )
         info = {'X': best_solution,
-                'hist_X': variables_values,
                 'F': best_objective,
-                'hist_F': objectives_values,
-                'hist_G': constraints_values,
+                'hist_X': None,
+                'hist_F': None,
+                'hist_G': None,
                 }
+        if keep_history:
+            info = info | self._keep_optimization_history(variables_values,
+                                                          objectives_values,
+                                                          constraints_values)
+        if save_history:
+            self._save_optimization_history('lala.txt', **info)
 
         if is_plottable:
             axes = self._plot_design_space(variables_as_mesh,
@@ -142,14 +151,14 @@ class Explorator(OptimisationAlgorithm):
             and constraints_evaluations[1] < 0.
         return np.linalg.norm(residuals), is_ok
 
-    def _array_of_values_to_mesh(self, objective_values: np.ndarray,
+    def _array_of_values_to_mesh(self, objectives_values: np.ndarray,
                          n_points: int = 10, **kwargs) -> np.ndarray:
         """Reformat the results for plotting purposes."""
-        return objective_values.reshape((n_points, n_points)).T
+        return objectives_values.reshape((n_points, n_points)).T
 
     def _take_best_solution(self,
                             variable_comb: np.ndarray,
-                            objective_values: np.ndarray,
+                            objectives_values: np.ndarray,
                             criterion: str,
                             ) -> tuple[np.ndarray | None, np.ndarray | None]:
         """Take the "best" of the calculated solutions.
@@ -158,7 +167,7 @@ class Explorator(OptimisationAlgorithm):
         ----------
         variable_comb : np.ndarray
             All the set of variables (cavity parameters) that were tried.
-        objective_values : np.ndarray
+        objectives_values : np.ndarray
             The values of the objective corresponding to ``variable_comb``.
         criterion : {'minimize norm of objective', }
             Name of the criterion that will determine which solution is the
@@ -174,12 +183,12 @@ class Explorator(OptimisationAlgorithm):
 
         """
         if criterion == 'minimize norm of objective':
-            norm_of_objective = objective_values
+            norm_of_objective = objectives_values
             if len(norm_of_objective.shape) > 1:
                 norm_of_objective = np.linalg.norm(norm_of_objective, axis=1)
             best_idx = np.nanargmin(norm_of_objective)
             best_solution = variable_comb[best_idx]
-            best_objective = objective_values[best_idx]
+            best_objective = objectives_values[best_idx]
             return best_solution, best_objective
 
         logging.error(f"{criterion = } not implemented. Please check your "
@@ -218,3 +227,32 @@ class Explorator(OptimisationAlgorithm):
                             obj: np.ndarray) -> None:
         """Add the best solution to the plot."""
         axes.scatter3D(var[0], var[1], obj, s=100, c='r')
+
+    def _keep_optimization_history(self,
+                                   variables_values: np.ndarray,
+                                   objectives_values: np.ndarray,
+                                   constraints_values: np.ndarray,
+                                   ) -> dict[str, np.ndarray]:
+        info_history = {'hist_X': variables_values,
+                        'hist_F': objectives_values,
+                        'hist_G': constraints_values}
+        return info_history
+
+    def _save_optimization_history(self,
+                                   filepath: str,
+                                   hist_X: np.ndarray | None = None,
+                                   hist_F: np.ndarray | None = None,
+                                   hist_G: np.ndarray | None = None,
+                                   **info: np.ndarray,
+                                   ) -> None:
+        if hist_X is None or hist_F is None:
+            logging.error("Variable history and/or objective history are None."
+                          " Maybe you forgot to set the keep_history flag to "
+                          "True? Or maybe an error occurred during "
+                          "optimisation?")
+            return
+
+        np.savetxt(filepath, hist_X)
+        np.savetxt(filepath, hist_F)
+        if hist_G is not None:
+            np.savetxt(filepath, hist_G)
