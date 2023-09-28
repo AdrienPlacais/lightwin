@@ -278,6 +278,6 @@ class Explorator(OptimisationAlgorithm):
 
                 line = f"{solution[0]} {solution[1]} {objective}"
                 if hist_G is not None:
-                    line += f" {hist_G[i]}"
+                    line += f" {float(hist_G[i])}"
                 file.write(line + "\n")
         logging.info(f"Optimisation history saved in {filepath}.")
