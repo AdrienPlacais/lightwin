@@ -10,6 +10,18 @@ space. In order to be consistent with the ABC :class:`OptimisationAlgorithm`,
 it also returns the solution with the lowest residue value -- hence it is also
 a "brute-force" optimisation algorith.
 
+.. todo::
+    Make this class more robust. In particular: save all objectives (not just
+    the norm), handle export when there is more than two variables, also save
+    complementary data (e.g.: always save phi_s even it is not in the
+    constraints nor variables).
+
+.. todo::
+    Allow for different number of points according to variable.
+
+.. todo::
+    Properly set the filepath for saving history.
+
 """
 import logging
 from dataclasses import dataclass
@@ -93,7 +105,8 @@ class Explorator(OptimisationAlgorithm):
                                                           objectives_values,
                                                           constraints_values)
         if save_history:
-            self._save_optimization_history('lala.txt', **info)
+            my_filepath = '/home/placais/LightWin/tmp.txt'
+            self._save_optimization_history(my_filepath, **info)
 
         if is_plottable:
             axes = self._plot_design_space(variables_as_mesh,
@@ -119,7 +132,7 @@ class Explorator(OptimisationAlgorithm):
 
     def _algorithm_parameters(self) -> dict:
         """Create the ``kwargs`` for the optimisation."""
-        kwargs = {'n_points': 100}
+        kwargs = {'n_points': 20}
         return kwargs
 
     def _generate_combinations(self, n_points: int = 10, **kwargs
@@ -152,7 +165,7 @@ class Explorator(OptimisationAlgorithm):
         return np.linalg.norm(residuals), is_ok
 
     def _array_of_values_to_mesh(self, objectives_values: np.ndarray,
-                         n_points: int = 10, **kwargs) -> np.ndarray:
+                                 n_points: int = 10, **kwargs) -> np.ndarray:
         """Reformat the results for plotting purposes."""
         return objectives_values.reshape((n_points, n_points)).T
 
@@ -243,6 +256,7 @@ class Explorator(OptimisationAlgorithm):
                                    hist_X: np.ndarray | None = None,
                                    hist_F: np.ndarray | None = None,
                                    hist_G: np.ndarray | None = None,
+                                   n_phi: int = 10,
                                    **info: np.ndarray,
                                    ) -> None:
         if hist_X is None or hist_F is None:
@@ -252,7 +266,18 @@ class Explorator(OptimisationAlgorithm):
                           "optimisation?")
             return
 
-        np.savetxt(filepath, hist_X)
-        np.savetxt(filepath, hist_F)
-        if hist_G is not None:
-            np.savetxt(filepath, hist_G)
+        if hist_X.shape[1] != 2:
+            logging.error("Number of variables different from 2 not "
+                          "implemented.")
+            return
+
+        with open(filepath, 'w', encoding='utf-8') as file:
+            for i, (solution, objective) in enumerate(zip(hist_X, hist_F)):
+                if i % n_phi == 0 and i != 0:
+                    file.write('\n')
+
+                line = f"{solution[0]} {solution[1]} {objective}"
+                if hist_G is not None:
+                    line += f" {hist_G[i]}"
+                file.write(line + "\n")
+        logging.info(f"Optimisation history saved in {filepath}.")
