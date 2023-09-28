@@ -14,6 +14,10 @@ create your own algorithm and omit them.
     Check if it is necessary to pass out the whole ``elts`` to
     ``OptimisationAlgorithm``?
 
+.. todo::
+    Methods and flags to keep the optimisation history or not, and also to save
+    it or not. See :class:`Explorator`.
+
 """
 import logging
 from typing import Callable, Any
