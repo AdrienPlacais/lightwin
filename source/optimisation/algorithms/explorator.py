@@ -19,11 +19,9 @@ a "brute-force" optimisation algorith.
 .. todo::
     Allow for different number of points according to variable.
 
-.. todo::
-    Properly set the filepath for saving history.
-
 """
 import logging
+import os.path
 from dataclasses import dataclass
 
 import numpy as np
@@ -105,7 +103,14 @@ class Explorator(OptimisationAlgorithm):
                                                           objectives_values,
                                                           constraints_values)
         if save_history:
-            my_filepath = '/home/placais/LightWin/tmp.txt'
+            if self.folder is None:
+                logging.warning("You should provide a folder to the "
+                                "optimisation algorithm to tell it where it "
+                                "should save history. Using a default "
+                                "location...")
+                self.folder = "/home/placais/LightWin/data"
+
+            my_filepath = os.path.join(self.folder, "optimisation_history.txt")
             self._save_optimization_history(my_filepath, **info)
 
         if is_plottable:
