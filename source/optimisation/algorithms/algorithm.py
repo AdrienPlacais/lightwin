@@ -18,6 +18,10 @@ create your own algorithm and omit them.
     Methods and flags to keep the optimisation history or not, and also to save
     it or not. See :class:`Explorator`.
 
+.. todo::
+    Better handling of the attribute ``folder``. In particular, a correct value
+    should be set at the ``OptimisationAlgorithm`` instanciation.
+
 """
 import logging
 from typing import Callable, Any
@@ -66,6 +70,9 @@ class OptimisationAlgorithm(ABC):
         Method to compute residuals from a :class:`SimulationOutput`.
     compute_constraints : Callable[[SimulationOutput], np.ndarray] | None, optional
         Method to compute constraint violation. The default is None.
+    folder : str | None, optional
+        Where history, phase space and other optimisation information will be
+        saved if necessary. The default is None.
 
     """
 
@@ -79,6 +86,8 @@ class OptimisationAlgorithm(ABC):
 
     constraints: list[Constraint] | None = None
     compute_constraints: Callable[[SimulationOutput], np.ndarray] | None = None
+
+    folder: str | None = None
 
     def __post_init__(self) -> None:
         """Set the output object."""
