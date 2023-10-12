@@ -79,7 +79,7 @@ class DifferentialEvolution(OptimisationAlgorithm):
         return kwargs
 
     def _format_variables(self) -> tuple[np.ndarray, Bounds]:
-        """Convert the :class:`Variable`s to an array and :class:`Bounds`."""
+        """Convert the :class:`Variable` to an array and :class:`Bounds`."""
         x_0 = np.array([var.x_0 for var in self.variables])
         _bounds = np.array([var.limits for var in self.variables])
         bounds = Bounds(_bounds[:, 0], _bounds[:, 1])

@@ -5,7 +5,7 @@ Created on Wed Aug 23 16:30:10 2023.
 
 @author: placais
 
-This modules holds :class:`DownhillSimplex`, also called Nelder-Mead algorithm.
+This module holds :class:`DownhillSimplex`, also called Nelder-Mead algorithm.
 
 """
 from dataclasses import dataclass
