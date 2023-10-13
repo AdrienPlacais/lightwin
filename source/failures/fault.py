@@ -10,8 +10,6 @@ cavity failure and to fix it.
 
 """
 import logging
-from collections.abc import Callable
-from functools import partial
 
 import config_manager as con
 
@@ -34,15 +32,7 @@ from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.factory import \
     get_design_space_and_constraint_function
 
-from optimisation.algorithms.least_squares import LeastSquares
-from optimisation.algorithms.least_squares_penalty import LeastSquaresPenalty
-from optimisation.algorithms.nsga import NSGA
-from optimisation.algorithms.downhill_simplex import DownhillSimplex
-from optimisation.algorithms.downhill_simplex_penalty import \
-    DownhillSimplexPenalty
-from optimisation.algorithms.differential_evolution import \
-    DifferentialEvolution
-from optimisation.algorithms.explorator import Explorator
+from optimisation.algorithms.algorithm import OptimisationAlgorithm
 
 
 class Fault:
@@ -92,7 +82,6 @@ class Fault:
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  failed_cavities: list[FieldMap],
                  compensating_cavities: list[FieldMap],
-                 elt_eval_objectives: list[Element],
                  elts: list[Element]
                  ) -> None:
         """
@@ -114,8 +103,6 @@ class Fault:
             Holds the failed cavities.
         compensating_cavities : list[FieldMap]
             Holds the compensating cavities.
-        elt_eval_objectives : list[Element]
-            `Element`s at which exit objectives are evaluated.
         elts : list[Element]
             Holds the portion of the linac that will be computed again and
             again in the optimisation process. It is as short as possible, but
@@ -154,32 +141,15 @@ class Fault:
                                                   reference_elts,
                                                   )
 
-        algorithms = {
-            'least_squares': LeastSquares,
-            'least_squares_penalty': LeastSquaresPenalty,
-            'nsga': NSGA,
-            'downhill_simplex': DownhillSimplex,
-            'nelder_mead': DownhillSimplex,
-            'nelder_mead_penalty': DownhillSimplexPenalty,
-            'differential_evolution': DifferentialEvolution,
-            'explorator': Explorator,
-            'experimental': Explorator,
-        }
-        self._algorithm_class = algorithms[wtf['opti method']]
-
-    def fix(self,
-            beam_calculator_run_with_this: Callable[
-                [SetOfCavitySettings, ListOfElements], SimulationOutput]
+    def fix(self, optimisation_algorithm: OptimisationAlgorithm
             ) -> tuple[bool, SetOfCavitySettings, dict]:
         """
         Fix the Fault.
 
         Parameters
         ----------
-        beam_calculator_run_with_this : Callable[[
-                SetOfCavitySettings, ListOfElements], SimulationOutput]
-            The :func:`run_with_this` method from a :class:`BeamCalculator`
-            object.
+        optimisation_algorithm : OptimisationAlgorithm
+            The optimisation algorithm to be used, already initialized.
 
         Returns
         -------
@@ -191,21 +161,8 @@ class Fault:
             Useful information, such as the best solution.
 
         """
-        compute_beam_propagation = partial(beam_calculator_run_with_this,
-                                           elts=self.elts)
-
-        algorithm = self._algorithm_class(
-            compute_beam_propagation=compute_beam_propagation,
-            objectives=self.objectives,
-            compute_residuals=self.compute_residuals,
-            compensating_cavities=self.compensating_cavities,
-            elts=self.elts,
-            variables=self.variables,
-            constraints=self.constraints,
-            compute_constraints=self.compute_constraints,
-        )
-        self.algorithm_instance = algorithm
-        success, optimized_cavity_settings, self.info = algorithm.optimise()
+        outputs = optimisation_algorithm.optimise()
+        success, optimized_cavity_settings, self.info = outputs
         return success, optimized_cavity_settings, self.info
 
     def update_cavities_status(self, optimisation: str,

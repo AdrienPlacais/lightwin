@@ -13,13 +13,20 @@ factory function creating all the required :class:`FaultScenario` objects.
 import logging
 
 import config_manager as con
+
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
+from optimisation.algorithms.factory import optimisation_algorithm_factory
+
 from failures.fault import Fault
 from failures import strategy, position
+
 from core.elements.element import Element
 from core.accelerator import Accelerator
+from optimisation.algorithms.algorithm import OptimisationAlgorithm
+
 from util import debug
+
 from evaluator.list_of_simulation_output_evaluators import \
     FaultScenarioSimulationOutputEvaluators
 
@@ -91,6 +98,7 @@ class FaultScenario(list):
                 elts=elts_subset)
             faults.append(fault)
         super().__init__(faults)
+        self._set_optimisation_algorithms()
 
         if not con.FLAG_PHI_ABS:
             # Change status of cavities after the first one that is down. Idea
@@ -100,15 +108,44 @@ class FaultScenario(list):
 
         self._transfer_phi0_from_ref_to_broken()
 
+    def _set_optimisation_algorithms(self,
+                                     ) -> list[OptimisationAlgorithm]:
+        """Set each fault's optimisation algorithm.
+
+        Returns
+        -------
+        optimisation_algorithms : list[OptimisationAlgorithm]
+            The optimisation algorithm for each fault in ``self``.
+
+        """
+        # The kwargs defined here will be given to the
+        # OptimisationAlgorithm.__init__ and will override the defaults defined
+        # in the factory
+        kwargs = {}
+
+        opti_method = self.wtf['opti method']
+        assert isinstance(opti_method, str)
+
+        optimisation_algorithms = [
+            optimisation_algorithm_factory(opti_method,
+                                           fault,
+                                           self.beam_calculator.run_with_this,
+                                           **kwargs)
+            for fault in self]
+        return optimisation_algorithms
+
     def fix_all(self) -> None:
-        """Fix all the :class:`Fault`."""
+        """Fix all the :class:`Fault` objects in self."""
         success, info = [], []
         ref_simulation_output = \
             self.ref_acc.simulation_outputs[self.beam_calculator.id]
-        for fault in self:
+        optimisation_algorithms = self._set_optimisation_algorithms()
+
+        for fault, optimisation_algorithm in zip(self,
+                                                 optimisation_algorithms):
             fault.update_cavities_status(optimisation='not started')
             _succ, optimized_cavity_settings, _info = fault.fix(
-                self.beam_calculator.run_with_this)
+                optimisation_algorithm)
 
             success.append(_succ)
             info.append(_info)

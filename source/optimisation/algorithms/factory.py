@@ -40,8 +40,8 @@ ALGORITHMS: dict[str, ABCMeta] = {
     }
 
 
-def create_optimisation_algorithm(
-        name: str,
+def optimisation_algorithm_factory(
+        opti_method: str,
         fault: Fault,
         beam_calculator_run_with_this: Callable,
         **kwargs: Any
@@ -51,7 +51,7 @@ def create_optimisation_algorithm(
 
     Parameters
     ----------
-    name : str
+    opti_method : str
         Name of the desired optimisation algorithm.
     fault : Fault
         Fault that will be compensated by the optimisation algorithm.
@@ -71,7 +71,7 @@ def create_optimisation_algorithm(
     _check_common_keys(kwargs, new_kwargs)
     kwargs = new_kwargs | kwargs
 
-    algorithm_base_class = ALGORITHMS[name]
+    algorithm_base_class = ALGORITHMS[opti_method]
     algorithm: OptimisationAlgorithm = algorithm_base_class(**kwargs)
     return algorithm
 
@@ -83,7 +83,7 @@ def _optimisation_algorithm_kwargs(
     """Set default arguments to instantiate the optimisation algorithm.
 
     The arguments that are defined in FaultScenario and are given to the
-    :func:`create_optimisation_algorithm` will override the ones here if they
+    :func:`optimisation_algorithm_factory` will override the ones here if they
     are multiply defined.
 
     Parameters
