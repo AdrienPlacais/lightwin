@@ -1,4 +1,1 @@
-"""
-This folder holds the configuration testing functions.
-
-"""
+"""This package holds the configuration testing modules and packages."""
