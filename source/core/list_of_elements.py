@@ -5,14 +5,14 @@ Created on Thu Nov 10 15:11:55 2022.
 
 @author: placais
 
-In this module we define the `ListOfElements` object. This type of object is
-a list of `Element`s, with some additional methods.
+In this module we define the :class:`ListOfElements` object. It is a ``list``
+of :class:`.Element`, with some additional methods.
 
-It is created in two contexts:
-    - `Accelerator.elts`: holds all the `Element`s of the linac.
-    - `Fault.elts`, also called in `FaultScenario`: it holds only a fraction of
-    the linac `Element`s. Beam will be propagated a huge number of time during
-    optimisation process, so we recompute only the strict necessary.
+Two objects can have a :class:`ListOfElements` as attribute:
+    - :class:`.Accelerator`: holds all the :class:`.Element` of the linac.
+    - :class:`.Fault`: it holds only a fraction of the linac
+      :class:`.Element`. Beam will be propagated a huge number of times
+      during optimisation process, so we recompute only the strict necessary.
 
 .. todo::
     Delete ``dat_content``, which does the same thing as ``elts_n_cmds`` but
@@ -33,8 +33,7 @@ from core.beam_parameters import BeamParameters
 from core.particle import ParticleInitialState
 from core.electric_field import phi_0_abs_with_new_phase_reference
 
-from tracewin_utils.dat_files import (give_name,
-                                      update_field_maps_in_dat,
+from tracewin_utils.dat_files import (update_field_maps_in_dat,
                                       save_dat_filecontent_to_dat)
 from tracewin_utils.interface import list_of_elements_to_command
 
@@ -47,7 +46,7 @@ class ListOfElements(list):
     def __init__(self, elts: list[Element],
                  input_particle: ParticleInitialState,
                  input_beam: BeamParameters, first_init: bool = True,
-                 files: dict[str, str | list[list[str]]] = None
+                 files: dict[str, str | list[list[str]]] | None = None
                  ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.
@@ -60,20 +59,20 @@ class ListOfElements(list):
         Parameters
         ----------
         elts : list[Element]
-            List containing the Element objects.
+            List containing the element objects.
         input_particle : ParticleInitialState
             An object to hold initial energy and phase of the particle at the
-            entry of the first `Element`.
+            entry of the first element/
         input_beam : BeamParameters
             An object to hold emittances, Twiss, sigma beam matrix, etc at the
-            entry of the first `Element`.
+            entry of the first element.
         first_init : bool, optional
             To indicate if this a full linac or only a portion (fit process).
             The default is True.
         files : dict[str, str | list[list[str]]], optional
             A dictionary to hold information on the source and output
             files/folders of the object. The keys are:
-                dat_filepath : path to the `.dat` file
+                dat_filepath : path to the ``.dat`` file
                 dat_content : list of list of str, holding content of the `dat`
                 elts_n_cmds : list of objects representing dat content
                 out_folder : where calculation results should be stored
@@ -90,21 +89,25 @@ class ListOfElements(list):
         if first_init:
             self._first_init()
 
-        # self._l_cav = filter_cav(self)
-        self._l_cav = list(filter(lambda cav: isinstance(cav, FieldMap), self))
-        logging.info("Successfully created a `ListOfElements` with "
+        self._l_cav: list[FieldMap] = list(filter(
+            lambda cav: isinstance(cav, FieldMap), self
+            ))
+        logging.info("Successfully created a ListOfElements with "
                      f"{self.w_kin_in = } MeV and {self.phi_abs_in = } rad.")
 
     @property
     def w_kin_in(self):
+        """Get kinetic energy at entry of first element of self."""
         return self.input_particle.w_kin
 
     @property
     def phi_abs_in(self):
+        """Get absolute phase at entry of first element of self."""
         return self.input_particle.phi_abs
 
     @property
     def tm_cumul_in(self):
+        """Get transfer matrix at entry of first element of self."""
         return self.input_beam.zdelta.tm_cumul
 
     @property
@@ -114,20 +117,20 @@ class ListOfElements(list):
 
     @property
     def _stored_k_e(self) -> dict[FieldMap, float]:
-        """Get the `k_e` properties from `Element`s of `self`."""
+        """Get the ``k_e`` properties from elements in self."""
         k_e = {cavity: cavity.get('k_e') for cavity in self.l_cav}
         return k_e
 
     @property
-    def _stored_abs_phase_flag(self) -> dict[FieldMap, float]:
-        """Get the `abs_phase` flags from `Element`s of `self`."""
+    def _stored_abs_phase_flag(self) -> dict[FieldMap, int]:
+        """Get the ``abs_phase`` flags from elements in self."""
         abs_phase_flag = {cavity: int(config_manager.FLAG_PHI_ABS)
                           for cavity in self.l_cav}
         return abs_phase_flag
 
     @property
     def _stored_phi_0_abs(self):
-        """Return the `phi_0_abs` properties from `self`."""
+        """Return the ``phi_0_abs`` properties from elements in self."""
         phi_0_abs = {cavity: cavity.get('phi_0_abs') for cavity in self.l_cav}
         return phi_0_abs
 
