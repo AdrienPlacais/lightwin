@@ -34,7 +34,7 @@ class FaultScenario(list):
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  fault_idx: list[int] | list[list[int]],
                  comp_idx: list[list[int]] | None = None,
-                 info_other_sol: list[dict] = None) -> None:
+                 info_other_sol: list[dict] | None = None) -> None:
         """
         Create the FaultScenario and the Faults.
 
@@ -44,8 +44,8 @@ class FaultScenario(list):
             The reference linac (nominal or baseline).
         fix_acc : Accelerator
             The broken linac to be fixed.
-    beam_calculator : BeamCalculator
-        The solver that will be called during the optimisation process.
+        beam_calculator : BeamCalculator
+            The solver that will be called during the optimisation process.
         wtf : dict[str, str | int | bool | list[str] | list[float]]
             What To Fit dictionary. Holds information on the fixing method.
         fault_idx : list[int | list[int]]
@@ -54,7 +54,7 @@ class FaultScenario(list):
         comp_idx : list[list[int]], optional
             List containing the position of the compensating cavities. If
             ``strategy`` is manual, it must be provided. The default is None.
-        info_other_sol : list, optional
+        info_other_sol : list[dict], optional
             Contains information on another fit, for comparison purposes. The
             default is None.
 

@@ -167,8 +167,9 @@ class Fault:
         }
         self._algorithm_class = algorithms[wtf['opti method']]
 
-    def fix(self, beam_calculator_run_with_this: Callable[
-        [SetOfCavitySettings, ListOfElements], SimulationOutput]
+    def fix(self,
+            beam_calculator_run_with_this: Callable[
+                [SetOfCavitySettings, ListOfElements], SimulationOutput]
             ) -> tuple[bool, SetOfCavitySettings, dict]:
         """
         Fix the Fault.
@@ -177,14 +178,15 @@ class Fault:
         ----------
         beam_calculator_run_with_this : Callable[[
                 SetOfCavitySettings, ListOfElements], SimulationOutput]
-            The `run_with_this` method from a `BeamCalculator` object.
+            The :func:`run_with_this` method from a :class:`BeamCalculator`
+            object.
 
         Returns
         -------
         success : bool
-            Indicates convergence of the optimisation `Algorithm`.
+            Indicates convergence of the :class:`OptimisationAlgorithm`.
         optimized_cavity_settings : SetOfCavitySettings
-            Best cavity settings found by the optimization `Algorithm`.
+            Best cavity settings found by the :class:`OptimisationAlgorithm`.
         self.info : dict
             Useful information, such as the best solution.
 

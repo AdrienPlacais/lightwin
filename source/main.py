@@ -85,7 +85,7 @@ if __name__ == '__main__':
         # 'beam_calculator': 'beam_calculator.tracewin.envelope',
         'beam': 'beam',
         # 'wtf': 'wtf.for_tracewin',
-        'wtf': 'wtf.explorator',
+        'wtf': 'wtf.quick_debug',
         # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
         # 'evaluators': 'evaluators.fred',
     }
