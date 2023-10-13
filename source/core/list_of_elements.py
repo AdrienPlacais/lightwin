@@ -72,10 +72,11 @@ class ListOfElements(list):
         files : dict[str, str | list[list[str]]], optional
             A dictionary to hold information on the source and output
             files/folders of the object. The keys are:
-                dat_filepath : path to the ``.dat`` file
-                dat_content : list of list of str, holding content of the `dat`
-                elts_n_cmds : list of objects representing dat content
-                out_folder : where calculation results should be stored
+                - ``dat_filepath``: path to the ``.dat`` file
+                - ``elts_n_cmds``: list of objects representing dat content
+                - ``out_folder``: where calculation results should be stored
+                - ``dat_content``: list of list of str, holding content of the
+                ``.dat``.
 
         """
         self.input_particle = input_particle
@@ -139,9 +140,9 @@ class ListOfElements(list):
         """
         Return the ``phi_0_abs`` from ``self``, rephased w.r.t ``phi_in``.
 
-        Necessary for :class:`TraceWin` and used in ``.dat`` files.
-        Would mess with :class:`Envelope1D`. Do not use it to update
-        ``acc_field`` from :class:`FieldMap`.
+        Necessary for :class:`.TraceWin` and used in ``.dat`` files.
+        Would mess with :class:`.Envelope1D`. Do not use it to update
+        ``acc_field`` from :class:`.FieldMap`.
 
         """
         delta_phi_bunch = self.input_particle.phi_abs
@@ -184,9 +185,9 @@ class ListOfElements(list):
         """
         Shorthand to get attributes from this class or its attributes.
 
-        This method also looks into the first `Element` of `self`. If the
-        desired `key` is in this `Element`, we recursively get `key` from
-        every `Element` and concatenate the output.
+        This method also looks into the first :class:`.Element` of self. If the
+        desired ``key`` is in this :class:`.Element`, we recursively get ``key``
+        from every :class:`.Element` and concatenate the output.
 
         Parameters
         ----------
@@ -196,11 +197,11 @@ class ListOfElements(list):
             If you want the list output to be converted to a np.ndarray. The
             default is True.
         remove_first : bool, optional
-            If you want to remove the first item of every `Element`'s `key`.
-            It the Element is the first of the list, we do not remove its
-            first item.
-            It is useful when the last item of an `Element` is the same as the
-            first item of the next `Element`. For example, `z_abs`. The
+            If you want to remove the first item of every :class:`.Element`
+            ``key``.
+            It the element is the first of the list, we do not remove its first
+            item.  It is useful when the last item of an element is the same as
+            the first item of the next element. For example, ``z_abs``. The
             default is False.
         **kwargs : bool | str | Element | None
             Other arguments passed to recursive getter.
@@ -265,9 +266,9 @@ class ListOfElements(list):
 
         Important notice
         ----------------
-        The phases of the cavities are rephased if the first `Element` in
-        `self` is not the first of the linac. This way, the beam enters each
-        cavity with the intended phase in `TraceWin`.
+        The phases of the cavities are rephased if the first :class:`.Element`
+        in self is not the first of the linac. This way, the beam enters each
+        cavity with the intended phase in :class:`.TraceWin`.
 
         """
         new_phases = self._stored_phi_0_rel
@@ -367,10 +368,26 @@ def equiv_elt(elts: ListOfElements | list[Element], elt: Element | str,
     return elts[idx]
 
 
-def elt_at_this_s_idx(elts: ListOfElements | list[Element, ...],
+def elt_at_this_s_idx(elts: ListOfElements | list[Element],
                       s_idx: int, show_info: bool = False
                       ) -> Element | None:
-    """Give the element where the given index is."""
+    """Give the element where the given index is.
+
+    Parameters
+    ----------
+    elts : ListOfElements | list[Element]
+        List of elements in which to look for.
+    s_idx : int
+        Index to look for.
+    show_info : bool
+        If the element that we found should be outputed.
+
+    Returns
+    -------
+    elt : Element | None
+        Element where the mesh index ``s_idx`` is in ``elts``.
+
+    """
     for elt in elts:
         if s_idx in range(elt.idx['s_in'], elt.idx['s_out']):
             if show_info:
