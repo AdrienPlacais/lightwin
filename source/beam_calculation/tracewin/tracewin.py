@@ -60,7 +60,7 @@ from tracewin_utils.interface import beam_calculator_to_command
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from core.elements.field_map import FieldMap
-from core.list_of_elements import ListOfElements
+from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
 from core.beam_parameters import BeamParameters

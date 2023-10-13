@@ -19,14 +19,12 @@ from typing import Callable
 from functools import partial
 
 import numpy as np
-from scipy.optimize import NonlinearConstraint
 
 from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
 
-from core.list_of_elements import equiv_elt
+from core.list_of_elements.helper import equiv_elt
 from core.elements.field_map import FieldMap
-
 
 from beam_calculation.output import SimulationOutput
 

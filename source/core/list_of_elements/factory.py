@@ -31,7 +31,7 @@ from core.elements.element import Element
 from core.commands.command import Command
 from core.particle import ParticleInitialState
 from core.beam_parameters import BeamParameters
-from core.list_of_elements import ListOfElements
+from core.list_of_elements.list_of_elements import ListOfElements
 
 import tracewin_utils.load
 from tracewin_utils.dat_files import (

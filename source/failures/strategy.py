@@ -19,7 +19,7 @@ import numpy as np
 
 from util.helper import flatten
 from core.accelerator import Accelerator
-from core.list_of_elements import filter_cav
+from core.list_of_elements.helper import filter_cav
 
 FACT = math.factorial
 

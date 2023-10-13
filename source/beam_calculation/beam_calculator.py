@@ -20,7 +20,8 @@ from functools import partial
 from beam_calculation.output import SimulationOutput
 from failures.set_of_cavity_settings import SetOfCavitySettings
 from core.elements.element import Element
-from core.list_of_elements import ListOfElements, equiv_elt
+from core.list_of_elements.list_of_elements import ListOfElements
+from core.list_of_elements.helper import equiv_elt
 from core.accelerator import Accelerator
 
 

@@ -30,7 +30,8 @@ from dataclasses import dataclass
 
 from core.particle import ParticleFullTrajectory
 from core.elements.field_map import FieldMap
-from core.list_of_elements import ListOfElements, indiv_to_cumul_transf_mat
+from core.list_of_elements.list_of_elements import ListOfElements
+from core.list_of_elements.helper import indiv_to_cumul_transf_mat
 from core.accelerator import Accelerator
 from core.beam_parameters import BeamParameters
 
@@ -45,10 +46,7 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
 
 @dataclass
 class Envelope1D(BeamCalculator):
-    """
-    The fastest beam calculator, adapted to high energies.
-
-    """
+    """The fastest beam calculator, adapted to high energies."""
 
     flag_phi_abs: bool
     flag_cython: bool

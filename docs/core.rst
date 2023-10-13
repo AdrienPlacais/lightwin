@@ -14,6 +14,7 @@ Subpackages
 
    core.commands
    core.elements
+   core.list_of_elements
 
 Submodules
 ----------
@@ -25,6 +26,4 @@ Submodules
    core.beam_parameters
    core.electric_field
    core.element_or_command
-   core.list_of_elements
-   core.list_of_elements_factory
    core.particle

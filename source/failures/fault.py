@@ -5,8 +5,8 @@ Created on Thu May 18 15:46:38 2023.
 
 @author: placais
 
-This module holds the class `Fault`. Its purpose is to hold information on a
-cavity failure and to fix it.
+This module holds the class :class:`Fault`. Its purpose is to hold information
+on a cavity failure and to fix it.
 
 """
 import logging
@@ -15,8 +15,9 @@ import config_manager as con
 
 from core.elements.element import Element
 from core.elements.field_map import FieldMap
-from core.list_of_elements import ListOfElements, equiv_elt
-from core.list_of_elements_factory import (
+from core.list_of_elements.list_of_elements import ListOfElements
+from core.list_of_elements.helper import equiv_elt
+from core.list_of_elements.factory import (
     subset_of_pre_existing_list_of_elements
 )
 from beam_calculation.output import SimulationOutput

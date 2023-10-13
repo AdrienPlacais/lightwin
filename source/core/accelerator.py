@@ -28,10 +28,10 @@ import config_manager as con
 from beam_calculation.output import SimulationOutput
 
 from core.elements.element import Element
-from core.list_of_elements import (ListOfElements,
-                                   elt_at_this_s_idx,
-                                   equiv_elt)
-from core.list_of_elements_factory import new_list_of_elements
+from core.list_of_elements.list_of_elements import ListOfElements
+from core.list_of_elements.factory import new_list_of_elements
+from core.list_of_elements.helper import (elt_at_this_s_idx,
+                                          equiv_elt)
 
 from util.helper import recursive_items, recursive_getter
 

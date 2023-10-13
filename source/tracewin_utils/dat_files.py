@@ -82,7 +82,6 @@ except ModuleNotFoundError:
     # Load Python version as Cython to allow the execution of the code.
     import beam_calculation.envelope_1d.transfer_matrices_p as tm_c
 
-# from core.list_of_elements import ListOfElements
 ListOfElements = TypeVar('ListOfElements')
 
 
