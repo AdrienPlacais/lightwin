@@ -97,7 +97,7 @@ class LeastSquares(OptimisationAlgorithm):
                   # 'loss': 'arctan',
                   'diff_step': None, 'tr_solver': None, 'tr_options': {},
                   'jac_sparsity': None,
-                  'verbose': 2,
+                  'verbose': 0,
                   }
         return kwargs
 
