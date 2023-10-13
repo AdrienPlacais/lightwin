@@ -387,7 +387,7 @@ def update_field_maps_in_dat(
 def dat_filecontent_from_smaller_list_of_elements(
     original_elts_n_cmds: list[Element | Command],
     elts: list[Element],
-) -> list[list[str], list[Element | Command]]:
+) -> tuple[list[list[str]], list[Element | Command]]:
     """
     Create a ``.dat`` with only elements of ``elts`` (and concerned commands).
 

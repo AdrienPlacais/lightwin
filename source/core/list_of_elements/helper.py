@@ -8,6 +8,9 @@ Created on Fri Oct 13 11:07:31 2023.
 In this module we define some helper functions to filter
 :class:`.ListOfElements` of ``list`` of :class:`.Element`.
 
+.. todo::
+    Filtering consistency. Also, use more types and less ``nature``.
+
 """
 import logging
 from typing import Any
@@ -20,18 +23,19 @@ from core.list_of_elements.list_of_elements import ListOfElements
 
 
 # actually, type of elements and outputs is Nested[list[Element]]
-def _filter_out(elements: Any, to_exclude: tuple[type]) -> Any:
-    """Filter out `to_exclude` types while keeping the input list structure."""
-    if isinstance(elements[0], list):
-        return [_filter_out(sub, to_exclude) for sub in elements]
+def filter_out(elts: Any,
+               to_exclude: tuple[type]) -> Any:
+    """Filter out types while keeping the input list structure."""
+    if isinstance(elts[0], list):
+        return [filter_out(sub, to_exclude) for sub in elts]
 
-    elif isinstance(elements, list):
+    elif isinstance(elts, list):
         return list(filter(lambda elt: not isinstance(elt, to_exclude),
-                           elements))
+                           elts))
     else:
         raise TypeError("Wrong type for data filtering.")
 
-    return elements
+    return elts
 
 
 def filter_elts(elts: ListOfElements | list[Element], key: str, val: Any
