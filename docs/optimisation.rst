@@ -1,6 +1,11 @@
 optimisation package
 ====================
 
+.. automodule:: optimisation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Subpackages
 -----------
 
@@ -8,12 +13,5 @@ Subpackages
    :maxdepth: 4
 
    optimisation.algorithms
-   optimisation.parameters
-
-Module contents
----------------
-
-.. automodule:: optimisation
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   optimisation.design_space
+   optimisation.objective

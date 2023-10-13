@@ -1,53 +1,23 @@
 core.elements package
 =====================
 
-Submodules
-----------
-
-core.elements.drift module
---------------------------
-
-.. automodule:: core.elements.drift
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-core.elements.element module
-----------------------------
-
-.. automodule:: core.elements.element
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-core.elements.field\_map module
--------------------------------
-
-.. automodule:: core.elements.field_map
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-core.elements.quad module
--------------------------
-
-.. automodule:: core.elements.quad
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-core.elements.solenoid module
------------------------------
-
-.. automodule:: core.elements.solenoid
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
 .. automodule:: core.elements
    :members:
    :undoc-members:
    :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   core.elements.aperture
+   core.elements.drift
+   core.elements.dummy
+   core.elements.element
+   core.elements.field_map
+   core.elements.quad
+   core.elements.solenoid
+   core.elements.superposed_field_map
+   core.elements.thin_steering
