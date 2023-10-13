@@ -11,20 +11,25 @@ Handle simulation parameters. In particular:
     - how should they be fixed?
     - simulation parameters to give to TW for a 'post' simulation?
 
-TODO: maybe make test and config to dict more compact?
+.. todo::
+    Maybe make test and config to dict more compact?
 
-TODO strategy:
-    global_section
-    global_section_downstream
-    flag to select priority in k out of n when k odd
-TODO position:
-    element name
-    element number
-    end_section
-TODO allow for different objectives at different positions.
+.. todo::
+    strategy:
+        - global_section
+        - global_section_downstream
+        - flag to select priority in k out of n when k odd
+    position:
+        - element name
+        - element number
+        - end_section
+    variable:
+        - maybe add this? Unnecessary at this point
+
+.. todo::
+    allow for different objectives at different positions.
     quickfix for now: simply set some scales to 0.
 
-TODO variable: maybe add this? Unnecessary at this point
 """
 import logging
 import os
@@ -47,10 +52,11 @@ Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
 SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
 
 
-def process_config(config_path: str, config_keys: dict[str, str],
+def process_config(config_path: str,
+                   config_keys: dict[str, str],
                    ) -> dict[str, dict[str, str | None]]:
     """
-    Frontend for config: load .ini, test it, return its content as dicts.
+    Frontend for config: load ``.ini``, test it, return its content as dicts.
 
     Parameters
     ----------
@@ -60,39 +66,40 @@ def process_config(config_path: str, config_keys: dict[str, str],
         Associate the name of the Sections in the config_file to the proper
         configurations.
         Mandatory keys are:
-            - files: related to input/output files.
-            - plots: what should be plotted.
-            - beam_calculator: everything related to the tool that will compute
-                               the propagation of the beam.
-            - beam: the initial beam properties.
-            - wtf: for 'what to fit'. Everything related to the fault
-                   compensation methodology.
-            - evaluators_post: to set the tests that are run on the newly found
-                               settings. Can be empty.
+            - ``files``: related to input/output files.
+            - ``plots``: what should be plotted.
+            - ``beam_calculator``: everything related to the tool that will\
+                compute the propagation of the beam.
+            - ``beam``: the initial beam properties.
+            - ``wtf``: for 'what to fit'. Everything related to the fault\
+                compensation methodology.
+            - ``evaluators_post``: to set the tests that are run on the newly\
+                found settings. Can be empty.
         Optional keys are:
-            - beam_calculator_post: for an additional simulation once the fault
-                                    are compensated. Usually, this simulation
-                                    should be more precise but take more time.
+            - ``beam_calculator_post``: for an additional simulation once the\
+                fault are compensated. Usually, this simulation should be more\
+                precise but take more time.
 
     Returns
     -------
     output_dict : dict
         A dict of dicts. The 'sub' dicts are:
-        files : dict
-            Information on the files, project folders.
-        plots : dict
-            The quantities to plot.
-        beam_calculator : dict
-            Holds the beam_calculator used for simulation.
-        beam : dict
-            Dictionary holding all beam parameters.
-        wtf : dict
-            Dictionary holding all wtf parameters.
-        beam_calculator_post : dict
-            Holds beam_calculator parameters for the post treatment simulation.
-        evaluators : dict
-            Holds the name of the tests/evaluations presets that will be run
-            during and after the simulation.
+            - ``files`` : dict
+                Information on the files, project folders.
+            - ``plots`` : dict
+                The quantities to plot.
+            - ``beam_calculator`` : dict
+                Holds the beam_calculator used for simulation.
+            - ``beam`` : dict
+                Dictionary holding all beam parameters.
+            - ``wtf`` : dict
+                Dictionary holding all wtf parameters.
+            - ``beam_calculator_post`` : dict
+                Holds beam_calculator parameters for the post treatment
+                simulation.
+            - ``evaluators`` : dict
+                Holds the name of the tests/evaluations presets that will be
+                run during and after the simulation.
 
     """
     # Load config
