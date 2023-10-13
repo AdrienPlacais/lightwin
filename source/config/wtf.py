@@ -27,7 +27,7 @@ def test(c_wtf: configparser.SectionProxy) -> None:
              'strategy': test_strategy,
              'objective_preset': test_objective_preset,
              'design_space_preset': test_design_space_preset,
-             'opti method': test_optimisation_algorithm,
+             'optimisation_algorithm': test_optimisation_algorithm,
              'misc': _test_misc,
              'position': test_position,
              }

@@ -19,9 +19,9 @@ import configparser
 
 def test_optimisation_algorithm(c_wtf: configparser.SectionProxy) -> bool:
     """Test the optimisation method."""
-    if 'opti method' not in c_wtf.keys():
-        logging.error("You must provide 'opti method' to tell LightWin what "
-                      + "optimisation algorithm it should use.")
+    if 'optimisation_algorithm' not in c_wtf.keys():
+        logging.error("You must provide 'optimisation_algorithm' to tell "
+                      "LightWin what optimisation algorithm it should use.")
         return False
 
     implemented = ('least_squares',
@@ -33,7 +33,7 @@ def test_optimisation_algorithm(c_wtf: configparser.SectionProxy) -> bool:
                    'explorator',
                    'experimental')
     # TODO: specific testing for each method (look at the kwargs)
-    if c_wtf['opti method'] not in implemented:
+    if c_wtf['optimisation_algorithm'] not in implemented:
         logging.error("Algorithm not implemented.")
         return False
     return True
