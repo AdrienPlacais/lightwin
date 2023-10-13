@@ -14,6 +14,7 @@ import configparser
 from config.failures.strategy import test_strategy
 from config.failures.position import test_position
 from config.optimisation.objective import test_objective_preset
+from config.optimisation.design_space import test_design_space_preset
 
 
 # =============================================================================
@@ -24,7 +25,7 @@ def test(c_wtf: configparser.SectionProxy) -> None:
     tests = {'failed and idx': _test_failed_and_idx,
              'strategy': test_strategy,
              'objective_preset': test_objective_preset,
-             'design_space_preset': _test_design_space_preset,
+             'design_space_preset': test_design_space_preset,
              'opti method': _test_opti_method,
              'misc': _test_misc,
              'position': test_position,
@@ -112,30 +113,6 @@ def _test_failed_and_idx(c_wtf: configparser.SectionProxy) -> bool:
                       + "element.")
         return False
 
-    return True
-
-
-def _test_design_space_preset(c_wtf: configparser.SectionProxy) -> bool:
-    """Specific test for the key 'design_space_preset' of what_to_fit."""
-    if 'design_space_preset' not in c_wtf.keys():
-        logging.error("You must provide 'design_space_preset' to tell LightWin"
-                      " what it should fit.")
-        return False
-
-    design_space_preset = c_wtf.get('design_space_preset')
-    implemented = ('unconstrained',
-                   'constrained_sync_phase',
-                   'sync_phase_as_variable',
-                   'FM4_MYRRHA',
-                   'one_cavity_mega_power',
-                   'experimental'
-                   )
-    if design_space_preset not in implemented:
-        logging.error(f"Objective preset {design_space_preset} was not "
-                      "recognized. Check that is is implemented in "
-                      "optimisation.design_space.factory and that you added it"
-                      " to the list of implemented in config.wtf.")
-        return False
     return True
 
 

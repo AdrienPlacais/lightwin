@@ -8,8 +8,17 @@ Created on Fri Aug 18 17:44:41 2023.
 This module holds the factory as well as the presets to handle variables,
 constraints, limits, initial values.
 
+When you add you own presets, do not forget to add them to the list of
+implemented presets in :mod:`config.optimisation.design_space`.
+
 .. todo::
     decorator to auto output the variables and constraints?
+
+.. todo::
+    ``pyright`` is not very happy about this module.
+
+.. todo::
+    initial values, limits, etc would be better in every linac own project.
 
 """
 import logging
@@ -49,6 +58,7 @@ class DesignSpaceFactory(ABC):
         compensation.
 
     """
+
     preset: str
     reference_cavities: list[FieldMap]
     compensating_cavities: list[FieldMap]
