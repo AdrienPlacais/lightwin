@@ -6,6 +6,9 @@ Created on Fri Aug 18 17:44:41 2023.
 @author: placais
 
 This module holds the factory as well as the presets to handle objectives.
+When you implement a new objective preset, also add it to the list of
+implemented presets in :mod:`config.optimisation.objective`. This is also where
+you should input your own presets.
 
 .. todo::
     decorator to auto output the variables and constraints?

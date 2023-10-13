@@ -12,4 +12,5 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   config.failures.position
    config.failures.strategy

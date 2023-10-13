@@ -13,6 +13,7 @@ Subpackages
    :maxdepth: 4
 
    config.failures
+   config.optimisation
 
 Submodules
 ----------

@@ -5,13 +5,15 @@ Created on Mon Jun 26 09:54:54 2023.
 
 @author: placais
 
-All the functions to test the `wtf` (what to fit) key of the config file.
+All the functions to test the ``wtf`` (what to fit) key of the config file.
 
 """
 import logging
 import configparser
 
 from config.failures.strategy import test_strategy
+from config.failures.position import test_position
+from config.optimisation.objective import test_objective_preset
 
 
 # =============================================================================
@@ -21,11 +23,11 @@ def test(c_wtf: configparser.SectionProxy) -> None:
     """Test the 'what_to_fit' dictionaries."""
     tests = {'failed and idx': _test_failed_and_idx,
              'strategy': test_strategy,
-             'objective_preset': _test_objective_preset,
+             'objective_preset': test_objective_preset,
              'design_space_preset': _test_design_space_preset,
              'opti method': _test_opti_method,
              'misc': _test_misc,
-             'position': _test_position,
+             'position': test_position,
              }
     for key, test in tests.items():
         if not test(c_wtf):
@@ -113,27 +115,6 @@ def _test_failed_and_idx(c_wtf: configparser.SectionProxy) -> bool:
     return True
 
 
-def _test_objective_preset(c_wtf: configparser.SectionProxy) -> bool:
-    """Specific test for the key 'objective_preset' of what_to_fit."""
-    if 'objective_preset' not in c_wtf.keys():
-        logging.error("You must provide 'objective_preset' to tell LightWin"
-                      " what it should fit.")
-        return False
-    implemented = ('simple_ADS',
-                   'sync_phase_as_objective_ADS',
-                   'experimental'
-                   )
-
-    objective_preset = c_wtf.get('objective_preset')
-    if objective_preset not in implemented:
-        logging.error(f"Objective preset {objective_preset} was not "
-                      "recognized. Check that is is implemented in "
-                      "optimisation.objective.factory and that you added it "
-                      "to the list of implemented in config.wtf.")
-        return False
-    return True
-
-
 def _test_design_space_preset(c_wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'design_space_preset' of what_to_fit."""
     if 'design_space_preset' not in c_wtf.keys():
@@ -154,36 +135,6 @@ def _test_design_space_preset(c_wtf: configparser.SectionProxy) -> bool:
                       "recognized. Check that is is implemented in "
                       "optimisation.design_space.factory and that you added it"
                       " to the list of implemented in config.wtf.")
-        return False
-    return True
-
-
-def _test_position(c_wtf: configparser.SectionProxy) -> bool:
-    """Test where the objectives are evaluated."""
-    logging.warning("Position key still exists but is doublon with "
-                    "objective_preset and design_space_preset. Will be "
-                    "necessary to refactor.")
-    if 'position' not in c_wtf.keys():
-        logging.error("You must provide 'position' to tell LightWin where "
-                      + "objectives should be evaluated.")
-        return False
-
-    positions = c_wtf.getliststr('position')
-    implemented = [
-        # End of last lattice with a compensating or failed cavity
-        'end of last altered lattice',
-        # One lattice after last lattice with a compensating/failed cavity
-        'one lattice after last altered lattice',
-        # End of last lattice with a failed cavity
-        'end of last failed lattice',
-        # One lattice after last lattice with a failed cavity
-        'one lattice after last failed lattice',
-        # End of linac
-        'end of linac',
-    ]
-    if not all(pos in implemented for pos in positions):
-        logging.error("At least one position was not recognized. Allowed "
-                      + f"values are: {implemented}.")
         return False
     return True
 
