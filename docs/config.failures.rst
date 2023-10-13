@@ -12,5 +12,6 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   config.failures.failed_cavities
    config.failures.position
    config.failures.strategy

@@ -1,7 +1,9 @@
 """
 In this subpackage we define the :mod:`failures` configuration checkers.
 
-Related documentations are stored in the subpackages of :mod:`failures`, not in
-the subpackages of :mod:`config.failures`.
+The documentation for the ``failed_cavities`` is straightforward and is stored
+in :mod:`config.failures.failed_cavities`.
+The documentation of the ``strategy`` is more complex, hence it seemed more
+logical to store it in :mod:`failures.strategy`.
 
 """
