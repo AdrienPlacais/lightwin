@@ -6,7 +6,7 @@ Created on Tue Jun 13 17:30:58 2023.
 @author: placais
 
 This module holds a factory method to create the desired
-:class:`OptimisationAlgorithm`.
+:class:`.OptimisationAlgorithm`.
 
 """
 from typing import Any, Callable
@@ -47,7 +47,7 @@ def optimisation_algorithm_factory(
         **kwargs: Any
         ) -> OptimisationAlgorithm:
     """
-    Create the proper :class:`OptimisationAlgorithm` instance.
+    Create the proper :class:`.OptimisationAlgorithm` instance.
 
     Parameters
     ----------
@@ -82,9 +82,9 @@ def _optimisation_algorithm_kwargs(
         ) -> dict[str, Any]:
     """Set default arguments to instantiate the optimisation algorithm.
 
-    The arguments that are defined in FaultScenario and are given to the
-    :func:`optimisation_algorithm_factory` will override the ones here if they
-    are multiply defined.
+    The kwargs for :class:`.OptimisationAlgorithm` that are defined in
+    :meth:`.FaultScenario._set_optimisation_algorithms` will override the ones
+    defined here.
 
     Parameters
     ----------
@@ -98,8 +98,8 @@ def _optimisation_algorithm_kwargs(
     Returns
     -------
     new_kwargs : dict[str, Any]
-        A dictionary of keyword arguments for the
-        :class:`OptimisationAlgorithm`.
+        A dictionary of keyword arguments for the initialisation of
+        :class:`.OptimisationAlgorithm`.
 
     """
     compute_beam_propagation = partial(beam_calculator_run_with_this,
@@ -124,7 +124,9 @@ def _check_common_keys(kwargs: dict[str, Any], new_kwargs: dict[str, Any]
     Parameters
     ----------
     kwargs : dict[str, Any]
-        kwargs as defined in the :class:`FaultScenario` (they have precedence).
+        kwargs as defined in the
+        :meth:`.FaultScenario._set_optimisation_algorithms` (they have
+        precedence).
     new_kwargs : [str, Any]
         kwargs as defined in the :func:`_optimisation_algorithm_kwargs` (they
         will be overriden as they are considered as "default" or "fallback"
