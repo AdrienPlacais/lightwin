@@ -12,4 +12,6 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   config.optimisation.algorithm
+   config.optimisation.design_space
    config.optimisation.objective

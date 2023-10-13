@@ -15,6 +15,7 @@ from config.failures.strategy import test_strategy
 from config.failures.position import test_position
 from config.optimisation.objective import test_objective_preset
 from config.optimisation.design_space import test_design_space_preset
+from config.optimisation.algorithm import test_optimisation_algorithm
 
 
 # =============================================================================
@@ -26,7 +27,7 @@ def test(c_wtf: configparser.SectionProxy) -> None:
              'strategy': test_strategy,
              'objective_preset': test_objective_preset,
              'design_space_preset': test_design_space_preset,
-             'opti method': _test_opti_method,
+             'opti method': test_optimisation_algorithm,
              'misc': _test_misc,
              'position': test_position,
              }
@@ -113,23 +114,6 @@ def _test_failed_and_idx(c_wtf: configparser.SectionProxy) -> bool:
                       + "element.")
         return False
 
-    return True
-
-
-def _test_opti_method(c_wtf: configparser.SectionProxy) -> bool:
-    """Test the optimisation method."""
-    if 'opti method' not in c_wtf.keys():
-        logging.error("You must provide 'opti method' to tell LightWin what "
-                      + "optimisation algorithm it should use.")
-        return False
-
-    implemented = ('least_squares', 'least_squares_penalty', 'nsga',
-                   'downhill_simplex', 'nelder_mead', 'differential_evolution',
-                   'explorator', 'experimental')
-    # TODO: specific testing for each method (look at the kwargs)
-    if c_wtf['opti method'] not in implemented:
-        logging.error("Algorithm not implemented.")
-        return False
     return True
 
 

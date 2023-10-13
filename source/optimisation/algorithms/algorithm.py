@@ -10,6 +10,9 @@ Template class for the optimisation algorithms.
 Abstract methods are mandatory and a ``TypeError`` will be raised if you try to
 create your own algorithm and omit them.
 
+When you add you own optimisation algorithm, do not forget to add it to the
+list of implemented algorithms in the :mod:`config.optimisation.algorithm`.
+
 .. todo::
     Check if it is necessary to pass out the whole ``elts`` to
     ``OptimisationAlgorithm``?
