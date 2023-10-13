@@ -94,7 +94,6 @@ class FaultScenario(list):
                 wtf=self.wtf,
                 failed_cavities=faulty_cavities,
                 compensating_cavities=compensating_cavities,
-                elt_eval_objectives=objectives_positions,
                 elts=elts_subset)
             faults.append(fault)
         super().__init__(faults)
