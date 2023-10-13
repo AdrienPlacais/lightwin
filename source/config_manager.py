@@ -15,20 +15,12 @@ Handle simulation parameters. In particular:
     Maybe make test and config to dict more compact?
 
 .. todo::
-    strategy:
-        - global_section
-        - global_section_downstream
-        - flag to select priority in k out of n when k odd
     position:
         - element name
         - element number
         - end_section
     variable:
         - maybe add this? Unnecessary at this point
-
-.. todo::
-    allow for different objectives at different positions.
-    quickfix for now: simply set some scales to 0.
 
 """
 import logging
