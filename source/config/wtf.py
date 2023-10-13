@@ -11,6 +11,8 @@ All the functions to test the `wtf` (what to fit) key of the config file.
 import logging
 import configparser
 
+from config.failures.strategy import test_strategy
+
 
 # =============================================================================
 # Front end
@@ -18,7 +20,7 @@ import configparser
 def test(c_wtf: configparser.SectionProxy) -> None:
     """Test the 'what_to_fit' dictionaries."""
     tests = {'failed and idx': _test_failed_and_idx,
-             'strategy': _test_strategy,
+             'strategy': test_strategy,
              'objective_preset': _test_objective_preset,
              'design_space_preset': _test_design_space_preset,
              'opti method': _test_opti_method,
@@ -109,154 +111,6 @@ def _test_failed_and_idx(c_wtf: configparser.SectionProxy) -> bool:
         return False
 
     return True
-
-
-def _test_strategy(c_wtf: configparser.SectionProxy) -> bool:
-    """
-    Specific test for the key 'strategy' of what_to_fit.
-
-    Three compensation strategies are implemented:
-        - k out of n:
-            k compensating cavities per fault. You must provide the number of
-            compensating cavities per faulty cavity k. Nearby broken cavities
-            are automatically gathered and fixed together.
-        - manual:
-            Manual association of faults and errors. In the .ini, 1st line of
-            manual list will compensate 1st line of failed cavities, etc.
-            Example (we consider that idx is 'element'):
-            failed =
-              12, 14, -> two cavities that will be fixed together
-              155,    -> a single error, fixed after [12, 14] is dealt with
-              12, 14 | 155 -> fix 12 and 14 and then 155 in the same simulation
-                              (if beam is not perfectly matched after the first
-                              error, the mismatch will propagate up to the next
-                              error).
-
-            manual_list =
-              8, 10, 16, 18,    -> compensate errors at idx 12 & 14
-              153, 157          -> compensate error at 155
-              8, 10, 16, 18 | 153, 157 -> use 8 10 16 18 to compensate 12 and
-              14. Propagate beam up to next fault, which is 155, and compensate
-              if with 153 157.
-        - l neighboring lattices:
-            Every fault will be compensated by l full lattices, direct
-            neighbors of the errors. You must provide l, which must be even.
-        - global:
-            Use every cavity.
-        - global downstream:
-            Use every cavity after the fault.
-    """
-    if 'strategy' not in c_wtf.keys():
-        logging.error("You must provide 'strategy' to tell LightWin how "
-                      + "compensating cavities are chosen.")
-        return False
-
-    tests = {'k out of n': _test_strategy_k_out_of_n,
-             'manual': _test_strategy_manual,
-             'l neighboring lattices': _test_strategy_l_neighboring_lattices,
-             'global': _test_strategy_global,
-             'global downstream': _test_strategy_global_downstream,
-             }
-
-    key = c_wtf['strategy']
-    if key not in tests:
-        logging.error("The 'strategy' key did not match any authorized value "
-                      + f"({c_wtf['strategy']}).")
-        return False
-
-    return tests[key](c_wtf)
-
-
-def _test_strategy_k_out_of_n(c_wtf: configparser.SectionProxy) -> bool:
-    """Even more specific test for k out of n strategy."""
-    if 'k' not in c_wtf.keys():
-        logging.error("You must provide k, the number of compensating "
-                      + "cavities per failed cavity.")
-        return False
-
-    try:
-        c_wtf.getint('k')
-    except ValueError:
-        logging.error("k must be an integer.")
-        return False
-
-    return True
-
-
-def _test_strategy_manual(c_wtf: configparser.SectionProxy) -> bool:
-    """Even more specific test for manual strategy."""
-    if 'manual list' not in c_wtf.keys():
-        logging.error("You must provide a list of lists of compensating "
-                      + "cavities corresponding to each list of failed "
-                      + "cavities.")
-        return False
-
-    scenarios = c_wtf.getgroupedfaults('failed')
-    groupcomp = c_wtf.getgroupedfaults('manual list')
-    if len(scenarios) != len(groupcomp):
-        logging.error("Discrepancy between the number of FaultScenarios and "
-                      + "the number of corresponding list of compensating "
-                      + "cavities. In other words: 'failed' and 'manual list' "
-                      + "entries must have the same number of lines.")
-        return False
-
-    for scen, comp in zip(scenarios, groupcomp):
-        if len(scen) != len(comp):
-            logging.error("In a FaultScenario, discrepancy between the number "
-                          + "of fault groups and group of compensating "
-                          + "cavities. In other words: 'failed' and 'manual "
-                          + "list' entries must have the same number of "
-                          + "pipes on every line.")
-            return False
-
-    return True
-
-
-def _test_strategy_l_neighboring_lattices(c_wtf: configparser.SectionProxy
-                                          ) -> bool:
-    """Even more specific test for l neighboring lattices strategy."""
-    if 'l' not in c_wtf.keys():
-        logging.error("You must provide l, the number of compensating "
-                      + "lattices.")
-        return False
-
-    try:
-        c_wtf.getint('l')
-    except ValueError:
-        logging.error("l must be an integer.")
-        return False
-
-    if c_wtf.getint('l') % 2 != 0:
-        logging.error("l must be even.")
-        return False
-
-    return True
-
-
-def _test_strategy_global(c_wtf: configparser.SectionProxy) -> bool:
-    """Even more specific test for global strategy."""
-    logging.warning("Option still under implementation.")
-    logging.warning("As for now, field amplitudes are always modified during "
-                    + "the fit. If you want the 'classic' global compensation,"
-                    + " you should manually set the bounds for k_e to a very "
-                    + "low value in optimisation/variables.py.")
-
-    if 'position' not in c_wtf.keys():
-        logging.error("You must provide 'position' to tell LightWin where "
-                      + "objectives should be evaluated.")
-        return False
-
-    if 'end of linac' not in c_wtf.getliststr('position'):
-        logging.warning("With global methods, objectives should be evaluated "
-                        + "at the end of the linac. LW will run anyway and "
-                        + "'position' key will not be modified.")
-
-    return True
-
-
-def _test_strategy_global_downstream(c_wtf: configparser.SectionProxy) -> bool:
-    """Even more specific test for global downstream strategy."""
-    return _test_strategy_global(c_wtf)
 
 
 def _test_objective_preset(c_wtf: configparser.SectionProxy) -> bool:

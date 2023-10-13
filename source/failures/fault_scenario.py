@@ -76,7 +76,10 @@ class FaultScenario(list):
         reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
 
         gathered_fault_idx, gathered_comp_idx = \
-            strategy.sort_and_gather_faults(fix_acc, wtf, fault_idx, comp_idx)
+            strategy.sort_and_gather_faults(fix=fix_acc,
+                                            fault_idx=fault_idx,
+                                            comp_idx=comp_idx,
+                                            **wtf)
 
         faults = []
         files_from_full_list_of_elements = fix_acc.elts.files
