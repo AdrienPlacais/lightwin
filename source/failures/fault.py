@@ -74,7 +74,7 @@ class Fault:
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  failed_cavities: list[FieldMap],
                  compensating_cavities: list[FieldMap],
-                 elts: list[Element]
+                 elts_subset: list[Element]
                  ) -> None:
         """
         Create the Fault object.
@@ -82,12 +82,12 @@ class Fault:
         Parameters
         ----------
         reference_elts : ListOfElements
-            `ListOfElements` from reference linac, holding in particular the
-            original cavity settings.
+            List of elements of the reference linac. In particular, these
+            elements hold the original cavity settings.
         reference_simulation_output : SimulationOutput
             Nominal simulation.
         files_from_full_list_of_elements : dict
-            `files` attribute from the linac under fixing. Used to set
+            ``files`` attribute from the linac under fixing. Used to set
             calculation paths.
         wtf : dict[str, str | int | bool | list[str] | list[float]]
             What To Fit dictionary. Holds information on the fixing method.
@@ -98,15 +98,15 @@ class Fault:
         elts : list[Element]
             Holds the portion of the linac that will be computed again and
             again in the optimisation process. It is as short as possible, but
-            must contain all `failed_cavities`, `compensating_cavities` and
-            `elt_eval_objectives`.
+            must contain all altered cavities as well as the elements where
+            objectives will be evaluated.
 
         """
         self.failed_cavities = failed_cavities
         self.compensating_cavities = compensating_cavities
 
         self.elts: ListOfElements = subset_of_pre_existing_list_of_elements(
-            elts,
+            elts_subset,
             reference_simulation_output,
             files_from_full_list_of_elements,
         )
