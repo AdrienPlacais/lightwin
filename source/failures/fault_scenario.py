@@ -125,7 +125,7 @@ class FaultScenario(list):
         # in the factory
         kwargs = {}
 
-        opti_method = self.wtf['opti method']
+        opti_method = self.wtf['optimisation_algorithm']
         assert isinstance(opti_method, str)
 
         optimisation_algorithms = [
