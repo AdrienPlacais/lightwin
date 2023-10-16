@@ -79,7 +79,7 @@ class Fault:
     def __init__(self,
                  reference_elts: ListOfElements,
                  reference_simulation_output: SimulationOutput,
-                 files_from_full_list_of_elements: dict[str, str | list[str]],
+                 files_from_full_list_of_elements: dict[str, Any],
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  failed_cavities: list[FieldMap],
                  compensating_cavities: list[FieldMap],
@@ -121,6 +121,8 @@ class Fault:
         )
 
         design_space_preset = wtf['design_space_preset']
+        assert isinstance(design_space_preset, str)
+
         reference_cavities = [equiv_elt(reference_elts, cavity)
                               for cavity in self.compensating_cavities]
         design_space = get_design_space_and_constraint_function(
@@ -133,6 +135,7 @@ class Fault:
             design_space
 
         objective_preset = wtf['objective_preset']
+        assert isinstance(objective_preset, str)
         self.objectives, self.compute_residuals = \
             get_objectives_and_residuals_function(con.LINAC,
                                                   objective_preset,
