@@ -77,7 +77,7 @@ def post_beam_calc_and_save(accelerator: Accelerator,
 # Main function
 # =============================================================================
 if __name__ == '__main__':
-    MY_CONFIG_FILE = 'myrrha.ini'
+    MY_CONFIG_FILE = '../data/MYRRHA/lightwin.ini'
     MY_KEYS = {
         'files': 'files',
         'plots': 'plots.complete',
