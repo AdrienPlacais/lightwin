@@ -7,6 +7,9 @@ Created on Fri Aug 18 17:26:56 2023.
 
 This module holds an objective that is a quantity must be within some bounds.
 
+.. todo::
+    Implement loss functions.
+
 """
 import logging
 
