@@ -10,6 +10,7 @@ on a cavity failure and to fix it.
 
 """
 import logging
+from typing import Any
 
 import config_manager as con
 
