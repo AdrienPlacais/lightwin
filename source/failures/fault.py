@@ -64,16 +64,6 @@ class Fault:
     compute_residuals : Callable[[SimulationOutput], np.ndarray]
         A function that takes in a `SimulationOutput` and returns the residues
         of every objective w.r.t the reference one.
-    fix : Callable[[Callable], tuple[bool, SetOfCavitySettings, dict]]
-        Creates the `OptimisationAlgorithm` object and fix the fault. Needs the
-        `run_with_this` method from the proper `BeamCalculator` as argument.
-    update_cavities_status : Callable[[None], None]
-        Change the `status` of the cavities at the start and the end of the
-        optimisation process. Changing the cavities status can modify the
-        `FieldMap` objects. In particular, `k_e` is set to 0. when a cavity is
-        broken. Also updates the `.dat` file.
-    get_x_sol_in_real_phase : Callable[[None], None]
-        Set phi_0_abs or phi_0_rel from the given phi_s.
 
     """
 
