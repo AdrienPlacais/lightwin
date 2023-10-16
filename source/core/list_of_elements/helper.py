@@ -80,8 +80,10 @@ def elt_at_this_s_idx(elts: ListOfElements | list[Element],
     return None
 
 
-def equiv_elt(elts: ListOfElements | list[Element], elt: Element | str,
-              to_index: bool = False) -> Element | int | None:
+def equiv_elt(elts: ListOfElements | list[Element],
+              elt: Element | str,
+              to_index: bool = False
+              ) -> Element | int | None:
     """
     Return an element from elts that has the same name as elt.
 
