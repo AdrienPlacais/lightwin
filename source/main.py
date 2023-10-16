@@ -11,6 +11,9 @@ Created on Tue Dec  6 14:33:39 2022.
 .. todo::
     phi_s fit is included in design_space preset
 
+.. todo::
+    Proper example file, maybe with a Jupyter Notebook.
+
 """
 import logging
 import time
