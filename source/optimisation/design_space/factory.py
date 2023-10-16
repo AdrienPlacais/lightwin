@@ -22,9 +22,9 @@ implemented presets in :mod:`config.optimisation.design_space`.
 
 """
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Any
 from functools import partial
 
 import numpy as np
@@ -341,7 +341,7 @@ class OneCavityMegaPower(DesignSpaceFactory):
         return constraints
 
 
-def _read_design_space(design_space_preset: str) -> DesignSpaceFactory:
+def _read_design_space(design_space_preset: str) -> ABCMeta:
     """Return proper factory."""
     factories = {
         'unconstrained': Unconstrained,
@@ -360,11 +360,13 @@ def get_design_space_and_constraint_function(
     linac_name: str,
     design_space_preset: str,
     reference_cavities: list[FieldMap],
-    compensating_cavities: list[FieldMap]
+    compensating_cavities: list[FieldMap],
+    **wtf: Any,
 ) -> tuple[list[Variable],
            list[Constraint],
            Callable[[SimulationOutput], np.ndarray]]:
     """Instantiante design space factory and create design space."""
+    assert isinstance(design_space_preset, str)
     design_space_factory = _read_design_space(design_space_preset)
 
     design_space_factory_instance = design_space_factory(

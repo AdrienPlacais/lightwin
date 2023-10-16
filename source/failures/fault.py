@@ -111,30 +111,26 @@ class Fault:
             files_from_full_list_of_elements,
         )
 
-        design_space_preset = wtf['design_space_preset']
-        assert isinstance(design_space_preset, str)
-
         reference_cavities = [equiv_elt(reference_elts, cavity)
                               for cavity in self.compensating_cavities]
         design_space = get_design_space_and_constraint_function(
-            con.LINAC,
-            design_space_preset,
-            reference_cavities,
-            self.compensating_cavities
+            linac_name=con.LINAC,
+            reference_cavities=reference_cavities,
+            compensating_cavities=self.compensating_cavities,
+            **wtf,
         )
         self.variables, self.constraints, self.compute_constraints = \
             design_space
 
-        objective_preset = wtf['objective_preset']
-        assert isinstance(objective_preset, str)
         self.objectives, self.compute_residuals = \
-            get_objectives_and_residuals_function(con.LINAC,
-                                                  objective_preset,
-                                                  reference_simulation_output,
-                                                  self.elts,
-                                                  failed_cavities,
-                                                  reference_elts,
-                                                  )
+            get_objectives_and_residuals_function(
+                linac_name=con.LINAC,
+                reference_simulation_output=reference_simulation_output,
+                elts_of_compensating_zone=self.elts,
+                failed_cavities=failed_cavities,
+                reference_elts=reference_elts,
+                **wtf,
+                )
 
     def fix(self, optimisation_algorithm: OptimisationAlgorithm
             ) -> tuple[bool, SetOfCavitySettings, dict]:

@@ -15,9 +15,9 @@ you should input your own presets.
 
 """
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Any
 from functools import partial
 
 import numpy as np
@@ -245,7 +245,7 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
         return objective
 
 
-def _read_objective(objective_preset: str) -> ObjectiveFactory:
+def _read_objective(objective_preset: str) -> ABCMeta:
     """Return proper factory."""
     factories = {
         'simple_ADS': SimpleADS,
@@ -264,8 +264,10 @@ def get_objectives_and_residuals_function(
     elts_of_compensating_zone: list[Element],
     failed_cavities: list[FieldMap],
     reference_elts: ListOfElements,
+    **wtf: Any,
 ) -> tuple[list[Objective], Callable[[SimulationOutput], np.ndarray]]:
     """Instantiate objective factory and create objectives."""
+    assert isinstance(objective_preset, str)
     objective_factory = _read_objective(objective_preset)
 
     objective_factory_instance = objective_factory(
