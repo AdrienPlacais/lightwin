@@ -12,14 +12,20 @@ implemented presets in :mod:`config.optimisation.objective`.
 .. todo::
     decorator to auto output the variables and constraints?
 
+.. todo::
+    Clarify that ``objective_position_preset`` should be understandable by
+    :mod:`failures.position`.
+
 """
 import logging
 from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
-from typing import Callable, Any
+from typing import Callable, Any, Sequence
 from functools import partial
 
 import numpy as np
+
+from failures.position import zone_to_recompute
 
 from optimisation.objective.objective import Objective
 from optimisation.objective.minimize_difference_with_ref import \
@@ -33,7 +39,7 @@ from core.elements.element import Element
 from core.elements.field_map import FieldMap
 
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.list_of_elements.helper import equiv_elt
+from core.list_of_elements.helper import equivalent_elt
 
 from beam_calculation.output import SimulationOutput
 
@@ -46,50 +52,99 @@ from util.dicts_output import markdown
 @dataclass
 class ObjectiveFactory(ABC):
     """
-    A base class to handle :class:`Objective` objects creation.
+    A base class to create :class:`Objective`.
+
+    It is intended to be sub-classed to make presets. Look at
+    :class:`SimpleADS` or :class:`SyncPhaseAsObjectiveADS` for examples.
 
     Attributes
     ----------
     linac_name : str
         Name of the linac.
-    reference : SimulationOutput
-        The reference simulation of the reference linac.
-    elts_of_compensating_zone : list[Element]
-        All the elements in the compensating zone.
-    failed_cavities : list[FieldMap]
-        Cavities that failed.
     reference_elts : ListOfElements
         All the reference elements.
-    need_to_add_element_to_compensating_zone : bool
-        True when the objectives should be checked outside of the compensating
-        zone (e.g. one lattice after last compensating zone). In this case,
-        ``elts_of_compensating_zone`` should be updated and returned to the
-        rest of the code.
+    reference_simulation_output : SimulationOutput
+        The reference simulation of the reference linac.
+    broken_elts : ListOfElements
+        List containing all the elements of the broken linac.
+    failed_cavities : list[FieldMap]
+        Cavities that failed.
+    compensating_cavities : list[FieldMap]
+        Cavities that will be used for the compensation.
 
     """
 
     linac_name: str
-    reference: SimulationOutput
-    elts_of_compensating_zone: list[Element]
-    failed_cavities: list[FieldMap]
     reference_elts: ListOfElements
-    need_to_add_element_to_compensating_zone: bool
+    reference_simulation_output: SimulationOutput
 
-    def __post_init__(self) -> None:
-        """Check validity of some inputs."""
-        if self.need_to_add_element_to_compensating_zone:
-            raise NotImplementedError("Current objective needs to be evaluated"
-                                      " outside of the compensation zone. "
-                                      "Hence it should be extended, which is "
-                                      "currently not supported.")
+    broken_elts: ListOfElements
+    failed_cavities: list[FieldMap]
+    compensating_cavities: list[FieldMap]
+
+    def __post_init__(self):
+        """Determine the compensation zone."""
+        self.elts_of_compensation_zone = self._set_zone_to_recompute()
 
     @abstractmethod
-    def _get_positions(self) -> list[Element]:
+    def _elements_where_objective_are_evaluated(self) -> list[Element]:
         """Determine where objectives will be evaluated."""
 
     @abstractmethod
     def get_objectives(self) -> list[Objective]:
         """Create the :class:`Objective` instances."""
+
+    @property
+    @abstractmethod
+    def objective_position_preset(self) -> list[str]:
+        """
+        Give a preset for :func:`failures.position.zone_to_recompute`.
+
+        The returned values must be in the ``POSITION_TO_INDEX`` dictionary of
+        :mod:`failures.position`.
+
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def compensation_zone_override_settings(self) -> dict[str, bool]:
+        """
+        Give flags for :func:`failures.position.zone_to_recompute`.
+
+        The returned dictionary may have three flags:
+            - full_lattices
+            - full_linac
+            - start_at_beginning_of_linac
+
+        """
+        pass
+
+    def _set_zone_to_recompute(self, **wtf: Any) -> Sequence[Element]:
+        """
+        Determine which (sub)list of elements should be recomputed.
+
+        You can override this method for your specific preset.
+
+        """
+        fault_idx = [cavity.idx['elt_idx']
+                     for cavity in self.failed_cavities]
+        comp_idx = [cavity.idx['elt_idx']
+                    for cavity in self.compensating_cavities]
+
+        if 'position' in wtf:
+            logging.warning("position key should not be present in the .ini "
+                            "file anymore. Its role is now fulfilled by the "
+                            "objective preset.")
+
+        elts_of_compensation_zone = zone_to_recompute(
+            self.broken_elts,
+            self.objective_position_preset,
+            fault_idx,
+            comp_idx,
+            **self.compensation_zone_override_settings,
+        )
+        return elts_of_compensation_zone
 
     @staticmethod
     def _output_objectives(objectives: list[Objective]) -> None:
@@ -104,15 +159,40 @@ class ObjectiveFactory(ABC):
 
 
 class SimpleADS(ObjectiveFactory):
-    """Factory aimed at efficient compensation for ADS linacs."""
+    """
+    A rapid and relatively robust method for ADS.
 
-    def _get_positions(self) -> list[Element]:
+    We try to match the kinetic energy, the absolute phase and the mismatch
+    factor at the end of the last altered lattice (the last lattice with a
+    compensating or broken cavity).
+    With this preset, it is recommended to set constraints on the synchrous
+    phase to help the optimisation algorithm to converge.
+
+    """
+
+    @property
+    def objective_position_preset(self) -> list[str]:
+        """Set objective evaluation at end of last altered lattice."""
+        objective_position_preset = ['end of last altered lattice']
+        return objective_position_preset
+
+    @property
+    def compensation_zone_override_settings(self) -> dict[str, bool]:
+        """Set no particular overridings."""
+        compensation_zone_override_settings = {
+            'full_lattices': False,
+            'full_linac': False,
+            'start_at_beginning_of_linac': False,
+        }
+        return compensation_zone_override_settings
+
+    def _elements_where_objective_are_evaluated(self) -> list[Element]:
         """Give element at end of compensation zone."""
-        return [self.elts_of_compensating_zone[-1]]
+        return [self.elts_of_compensation_zone[-1]]
 
     def get_objectives(self) -> list[Objective]:
         """Give objects to match kinetic energy, phase and mismatch factor."""
-        last_element = self._get_positions()[0]
+        last_element = self._elements_where_objective_are_evaluated()[0]
         objectives = [self._get_w_kin(elt=last_element),
                       self._get_phi_abs(elt=last_element),
                       self._get_mismatch(elt=last_element)]
@@ -126,7 +206,7 @@ class SimpleADS(ObjectiveFactory):
             weight=1.,
             get_key='w_kin',
             get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': False},
-            reference=self.reference,
+            reference=self.reference_simulation_output,
             descriptor="""Minimize diff. of w_kin between ref and fix at the
             end of the compensation zone.
             """
@@ -140,7 +220,7 @@ class SimpleADS(ObjectiveFactory):
             weight=1.,
             get_key='phi_abs',
             get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': False},
-            reference=self.reference,
+            reference=self.reference_simulation_output,
             descriptor="""Minimize diff. of phi_abs between ref and fix at the
             end of the compensation zone.
             """
@@ -155,7 +235,7 @@ class SimpleADS(ObjectiveFactory):
             get_key='twiss',
             get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': True,
                         'phase_space': 'zdelta'},
-            reference=self.reference,
+            reference=self.reference_simulation_output,
             descriptor="""Minimize mismatch factor in the [z-delta] plane."""
         )
         return objective
@@ -165,28 +245,49 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
     """
     Factory to handle synchronous phases as objectives.
 
-    Objective will be 0. when synchronous phase is within the imposed limits.
+    It is very similar to :class:`SimpleADS`, except that synchronous phases
+    are declared as objectives.
+    Objective will be 0 when synchronous phase is within the imposed limits.
+
+    .. note::
+        Do not set synchronous phases as constraints when using this preset.
 
     """
 
-    def _get_positions(self) -> list[Element]:
+    @property
+    def objective_position_preset(self) -> list[str]:
+        """Set objective evaluation at end of last altered lattice."""
+        objective_position_preset = ['end of last altered lattice']
+        return objective_position_preset
+
+    @property
+    def compensation_zone_override_settings(self) -> dict[str, bool]:
+        """Set no particular overridings."""
+        compensation_zone_override_settings = {
+            'full_lattices': False,
+            'full_linac': False,
+            'start_at_beginning_of_linac': False,
+        }
+        return compensation_zone_override_settings
+
+    def _elements_where_objective_are_evaluated(self) -> list[Element]:
         """Give element at end of compensation zone."""
-        return [self.elts_of_compensating_zone[-1]]
+        return [self.elts_of_compensation_zone[-1]]
 
     def get_objectives(self) -> list[Objective]:
         """Give objects to match kinetic energy, phase and mismatch factor."""
-        last_element = self._get_positions()[0]
+        last_element = self._elements_where_objective_are_evaluated()[0]
         objectives = [self._get_w_kin(elt=last_element),
                       self._get_phi_abs(elt=last_element),
                       self._get_mismatch(elt=last_element)]
 
-        working_cavities_in_compensating_zone = list(filter(
+        working_cavities_in_compensation_zone = list(filter(
             lambda cavity: (isinstance(cavity, FieldMap)
                             and cavity not in self.failed_cavities),
-            self.elts_of_compensating_zone))
+            self.elts_of_compensation_zone))
 
         objectives += [self._get_phi_s(cavity)
-                       for cavity in working_cavities_in_compensating_zone]
+                       for cavity in working_cavities_in_compensation_zone]
 
         self._output_objectives(objectives)
         return objectives
@@ -198,7 +299,7 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
             weight=1.,
             get_key='w_kin',
             get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': False},
-            reference=self.reference,
+            reference=self.reference_simulation_output,
             descriptor="""Minimize diff. of w_kin between ref and fix at the
             end of the compensation zone.
             """
@@ -212,7 +313,7 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
             weight=1.,
             get_key='phi_abs',
             get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': False},
-            reference=self.reference,
+            reference=self.reference_simulation_output,
             descriptor="""Minimize diff. of phi_abs between ref and fix at the
             end of the compensation zone.
             """
@@ -227,14 +328,14 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
             get_key='twiss',
             get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': True,
                         'phase_space': 'zdelta'},
-            reference=self.reference,
+            reference=self.reference_simulation_output,
             descriptor="""Minimize mismatch factor in the [z-delta] plane."""
         )
         return objective
 
     def _get_phi_s(self, cavity: FieldMap) -> Objective:
         """Objective to have sync phase within bounds."""
-        reference_cavity = equiv_elt(self.reference_elts, cavity)
+        reference_cavity = equivalent_elt(self.reference_elts, cavity)
         limits_getter = LIMITS_GETTERS[self.linac_name]
         limits = limits_getter('phi_s', reference_cavity)
 
@@ -264,29 +365,60 @@ def _read_objective(objective_preset: str) -> ABCMeta:
 def get_objectives_and_residuals_function(
     linac_name: str,
     objective_preset: str,
-    reference_simulation_output: SimulationOutput,
-    elts_of_compensating_zone: list[Element],
-    failed_cavities: list[FieldMap],
     reference_elts: ListOfElements,
-    **wtf: Any,
-) -> tuple[list[Objective], Callable[[SimulationOutput], np.ndarray]]:
-    """Instantiate objective factory and create objectives."""
-    assert isinstance(objective_preset, str)
-    objective_factory = _read_objective(objective_preset)
+    reference_simulation_output: SimulationOutput,
+    broken_elts: ListOfElements,
+    failed_cavities: list[FieldMap],
+    compensating_cavities: list[FieldMap],
+) -> tuple[list[Element],
+           list[Objective],
+           Callable[[SimulationOutput], np.ndarray]]:
+    """
+    Instantiate objective factory and create objectives.
 
-    objective_factory_instance = objective_factory(
-        linac_name,
-        reference_simulation_output,
-        elts_of_compensating_zone,
-        failed_cavities,
-        reference_elts,
-        need_to_add_element_to_compensating_zone=False,
+    Parameters
+    ----------
+    linac_name : str
+        Name of the linac.
+    reference_elts : ListOfElements
+        All the reference elements.
+    reference_simulation_output : SimulationOutput
+        The reference simulation of the reference linac.
+    broken_elts : ListOfElements
+        The elements of the broken linac.
+    failed_cavities : list[FieldMap]
+        Cavities that failed.
+    compensating_cavities : list[FieldMap]
+        Cavities that will be used for the compensation.
+
+    Returns
+    -------
+    elts_of_compensation_zone : list[Element]
+        Portion of the linac that will be recomputed during the optimisation
+        process.
+    objectives : list[Objective]
+        Objectives that the optimisation algorithm will try to match.
+    compute_residuals : Callable[[SimulationOutput], np.ndarray]
+        Function that converts a :class:`.SimulationOutput` to a plain numpy
+        array of residues.
+
+    """
+    assert isinstance(objective_preset, str)
+    objective_factory_class = _read_objective(objective_preset)
+
+    objective_factory = objective_factory_class(
+        linac_name=linac_name,
+        reference_elts=reference_elts,
+        reference_simulation_output=reference_simulation_output,
+        broken_elts=broken_elts,
+        failed_cavities=failed_cavities,
+        compensating_cavities=compensating_cavities,
     )
 
-    objectives = objective_factory_instance.get_objectives()
+    elts_of_compensation_zone = objective_factory.elts_of_compensation_zone
+    objectives = objective_factory.get_objectives()
     compute_residuals = partial(_compute_residuals, objectives=objectives)
-
-    return objectives, compute_residuals
+    return elts_of_compensation_zone, objectives, compute_residuals
 
 
 def _compute_residuals(simulation_output: SimulationOutput,

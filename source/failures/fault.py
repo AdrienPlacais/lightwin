@@ -72,9 +72,9 @@ class Fault:
                  reference_simulation_output: SimulationOutput,
                  files_from_full_list_of_elements: dict[str, Any],
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
+                 broken_elts: ListOfElements,
                  failed_cavities: list[FieldMap],
                  compensating_cavities: list[FieldMap],
-                 elts_subset: list[Element]
                  ) -> None:
         """
         Create the Fault object.
@@ -105,12 +105,6 @@ class Fault:
         self.failed_cavities = failed_cavities
         self.compensating_cavities = compensating_cavities
 
-        self.elts: ListOfElements = subset_of_pre_existing_list_of_elements(
-            elts_subset,
-            reference_simulation_output,
-            files_from_full_list_of_elements,
-        )
-
         reference_cavities = [equiv_elt(reference_elts, cavity)
                               for cavity in self.compensating_cavities]
         design_space = get_design_space_and_constraint_function(
@@ -122,15 +116,23 @@ class Fault:
         self.variables, self.constraints, self.compute_constraints = \
             design_space
 
-        self.objectives, self.compute_residuals = \
+        objective_preset = wtf['objective_preset']
+        assert isinstance(objective_preset, str)
+        elts_of_compensation_zone, self.objectives, self.compute_residuals = \
             get_objectives_and_residuals_function(
                 linac_name=con.LINAC,
-                reference_simulation_output=reference_simulation_output,
-                elts_of_compensating_zone=self.elts,
-                failed_cavities=failed_cavities,
+                objective_preset=objective_preset,
                 reference_elts=reference_elts,
-                **wtf,
+                reference_simulation_output=reference_simulation_output,
+                broken_elts=broken_elts,
+                failed_cavities=failed_cavities,
+                compensating_cavities=compensating_cavities,
                 )
+        self.elts: ListOfElements = subset_of_pre_existing_list_of_elements(
+            elts_of_compensation_zone,
+            reference_simulation_output,
+            files_from_full_list_of_elements,
+        )
 
     def fix(self, optimisation_algorithm: OptimisationAlgorithm
             ) -> tuple[bool, SetOfCavitySettings, dict]:

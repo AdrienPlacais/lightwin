@@ -31,7 +31,7 @@ def test(c_wtf: configparser.SectionProxy) -> None:
              'design_space_preset': test_design_space_preset,
              'optimisation_algorithm': test_optimisation_algorithm,
              'misc': _test_misc,
-             'position': test_position,
+             # 'position': test_position,
              }
     for key, test in tests.items():
         if not test(c_wtf):

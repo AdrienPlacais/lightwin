@@ -24,7 +24,7 @@ implemented presets in :mod:`config.optimisation.design_space`.
 import logging
 from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
-from typing import Callable, Any
+from typing import Callable, Any, Sequence
 from functools import partial
 
 import numpy as np
@@ -359,7 +359,7 @@ def _read_design_space(design_space_preset: str) -> ABCMeta:
 def get_design_space_and_constraint_function(
     linac_name: str,
     design_space_preset: str,
-    reference_cavities: list[FieldMap],
+    reference_cavities: Sequence[FieldMap],
     compensating_cavities: list[FieldMap],
     **wtf: Any,
 ) -> tuple[list[Variable],

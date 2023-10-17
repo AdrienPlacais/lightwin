@@ -36,7 +36,9 @@ DISPLAY_CAVITIES_INFO = True
 class FaultScenario(list):
     """A class to hold all fault related data."""
 
-    def __init__(self, ref_acc: Accelerator, fix_acc: Accelerator,
+    def __init__(self,
+                 ref_acc: Accelerator,
+                 fix_acc: Accelerator,
                  beam_calculator: BeamCalculator,
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  fault_idx: list[int] | list[list[int]],
@@ -84,9 +86,6 @@ class FaultScenario(list):
         faults = []
         files_from_full_list_of_elements = fix_acc.elts.files
         for fault, comp in zip(gathered_fault_idx, gathered_comp_idx):
-            elts_subset, objectives_positions = \
-                position.compensation_zone(fix_acc, wtf, fault, comp)
-
             faulty_cavities = [fix_acc.l_cav[i] for i in fault]
             compensating_cavities = [fix_acc.l_cav[i] for i in comp]
 
@@ -95,9 +94,10 @@ class FaultScenario(list):
                 reference_simulation_output=reference_simulation_output,
                 files_from_full_list_of_elements=files_from_full_list_of_elements,
                 wtf=self.wtf,
+                broken_elts=self.fix_acc.elts,
                 failed_cavities=faulty_cavities,
                 compensating_cavities=compensating_cavities,
-                elts=elts_subset)
+                )
             faults.append(fault)
         super().__init__(faults)
         self._set_optimisation_algorithms()
