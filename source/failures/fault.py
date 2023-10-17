@@ -17,7 +17,7 @@ import config_manager as con
 from core.elements.element import Element
 from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.list_of_elements.helper import equiv_elt
+from core.list_of_elements.helper import equivalent_elt
 from core.list_of_elements.factory import (
     subset_of_pre_existing_list_of_elements
 )
@@ -105,7 +105,7 @@ class Fault:
         self.failed_cavities = failed_cavities
         self.compensating_cavities = compensating_cavities
 
-        reference_cavities = [equiv_elt(reference_elts, cavity)
+        reference_cavities = [equivalent_elt(reference_elts, cavity)
                               for cavity in self.compensating_cavities]
         design_space = get_design_space_and_constraint_function(
             linac_name=con.LINAC,
