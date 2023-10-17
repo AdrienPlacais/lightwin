@@ -6,9 +6,6 @@ Created on Tue Dec  6 14:33:39 2022.
 @author: placais
 
 .. todo::
-    Remove the old position key
-
-.. todo::
     phi_s fit is included in design_space preset
 
 .. todo::
