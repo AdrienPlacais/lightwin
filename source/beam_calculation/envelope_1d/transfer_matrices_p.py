@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 22 16:04:34 2021.
+Here we define every element longitudinal transfer matrix.
 
-@author: placais
+Units are taken exactly as in TraceWin, i.e. first line is ``z (m)`` and second
+line is ``dp/p``.
 
-Module holding all the longitudinal transfer sub-matrices. Units are taken
-exactly as in TraceWin, i.e. first line is z (m) and second line is dp/p.
+.. todo::
+    Check du_dz outside of field_map function
 
-TODO check du_dz outside of field_map function
-
-Possible to use only lists here. Not prioritary.
-May speed up the code, especially in _c.
-But numpy is fast, no?
+.. todo::
+    Possible to use only lists here. Not primary.
+    May speed up the code, especially in _c.
+    But numpy is fast, no?
 
 """
 from typing import Callable

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Dec  6 14:33:39 2022.
-
-@author: placais
+This module is the holds a generic compensation workflow.
 
 .. todo::
     Remove the old position key

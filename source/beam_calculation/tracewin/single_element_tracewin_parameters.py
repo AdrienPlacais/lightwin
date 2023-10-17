@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun 28 12:31:18 2023.
+This module stores the solver parameters for :class:`.TraceWin`.
 
-@author: placais
-
-This module holds `SingleElementTraceWinParameters`, that inherits from the
-Abstract Base Class `SingleElementCalculatorParameters`.
-It is currently not necessary.
+.. note::
+    It is currently not necessary for TraceWin to run.
 
 """
 import logging

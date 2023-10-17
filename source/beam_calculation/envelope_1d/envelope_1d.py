@@ -1,28 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 12 08:24:37 2023.
+This module holds :class:`Envelope1D`, a longitudinal envelope solver.
 
-@author: placais
-
-This module holds Envelope1D, that inherits from BeamCalculator base class. It
-solves the motion of the particle in Envelope, in 1D.
-
-Inherited
----------
-    out_folder
-    __post_init__()
-    _generate_element_to_index_func()
-
-Abstract methods
-----------------
-    run()
-    run_with_this()
-    post_optimisation_run_with_this()
-    init_solver_parameters()
-    _generate_simulation_output()
-    is_a_multiparticle_simulation
-    is_a_3d_simulation
+It is fast, but should not be used at low energies.
 
 """
 import logging

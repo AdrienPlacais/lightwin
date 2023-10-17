@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun 28 12:31:18 2023.
+Here we define a class to hold solver parameters for :class:`.Envelope1D`.
 
-@author: placais
-
-This module holds `SingleElementEnvelope1DParameters`, that inherits form the
-Abstract Base Class `SingleElementCalculatorParameters`.
+This module holds :class:`SingleElementEnvelope1DParameters`, that inherits
+from the Abstract Base Class :class:`.SingleElementCalculatorParameters`.
 It holds the transfer matrix function that is used, according to the solver
 (Runge-Kutta or leapfrog) and their version (Python or Cython), as well as the
 meshing in accelerating elements.

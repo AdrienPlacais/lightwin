@@ -38,7 +38,7 @@ autodoc_default_options = {
     "members": True,
     "undoc-members": True,
     "private-members": True,
-    "special-members": '__init__',
+    "special-members": '__init__, __post_init__',
 }
 
 add_module_names = False
