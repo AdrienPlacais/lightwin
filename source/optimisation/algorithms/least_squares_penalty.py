@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Aug 21 20:37:20 2023.
+This module holds a variation of :class:`LeastSquares`.
 
-@author: placais
-
-This module holds a variation of :class:`LeastSquares`. It is not intended to
-be used with ``phi_s fit``. Approach is here to make the residues grow when the
-constraints are not respected.
+It is not intended to be used with ``phi_s fit``. Approach is here to make the
+residues grow when the constraints are not respected.
 
 """
 from dataclasses import dataclass

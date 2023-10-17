@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 22 10:26:19 2021.
-
-@author: placais
-
-This module holds :class:`Element`, the base parent class that is then declined
-in Drift, FieldMap, etc.
+This module holds :class:`Element`, declined in Drift, FieldMap, etc.
 
 .. todo::
     check FLAG_PHI_S_FIT

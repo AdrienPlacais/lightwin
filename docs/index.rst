@@ -11,7 +11,8 @@ Welcome to LightWin's documentation!
 
 .. toctree::
    :maxdepth: 4
-   :caption: Contents:
+   :caption: Contents
+   :titlesonly:
 
    modules
 

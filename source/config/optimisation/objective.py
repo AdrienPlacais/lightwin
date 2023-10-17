@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 13 17:13:04 2023.
-
-@author: placais
-
-In this module we set a function to check validity of ``objective_preset`` key
-in the ``.ini`` input file.
+In this module we set a function to check validity of ``objective_preset`` key.
 
 The documentation relative to every objective preset is in
 :mod:`optimisation.objective.factory`.

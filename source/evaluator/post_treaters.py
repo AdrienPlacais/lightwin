@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 31 13:23:24 2023.
+Here we define the functions used by :class:`.SimulationOutputEvaluator`.
 
-@author: placais
-
-In this module we regroup the functions dedicated to treat data, used in
-SimulationOutputEvaluators. They all take a value and a reference value as
-argumets and return the treated value (ref is unchanged).
+They dedicated to treat data. They all take a value and a reference value as
+arguments and return the treated value (ref is unchanged).
 
 """
 import logging

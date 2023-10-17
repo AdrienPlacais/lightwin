@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Aug 18 11:57:32 2023.
-
-@author: placais
-
-This module holds ``NSGA``, a genetic algorithm for optimisation.
-
-"""
+"""This module holds :class:``.NSGA``, a genetic algorithm for optimisation."""
 from dataclasses import dataclass
 from typing import Callable
 import logging

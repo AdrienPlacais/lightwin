@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 13 17:22:05 2023.
-
-@author: placais
-
-In this module we set the function to test validity of the
-``design_space_preset`` key.
+Here we set the function to test validity of the ``design_space_preset`` key.
 
 The documentation relative to every preset is in
 :mod:`optimisation.design_space.factory`. This is also where you should add you

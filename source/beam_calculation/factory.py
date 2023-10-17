@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Jun 13 17:30:58 2023.
-
-@author: placais
-
-This module simply holds a factory to easily create the desired
-`BeamCalculator`.
-
-"""
+"""This module holds a factory to create the :class:`.BeamCalculator`."""
 from typing import Any
 
 from beam_calculation.beam_calculator import BeamCalculator

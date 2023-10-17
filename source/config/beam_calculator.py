@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 26 09:34:51 2023.
+Everything related to the ``beam_calculator`` key.
 
-@author: placais
+``beam_calculator_post`` is also handled here.
 
-Everything related to the `beam_calculator` (and `beam_calculator_post`) keys
-of the config file.
+.. todo::
+    Handle ``tracelx``. Remember that the ``tracelx`` executable should be in
+    the same folder as your project!
 
 """
 import logging

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb 21 13:36:08 2023.
+Handle simulation parameters.
 
-@author: placais
-
-Handle simulation parameters. In particular:
+In particular:
     - what are the initial properties of the beam?
     - which cavities are broken?
     - how should they be fixed?

@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Aug 23 16:30:10 2023.
-
-@author: placais
-
-This modules holds :class:`DifferentialEvolution`.
-
-"""
+"""This modules holds :class:`DifferentialEvolution`."""
 from dataclasses import dataclass
 import logging
 

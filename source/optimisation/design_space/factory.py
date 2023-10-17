@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug 18 17:44:41 2023.
-
-@author: placais
-
-This module holds the factory as well as the presets to handle variables,
-constraints, limits, initial values.
+We define factory and presets to handle variables, constraints, limits, etc..
 
 When you add you own presets, do not forget to add them to the list of
 implemented presets in :mod:`config.optimisation.design_space`.

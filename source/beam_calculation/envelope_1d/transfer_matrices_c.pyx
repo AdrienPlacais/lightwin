@@ -2,17 +2,16 @@
 #cython: language_level=3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 22 16:04:34 2021.
+This module holds the same functions as ``transfer_matrices_p``, but in Cython.
 
-@author: placais
+Cython needs to be compiled to work. Check the instructions in ``setup.py``.
 
-This module holds the same functions as transfer_matrices_p, but in Cython.
+.. todo::
+    I think that this module could be greatly enhanced. I am not a Cython
+    specialist and suggestions are welcome.
 
-Cython needs to be compiled to work. Check the instrutions in setup.py.
-
-TODO I think that this module could be greatly enhanced. I am not a Cython
-specialist and suggestions are welcome.
-TODO field maps better to create the transfer matrix in one passage at the end?
+.. todo::
+    Field maps better to create the transfer matrix in one passage at the end?
 
 """
 import cython

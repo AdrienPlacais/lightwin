@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 26 10:20:14 2023.
-
-@author: placais
-
 Everything related to the plots.
+
+The presets listed here are defined in :mod:`visualization.plot`. This is where
+you will find corresponding documentation, and where you should define you own
+presets.
 
 """
 import logging

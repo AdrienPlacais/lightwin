@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Aug 18 17:26:56 2023.
-
-@author: placais
-
-This module holds :class:`Objective`, an abstract base class from which every
-objective will inherit.
-
-"""
+"""This module holds an base class from which every objective will inherit."""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 

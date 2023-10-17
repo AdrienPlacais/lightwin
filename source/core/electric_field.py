@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Nov 30 15:43:39 2021.
+This module holds :class:`RfField`, which is a simple electric field.
 
-@author: placais
-
-This module holds RfField, which is a simple electric field.
-
-TODO : untouched for many time... Should modernize this module, maybe move it
-to beam_calculation/?
+.. todo::
+    Untouched for many time... Should modernize this module, maybe move it
+    to beam_calculation/?
 
 """
 import logging

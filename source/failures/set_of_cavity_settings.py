@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Jun  9 15:47:04 2023.
-
-@author: placais
-
-This module holds classes to store (compensating) cavity settings in a compact
-way.
-
-"""
+"""This module holds classes to store (compensating) cavity settings."""
 from dataclasses import dataclass
 import logging
 from typing import Any, TypeVar

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Aug 23 16:30:10 2023.
+This module holds :class:`DownhillSimplex`.
 
-@author: placais
-
-This module holds :class:`DownhillSimplex`, also called Nelder-Mead algorithm.
+It is also called Nelder-Mead algorithm.
 
 """
 from dataclasses import dataclass

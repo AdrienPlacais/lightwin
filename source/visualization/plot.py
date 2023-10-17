@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb  8 09:35:54 2023.
-
-@author: placais
-
 This module holds a library to produce all these nice plots.
 
-TODO : _plot_structure needs a ListOfElements, not an Accelerator. I think.
-TODO : better detection of what is a multiparticle simulation and what is not.
-Currently looking for "'partran': 0" in the name of the solver, making the
-assumption that multipart is the default. But it depends on the .ini...
+When adding you own presets, do not forget to add them to the list of
+implemented plots in :mod:`config.plots`.
+
+.. todo::
+    _plot_structure needs a ListOfElements, not an Accelerator. I think.
+
+.. todo::
+    better detection of what is a multiparticle simulation and what is not.
+    Currently looking for "'partran': 0" in the name of the solver, making the
+    assumption that multipart is the default. But it depends on the .ini...
+    update: just use .is_a_multiparticle_simulation
 
 """
 

@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Jun 13 17:30:58 2023.
-
-@author: placais
-
-This module holds a factory method to create the desired
-:class:`.OptimisationAlgorithm`.
-
-"""
+"""We define a factory method to create :class:`.OptimisationAlgorithm`."""
 from typing import Any, Callable
 from abc import ABCMeta
 import logging

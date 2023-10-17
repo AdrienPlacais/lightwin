@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Python dual-logging setup (console and log file).
 
-# -----------------------------------------------------------------------------
-#                                                                             -
-#  Python dual-logging setup (console and log file),                          -
-#  supporting different log levels and colorized output                       -
-#                                                                             -
-#  Created by Fonic <https://github.com/fonic>                                -
-#  Date: 04/05/20 - 02/07/23                                                  -
-#                                                                             -
-#  Based on:                                                                  -
-#  https://stackoverflow.com/a/13733863/1976617                               -
-#  https://uran198.github.io/en/python/2016/07/12/colorful-python-logging.html-
-#  https://en.wikipedia.org/wiki/ANSI_escape_code#Colors                      -
-#                                                                             -
-# -----------------------------------------------------------------------------
+It supportd different log levels and colorized output.
+
+Created by Fonic <https://github.com/fonic>
+Date: 04/05/20 - 02/07/23
+
+Based on:
+https://stackoverflow.com/a/13733863/1976617
+https://uran198.github.io/en/python/2016/07/12/colorful-python-logging.html
+https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+
+.. todo::
+    Modernize this, with type hint etc.
+
+"""
 # Imports
 import os
 import sys

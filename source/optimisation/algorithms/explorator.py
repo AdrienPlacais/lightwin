@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 31 16:01:48 2023.
+This module holds :class:`Explorator`, a module to explore the design space.
 
-@author: placais
-
-This module holds :class:`Explorator`, a module to explorate the whole design
-space. In order to be consistent with the ABC :class:`OptimisationAlgorithm`,
+In order to be consistent with the ABC :class:`.OptimisationAlgorithm`,
 it also returns the solution with the lowest residue value -- hence it is also
-a "brute-force" optimisation algorith.
+a "brute-force" optimisation algorithm.
 
 .. todo::
     Make this class more robust. In particular: save all objectives (not just

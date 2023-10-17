@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 26 16:44:53 2022.
-
-@author: placais
-"""
-
+"""Legacy."""
 import logging
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Nov 29 12:01:01 2022.
-
-@author: placais
-"""
+"""Here we define functions to make proper outputs of various quantities."""
 # NB: all phi are in radians. The reason why they all have unit [deg] is that
 # they are always converted to degrees when outputed.
 markdown = {

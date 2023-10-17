@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug 18 17:25:02 2023.
+This module holds class:`Variable`, which stores an optimisation variable.
 
-@author: placais
-
-This module holds class:`Variable`, which stores an optimisation variable
-with its name, bounds, initial value, etc.
+It keeps it's name, bounds, initial value, etc.
 
 """
 import logging

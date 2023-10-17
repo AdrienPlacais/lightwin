@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug 18 17:26:56 2023.
+This module is specific to hold mismatches.
 
-@author: placais
-
-This module is specific to hold mismatches. It has its own module as this
-quantity is pretty specific.
+It has its own module as this quantity is pretty specific.
 
 """
 import logging

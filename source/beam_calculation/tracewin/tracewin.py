@@ -1,37 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun  7 16:13:16 2023.
+Here we define :class:`TraceWin`, to call it from command line.
 
-@author: placais
+It inherits from :class:`.BeamCalculator` base class.  It solves the motion of
+the particles in envelope or multipart, in 3D. In contrary to
+:class:`.Envelope1D` solver, it is not a real solver but an interface with
+``TraceWin`` which must be installed on your machine.
 
-This module holds :class:`TraceWin`, that inherits from :class:`BeamCalculator`
-base class.  It solves the motion of the particles in envelope or multipart, in
-3D. In contrary to :class:`Envelope1D` solver, it is not a real solver but an
-interface with ``TraceWin`` which must be installed on your machine.
+.. warning::
+    For now, :class:`TraceWin` behavior with relative phases is undetermined.
+    You should ensure that you are working with *absolute* phases, i.e. that
+    last argument of ``FIELD_MAP`` commands is ``1``.
+    You can run a simulation with :class:`.Envelope1D` solver and
+    ``flag_phi_abs= True``. The ``.dat`` file created in the ``000001_ref``
+    folder should be the original ``.dat`` but converted to absolute phases.
 
-Warning: :class:`TraceWin` behavior with relative phases is undetermined. You
-should ensure that you are working with ABSOLUTE phases, i.e. that last
-argument of ``FIELD_MAP`` commands is ``1``.
-You can run a simulation with :class:`Envelope1D` solver and ``flag_phi_abs=
-True``. The ``.dat`` file created in the ``000001_ref`` folder should be the
-original ``.dat`` but converted to absolute phases.
-
-Inherited
----------
-    ``out_folder``
-    :func:`__post_init__`
-    :func:`_generate_element_to_index_func`
-
-Abstract methods
-----------------
-    :func:`run`
-    :func:`run_with_this`
-    :func:`post_optimisation_run_with_this`
-    :func:`init_solver_parameters`
-    :func:`_generate_simulation_output`
-    :func:`is_a_multiparticle_simulation`
-    :func:`is_a_3d_simulation`
+.. todo::
+    Already written elsewhere in the code, but a script to convert ``.dat``
+    between the different phases would be good.
 
 .. todo::
     Allow TW to work with relative phases. Will have to handle ``rf_fields``

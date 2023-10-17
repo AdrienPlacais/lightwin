@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun 28 12:29:12 2023.
+We define a base class to hold the parameters for the :class:`.BeamCalculator`.
 
-@author: placais
+:class:`SingleElementCalculatorParameters` is attribute of an :class:`.Element`
+and holds parameters that depend both on the :class:`.Element` under study and
+the on the :class:`.BeamCalculator` solver that is used.
 
-This module holds a base class for `SingleElementCalculatorParameters`
-(attribute of an `Element`). It holds parameters that depend on both the
-`Element` under study and the BeamCalculator solver that is used.
-
-Currently, it is used by `Envelope1D` only, as `TraceWin` handles it itself.
+Currently, it is used by :class:`.Envelope1D` only, as :class:`.TraceWin`
+handles it itself.
 
 """
 from typing import Any
@@ -22,7 +21,9 @@ from util.helper import recursive_items, recursive_getter
 
 class SingleElementCalculatorParameters(ABC):
     """
-    Parent class to hold solving parameters. Attribute of `Element`.
+    Parent class to hold solving parameters. Attribute of :class:`.Element`.
+
+    Used by :class:`.Envelope1D`.
 
     """
 
@@ -54,4 +55,4 @@ class SingleElementCalculatorParameters(ABC):
 
     @abstractmethod
     def re_set_for_broken_cavity(self) -> None:
-        """Update solver after a cavity is  broken."""
+        """Update solver after a cavity is broken."""

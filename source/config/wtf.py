@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jun 26 09:54:54 2023.
-
-@author: placais
-
-All the functions to test the ``wtf`` (what to fit) key of the config file.
-
-"""
+"""The functions to test the ``wtf`` (what to fit) key of the config file."""
 import logging
 import configparser
 
@@ -66,10 +59,10 @@ def config_to_dict(c_wtf: configparser.SectionProxy) -> dict:
 def _test_misc(c_wtf: configparser.SectionProxy) -> bool:
     """Perform some other tests."""
     if 'phi_s fit' not in c_wtf.keys():
-        logging.error("Please explicitely precise if you want to fit synch "
-                      + "phases (recommended for least squares, which do not "
-                      + "handle constraints) or not (for algorithms that can "
-                      + "handle it).")
+        logging.error("Please explicitly precise if you want to fit synch "
+                      "phases (recommended for least squares, which do not "
+                      "handle constraints) or not (for algorithms that can "
+                      "handle it).")
         return False
 
     try:

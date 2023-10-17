@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 17 09:08:47 2023.
+This module holds a list-based class holding all the :class:`Fault` to fix.
 
-@author: placais
-
-This module holds :class:`FaultScenario`, a list-based class holding all the
-:class:`Fault` to be fixed, as well as :func:`fault_scenario_factory`, a
-factory function creating all the required :class:`FaultScenario` objects.
+We also define :func:`fault_scenario_factory`, a factory function creating all
+the required :class:`FaultScenario` objects.
 
 """
 import logging

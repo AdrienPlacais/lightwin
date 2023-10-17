@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Dec 13 14:42:41 2021.
+This module holds everything related to emittances, Twiss, envelopes.
 
-@author: placais
+They are stored in a :class:`SinglePhaseSpaceBeamParameters`, which are
+gathered in a :class:`BeamParameters` class object.
 
-??? May be intereseting to create a BeamInitialState, in the same fashion as
-ParticleInitialState. BeamInitialState would be the only one to have a
-tracewin_command.
 
-This module holds everything related to emittances, Twiss parameters,
-envelopes. They are stored in a `SinglePhaseSpaceBeamParameters`, which are
-gathered in a `BeamParameters` class object.
+.. todo::
+    May be interesting to create a ``BeamInitialState``, in the same fashion as
+    :class:`.ParticleInitialState`. ``BeamInitialState`` would be the only one
+    to have a ``tracewin_command``.
+
+.. todo::
+    Reformat doc for cleaner look in sphinx.
 
 Conventions
 -----------
@@ -48,9 +50,12 @@ We use the same units and conventions as TraceWin.
 
     Transverse envelopes are in [x-x'] and [y-y'], so same units as [z-z'].
 
-    NB: envelopes are at 1-sigma, while they are plotted at 6-sigma by default
+.. note::
+    Envelopes are at 1-sigma, while they are plotted at 6-sigma by default
     in TraceWin.
-    NB2: Envelopes are calculated with un-normalized emittances in the
+
+.. note::
+    Envelopes are calculated with un-normalized emittances in the
     [z-delta] and [z-z'] planes, but they are calculated with normalized
     emittance in the [phi-W] plane.
 

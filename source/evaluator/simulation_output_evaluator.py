@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 26 16:20:53 2023.
+We define an object to evaluate quality of a set of cavity settings.
 
-@author: placais
-
-In this module we define an object that is used to evaluate the quality of a
-set of cavity settings - we do not directly evaluate a `SetOfCavitySettings`
-though, but rather a `SimulationOutput`.
+.. note::
+    We do not directly evaluate a :class:`.SetOfCavitySettings` though, but
+    rather a :class:`.SimulationOutput`.
 
 """
 import logging
@@ -20,7 +18,6 @@ from abc import ABC
 import numpy as np
 
 from beam_calculation.output import SimulationOutput
-from evaluator import post_treaters
 from util.helper import resample
 from visualization import plot
 

@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug 25 17:07:06 2023.
+Here we define a dummy :class:`.Element`/:class:`.Command`.
 
-@author: placais
+We use it to keep track of an non-implemented element/command.
 
-Here we define a dummy class, which can be a :class:`Element` or a
-:class:`Command`. We use it to keep track of an non-implemented
-element/command.
-
-.. note ::
-    Maybe :class:`Element` and :class:`Command` should inherit from this? It
+.. note::
+    Maybe :class:`.Element` and :class:`.Command` should inherit from this? It
     would be much more consistent and pythonic.
 
 """

@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Oct 13 17:49:03 2023.
-
-@author: placais
-
-In this module, we check the validity of the ``idx`` and ``failed`` user
-inputs.
-
-"""
+"""Here we check validity of the ``idx`` and ``failed`` user inputs."""
 import logging
 import configparser
 

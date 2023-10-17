@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Sep  4 16:19:22 2023.
-
-@author: placais
-
-This module holds :class:`SuperposedFieldMap`. It inherits from
-:class:`Element` but also stores several :class:`FieldMap`.
+"""This module holds :class:`SuperposedFieldMap`.
 
 .. note::
     The initialisation of this class is particular, as it does not correspond

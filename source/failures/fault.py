@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 18 15:46:38 2023.
+This module holds the class :class:`Fault`.
 
-@author: placais
-
-This module holds the class :class:`Fault`. Its purpose is to hold information
-on a cavity failure and to fix it.
+It's purpose is to hold information on a cavity failure and to fix it.
 
 """
 import logging

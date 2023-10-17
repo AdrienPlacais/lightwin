@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun  9 11:56:20 2023.
+We define a class to store outputs from different :class:`.BeamCalculator`.
 
-@author: placais
+.. todo::
+    Clarify difference cav_params vs rf_fields
 
-This module holds `SimulationOutput`, a class to uniformly store the outputs
-from the different `BeamCalculator` s.
+.. todo::
+    Do I really need the `r_zz_elt` key??
 
-FIXME : clarify difference cav_params vs rf_fields
-
-FIXME : do I really need the `r_zz_elt` key??
-
-FIXME : do I really need z_abs? Envelope1D does not uses it while TraceWin
-does.
+.. todo::
+    Do I really need z_abs? Envelope1D does not uses it while TraceWin does.
 
 """
 import logging

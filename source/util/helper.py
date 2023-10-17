@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Sep 22 14:15:48 2021.
+"""Another module with different misc functions.
 
-@author: placais
+.. todo::
+    Clean this, check what is still used.
+
 """
 import logging
 from collections.abc import Iterable

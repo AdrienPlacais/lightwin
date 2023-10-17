@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 12 08:26:52 2023.
+This module holds a base class for beam propagation computing tools.
 
-@author: placais
-
-This module holds the base class :class:`BeamCalculator`. It computes the
+It defines the base class :class:`BeamCalculator`, which computes the
 propagation of the beam in a :class:`.ListOfElements`, possibly with a specific
-:class:`.SetOfCavitySettings` (optimisation process). It should create a
+:class:`.SetOfCavitySettings` (optimisation process). It should return a
 :class:`.SimulationOutput`.
 
 """

@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed May 31 16:01:48 2023.
-
-@author: placais
-
-This module holds :class:`LeastSquares`, a simple and fast optimisation method.
-
-"""
+"""We define :class:`LeastSquares`, a simple and fast optimisation method."""
 from dataclasses import dataclass
 import logging
 
