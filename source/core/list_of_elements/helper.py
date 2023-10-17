@@ -6,7 +6,7 @@ Created on Fri Oct 13 11:07:31 2023.
 @author: placais
 
 In this module we define some helper functions to filter
-:class:`.ListOfElements` of ``list`` of :class:`.Element`.
+:class:`.ListOfElements` or ``list`` of :class:`.Element`.
 
 .. todo::
     Filtering consistency. Also, use more types and less ``nature``.
@@ -80,17 +80,22 @@ def elt_at_this_s_idx(elts: ListOfElements | list[Element],
     return None
 
 
-# legacy
-def equiv_elt(elts: ListOfElements | list[Element],
-              elt: Element | str,
-              to_index: bool = False
-              ) -> Element | int | None:
+def equivalent_elt_idx(elts: ListOfElements | list[Element],
+                       elt: Element | str) -> int:
     """
-    Return an element from elts that has the same name as elt.
+    Return the index of element from ``elts`` corresponding to ``elt``.
 
-    .. note::
-        Prefer use :func:`equivalent_elt` and :func:`equivalent_elt_idx` which
-        work better with ``pyright`` type-checker.
+    .. important::
+        This routine uses the name of the element and not its adress. So
+        it will not complain if the :class:`.Element` object that you asked for
+        is not in this list of elements.
+        In the contrary, it was meant to find equivalent cavities between
+        different lists of elements.
+
+    See also
+    --------
+    :func:`equivalent_elt`
+    :meth:`.Accelerator.equivalent_elt`
 
     Parameters
     ----------
@@ -98,17 +103,14 @@ def equiv_elt(elts: ListOfElements | list[Element],
         List of elements where you want the position.
     elt : Element | str
         Element of which you want the position. If you give a str, it should be
-        the name of an Element. If it is an Element, we take its name in the
-        routine. Magic keywords 'first', 'last' are also accepted.
-    to_index : bool, optional
-        If True, the function returns the index of the Element instead of the
-        Element itself.
+        the name of an element. If it is an :class:`.Element`, we take its name
+        in the routine. Magic keywords ``'first'``, ``'last'`` are also
+        accepted.
 
     Returns
     -------
-    Element | int | None
-        Equivalent Element, position in list of elements, or None if not
-        found.
+    int
+        Index of equivalent element.
 
     """
     if not isinstance(elt, str):
@@ -118,17 +120,14 @@ def equiv_elt(elts: ListOfElements | list[Element],
     names = [x.elt_info["elt_name"] for x in elts]
 
     if elt in names:
-        idx = names.index(elt)
-    elif elt in magic_keywords:
-        idx = magic_keywords[elt]
-    else:
-        logging.error(f"Element {elt} not found in this list of elements.")
-        logging.debug(f"List of elements is:\n{elts}")
-        return None
+        return names.index(elt)
 
-    if not to_index:
-        return elts[idx]
-    return idx
+    if elt in magic_keywords:
+        return magic_keywords[elt]
+
+    logging.error(f"Element {elt} not found in this list of elements.")
+    logging.debug(f"List of elements is:\n{elts}")
+    raise IOError(f"Element {elt} not found in this list of elements.")
 
 
 def equivalent_elt(elts: ListOfElements | list[Element],
@@ -142,6 +141,11 @@ def equivalent_elt(elts: ListOfElements | list[Element],
         is not in this list of elements.
         In the contrary, it was meant to find equivalent cavities between
         different lists of elements.
+
+    See also
+    --------
+    :func:`equivalent_elt_idx`
+    :meth:`.Accelerator.equivalent_elt`
 
     Parameters
     ----------
@@ -159,42 +163,9 @@ def equivalent_elt(elts: ListOfElements | list[Element],
         Equivalent element.
 
     """
-    out_elt = equiv_elt(elts, elt, to_index=False)
-    assert isinstance(out_elt, Element)
+    out_elt_idx = equivalent_elt_idx(elts, elt)
+    out_elt = elts[out_elt_idx]
     return out_elt
-
-
-def equivalent_elt_idx(elts: ListOfElements | list[Element],
-                       elt: Element | str) -> int:
-    """
-    Return the index of element from ``elts`` corresponding to ``elt``.
-
-    .. important::
-        This routine uses the name of the element and not its adress. So
-        it will not complain if the :class:`.Element` object that you asked for
-        is not in this list of elements.
-        In the contrary, it was meant to find equivalent cavities between
-        different lists of elements.
-
-    Parameters
-    ----------
-    elts : ListOfElements | list[Element]
-        List of elements where you want the position.
-    elt : Element | str
-        Element of which you want the position. If you give a str, it should be
-        the name of an element. If it is an :class:`.Element`, we take its name
-        in the routine. Magic keywords ``'first'``, ``'last'`` are also
-        accepted.
-
-    Returns
-    -------
-    out_elt_idx : int
-        Index of equivalent element.
-
-    """
-    out_elt_idx = equiv_elt(elts, elt, to_index=True)
-    assert isinstance(out_elt_idx, int)
-    return out_elt_idx
 
 
 def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
