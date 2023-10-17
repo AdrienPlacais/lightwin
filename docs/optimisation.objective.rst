@@ -16,4 +16,5 @@ Submodules
    optimisation.objective.minimize_difference_with_ref
    optimisation.objective.minimize_mismatch
    optimisation.objective.objective
+   optimisation.objective.position
    optimisation.objective.quantity_is_between

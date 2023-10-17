@@ -14,6 +14,5 @@ Submodules
 
    failures.fault
    failures.fault_scenario
-   failures.position
    failures.set_of_cavity_settings
    failures.strategy
