@@ -6,8 +6,8 @@ Created on Thu May 18 12:21:37 2023.
 @author: placais
 
 In most cases, we need only to study a fraction of the linac during
-optimisation process. This zone should be as smal as posssible to reduce
-coputation time, it shoul encompass all failed cavities, all compensating
+optimisation process. This zone should be as small as possible to reduce
+computation time, it should encompass all failed cavities, all compensating
 cavities, as well as the place where objectives are evaluated.
 In this module, we define helper functions to determine this zone.
 

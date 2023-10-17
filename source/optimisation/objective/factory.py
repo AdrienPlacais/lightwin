@@ -25,13 +25,12 @@ from functools import partial
 
 import numpy as np
 
-from failures.position import zone_to_recompute
-
 from optimisation.objective.objective import Objective
 from optimisation.objective.minimize_difference_with_ref import \
     MinimizeDifferenceWithRef
 from optimisation.objective.minimize_mismatch import MinimizeMismatch
 from optimisation.objective.quantity_is_between import QuantityIsBetween
+from optimisation.objective.position import zone_to_recompute
 
 from optimisation.design_space.factory import LIMITS_GETTERS
 

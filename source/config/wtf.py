@@ -13,7 +13,6 @@ import configparser
 
 from config.failures.failed_cavities import test_failed_cavities
 from config.failures.strategy import test_strategy
-from config.failures.position import test_position
 
 from config.optimisation.objective import test_objective_preset
 from config.optimisation.design_space import test_design_space_preset
@@ -31,7 +30,6 @@ def test(c_wtf: configparser.SectionProxy) -> None:
              'design_space_preset': test_design_space_preset,
              'optimisation_algorithm': test_optimisation_algorithm,
              'misc': _test_misc,
-             # 'position': test_position,
              }
     for key, test in tests.items():
         if not test(c_wtf):
@@ -46,7 +44,6 @@ def config_to_dict(c_wtf: configparser.SectionProxy) -> dict:
     getter = {
         'objective_preset': c_wtf.get,
         'design_space_preset': c_wtf.get,
-        'position': c_wtf.getliststr,
         'failed': c_wtf.getfaults,
         'manual list': c_wtf.getgroupedfaults,
         'k': c_wtf.getint,

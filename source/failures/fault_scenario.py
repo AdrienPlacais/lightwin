@@ -19,7 +19,7 @@ from beam_calculation.output import SimulationOutput
 from optimisation.algorithms.factory import optimisation_algorithm_factory
 
 from failures.fault import Fault
-from failures import strategy, position
+from failures import strategy
 
 from core.elements.element import Element
 from core.accelerator import Accelerator
