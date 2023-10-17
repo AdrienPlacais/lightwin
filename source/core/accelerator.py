@@ -31,7 +31,7 @@ from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.factory import new_list_of_elements
 from core.list_of_elements.helper import (elt_at_this_s_idx,
-                                          equiv_elt)
+                                          equivalent_elt)
 
 from util.helper import recursive_items, recursive_getter
 
@@ -130,7 +130,7 @@ class Accelerator():
 
             if elt is not None and (isinstance(elt, str)
                                     or elt not in self.elts):
-                elt = self.equiv_elt(elt)
+                elt = self.equivalent_elt(elt)
 
             val[key] = recursive_getter(key, vars(self), to_numpy=False,
                                         none_to_nan=False,
@@ -211,10 +211,9 @@ class Accelerator():
         """Give the element where the given index is."""
         return elt_at_this_s_idx(self.elts, s_idx, show_info)
 
-    def equiv_elt(self, elt: Element | str, to_index: bool = False
-                  ) -> Element | int | None:
-        """Return an element from self.elts with the same name."""
-        return equiv_elt(self.elts, elt, to_index)
+    def equivalent_elt(self, elt: Element | str) -> Element:
+        """Return element from ``self.elts`` with the same name as ``elt``."""
+        return equivalent_elt(self.elts, elt)
 
 
 def accelerator_factory(beam_calculators: tuple[object | None],
