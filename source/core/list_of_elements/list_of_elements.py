@@ -21,7 +21,6 @@ Two objects can have a :class:`ListOfElements` as attribute:
 """
 import logging
 from typing import Any
-from functools import partial
 import numpy as np
 
 import config_manager
@@ -179,8 +178,11 @@ class ListOfElements(list):
         return key in recursive_items(vars(self)) or \
             key in recursive_items(vars(self[0]))
 
-    def get(self, *keys: str, to_numpy: bool = True,
-            remove_first: bool = False, **kwargs: bool | str | Element | None
+    def get(self,
+            *keys: str,
+            to_numpy: bool = True,
+            remove_first: bool = False,
+            **kwargs: bool | str | Element | None
             ) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -212,7 +214,7 @@ class ListOfElements(list):
             Attribute(s) value(s).
 
         """
-        val = {key: [] for key in keys}
+        val: dict[str, Any] = {key: [] for key in keys}
 
         for key in keys:
             if not self.has(key):
