@@ -32,7 +32,7 @@ import numpy as np
 from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
 
-from core.list_of_elements.helper import equiv_elt
+from core.list_of_elements.helper import equivalent_elt
 from core.elements.field_map import FieldMap
 
 from beam_calculation.output import SimulationOutput
@@ -166,7 +166,7 @@ class Unconstrained(DesignSpaceFactory):
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
             for cavity in self.compensating_cavities:
-                ref_cav = equiv_elt(self.reference_cavities, cavity)
+                ref_cav = equivalent_elt(self.reference_cavities, cavity)
                 variable = Variable(
                     name=var_name,
                     cavity_name=str(cavity),
@@ -192,7 +192,7 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
             for cavity in self.compensating_cavities:
-                ref_cav = equiv_elt(self.reference_cavities, cavity)
+                ref_cav = equivalent_elt(self.reference_cavities, cavity)
                 variable = Variable(
                     name=var_name,
                     cavity_name=str(cavity),
@@ -208,7 +208,7 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
         constraints = []
         for constraint_name in ('phi_s',):
             for cavity in self.compensating_cavities:
-                ref_cav = equiv_elt(self.reference_elements, cavity)
+                ref_cav = equivalent_elt(self.reference_elements, cavity)
                 constraint = Constraint(
                     name=constraint_name,
                     cavity_name=str(cavity),
@@ -228,7 +228,7 @@ class SyncPhaseAsVariable(DesignSpaceFactory):
         variables = []
         for var_name in ('phi_s', 'k_e'):
             for cavity in self.compensating_cavities:
-                ref_cav = equiv_elt(self.reference_cavities, cavity)
+                ref_cav = equivalent_elt(self.reference_cavities, cavity)
                 variable = Variable(
                     name=var_name,
                     cavity_name=str(cavity),
@@ -307,7 +307,7 @@ class OneCavityMegaPower(DesignSpaceFactory):
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
             for cavity in self.compensating_cavities:
-                ref_cav = equiv_elt(self.reference_cavities, cavity)
+                ref_cav = equivalent_elt(self.reference_cavities, cavity)
 
                 limits = self._get_limits_from_preset(var_name, ref_cav)
                 if var_name == 'k_e':
@@ -328,7 +328,7 @@ class OneCavityMegaPower(DesignSpaceFactory):
         constraints = []
         for constraint_name in ('phi_s',):
             for cavity in self.compensating_cavities:
-                ref_cav = equiv_elt(self.reference_cavities, cavity)
+                ref_cav = equivalent_elt(self.reference_cavities, cavity)
                 constraint = Constraint(
                     name=constraint_name,
                     cavity_name=str(cavity),
