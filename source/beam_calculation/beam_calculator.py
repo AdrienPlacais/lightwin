@@ -5,10 +5,10 @@ Created on Mon Jun 12 08:26:52 2023.
 
 @author: placais
 
-This module holds the base class `BeamCalculator`. It computes the propagation
-of the beam in a `ListOfElements`, possibly with a specific
-`SetOfCavitySettings` (optimisation process). It should create
-`SimulationOutput`.
+This module holds the base class :class:`BeamCalculator`. It computes the
+propagation of the beam in a :class:`.ListOfElements`, possibly with a specific
+:class:`.SetOfCavitySettings` (optimisation process). It should create a
+:class:`.SimulationOutput`.
 
 """
 import logging
@@ -21,7 +21,7 @@ from beam_calculation.output import SimulationOutput
 from failures.set_of_cavity_settings import SetOfCavitySettings
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.list_of_elements.helper import equiv_elt
+from core.list_of_elements.helper import equivalent_elt
 from core.accelerator import Accelerator
 
 
@@ -155,7 +155,7 @@ def _element_to_index(_elts: ListOfElements,
 
     """
     if isinstance(elt, str):
-        elt = equiv_elt(elts=_elts, elt=elt)
+        elt = equivalent_elt(elts=_elts, elt=elt)
 
     beam_calc_param = elt.beam_calc_param[_solver_id]
     if return_elt_idx:
@@ -169,3 +169,4 @@ def _element_to_index(_elts: ListOfElements,
         return beam_calc_param.s_out - _shift
     else:
         logging.error(f"{pos = }, while it must be 'in', 'out' or None")
+        raise IOError(f"{pos = }, while it must be 'in', 'out' or None")
