@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct 12 13:50:44 2021.
+Here we define various functions.
 
-@author: placais
-TODO merge dict entries for phase space, ie alpha['z'] instead of 'alpha_z'
-TODO ellipse plot could be better
+.. todo::
+    Clean this, a lot of old things that may not be used.
+
+.. todo::
+    Ellipse plot could be better
+
 """
 import os
 import logging

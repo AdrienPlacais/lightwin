@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug  4 09:24:56 2023.
-
-@author: placais
-
 This module holds function to load, modify and create .dat structure files.
 
 .. todo::

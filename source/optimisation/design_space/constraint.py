@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug 18 17:27:20 2023.
+This module holds :class:`Constraint`, which stores a constraint.
 
-@author: placais
-
-This module holds :class:`Constraint`, which stores a constraint with its
-name, limits, and methods to evaluate if it is violated or not.
+It saves it's name, limits, and methods to evaluate if it is violated or not.
 
 """
 import logging

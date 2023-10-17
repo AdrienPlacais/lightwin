@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 13 17:31:56 2023.
+In this module we define a function to test validity of optimisation algorithm.
 
-@author: placais
-
-In this module we define the function to test if the input optimisation
-algorithm is valid or not. Optimisation algorithms are defined in the
-:mod:`optimisation.algorithms` subpackage.
+Optimisation algorithms are defined in the :mod:`optimisation.algorithms`
+subpackage.
 
 .. todo::
     Specific test for every optimisation method? For now, just trust the user.

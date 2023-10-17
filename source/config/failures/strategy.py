@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 13 14:29:15 2023.
-
-@author: placais
-
 In this module we define the testing functions for the optimisation strategy.
+
 The documentation for each strategy is in the dedicated module
 :mod:`failures.strategy`.
 

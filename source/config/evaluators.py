@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Aug  2 09:21:50 2023.
+Tools to perform post-treatments/evaluations of the settings found by LightWin.
 
-@author: placais
-
-Configuration of the tools to perform the post-treatments/evaluations of the
-settings found by LightWin.
+The presets that are listed here are defined and documented in
+:mod:`evaluator.simulation_output_evaluator_presets`. This is where you should
+add you own presets.
 
 """
 import logging

@@ -1,15 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jun  7 13:49:23 2023.
-
-@author: placais
-
-This module holds the function to load and pre-process the TraceWin files.
-
-TODO : handle personalized name of elements
-
-"""
+"""This module holds the function to load and preprocess the TraceWin files."""
 import logging
 import os.path
 import re

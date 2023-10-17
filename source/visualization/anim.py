@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  3 13:39:32 2022.
+In this module we define functions to make animated plots.
 
-@author: placais
+.. todo::
+    discriminate feasible from unfeasible solutions
 
-TODO : discriminate feasible from unfeasible solutions
 """
 
 from matplotlib import animation

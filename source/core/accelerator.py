@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep 21 11:54:19 2021.
+This module holds :class:`Accelerator`, the highest-level class of LightWin.
 
-@author: placais
+It holds, well... an accelerator. This accelerator has a
+:class:`.ListOfElements`. For each :class:`.BeamCalculator` defined, it has a
+:class:`.SimulationOutput`. Additionally, it has a
+:class:`.ParticleInitialState`, which describes energy, phase, etc of the beam
+at the entry of its :class:`.ListOfElements`.
 
-This module holds `Accelerator`, the highest-level class of LightWin. It holds,
-well... an accelerator. This accelerator has a `ListOfElements`. For each
-`BeamCalculator` defined, it has a `SimulationOutput`. Additionaly, it has a
-`ParticleInitialState`, which describes energy, phase, etc of the beam at the
-entry of its `ListOfElements`.
+.. todo::
+    Check if _check_consistency_phases message still relatable
 
-TODO : Check if _check_consistency_phases message still relatable
-TODO : compute_transfer_matrices: simplify, add a calculation of missing phi_0
-at the end
+.. todo::
+    Compute_transfer_matrices: simplify, add a calculation of missing phi_0
+    at the end
 
 """
 import os.path

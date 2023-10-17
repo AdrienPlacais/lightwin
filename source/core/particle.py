@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec  2 13:44:00 2021.
+Here we define objects to store initial state/trajectory of a particle.
 
-@author: placais
+    - :class:`ParticleInitialState` is just here to save the position and
+      energy of a particle at the entrance of the linac. Saved as an
+      :class:`.Accelerator` attribute.
 
-In this module, two classes are defined:
-    - `ParticleInitialState`, which is just here to save the position and
-    energy of a particle at the entrance of the linac. Saved as an
-    `Accelerator` attribute.
-    - `ParticleFullTrajectory`, which saves the energy, phase, position of a
-    particle along the linac. As a single `ParticleInitialState` can lead to
-    several `ParticleFullTrajectory` (according to size of the mesh, the
-    solver, etc), `ParticleFullTrajectory`s are stored in `SimulationOutput`.
+    - :class:`ParticleFullTrajectory` saves the energy, phase, position of a
+      particle along the linac. As a single :class:`ParticleInitialState` can
+      lead to several :class:`ParticleFullTrajectory` (according to size of the
+      mesh, the solver, etc), :class:`.ParticleFullTrajectory` are stored in
+      :class:`.SimulationOutput`.
 
 """
 from dataclasses import dataclass

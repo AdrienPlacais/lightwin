@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Feb 17 15:52:37 2022.
-
-@author: placais
-
-This module holds all the functions to handle TraceWin electromagnetic field
-files.
-
-"""
+"""This module holds functions to handle TraceWin electromagnetic fields."""
 import logging
 import os.path
 from typing import Callable

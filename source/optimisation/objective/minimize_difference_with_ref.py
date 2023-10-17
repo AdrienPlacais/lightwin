@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug 18 17:26:56 2023.
+This module holds a simple objective.
 
-@author: placais
-
-This module holds an objective that is a simple difference over a given
-quantity between the reference linac and the linac under tuning.
+It is a simple difference over a given quantity between the reference linac and
+the linac under tuning.
 
 """
 import logging

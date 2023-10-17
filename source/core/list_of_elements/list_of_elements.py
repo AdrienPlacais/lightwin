@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov 10 15:11:55 2022.
-
-@author: placais
-
-In this module we define the :class:`ListOfElements` object. It is a ``list``
-of :class:`.Element`, with some additional methods.
+Here we define a ``list`` of :class:`.Element`, with some additional methods.
 
 Two objects can have a :class:`ListOfElements` as attribute:
     - :class:`.Accelerator`: holds all the :class:`.Element` of the linac.

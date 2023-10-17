@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 31 16:42:14 2023.
-
-@author: placais
-
 Template class for the optimisation algorithms.
 
 Abstract methods are mandatory and a ``TypeError`` will be raised if you try to

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 31 13:39:57 2023.
+We define predefined arguments to generate :class:`SimulationOutputEvaluator`.
 
-@author: placais
-
-In this module we store predefined arguments to generate
-`SimulationOutputEvaluator` s.
+We defining your presets, do not forget to add them to
+:mod:`config.evaluators`.
 
 """
 from typing import Callable

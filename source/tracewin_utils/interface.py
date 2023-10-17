@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Aug  4 13:30:34 2023.
-
-@author: placais
-"""
+"""This module holds dicts to import TraceWin results with correct type."""
 import logging
 
 import numpy as np

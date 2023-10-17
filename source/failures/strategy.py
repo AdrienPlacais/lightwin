@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 17 12:41:26 2023.
+Here we define the function related to the ``strategy`` key of ``wtf``.
 
-@author: placais
-
-Here we define the function related to the ``strategy`` key of the
-``what_to_fit`` (``wtf``) dictionary. In particular, it answers the question:
+In particular, it answers the question:
 **Given this set of faults, which compensating cavities will be used?**
 
 .. note::
@@ -20,7 +17,7 @@ Here we define the function related to the ``strategy`` key of the
 
 """
 import logging
-from typing import Any, Callable, Optional, TypeAlias
+from typing import Any, Callable, TypeAlias
 import itertools
 import math
 import numpy as np

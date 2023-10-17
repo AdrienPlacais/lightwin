@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug  3 13:37:30 2023.
+This module holds two functions to create :class:`.ListOfElements`.
 
-@author: placais
-
-This module holds two functions to create `ListOfElements` with the proper
-input synchronous particle and beam properties.
-
-The first one, `new_list_of_elements`, is called within the `Accelerator` class
-and generate a full `ListOfElements` from scratch.
-
-The second one, `subset_of_pre_existing_list_of_elements`, is called within the
-`Fault` class and generates a `ListOfElements` that contains only a fraction of
-the linac.
+Their main goal is to initialize it with the proper input synchronous particle
+and beam properties.
+The first one, :func:`new_list_of_elements`, is called within the
+:class:`.Accelerator` class and generate a full :class:`.ListOfElements` from
+scratch.
+The second one, :func:`subset_of_pre_existing_list_of_elements`, is called
+within the :class:`.Fault` class and generates a :class:`.ListOfElements` that
+contains only a fraction of the linac.
 
 .. todo::
     Also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
 
-Maybe it will be necessary to handle cases where the synch particle is not
-perfectly on the axis?
+.. todo::
+    Maybe it will be necessary to handle cases where the synch particle is not
+    perfectly on the axis?
 
 """
 import os

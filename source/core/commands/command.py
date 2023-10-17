@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 22 10:26:19 2021.
-
-@author: placais
-
 This module holds all the commands.
 
 .. warning::

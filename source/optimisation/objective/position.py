@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 18 12:21:37 2023.
-
-@author: placais
+We define here functions to determine the compensation zone.
 
 In most cases, we need only to study a fraction of the linac during
 optimisation process. This zone should be as small as possible to reduce

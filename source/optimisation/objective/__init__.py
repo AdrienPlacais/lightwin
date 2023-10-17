@@ -1,4 +1,1 @@
-"""
-In this package we define the objects needed to parametrize the optimisation
-objectives.
-"""
+"""We define the objects to parametrize the optimisation objectives."""

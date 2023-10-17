@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 13 11:07:31 2023.
-
-@author: placais
-
-In this module we define some helper functions to filter
-:class:`.ListOfElements` or ``list`` of :class:`.Element`.
+In this module we define some helper functions to filter list of elements.
 
 .. todo::
-    Filtering consistency. Also, use more types and less ``nature``.
+    Filtering consistency.
 
 """
 import logging

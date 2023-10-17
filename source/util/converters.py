@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri May 12 20:27:54 2023.
-
-@author: placais
-
-All functions to change units.
-"""
-import logging
-
+"""All functions to change units."""
 import numpy as np
 
 from constants import c

@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 31 13:23:06 2023.
+We regroup the functions dedicated to testing data.
 
-@author: placais
-
-In this module we regroup the functions dedicated to testing, used in
-SimulationOutputEvaluators. They all take a value and limits/upper or lower or
-objective value as arguments, and return a boolean.
+They are used by :class:`.SimulationOutputEvaluator'. They all take a value and
+limits/upper or lower or objective value as arguments, and return a boolean.
 
 """
 import numpy as np

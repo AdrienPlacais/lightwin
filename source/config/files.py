@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jun 26 09:31:35 2023.
-
-@author: placais
-
-All the functions for the `files` key of the config file.
-
-"""
+"""All the functions for the ``files`` key of the config file."""
 import logging
 import os
 import configparser

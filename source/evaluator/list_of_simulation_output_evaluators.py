@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jul 28 15:07:54 2023.
-
-@author: placais
-
-In this module we define `ListOfSimulationOutputEvaluators`, to regroup several
-`SimulationOutputEvaluator` s.
+Here we define an object to regroup several :class:`.SimulationOutputEvaluator`
 
 We also define some factory functions to facilitate their creation.
 

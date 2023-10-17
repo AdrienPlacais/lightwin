@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug 25 20:33:26 2023.
-
-@author: placais
-
 This module holds :class:`Aperture`. It does nothing.
 
 .. todo::
