@@ -13,39 +13,73 @@ In this module we define some helper functions to filter
 
 """
 import logging
-from typing import Any
+from typing import Any, Sequence, Type, TypeGuard
 from functools import partial
 
 import numpy as np
 
 from core.elements.element import Element
+from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 
 
-# actually, type of elements and outputs is Nested[list[Element]]
-def filter_out(elts: Any,
-               to_exclude: tuple[type]) -> Any:
-    """Filter out types while keeping the input list structure."""
-    if isinstance(elts[0], list):
-        return [filter_out(sub, to_exclude) for sub in elts]
+def is_list_of(elts: Sequence, type_to_check: Type) -> TypeGuard[Type]:
+    """Check that all items of ``elts`` are of type ``type_to_check``."""
+    if not hasattr(elts, '__iter__'):
+        return False
+    return all([isinstance(elt, type_to_check) for elt in elts])
 
-    elif isinstance(elts, list):
-        return list(filter(lambda elt: not isinstance(elt, to_exclude),
-                           elts))
+
+def is_list_of_elements(elts: Sequence) -> TypeGuard[list[Element]]:
+    """Check that all elements of input are :class:`.Element`."""
+    if isinstance(elts, ListOfElements):
+        return True
+    return is_list_of(elts, Element)
+
+
+def is_list_of_list_of_elements(elts: Sequence
+                                ) -> TypeGuard[list[list[Element]]]:
+    """Check that input is a nested list of :class:`.Element`."""
+    return all([is_list_of_elements(sub_elts) for sub_elts in elts])
+
+
+def filter_out(
+        elts: ListOfElements | list[Element] | list[list[Element]],
+        to_exclude: tuple[type]
+        ) -> Any:
+    """
+    Filter out types while keeping the input list structure.
+
+    .. note::
+        Function not used anymore. Keeping it just in case.
+
+    """
+    if is_list_of_elements(elts):
+        out = list(filter(lambda elt: not isinstance(elt, to_exclude), elts))
+
+    elif is_list_of_list_of_elements(elts):
+        out = [filter_out(sub_elts, to_exclude) for sub_elts in elts]
+
     else:
         raise TypeError("Wrong type for data filtering.")
 
-    return elts
+    assert isinstance(out, type(elts))
+    return out
 
 
-def filter_elts(elts: ListOfElements | list[Element], key: str, val: Any
-                ) -> list[Element]:
-    """Shortcut for filtering elements according to (key, val)."""
-    return list(filter(lambda elt: elt.get(key) == val, elts))
+def filter_elts(elts: ListOfElements | list[Element],
+                type_to_check: Type) -> list[Type]:
+    """
+    Filter elements according to their type.
+
+    .. note::
+        Used only for :func:`filter_cav`, may be simpler?
+
+    """
+    return list(filter(lambda elt: isinstance(elt, type_to_check), elts))
 
 
-# Legacy, prefer sorting on the type
-filter_cav = partial(filter_elts, key='nature', val='FIELD_MAP')
+filter_cav = partial(filter_elts, type_to_check=FieldMap)
 
 
 def elt_at_this_s_idx(elts: ListOfElements | list[Element],
@@ -73,7 +107,7 @@ def elt_at_this_s_idx(elts: ListOfElements | list[Element],
             if show_info:
                 logging.info(
                     f"Mesh index {s_idx} is in {elt.get('elt_info')}.\n"
-                    + f"Indexes of this elt: {elt.get('idx')}.")
+                    f"Indexes of this elt: {elt.get('idx')}.")
             return elt
 
     logging.warning(f"Mesh index {s_idx} not found.")
