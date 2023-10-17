@@ -15,6 +15,8 @@ Welcome to LightWin's documentation!
 
    modules
 
+.. todolist::
+
 Indices and tables
 ==================
 
