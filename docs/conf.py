@@ -8,13 +8,19 @@
 
 import os
 import sys
+import re
 
 sys.path.insert(0, os.path.abspath("../source/"))
 
 project = 'LightWin'
 copyright = '2023, A. Plaçais, F. Bouly'
 author = 'A. Plaçais, F. Bouly'
-release = '3.1.2'
+
+# See https://protips.readthedocs.io/git-tag-version.html
+# The full version, including alpha/beta/rc tags.
+release = re.sub('^v', '', os.popen('git describe').read().strip())
+# The short X.Y version.
+version = release
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
