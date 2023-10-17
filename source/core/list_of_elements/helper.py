@@ -80,6 +80,7 @@ def elt_at_this_s_idx(elts: ListOfElements | list[Element],
     return None
 
 
+# legacy
 def equiv_elt(elts: ListOfElements | list[Element],
               elt: Element | str,
               to_index: bool = False
@@ -87,11 +88,9 @@ def equiv_elt(elts: ListOfElements | list[Element],
     """
     Return an element from elts that has the same name as elt.
 
-    Important: this routine uses the name of the element and not its adress. So
-    it will not complain if the Element object that you asked for is not in
-    this list of elements.
-    In the contrary, it was also meant to find equivalent cavities between
-    different lists of elements.
+    .. note::
+        Prefer use :func:`equivalent_elt` and :func:`equivalent_elt_idx` which
+        work better with ``pyright`` type-checker.
 
     Parameters
     ----------
@@ -127,9 +126,75 @@ def equiv_elt(elts: ListOfElements | list[Element],
         logging.debug(f"List of elements is:\n{elts}")
         return None
 
-    if to_index:
-        return idx
-    return elts[idx]
+    if not to_index:
+        return elts[idx]
+    return idx
+
+
+def equivalent_elt(elts: ListOfElements | list[Element],
+                   elt: Element | str) -> Element:
+    """
+    Return the element from ``elts`` corresponding to ``elt``.
+
+    .. important::
+        This routine uses the name of the element and not its adress. So
+        it will not complain if the :class:`.Element` object that you asked for
+        is not in this list of elements.
+        In the contrary, it was meant to find equivalent cavities between
+        different lists of elements.
+
+    Parameters
+    ----------
+    elts : ListOfElements | list[Element]
+        List of elements where you want the position.
+    elt : Element | str
+        Element of which you want the position. If you give a str, it should be
+        the name of an element. If it is an :class:`.Element`, we take its name
+        in the routine. Magic keywords ``'first'``, ``'last'`` are also
+        accepted.
+
+    Returns
+    -------
+    out_elt : Element
+        Equivalent element.
+
+    """
+    out_elt = equiv_elt(elts, elt, to_index=False)
+    assert isinstance(out_elt, Element)
+    return out_elt
+
+
+def equivalent_elt_idx(elts: ListOfElements | list[Element],
+                       elt: Element | str) -> int:
+    """
+    Return the index of element from ``elts`` corresponding to ``elt``.
+
+    .. important::
+        This routine uses the name of the element and not its adress. So
+        it will not complain if the :class:`.Element` object that you asked for
+        is not in this list of elements.
+        In the contrary, it was meant to find equivalent cavities between
+        different lists of elements.
+
+    Parameters
+    ----------
+    elts : ListOfElements | list[Element]
+        List of elements where you want the position.
+    elt : Element | str
+        Element of which you want the position. If you give a str, it should be
+        the name of an element. If it is an :class:`.Element`, we take its name
+        in the routine. Magic keywords ``'first'``, ``'last'`` are also
+        accepted.
+
+    Returns
+    -------
+    out_elt_idx : int
+        Index of equivalent element.
+
+    """
+    out_elt_idx = equiv_elt(elts, elt, to_index=True)
+    assert isinstance(out_elt_idx, int)
+    return out_elt_idx
 
 
 def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
