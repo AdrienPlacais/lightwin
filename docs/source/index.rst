@@ -13,10 +13,11 @@ Welcome to LightWin's documentation!
    :maxdepth: 4
    :caption: LightWin
    :titlesonly:
+   :glob:
 
-   usage
+   manual/usage
    API Reference <modules>
-   examples
+   manual/examples
 
 .. todolist::
 
