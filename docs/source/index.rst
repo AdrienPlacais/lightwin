@@ -14,6 +14,7 @@ Welcome to LightWin's documentation!
    :caption: LightWin
    :titlesonly:
 
+   usage
    API Reference <modules>
    examples
 
