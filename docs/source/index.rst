@@ -16,6 +16,8 @@ Welcome to LightWin's documentation!
    :glob:
 
    manual/usage
+   manual/get_method
+   manual/configuration
    API Reference <modules>
    manual/examples
 

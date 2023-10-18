@@ -32,9 +32,6 @@ The latter is given as argument to the :meth:`.BeamCalculator.run_with_this` whi
 .. note::
    See example.
 
-.. todo::
-   Make example.
-
 The :func:`get` method
 **********************
 Most of the objects defined in LightWin have a *magic* :func:`get` method.

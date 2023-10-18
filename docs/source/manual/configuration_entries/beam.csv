@@ -1,0 +1,8 @@
+Entry,Type,Description,Allowed values,Mandatory?
+``linac``,str,Name of the linac,,✅
+``e_rest_mev``,float,Rest energy of particle in MeV,,✅
+``q_adim``,float,Adimensioned charge of particle,,✅
+``e_mev``,float,Energy of particle at entrance in MeV,,✅
+``f_bunch_mev``,float,Beam bunch frequency in MeV,,✅
+``i_milli_a``,float,Beam current in mA,,❌
+``sigma_zdelta``,matrix,Input sigma beam matrix in :math:`[z-\frac{\mathrm{d}p}{p}]` plane,,✅

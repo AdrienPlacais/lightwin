@@ -4,10 +4,5 @@ Examples
 .. toctree::
    :maxdepth: 4
 
-Installation
-************
-Check `INSTALL.md`.
-
-Usage
-*****
-To to.
+.. todo::
+   One ore several examples. Maybe with a Jupyter Notebook.
