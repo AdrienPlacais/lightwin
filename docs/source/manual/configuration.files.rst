@@ -1,5 +1,5 @@
-``[files]`` section (mandatory)
-*******************************
+``files`` section (mandatory)
+*****************************
 .. toctree::
    :maxdepth: 4
 

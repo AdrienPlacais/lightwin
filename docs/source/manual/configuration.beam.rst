@@ -1,5 +1,5 @@
-``[beam]`` section (mandatory)
-******************************
+``beam`` section (mandatory)
+****************************
 .. toctree::
    :maxdepth: 4
 

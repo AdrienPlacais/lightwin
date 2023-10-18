@@ -1,5 +1,5 @@
-``[beam_calculator]`` section (mandatory)
-*****************************************
+``beam_calculator`` section (mandatory)
+***************************************
 .. toctree::
    :maxdepth: 4
 

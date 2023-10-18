@@ -1,5 +1,5 @@
-``[evaluators]`` section
-************************
+``evaluators`` section
+**********************
 .. toctree::
    :maxdepth: 4
 

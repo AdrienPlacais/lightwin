@@ -1,5 +1,5 @@
-``[plots]`` section (mandatory)
-*******************************
+``plots`` section (mandatory)
+*****************************
 .. toctree::
    :maxdepth: 4
 

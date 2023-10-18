@@ -1,5 +1,5 @@
-``[wtf]`` section
-*****************
+``wtf`` section
+***************
 .. toctree::
    :maxdepth: 4
 
