@@ -32,6 +32,3 @@ The latter is given as argument to the :meth:`.BeamCalculator.run_with_this` whi
 .. note::
    See example.
 
-.. todo::
-   Document the ``.ini`` configuration file.
-
