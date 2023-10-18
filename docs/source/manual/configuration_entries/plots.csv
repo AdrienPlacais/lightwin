@@ -1,0 +1,8 @@
+Entry,Type,Description,Allowed values,Mandatory?
+``energy``,bool,Plot evolution of kinetic energy?,,❌
+``phase``,bool,Plot evolution of absolute phase?,,❌
+``cav``,bool,Plot cavity parameters?,,❌
+``emittance``,bool,Plot evolution of emittance?,,❌
+``twiss``,bool,Plot Twiss parameters?,,❌
+``envelopes``,bool,Plot envelopes?,,❌
+``transfer matrices``,bool,Plot transfer matrix components?,,❌

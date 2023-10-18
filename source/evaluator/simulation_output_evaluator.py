@@ -18,6 +18,7 @@ from abc import ABC
 import numpy as np
 
 from beam_calculation.output import SimulationOutput
+from evaluator.post_treaters import do_nothing
 from util.helper import resample
 from visualization import plot
 
@@ -131,7 +132,7 @@ class SimulationOutputEvaluator(ABC):
     post_treaters: tuple[Callable[
         [np.ndarray | float, np.ndarray | float],
         np.ndarray | float]
-    ] = (post_treaters.do_nothing,)
+    ] = (do_nothing,)
 
     tester: Callable[np.ndarray | float, bool] | None = None
 

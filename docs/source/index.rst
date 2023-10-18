@@ -11,10 +11,15 @@ Welcome to LightWin's documentation!
 
 .. toctree::
    :maxdepth: 4
-   :caption: Contents
+   :caption: LightWin
    :titlesonly:
+   :glob:
 
-   modules
+   manual/usage
+   manual/get_method
+   manual/configuration
+   API Reference <modules>
+   manual/examples
 
 .. todolist::
 

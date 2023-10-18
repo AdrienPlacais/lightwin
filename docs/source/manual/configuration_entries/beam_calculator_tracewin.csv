@@ -1,0 +1,6 @@
+Entry,Type,Description,Allowed values,Mandatory?
+``simulation type``,str,TraceWin solver,:data:`~config.beam_calculator.simulation_types`,✅
+``ini_path``,path,Path to TraceWin's ``.ini`` file,,✅
+``hide``,None,To avoid TraceWin window,None,❌
+``partran``,int,To force or not Partran tracking,``1`` or ``0``,❌
+...,,Every TraceWin command line option,,❌

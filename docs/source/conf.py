@@ -10,7 +10,7 @@ import os
 import sys
 import re
 
-sys.path.insert(0, os.path.abspath("../source/"))
+sys.path.insert(0, os.path.abspath("../../source/"))
 
 project = 'LightWin'
 copyright = '2023, A. Plaçais, F. Bouly'

@@ -12,6 +12,15 @@ import logging
 import configparser
 
 
+design_spaces = ('unconstrained',
+                 'constrained_sync_phase',
+                 'sync_phase_as_variable',
+                 'FM4_MYRRHA',
+                 'one_cavity_mega_power',
+                 'experimental'
+                 )  #:
+
+
 def test_design_space_preset(c_wtf: configparser.SectionProxy) -> bool:
     """Specific test for the key 'design_space_preset' of what_to_fit."""
     if 'design_space_preset' not in c_wtf.keys():
@@ -20,14 +29,7 @@ def test_design_space_preset(c_wtf: configparser.SectionProxy) -> bool:
         return False
 
     design_space_preset = c_wtf.get('design_space_preset')
-    implemented = ('unconstrained',
-                   'constrained_sync_phase',
-                   'sync_phase_as_variable',
-                   'FM4_MYRRHA',
-                   'one_cavity_mega_power',
-                   'experimental'
-                   )
-    if design_space_preset not in implemented:
+    if design_space_preset not in design_spaces:
         logging.error(f"Objective preset {design_space_preset} was not "
                       "recognized. Check that is is implemented in "
                       "optimisation.design_space.factory and that you added it"
