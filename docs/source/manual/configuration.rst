@@ -47,3 +47,6 @@ It is however recommended to use explicit names.
    configuration.plots
    configuration.wtf
    configuration.evaluators
+
+.. warning::
+   While LightWin uses the same format for linac description than TraceWin (``.dat``), their ``.ini`` files are very different.
