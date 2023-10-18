@@ -14,12 +14,16 @@ import logging
 import os
 import configparser
 
+tools = ('Envelope1D', 'TraceWin')  #:
+methods = ('leapfrog', 'RK')  #:
+
 TRACEWIN_EXECUTABLES = {  # Should match with your installation
     "X11 full": "/usr/local/bin/TraceWin/./TraceWin",
     "noX11 full": "/usr/local/bin/TraceWin/./TraceWin_noX11",
     "noX11 minimal": "/home/placais/TraceWin/exe/./tracelx64",
     "no run": None
 }
+simulation_types = tuple(TRACEWIN_EXECUTABLES.keys())  #:
 
 
 # =============================================================================
@@ -37,15 +41,15 @@ def test(c_beam_calculator: configparser.SectionProxy) -> None:
     valid_tools = {'Envelope1D': _test_beam_calculator_envelope1d,
                    'TraceWin': _test_beam_calculator_tracewin}
     my_tool = c_beam_calculator["tool"]
-    if my_tool not in valid_tools:
+    if my_tool not in tools:
         logging.error(f"{my_tool} is an invalid value for tool. "
-                      + f"Authorized values are: {valid_tools.keys()}.")
+                      f"Authorized values are: {tools}.")
         passed = False
 
     if not passed or not valid_tools[my_tool](c_beam_calculator):
         raise IOError("Error treating the beam_calculator parameters.")
     logging.info(f"beam_calculator parameters {c_beam_calculator.name} tested "
-                 + "with success.")
+                 "with success.")
 
 
 def config_to_dict(c_beam_calculator: configparser.SectionProxy) -> dict:
@@ -64,7 +68,7 @@ def _test_beam_calculator_envelope1d(
     """
     Test consistency of the Envelope1D beam_calculator.
 
-    FLAF_PHI_ABS: to determine if the phases in the cavities are absolute or
+    FLAG_PHI_ABS: to determine if the phases in the cavities are absolute or
     relative.
     If True, cavities keep their absolute phi_0 (!! relative phi_0 may be
     changed though !!).
@@ -87,15 +91,16 @@ def _test_beam_calculator_envelope1d(
             logging.error(f"{key} is mandatory and missing.")
             return False
 
-    if c_beam_calculator["method"] not in ["leapfrog", "RK"]:
-        logging.error("Wrong value for method, "
-                      + "beam_calculator not implemented.")
+    if c_beam_calculator["method"] not in methods:
+        logging.error("Wrong value for method, beam_calculator not "
+                      "implemented.")
         return False
 
     if "n_steps_per_cell" not in c_beam_calculator.keys():
         logging.warning("Number of integration steps per cell not precised. "
-                        + "Will use default values.")
-        default = {'leapfrog': '40', 'RK': '20'}
+                        "Will use default values.")
+        default = {'leapfrog': '40',
+                   'RK': '20'}
         c_beam_calculator["n_steps_per_cell"] = default["method"]
 
     return True

@@ -19,7 +19,7 @@ from optimisation.algorithms.differential_evolution import \
 from optimisation.algorithms.explorator import Explorator
 
 
-ALGORITHMS: dict[str, ABCMeta] = {
+ALGORITHM_SELECTOR: dict[str, ABCMeta] = {
     'least_squares': LeastSquares,
     'least_squares_penalty': LeastSquaresPenalty,
     'nsga': NSGA,
@@ -30,6 +30,7 @@ ALGORITHMS: dict[str, ABCMeta] = {
     'explorator': Explorator,
     'experimental': Explorator,
     }
+algorithms = tuple(ALGORITHM_SELECTOR.keys())  #:
 
 
 def optimisation_algorithm_factory(
@@ -63,7 +64,7 @@ def optimisation_algorithm_factory(
     _check_common_keys(kwargs, new_kwargs)
     kwargs = new_kwargs | kwargs
 
-    algorithm_base_class = ALGORITHMS[opti_method]
+    algorithm_base_class = ALGORITHM_SELECTOR[opti_method]
     algorithm: OptimisationAlgorithm = algorithm_base_class(**kwargs)
     return algorithm
 

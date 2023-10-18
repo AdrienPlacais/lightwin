@@ -11,13 +11,7 @@ add you own presets.
 import logging
 import configparser
 
-
-def test(c_evaluators: configparser.SectionProxy) -> None:
-    """Test that the provided evaluations can be performed."""
-    passed = True
-
-    implemented = ['beam_calc_post']
-    implemented_presets = (
+evaluators = (
         "no power loss",
         "transverse eps_x shall not grow too much",
         "transverse eps_y shall not grow too much",
@@ -29,7 +23,14 @@ def test(c_evaluators: configparser.SectionProxy) -> None:
         "transverse eps at end",
         "mismatch factor at end",
         "transverse mismatch factor at end",
-    )
+        )  #:
+
+
+def test(c_evaluators: configparser.SectionProxy) -> None:
+    """Test that the provided evaluations can be performed."""
+    passed = True
+
+    implemented = ['beam_calc_post']
 
     for key in c_evaluators.keys():
         if key not in implemented:
@@ -39,9 +40,9 @@ def test(c_evaluators: configparser.SectionProxy) -> None:
 
         evaluations = c_evaluators.gettuplestr(key)
         for evaluation in evaluations:
-            if evaluation not in implemented_presets:
+            if evaluation not in evaluators:
                 logging.error(f"The evaluator {evaluation} is not implemented."
-                              f" Authorized values are: {implemented_presets}."
+                              f" Authorized values are: {evaluators}."
                               "Add your preset in evaluator.simulation_output_"
                               "evaluator_presets.py. And also in config.evalua"
                               "tors.py, these two have issues communicating.")
