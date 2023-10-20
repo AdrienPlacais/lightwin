@@ -15,6 +15,9 @@ implemented plots in :mod:`config.plots`.
     assumption that multipart is the default. But it depends on the .ini...
     update: just use .is_a_multiparticle_simulation
 
+.. todo::
+    Fix when there is only one accelerator to plot.
+
 """
 
 import os
