@@ -97,8 +97,12 @@ def z_drift(delta_s: float, gamma_in: float, n_steps: int = 1, **kwargs
     return r_zz, gamma_phi, None
 
 
-def z_field_map_rk4(d_z: float, gamma_in: float, n_steps: int,
-                    omega0_rf: float, k_e: float, phi_0_rel: float,
+def z_field_map_rk4(d_z: float,
+                    gamma_in: float,
+                    n_steps: int,
+                    omega0_rf: float,
+                    k_e: float,
+                    phi_0_rel: float,
                     e_spat: Callable[[float, np.ndarray, float, float], float],
                     **kwargs) -> tuple[np.ndarray, np.ndarray, float]:
     """Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta."""
@@ -254,7 +258,7 @@ def z_field_map_leapfrog(d_z: float,
 
 def z_thin_lense(gamma_in: float,
                  gamma_out: float,
-                 gamma_phi_m: float,
+                 gamma_phi_m: np.ndarray,
                  half_dz: float,
                  delta_gamma_m_max: float,
                  phi_0: float,
@@ -268,7 +272,7 @@ def z_thin_lense(gamma_in: float,
         gamma at entrance of first drift.
     gamma_out : float
         gamma at exit of first drift.
-    gamma_phi_m : array
+    gamma_phi_m : np.ndarray
         gamma and phase at the thin acceleration drift.
     half_dz : float
         Half a spatial step in m.
