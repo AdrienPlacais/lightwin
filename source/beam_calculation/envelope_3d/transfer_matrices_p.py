@@ -97,8 +97,6 @@ def drift(delta_s: float,
         unity when crossing a failed field map, as it allows to keep the same
         size of ``transfer_matrix`` and ``gamma_phi`` between nominal and fixed
         linacs.
-    kwargs :
-        Unused for the moment.
 
     Returns
     -------
@@ -119,7 +117,7 @@ def drift(delta_s: float,
                   [0., 0.,      1., delta_s, 0., 0.],
                   [0., 0.,      0., 1.,      0., 0.],
                   [0., 0.,      0., 0.,      1., delta_s * gamma_in_min2],
-                  [0., 0.,      0., 0.,      0., 0.]]))
+                  [0., 0.,      0., 0.,      0., 1.]]))
     beta_in = np.sqrt(1. - gamma_in_min2)
     delta_phi = con.OMEGA_0_BUNCH * delta_s / (beta_in * c)
 
@@ -130,8 +128,9 @@ def drift(delta_s: float,
 
 
 def quad(delta_s: float,
-         gradient: float,
          gamma_in: float,
+         n_steps: int = 1,
+         gradient: float | None = None,
          **kwargs
          ) -> tuple[np.ndarray, np.ndarray, None]:
     """Calculate the transfer matrix of a quadrupole.
@@ -139,13 +138,17 @@ def quad(delta_s: float,
     Parameters
     ----------
     delta_s : float
-        Size of the drift in mm.
-    gradient : float
-        Quadrupole gradient in T/m.
+        Size of the drift in m.
     gamma_in : float
         Lorentz gamma at entry of drift.
-    kwargs :
-        Unused for the moment.
+    n_steps : int, optional
+        Number of integration steps. The number of integration steps has no
+        influence on the results. The default is one. It is different from
+        unity when crossing a failed field map, as it allows to keep the same
+        size of ``transfer_matrix`` and ``gamma_phi`` between nominal and fixed
+        linacs.
+    gradient : float
+        Quadrupole gradient in T/m.
 
     Returns
     -------
@@ -169,7 +172,7 @@ def quad(delta_s: float,
     magnetic_rigidity = _magnetic_rigidity(beta_in, gamma_in)
     focusing_strength = _focusing_strength(gradient, magnetic_rigidity)
 
-    if con.Q_ADIM * focusing_strength > 0.:
+    if con.Q_ADIM * gradient > 0.:
         transfer_matrix = _horizontal_focusing_quadrupole(focusing_strength,
                                                           delta_s,
                                                           gamma_in_min2)
@@ -194,7 +197,7 @@ def _horizontal_focusing_quadrupole(focusing_strength: float,
                   [0.,                        0.,                       _cosh,                     _sinh / focusing_strength, 0., 0.],
                   [0.,                        0.,                       focusing_strength * _sinh, _cosh,                     0., 0.],
                   [0.,                        0.,                       0.,                        0.,                        1., delta_s * gamma_in_min2],
-                  [0.,                        0.,                       0.,                        0.,                        0., 0.]]))
+                  [0.,                        0.,                       0.,                        0.,                        0., 1.]]))
     return transfer_matrix
 
 
@@ -211,7 +214,7 @@ def _horizontal_defocusing_quadrupole(focusing_strength: float,
                   [0.,                        0.,                        _cos,                      _sin / focusing_strength,  0., 0.],
                   [0.,                        0.,                        -focusing_strength * _sin, _cos,                      0., 0.],
                   [0.,                        0.,                        0.,                        0.,                        1., delta_s * gamma_in_min2],
-                  [0.,                        0.,                        0.,                        0.,                        0., 0.]]))
+                  [0.,                        0.,                        0.,                        0.,                        0., 1.]]))
     return transfer_matrix
 
 
@@ -233,7 +236,7 @@ def field_map_rk4(d_z: float,
     delta_gamma_norm = con.Q_ADIM * d_z * con.INV_E_REST_MEV
     k_k = delta_gamma_norm * k_e
 
-    transfer_matrix = np.empty((n_steps, 2, 2))
+    transfer_matrix = np.empty((n_steps, 6, 6))
     gamma_phi = np.empty((n_steps + 1, 2))
     gamma_phi[0, 0] = gamma_in
     gamma_phi[0, 1] = 0.
@@ -374,7 +377,7 @@ def thin_lense(gamma_in: float,
 def _magnetic_rigidity(beta: float,
                        gamma: float) -> float:
     """Compute magnetic rigidity of particle."""
-    return con.E_REST_MEV * c * beta * gamma / con.Q_ADIM
+    return 1e6 * con.E_REST_MEV * beta * gamma / c
 
 
 def _focusing_strength(gradient: float,

@@ -90,9 +90,16 @@ class Envelope3D(BeamCalculator):
 
             rf_field_kwargs = elt.rf_param(self.id, phi_abs, w_kin,
                                            cavity_settings)
+            # FIXME
+            gradient = None
+            if 'grad' in elt.__dir__():
+                gradient = elt.grad
             elt_results = \
                 elt.beam_calc_param[self.id].transf_mat_function_wrapper(
-                    w_kin, elt.is_accelerating(), elt.get('status'),
+                    w_kin,
+                    elt.is_accelerating(),
+                    elt.get('status'),
+                    gradient=gradient,
                     **rf_field_kwargs)
 
             single_elts_results.append(elt_results)
