@@ -169,13 +169,13 @@ def _test_beam_calculator_tracewin(
 def _test_beam_calculator_envelope3d(
         c_beam_calculator: configparser.SectionProxy) -> bool:
     """Test consistency of the Envelope3D beam_calculator."""
-    mandatory = ("flag_phi_abs")
+    mandatory = ("flag_phi_abs", )
     for key in mandatory:
         if key not in c_beam_calculator.keys():
             logging.error(f"{key} is mandatory and missing.")
             return False
 
-    if c_beam_calculator["method"] in methods:
+    if "method" in c_beam_calculator.keys():
         method = c_beam_calculator.get('method')
         if method != 'RK':
             logging.warning(f"You asked for {method = } but only 'RK' is "
