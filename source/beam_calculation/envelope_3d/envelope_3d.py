@@ -6,7 +6,6 @@ Define :class:`Envelope3D`, an envelope solver.
 Work in progress...
 
 """
-import logging
 from dataclasses import dataclass
 
 from core.particle import ParticleFullTrajectory
@@ -30,17 +29,13 @@ class Envelope3D(BeamCalculator):
     """A 3D envelope solver."""
 
     flag_phi_abs: bool
-    flag_cython: bool
     n_steps_per_cell: int
-    method: str
 
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
         self.id = self.__repr__()
         self.out_folder += "_Envelope3D"
 
-        if self.flag_cython:
-            raise IOError("Cython not yet implemented for this solver.")
         import beam_calculation.envelope_3d.transfer_matrices_p as transf_mat
         self.transf_mat_module = transf_mat
 
@@ -145,14 +140,11 @@ class Envelope3D(BeamCalculator):
         """
         elts = accelerator.elts
         kwargs = {'n_steps_per_cell': self.n_steps_per_cell,
-                  'method': self.method,
                   'transf_mat_module': self.transf_mat_module,
                   }
         for elt in elts:
             elt.beam_calc_param[self.id] = SingleElementEnvelope3DParameters(
-                length_m=elt.get('length_m', to_numpy=False),
-                is_accelerating=elt.is_accelerating(),
-                n_cells=elt.get('n_cell', to_numpy=False),
+                elt,
                 **kwargs)
 
         position = 0.

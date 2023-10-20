@@ -10,7 +10,11 @@ accelerating elements.
 
 In a first time, only Runge-Kutta (no leapfrog) and only Python (no Cython).
 
+The list of implemented transfer matrices is
+:data:`implemented_transfer_matrices`.
+
 """
+from typing import Callable
 from types import ModuleType
 
 import numpy as np
@@ -19,6 +23,14 @@ import util.converters as convert
 from core.electric_field import compute_param_cav
 from beam_calculation.single_element_beam_calculator_parameters import (
     SingleElementCalculatorParameters)
+
+from core.elements.element import Element
+from core.elements.drift import Drift
+from core.elements.quad import Quad
+from core.elements.field_map import FieldMap
+
+
+implemented_transfer_matrices = (Drift, Quad, FieldMap)  #:
 
 
 class SingleElementEnvelope3DParameters(SingleElementCalculatorParameters):
@@ -31,27 +43,25 @@ class SingleElementEnvelope3DParameters(SingleElementCalculatorParameters):
     """
 
     def __init__(self,
-                 length_m: float,
-                 is_accelerating: bool,
-                 n_cells: int | None,
-                 n_steps_per_cell: int,
-                 method: str,
+                 elt: Element,
+                 # length_m: float,
+                 # is_accelerating: bool,
+                 # n_cells: int | None,
+                 # n_steps_per_cell: int,
                  transf_mat_module: ModuleType) -> None:
         """Set the actually useful parameters."""
+        length_m = elt.get('length_m', to_numpy=False),
+        n_cells = elt.get('n_cell', to_numpy=False),
+        element_type = type(Element)
         self.n_steps = 1
 
         self.n_cells = n_cells
-        self.back_up_function = transf_mat_module.z_drift
-        self.transf_mat_function = transf_mat_module.z_drift
-
-        if is_accelerating:
-            assert n_cells is not None
-            self.n_steps = n_cells * n_steps_per_cell
-
-            if method == 'RK':
-                self.transf_mat_function = transf_mat_module.z_field_map_rk4
-            elif method == 'leapfrog':
-                raise IOError("leapfrog not implemented")
+        self.back_up_function = transf_mat_module.drift
+        self.transf_mat_function = self._proper_transfer_matrix_function(
+            n_cells,
+            n_steps_per_cell,
+            element_type,
+            transf_mat_module)
 
         self.d_z = length_m / self.n_steps
         self.rel_mesh = np.linspace(0., length_m, self.n_steps + 1)
@@ -59,6 +69,22 @@ class SingleElementEnvelope3DParameters(SingleElementCalculatorParameters):
         self.s_in: int
         self.s_out: int
         self.abs_mesh: np.ndarray
+
+    def _proper_transfer_matrix_function(self,
+                                         n_cells: int | None,
+                                         n_steps_per_cell: int,
+                                         element_type: type,
+                                         transf_mat_module) -> Callable:
+        """Select the transfer matrix function that is adapted."""
+        transfer_matrice_selector = {
+            Drift: transf_mat_module.drift,
+            Quad: transf_mat_module.quad,
+            FieldMap: transf_mat_module.field_map_rk4,
+            }
+        if element_type is FieldMap:
+            assert n_cells is not None
+            self.n_steps = n_cells * n_steps_per_cell
+        return transfer_matrice_selector[element_type]
 
     def set_absolute_meshes(self,
                             pos_in: float,
