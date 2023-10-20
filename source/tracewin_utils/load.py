@@ -6,6 +6,9 @@ This module holds the function to load and preprocess the TraceWin files.
 .. todo::
     Handle when there is no space between an element's name and the colon ":".
 
+.. todo::
+    Handle non-absolute field map paths in the FIELD_MAP_PATH
+
 """
 import logging
 import os.path
