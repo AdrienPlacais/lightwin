@@ -9,6 +9,13 @@ sizth line is ``dp/p``.
 .. todo::
     3D field maps?
 
+.. todo::
+    Maybe it would be clearer to compose r_xx, r_yy, r_zz. As an example, the
+    zz_drift is used in several places.
+
+.. todo::
+    Will be necessary to separate this module into several sub-packages
+
 """
 from typing import Callable
 
@@ -81,7 +88,7 @@ def drift(delta_s: float,
     Parameters
     ----------
     delta_s : float
-        Size of the drift in m.
+        Size of the drift in mm.
     gamma_in : float
         Lorentz gamma at entry of drift.
     n_steps : int, optional
@@ -120,6 +127,92 @@ def drift(delta_s: float,
     gamma_phi[:, 0] = gamma_in
     gamma_phi[:, 1] = np.arange(0., n_steps) * delta_phi + delta_phi
     return transfer_matrix, gamma_phi, None
+
+
+def quadrupole(delta_s: float,
+               gradient: float,
+               gamma_in: float,
+               **kwargs
+               ) -> tuple[np.ndarray, np.ndarray, None]:
+    """Calculate the transfer matrix of a quadrupole.
+
+    Parameters
+    ----------
+    delta_s : float
+        Size of the drift in mm.
+    gradient : float
+        Quadrupole gradient in T/m.
+    gamma_in : float
+        Lorentz gamma at entry of drift.
+    kwargs :
+        Unused for the moment.
+
+    Returns
+    -------
+    transfer_matrix: np.ndarray
+        (1, 6, 6) array containing the transfer matrices.
+    gamma_phi : np.ndarray
+        (1, 2) with Lorentz gamma in first column and relative phase in
+        second column.
+    itg_field : None
+        Dummy variable for consistency with the field map function.
+
+    """
+    gamma_in_min2 = gamma_in**-2
+    beta_in = np.sqrt(1. - gamma_in_min2)
+
+    delta_phi = con.OMEGA_0_BUNCH * delta_s / (beta_in * c)
+    gamma_phi = np.empty((1, 2))
+    gamma_phi[:, 0] = gamma_in
+    gamma_phi[:, 1] = np.arange(0., 1) * delta_phi + delta_phi
+
+    magnetic_rigidity = _magnetic_rigidity(beta_in, gamma_in)
+    focusing_strength = _focusing_strength(gradient, magnetic_rigidity)
+
+    if con.Q_ADIM * focusing_strength > 0.:
+        transfer_matrix = _horizontal_focusing_quadrupole(focusing_strength,
+                                                          delta_s,
+                                                          gamma_in_min2)
+        return transfer_matrix, gamma_phi, None
+
+    transfer_matrix = _horizontal_defocusing_quadrupole(focusing_strength,
+                                                        delta_s,
+                                                        gamma_in_min2)
+    return transfer_matrix, gamma_phi, None
+
+
+def _horizontal_focusing_quadrupole(focusing_strength: float,
+                                    delta_s: float,
+                                    gamma_in_min2: float) -> np.ndarray:
+    """Transfer matrix of a quadrupole focusing in horizontal plane."""
+    _cos, _cosh, _sin, _sinh = _quadrupole_trigo_hyperbolic(focusing_strength,
+                                                            delta_s)
+    transfer_matrix = np.full(
+        (1, 6, 6),
+        np.array([[_cos,                      _sin / focusing_strength,                            0.,                        0., 0., 0.],
+                  [-focusing_strength * _sin, _cos,                                                0.,                        0., 0., 0.],
+                  [0.,                        0.,                       _cosh,                     _sinh / focusing_strength, 0., 0.],
+                  [0.,                        0.,                       focusing_strength * _sinh, _cosh,                     0., 0.],
+                  [0.,                        0.,                       0.,                        0.,                        1., delta_s * gamma_in_min2],
+                  [0.,                        0.,                       0.,                        0.,                        0., 0.]]))
+    return transfer_matrix
+
+
+def _horizontal_defocusing_quadrupole(focusing_strength: float,
+                                      delta_s: float,
+                                      gamma_in_min2: float) -> np.ndarray:
+    """Transfer matrix of a quadrupole defocusing in horizontal plane."""
+    _cos, _cosh, _sin, _sinh = _quadrupole_trigo_hyperbolic(focusing_strength,
+                                                            delta_s)
+    transfer_matrix = np.full(
+        (1, 6, 6),
+        np.array([[_cosh,                     _sinh / focusing_strength,                            0.,                        0., 0., 0.],
+                  [focusing_strength * _sinh, _cosh,                                                0.,                        0., 0., 0.],
+                  [0.,                        0.,                        _cos,                      _sin / focusing_strength,  0., 0.],
+                  [0.,                        0.,                        -focusing_strength * _sin, _cos,                      0., 0.],
+                  [0.,                        0.,                        0.,                        0.,                        1., delta_s * gamma_in_min2],
+                  [0.,                        0.,                        0.,                        0.,                        0., 0.]]))
+    return transfer_matrix
 
 
 def field_map_rk4(d_z: float,
@@ -274,3 +367,39 @@ def thin_lense(gamma_in: float,
             @ drift(half_dz, gamma_in)[0][0]
         )
     return transfer_matrix
+
+# =============================================================================
+# Helpers
+# =============================================================================
+def _magnetic_rigidity(beta: float,
+                       gamma: float) -> float:
+    """Compute magnetic rigidity of particle."""
+    return con.E_REST_MEV * c * beta * gamma / con.Q_ADIM
+
+
+def _focusing_strength(gradient: float,
+                       magnetic_rigidity: float) -> float:
+    """Compute focusing strength of the quadrupole."""
+    return np.sqrt(abs(gradient / magnetic_rigidity))
+
+
+def _quadrupole_trigo_hyperbolic(
+        focusing_strength: float,
+        delta_s: float
+        ) -> tuple[float, float, float, float]:
+    """
+    Pre-compute some parameters for the quadrupole transfer matrix.
+
+    .. todo::
+        As I am working on floats and not on np arrays, maybe the functions
+        from the cmath package would be more adapted?
+    """
+    kdelta_s = focusing_strength * delta_s
+
+    _cos = np.cos(kdelta_s)
+    _cosh = np.cosh(kdelta_s)
+
+    _sin = np.sin(kdelta_s)
+    _sinh = np.sinh(kdelta_s)
+
+    return _cos, _cosh, _sin, _sinh
