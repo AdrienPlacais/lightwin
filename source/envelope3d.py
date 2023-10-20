@@ -106,15 +106,6 @@ if __name__ == '__main__':
     # Post-treat
     # =========================================================================
     kwargs = {'save_fig': True, 'clean_fig': True}
-    figs = plot.factory(accelerators, my_configs['plots'], **kwargs)
-
-    # s_to_study = [accelerator.simulation_outputs[solv2]
-    #               for accelerator in accelerators]
-    # ref_s = s_to_study[0]
-
-    # simulation_output_evaluators: ListOfSimulationOutputEvaluators = \
-    #     factory_simulation_output_evaluators_from_presets(
-    #         *my_configs['evaluators']['beam_calc_post'],
-    #         ref_simulation_output=ref_s)
-
-    # simulation_output_evaluators.run(*tuple(s_to_study))
+    figs = plot.factory([accelerators[0], accelerators[0]],
+                        my_configs['plots'],
+                        **kwargs)
