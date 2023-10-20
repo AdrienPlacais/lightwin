@@ -139,9 +139,10 @@ class Envelope3D(BeamCalculator):
 
         """
         elts = accelerator.elts
-        kwargs = {'n_steps_per_cell': self.n_steps_per_cell,
-                  'transf_mat_module': self.transf_mat_module,
-                  }
+        kwargs = {
+            'n_steps_per_cell': self.n_steps_per_cell,
+            'transf_mat_module': self.transf_mat_module,
+        }
         for elt in elts:
             elt.beam_calc_param[self.id] = SingleElementEnvelope3DParameters(
                 elt,
@@ -215,6 +216,11 @@ class Envelope3D(BeamCalculator):
             beam_parameters=beam_params,
             element_to_index=element_to_index
         )
+
+        simulation_output.transfer_matrix = [
+            results['transfer_matrix'][i]
+            for results in single_elts_results
+            for i in range(results['transfer_matrix'].shape[0])]
         return simulation_output
 
     @property

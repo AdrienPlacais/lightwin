@@ -129,11 +129,11 @@ def drift(delta_s: float,
     return transfer_matrix, gamma_phi, None
 
 
-def quadrupole(delta_s: float,
-               gradient: float,
-               gamma_in: float,
-               **kwargs
-               ) -> tuple[np.ndarray, np.ndarray, None]:
+def quad(delta_s: float,
+         gradient: float,
+         gamma_in: float,
+         **kwargs
+         ) -> tuple[np.ndarray, np.ndarray, None]:
     """Calculate the transfer matrix of a quadrupole.
 
     Parameters

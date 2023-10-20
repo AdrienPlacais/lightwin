@@ -47,12 +47,12 @@ class SingleElementEnvelope3DParameters(SingleElementCalculatorParameters):
                  # length_m: float,
                  # is_accelerating: bool,
                  # n_cells: int | None,
-                 # n_steps_per_cell: int,
+                 n_steps_per_cell: int,
                  transf_mat_module: ModuleType) -> None:
         """Set the actually useful parameters."""
-        length_m = elt.get('length_m', to_numpy=False),
-        n_cells = elt.get('n_cell', to_numpy=False),
-        element_type = type(Element)
+        length_m = elt.get('length_m', to_numpy=False)
+        n_cells = elt.get('n_cell', to_numpy=False)
+        element_type = type(elt)
         self.n_steps = 1
 
         self.n_cells = n_cells
