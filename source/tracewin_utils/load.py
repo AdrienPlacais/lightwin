@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""This module holds the function to load and preprocess the TraceWin files."""
+"""
+This module holds the function to load and preprocess the TraceWin files.
+
+.. todo::
+    Handle when there is no space between an element's name and the colon ":".
+
+"""
 import logging
 import os.path
 import re
