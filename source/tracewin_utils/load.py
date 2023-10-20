@@ -22,24 +22,24 @@ TRACEWIN_IMPORT_DATA_TABLE = {
 }
 
 
-def dat_file(dat_filepath: str) -> list[list[str]]:
+def dat_file(dat_path: str) -> list[list[str]]:
     """
     Load the dat file and convert it into a list of lines.
 
     Parameters
     ----------
-    dat_filepath : string
+    dat_path : string
         Filepath to the .dat file, as understood by TraceWin.
 
     Returns
     -------
     dat_filecontent : list[list[str]]
-        List containing all the lines of dat_filepath.
+        List containing all the lines of dat_path.
 
     """
     dat_filecontent = []
 
-    with open(dat_filepath) as file:
+    with open(dat_path) as file:
         for line in file:
             line = line.strip()
 
@@ -56,11 +56,11 @@ def dat_file(dat_filepath: str) -> list[list[str]]:
     return dat_filecontent
 
 
-def table_structure_file(filepath: str,
+def table_structure_file(path: str,
                          ) -> list[list[str]]:
     """Load the file produced by ``Data`` ``Save table to file``."""
     file_content = []
-    with open(filepath, 'r', encoding='utf-8') as file:
+    with open(path, 'r', encoding='utf-8') as file:
         for line in file:
             line_content = line.split()
 
@@ -72,13 +72,13 @@ def table_structure_file(filepath: str,
     return file_content
 
 
-def results(filepath: str, prop: str) -> np.ndarray:
+def results(path: str, prop: str) -> np.ndarray:
     """
     Load a property from TraceWin's "Data" table.
 
     Parameters
     ----------
-    filepath : string
+    path : string
         Path to results file. It must be saved from TraceWin:
         ``Data`` > ``Save table to file``.
     prop : string
@@ -90,17 +90,17 @@ def results(filepath: str, prop: str) -> np.ndarray:
         Array containing the desired property.
 
     """
-    if not os.path.isfile(filepath):
+    if not os.path.isfile(path):
         logging.warning(
             "Filepath to results is incorrect. Provide another one.")
         Tk().withdraw()
-        filepath = askopenfilename(
+        path = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
 
     idx = TRACEWIN_IMPORT_DATA_TABLE[prop]
 
     data_ref = []
-    with open(filepath) as file:
+    with open(path) as file:
         for line in file:
             try:
                 int(line.split('\t')[0])
@@ -166,6 +166,35 @@ def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
         return None, None, None, None
 
     return n_z, zmax, norm, np.array(f_z)
+
+
+def transfer_matrices(path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Load the transfer matrix as calculated by TraceWin."""
+    transfer_matrices = []
+    z_positions = []
+    elements_numbers = []
+
+    with open(path, 'r', encoding='utf-8') as file:
+        lines = []
+        for i, line in enumerate(file):
+            lines.append(line)
+            if i % 7 == 6:
+                elements_numbers.append(int(lines[0].split()[1]))
+                z_positions.append(float(lines[0].split()[3]))
+                transfer_matrices.append(_transfer_matrix(lines[1:]))
+                lines = []
+    elements_numbers = np.array(elements_numbers)
+    z_positions = np.array(z_positions)
+    transfer_matrices = np.array(transfer_matrices)
+    return elements_numbers, z_positions, transfer_matrices
+
+
+def _transfer_matrix(lines: list[str]) -> np.ndarray:
+    """Load a single element transfer matrix."""
+    transfer_matrix = np.empty((6, 6), dtype=float)
+    for i, line in enumerate(lines):
+        transfer_matrix[i] = np.array(line.split(), dtype=float)
+    return transfer_matrix
 
 
 FIELD_MAP_LOADERS = {
