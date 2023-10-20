@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module holds everything related to emittances, Twiss, envelopes.
+Hold everything related to emittances, Twiss, envelopes.
 
 They are stored in a :class:`SinglePhaseSpaceBeamParameters`, which are
 gathered in a :class:`BeamParameters` class object.
@@ -87,7 +87,6 @@ PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
 class BeamParameters:
     """
     Hold all emittances, envelopes, etc in various planes.
-
 
     Attributes
     ----------
@@ -333,7 +332,7 @@ class BeamParameters:
                 arg,
                 element_to_index=self.element_to_index,
                 **phase_space_kwargs,
-                )
+            )
             setattr(self, arg, phase_space_beam_param)
 
     def init_other_phase_spaces_from_zdelta(
@@ -394,8 +393,6 @@ class SinglePhaseSpaceBeamParameters:
     def __post_init__(self):
         """Set the default attributes for the zdelta."""
         if self.phase_space == 'zdelta' and self.sigma_in is None:
-            # logging.warning("resorted back to a default sigma_zdelta. I should"
-            #                 "avoid that.")
             self.sigma_in = con.SIGMA_ZDELTA
 
     def __str__(self) -> str:
