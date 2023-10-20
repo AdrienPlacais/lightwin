@@ -23,7 +23,7 @@ class SingleElementCalculatorParameters(ABC):
     """
     Parent class to hold solving parameters. Attribute of :class:`.Element`.
 
-    Used by :class:`.Envelope1D`.
+    Used by :class:`.Envelope1D` and :class:`.Envelope3D`.
 
     """
 
