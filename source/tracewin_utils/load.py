@@ -171,7 +171,7 @@ def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
 def transfer_matrices(path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Load the transfer matrix as calculated by TraceWin."""
     transfer_matrices = []
-    z_positions = []
+    position_in_m = []
     elements_numbers = []
 
     with open(path, 'r', encoding='utf-8') as file:
@@ -180,13 +180,13 @@ def transfer_matrices(path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
             lines.append(line)
             if i % 7 == 6:
                 elements_numbers.append(int(lines[0].split()[1]))
-                z_positions.append(float(lines[0].split()[3]))
+                position_in_m.append(float(lines[0].split()[3]))
                 transfer_matrices.append(_transfer_matrix(lines[1:]))
                 lines = []
     elements_numbers = np.array(elements_numbers)
-    z_positions = np.array(z_positions)
+    position_in_m = np.array(position_in_m)
     transfer_matrices = np.array(transfer_matrices)
-    return elements_numbers, z_positions, transfer_matrices
+    return elements_numbers, position_in_m, transfer_matrices
 
 
 def _transfer_matrix(lines: list[str]) -> np.ndarray:
