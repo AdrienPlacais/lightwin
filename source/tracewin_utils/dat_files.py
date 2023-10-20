@@ -143,7 +143,15 @@ def create_structure(dat_content: list[list[str]],
 def _create_element_n_command_objects(dat_content: list[list[str]],
                                       dat_filepath: str
                                       ) -> list[Element | Command]:
-    """Initialize the :class:`Element` and :class:`Command`."""
+    """
+    Initialize the :class:`.Element` and :class:`.Command`.
+
+    .. note::
+        Elements and Command names in the ``subclasses_dispatcher`` dictionary
+        are in uppercase. In the ``.dat`` file, you can use lower or uppercase,
+        but they will be converted to uppercase in the routine anyway.
+
+    """
     subclasses_dispatcher = {
         # Elements
         'APERTURE': Aperture,
@@ -166,11 +174,13 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
 
     classes = []
     for line in dat_content:
-        if line[0] in subclasses_dispatcher:
-            classes.append(subclasses_dispatcher[line[0]])
+        name = line[0].upper()
+        if name in subclasses_dispatcher:
+            classes.append(subclasses_dispatcher[name])
             continue
-        if line[2] in subclasses_dispatcher:
-            classes.append(subclasses_dispatcher[line[2]])
+        name = line[2].upper()
+        if name in subclasses_dispatcher:
+            classes.append(subclasses_dispatcher[name])
             continue
         classes.append(None)
 
