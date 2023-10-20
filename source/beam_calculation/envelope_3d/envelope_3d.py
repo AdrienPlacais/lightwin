@@ -19,7 +19,7 @@ from core.beam_parameters import BeamParameters
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
 from beam_calculation.envelope_3d.single_element_envelope_3d_parameters import\
-    SingleElementEnvelope1DParameters
+    SingleElementEnvelope3DParameters
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
@@ -37,7 +37,7 @@ class Envelope3D(BeamCalculator):
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
         self.id = self.__repr__()
-        self.out_folder += "_Envelope1D"
+        self.out_folder += "_Envelope3D"
 
         if self.flag_cython:
             raise IOError("Cython not yet implemented for this solver.")
@@ -149,7 +149,7 @@ class Envelope3D(BeamCalculator):
                   'transf_mat_module': self.transf_mat_module,
                   }
         for elt in elts:
-            elt.beam_calc_param[self.id] = SingleElementEnvelope1DParameters(
+            elt.beam_calc_param[self.id] = SingleElementEnvelope3DParameters(
                 length_m=elt.get('length_m', to_numpy=False),
                 is_accelerating=elt.is_accelerating(),
                 n_cells=elt.get('n_cell', to_numpy=False),
