@@ -9,12 +9,16 @@ Everything related to the ``beam_calculator`` key.
     Handle ``tracelx``. Remember that the ``tracelx`` executable should be in
     the same folder as your project!
 
+.. todo::
+    Would be possible to add more lists of implemented options to the
+    documentation.
+
 """
 import logging
 import os
 import configparser
 
-tools = ('Envelope1D', 'TraceWin')  #:
+tools = ('Envelope1D', 'TraceWin', 'Envelope3D')  #:
 methods = ('leapfrog', 'RK')  #:
 
 TRACEWIN_EXECUTABLES = {  # Should match with your installation
@@ -39,7 +43,10 @@ def test(c_beam_calculator: configparser.SectionProxy) -> None:
             passed = False
 
     valid_tools = {'Envelope1D': _test_beam_calculator_envelope1d,
-                   'TraceWin': _test_beam_calculator_tracewin}
+                   'TraceWin': _test_beam_calculator_tracewin,
+                   'Envelope3D': _test_beam_calculator_envelope3d,
+                   }
+
     my_tool = c_beam_calculator["tool"]
     if my_tool not in tools:
         logging.error(f"{my_tool} is an invalid value for tool. "
@@ -55,7 +62,8 @@ def test(c_beam_calculator: configparser.SectionProxy) -> None:
 def config_to_dict(c_beam_calculator: configparser.SectionProxy) -> dict:
     """Call the proper _config_to_dict function."""
     config_to_dicts = {'Envelope1D': _config_to_dict_envelope1d,
-                       'TraceWin': _config_to_dict_tracewin}
+                       'TraceWin': _config_to_dict_tracewin,
+                       'Envelope3D': _config_to_dict_envelope3d}
     my_tool = c_beam_calculator["tool"]
     return config_to_dicts[my_tool](c_beam_calculator)
 
@@ -85,7 +93,7 @@ def _test_beam_calculator_envelope1d(
     change in FLAG_CYTHON into account.
 
     """
-    mandatory = ["flag_cython", "method", "flag_phi_abs"]
+    mandatory = ("flag_cython", "method", "flag_phi_abs")
     for key in mandatory:
         if key not in c_beam_calculator.keys():
             logging.error(f"{key} is mandatory and missing.")
@@ -109,7 +117,7 @@ def _test_beam_calculator_envelope1d(
 def _test_beam_calculator_tracewin(
         c_beam_calculator: configparser.SectionProxy) -> bool:
     """Specific test for the TraceWin simulations."""
-    mandatory = ["simulation type", "ini_path"]
+    mandatory = ("simulation type", "ini_path")
     for key in mandatory:
         if key not in c_beam_calculator.keys():
             logging.error(f"{key} is mandatory and missing.")
@@ -155,6 +163,31 @@ def _test_beam_calculator_tracewin(
             if c_beam_calculator.get(key) not in ['0', '1']:
                 logging.error("partran and toutatis keys should be 0 or 1.")
                 return False
+    return True
+
+
+def _test_beam_calculator_envelope3d(
+        c_beam_calculator: configparser.SectionProxy) -> bool:
+    """Test consistency of the Envelope3D beam_calculator."""
+    mandatory = ("flag_phi_abs")
+    for key in mandatory:
+        if key not in c_beam_calculator.keys():
+            logging.error(f"{key} is mandatory and missing.")
+            return False
+
+    if c_beam_calculator["method"] in methods:
+        method = c_beam_calculator.get('method')
+        if method != 'RK':
+            logging.warning(f"You asked for {method = } but only 'RK' is "
+                            "implemented. This is what I will use.")
+        return False
+
+    if "n_steps_per_cell" not in c_beam_calculator.keys():
+        logging.warning("Number of integration steps per cell not precised. "
+                        "Will use default values.")
+        default = {'RK': '20'}
+        c_beam_calculator["n_steps_per_cell"] = default["method"]
+
     return True
 
 
@@ -267,3 +300,20 @@ def _config_to_dict_tracewin(c_tw: configparser.SectionProxy) -> dict:
     args_for_lightwin['base_kwargs'] = args_for_tracewin
 
     return args_for_lightwin
+
+
+def _config_to_dict_envelope3d(
+        c_beam_calculator: configparser.SectionProxy) -> dict:
+    """Save beam_calculator info into a dict."""
+    beam_calculator = {}
+    getter = {
+        'flag_phi_abs': c_beam_calculator.getboolean,
+        'n_steps_per_cell': c_beam_calculator.getint,
+    }
+    for key in c_beam_calculator.keys():
+        if key in getter:
+            beam_calculator[key] = getter[key](key)
+            continue
+        beam_calculator[key] = c_beam_calculator.get(key)
+
+    return beam_calculator

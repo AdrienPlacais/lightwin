@@ -6,6 +6,7 @@ from typing import Any
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.envelope_1d.envelope_1d import Envelope1D
 from beam_calculation.tracewin.tracewin import TraceWin
+from beam_calculation.envelope_3d.envelope_3d import Envelope3D
 
 
 def create_beam_calculator_objects(
@@ -36,7 +37,7 @@ def create_beam_calculator_objects(
             continue
 
         tool = beam_calculator_parameters['tool']
-        keys_not_handled = ['tool', 'simulation type']
+        keys_not_handled = ('tool', 'simulation type')
         clean_parameters = {key: val
                             for key, val in beam_calculator_parameters.items()
                             if key not in keys_not_handled}
@@ -44,6 +45,7 @@ def create_beam_calculator_objects(
         calculators = {
             'Envelope1D': Envelope1D,
             'TraceWin': TraceWin,
+            'Envelope3D': Envelope3D,
         }
 
         beam_calculators.append(calculators[tool](out_folder=out_folder,
