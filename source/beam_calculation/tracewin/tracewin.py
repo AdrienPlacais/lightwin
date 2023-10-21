@@ -43,6 +43,7 @@ from beam_calculation.tracewin.single_element_tracewin_parameters import (
     SingleElementTraceWinParameters)
 
 from tracewin_utils.interface import beam_calculator_to_command
+from tracewin_utils import load
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
@@ -377,6 +378,11 @@ class TraceWin(BeamCalculator):
 
         # FIXME attribute was not declared
         simulation_output.pow_lost = results['Powlost']
+
+        # FIXME another one
+        _, _, simulation_output.transfer_matrix = _load_transfer_matrices(
+            path_cal)
+
         return simulation_output
 
     def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
@@ -764,7 +770,7 @@ def _add_beam_param_not_supported_by_envelope1d(
 
 
 # =============================================================================
-# Transfer matrix file, currently not used
+# Transfer matrix file
 # =============================================================================
 def _load_transfer_matrices(path_cal: str,
                             filename: str = 'Transfer_matrix1.dat',
@@ -785,46 +791,24 @@ def _load_transfer_matrices(path_cal: str,
 
     Returns
     -------
-    element_number : np.ndarray
+    element_numbers : np.ndarray
         Number of the elements.
     position_in_m : np.ndarray
         Position of the elements.
-    transfer_matrix : np.ndarray
+    transfer_matrices : np.ndarray
         Cumulated transfer matrices of the elements.
 
     """
     if high_def:
         logging.error("High definition not implemented. Can only import"
-                      + "transfer matrices @ element positions.")
+                      "transfer matrices @ element positions.")
         high_def = False
 
-    f_p = os.path.join(path_cal, filename)
-    data = None
-    element_number, position_in_m, transfer_matrix = [], [], []
-
-    with open(f_p, 'r', encoding='utf-8') as file:
-        for i, line in enumerate(file):
-            if i % 7 == 0:
-                # Get element # and position
-                data = line.split()
-                element_number.append(int(data[1]))
-                position_in_m.append(float(data[3]))
-
-                # Re-initialize data
-                data = []
-                continue
-
-            data.append([float(dat) for dat in line.split()])
-
-            # Save transfer matrix
-            if (i + 1) % 7 == 0:
-                transfer_matrix.append(data)
-    logging.debug(f"successfully loaded {f_p}")
-
-    element_number = np.array(element_number)
-    position_in_m = np.array(position_in_m)
-    transfer_matrix = np.array(transfer_matrix)
-    return element_number, position_in_m, transfer_matrix
+    path = os.path.join(path_cal, filename)
+    elements_numbers, position_in_m, transfer_matrices = \
+        load.transfer_matrices(path)
+    logging.debug(f"successfully loaded {path}")
+    return elements_numbers, position_in_m, transfer_matrices
 
 
 # =============================================================================
