@@ -52,6 +52,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
 from core.beam_parameters import BeamParameters
+from core.transfer_matrix import TransferMatrix
 
 
 @dataclass
@@ -362,6 +363,9 @@ class TraceWin(BeamCalculator):
         beam_parameters = self._create_beam_parameters(element_to_index,
                                                        results)
 
+        _, _, cumulated = _load_transfer_matrices(path_cal)
+        transfer_matrix = TransferMatrix(cumulated=cumulated)
+
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
             is_multiparticle=self.is_a_multiparticle_simulation,
@@ -372,16 +376,13 @@ class TraceWin(BeamCalculator):
             r_zz_elt=[],
             rf_fields=rf_fields,
             beam_parameters=beam_parameters,
-            element_to_index=element_to_index
+            element_to_index=element_to_index,
+            transfer_matrix=transfer_matrix,
         )
         simulation_output.z_abs = results['z(m)']
 
         # FIXME attribute was not declared
         simulation_output.pow_lost = results['Powlost']
-
-        # FIXME another one
-        _, _, simulation_output.transfer_matrix = _load_transfer_matrices(
-            path_cal)
 
         return simulation_output
 
