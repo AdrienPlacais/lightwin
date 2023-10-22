@@ -22,34 +22,91 @@ class TransferMatrix:
     """
 
     def __init__(self,
-                 individual: np.ndarray | list[np.ndarray],
-                 is_3d: bool | None = None) -> None:
+                 individual: np.ndarray | list[np.ndarray] | None = None,
+                 cumulated: np.ndarray | None = None,
+                 ) -> None:
         """Create the object and compute the cumulated transfer matrix.
 
         Parameters
         ----------
-        individual : np.ndarray | list[np.ndarray]
-            Individual transfer matrices.
-        is_3d : bool | None, optional
-            To indicate if the transfer matrices correspond to a full 3D
-            simulation, or only to a longitudinal simulation. The default is
-            None, in which case the value of this flag is inferred from the
-            dimension of ``individual``.
+        individual : np.ndarray | list[np.ndarray] | None, optional
+            Individual transfer matrices. The default is None, in which case
+            the ``cumulated`` transfer matrix must be provided directly.
+        cumulated : np.ndarray | None, optional
+            Cumulated transfer matrices. The default is None, in which case the
+            ``individual`` transfer matrices must be given.
 
         """
         if isinstance(individual, list):
             individual = np.array(individual)
 
-        self.n_points = self.individual.shape[0]
+        self.individual: np.ndarray
+        if individual is not None:
+            self.individual = individual
+            is_3d, n_points, cumulated = self._init_from_individual(individual)
 
-        if is_3d is None:
-            is_3d = self._determine_if_is_3d(individual)
+        else:
+            is_3d, n_points, cumulated = self._init_from_cumulated(cumulated)
+
         self.is_3d = is_3d
+        self.n_points = n_points
+        self.cumulated = cumulated
 
-        self.individual = individual
-        self.cumulated = self._compute_cumulated(is_3d)
+    def _init_from_individual(self, individual: np.ndarray
+                              ) -> tuple[bool, int, np.ndarray]:
+        """Compute cumulated transfer matrix from individual.
 
-    def _compute_cumulated(self, is_3d: bool) -> np.ndarray:
+        Parameters
+        ----------
+        individual : np.ndarray
+            Individual transfer matrices along the linac.
+
+        Returns
+        -------
+        is_3d : bool
+            If the simulation is in 3D or not.
+        n_points : int
+            Number of mesh points along the linac.
+        cumulated : np.ndarray
+            Cumulated transfer matrices.
+
+        """
+        is_3d = self._determine_if_is_3d(individual)
+        n_points = individual.shape[0]
+        cumulated = self._compute_cumulated(is_3d, n_points)
+        return is_3d, n_points, cumulated
+
+    def _init_from_cumulated(self, cumulated: np.ndarray | None
+                             ) -> tuple[bool, int, np.ndarray]:
+        """Check that the given cumulated matrix is valid.
+
+        Parameters
+        ----------
+        cumulated : np.ndarray
+            Cumulated transfer matrices along the linac.
+
+        Returns
+        -------
+        is_3d : bool
+            If the simulation is in 3D or not.
+        n_points : int
+            Number of mesh points along the linac.
+        cumulated : np.ndarray
+            Cumulated transfer matrices.
+
+        """
+        if cumulated is None:
+            logging.error("You must provide at least one of the two "
+                          "arrays: individual transfer matrices or "
+                          "cumulated transfer matrices.")
+            raise IOError("Wrong input")
+        is_3d = self._determine_if_is_3d(cumulated)
+        n_points = self.cumulated.shape[0]
+        return is_3d, n_points, cumulated
+
+    def _compute_cumulated(self,
+                           is_3d: bool,
+                           n_points: int) -> np.ndarray:
         """Compute cumulated transfer matrix from individual.
 
         Parameters
@@ -67,15 +124,15 @@ class TransferMatrix:
         fill_value = np.NaN
         if is_3d:
             fill_value = 0.
-        cumulated = np.full((self.n_points, 6, 6), fill_value)
+        cumulated = np.full((n_points, 6, 6), fill_value)
 
         cumulated[0] = self.individual[0]
-        for i in range(1, self.n_points):
+        for i in range(1, n_points):
             cumulated[i] = self.individual[i] @ cumulated[i - 1]
         return cumulated
 
-    def _determine_if_is_3d(self, individual: np.ndarray) -> bool:
-        shape = individual.shape[1:]
+    def _determine_if_is_3d(self, array: np.ndarray) -> bool:
+        shape = array.shape[1:]
         if shape == (2, 2):
             return False
         if shape == (6, 6):

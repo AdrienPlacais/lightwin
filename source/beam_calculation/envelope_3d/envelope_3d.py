@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Define :class:`Envelope3D`, an envelope solver.
-
-Work in progress...
-
-"""
+"""Define :class:`Envelope3D`, an envelope solver."""
 from dataclasses import dataclass
 
 from core.particle import ParticleFullTrajectory
@@ -14,6 +9,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import indiv_to_cumul_transf_mat
 from core.accelerator import Accelerator
 from core.beam_parameters import BeamParameters
+from core.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
@@ -212,6 +208,11 @@ class Envelope3D(BeamCalculator):
         )
         beam_params.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
 
+        individual = [results['transfer_matrix'][i]
+                      for results in single_elts_results
+                      for i in range(results['transfer_matrix'].shape[0])]
+        transfer_matrix = TransferMatrix(individual=individual)
+
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
             is_multiparticle=self.is_a_multiparticle_simulation,
@@ -221,13 +222,10 @@ class Envelope3D(BeamCalculator):
             r_zz_elt=r_zz_elt,
             rf_fields=rf_fields,
             beam_parameters=beam_params,
-            element_to_index=element_to_index
+            element_to_index=element_to_index,
+            transfer_matrix=transfer_matrix
         )
 
-        simulation_output.transfer_matrix = [
-            results['transfer_matrix'][i]
-            for results in single_elts_results
-            for i in range(results['transfer_matrix'].shape[0])]
         return simulation_output
 
     @property
@@ -237,7 +235,7 @@ class Envelope3D(BeamCalculator):
 
     @property
     def is_a_3d_simulation(self) -> bool:
-        """Return False."""
+        """Return True."""
         return True
 
     def _proper_rf_field_kwards(
