@@ -4,6 +4,12 @@ Usage
 .. toctree::
    :maxdepth: 4
 
+.. todo::
+   Ease re-usage of old simulations. Very easy, just use the ``recompute`` flag, override the ``run_with_this`` method, and user must provide a ``results`` dir.
+
+.. todo::
+   Create a real transfer matrix object.
+
 General structure of the code
 *****************************
 The highest-level object is an :py:class:`.Accelerator`.
