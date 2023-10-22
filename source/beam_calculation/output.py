@@ -12,6 +12,10 @@ We define a class to store outputs from different :class:`.BeamCalculator`.
 .. todo::
     Do I really need z_abs? Envelope1D does not uses it while TraceWin does.
 
+.. todo::
+    Transfer matrices are stored in :class:`.TransferMatrix`, but also in
+    :data:`.BeamParameters.zdelta`.
+
 """
 import logging
 import os.path
@@ -65,7 +69,7 @@ class SimulationOutput:
         attributes, etc.  Used to easily `get` the desired properties at the
         proper position.
     transfer_matrix : TransferMatrix
-        Holds absolute and relative transfer matrices in all planes.
+         Holds absolute and relative transfer matrices in all planes.
     z_abs : np.ndarray | None, optional
         Absolute position in the linac in m. The default is None.
     in_tw_fashion : pd.DataFrame | None, optional
