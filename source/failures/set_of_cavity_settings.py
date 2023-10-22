@@ -130,10 +130,10 @@ class SingleCavitySettings:
             return phi_0_abs
 
         if self.phi_0_rel is not None:
-            raise NotImplementedError
+            raise NotImplementedError("TraceWin switch abs/rel not supported.")
 
         if self.phi_s is not None:
-            raise NotImplementedError
+            raise NotImplementedError("TraceWin fit on phi_s not supported.")
 
 
 @dataclass
