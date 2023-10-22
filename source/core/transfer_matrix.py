@@ -12,7 +12,14 @@ import numpy as np
 
 
 class TransferMatrix:
-    """Hold the (n, 6, 6) transfer matrix along the linac."""
+    """
+    Hold the (n, 6, 6) transfer matrix along the linac.
+
+    .. note::
+        When the simulation is in 1D only, the values corresponding to the
+        transverse planes are filled with np.NaN.
+
+    """
 
     def __init__(self,
                  individual: np.ndarray | list[np.ndarray],
