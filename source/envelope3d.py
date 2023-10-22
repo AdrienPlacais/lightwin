@@ -118,14 +118,7 @@ if __name__ == '__main__':
 
     # Get calculated transfer matrices
     sim = accelerators[0].simulation_outputs[solv1]
-    individual_transfer_matrices = sim.transfer_matrix
-    n_points = len(individual_transfer_matrices)
-    cumulated_transfer_matrices = np.empty((n_points, 6, 6))
-    cumulated_transfer_matrices[0] = individual_transfer_matrices[0]
-    for i in range(1, n_points):
-        cumulated_transfer_matrices[i] = \
-            individual_transfer_matrices[i] \
-            @ cumulated_transfer_matrices[i - 1]
+    cumulated_transfer_matrices = sim.transfer_matrix.cumulated
     pos = sim.get('z_abs')
 
     # Get reference transfer matrices
