@@ -64,6 +64,8 @@ class SimulationOutput:
         arrays attributes of this class: ``z_abs``, ``beam_parameters``
         attributes, etc.  Used to easily `get` the desired properties at the
         proper position.
+    transfer_matrix : TransferMatrix
+        Holds absolute and relative transfer matrices in all planes.
     z_abs : np.ndarray | None, optional
         Absolute position in the linac in m. The default is None.
     in_tw_fashion : pd.DataFrame | None, optional
@@ -122,7 +124,7 @@ class SimulationOutput:
         """
         Tell if the required attribute is in this class.
 
-        We also call the :meth:.`BeamParameters.has`, as it is designed to
+        We also call the :meth:`.BeamParameters.has`, as it is designed to
         handle the alias (such as ``twiss_zdelta`` <=> ``zdelta.twiss``).
 
         """
