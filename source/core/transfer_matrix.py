@@ -120,15 +120,26 @@ class TransferMatrix:
         cumulated : np.ndarray
             Cumulated transfer matrix.
 
+        .. todo::
+            I think the 3D/1D handling may be smarter?
+
         """
         fill_value = np.NaN
+        shape = (n_points, 2, 2)
         if is_3d:
             fill_value = 0.
-        cumulated = np.full((n_points, 6, 6), fill_value)
+            shape = (n_points, 6, 6)
+        cumulated = np.full(shape, fill_value)
 
         cumulated[0] = self.individual[0]
         for i in range(1, n_points):
             cumulated[i] = self.individual[i] @ cumulated[i - 1]
+        if is_3d:
+            return cumulated
+
+        cumulated_1d = cumulated
+        cumulated = np.full((n_points, 6, 6), fill_value)
+        cumulated[:, 4:, 4:] = cumulated_1d
         return cumulated
 
     def _determine_if_is_3d(self, array: np.ndarray) -> bool:

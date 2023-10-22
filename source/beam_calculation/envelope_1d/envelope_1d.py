@@ -15,6 +15,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import indiv_to_cumul_transf_mat
 from core.accelerator import Accelerator
 from core.beam_parameters import BeamParameters
+from core.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
@@ -198,6 +199,10 @@ class Envelope1D(BeamCalculator):
                                 if cav_param is not None else None
                                 for cav_param in cav_params],
                       }
+        individual_1d = [results['r_zz'][i, :, :]
+                         for results in single_elts_results
+                         for i in range(results['r_zz'].shape[0])]
+        transfer_matrix = TransferMatrix(individual=individual_1d)
 
         r_zz_elt = [results['r_zz'][i, :, :]
                     for results in single_elts_results
@@ -229,7 +234,8 @@ class Envelope1D(BeamCalculator):
             r_zz_elt=r_zz_elt,
             rf_fields=rf_fields,
             beam_parameters=beam_params,
-            element_to_index=element_to_index
+            element_to_index=element_to_index,
+            transfer_matrix=transfer_matrix
         )
         return simulation_output
 
