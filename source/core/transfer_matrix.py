@@ -101,7 +101,7 @@ class TransferMatrix:
                           "cumulated transfer matrices.")
             raise IOError("Wrong input")
         is_3d = self._determine_if_is_3d(cumulated)
-        n_points = self.cumulated.shape[0]
+        n_points = cumulated.shape[0]
         return is_3d, n_points, cumulated
 
     def _compute_cumulated(self,
