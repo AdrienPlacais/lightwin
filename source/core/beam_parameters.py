@@ -12,7 +12,7 @@ gathered in a :class:`BeamParameters` object.
     to have a ``tracewin_command``.
 
 For a list of the units associated with every parameter, see
-:ref:`units-beam-parameters-label`.
+:ref:`units-label`.
 
 """
 from typing import Any, Callable
@@ -34,13 +34,13 @@ from util.helper import (recursive_items,
                          range_vals_object)
 
 
-PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
-                'phiw99', 'x99', 'y99')
+IMPLEMENTED_PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
+                            'phiw99', 'x99', 'y99')  #:
 
 
 @dataclass
 class BeamParameters:
-    """
+    r"""
     Hold all emittances, envelopes, etc in various planes.
 
     Attributes
@@ -50,39 +50,39 @@ class BeamParameters:
     gamma_kin : np.ndarray | float | None, optional
         Lorentz gamma factor. The default is None.
     beta_kin : np.ndarray | float | None, optional
-        Lorentz gamma factor. The default is None. If `beta_kin` is not
-        provided but `gamma_kin` is, `beta_kin` is automatically calculated at
-        initialisation.
+        Lorentz gamma factor. The default is None. If ``beta_kin`` is not
+        provided but ``gamma_kin`` is, ``beta_kin`` is automatically calculated
+        at initialisation.
     element_to_index : Callable[[str | Element, str | None],
                                  int | slice] | None, optional
-        Takes an `Element`, its name, 'first' or 'last' as argument, and
-        returns correspondinf index. Index should be the same in all the arrays
-        attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
-        Used to easily `get` the desired properties at the proper position. The
-        default is None.
+        Takes an :class:`.Element`, its name, ``'first'`` or ``'last'`` as
+        argument, and returns corresponding index. Index should be the same in
+        all the arrays attributes of this class: ``z_abs``, ``beam_parameters``
+        attributes, etc. Used to easily ``get`` the desired properties at the
+        proper position. The default is None.
     zdelta : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the [z-zdelta] plane.
+        Holds beam parameters in the :math:`[z-z\delta]` plane.
     z : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the [z-z'] plane.
+        Holds beam parameters in the :math:`[z-z']` plane.
     phiw : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the [phi-W] plane.
+        Holds beam parameters in the :math:`[\phi-W]` plane.
     x : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the [x-x'] plane. Only used with 3D
+        Holds beam parameters in the :math:`[x-x']` plane. Only used with 3D
         simulations.
     y : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the [y-y'] plane. Only used with 3D
+        Holds beam parameters in the :math:`[y-y']` plane. Only used with 3D
         simulations.
     t : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the [t-t'] (transverse) plane. Only used with
-        3D simulations.
+        Holds beam parameters in the :math:`[t-t']` (transverse) plane. Only
+        used with 3D simulations.
     phiw99 : SinglePhaseSpaceBeamParameters
-        Holds 99% beam parameters in the [phi-W] plane. Only used with
+        Holds 99% beam parameters in the :math:`[\phi-W]` plane. Only used with
         multiparticle simulations.
     x99 : SinglePhaseSpaceBeamParameters
-        Holds 99% beam parameters in the [x-x'] plane. Only used with
+        Holds 99% beam parameters in the :math:`[x-x']` plane. Only used with
         multiparticle simulations.
     y99 : SinglePhaseSpaceBeamParameters
-        Holds 99% beam parameters in the [y-y'] plane. Only used with
+        Holds 99% beam parameters in the :math:`[y-y']` plane. Only used with
         multiparticle simulations.
 
     """
@@ -121,8 +121,21 @@ class BeamParameters:
         """
         Tell if the required attribute is in this class.
 
-        Specifics of this method: twiss_zdelta will return True, even if the
-        correct property is zdelta.twiss.
+        Notes
+        -----
+        ``key = 'property_phasespace'`` will return True if ``'property'``
+        exists in ``phasespace``. Hence, the following two commands will have
+        the same return values:
+
+            .. code-block:: python
+
+                self.has('twiss_zdelta')
+                self.zdelta.has('twiss')
+
+        See Also
+        --------
+        get
+
         """
         if _phase_space_name_hidden_in_key(key):
             key, phase_space = _separate_var_from_phase_space(key)
@@ -135,13 +148,21 @@ class BeamParameters:
         """
         Shorthand to get attributes from this class or its attributes.
 
+        Notes
+        -----
         What is particular in this getter is that all
-        SinglePhaseSpaceBeamParameters attributes have attributes with the same
-        name: `twiss`, `alpha`, `beta`, `gamma`, `eps`, `envelopes_pos` and
-        `envelopes_energy`.
-        Hence, you must provide either a `phase_space` argument which shall be
-        in PHASE_SPACES, either you must append the name of the phase space to
-        the name of the desired variable.
+        :class:`SinglePhaseSpaceBeamParameters` attributes have attributes with
+        the same name: ``twiss``, ``alpha``, ``beta``, ``gamma``, ``eps``,
+        ``envelopes_pos`` and ``envelopes_energy``.
+
+        Hence, you must provide either a ``phase_space`` argument which shall
+        be in :data:`IMPLEMENTED_PHASE_SPACES`, either you must append the
+        name of the phase space to the name of the desired variable with an
+        underscore.
+
+        See Also
+        --------
+        has
 
         Parameters
         ----------
@@ -160,6 +181,7 @@ class BeamParameters:
         phase_space : ['z', 'zdelta', 'phi_w', 'x', 'y'] | None, optional
             Phase space in which you want the key. The default is None. In this
             case, the quantities from the zdelta phase space are taken.
+            Otherwise, it must be in :data:`IMPLEMENTED_PHASE_SPACES`.
         **kwargs: Any
             Other arguments passed to recursive getter.
 
@@ -175,7 +197,7 @@ class BeamParameters:
             if _phase_space_name_hidden_in_key(key):
                 if phase_space is not None:
                     logging.warning(
-                        "Amibiguous: you asked for two phase-spaces. One with "
+                        "Ambiguous: you asked for two phase-spaces. One with "
                         f"keyword argument {phase_space = }, and another with "
                         f"the positional argument {key = }. I take phase "
                         f"space from {key = }.")
@@ -232,11 +254,11 @@ class BeamParameters:
         Turn emittance, alpha, beta from the proper phase-spaces into command.
 
         When phase-spaces were not created, we return np.NaN which will
-        ultimately lead TraceWin to take this data from its `.ini` file.
+        ultimately lead TraceWin to take this data from its ``.ini`` file.
 
         """
         args = []
-        for phase_space_name in ['x', 'y', 'z']:
+        for phase_space_name in ('x', 'y', 'z'):
             if phase_space_name not in self.__dir__():
                 eps, alpha, beta = np.NaN, np.NaN, np.NaN
 
@@ -273,9 +295,9 @@ class BeamParameters:
             Keyword arguments to directly initialize properties in some phase
             spaces. Name of the keyword argument must correspond to a phase
             space. Argument must be a dictionary, which keys must be
-            understandable by SinglePhaseSpaceBeamParameters.__init__: alpha,
-            beta, gamma, eps, twiss, envelope_pos and envelope_energy are
-            allowed values.
+            understandable by :meth:`SinglePhaseSpaceBeamParameters.__init__`:
+            ``'alpha'``, ``'beta'``, ``'gamma'``, ``'eps'``, ``'twiss'``,
+            ``'envelope_pos'`` and ``'envelope_energy'`` are allowed values.
 
         """
         for arg in args:
@@ -293,7 +315,7 @@ class BeamParameters:
     def init_other_phase_spaces_from_zdelta(
             self, *args: str, gamma_kin: np.ndarray | None = None,
             beta_kin: np.ndarray | None = None) -> None:
-        """Create the desired longitudinal planes from zdelta."""
+        r"""Create the desired longitudinal planes from :math:`[z-\delta]`."""
         if gamma_kin is None:
             gamma_kin = self.gamma_kin
         if beta_kin is None:
@@ -348,8 +370,6 @@ class SinglePhaseSpaceBeamParameters:
     def __post_init__(self):
         """Set the default attributes for the zdelta."""
         if self.phase_space == 'zdelta' and self.sigma_in is None:
-            # logging.warning("resorted back to a default sigma_zdelta. I should"
-            #                 "avoid that.")
             self.sigma_in = con.SIGMA_ZDELTA
 
     def __str__(self) -> str:
@@ -425,9 +445,10 @@ class SinglePhaseSpaceBeamParameters:
             self, gamma_kin: np.ndarray, tm_cumul: np.ndarray | None = None,
             beta_kin: np.ndarray | None = None) -> None:
         """
-        Use transfer matrices to compute `sigma`, and then everything.
+        Use transfer matrices to compute ``sigma``, and then everything else.
 
-        Used by the Envelope1D solver.
+        Used by the :class:`.Envelope1D` solver.
+
         """
         if self.tm_cumul is None and tm_cumul is None:
             logging.error("Missing `tm_cumul` to compute beam parameters.")
@@ -445,12 +466,7 @@ class SinglePhaseSpaceBeamParameters:
 
     def init_from_sigma(self, gamma_kin: np.ndarray, beta_kin: np.ndarray,
                         sigma: np.ndarray | None = None) -> None:
-        """
-        Compute Twiss, eps, envelopes just from sigma matrix.
-
-        Used by the Envelope1D and TraceWin solvers.
-
-        """
+        """Compute Twiss, eps, envelopes just from sigma matrix."""
         if sigma is None:
             sigma = self.sigma
 
@@ -463,66 +479,72 @@ class SinglePhaseSpaceBeamParameters:
         self.envelope_pos, self.envelope_energy = \
             self._compute_envelopes_from_sigma(sigma)
 
-    def reconstruct_full_sigma_matrix(
-        self, sigma_00: np.ndarray, sigma_01: np.ndarray, eps: np.ndarray,
-        eps_is_normalized: bool = True, gamma_kin: np.ndarray | None = None,
-        beta_kin: np.ndarray | None = None,
-    ) -> None:
-        """
-        Compute sigma matrix from the two top components and emittance.
+    def reconstruct_full_sigma_matrix(self,
+                                      sigma_00: np.ndarray,
+                                      sigma_01: np.ndarray,
+                                      eps: np.ndarray,
+                                      eps_is_normalized: bool = True,
+                                      gamma_kin: np.ndarray | None = None,
+                                      beta_kin: np.ndarray | None = None,
+                                      ) -> None:
+        r"""
+        Get :math:`\sigma` matrix from the two top components and emittance.
 
-        sigma matrix is always saved in SI units (m, rad).
+        Inputs are in :math:`\mathrm{mm}` and :math:`\mathrm{mrad}`, but the
+        :math:`\sigma` matrix is in SI units (:math:`\mathrm{m}` and
+        :math:`\mathrm{rad}`).
 
-        Used by the TraceWin solver.
-        For the zdelta phase space:
-            Inputs must be in "practical" units: mm, mrad.
-            ! Note that epsilon_zdelta is in pi.mm.mrad in TraceWin .out files,
-            ! while pi.mm.% is used everywhere else in TraceWin as well as in
-            ! LightWin.
-        For the transverse phase spaces, units are mm and mrad.
+        See also
+        --------
+        :ref:`units-label`.
 
         Parameters
         ----------
         sigma_00 : np.ndarray
-            Top-left component of the sigma matrix.
+            Top-left component of the sigma matrix in :math:`\mathrm{mm}`.
         sigma_01 : np.ndarray
-            Top-right = bottom-left component of the sigma matrix.
+            Top-right = bottom-left component of the sigma matrix in
+            :math:`\mathrm{mm.mrad}`.
         eps : np.ndarray
-            Emittance.
+            Emittance in :math:`\pi.\mathrm{mm.mrad}`.
         eps_is_normalized : bool, optional
             To tell if the given emittance is already normalized. The default
-            is True. In this case, it is de-normalized and `gamma_kin` must be
-            given.
+            is True. In this case, it is de-normalized and ``gamma_kin`` must
+            be provided.
         gamma_kin : np.ndarray | None, optional
-            Lorentz gamma factor. The default is None. It is however mandatory
-            if the emittance is given unnormalized.
+            Lorentz gamma factor. The default is None. It is mandatory to give
+            it if the emittance is given unnormalized.
         beta_kin : np.ndarray | None, optional
             Lorentz beta factor. The default is None. In this case, we compute
-            it from gamma_kin.
+            it from ``gamma_kin``.
 
         """
-        if self.phase_space not in ['zdelta', 'x', 'y', 'x99', 'y99']:
+        n_points = eps.shape[0]
+        if self.phase_space not in ('zdelta', 'x', 'y', 'x99', 'y99'):
             logging.warning("sigma reconstruction in this phase space not "
-                            "tested. The main issue that can appear is with "
-                            "units.")
+                            "tested. You'd better check the units of the "
+                            "output.")
+        if eps_is_normalized:
+            if gamma_kin is None:
+                logging.error("It is mandatory to give ``gamma_kin`` to "
+                              "compute sigma matrix. Aborting calculation of "
+                              "this phase space...")
+                self.sigma = np.full((n_points, 2, 2), np.NaN)
+                return
 
-        sigma = _reconstruct_full_sigma_matrix(sigma_00, sigma_01, eps,
-                                               eps_is_normalized=True,
-                                               gamma_kin=gamma_kin,
-                                               beta_kin=beta_kin)
-        if self.phase_space in ['zdelta', 'x', 'y', 'x99', 'y99']:
+            if beta_kin is None:
+                beta_kin = converters.energy(gamma_kin, 'gamma to beta')
+            eps /= (beta_kin * gamma_kin)
+
+        sigma = _reconstruct_sigma(sigma_00, sigma_01, eps)
+        if self.phase_space in ('zdelta', 'x', 'y', 'x99', 'y99'):
             sigma *= 1e-6
         self.sigma = sigma
 
     def init_from_another_plane(self, eps_orig: np.ndarray,
                                 twiss_orig: np.ndarray, gamma_kin: np.ndarray,
                                 beta_kin: np.ndarray, convert: str) -> None:
-        """
-        Fully initialize from another phase space.
-
-        Used by the Envelope1D and TraceWin solvers.
-
-        """
+        """Fully initialize from another phase space."""
         eps_no_normalisation, eps_normalized = \
             self._compute_eps_from_other_plane(eps_orig, convert, gamma_kin,
                                                beta_kin)
@@ -786,22 +808,11 @@ def mismatch_from_arrays(ref: np.ndarray, fix: np.ndarray, transp: bool = False
     return mismatch
 
 
-def _reconstruct_full_sigma_matrix(
-    sigma_00: np.ndarray, sigma_01: np.ndarray, eps: np.ndarray,
-    eps_is_normalized: bool = True, gamma_kin: np.ndarray | None = None,
-    beta_kin: np.ndarray | None = None,
-) -> np.ndarray:
-    """
-    Compute sigma matrix from the two top components and emittance.
-
-    For consistency with TraceWin results files, inputs must be in the
-    z-delta phase space, in "practical" units: mm, mrad.
-      | Note that epsilon_zdelta is in pi.mm.mrad in TraceWin .out files,
-      | while pi.mm.% is used everywhere else in TraceWin as well as in
-      | LightWin.
-
-    For consistency with Envelope1D, output is in z-delta phase space, in
-    SI units: m, rad.
+def _reconstruct_sigma(sigma_00: np.ndarray,
+                                   sigma_01: np.ndarray,
+                                   eps: np.ndarray,
+                                   ) -> np.ndarray:
+    r"""Compute sigma matrix from the two top components and emittance.
 
     Parameters
     ----------
@@ -810,40 +821,22 @@ def _reconstruct_full_sigma_matrix(
     sigma_01 : np.ndarray
         Top-right = bottom-left component of the sigma matrix.
     eps : np.ndarray
-        Emittance.
-    eps_is_normalized : bool, optional
-        To tell if the given emittance is already normalized. The default is
-        True. In this case, it is de-normalized and `gamma_kin` must be given.
-    gamma_kin : np.ndarray | None, optional
-        Lorentz gamma factor. The default is None. It is however mandatory if
-        the emittance is given unnormalized.
-    beta_kin : np.ndarray | None, optional
-        Lorentz beta factor. The default is None. In this case, we compute it
-        from gamma_kin.
+        Un-normalized emittance in units consistent with ``sigma_00`` and
+        ``sigma_01``.
 
     Returns
     -------
     sigma : np.ndarray
-        Full sigma matrix along the linac.
+        Full sigma matrix along the linac in units consistent with
+        ``sigma_00``, ``sigma_01`` and ``eps``.
 
     """
-    if eps_is_normalized:
-        if gamma_kin is None:
-            logging.error("It is mandatory to give `gamma_kin` to compute "
-                          "sigma matrix. Aborting calculation of this phase "
-                          "space...")
-            return
-
-        if beta_kin is None:
-            beta_kin = converters.energy(gamma_kin, 'gamma to beta')
-        eps /= (beta_kin * gamma_kin)
-
     sigma = np.zeros((sigma_00.shape[0], 2, 2))
     sigma[:, 0, 0] = sigma_00
     sigma[:, 0, 1] = sigma_01
     sigma[:, 1, 0] = sigma_01
     sigma[:, 1, 1] = (eps**2 + sigma_01**2) / sigma_00
-    return sigma  # zdelta* 1e-6
+    return sigma
 
 
 # =============================================================================
@@ -871,7 +864,7 @@ def _phase_space_name_hidden_in_key(key: str) -> bool:
         return False
 
     to_test = key.split('_')
-    if to_test[-1] in PHASE_SPACES:
+    if to_test[-1] in IMPLEMENTED_PHASE_SPACES:
         return True
     return False
 
