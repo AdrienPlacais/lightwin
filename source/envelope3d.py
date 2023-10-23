@@ -133,7 +133,7 @@ if __name__ == '__main__':
     for i in range(6):
         for j in range(6):
             _, interp_cumulated[:, i, j], _, _ = resample(
-                x_1=pos[1:],
+                x_1=pos,
                 y_1=cumulated_transfer_matrices[:, i, j],
                 x_2=ref_pos,
                 y_2=ref_cumulated_transfer_matrices[:, i, j])
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     axes[0].plot(ref_pos,
                  ref_cumulated_transfer_matrices[:, i, j],
                  label='Reference')
-    axes[0].plot(pos[1:],
+    axes[0].plot(pos,
                  cumulated_transfer_matrices[:, i, j],
                  label='Calculated')
     axes[0].legend()

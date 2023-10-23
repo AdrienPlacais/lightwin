@@ -6,6 +6,10 @@ Hold the transfer matrix along the linac.
 .. todo::
     Check if it can be more efficient. Maybe store R_xx, R_yy, R_zz separately?
 
+.. todo::
+    Handle when treating sub-linacs. First cumulated transfer matrix then sould
+    not be ``eye`` matrix.
+
 """
 import logging
 import numpy as np
@@ -19,11 +23,20 @@ class TransferMatrix:
         When the simulation is in 1D only, the values corresponding to the
         transverse planes are filled with np.NaN.
 
+    Attributes
+    ----------
+    individual : np.ndarray
+        Individual transfer matrices along the linac. Not defined if not
+        provided at initialisation.
+    cumulated : np.ndarray
+        Cumulated transfer matrices along the linac.
+
     """
 
     def __init__(self,
                  individual: np.ndarray | list[np.ndarray] | None = None,
                  cumulated: np.ndarray | None = None,
+                 insert_eye_matrix: bool = True,
                  ) -> None:
         """Create the object and compute the cumulated transfer matrix.
 
@@ -35,6 +48,9 @@ class TransferMatrix:
         cumulated : np.ndarray | None, optional
             Cumulated transfer matrices. The default is None, in which case the
             ``individual`` transfer matrices must be given.
+        insert_eye_matrix : bool, optional
+            If an eye matrix should be inserted at the first position of
+            ``cumulated``. The default is True.
 
         """
         if isinstance(individual, list):
@@ -50,6 +66,9 @@ class TransferMatrix:
 
         self.is_3d = is_3d
         self.n_points = n_points
+
+        if insert_eye_matrix:
+            cumulated = self._insert_eye_transfer_matrix_at_start(cumulated)
         self.cumulated = cumulated
 
     def _init_from_individual(self, individual: np.ndarray
@@ -151,6 +170,13 @@ class TransferMatrix:
         logging.error(f"The individual transfer matrices have shape {shape}, "
                       "while (2, 2) (1D) or (6, 6) (3D) are expected.")
         raise IOError("Wrong dimensions for given transfer matrices.")
+
+    def _insert_eye_transfer_matrix_at_start(self, array: np.ndarray
+                                             ) -> np.ndarray:
+        """Insert eye matrix at first position of ``array``."""
+        self.n_points += 1
+        eye = np.eye(6)
+        return np.vstack((eye[np.newaxis], array))
 
     @property
     def r_xx(self) -> np.ndarray:
