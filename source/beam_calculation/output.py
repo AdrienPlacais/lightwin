@@ -57,8 +57,6 @@ class SimulationOutput:
     rf_fields : list[dict] | None
         Holds amplitude, synchronous phase, absolute phase, relative phase of
         cavities.
-    r_zz_elt : list[np.ndarray] | None
-        Cumulated transfer matrices in the [z-delta] plane.
     beam_parameters : BeamParameters | None
         Holds emittance, Twiss parameters, envelopes in the various phase
         spaces.
@@ -75,6 +73,9 @@ class SimulationOutput:
     in_tw_fashion : pd.DataFrame | None, optional
         A way to output the :class:`.SimulationOutput` in the same way as the
         ``Data`` tab of TraceWin. The default is None.
+    r_zz_elt : list[np.ndarray] | None, optional
+        Cumulated transfer matrices in the [z-delta] plane. The default is
+        None.
 
     """
 
@@ -87,7 +88,6 @@ class SimulationOutput:
     cav_params: dict[str, float | None] | None
     rf_fields: list[dict] | None
 
-    r_zz_elt: list[np.ndarray] | None
     beam_parameters: BeamParameters | None
 
     element_to_index: Callable[[str | Element, str | None], int | slice] \
@@ -96,6 +96,7 @@ class SimulationOutput:
     transfer_matrix: TransferMatrix | None = None
     z_abs: np.ndarray | None = None
     in_tw_fashion: pd.DataFrame | None = None
+    r_zz_elt: list[np.ndarray] | None = None
 
     def __post_init__(self) -> None:
         """Save complementary data, such as `Element` indexes."""
