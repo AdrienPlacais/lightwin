@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """Define :class:`Envelope3D`, an envelope solver."""
 from dataclasses import dataclass
+import logging
 
 from core.particle import ParticleFullTrajectory
 from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.list_of_elements.helper import indiv_to_cumul_transf_mat
 from core.accelerator import Accelerator
 from core.beam_parameters import BeamParameters
 from core.transfer_matrix import TransferMatrix
@@ -187,12 +187,19 @@ class Envelope3D(BeamCalculator):
                                 for cav_param in cav_params],
                       }
 
-        r_zz_elt = [results['r_zz'][i, :, :]
-                    for results in single_elts_results
-                    for i in range(results['r_zz'].shape[0])]
-        tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in,
-                                             r_zz_elt,
-                                             len(w_kin))
+        individual = [results['transfer_matrix'][i]
+                      for results in single_elts_results
+                      for i in range(results['transfer_matrix'].shape[0])]
+        first_cumulated_transfer_matrix = elts.tm_cumul_in
+        if first_cumulated_transfer_matrix.shape != (6, 6):
+            logging.error("Here I should initialize TransferMatrix with "
+                          "an initial transfer matrix, but I have a shape "
+                          "mismatch.")
+            first_cumulated_transfer_matrix = None
+        transfer_matrix = TransferMatrix(
+            individual=individual,
+            first_cumulated_transfer_matrix=first_cumulated_transfer_matrix
+            )
 
         element_to_index = self._generate_element_to_index_func(elts)
 
@@ -203,15 +210,10 @@ class Envelope3D(BeamCalculator):
         beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
         beam_params.zdelta.init_from_cumulated_transfer_matrices(
             gamma_kin=beam_params.gamma_kin,
-            tm_cumul=tm_cumul,
+            tm_cumul=transfer_matrix.r_zz,
             beta_kin=beam_params.beta_kin
         )
         beam_params.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
-
-        individual = [results['transfer_matrix'][i]
-                      for results in single_elts_results
-                      for i in range(results['transfer_matrix'].shape[0])]
-        transfer_matrix = TransferMatrix(individual=individual)
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
@@ -219,7 +221,7 @@ class Envelope3D(BeamCalculator):
             is_3d=self.is_a_3d_simulation,
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
-            r_zz_elt=r_zz_elt,
+            # r_zz_elt=r_zz_elt,
             rf_fields=rf_fields,
             beam_parameters=beam_params,
             element_to_index=element_to_index,
