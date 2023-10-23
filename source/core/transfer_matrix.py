@@ -54,6 +54,10 @@ class TransferMatrix:
         if isinstance(individual, list):
             individual = np.array(individual)
 
+        if first_cumulated_transfer_matrix is None:
+            logging.warning("In future versions, giving in a first cumulated "
+                            "transfer matrix will be mandatory.")
+
         self.individual: np.ndarray
         if individual is not None:
             self.individual = individual
