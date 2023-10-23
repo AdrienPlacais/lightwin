@@ -1,63 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
+=======
+r"""
+>>>>>>> doc
 Hold everything related to emittances, Twiss, envelopes.
 
 They are stored in a :class:`SinglePhaseSpaceBeamParameters`, which are
-gathered in a :class:`BeamParameters` class object.
-
+gathered in a :class:`BeamParameters` object.
 
 .. todo::
     May be interesting to create a ``BeamInitialState``, in the same fashion as
     :class:`.ParticleInitialState`. ``BeamInitialState`` would be the only one
     to have a ``tracewin_command``.
 
-.. todo::
-    Reformat doc for cleaner look in sphinx.
+For a list of the units associated with every parameter, see
+:ref:`units-beam-parameters-label`.
 
-Conventions
------------
-We use the same units and conventions as TraceWin.
-
-    Longitudinal RMS emittances:
-        eps_zdelta in [z-delta]           [pi.mm.%]     normalized
-            !!! Sometimes expressed in pi.mm.mrad in TW (partran.out and
-            !!! tracewin.out files).
-            !!! Conversion factor is 1 pi.mm.mrad = 10 pi.mm.%
-        eps_z      in [z-z']              [pi.mm.mrad]  normalized
-        eps_phiw   in [Delta phi-Delta W] [pi.deg.MeV]  normalized
-
-    Twiss:
-        beta, gamma are Lorentz factors.
-        beta_blabla, gamma_blabla are Twiss parameters.
-
-        beta_zdelta in [z-delta]            [mm/(pi.%)]
-        beta_z      in [z-z']               [mm/(pi.mrad)]
-        beta_phiw   in [Delta phi-Delta W]  [deg/(pi.MeV)]
-
-        (same for gamma_z, gamma_z, gamma_zdelta)
-
-        Conversions for alpha are easier:
-            alpha_phiw = -alpha_z = -alpha_zdelta
-
-    Envelopes:
-        envelope_pos in     [z-delta]           [mm]
-        envelope_pos in     [z-z']              [mm]
-        envelope_pos in     [Delta phi-Delta W] [deg]
-        envelope_energy in  [z-delta]           [%]
-        envelope_energy in  [z-z']              [mrad]
-        envelope_energy in  [Delta phi-Delta W] [MeV]
-
-    Transverse envelopes are in [x-x'] and [y-y'], so same units as [z-z'].
-
-.. note::
-    Envelopes are at 1-sigma, while they are plotted at 6-sigma by default
-    in TraceWin.
-
-.. note::
-    Envelopes are calculated with un-normalized emittances in the
-    [z-delta] and [z-z'] planes, but they are calculated with normalized
-    emittance in the [phi-W] plane.
+Maybe like this :ref:`Blaa <units-beam-parameters-label>`
 
 """
 from typing import Any, Callable
