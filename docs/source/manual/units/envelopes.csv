@@ -1,0 +1,11 @@
+In LightWin,In TraceWin,Units
+``x.envelope_pos``,,:math:`\mathrm{mm}`
+``x.envelope_energy``,,:math:`\mathrm{mrad}`
+``y.envelope_pos``,,:math:`\mathrm{mm}`
+``y.envelope_energy``,,:math:`\mathrm{mrad}`
+``z.envelope_pos``,,:math:`\mathrm{mm}`
+``z.envelope_energy``,,:math:`\mathrm{mrad}`
+``zdelta.envelope_pos``,,:math:`\mathrm{mm}`
+``zdelta.envelope_energy``,,:math:`\mathrm{\%}`
+``phiw.envelope_pos``,,:math:`\mathrm{deg}`
+``phiw.envelope_energy``,,:math:`\mathrm{MeV}`
