@@ -1,3 +1,5 @@
+.. _units-label:
+
 Units and conventions
 =====================
 .. toctree::
@@ -34,7 +36,7 @@ Twiss
     :widths: 33, 33, 33
     :header-rows: 1
 
-Note that ``beta``, ``gamma`` without a subscript are the Lorentz factors.
+Note that ``beta_kin``, ``gamma_kin`` are the Lorentz factors.
 
 Envelopes
 ---------
@@ -53,3 +55,7 @@ Envelopes
     :math:`[z-\delta]` and :math:`[z-z']` planes, but they are calculated with
     normalized emittance in the :math:`[\phi-W]` plane.
 
+:math:`\sigma` beam matrix
+--------------------------
+We save this matrix in SI units, *i.e.* in :math:`\mathrm{m}` and :math:`\mathrm{rad}`.
+When given in the ``.ini`` configuration file, it must also be in SI units.
