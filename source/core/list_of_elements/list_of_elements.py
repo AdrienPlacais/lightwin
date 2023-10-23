@@ -101,9 +101,11 @@ class ListOfElements(list):
         return self.input_particle.phi_abs
 
     @property
-    def tm_cumul_in(self):
+    def tm_cumul_in(self) -> np.ndarray:
         """Get transfer matrix at entry of first element of self."""
-        return self.input_beam.zdelta.tm_cumul
+        tm_cumul = self.input_beam.zdelta.tm_cumul
+        assert tm_cumul is not None
+        return tm_cumul
 
     @property
     def l_cav(self):
