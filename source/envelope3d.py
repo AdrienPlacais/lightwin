@@ -65,7 +65,7 @@ if __name__ == '__main__':
     MY_KEYS = {
         'files': 'files',
         'plots': 'plots.complete',
-        'beam_calculator': 'beam_calculator.lightwin.envelope_3d',
+        'beam_calculator': 'beam_calculator.envelope_3d',
         'beam': 'beam',
     }
     my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
