@@ -6,6 +6,9 @@ Units and conventions
    :maxdepth: 4
 
 .. todo::
+   Consistency between font size of normal text and math text. Not aesthetic when I have text and units side to side.
+
+.. todo::
    General units: MeV etc
 
 .. _units-beam-parameters-label:
@@ -23,10 +26,9 @@ RMS emittances
     :widths: 30, 30, 30, 10
     :header-rows: 1
 
-.. note::
-    In TraceWin, and in particular in ``partran.out`` and ``tracewin.out``
-    files, ``eps_zdelta`` can also be expressed in :math:`\pi`.mm.mrad. The
-    conversion is: :math:`1\pi\mathrm{.mm.mrad} = 10\pi\mathrm{.mm.\%}`
+.. warning::
+   In TraceWin's output files ``partran.out`` and ``tracewin.out``, ``eps_zdelta`` is expressed in :math:`\pi\mathrm{.mm.mrad}`, not in :math:`\pi\mathrm{mm.\%}`!
+   The conversion is: :math:`1\pi\mathrm{.mm.mrad} = 10\pi\mathrm{.mm.\%}`
 
 Twiss
 -----
