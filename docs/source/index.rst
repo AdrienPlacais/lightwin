@@ -18,6 +18,7 @@ Welcome to LightWin's documentation!
    manual/usage
    manual/get_method
    manual/configuration
+   manual/units
    API Reference <modules>
    manual/examples
 
