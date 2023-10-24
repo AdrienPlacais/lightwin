@@ -13,6 +13,7 @@ Subpackages
    :maxdepth: 4
 
    beam_calculation.envelope_1d
+   beam_calculation.envelope_3d
    beam_calculation.tracewin
 
 Submodules
