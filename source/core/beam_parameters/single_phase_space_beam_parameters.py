@@ -5,8 +5,7 @@ For a list of the units associated with every parameter, see
 :ref:`units-label`.
 
 """
-from typing import Any, Callable
-from dataclasses import dataclass
+from typing import Any, Callable, Self
 import logging
 
 import numpy as np
@@ -21,41 +20,182 @@ from core.beam_parameters.helper import (sigma_beam_matrices,
 from core.elements.element import Element
 
 from util import converters
-from util.helper import (recursive_items,
-                         recursive_getter,
-                         range_vals_object)
+from util.helper import range_vals_object
 
 
-@dataclass
+IMPLEMENTED_PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
+                            'phiw99', 'x99', 'y99')  #:
+BEAM_PARAMETERS = ('sigma_in',
+                   'sigma',
+                   'tm_cumul',
+                   'twiss',
+                   'eps',
+                   'envelope',
+                   'mismatch_factor'
+                   )  #:
+
+
+def is_not_set(array: np.ndarray) -> bool:
+    """Tells if there is a np.Nan in the array."""
+    assert isinstance(array, np.ndarray)
+    return np.isnan(array).any()
+
+
+def is_set(array: np.ndarray) -> bool:
+    """Tells if there is no np.Nan in the array."""
+    return ~is_not_set(array)
+
+
 class SinglePhaseSpaceBeamParameters:
     """Hold Twiss, emittance, envelopes of a single phase-space."""
 
-    phase_space: str
+    def __init__(self,
+                 phase_space: str,
+                 n_points: int,
+                 element_to_index: Callable[[str | Element, str | None],
+                                            int | slice] | None = None,
+                 **kwargs: np.ndarray | None
+                 ) -> None:
+        """Instantiate the objects with given or fallback values.
 
-    sigma_in: np.ndarray | None = None
-    sigma: np.ndarray | None = None
-    tm_cumul: np.ndarray | None = None
+        Parameters
+        ----------
+        phase_space : str
+            Name of the phase space. Check :data:`IMPLEMENTED_PHASE_SPACES` for
+            allowed values.
+        element_to_index : Callable[[str | Element, str | None],
+                                     int | slice] | None, optional
+            Takes an :class:`.Element`, its name, ``'first'`` or ``'last'`` as
+            argument, and returns corresponding index. Index should be the same
+            in all the arrays attributes of this class: ``z_abs``,
+            ``beam_parameters`` attributes, etc. Used to easily ``get`` the
+            desired properties at the proper position. The default is None.
+        n_points : int
+            Number of points of the arrays. Used to set default empty arrays.
+        kwargs : np.ndarray | None
+            Dict which keys must be in :data:`BEAM_PARAMETERS`, which is
+            checked by :meth:`._check_input_is_implemented`. Data is saved as
+            attribute if it is an array, else a default array full of np.NaN is
+            saved. This is handled by :meth:`._store_input_if_not_none`.
 
-    twiss: np.ndarray | None = None
+        """
+        assert phase_space in IMPLEMENTED_PHASE_SPACES
+        self.phase_space = phase_space
+        self.element_to_index = element_to_index
+        self.n_points = n_points
 
-    alpha: np.ndarray | float | None = None
-    beta: np.ndarray | float | None = None
-    gamma: np.ndarray | None = None
+        self._check_input_is_implemented(tuple(kwargs.keys()))
+        self.sigma_in: np.ndarray
+        self.sigma: np.ndarray
+        self.tm_cumul: np.ndarray
+        self.twiss: np.ndarray
+        self.eps: np.ndarray
+        self.envelope: np.ndarray
+        self.mismatch_factor: np.ndarray
+        self._store_input_if_not_none(**kwargs)
 
-    eps: np.ndarray | float | None = None
-    envelope_pos: np.ndarray | None = None
-    envelope_energy: np.ndarray | None = None
-
-    mismatch_factor: np.ndarray | None = None
-
-    element_to_index: Callable[[str | Element, str | None], int | slice] \
-        | None = None
-
-    def __post_init__(self):
-        """Set the default attributes for the zdelta."""
-        if self.phase_space == 'zdelta' and self.sigma_in is None:
+        if self.phase_space == 'zdelta' and is_not_set(self.sigma_in):
+            logging.warning("Manually set sigma_in, should be done "
+                            "explicitly.")
             self.sigma_in = con.SIGMA_ZDELTA
         self._eps_no_norm: np.ndarray
+
+    def _check_input_is_implemented(self, keys_of_kwargs: tuple[str, ...]
+                                    ) -> None:
+        """Verify that the keys of ``kwargs`` match an implemented quantity.
+
+        Parameters
+        ----------
+        keys_of_kwargs : tuple[str, ...]
+            Keys of the ``kwargs`` given to :meth:`.__init__`.
+
+        """
+        for key in keys_of_kwargs:
+            if key in BEAM_PARAMETERS:
+                continue
+
+            logging.warning(f"You tried to initialize a beam parameter, {key},"
+                            f" which is not supported. Ignoring this key...")
+
+    def _store_input_if_not_none(self, **kwargs: np.ndarray | None) -> None:
+        """Save the data from ``kwargs`` as attribute if they are not None.
+
+        If they are None, we initialize it with an array full of np.NaN which
+        has the proper dimensions.
+
+        Parameters
+        ----------
+        kwargs : np.ndarray | None
+            Keys must be in ``BEAM_PARAMETERS``, which is verified by
+            :meth:`._check_input_is_implemented`.
+
+        """
+        defaults = {
+            'sigma_in': np.full((2, 2), np.NaN),
+            'sigma': np.full((self.n_points, 2, 2), np.NaN),
+            'tm_cumul': np.full((self.n_points, 2, 2), np.NaN),
+            'twiss': np.full((self.n_points, 3), np.NaN),
+            'eps': np.full((self.n_points), np.NaN),
+            'envelope': np.full((self.n_points, 2), np.NaN),
+            'mismatch_factor': np.full((self.n_points), np.NaN),
+        }
+        for attribute_name, default_value in defaults.items():
+            given_value = kwargs.get(attribute_name, None)
+            if given_value is None:
+                setattr(self, attribute_name, default_value)
+                continue
+
+            setattr(self, attribute_name, given_value)
+
+    @property
+    def alpha(self) -> np.ndarray:
+        """Get first column of ``self.twiss``."""
+        return self.twiss[:, 0]
+
+    @alpha.setter
+    def alpha(self, value: np.ndarray | float) -> None:
+        """Set first column of ``self.twiss``."""
+        self.twiss[:, 0] = np.atleast_1d(value)
+
+    @property
+    def beta(self) -> np.ndarray:
+        """Get second column of ``self.twiss``."""
+        return self.twiss[:, 1]
+
+    @beta.setter
+    def beta(self, value: np.ndarray | float) -> None:
+        """Set second column of ``self.twiss``."""
+        self.twiss[:, 1] = np.atleast_1d(value)
+
+    @property
+    def gamma(self) -> np.ndarray:
+        """Get third column of ``self.twiss``."""
+        return self.twiss[:, 2]
+
+    @gamma.setter
+    def gamma(self, value: np.ndarray | float) -> None:
+        """Set third column of ``self.twiss``."""
+        self.twiss[:, 2] = np.atleast_1d(value)
+
+    @property
+    def envelope_pos(self) -> np.ndarray:
+        """Get first column of ``self.envelope``."""
+        return self.envelope[:, 0]
+
+    @envelope_pos.setter
+    def envelope_pos(self, value: np.ndarray | float) -> None:
+        """Set first column of ``self.envelope``."""
+        self.envelope[:, 0] = np.atleast_1d(value)
+
+    @property
+    def envelope_energy(self) -> np.ndarray:
+        """Get second column of ``self.envelope``."""
+        return self.envelope[:, 1]
+
+    @envelope_energy.setter
+    def envelope_energy(self, value: np.ndarray) -> None:
+        """Set second column of ``self.envelope``."""
+        self.envelope[:, 1] = np.atleast_1d(value)
 
     def __str__(self) -> str:
         """Show amplitude of some of the attributes."""
@@ -67,10 +207,13 @@ class SinglePhaseSpaceBeamParameters:
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
-        return key in recursive_items(vars(self))
+        # return key in recursive_items(vars(self))
+        return hasattr(self, key)
 
-    def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
-            elt: Element | None = None, pos: str | None = None,
+    def get(self,
+            *keys: str,
+            elt: Element | None = None,
+            pos: str | None = None,
             **kwargs: Any) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -104,59 +247,43 @@ class SinglePhaseSpaceBeamParameters:
             if not self.has(key):
                 val[key] = None
                 continue
+            val[key] = getattr(self, key)
 
-            val[key] = recursive_getter(key, vars(self), to_numpy=False,
-                                        none_to_nan=False, **kwargs)
+        if elt is not None:
+            assert self.element_to_index is not None
+            idx = self.element_to_index(elt=elt, pos=pos)
+            val = {_key: _value[idx] for _key, _value in val.items()}
 
-            if val[key] is None:
-                continue
-
-            if None not in (self.element_to_index, elt):
-                idx = self.element_to_index(elt=elt, pos=pos)
-                val[key] = val[key][idx]
+        if len(keys) == 1:
+            return val[keys[0]]
 
         out = [val[key] for key in keys]
-        if to_numpy:
-            out = [np.array(val) if isinstance(val, list) else val
-                   for val in out]
-            if none_to_nan:
-                out = [val.astype(float) for val in out]
-
-        if len(out) == 1:
-            return out[0]
         return tuple(out)
 
-    def init_from_cumulated_transfer_matrices(
-            self, gamma_kin: np.ndarray, tm_cumul: np.ndarray | None = None,
-            beta_kin: np.ndarray | None = None) -> None:
-        """
-        Use transfer matrices to compute ``sigma``, and then everything else.
-
-        Used by the :class:`.Envelope1D` solver.
-
-        """
-        if self.tm_cumul is None and tm_cumul is None:
-            logging.error("Missing `tm_cumul` to compute beam parameters.")
-            return
-
-        if self.tm_cumul is None:
-            self.tm_cumul = tm_cumul
+    def init_from_cumulated_transfer_matrices(self,
+                                              tm_cumul: np.ndarray,
+                                              gamma_kin: np.ndarray,
+                                              beta_kin: np.ndarray,
+                                              ) -> None:
+        r"""Compute :math:`\sigma` matrix, and everything from it."""
         if tm_cumul is None:
+            logging.error("tm_cumul shall be given!")
             tm_cumul = self.tm_cumul
-        if beta_kin is None:
-            beta_kin = converters.energy(gamma_kin, 'gamma to beta')
 
+        assert is_set(self.sigma_in)
         self.sigma = sigma_beam_matrices(tm_cumul, self.sigma_in)
-        self.init_from_sigma(gamma_kin, beta_kin)
+        self.init_from_sigma(self.sigma, gamma_kin, beta_kin)
 
-    def init_from_sigma(self, gamma_kin: np.ndarray, beta_kin: np.ndarray,
-                        sigma: np.ndarray | None = None) -> None:
+    def init_from_sigma(self,
+                        sigma: np.ndarray,
+                        gamma_kin: np.ndarray,
+                        beta_kin: np.ndarray,
+                        ) -> None:
         """Compute Twiss, eps, envelopes just from sigma matrix."""
-        if sigma is None:
-            sigma = self.sigma
-
         eps_no_normalisation, eps_normalized = self._compute_eps_from_sigma(
-            sigma, gamma_kin, beta_kin)
+            sigma,
+            gamma_kin,
+            beta_kin)
         self.eps = eps_normalized
         self._eps_no_norm = eps_no_normalisation
 
@@ -173,7 +300,7 @@ class SinglePhaseSpaceBeamParameters:
                                       beta_kin: np.ndarray | None = None,
                                       ) -> None:
         r"""
-        Get :math:`\sigma` matrix from the two top components and emittance.
+        Set :math:`\sigma` matrix from the two top components and emittance.
 
         Inputs are in :math:`\mathrm{mm}` and :math:`\mathrm{mrad}`, but the
         :math:`\sigma` matrix is in SI units (:math:`\mathrm{m}` and
@@ -204,7 +331,6 @@ class SinglePhaseSpaceBeamParameters:
             it from ``gamma_kin``.
 
         """
-        n_points = eps.shape[0]
         if self.phase_space not in ('zdelta', 'x', 'y', 'x99', 'y99'):
             logging.warning("sigma reconstruction in this phase space not "
                             "tested. You'd better check the units of the "
@@ -214,7 +340,6 @@ class SinglePhaseSpaceBeamParameters:
                 logging.error("It is mandatory to give ``gamma_kin`` to "
                               "compute sigma matrix. Aborting calculation of "
                               "this phase space...")
-                self.sigma = np.full((n_points, 2, 2), np.NaN)
                 return
 
             if beta_kin is None:
@@ -226,49 +351,68 @@ class SinglePhaseSpaceBeamParameters:
             sigma *= 1e-6
         self.sigma = sigma
 
-    def init_from_another_plane(self, eps_orig: np.ndarray,
-                                twiss_orig: np.ndarray, gamma_kin: np.ndarray,
-                                beta_kin: np.ndarray, convert: str) -> None:
+    def init_from_another_plane(self,
+                                eps_orig: np.ndarray,
+                                twiss_orig: np.ndarray,
+                                gamma_kin: np.ndarray,
+                                beta_kin: np.ndarray,
+                                convert: str) -> None:
         """Fully initialize from another phase space."""
         eps_no_normalisation, eps_normalized = \
-            self._compute_eps_from_other_plane(eps_orig, convert, gamma_kin,
+            self._compute_eps_from_other_plane(eps_orig,
+                                               convert,
+                                               gamma_kin,
                                                beta_kin)
         self.eps = eps_normalized
-        self._compute_twiss_from_other_plane(twiss_orig, convert, gamma_kin,
+        self._compute_twiss_from_other_plane(twiss_orig,
+                                             convert,
+                                             gamma_kin,
                                              beta_kin)
         eps_for_envelope = eps_no_normalisation
         if self.phase_space == 'phiw':
             eps_for_envelope = eps_normalized
-        self.compute_envelopes(self.twiss[:, 1], self.twiss[:, 2],
+
+        assert is_set(self.twiss)
+        self.compute_envelopes(self.twiss[:, 1],
+                               self.twiss[:, 2],
                                eps_for_envelope)
 
-    def init_from_averaging_x_and_y(self, x_space: object, y_space: object
+    def init_from_averaging_x_and_y(self,
+                                    x_space: Self,
+                                    y_space: Self
                                     ) -> None:
-        """Create eps for an average transverse plane phase space."""
+        """Create average transverse phase space from [xx'] and [yy'].
+
+        ``eps`` is always initialized. ``mismatch_factor`` is calculated if it
+        was already calculated in ``x_space`` and ``y_space``.
+
+        """
+        assert is_set(x_space.eps)
+        assert is_set(y_space.eps)
         self.eps = .5 * (x_space.eps + y_space.eps)
-        if None not in (x_space.mismatch_factor, y_space.mismatch_factor):
+
+        if is_set(x_space.mismatch_factor) and is_set(y_space.mismatch_factor):
             self.mismatch_factor = .5 * (x_space.mismatch_factor
                                          + y_space.mismatch_factor)
-        self.twiss = None
-        self.envelope_pos, self.envelope_energy = None, None
 
-    def _compute_eps_from_sigma(self, sigma: np.ndarray, gamma_kin: np.ndarray,
-                                beta_kin: np.ndarray) -> tuple[np.ndarray,
-                                                               np.ndarray]:
-        """
-        Compute emittance from sigma matrix.
+    def _compute_eps_from_sigma(self,
+                                sigma: np.ndarray,
+                                gamma_kin: np.ndarray,
+                                beta_kin: np.ndarray
+                                ) -> tuple[np.ndarray, np.ndarray]:
+        r"""
+        Compute emittance from :math:`\sigma` beam matrix.
 
-        For the zdelta phase space:
-            sigma is in SI units
-            emittance is returned in pi.mm.%
-        For the transverse phase spaces:
-            sigma is in SI units
-            emittances is returned in pi.mm.mrad
+        In the :math:`[z-\delta]` phase space, emittance is in
+        :math:`\pi.\mathrm{mm.\%}`.
+        In the transverse phase spaces, emittance is in
+        :math:`\pi.\mathrm{mm.mrad}`.
+        :math:`\sigma` is always in SI units.
 
         Parameters
         ----------
         sigma : np.ndarray
-            Sigma matrix in SI units.
+            :math:`\sigma` beam matrix in SI units.
         gamma_kin : np.ndarray
             Lorentz gamma factor.
         beta_kin : np.ndarray
@@ -282,22 +426,26 @@ class SinglePhaseSpaceBeamParameters:
             Emittance normalized.
 
         """
-        assert self.phase_space in ['zdelta', 'x', 'y', 'x99', 'y99']
+        assert self.phase_space in ('zdelta', 'x', 'y', 'x99', 'y99')
         eps_no_normalisation = np.array(
             [np.sqrt(np.linalg.det(sigma[i])) for i in range(sigma.shape[0])])
 
-        if self.phase_space in ['zdelta']:
+        if self.phase_space in ('zdelta'):
             eps_no_normalisation *= 1e5
-        elif self.phase_space in ['x', 'y', 'x99', 'y99']:
+        elif self.phase_space in ('x', 'y', 'x99', 'y99'):
             eps_no_normalisation *= 1e6
 
+        assert is_set(eps_no_normalisation)
         eps_normalized = converters.emittance(eps_no_normalisation,
                                               f"normalize {self.phase_space}",
                                               gamma_kin=gamma_kin,
                                               beta_kin=beta_kin)
+        assert is_set(eps_normalized)
         return eps_no_normalisation, eps_normalized
 
-    def _compute_eps_from_other_plane(self, eps_orig: np.ndarray, convert: str,
+    def _compute_eps_from_other_plane(self,
+                                      eps_orig: np.ndarray,
+                                      convert: str,
                                       gamma_kin: np.ndarray,
                                       beta_kin: np.ndarray
                                       ) -> tuple[np.ndarray, np.ndarray]:
@@ -337,36 +485,35 @@ class SinglePhaseSpaceBeamParameters:
         )
         return eps_no_normalisation, eps_normalized
 
-    def _compute_twiss_from_sigma(self, sigma: np.ndarray,
+    def _compute_twiss_from_sigma(self,
+                                  sigma: np.ndarray,
                                   eps_no_normalisation: np.ndarray
                                   ) -> None:
-        """
-        Compute the Twiss parameters using the sigma matrix.
+        r"""Compute the Twiss parameters using the :math:`\sigma` matrix.
 
-        For the zdelta phase space:
-            sigma is in SI units
-            eps_no_normalisation should be in pi.mm.%
-        For the transverse planes:
-            sigma is in SI units
-            eps_no_normalisation is in pi.mm.mrad
+        In the :math:`[z-\delta]` phase space, emittance and Twiss are in
+        :math:`\mathrm{mm}` and :math:`\mathrm{\%}`.
+        In the transverse phase spaces, emittance and Twiss are in
+        :math:`\mathrm{mm}` and :math:`\mathrm{mrad}`.
+        :math:`\sigma` is always in SI units.
+
+        .. todo::
+            Would be better if all emittances had the same units? Check
+            consistency with rest of the code...
+
+        .. todo::
+            Check if property setter work with the *= thingy
 
         Parameters
         ----------
         sigma : np.ndarray
-            sigma matrix along the linac.
+            (n, 2, 2) array holding :math:`\sigma` beam matrix.
         eps_no_normalisation : np.ndarray
             Unnormalized emittance.
 
-        Returns
-        -------
-        Nothing, but set attributes alpha (no units), beta (mm/pi.%), gamma
-        (mm.pi/%) and twiss (column_stacking of the three), in the z-dp/p
-        plane.
-        In the transverse planes, units are pi mm and mrad instead.
-
         """
-        assert self.phase_space in ['zdelta', 'x', 'y', 'x99', 'y99']
-        assert self.eps is not None
+        assert self.phase_space in ('zdelta', 'x', 'y', 'x99', 'y99')
+        assert is_set(self.eps)
         n_points = sigma.shape[0]
         twiss = np.full((n_points, 3), np.NaN)
 
@@ -379,20 +526,42 @@ class SinglePhaseSpaceBeamParameters:
             twiss[:, 0] *= 1e-1
             twiss[:, 2] *= 1e-2
 
-        self._unpack_twiss(twiss)
         self.twiss = twiss
 
-    def _compute_twiss_from_other_plane(self, twiss_orig: np.ndarray,
-                                        convert: str, gamma_kin: np.ndarray,
+    def _compute_twiss_from_other_plane(self,
+                                        twiss_orig: np.ndarray,
+                                        convert: str,
+                                        gamma_kin: np.ndarray,
                                         beta_kin: np.ndarray) -> None:
-        """Compute Twiss parameters from Twiss parameters in another plane."""
-        self.twiss = converters.twiss(twiss_orig, gamma_kin, convert,
+        """Compute Twiss parameters from Twiss parameters in another plane.
+
+        Parameters
+        ----------
+        twiss_orig : np.ndarray
+            (n, 3) Twiss array from original phase space.
+        convert : str
+            Tells the original and destination phase spaces. Format is
+            ``'{original} to {destination}'``.
+        gamma_kin : np.ndarray
+            Array of gamma Lorentz factor.
+        beta_kin : np.ndarray
+            Array of beta Lorentz factor.
+
+        See Also
+        --------
+        :func:`helper.converters.twiss` for list of allowed values for
+        ``convert``.
+
+        """
+        self.twiss = converters.twiss(twiss_orig,
+                                      gamma_kin,
+                                      convert,
                                       beta_kin=beta_kin)
-        self._unpack_twiss(self.twiss)
 
     # TODO would be possible to skip this with TW, where envelope_pos is
     # already known
-    def _compute_envelopes_from_sigma(self, sigma: np.ndarray
+    def _compute_envelopes_from_sigma(self,
+                                      sigma: np.ndarray
                                       ) -> tuple[np.ndarray, np.ndarray]:
         """
         Compute the envelopes.
@@ -424,12 +593,6 @@ class SinglePhaseSpaceBeamParameters:
         """
         self.envelope_pos = np.sqrt(beta * eps)
         self.envelope_energy = np.sqrt(gamma * eps)
-
-    def _unpack_twiss(self, twiss: np.ndarray) -> None:
-        """Unpack a three-columns twiss array in alpha, beta, gamma."""
-        self.alpha = twiss[:, 0]
-        self.beta = twiss[:, 1]
-        self.gamma = twiss[:, 2]
 
 
 def mismatch_single_phase_space(ref: SinglePhaseSpaceBeamParameters,

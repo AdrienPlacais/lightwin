@@ -722,7 +722,10 @@ def _beam_param_uniform_with_envelope1d(
         gamma_kin=gamma_kin,
         beta_kin=beta_kin
     )
-    beam_parameters.zdelta.init_from_sigma(gamma_kin, beta_kin)
+    beam_parameters.zdelta.init_from_sigma(
+        beam_parameters.zdelta.sigma,
+        gamma_kin,
+        beta_kin)
 
     beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
     return beam_parameters
@@ -743,7 +746,10 @@ def _add_beam_param_not_supported_by_envelope1d(
                                                     eps_is_normalized=True,
                                                     gamma_kin=gamma_kin,
                                                     beta_kin=beta_kin)
-    beam_parameters.x.init_from_sigma(gamma_kin, beta_kin)
+    beam_parameters.x.init_from_sigma(
+        beam_parameters.x.sigma,
+        gamma_kin,
+        beta_kin)
 
     sigma_y_00, sigma_y_01 = results['SizeY']**2, results["syy'"]
     eps_y_normalized = results['ey']
@@ -753,7 +759,10 @@ def _add_beam_param_not_supported_by_envelope1d(
                                                     eps_is_normalized=True,
                                                     gamma_kin=gamma_kin,
                                                     beta_kin=beta_kin)
-    beam_parameters.y.init_from_sigma(gamma_kin, beta_kin)
+    beam_parameters.y.init_from_sigma(
+        beam_parameters.y.sigma,
+        gamma_kin,
+        beta_kin)
 
     beam_parameters.t.init_from_averaging_x_and_y(
         beam_parameters.x,

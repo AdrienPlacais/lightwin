@@ -21,6 +21,7 @@ import numpy as np
 from core.beam_parameters.single_phase_space_beam_parameters import (
     SinglePhaseSpaceBeamParameters,
     mismatch_single_phase_space,
+    IMPLEMENTED_PHASE_SPACES,
 )
 from core.elements.element import Element
 
@@ -28,13 +29,8 @@ from tracewin_utils.interface import beam_parameters_to_command
 
 from util import converters
 from util.helper import (recursive_items,
-                         recursive_getter,
                          range_vals,
                          )
-
-
-IMPLEMENTED_PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
-                            'phiw99', 'x99', 'y99')  #:
 
 
 @dataclass
@@ -137,8 +133,9 @@ class BeamParameters:
 
         """
         if _phase_space_name_hidden_in_key(key):
-            key, phase_space = _separate_var_from_phase_space(key)
-            return key in recursive_items(vars(vars(self)[phase_space]))
+            key, phase_space_name = _separate_var_from_phase_space(key)
+            phase_space = getattr(self, phase_space_name)
+            return hasattr(phase_space, key)
         return key in recursive_items(vars(self))
 
     def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
@@ -191,44 +188,33 @@ class BeamParameters:
 
         """
         val = {key: [] for key in keys}
+        # Explicitely look into a specific SinglePhaseSpaceBeamParameters
+        if phase_space is not None:
+            single_phase_space_beam_param = getattr(self, phase_space)
+            return single_phase_space_beam_param.get(*keys,
+                                                     elt=elt,
+                                                     pos=pos,
+                                                     **kwargs)
         for key in keys:
-            short_key = key
+            # Look for key in SinglePhaseSpaceBeamParameters
             if _phase_space_name_hidden_in_key(key):
-                if phase_space is not None:
-                    logging.warning(
-                        "Ambiguous: you asked for two phase-spaces. One with "
-                        f"keyword argument {phase_space = }, and another with "
-                        f"the positional argument {key = }. I take phase "
-                        f"space from {key = }.")
                 short_key, phase_space = _separate_var_from_phase_space(key)
-
-            if not self.has(short_key):
-                val[key] = None
+                assert hasattr(self, phase_space), f"{phase_space = } not set"\
+                    + " for current BeamParameters object."
+                single_phase_space_beam_param = getattr(self, phase_space)
+                val[key] = single_phase_space_beam_param.get(short_key)
                 continue
 
-            for stored_key, stored_val in vars(self).items():
-                if stored_key == short_key:
-                    val[key] = stored_val
+            # Look for key in BeamParameters()
+            if not self.has(key):
+                val[key] = None
+                continue
+            val[key] = getattr(self, key)
 
-                    if None not in (self.element_to_index, elt):
-                        idx = self.element_to_index(elt=elt, pos=pos)
-                        val[key] = val[key][idx]
-
-                    break
-
-                if stored_key == phase_space:
-                    val[key] = recursive_getter(
-                        short_key, vars(stored_val), to_numpy=False,
-                        none_to_nan=False, **kwargs)
-
-                    if val[key] is None:
-                        continue
-
-                    if None not in (self.element_to_index, elt):
-                        idx = self.element_to_index(elt=elt, pos=pos)
-                        val[key] = val[key][idx]
-
-                    break
+        if elt is not None:
+            assert self.element_to_index is not None
+            idx = self.element_to_index(elt=elt, pos=pos)
+            val = {_key: _value[idx] for _key, _value in val.items()}
 
         out = [val[key] for key in keys]
         if to_numpy:
@@ -281,7 +267,7 @@ class BeamParameters:
 
     def create_phase_spaces(self,
                             *args: str,
-                            **kwargs: dict[str, np.ndarray | float | None]
+                            **kwargs: np.ndarray | float | None
                             ) -> None:
         """
         Recursively create the phase spaces with their initial values.
@@ -290,7 +276,7 @@ class BeamParameters:
         ----------
         *args : str
             Name of the phase spaces to be created.
-        **kwargs : dict[str, np.ndarray | float]
+        **kwargs : np.ndarray | float | None
             Keyword arguments to directly initialize properties in some phase
             spaces. Name of the keyword argument must correspond to a phase
             space. Argument must be a dictionary, which keys must be
@@ -299,6 +285,11 @@ class BeamParameters:
             ``'envelope_pos'`` and ``'envelope_energy'`` are allowed values.
 
         """
+        if self.gamma_kin is None:
+            n_points = 10
+            logging.info("Dummy BeamParameters?")
+        else:
+            n_points = np.atleast_1d(self.gamma_kin).shape[0]
         for arg in args:
             phase_space_kwargs = kwargs.get(arg, None)
             if phase_space_kwargs is None:
@@ -307,6 +298,7 @@ class BeamParameters:
             phase_space_beam_param = SinglePhaseSpaceBeamParameters(
                 arg,
                 element_to_index=self.element_to_index,
+                n_points=n_points,
                 **phase_space_kwargs,
             )
             setattr(self, arg, phase_space_beam_param)
