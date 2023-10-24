@@ -7,11 +7,14 @@ from constants import c
 import config_manager as con
 
 
-def position(pos_in: float | np.ndarray, beta: float | np.ndarray, key: str,
+def position(pos_in: float | np.ndarray,
+             beta: float | np.ndarray,
+             key: str,
              omega: float | None = None) -> float | np.ndarray:
     """Phase/position converters."""
     if omega is None:
         omega = con.OMEGA_0_BUNCH
+    assert isinstance(omega, float)
     conversion_functions = {
         "z to phi": lambda pos, bet: -omega * pos / (bet * c),
         "phi to z": lambda pos, bet: -pos * bet * c / omega,
@@ -19,8 +22,10 @@ def position(pos_in: float | np.ndarray, beta: float | np.ndarray, key: str,
     return conversion_functions[key](pos_in, beta)
 
 
-def energy(energy_in: float | np.ndarray, key: str,
-           q_over_m: float | None = None, m_over_q: float | None = None,
+def energy(energy_in: float | np.ndarray,
+           key: str,
+           q_over_m: float | None = None,
+           m_over_q: float | None = None,
            e_rest: float | None = None) -> float | np.ndarray:
     """Convert energy or Lorentz factor into another related quantity."""
     if q_over_m is None:
@@ -29,6 +34,9 @@ def energy(energy_in: float | np.ndarray, key: str,
         m_over_q = con.M_OVER_Q
     if e_rest is None:
         e_rest = con.E_REST_MEV
+    assert isinstance(q_over_m, float)
+    assert isinstance(m_over_q, float)
+    assert isinstance(e_rest, float)
 
     conversion_functions = {
         "v to kin": lambda x: 0.5 * m_over_q * x**2 * 1e-6,
@@ -44,7 +52,8 @@ def energy(energy_in: float | np.ndarray, key: str,
         "gamma to p": lambda x: x * np.sqrt(1. - x**-2) * e_rest,
         "beta to p": lambda x: x / np.sqrt(1. - x**2) * e_rest,
     }
-    return conversion_functions[key](energy_in)
+    energy_out = conversion_functions[key](energy_in)
+    return energy_out
 
 
 def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
@@ -101,17 +110,22 @@ def emittance(eps_orig: float | np.ndarray, key: str,
     return eps_new
 
 
-def twiss(twiss_orig: np.ndarray, gamma_kin: float | np.ndarray, key: str,
+def twiss(twiss_orig: np.ndarray,
+          gamma_kin: float | np.ndarray,
+          key: str,
           lam: float | np.ndarray | None = None,
           e_0: float | np.ndarray | None = None,
           beta_kin: float | np.ndarray | None = None) -> np.ndarray:
     """Convert Twiss array from a phase space to another."""
     if lam is None:
         lam = con.LAMBDA_BUNCH
+    assert lam is not None
     if e_0 is None:
         e_0 = con.E_REST_MEV
+    assert e_0 is not None
     if beta_kin is None:
         beta_kin = np.sqrt(1. - gamma_kin**-2)
+    assert beta_kin is not None
 
     # Lighten the dict
     k_1 = e_0 * (gamma_kin * beta_kin) * lam / 360.
