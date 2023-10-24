@@ -28,7 +28,10 @@ import pandas as pd
 from core.particle import ParticleFullTrajectory
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.beam_parameters import BeamParameters, mismatch_from_objects
+from core.beam_parameters.beam_parameters import (
+    BeamParameters,
+    mismatch_from_objects,
+)
 from core.transfer_matrix import TransferMatrix
 
 from util.helper import recursive_items, recursive_getter, range_vals

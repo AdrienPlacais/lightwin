@@ -51,7 +51,7 @@ from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
-from core.beam_parameters import BeamParameters
+from core.beam_parameters.beam_parameters import BeamParameters
 from core.transfer_matrix import TransferMatrix
 
 

@@ -8,7 +8,7 @@ from core.particle import ParticleFullTrajectory
 from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
-from core.beam_parameters import BeamParameters
+from core.beam_parameters.beam_parameters import BeamParameters
 from core.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator

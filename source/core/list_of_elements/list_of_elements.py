@@ -23,7 +23,7 @@ import config_manager
 from core.elements.element import Element
 from core.elements.field_map import FieldMap
 
-from core.beam_parameters import BeamParameters
+from core.beam_parameters.beam_parameters import BeamParameters
 from core.particle import ParticleInitialState
 from core.electric_field import phi_0_abs_with_new_phase_reference
 
