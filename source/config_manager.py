@@ -40,7 +40,7 @@ GAMMA_INIT = float()
 F_BUNCH_MHZ, OMEGA_0_BUNCH, LAMBDA_BUNCH = float(), float(), float()
 Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
 SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
-SIGMA = np.ndarray(shape=(6, 6))
+SIGMA = np.full((6, 6), np.NaN)
 
 
 def process_config(config_path: str,
