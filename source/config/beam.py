@@ -8,27 +8,37 @@ import numpy as np
 from constants import c
 
 
-# =============================================================================
-# Front end
-# =============================================================================
+MANDATORY_BEAM_KEYS = ("linac",
+                       "e_rest_mev",
+                       "q_adim",
+                       "e_mev",
+                       "f_bunch_mhz",
+                       "i_milli_a",
+                       "sigma_zdelta",
+                       )  #:
+FUTURE_MANDATORY_BEAM_KEYS = ('sigma',
+                              )  #:
+
+
 def test(c_beam: configparser.SectionProxy) -> None:
     """Test the the beam parameters."""
     passed = True
 
-    # Test that all mandatory keys are here
-    mandatory = ["linac", "e_rest_mev", "q_adim", "e_mev",
-                 "f_bunch_mhz", "i_milli_a", "sigma_zdelta"]
-    for key in mandatory:
+    for key in MANDATORY_BEAM_KEYS:
         if key not in c_beam.keys():
             logging.error(f"{key} is mandatory and missing.")
             passed = False
 
+    for key in FUTURE_MANDATORY_BEAM_KEYS:
+        if key not in c_beam.keys():
+            logging.warning(f"{key} will be mandatory in future updates and is"
+                            " missing. Already mandatory for Envelope3D.")
+
     # Test the values of the keys in beam
     if np.abs(c_beam.getfloat("i_milli_a")) > 1e-10:
-        logging.warning("You asked LW a beam current different from "
-                        + "0mA. Space-charge, transverse dynamics are "
-                        + "not implemented yet, so this parameter "
-                        + "will be ignored.")
+        logging.warning("You asked LW a beam current different from 0mA. Space"
+                        "-charge, transverse dynamics are not implemented yet,"
+                        " so this parameter will be ignored.")
 
     if not passed:
         raise IOError("Wrong value in c_beam.")
@@ -47,6 +57,7 @@ def config_to_dict(c_beam: configparser.SectionProxy) -> dict:
         'f_bunch_mhz': c_beam.getfloat,
         'i_milli_a': c_beam.getfloat,
         'sigma_zdelta': c_beam.getmatrixfloat,
+        'sigma': c_beam.getmatrixfloat,
     }
 
     for key in c_beam.keys():
