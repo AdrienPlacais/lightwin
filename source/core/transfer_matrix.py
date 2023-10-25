@@ -8,7 +8,10 @@ Hold the transfer matrix along the linac.
 
 """
 import logging
+from typing import Any, Callable
 import numpy as np
+
+from core.elements.element import Element
 
 
 class TransferMatrix:
@@ -33,6 +36,7 @@ class TransferMatrix:
                  individual: np.ndarray | list[np.ndarray] | None = None,
                  cumulated: np.ndarray | None = None,
                  first_cumulated_transfer_matrix: np.ndarray | None = None,
+                 element_to_index: Callable | None = None,
                  ) -> None:
         """Create the object and compute the cumulated transfer matrix.
 
@@ -74,6 +78,62 @@ class TransferMatrix:
         self.n_points = n_points
 
         self.cumulated = cumulated
+        self._element_to_index = element_to_index
+
+    def has(self, key: str) -> bool:
+        """Check if object has attribute named ``key``."""
+        return hasattr(self, key)
+
+    def get(self,
+            *keys: str,
+            elt: Element | None = None,
+            pos: str | None = None,
+            **kwargs: Any) -> tuple[np.ndarray | float, ...]:
+        """
+        Shorthand to get attributes from this class or its attributes.
+
+        Parameters
+        ----------
+        *keys: str
+            Name of the desired attributes.
+        to_numpy : bool, optional
+            If you want the list output to be converted to a np.ndarray. The
+            default is True.
+        none_to_nan : bool, optional
+            To convert None to np.NaN. The default is True.
+        elt : Element | None, optional
+            If provided, return the attributes only at the considered Element.
+        pos : 'in' | 'out' | None
+            If you want the attribute at the entry, exit, or in the whole
+            Element.
+        **kwargs: Any
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : tuple[np.ndarray | float, ...]
+            Attribute(s) value(s). Will be floats if only one value is returned
+            (``elt`` is given, ``pos`` is in ``('in', 'out')``).
+
+        """
+        val = {key: [] for key in keys}
+
+        for key in keys:
+            if not self.has(key):
+                val[key] = None
+                continue
+            val[key] = getattr(self, key)
+
+        if elt is not None:
+            assert self._element_to_index is not None
+            idx = self._element_to_index(elt=elt, pos=pos)
+            val = {_key: _value[idx] for _key, _value in val.items()}
+
+        if len(keys) == 1:
+            return val[keys[0]]
+
+        out = [val[key] for key in keys]
+        return tuple(out)
 
     def _init_from_individual(
             self,
@@ -223,30 +283,54 @@ class TransferMatrix:
 
     @property
     def r_xx(self) -> np.ndarray:
-        """Return the transfer matrix of [x-x'] plane."""
+        """Return the transfer matrix of :math:`[x-x']` plane."""
         return self.cumulated[:, :2, :2]
 
     @r_xx.setter
     def r_xx(self, r_xx: np.ndarray) -> None:
-        """Set the transfer matrix of [x-x'] plane."""
+        """Set the transfer matrix of :math:`[x-x']` plane."""
         self.cumulated[:, :2, :2] = r_xx
 
     @property
     def r_yy(self) -> np.ndarray:
-        """Return the transfer matrix of [y-y'] plane."""
+        """Return the transfer matrix of :math:`[y-y']` plane."""
         return self.cumulated[:, 2:4, 2:4]
 
     @r_yy.setter
     def r_yy(self, r_yy: np.ndarray) -> None:
-        """Set the transfer matrix of [y-y'] plane."""
+        """Set the transfer matrix of :math:`[y-y']` plane."""
         self.cumulated[:, 2:4, 2:4] = r_yy
 
     @property
     def r_zz(self) -> np.ndarray:
-        """Return the transfer matrix of [z-dp/p] plane."""
+        r"""Return the transfer matrix of :math:`[z-\delta]` plane.
+
+        .. deprecated:: v3.2.2.3
+            Use ``r_zdelta`` instead. Although it is called ``r_zz`` in the
+            TraceWin doc, it is a transfer matrix in the :math:`[z-\delta]`
+            plane.
+
+        """
         return self.cumulated[:, 4:, 4:]
 
     @r_zz.setter
     def r_zz(self, r_zz: np.ndarray) -> None:
-        """Set the transfer matrix of [z-dp/p] plane."""
+        r"""Set the transfer matrix of :math:`[z-\delta]` plane.
+
+        .. deprecated:: v3.2.2.3
+            Use ``r_zdelta`` instead. Although it is called ``r_zz`` in the
+            TraceWin doc, it is a transfer matrix in the :math:`[z-\delta]`
+            plane.
+
+        """
         self.cumulated[:, 4:, 4:] = r_zz
+
+    @property
+    def r_zdelta(self) -> np.ndarray:
+        r"""Return the transfer matrix of :math:`[z-\delta]` plane."""
+        return self.cumulated[:, 4:, 4:]
+
+    @r_zdelta.setter
+    def r_zdelta(self, r_zdelta: np.ndarray) -> None:
+        r"""Set the transfer matrix of :math:`[z-\delta]` plane."""
+        self.cumulated[:, 4:, 4:] = r_zdelta
