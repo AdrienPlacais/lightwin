@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 """Define :class:`Envelope3D`, an envelope solver."""
 from dataclasses import dataclass
+from typing import Any, Callable
 import logging
 
+import numpy as np
+
 from core.particle import ParticleFullTrajectory
+from core.elements.element import Element
 from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
@@ -18,6 +22,8 @@ from beam_calculation.envelope_3d.single_element_envelope_3d_parameters import\
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
+
+from util import converters
 
 
 @dataclass
@@ -177,6 +183,8 @@ class Envelope3D(BeamCalculator):
         synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
                                                   phi_abs=phi_abs_array,
                                                   synchronous=True)
+        gamma_kin = synch_trajectory.gamma
+        assert isinstance(gamma_kin, np.ndarray)
 
         cav_params = [results['cav_params'] for results in single_elts_results]
         cav_params = {'v_cav_mv': [cav_param['v_cav_mv']
@@ -187,33 +195,17 @@ class Envelope3D(BeamCalculator):
                                 for cav_param in cav_params],
                       }
 
-        individual = [results['transfer_matrix'][i]
-                      for results in single_elts_results
-                      for i in range(results['transfer_matrix'].shape[0])]
-        first_cumulated_transfer_matrix = elts.tm_cumul_in
-        if first_cumulated_transfer_matrix.shape != (6, 6):
-            logging.error("Here I should initialize TransferMatrix with "
-                          "an initial transfer matrix, but I have a shape "
-                          "mismatch.")
-            first_cumulated_transfer_matrix = None
-        transfer_matrix = TransferMatrix(
-            individual=individual,
-            first_cumulated_transfer_matrix=first_cumulated_transfer_matrix
-            )
-
         element_to_index = self._generate_element_to_index_func(elts)
+        transfer_matrix = _transfer_matrix_factory(elts.tm_cumul_in,
+                                                   single_elts_results)
 
-        beam_params = BeamParameters(z_abs=elts.get('abs_mesh',
-                                                    remove_first=True),
-                                     gamma_kin=synch_trajectory.gamma,
-                                     element_to_index=element_to_index)
-        beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
-        beam_params.zdelta.init_from_cumulated_transfer_matrices(
-            gamma_kin=beam_params.gamma_kin,
-            tm_cumul=transfer_matrix.r_zz,
-            beta_kin=beam_params.beta_kin
+        beam_parameters = _beam_parameters_factory(
+            z_abs=elts.get('abs_mesh', remove_first=True),
+            gamma_kin=gamma_kin,
+            element_to_index=element_to_index,
+            transfer_matrix=transfer_matrix,
+            sigma_in=elts.input_beam.sigma_in,
         )
-        beam_params.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
@@ -221,9 +213,8 @@ class Envelope3D(BeamCalculator):
             is_3d=self.is_a_3d_simulation,
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
-            # r_zz_elt=r_zz_elt,
             rf_fields=rf_fields,
-            beam_parameters=beam_params,
+            beam_parameters=beam_parameters,
             element_to_index=element_to_index,
             transfer_matrix=transfer_matrix
         )
@@ -278,6 +269,99 @@ def _rf_field_from_single_cavity_settings(
     new_cavity_settings: SingleCavitySettings
 ) -> dict:
     """Get the data from the `SingleCavitySettings` object."""
+
+
+def _transfer_matrix_factory(
+        first_cumulated_transfer_matrix: np.ndarray,
+        single_elts_results: list[dict[str, Any]]
+        ) -> TransferMatrix:
+    """Create the :class:`.TransferMatrix` from current solver results.
+
+    Parameters
+    ----------
+    first_cumulated_transfer_matrix : np.ndarray
+        Cumulated transfer matrix at beginning of :class:`.ListOfElements`
+        under study.
+    single_elts_results : list[dict[str, Any]]
+        Results of the solver.
+
+    Returns
+    -------
+    transfer_matrix : TransferMatrix
+        Object holding transfer matrices, individual and cumulated, in the
+        relatable phase-spaces.
+
+    """
+    individual = [results['transfer_matrix'][i]
+                  for results in single_elts_results
+                  for i in range(results['transfer_matrix'].shape[0])]
+    if first_cumulated_transfer_matrix.shape != (6, 6):
+        logging.error("Here I should initialize TransferMatrix with "
+                      "an initial transfer matrix, but I have a shape "
+                      "mismatch.")
+        first_cumulated_transfer_matrix = None
+    transfer_matrix = TransferMatrix(
+        individual=individual,
+        first_cumulated_transfer_matrix=first_cumulated_transfer_matrix
+        )
+    return transfer_matrix
+
+
+def _beam_parameters_factory(
+        z_abs: np.ndarray,
+        gamma_kin: np.ndarray,
+        element_to_index: Callable[[str | Element, str | None], int | slice],
+        transfer_matrix: TransferMatrix,
+        sigma_in: np.ndarray,
+        ) -> BeamParameters:
+    r"""Create the :class:`.BeamParameters` object from simulation results.
+
+    Parameters
+    ----------
+    z_abs : np.ndarray
+        Absolute position in the linac or the linac portion.
+    gamma_kin : np.ndarray
+        Lorentz factor.
+    element_to_index : Callable[[str | Element, str | None], int | slice]
+        Takes an :class:`.Element`, its name, 'first' or 'last' as argument,
+        and returns corresponding index. Index should be the same in all the
+        arrays attributes of this class: ``z_abs``, ``beam_parameters``
+        attributes, etc.  Used to easily `get` the desired properties at the
+        proper position.
+    transfer_matrix : TransferMatrix
+        Object holding transfer matrices.
+
+    Returns
+    -------
+    beam_parameters : BeamParameters
+        Object holding emittances, :math:`\sigma` beam matrices, Courant-Snyder
+        parameters in the different phase-spaces.
+
+    """
+    beta_kin = converters.energy(gamma_kin, 'gamma to beta')
+    assert isinstance(beta_kin, np.ndarray)
+
+    beam_parameters = BeamParameters(z_abs=z_abs,
+                                     gamma_kin=gamma_kin,
+                                     beta_kin=beta_kin,
+                                     element_to_index=element_to_index,
+                                     sigma_in=sigma_in)
+
+    beam_parameters.create_phase_spaces('x', 'y', 'z', 'zdelta', 'phiw')
+
+    for phase_space_name, sub_transfer_matrix_name in zip(
+            ('x', 'y', 'zdelta'),
+            ('r_xx', 'r_yy', 'r_zdelta')):
+        phase_space = beam_parameters.get(phase_space_name)
+        sub_transfer_matrix = transfer_matrix.get(sub_transfer_matrix_name)
+        phase_space.init_from_cumulated_transfer_matrices(
+            tm_cumul=sub_transfer_matrix,
+            gamma_kin=gamma_kin,
+            beta_kin=beta_kin
+            )
+
+    beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
+    return beam_parameters
 
 
 RF_FIELD_GETTERS = {

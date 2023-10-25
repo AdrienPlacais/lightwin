@@ -61,7 +61,7 @@ class Accelerator():
         kwargs = {'w_kin': con.E_MEV,
                   'phi_abs': 0.,
                   'z_in': 0.,
-                  'sigma_in_zdelta': con.SIGMA_ZDELTA}
+                  'sigma_in': con.SIGMA}
         self.elts: ListOfElements
         self.elts = new_list_of_elements(dat_file, accelerator_path, **kwargs)
         # self.synch: ParticleInitialState = self.elts.input_particle

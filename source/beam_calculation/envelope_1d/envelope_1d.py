@@ -7,10 +7,14 @@ It is fast, but should not be used at low energies.
 
 """
 import logging
+from typing import Any, Callable
 from dataclasses import dataclass
+
+import numpy as np
 
 from core.particle import ParticleFullTrajectory
 from core.elements.field_map import FieldMap
+from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import indiv_to_cumul_transf_mat
 from core.accelerator import Accelerator
@@ -24,6 +28,7 @@ from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
+from util import converters
 
 
 @dataclass
@@ -175,7 +180,14 @@ class Envelope1D(BeamCalculator):
                                     single_elts_results: list[dict],
                                     rf_fields: list[dict]
                                     ) -> SimulationOutput:
-        """Transform the outputs of BeamCalculator to a SimulationOutput."""
+        """
+        Transform the outputs of BeamCalculator to a SimulationOutput.
+
+        .. todo::
+            Patch in transfer matrix to get proper input transfer matrix. In
+            future, input beam will not hold transf mat in anymore.
+
+        """
         w_kin = [energy
                  for results in single_elts_results
                  for energy in results['w_kin']
@@ -190,6 +202,8 @@ class Envelope1D(BeamCalculator):
         synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
                                                   phi_abs=phi_abs_array,
                                                   synchronous=True)
+        gamma_kin = synch_trajectory.gamma
+        assert isinstance(gamma_kin, np.ndarray)
 
         cav_params = [results['cav_params'] for results in single_elts_results]
         cav_params = {'v_cav_mv': [cav_param['v_cav_mv']
@@ -199,31 +213,19 @@ class Envelope1D(BeamCalculator):
                                 if cav_param is not None else None
                                 for cav_param in cav_params],
                       }
-        individual_1d = [results['r_zz'][i, :, :]
-                         for results in single_elts_results
-                         for i in range(results['r_zz'].shape[0])]
-        transfer_matrix = TransferMatrix(individual=individual_1d)
-
-        r_zz_elt = [results['r_zz'][i, :, :]
-                    for results in single_elts_results
-                    for i in range(results['r_zz'].shape[0])]
-        tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in,
-                                             r_zz_elt,
-                                             len(w_kin))
 
         element_to_index = self._generate_element_to_index_func(elts)
-
-        beam_params = BeamParameters(
-            z_abs=elts.get('abs_mesh', remove_first=True),
-            gamma_kin=synch_trajectory.gamma,
-            element_to_index=element_to_index)
-        beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
-        beam_params.zdelta.init_from_cumulated_transfer_matrices(
-            gamma_kin=beam_params.gamma_kin,
-            tm_cumul=tm_cumul,
-            beta_kin=beam_params.beta_kin
+        transfer_matrix = _transfer_matrix_factory(
+            elts.input_beam.zdelta.tm_cumul_in,
+            single_elts_results
         )
-        beam_params.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
+        beam_parameters = _beam_parameters_factory(
+            z_abs=elts.get('abs_mesh', remove_first=True),
+            gamma_kin=gamma_kin,
+            element_to_index=element_to_index,
+            transfer_matrix=transfer_matrix,
+            sigma_in=elts.input_beam.sigma_in
+        )
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
@@ -231,9 +233,8 @@ class Envelope1D(BeamCalculator):
             is_3d=self.is_a_3d_simulation,
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
-            r_zz_elt=r_zz_elt,
             rf_fields=rf_fields,
-            beam_parameters=beam_params,
+            beam_parameters=beam_parameters,
             element_to_index=element_to_index,
             transfer_matrix=transfer_matrix
         )
@@ -287,6 +288,126 @@ def _rf_field_from_single_cavity_settings(
     new_cavity_settings: SingleCavitySettings
 ) -> dict:
     """Get the data from the `SingleCavitySettings` object."""
+
+
+def _transfer_matrix_factory(
+        first_cumulated_transfer_matrix: np.ndarray,
+        single_elts_results: list[dict[str, Any]]
+        ) -> TransferMatrix:
+    """Create the :class:`.TransferMatrix` from current solver results.
+
+    Parameters
+    ----------
+    first_cumulated_transfer_matrix : np.ndarray
+        Cumulated transfer matrix at beginning of :class:`.ListOfElements`
+        under study.
+    single_elts_results : list[dict[str, Any]]
+        Results of the solver.
+
+    Returns
+    -------
+    transfer_matrix : TransferMatrix
+        Object holding transfer matrices, individual and cumulated, in the
+        relatable phase-spaces.
+
+    """
+        # individual_1d = [results['r_zz'][i, :, :]
+        #                  for results in single_elts_results
+        #                  for i in range(results['r_zz'].shape[0])]
+        # transfer_matrix = TransferMatrix(individual=individual_1d)
+        # r_zz_elt = [results['r_zz'][i, :, :]
+        #             for results in single_elts_results
+        #             for i in range(results['r_zz'].shape[0])]
+        # tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in,
+        #                                      r_zz_elt,
+        #                                      len(w_kin))
+
+    individual = [results['r_zz'][i]
+                  for results in single_elts_results
+                  for i in range(results['r_zz'].shape[0])]
+    # individual = [results['transfer_matrix'][i]
+    #               for results in single_elts_results
+    #               for i in range(results['transfer_matrix'].shape[0])]
+
+    if first_cumulated_transfer_matrix.shape == (2, 2):
+        logging.warning("Here I should initialize TransferMatrix with "
+                        "an initial transfer matrix, but I have a shape "
+                        "mismatch. It is ok for now.")
+
+    transfer_matrix = TransferMatrix(
+        individual=individual,
+        first_cumulated_transfer_matrix=first_cumulated_transfer_matrix
+        )
+    return transfer_matrix
+
+
+def _beam_parameters_factory(
+        z_abs: np.ndarray,
+        gamma_kin: np.ndarray,
+        element_to_index: Callable[[str | Element, str | None], int | slice],
+        transfer_matrix: TransferMatrix,
+        sigma_in: np.ndarray,
+        ) -> BeamParameters:
+    r"""Create the :class:`.BeamParameters` object from simulation results.
+
+    Parameters
+    ----------
+    z_abs : np.ndarray
+        Absolute position in the linac or the linac portion.
+    gamma_kin : np.ndarray
+        Lorentz factor.
+    element_to_index : Callable[[str | Element, str | None], int | slice]
+        Takes an :class:`.Element`, its name, 'first' or 'last' as argument,
+        and returns corresponding index. Index should be the same in all the
+        arrays attributes of this class: ``z_abs``, ``beam_parameters``
+        attributes, etc.  Used to easily `get` the desired properties at the
+        proper position.
+    transfer_matrix : TransferMatrix
+        Object holding transfer matrices.
+
+    Returns
+    -------
+    beam_parameters : BeamParameters
+        Object holding emittances, :math:`\sigma` beam matrices, Courant-Snyder
+        parameters in the different phase-spaces.
+
+    """
+        # beam_params = BeamParameters(
+        #     z_abs=elts.get('abs_mesh', remove_first=True),
+        #     gamma_kin=synch_trajectory.gamma,
+        #     element_to_index=element_to_index)
+        # beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
+        # beam_params.zdelta.init_from_cumulated_transfer_matrices(
+        #     gamma_kin=beam_params.gamma_kin,
+        #     tm_cumul=tm_cumul,
+        #     beta_kin=beam_params.beta_kin
+        # )
+        # beam_params.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
+
+    beta_kin = converters.energy(gamma_kin, 'gamma to beta')
+    assert isinstance(beta_kin, np.ndarray)
+
+    beam_parameters = BeamParameters(z_abs=z_abs,
+                                     gamma_kin=gamma_kin,
+                                     beta_kin=beta_kin,
+                                     element_to_index=element_to_index,
+                                     sigma_in=sigma_in)
+
+    beam_parameters.create_phase_spaces('z', 'zdelta', 'phiw')
+
+    for phase_space_name, sub_transfer_matrix_name in zip(
+            ('zdelta',),
+            ('r_zdelta',)):
+        phase_space = beam_parameters.get(phase_space_name)
+        sub_transfer_matrix = transfer_matrix.get(sub_transfer_matrix_name)
+        phase_space.init_from_cumulated_transfer_matrices(
+            tm_cumul=sub_transfer_matrix,
+            gamma_kin=gamma_kin,
+            beta_kin=beta_kin
+            )
+
+    beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
+    return beam_parameters
 
 
 RF_FIELD_GETTERS = {

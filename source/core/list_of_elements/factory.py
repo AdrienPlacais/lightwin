@@ -115,13 +115,16 @@ def _new_input_particle(w_kin: float,
     return input_particle
 
 
-def _new_beam_parameters(sigma_in_zdelta: np.ndarray,
+def _new_beam_parameters(sigma_in: np.ndarray,
                          **kwargs: float) -> BeamParameters:
     """Generate a :class:`.BeamParameters` objet for the linac entrance."""
-    input_beam = BeamParameters()
-    input_beam.create_phase_spaces('zdelta')
-    input_beam.zdelta.tm_cumul = np.eye(2)
-    input_beam.zdelta.sigma_in = sigma_in_zdelta
+    phase_space_names = ('x', 'y', 'zdelta')
+    input_beam = BeamParameters(sigma_in=sigma_in)
+    input_beam.create_phase_spaces(*phase_space_names)
+
+    for phase_space_name in phase_space_names:
+        phase_space = input_beam.get(phase_space_name)
+        phase_space.tm_cumul_in = np.eye(2)
     return input_beam
 
 
@@ -288,15 +291,15 @@ def _subset_input_particle(simulation_output: SimulationOutput,
 def _subset_beam_parameters(simulation_output: SimulationOutput,
                             **kwargs: Any
                             ) -> BeamParameters:
-    """Create `BeamParameters` for an incomplete list of `Element`s."""
-    z_abs, gamma_kin, beta_kin = simulation_output.get(
-        *('z_abs', 'gamma', 'beta'), **kwargs)
+    """Create beam parameters for an incomplete list of elements."""
+    args = ('z_abs', 'gamma', 'beta', 'sigma')
+    z_abs, gamma_kin, beta_kin, sigma = simulation_output.get(*args, **kwargs)
     input_beam = BeamParameters(z_abs=z_abs,
                                 gamma_kin=gamma_kin,
-                                beta_kin=beta_kin)
+                                beta_kin=beta_kin,
+                                sigma_in=sigma)
 
-    phase_spaces = _required_phase_spaces(simulation_output.is_3d,
-                                          simulation_output.is_multiparticle)
+    phase_spaces = _required_phase_spaces(simulation_output.is_multiparticle)
     quantities = _required_quantities()
     full_beam_parameters = simulation_output.beam_parameters
     assert full_beam_parameters is not None
@@ -310,12 +313,10 @@ def _subset_beam_parameters(simulation_output: SimulationOutput,
     return input_beam
 
 
-def _required_phase_spaces(is_3d: bool, is_multiparticle: bool
+def _required_phase_spaces(is_multiparticle: bool
                            ) -> tuple[str, ...]:
     """Give necessary phase spaces according to `SimulationOutput` flags."""
-    phase_spaces = ('z', 'zdelta')
-    if is_3d:
-        phase_spaces = ('x', 'y', 't', 'z', 'zdelta')
+    phase_spaces = ('x', 'y', 't', 'z', 'zdelta')
     if is_multiparticle:
         phase_spaces = ('x', 'y', 't', 'z', 'zdelta', 'x99', 'y99', 'wphi99')
     return phase_spaces

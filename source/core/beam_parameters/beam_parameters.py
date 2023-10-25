@@ -18,6 +18,8 @@ import logging
 
 import numpy as np
 
+import config_manager as con
+
 from core.beam_parameters.single_phase_space_beam_parameters import (
     SinglePhaseSpaceBeamParameters,
     mismatch_single_phase_space,
@@ -55,30 +57,18 @@ class BeamParameters:
         all the arrays attributes of this class: ``z_abs``, ``beam_parameters``
         attributes, etc. Used to easily ``get`` the desired properties at the
         proper position. The default is None.
-    zdelta : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the :math:`[z-z\delta]` plane.
-    z : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the :math:`[z-z']` plane.
-    phiw : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the :math:`[\phi-W]` plane.
-    x : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the :math:`[x-x']` plane. Only used with 3D
+    zdelta, z, phiw, x, y, t : SinglePhaseSpaceBeamParameters
+        Holds beam parameters respectively in the :math:`[z-z\delta]`,
+        :math:`[z-z']`, :math:`[\phi-W]`, :math:`[x-x']`, :math:`[y-y']` and
+        :math:`[t-t']` planes.
+    phiw99, x99, y99 : SinglePhaseSpaceBeamParameters
+        Holds 99% beam parameters respectively in the :math:`[\phi-W]`,
+        :math:`[x-x']` and :math:`[y-y']` planes. Only used with multiparticle
         simulations.
-    y : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the :math:`[y-y']` plane. Only used with 3D
-        simulations.
-    t : SinglePhaseSpaceBeamParameters
-        Holds beam parameters in the :math:`[t-t']` (transverse) plane. Only
-        used with 3D simulations.
-    phiw99 : SinglePhaseSpaceBeamParameters
-        Holds 99% beam parameters in the :math:`[\phi-W]` plane. Only used with
-        multiparticle simulations.
-    x99 : SinglePhaseSpaceBeamParameters
-        Holds 99% beam parameters in the :math:`[x-x']` plane. Only used with
-        multiparticle simulations.
-    y99 : SinglePhaseSpaceBeamParameters
-        Holds 99% beam parameters in the :math:`[y-y']` plane. Only used with
-        multiparticle simulations.
+    _sigma_in : np.ndarray | None, optional
+        Holds the (6, 6) (or (2, 2) in 1D simulation) :math:`\sigma` beam
+        matrix at the entrance of the linac/portion of linac. The default is
+        None.
 
     """
 
@@ -87,6 +77,7 @@ class BeamParameters:
     beta_kin: np.ndarray | float | None = None
     element_to_index: Callable[[str | Element, str | None], int | slice] \
         | None = None
+    sigma_in: np.ndarray | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
@@ -205,7 +196,7 @@ class BeamParameters:
                 val[key] = single_phase_space_beam_param.get(short_key)
                 continue
 
-            # Look for key in BeamParameters()
+            # Look for key in BeamParameters
             if not self.has(key):
                 val[key] = None
                 continue
@@ -285,23 +276,87 @@ class BeamParameters:
             ``'envelope_pos'`` and ``'envelope_energy'`` are allowed values.
 
         """
-        if self.gamma_kin is None:
-            n_points = 10
-            logging.info("Dummy BeamParameters?")
-        else:
-            n_points = np.atleast_1d(self.gamma_kin).shape[0]
-        for arg in args:
-            phase_space_kwargs = kwargs.get(arg, None)
-            if phase_space_kwargs is None:
-                phase_space_kwargs = {}
+        n_points = self._proper_n_points()
+        sigma_in = self._format_sigma_in()
+        phase_space_to_proper_sigma_in = {
+            'x': sigma_in[:2, :2],
+            'y': sigma_in[2:4, 2:4],
+            'zdelta': sigma_in[4:, 4:],
+        }
 
+        for phase_space_name in args:
+            kwargs_for_this_phase_space = kwargs.get(phase_space_name, None)
+            if kwargs_for_this_phase_space is None:
+                kwargs_for_this_phase_space = {}
+            proper_sigma_in = phase_space_to_proper_sigma_in.get(
+                phase_space_name,
+                None)
             phase_space_beam_param = SinglePhaseSpaceBeamParameters(
-                arg,
+                phase_space_name,
                 element_to_index=self.element_to_index,
+                sigma_in=proper_sigma_in,
                 n_points=n_points,
-                **phase_space_kwargs,
+                **kwargs_for_this_phase_space,
             )
-            setattr(self, arg, phase_space_beam_param)
+            setattr(self, phase_space_name, phase_space_beam_param)
+
+    def _proper_n_points(self) -> int:
+        """Get proper number of points with a default value.
+
+        .. deprecated:: v3.2.2.?
+            Temporary function that will be removed as a correct initialisation
+            of the beam parameters should be done in the first place.
+
+        """
+        if self.gamma_kin is None:
+            logging.info("No input gamma_kin was given. A priori, we are "
+                         "in front of a use case for the InitialBeamParameters"
+                         " object (which will be created in a future update).")
+            return 10
+        return np.atleast_1d(self.gamma_kin).shape[0]
+
+    def _format_sigma_in(self) -> np.ndarray:
+        r"""Format the input :math:`\sigma` beam matrix for uniformity.
+
+        Returns
+        -------
+        sigma_in : np.ndarray
+            (6, 6) sigma beam matrix filled with np.NaN where data is missing.
+
+        .. deprecated:: v3.2.2.3
+            This matrix should always be set, and always have a (6, 6) shape.
+            This method will be removed in the future.
+
+        """
+        if self.sigma_in is None:
+            if hasattr(con, 'SIGMA'):
+                sigma_in_from_conf = con.SIGMA
+                if ~np.isnan(sigma_in_from_conf).any():
+                    logging.warning("Initialized sigma beam matrix from config"
+                                    " manager. Please give it to "
+                                    "BeamParameters.__init__ instead.")
+                    return sigma_in_from_conf
+
+            logging.warning("Initialized sigma beam matrix from config"
+                            " manager. Please give it to "
+                            "BeamParameters.__init__ instead."
+                            "Also, should use SIGMA instead of "
+                            "SIGMA_ZDELTA which will be deprecated.")
+            sigma_in_from_conf = con.SIGMA_ZDELTA
+            sigma_in = np.full((6, 6), np.NaN)
+            sigma_in[4:, 4:] = sigma_in_from_conf
+            return sigma_in
+
+        shape = self.sigma_in.shape
+        if shape == (6, 6):
+            return self.sigma_in
+
+        if shape == (2, 2):
+            sigma_in = np.full((6, 6), np.NaN)
+            sigma_in[4:, 4:] = self.sigma_in
+            return sigma_in
+
+        raise IOError("Given sigma_in was not understood.")
 
     def init_other_phase_spaces_from_zdelta(
             self, *args: str, gamma_kin: np.ndarray | None = None,

@@ -14,10 +14,8 @@ MANDATORY_BEAM_KEYS = ("linac",
                        "e_mev",
                        "f_bunch_mhz",
                        "i_milli_a",
-                       "sigma_zdelta",
+                       "sigma",
                        )  #:
-FUTURE_MANDATORY_BEAM_KEYS = ('sigma',
-                              )  #:
 
 
 def test(c_beam: configparser.SectionProxy) -> None:
@@ -28,11 +26,6 @@ def test(c_beam: configparser.SectionProxy) -> None:
         if key not in c_beam.keys():
             logging.error(f"{key} is mandatory and missing.")
             passed = False
-
-    for key in FUTURE_MANDATORY_BEAM_KEYS:
-        if key not in c_beam.keys():
-            logging.warning(f"{key} will be mandatory in future updates and is"
-                            " missing. Already mandatory for Envelope3D.")
 
     # Test the values of the keys in beam
     if np.abs(c_beam.getfloat("i_milli_a")) > 1e-10:
