@@ -40,7 +40,7 @@ from tracewin_utils.dat_files import (
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
 from beam_calculation.output import SimulationOutput
-
+from util import converters
 import config_manager as con
 
 
@@ -116,15 +116,27 @@ def _new_input_particle(w_kin: float,
 
 
 def _new_beam_parameters(sigma_in: np.ndarray,
+                         z_in: float,
+                         w_kin: float,
                          **kwargs: float) -> BeamParameters:
     """Generate a :class:`.BeamParameters` objet for the linac entrance."""
     phase_space_names = ('x', 'y', 'zdelta')
-    input_beam = BeamParameters(sigma_in=sigma_in)
+    z_abs = z_in
+    gamma_kin = converters.energy(w_kin, 'kin to gamma')
+    beta_kin = converters.energy(gamma_kin, 'gamma to beta')
+    input_beam = BeamParameters(z_abs,
+                                gamma_kin,
+                                beta_kin,
+                                sigma_in=sigma_in,
+                                n_points=1)
     input_beam.create_phase_spaces(*phase_space_names)
 
     for phase_space_name in phase_space_names:
         phase_space = input_beam.get(phase_space_name)
         phase_space.tm_cumul_in = np.eye(2)
+        phase_space.init_from_sigma(phase_space.sigma_in[np.newaxis],
+                                    np.atleast_1d(gamma_kin),
+                                    np.atleast_1d(beta_kin))
     return input_beam
 
 
@@ -289,15 +301,32 @@ def _subset_input_particle(simulation_output: SimulationOutput,
 
 
 def _subset_beam_parameters(simulation_output: SimulationOutput,
-                            **kwargs: Any
+                            **kwargs: Element | str | bool | None
                             ) -> BeamParameters:
-    """Create beam parameters for an incomplete list of elements."""
+    """
+    Create beam parameters for an incomplete list of elements.
+
+    Parameters
+    ----------
+    simulation_output : SimulationOutput
+        Last simulation results from wich beam parameters will be extracted.
+    **kwargs : Element | str | bool | None
+        Keyword arguments passed to :meth:`.get` method, to get the desired
+        beam parameters at the proper element entrance/exit.
+
+    Returns
+    -------
+    input_beam : BeamParameters
+        Holds beam parameters at the entrance of current subset.
+
+    """
     args = ('z_abs', 'gamma', 'beta', 'sigma')
     z_abs, gamma_kin, beta_kin, sigma = simulation_output.get(*args, **kwargs)
     input_beam = BeamParameters(z_abs=z_abs,
                                 gamma_kin=gamma_kin,
                                 beta_kin=beta_kin,
-                                sigma_in=sigma)
+                                sigma_in=np.array(sigma),
+                                n_points=1)
 
     phase_spaces = _required_phase_spaces(simulation_output.is_multiparticle)
     quantities = _required_quantities()

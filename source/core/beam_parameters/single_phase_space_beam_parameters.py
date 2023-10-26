@@ -28,22 +28,11 @@ IMPLEMENTED_PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
 BEAM_PARAMETERS = ('sigma_in',
                    'sigma',
                    'tm_cumul',
-                   'twiss',
+                   'twiss', 'alpha', 'beta', 'gamma',
                    'eps',
                    'envelope',
                    'mismatch_factor'
                    )  #:
-
-
-def is_not_set(array: np.ndarray) -> bool:
-    """Tells if there is a np.Nan in the array."""
-    assert isinstance(array, np.ndarray)
-    return np.isnan(array).any()
-
-
-def is_set(array: np.ndarray) -> bool:
-    """Tells if there is no np.Nan in the array."""
-    return ~is_not_set(array)
 
 
 class SinglePhaseSpaceBeamParameters:
@@ -94,7 +83,7 @@ class SinglePhaseSpaceBeamParameters:
         self.mismatch_factor: np.ndarray
         self._store_input_if_not_none(**kwargs)
 
-        if self.phase_space == 'zdelta' and is_not_set(self.sigma_in):
+        if self.phase_space == 'zdelta' and self.is_not_set('sigma_in'):
             logging.warning("Manually set sigma_in, should be done "
                             "explicitly.")
             self.sigma_in = con.SIGMA_ZDELTA
@@ -146,6 +135,21 @@ class SinglePhaseSpaceBeamParameters:
                 continue
 
             setattr(self, attribute_name, given_value)
+
+        aliases = ('alpha', 'beta', 'gamma', 'envelope_pos', 'envelope_energy')
+        for attribute_name, given_value in kwargs.items():
+            if attribute_name in aliases and given_value is not None:
+                setattr(self, attribute_name, given_value)
+
+    def is_not_set(self, name: str) -> bool:
+        """Tells if there is a np.Nan in the array."""
+        array = self.get(name)
+        assert isinstance(array, np.ndarray)
+        return np.isnan(array).any()
+
+    def is_set(self, name: str) -> bool:
+        """Tells if there is no np.Nan in the array."""
+        return ~self.is_not_set(name)
 
     @property
     def alpha(self) -> np.ndarray:
@@ -270,7 +274,7 @@ class SinglePhaseSpaceBeamParameters:
             logging.error("tm_cumul shall be given!")
             tm_cumul = self.tm_cumul
 
-        assert is_set(self.sigma_in)
+        assert self.is_set('sigma_in')
         self.sigma = sigma_beam_matrices(tm_cumul, self.sigma_in)
         self.init_from_sigma(self.sigma, gamma_kin, beta_kin)
 
@@ -349,7 +353,9 @@ class SinglePhaseSpaceBeamParameters:
         sigma = reconstruct_sigma(sigma_00, sigma_01, eps)
         if self.phase_space in ('zdelta', 'x', 'y', 'x99', 'y99'):
             sigma *= 1e-6
+        assert isinstance(sigma, np.ndarray)
         self.sigma = sigma
+        self.sigma_in = sigma[0]
 
     def init_from_another_plane(self,
                                 eps_orig: np.ndarray,
@@ -372,7 +378,7 @@ class SinglePhaseSpaceBeamParameters:
         if self.phase_space == 'phiw':
             eps_for_envelope = eps_normalized
 
-        assert is_set(self.twiss)
+        assert self.is_set('twiss')
         self.compute_envelopes(self.twiss[:, 1],
                                self.twiss[:, 2],
                                eps_for_envelope)
@@ -387,11 +393,12 @@ class SinglePhaseSpaceBeamParameters:
         was already calculated in ``x_space`` and ``y_space``.
 
         """
-        assert is_set(x_space.eps)
-        assert is_set(y_space.eps)
+        assert x_space.is_set('eps')
+        assert y_space.is_set('eps')
         self.eps = .5 * (x_space.eps + y_space.eps)
 
-        if is_set(x_space.mismatch_factor) and is_set(y_space.mismatch_factor):
+        if x_space.is_set('mismatch_factor') and \
+                y_space.is_set('mismatch_factor'):
             self.mismatch_factor = .5 * (x_space.mismatch_factor
                                          + y_space.mismatch_factor)
 
@@ -426,7 +433,10 @@ class SinglePhaseSpaceBeamParameters:
             Emittance normalized.
 
         """
-        assert self.phase_space in ('zdelta', 'x', 'y', 'x99', 'y99')
+        allowed = ('zdelta', 'x', 'y', 'x99', 'y99')
+        assert self.phase_space in allowed, \
+            f"Phase-space {self.phase_space} not in {allowed}."
+
         eps_no_normalisation = np.array(
             [np.sqrt(np.linalg.det(sigma[i])) for i in range(sigma.shape[0])])
 
@@ -435,12 +445,12 @@ class SinglePhaseSpaceBeamParameters:
         elif self.phase_space in ('x', 'y', 'x99', 'y99'):
             eps_no_normalisation *= 1e6
 
-        assert is_set(eps_no_normalisation)
+        assert ~np.isnan(eps_no_normalisation).any()
         eps_normalized = converters.emittance(eps_no_normalisation,
                                               f"normalize {self.phase_space}",
                                               gamma_kin=gamma_kin,
                                               beta_kin=beta_kin)
-        assert is_set(eps_normalized)
+        assert ~np.isnan(eps_normalized).any()
         return eps_no_normalisation, eps_normalized
 
     def _compute_eps_from_other_plane(self,
@@ -513,7 +523,7 @@ class SinglePhaseSpaceBeamParameters:
 
         """
         assert self.phase_space in ('zdelta', 'x', 'y', 'x99', 'y99')
-        assert is_set(self.eps)
+        assert self.is_set('eps')
         n_points = sigma.shape[0]
         twiss = np.full((n_points, 3), np.NaN)
 

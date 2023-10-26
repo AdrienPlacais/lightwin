@@ -65,25 +65,30 @@ class BeamParameters:
         Holds 99% beam parameters respectively in the :math:`[\phi-W]`,
         :math:`[x-x']` and :math:`[y-y']` planes. Only used with multiparticle
         simulations.
-    _sigma_in : np.ndarray | None, optional
+    sigma_in : np.ndarray | None, optional
         Holds the (6, 6) (or (2, 2) in 1D simulation) :math:`\sigma` beam
         matrix at the entrance of the linac/portion of linac. The default is
         None.
+    n_points : int | None, optional
+        Holds the number of points along the linac (0 if the object defines a
+        beam at the entry of the linac/a linac portion). The default is None.
 
     """
 
-    z_abs: np.ndarray | float | None = None
-    gamma_kin: np.ndarray | float | None = None
-    beta_kin: np.ndarray | float | None = None
+    z_abs: np.ndarray
+    gamma_kin: np.ndarray
+    beta_kin: np.ndarray
     element_to_index: Callable[[str | Element, str | None], int | slice] \
         | None = None
     sigma_in: np.ndarray | None = None
+    n_points: int | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
-        if self.beta_kin is None and self.gamma_kin is not None:
-            self.beta_kin = converters.energy(self.gamma_kin, 'gamma to beta')
-
+        if self.n_points is not None:
+            logging.warning("giving n_points to BeamParameters.__init__ is "
+                            "deprecated")
+        self.n_points = np.atleast_1d(self.z_abs).shape[0]
         self.zdelta: SinglePhaseSpaceBeamParameters
         self.z: SinglePhaseSpaceBeamParameters
         self.phiw: SinglePhaseSpaceBeamParameters
@@ -224,6 +229,41 @@ class BeamParameters:
         _tracewin_command = self._create_tracewin_command()
         return _tracewin_command
 
+    @property
+    def sigma(self) -> np.ndarray:
+        """Give value of sigma.
+
+        .. todo::
+            Could be cleaner.
+
+        """
+        assert isinstance(self.n_points, int)
+        sigma = np.zeros((self.n_points, 6, 6))
+
+        sigma_x = np.zeros((self.n_points, 2, 2))
+        if self.has('x') and self.x.is_set('sigma'):
+            sigma_x = self.x.sigma
+
+        sigma_y = np.zeros((self.n_points, 2, 2))
+        if self.has('y') and self.y.is_set('sigma'):
+            sigma_y = self.y.sigma
+
+        sigma_zdelta = self.zdelta.sigma
+
+        sigma[:, :2, :2] = sigma_x
+        sigma[:, 2:4, 2:4] = sigma_y
+        sigma[:, 4:, 4:] = sigma_zdelta
+        return sigma
+
+    @sigma.setter
+    def sigma(self, value: np.ndarray) -> None:
+        logging.warning("You shall not set sigma directly, but rather the "
+                        "sub-sigma matrices in x, y, zdelta planes.")
+        assert value.shape == (self.n_points, 6, 6)
+        self.x.sigma = value[:, :2, :2]
+        self.y.sigma = value[:, 2:4, 2:4]
+        self.zdelta.sigma = value[:, 4:, 4:]
+
     def _create_tracewin_command(self, warn_missing_phase_space: bool = True
                                  ) -> list[str]:
         """
@@ -276,7 +316,8 @@ class BeamParameters:
             ``'envelope_pos'`` and ``'envelope_energy'`` are allowed values.
 
         """
-        n_points = self._proper_n_points()
+        logging.warning(f"Creating phase spaces {args}")
+
         sigma_in = self._format_sigma_in()
         phase_space_to_proper_sigma_in = {
             'x': sigma_in[:2, :2],
@@ -295,25 +336,10 @@ class BeamParameters:
                 phase_space_name,
                 element_to_index=self.element_to_index,
                 sigma_in=proper_sigma_in,
-                n_points=n_points,
+                n_points=self.n_points,
                 **kwargs_for_this_phase_space,
             )
             setattr(self, phase_space_name, phase_space_beam_param)
-
-    def _proper_n_points(self) -> int:
-        """Get proper number of points with a default value.
-
-        .. deprecated:: v3.2.2.?
-            Temporary function that will be removed as a correct initialisation
-            of the beam parameters should be done in the first place.
-
-        """
-        if self.gamma_kin is None:
-            logging.info("No input gamma_kin was given. A priori, we are "
-                         "in front of a use case for the InitialBeamParameters"
-                         " object (which will be created in a future update).")
-            return 10
-        return np.atleast_1d(self.gamma_kin).shape[0]
 
     def _format_sigma_in(self) -> np.ndarray:
         r"""Format the input :math:`\sigma` beam matrix for uniformity.
@@ -334,7 +360,8 @@ class BeamParameters:
                 if ~np.isnan(sigma_in_from_conf).any():
                     logging.warning("Initialized sigma beam matrix from config"
                                     " manager. Please give it to "
-                                    "BeamParameters.__init__ instead.")
+                                    "BeamParameters.__init__ instead."
+                                    "Ignore this if solver is TW.")
                     return sigma_in_from_conf
 
             logging.warning("Initialized sigma beam matrix from config"
@@ -357,35 +384,6 @@ class BeamParameters:
             return sigma_in
 
         raise IOError("Given sigma_in was not understood.")
-
-    def init_other_phase_spaces_from_zdelta(
-            self, *args: str, gamma_kin: np.ndarray | None = None,
-            beta_kin: np.ndarray | None = None) -> None:
-        r"""Create the desired longitudinal planes from :math:`[z-\delta]`."""
-        if gamma_kin is None:
-            gamma_kin = self.gamma_kin
-        if beta_kin is None:
-            beta_kin = self.beta_kin
-        args_for_init = (self.zdelta.eps, self.zdelta.twiss, gamma_kin,
-                         beta_kin)
-
-        for arg in args:
-            if arg not in ('phiw', 'z'):
-                logging.error(f"Phase space conversion zdelta -> {arg} not "
-                              "implemented. Ignoring...")
-
-        if 'phiw' in args:
-            self.phiw.init_from_another_plane(*args_for_init, 'zdelta to phiw')
-        if 'z' in args:
-            self.z.init_from_another_plane(*args_for_init, 'zdelta to z')
-
-    def init_99percent_phase_spaces(self, eps_phiw99: np.ndarray,
-                                    eps_x99: np.ndarray, eps_y99: np.ndarray
-                                    ) -> None:
-        """Set 99% emittances; envelopes, Twiss, etc not implemented."""
-        self.phiw99.eps = eps_phiw99
-        self.x99.eps = eps_x99
-        self.y99.eps = eps_y99
 
 
 # =============================================================================
@@ -439,20 +437,21 @@ def _to_float_if_necessary(eps: float | np.ndarray,
                            alpha: float | np.ndarray,
                            beta: float | np.ndarray
                            ) -> tuple[float, float, float]:
-    """Ensure that the data given to TraceWin will be float."""
-    are_floats = [isinstance(parameter, float)
-                  for parameter in (eps, alpha, beta)]
-    if all(are_floats):
-        return eps, alpha, beta
+    """
+    Ensure that the data given to TraceWin will be float.
 
-    logging.warning("You are trying to give TraceWin an array of eps, alpha or"
-                    " beta, while it should be a float. I suspect that the "
-                    "current `BeamParameters` was generated by a "
-                    "`SimulationOutuput`, while it should have been created "
-                    "by a `ListOfElements` (initial beam state). Taking "
-                    "first element of each array...")
+        .. deprecated:: v3.2.2.3
+            eps, alpha, beta will always be arrays of size 1.
 
-    output_as_floats = [parameter if is_float else parameter[0]
-                        for parameter, is_float in zip((eps, alpha, beta),
-                                                       are_floats)]
-    return tuple(output_as_floats)
+    """
+    as_arrays = (np.atleast_1d(eps), np.atleast_1d(alpha), np.atleast_1d(beta))
+    shapes = [array.shape for array in as_arrays]
+
+    if shapes != [(1,), (1,), (1,)]:
+        logging.warning("You are trying to give TraceWin an array of eps, "
+                        "alpha or beta, while it should be a float. I suspect "
+                        "that the current BeamParameters was generated by a "
+                        "SimulationOutuput, while it should have been created "
+                        "by a ListOfElements (initial beam state). Taking "
+                        "first element of each array...")
+    return as_arrays[0][0], as_arrays[1][0], as_arrays[2][0]

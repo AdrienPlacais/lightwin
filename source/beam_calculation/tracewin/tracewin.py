@@ -26,7 +26,6 @@ the particles in envelope or multipart, in 3D. In contrary to
 
 """
 from dataclasses import dataclass
-from typing import Callable
 import os
 import logging
 import subprocess
@@ -53,6 +52,10 @@ from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.transfer_matrix import TransferMatrix
+
+from beam_calculation.tracewin.beam_parameters_factory import (
+    TraceWinBeamParametersFactory,
+    )
 
 
 @dataclass
@@ -360,11 +363,26 @@ class TraceWin(BeamCalculator):
                                                      cavity_parameters)
 
         element_to_index = self._generate_element_to_index_func(elts)
-        beam_parameters = self._create_beam_parameters(element_to_index,
-                                                       results)
 
-        _, _, cumulated = _load_transfer_matrices(path_cal)
-        transfer_matrix = TransferMatrix(cumulated=cumulated)
+        transfer_matrix = _transfer_matrix_factory(path_cal)
+
+        # will have to be initialized only once
+        my_beam_parameters_factory = TraceWinBeamParametersFactory(
+            results['z(m)'],
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation,
+            element_to_index=element_to_index)
+
+        gamma_kin = synch_trajectory.get('gamma')
+        assert isinstance(gamma_kin, np.ndarray)
+        beam_parameters: BeamParameters = \
+            my_beam_parameters_factory.factory_method(
+                gamma_kin,
+                results)
+        # beam_parameters = tracewin_beam_parameters_factory(element_to_index,
+        #                                                    multipart,
+        #                                                    results,
+        #                                                    )
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
@@ -373,7 +391,6 @@ class TraceWin(BeamCalculator):
             z_abs=results['z(m)'],
             synch_trajectory=synch_trajectory,
             cav_params=cavity_parameters,
-            r_zz_elt=[],
             rf_fields=rf_fields,
             beam_parameters=beam_parameters,
             element_to_index=element_to_index,
@@ -486,23 +503,6 @@ class TraceWin(BeamCalculator):
             rf_fields[i]['phi_0_abs'] = phi_0
 
         return rf_fields
-
-    def _create_beam_parameters(self,
-                                element_to_index: Callable,
-                                results: dict[str, np.ndarray]
-                                ) -> BeamParameters:
-        """Create the :class:`BeamParameters` object, holding eps, Twiss..."""
-        multipart = self.is_a_multiparticle_simulation
-        beam_parameters = BeamParameters(z_abs=results['z(m)'],
-                                         gamma_kin=results['gamma'],
-                                         element_to_index=element_to_index)
-        beam_parameters = _beam_param_uniform_with_envelope1d(beam_parameters,
-                                                              results)
-        beam_parameters = _add_beam_param_not_supported_by_envelope1d(
-            beam_parameters,
-            results,
-            multipart)
-        return beam_parameters
 
 
 # =============================================================================
@@ -702,86 +702,28 @@ def _cavity_parameters_uniform_with_envelope1d(
 
 
 # =============================================================================
-# BeamParameters
+# Transfer matrix
 # =============================================================================
-def _beam_param_uniform_with_envelope1d(
-        beam_parameters: BeamParameters, results: dict[str, np.ndarray],
-        multiparticle: bool = False) -> BeamParameters:
-    """Manually set longitudinal phase-spaces in BeamParameters object."""
-    gamma_kin, beta_kin = beam_parameters.gamma_kin, beam_parameters.beta_kin
-    beam_parameters.create_phase_spaces('zdelta', 'z', 'phiw')
+def _transfer_matrix_factory(path_cal: str) -> TransferMatrix:
+    r"""Load the TraceWin transfer matrix file and create the object.
 
-    sigma_00, sigma_01 = results['SizeZ']**2, results['szdp']
-    eps_normalized = results['ezdp']
+    Parameters
+    ----------
+    path_cal : str
+        Full path to transfer matrix file.
 
-    beam_parameters.zdelta.reconstruct_full_sigma_matrix(
-        sigma_00,
-        sigma_01,
-        eps_normalized,
-        eps_is_normalized=True,
-        gamma_kin=gamma_kin,
-        beta_kin=beta_kin
-    )
-    beam_parameters.zdelta.init_from_sigma(
-        beam_parameters.zdelta.sigma,
-        gamma_kin,
-        beta_kin)
+    Returns
+    -------
+    transfer_matrix : TransferMatrix
+        Object holding the various transfer matrices in the :math:`[x-x']`,
+        :math:`[y-y']` and :math:`[z-\delta]` planes.
 
-    beam_parameters.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
-    return beam_parameters
+    """
+    _, _, cumulated = _load_transfer_matrices(path_cal)
+    transfer_matrix = TransferMatrix(cumulated=cumulated)
+    return transfer_matrix
 
 
-def _add_beam_param_not_supported_by_envelope1d(
-        beam_parameters: BeamParameters, results: dict[str, np.ndarray],
-        multiparticle: bool = False) -> BeamParameters:
-    """Manually set transverse and 99% phase-spaces."""
-    gamma_kin, beta_kin = beam_parameters.gamma_kin, beam_parameters.beta_kin
-    beam_parameters.create_phase_spaces('x', 'y', 't')
-
-    sigma_x_00, sigma_x_01 = results['SizeX']**2, results["sxx'"]
-    eps_x_normalized = results['ex']
-    beam_parameters.x.reconstruct_full_sigma_matrix(sigma_x_00,
-                                                    sigma_x_01,
-                                                    eps_x_normalized,
-                                                    eps_is_normalized=True,
-                                                    gamma_kin=gamma_kin,
-                                                    beta_kin=beta_kin)
-    beam_parameters.x.init_from_sigma(
-        beam_parameters.x.sigma,
-        gamma_kin,
-        beta_kin)
-
-    sigma_y_00, sigma_y_01 = results['SizeY']**2, results["syy'"]
-    eps_y_normalized = results['ey']
-    beam_parameters.y.reconstruct_full_sigma_matrix(sigma_y_00,
-                                                    sigma_y_01,
-                                                    eps_y_normalized,
-                                                    eps_is_normalized=True,
-                                                    gamma_kin=gamma_kin,
-                                                    beta_kin=beta_kin)
-    beam_parameters.y.init_from_sigma(
-        beam_parameters.y.sigma,
-        gamma_kin,
-        beta_kin)
-
-    beam_parameters.t.init_from_averaging_x_and_y(
-        beam_parameters.x,
-        beam_parameters.y
-    )
-
-    if not multiparticle:
-        return beam_parameters
-
-    eps_phiw99 = results['ep99']
-    eps_x99, eps_y99 = results['ex99'], results['ey99']
-    beam_parameters.create_phase_spaces('phiw99', 'x99', 'y99')
-    beam_parameters.init_99percent_phase_spaces(eps_phiw99, eps_x99, eps_y99)
-    return beam_parameters
-
-
-# =============================================================================
-# Transfer matrix file
-# =============================================================================
 def _load_transfer_matrices(path_cal: str,
                             filename: str = 'Transfer_matrix1.dat',
                             high_def: bool = False
