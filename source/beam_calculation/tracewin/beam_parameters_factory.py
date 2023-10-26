@@ -12,9 +12,8 @@ from core.beam_parameters.beam_parameters import BeamParameters
 from util import converters
 
 
-def beam_parameters_factory(
+def tracewin_beam_parameters_factory(
         element_to_index: Callable[[str | Element, str | None], int | slice],
-        sigma_in: np.ndarray,
         multipart: bool,
         results: dict[str, np.ndarray],
         ) -> BeamParameters:
@@ -28,9 +27,6 @@ def beam_parameters_factory(
         arrays attributes of this class: ``z_abs``, ``beam_parameters``
         attributes, etc.  Used to easily `get` the desired properties at the
         proper position.
-    sigma_in : np.ndarray
-        :math:`\sigma` beam matrix at entry of current
-        :class:`.ListOfElements`.
     multipart : bool
         If the simulation was in multiparticle or not.
     results : dict[str, np.ndarray]
@@ -49,7 +45,6 @@ def beam_parameters_factory(
                                      gamma_kin=gamma_kin,
                                      beta_kin=beta_kin,
                                      element_to_index=element_to_index,
-                                     sigma_in=sigma_in,
                                      n_points=z_abs.shape[0])
 
     phase_space_names = _get_name_of_phase_spaces(multipart)
@@ -121,6 +116,9 @@ def _generate_phase_spaces_from_sigma(beam_parameters: BeamParameters,
                                                   eps_is_normalized=True,
                                                   gamma_kin=gamma_kin,
                                                   beta_kin=beta_kin)
+        phase_space.init_from_sigma(phase_space.sigma,
+                                    gamma_kin,
+                                    beta_kin)
 
 
 def _extract_phase_space_data_for_sigma(
