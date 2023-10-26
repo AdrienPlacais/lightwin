@@ -8,18 +8,41 @@ import numpy as np
 
 from core.elements.element import Element
 from core.beam_parameters.beam_parameters import BeamParameters
-from core.transfer_matrix import TransferMatrix
 
 from util import converters
 
 
 def beam_parameters_factory(
         element_to_index: Callable[[str | Element, str | None], int | slice],
-        transfer_matrix: TransferMatrix,
         sigma_in: np.ndarray,
         multipart: bool,
-        **results,
+        results: dict[str, np.ndarray],
         ) -> BeamParameters:
+    r"""Create the :class:`.BeamParameters` object after TW simulation.
+
+    Parameters
+    ----------
+    element_to_index : Callable[[str | Element, str | None], int | slice]
+        Takes an :class:`.Element`, its name, 'first' or 'last' as argument,
+        and returns corresponding index. Index should be the same in all the
+        arrays attributes of this class: ``z_abs``, ``beam_parameters``
+        attributes, etc.  Used to easily `get` the desired properties at the
+        proper position.
+    sigma_in : np.ndarray
+        :math:`\sigma` beam matrix at entry of current
+        :class:`.ListOfElements`.
+    multipart : bool
+        If the simulation was in multiparticle or not.
+    results : dict[str, np.ndarray]
+        Holds results loaded from TraceWin.
+
+    Returns
+    -------
+    beam_parameters : BeamParameters
+        Holds emittance, :math:`\sigma` beam matrix, envelopes, in the
+        different phase spaces.
+
+    """
     z_abs, gamma_kin, beta_kin = _extract_beam_parameters_data(results)
 
     beam_parameters = BeamParameters(z_abs=z_abs,
