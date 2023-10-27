@@ -35,7 +35,7 @@ BEAM_PARAMETERS = ('sigma_in',
                    )  #:
 
 
-class SinglePhaseSpaceBeamParameters:
+class PhaseSpaceBeamParameters:
     """Hold Twiss, emittance, envelopes of a single phase-space."""
 
     def __init__(self,
@@ -203,7 +203,7 @@ class SinglePhaseSpaceBeamParameters:
 
     def __str__(self) -> str:
         """Show amplitude of some of the attributes."""
-        out = f"\tSinglePhaseSpaceBeamParameters {self.phase_space}:\n"
+        out = f"\tPhaseSpaceBeamParameters {self.phase_space}:\n"
         for key in ('alpha', 'beta', 'eps', 'envelope_pos', 'envelope_energy',
                     'mismatch_factor'):
             out += "\t\t" + range_vals_object(self, key)
@@ -605,12 +605,12 @@ class SinglePhaseSpaceBeamParameters:
         self.envelope_energy = np.sqrt(gamma * eps)
 
 
-def mismatch_single_phase_space(ref: SinglePhaseSpaceBeamParameters,
-                                fix: SinglePhaseSpaceBeamParameters,
+def mismatch_single_phase_space(ref: PhaseSpaceBeamParameters,
+                                fix: PhaseSpaceBeamParameters,
                                 z_ref: np.ndarray,
                                 z_fix: np.ndarray
                                 ) -> np.ndarray | None:
-    """Compute mismatch between two :class:`SinglePhaseSpaceBeamParameters`."""
+    """Compute mismatch between two :class:`PhaseSpaceBeamParameters`."""
     twiss_ref, twiss_fix = ref.twiss, fix.twiss
     assert twiss_ref is not None and twiss_fix is not None
     if twiss_ref.shape != twiss_fix.shape:
