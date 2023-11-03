@@ -37,6 +37,7 @@ class TransferMatrix:
                  cumulated: np.ndarray | None = None,
                  first_cumulated_transfer_matrix: np.ndarray | None = None,
                  element_to_index: Callable | None = None,
+                 is_3d: bool | None = None,
                  ) -> None:
         """Create the object and compute the cumulated transfer matrix.
 
@@ -53,6 +54,12 @@ class TransferMatrix:
             be converted to the eye matrix -- corresponds to the study of a
             full linac. It should be the cumulated transfer matrix of the
             previous portion of linac otherwise.
+        element_to_index :
+            to doc
+        is_3d : bool | None, optional
+            If the simulation is in 3d or not. The default is None, in which
+            case this information is inferred from the given transfer matrices
+            shapes. In the future, giving this will be mandatory.
 
         """
         if isinstance(individual, list):
@@ -61,6 +68,11 @@ class TransferMatrix:
         if first_cumulated_transfer_matrix is None:
             logging.warning("In future versions, giving in a first cumulated "
                             "transfer matrix will be mandatory.")
+
+        self.is_3d = is_3d
+        if is_3d is None:
+            logging.warning("In future versions, it will be mandatory to give "
+                            "in the is_3d bool.")
 
         self.individual: np.ndarray
         if individual is not None:
@@ -272,6 +284,8 @@ class TransferMatrix:
         return cumulated
 
     def _determine_if_is_3d(self, array: np.ndarray) -> bool:
+        if self.is_3d is not None:
+            return self.is_3d
         shape = array.shape[1:]
         if shape == (2, 2):
             return False

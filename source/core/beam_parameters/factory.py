@@ -189,7 +189,17 @@ class InitialBeamParametersFactory(ABC):
     def __init__(self,
                  is_3d: bool,
                  is_multipart: bool) -> None:
-        self.phase_spaces = self._determine_phase_spaces(is_3d, is_multipart)
+        """Create factory and list of phase spaces to generate.
+
+        Parameters
+        ----------
+        is_3d : bool
+            If the simulation is in 3D.
+        is_multipart : bool
+            If the simulation is a multiparticle.
+
+        """
+        self.phase_spaces = self._determine_phase_spaces(is_3d)
         self.is_3d = is_3d
         self.is_multipart = is_multipart
 
@@ -291,7 +301,7 @@ class InitialBeamParametersFactory(ABC):
 
         """
         args = ('z_abs', 'gamma', 'beta', 'sigma')
-        z_abs, gamma_kin, beta_kin, sigma_in = simulation_output.get(
+        z_abs, gamma_kin, beta_kin, sigma = simulation_output.get(
             *args,
             **get_kwargs)
 
@@ -306,9 +316,10 @@ class InitialBeamParametersFactory(ABC):
         input_beam = InitialBeamParameters(self.phase_spaces,
                                            z_abs,
                                            gamma_kin,
-                                           beta_kin,)
+                                           beta_kin)
                                            # sigma_in=np.array(sigma_in))
         input_beam.init_phase_spaces_from_kwargs(initial_beam_kwargs)
+        logging.critical(f"Is this sigma_in ok? {input_beam.zdelta.sigma}")
         return input_beam
 
     def _generate_initial_beam_kwargs(

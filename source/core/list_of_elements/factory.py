@@ -29,9 +29,15 @@ import numpy as np
 from core.elements.element import Element
 from core.commands.command import Command
 from core.particle import ParticleInitialState
-from core.beam_parameters.beam_parameters import BeamParameters
-from core.list_of_elements.list_of_elements import ListOfElements
 
+from core.beam_parameters.beam_parameters import BeamParameters
+from core.beam_parameters.factory import InitialBeamParametersFactory
+
+from core.transfer_matrix.transfer_matrix import TransferMatrix
+from core.transfer_matrix.factory import TransferMatrixFactory
+
+from core.list_of_elements.list_of_elements import ListOfElements
+from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 import tracewin_utils.load
 from tracewin_utils.dat_files import (
     create_structure,
@@ -40,7 +46,6 @@ from tracewin_utils.dat_files import (
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
 from beam_calculation.output import SimulationOutput
-from util import converters
 import config_manager as con
 
 
@@ -49,6 +54,8 @@ import config_manager as con
 # =============================================================================
 def new_list_of_elements(dat_filepath: str,
                          accelerator_path: str,
+                         input_beam_factory: InitialBeamParametersFactory,
+                         transfer_matrix_factory: TransferMatrixFactory,
                          **kwargs: Any,
                          ) -> ListOfElements:
     """
@@ -60,13 +67,6 @@ def new_list_of_elements(dat_filepath: str,
     ----------
     dat_filepath : str
         Path to the ``.dat`` file (TraceWin).
-    input_particle : ParticleInitialState
-        An object to hold initial energy and phase of the particle.
-    input_beam : BeamParameters
-        Holds some of the initial properties of the beam. It does not hold very
-        much for now, as :class:`.Envelope1D` does not need a lot of beam
-        properties, and as the ones required by :class:`.TraceWin` are already
-        defined in the ``.ini`` file.
     accelerator_path : str
         Where results should be stored.
 
@@ -94,12 +94,16 @@ def new_list_of_elements(dat_filepath: str,
     files['elts_n_cmds'] = elts_n_cmds
 
     input_particle = _new_input_particle(**kwargs)
-    input_beam = _new_beam_parameters(**kwargs)
-    list_of_elements = ListOfElements(elts=elts,
-                                      input_particle=input_particle,
-                                      input_beam=input_beam,
-                                      files=files,
-                                      first_init=True)
+    input_beam: InitialBeamParameters
+    input_beam = input_beam_factory.factory_new(sigma_in=kwargs['sigma_in'],
+                                                w_kin=kwargs['w_kin'])
+    list_of_elements = ListOfElements(
+        elts=elts,
+        input_particle=input_particle,
+        input_beam=input_beam,
+        transfer_matrix_factory=transfer_matrix_factory,
+        files=files,
+        first_init=True)
     return list_of_elements
 
 
@@ -113,31 +117,6 @@ def _new_input_particle(w_kin: float,
                                           z_in=z_in,
                                           synchronous=True,)
     return input_particle
-
-
-def _new_beam_parameters(sigma_in: np.ndarray,
-                         z_in: float,
-                         w_kin: float,
-                         **kwargs: float) -> BeamParameters:
-    """Generate a :class:`.BeamParameters` objet for the linac entrance."""
-    phase_space_names = ('x', 'y', 'zdelta')
-    z_abs = z_in
-    gamma_kin = converters.energy(w_kin, 'kin to gamma')
-    beta_kin = converters.energy(gamma_kin, 'gamma to beta')
-    input_beam = BeamParameters(z_abs,
-                                gamma_kin,
-                                beta_kin,
-                                sigma_in=sigma_in,
-                                n_points=1)
-    input_beam.create_phase_spaces(*phase_space_names)
-
-    for phase_space_name in phase_space_names:
-        phase_space = input_beam.get(phase_space_name)
-        phase_space.tm_cumul_in = np.eye(2)
-        phase_space.init_from_sigma(phase_space.sigma_in[np.newaxis],
-                                    np.atleast_1d(gamma_kin),
-                                    np.atleast_1d(beta_kin))
-    return input_beam
 
 
 def _dat_filepath_to_plain_list_of_elements(
@@ -169,6 +148,8 @@ def subset_of_pre_existing_list_of_elements(
     elts: list[Element],
     simulation_output: SimulationOutput,
     files_from_full_list_of_elements: dict[str, str | list[list[str]]],
+    input_beam_factory: InitialBeamParametersFactory,
+    transfer_matrix_factory: TransferMatrixFactory,
 ) -> ListOfElements:
     """
     Create a :class:`.ListOfElements` which is a subset of a previous one.
@@ -208,8 +189,11 @@ def subset_of_pre_existing_list_of_elements(
               'to_numpy': False,
               'phase_space': None}
     input_particle = _subset_input_particle(simulation_output, **kwargs)
-    input_beam: BeamParameters = _subset_beam_parameters(simulation_output,
-                                                         **kwargs)
+    # input_beam: BeamParameters = _subset_beam_parameters(simulation_output,
+    #                                                      **kwargs)
+    input_beam: InitialBeamParameters
+    input_beam = input_beam_factory.factory_subset(simulation_output,
+                                                   kwargs)
 
     logging.warning("The phase_info dict, which handles how and if cavities "
                     "are rephased in the .dat file, is hard-coded. It should"
@@ -220,11 +204,13 @@ def subset_of_pre_existing_list_of_elements(
         files_from_full_list_of_elements,
     )
 
-    list_of_elements = ListOfElements(elts=elts,
-                                      input_particle=input_particle,
-                                      input_beam=input_beam,
-                                      files=files,
-                                      first_init=False)
+    list_of_elements = ListOfElements(
+        elts=elts,
+        input_particle=input_particle,
+        input_beam=input_beam,
+        transfer_matrix_factory=transfer_matrix_factory,
+        files=files,
+        first_init=False)
 
     return list_of_elements
 

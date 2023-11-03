@@ -24,8 +24,11 @@ from core.elements.element import Element
 from core.elements.field_map import FieldMap
 
 from core.beam_parameters.beam_parameters import BeamParameters
+from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.particle import ParticleInitialState
 from core.electric_field import phi_0_abs_with_new_phase_reference
+
+from core.transfer_matrix.factory import TransferMatrixFactory
 
 from tracewin_utils.dat_files import (update_field_maps_in_dat,
                                       save_dat_filecontent_to_dat)
@@ -39,7 +42,9 @@ class ListOfElements(list):
 
     def __init__(self, elts: list[Element],
                  input_particle: ParticleInitialState,
-                 input_beam: BeamParameters, first_init: bool = True,
+                 input_beam: BeamParameters | InitialBeamParameters,
+                 transfer_matrix_factory: TransferMatrixFactory,
+                 first_init: bool = True,
                  files: dict[str, str | list[list[str]]] | None = None
                  ) -> None:
         """
@@ -57,7 +62,7 @@ class ListOfElements(list):
         input_particle : ParticleInitialState
             An object to hold initial energy and phase of the particle at the
             entry of the first element/
-        input_beam : BeamParameters
+        input_beam : BeamParameters | InitialBeamParameters
             An object to hold emittances, Twiss, sigma beam matrix, etc at the
             entry of the first element.
         first_init : bool, optional
@@ -76,6 +81,7 @@ class ListOfElements(list):
         self.input_particle = input_particle
         self.input_beam = input_beam
         self.files = files
+        self.transfer_matrix_factory = transfer_matrix_factory
 
         super().__init__(elts)
         self.by_section_and_lattice: list[list[list[Element]]] | None = None
@@ -103,6 +109,7 @@ class ListOfElements(list):
     @property
     def tm_cumul_in(self) -> np.ndarray:
         """Get transfer matrix at entry of first element of self."""
+        raise IOError("do not call this")
         tm_cumul = self.input_beam.zdelta.tm_cumul
         assert tm_cumul is not None
         return tm_cumul

@@ -25,7 +25,6 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
 
 
-
 @dataclass
 class Envelope3D(BeamCalculator):
     """A 3D envelope solver."""
@@ -205,7 +204,7 @@ class Envelope3D(BeamCalculator):
             is_3d=self.is_a_3d_simulation,
             is_multipart=self.is_a_multiparticle_simulation,
             element_to_index=element_to_index,
-            sigma_in=elts.input_beam.sigma_in,
+            sigma_in=elts.input_beam.sigma,
             )
         beam_parameters: BeamParameters = \
             my_beam_parameters_factory.factory_method(

@@ -47,11 +47,19 @@ class PhaseSpaceInitialBeamParameters:
 
     def __post_init__(self) -> None:
         """Legacy."""
-        assert self.phase_space in IMPLEMENTED_PHASE_SPACES
-
-        # self._check_input_is_implemented(tuple(kwargs.keys()))
-        # self._store_input_if_not_none(**kwargs)
         self._eps_no_norm: np.ndarray
+        self._none_to_nan_arrays()
+
+    def _none_to_nan_arrays(self) -> None:
+        defaults = {
+            'sigma': np.full((2, 2), np.NaN),
+            'tm_cumul': np.full((2, 2), np.NaN),
+            'twiss': np.full(3, np.NaN),
+            'envelope': np.full(2, np.NaN),
+        }
+        for attribute_name, default_value in defaults.items():
+            if self.get(attribute_name) is None:
+                setattr(self, attribute_name, default_value)
 
     # legacy
     def _check_input_is_implemented(self, keys_of_kwargs: tuple[str, ...]
@@ -165,6 +173,12 @@ class PhaseSpaceInitialBeamParameters:
         """Set second item of ``self.envelope``."""
         self.envelope[1] = value
 
+    @property
+    def sigma_in(self) -> np.ndarray:
+        """Set an alias for sigma."""
+        assert self.sigma is not None
+        return self.sigma
+
     def __str__(self) -> str:
         """Show amplitude of some of the attributes."""
         out = f"\tPhaseSpaceBeamParameters {self.phase_space}:\n"
@@ -229,25 +243,24 @@ class PhaseSpaceInitialBeamParameters:
         return tuple(out)
 
     def init_from_sigma(self,
-                        sigma: np.ndarray,
                         gamma_kin: float,
                         beta_kin: float,
                         ) -> None:
         """Compute Twiss, eps, envelopes just from sigma matrix."""
         eps_no_normalisation, eps_normalized = self._compute_eps_from_sigma(
-            sigma,
+            self.sigma,
             gamma_kin,
             beta_kin)
         self.eps = eps_normalized
         self._eps_no_norm = eps_no_normalisation
 
-        self._compute_twiss_from_sigma(sigma, eps_no_normalisation)
+        self._compute_twiss_from_sigma(self.sigma, eps_no_normalisation)
         self.envelope_pos, self.envelope_energy = \
-            self._compute_envelopes_from_sigma(sigma)
+            self._compute_envelopes_from_sigma(self.sigma)
 
     def init_eye_tm_cumul(self) -> None:
         """Set eye transfer matrix."""
-        self.tm_cumul = np.ones(2)
+        self.tm_cumul = np.ones((2, 2))
 
     def _compute_eps_from_sigma(self,
                                 sigma: np.ndarray,
