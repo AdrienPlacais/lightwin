@@ -33,7 +33,7 @@ class TransferMatrix:
     """
 
     def __init__(self,
-                 individual: np.ndarray | list[np.ndarray] | None = None,
+                 individual: np.ndarray | None = None,
                  cumulated: np.ndarray | None = None,
                  first_cumulated_transfer_matrix: np.ndarray | None = None,
                  element_to_index: Callable | None = None,
@@ -63,6 +63,7 @@ class TransferMatrix:
 
         """
         if isinstance(individual, list):
+            logging.warning("should not receive a list as input")
             individual = np.array(individual)
 
         if first_cumulated_transfer_matrix is None:

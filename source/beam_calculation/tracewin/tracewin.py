@@ -42,7 +42,6 @@ from beam_calculation.tracewin.single_element_tracewin_parameters import (
     SingleElementTraceWinParameters)
 
 from tracewin_utils.interface import beam_calculator_to_command
-from tracewin_utils import load
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
@@ -51,10 +50,13 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
 from core.beam_parameters.beam_parameters import BeamParameters
-from core.transfer_matrix import TransferMatrix
+from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.tracewin.beam_parameters_factory import (
     TraceWinBeamParametersFactory,
+    )
+from beam_calculation.tracewin.transfer_matrix_factory import (
+    TransferMatrixFactoryTraceWin
     )
 
 
@@ -114,6 +116,9 @@ class TraceWin(BeamCalculator):
         self.path_cal: str
         self.dat_file: str
         self._tracewin_command: list[str] | None = None
+
+        self.transfer_matrix_factory = TransferMatrixFactoryTraceWin(
+            self.is_a_3d_simulation)
 
     def _tracewin_base_command(self, base_path_cal: str, **kwargs
                                ) -> tuple[list[str], str]:
@@ -364,7 +369,10 @@ class TraceWin(BeamCalculator):
 
         element_to_index = self._generate_element_to_index_func(elts)
 
-        transfer_matrix = _transfer_matrix_factory(path_cal)
+        transfer_matrix: TransferMatrix = self.transfer_matrix_factory.run(
+            path_cal,
+            element_to_index
+        )
 
         # will have to be initialized only once
         my_beam_parameters_factory = TraceWinBeamParametersFactory(
@@ -699,68 +707,6 @@ def _cavity_parameters_uniform_with_envelope1d(
     compliant_cavity_parameters = {'v_cav_mv': v_cav, 'phi_s': phi_s,
                                    'phi_0': phi_0}
     return compliant_cavity_parameters
-
-
-# =============================================================================
-# Transfer matrix
-# =============================================================================
-def _transfer_matrix_factory(path_cal: str) -> TransferMatrix:
-    r"""Load the TraceWin transfer matrix file and create the object.
-
-    Parameters
-    ----------
-    path_cal : str
-        Full path to transfer matrix file.
-
-    Returns
-    -------
-    transfer_matrix : TransferMatrix
-        Object holding the various transfer matrices in the :math:`[x-x']`,
-        :math:`[y-y']` and :math:`[z-\delta]` planes.
-
-    """
-    _, _, cumulated = _load_transfer_matrices(path_cal)
-    transfer_matrix = TransferMatrix(cumulated=cumulated)
-    return transfer_matrix
-
-
-def _load_transfer_matrices(path_cal: str,
-                            filename: str = 'Transfer_matrix1.dat',
-                            high_def: bool = False
-                            ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Get the full transfer matrices calculated by TraceWin.
-
-    Parameters
-    ----------
-    filename : str, optional
-        The name of the transfer matrix file produced by TraceWin. The
-        default is 'Transfer_matrix1.dat'.
-    high_def : bool, optional
-        To get the transfer matrices at all the solver step, instead at the
-        elements exit only. The default is False. Currently not
-        implemented.
-
-    Returns
-    -------
-    element_numbers : np.ndarray
-        Number of the elements.
-    position_in_m : np.ndarray
-        Position of the elements.
-    transfer_matrices : np.ndarray
-        Cumulated transfer matrices of the elements.
-
-    """
-    if high_def:
-        logging.error("High definition not implemented. Can only import"
-                      "transfer matrices @ element positions.")
-        high_def = False
-
-    path = os.path.join(path_cal, filename)
-    elements_numbers, position_in_m, transfer_matrices = \
-        load.transfer_matrices(path)
-    logging.debug(f"successfully loaded {path}")
-    return elements_numbers, position_in_m, transfer_matrices
 
 
 # =============================================================================

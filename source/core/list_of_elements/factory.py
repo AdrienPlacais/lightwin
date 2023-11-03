@@ -33,9 +33,6 @@ from core.particle import ParticleInitialState
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.factory import InitialBeamParametersFactory
 
-from core.transfer_matrix.transfer_matrix import TransferMatrix
-from core.transfer_matrix.factory import TransferMatrixFactory
-
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 import tracewin_utils.load
@@ -55,7 +52,6 @@ import config_manager as con
 def new_list_of_elements(dat_filepath: str,
                          accelerator_path: str,
                          input_beam_factory: InitialBeamParametersFactory,
-                         transfer_matrix_factory: TransferMatrixFactory,
                          **kwargs: Any,
                          ) -> ListOfElements:
     """
@@ -97,11 +93,13 @@ def new_list_of_elements(dat_filepath: str,
     input_beam: InitialBeamParameters
     input_beam = input_beam_factory.factory_new(sigma_in=kwargs['sigma_in'],
                                                 w_kin=kwargs['w_kin'])
+
+    tm_cumul_in = np.eye(6)
     list_of_elements = ListOfElements(
         elts=elts,
         input_particle=input_particle,
         input_beam=input_beam,
-        transfer_matrix_factory=transfer_matrix_factory,
+        tm_cumul_in=tm_cumul_in,
         files=files,
         first_init=True)
     return list_of_elements
@@ -149,7 +147,6 @@ def subset_of_pre_existing_list_of_elements(
     simulation_output: SimulationOutput,
     files_from_full_list_of_elements: dict[str, str | list[list[str]]],
     input_beam_factory: InitialBeamParametersFactory,
-    transfer_matrix_factory: TransferMatrixFactory,
 ) -> ListOfElements:
     """
     Create a :class:`.ListOfElements` which is a subset of a previous one.
@@ -204,11 +201,15 @@ def subset_of_pre_existing_list_of_elements(
         files_from_full_list_of_elements,
     )
 
+    transfer_matrix = simulation_output.transfer_matrix
+    assert transfer_matrix is not None
+    tm_cumul_in = transfer_matrix.cumulated[0]
+
     list_of_elements = ListOfElements(
         elts=elts,
         input_particle=input_particle,
         input_beam=input_beam,
-        transfer_matrix_factory=transfer_matrix_factory,
+        tm_cumul_in=tm_cumul_in,
         files=files,
         first_init=False)
 

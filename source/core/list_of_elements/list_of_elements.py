@@ -28,8 +28,6 @@ from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.particle import ParticleInitialState
 from core.electric_field import phi_0_abs_with_new_phase_reference
 
-from core.transfer_matrix.factory import TransferMatrixFactory
-
 from tracewin_utils.dat_files import (update_field_maps_in_dat,
                                       save_dat_filecontent_to_dat)
 from tracewin_utils.interface import list_of_elements_to_command
@@ -43,7 +41,7 @@ class ListOfElements(list):
     def __init__(self, elts: list[Element],
                  input_particle: ParticleInitialState,
                  input_beam: BeamParameters | InitialBeamParameters,
-                 transfer_matrix_factory: TransferMatrixFactory,
+                 tm_cumul_in: np.ndarray,
                  first_init: bool = True,
                  files: dict[str, str | list[list[str]]] | None = None
                  ) -> None:
@@ -81,7 +79,8 @@ class ListOfElements(list):
         self.input_particle = input_particle
         self.input_beam = input_beam
         self.files = files
-        self.transfer_matrix_factory = transfer_matrix_factory
+        assert tm_cumul_in.shape == (6, 6)
+        self.tm_cumul_in = tm_cumul_in
 
         super().__init__(elts)
         self.by_section_and_lattice: list[list[list[Element]]] | None = None
@@ -105,14 +104,6 @@ class ListOfElements(list):
     def phi_abs_in(self):
         """Get absolute phase at entry of first element of self."""
         return self.input_particle.phi_abs
-
-    @property
-    def tm_cumul_in(self) -> np.ndarray:
-        """Get transfer matrix at entry of first element of self."""
-        raise IOError("do not call this")
-        tm_cumul = self.input_beam.zdelta.tm_cumul
-        assert tm_cumul is not None
-        return tm_cumul
 
     @property
     def l_cav(self):

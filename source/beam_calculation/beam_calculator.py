@@ -8,6 +8,9 @@ propagation of the beam in a :class:`.ListOfElements`, possibly with a specific
 :class:`.SetOfCavitySettings` (optimisation process). It should return a
 :class:`.SimulationOutput`.
 
+.. todo::
+    Precise that BeamParametersFactory and TransferMatrixFactory are mandatory.
+
 """
 import logging
 from typing import Any, Callable

@@ -32,7 +32,7 @@ from core.beam_parameters.beam_parameters import (
     BeamParameters,
     mismatch_from_objects,
 )
-from core.transfer_matrix import TransferMatrix
+from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from util.helper import recursive_items, recursive_getter, range_vals
 

@@ -17,7 +17,7 @@ from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.beam_parameters.beam_parameters import BeamParameters
-from core.transfer_matrix import TransferMatrix
+from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
@@ -25,6 +25,8 @@ from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
     SingleElementEnvelope1DParameters
 from beam_calculation.envelope_1d.beam_parameters_factory import \
     Envelope1DBeamParametersFactory
+from beam_calculation.envelope_1d.transfer_matrix_factory import \
+    TransferMatrixFactoryEnvelope1D
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
@@ -56,6 +58,10 @@ class Envelope1D(BeamCalculator):
             import beam_calculation.envelope_1d.transfer_matrices_p as \
                 transf_mat
         self.transf_mat_module = transf_mat
+
+        self.transfer_matrix_factory = TransferMatrixFactoryEnvelope1D(
+            self.is_a_3d_simulation
+            )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -214,9 +220,10 @@ class Envelope1D(BeamCalculator):
                       }
 
         element_to_index = self._generate_element_to_index_func(elts)
-        transfer_matrix = _transfer_matrix_factory(
+        transfer_matrix: TransferMatrix = self.transfer_matrix_factory.run(
             elts.tm_cumul_in,
-            single_elts_results
+            single_elts_results,
+            element_to_index,
         )
         # Should be initialized only once
         my_beam_parameters_factory = Envelope1DBeamParametersFactory(
@@ -292,57 +299,6 @@ def _rf_field_from_single_cavity_settings(
     new_cavity_settings: SingleCavitySettings
 ) -> dict:
     """Get the data from the `SingleCavitySettings` object."""
-
-
-def _transfer_matrix_factory(
-        first_cumulated_transfer_matrix: np.ndarray,
-        single_elts_results: list[dict[str, Any]]
-        ) -> TransferMatrix:
-    """Create the :class:`.TransferMatrix` from current solver results.
-
-    Parameters
-    ----------
-    first_cumulated_transfer_matrix : np.ndarray
-        Cumulated transfer matrix at beginning of :class:`.ListOfElements`
-        under study.
-    single_elts_results : list[dict[str, Any]]
-        Results of the solver.
-
-    Returns
-    -------
-    transfer_matrix : TransferMatrix
-        Object holding transfer matrices, individual and cumulated, in the
-        relatable phase-spaces.
-
-    """
-        # individual_1d = [results['r_zz'][i, :, :]
-        #                  for results in single_elts_results
-        #                  for i in range(results['r_zz'].shape[0])]
-        # transfer_matrix = TransferMatrix(individual=individual_1d)
-        # r_zz_elt = [results['r_zz'][i, :, :]
-        #             for results in single_elts_results
-        #             for i in range(results['r_zz'].shape[0])]
-        # tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in,
-        #                                      r_zz_elt,
-        #                                      len(w_kin))
-
-    individual = [results['r_zz'][i]
-                  for results in single_elts_results
-                  for i in range(results['r_zz'].shape[0])]
-    # individual = [results['transfer_matrix'][i]
-    #               for results in single_elts_results
-    #               for i in range(results['transfer_matrix'].shape[0])]
-
-    if first_cumulated_transfer_matrix.shape == (2, 2):
-        logging.warning("Here I should initialize TransferMatrix with "
-                        "an initial transfer matrix, but I have a shape "
-                        "mismatch. It is ok for now.")
-
-    transfer_matrix = TransferMatrix(
-        individual=individual,
-        first_cumulated_transfer_matrix=first_cumulated_transfer_matrix
-        )
-    return transfer_matrix
 
 
 RF_FIELD_GETTERS = {

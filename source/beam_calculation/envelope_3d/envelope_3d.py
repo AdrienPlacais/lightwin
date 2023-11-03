@@ -12,7 +12,7 @@ from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.beam_parameters.beam_parameters import BeamParameters
-from core.transfer_matrix import TransferMatrix
+from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
@@ -20,6 +20,8 @@ from beam_calculation.envelope_3d.single_element_envelope_3d_parameters import\
     SingleElementEnvelope3DParameters
 from beam_calculation.envelope_3d.beam_parameters_factory import \
     Envelope3DBeamParametersFactory
+from beam_calculation.envelope_3d.transfer_matrix_factory import \
+    TransferMatrixFactoryEnvelope3D
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
@@ -36,6 +38,9 @@ class Envelope3D(BeamCalculator):
         """Set the proper motion integration function, according to inputs."""
         self.id = self.__repr__()
         self.out_folder += "_Envelope3D"
+
+        self.transfer_matrix_factory = TransferMatrixFactoryEnvelope3D(
+            self.is_a_3d_simulation)
 
         import beam_calculation.envelope_3d.transfer_matrices_p as transf_mat
         self.transf_mat_module = transf_mat
@@ -195,8 +200,10 @@ class Envelope3D(BeamCalculator):
                       }
 
         element_to_index = self._generate_element_to_index_func(elts)
-        transfer_matrix = _transfer_matrix_factory(elts.tm_cumul_in,
-                                                   single_elts_results)
+        transfer_matrix: TransferMatrix = self.transfer_matrix_factory.run(
+            elts.tm_cumul_in,
+            single_elts_results,
+            element_to_index)
 
         # Should be initialized only once
         my_beam_parameters_factory = Envelope3DBeamParametersFactory(
@@ -273,42 +280,6 @@ def _rf_field_from_single_cavity_settings(
     new_cavity_settings: SingleCavitySettings
 ) -> dict:
     """Get the data from the `SingleCavitySettings` object."""
-
-
-def _transfer_matrix_factory(
-        first_cumulated_transfer_matrix: np.ndarray,
-        single_elts_results: list[dict[str, Any]]
-        ) -> TransferMatrix:
-    """Create the :class:`.TransferMatrix` from current solver results.
-
-    Parameters
-    ----------
-    first_cumulated_transfer_matrix : np.ndarray
-        Cumulated transfer matrix at beginning of :class:`.ListOfElements`
-        under study.
-    single_elts_results : list[dict[str, Any]]
-        Results of the solver.
-
-    Returns
-    -------
-    transfer_matrix : TransferMatrix
-        Object holding transfer matrices, individual and cumulated, in the
-        relatable phase-spaces.
-
-    """
-    individual = [results['transfer_matrix'][i]
-                  for results in single_elts_results
-                  for i in range(results['transfer_matrix'].shape[0])]
-    if first_cumulated_transfer_matrix.shape != (6, 6):
-        logging.error("Here I should initialize TransferMatrix with "
-                      "an initial transfer matrix, but I have a shape "
-                      "mismatch.")
-        first_cumulated_transfer_matrix = None
-    transfer_matrix = TransferMatrix(
-        individual=individual,
-        first_cumulated_transfer_matrix=first_cumulated_transfer_matrix
-        )
-    return transfer_matrix
 
 
 RF_FIELD_GETTERS = {

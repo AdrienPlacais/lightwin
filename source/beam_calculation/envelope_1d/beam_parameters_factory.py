@@ -5,7 +5,7 @@ import numpy as np
 
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.factory import BeamParametersFactory
-from core.transfer_matrix import TransferMatrix
+from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 
 class Envelope1DBeamParametersFactory(BeamParametersFactory):
