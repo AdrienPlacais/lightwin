@@ -16,6 +16,7 @@ Subpackages
    core.commands
    core.elements
    core.list_of_elements
+   core.transfer_matrix
 
 Submodules
 ----------
@@ -27,4 +28,3 @@ Submodules
    core.electric_field
    core.element_or_command
    core.particle
-   core.transfer_matrix
