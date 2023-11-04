@@ -177,7 +177,7 @@ class TransferMatrix:
     def _init_from_cumulated(
             self,
             cumulated: np.ndarray | None,
-            first_cumulated_transfer_matrix: np.ndarray | None,
+            first_cumulated_transfer_matrix: np.ndarray,
             tol: float = 1e-8
             ) -> tuple[int, np.ndarray]:
         """Check that the given cumulated matrix is valid.
@@ -186,11 +186,8 @@ class TransferMatrix:
         ----------
         cumulated : np.ndarray
             Cumulated transfer matrices along the linac.
-        first_cumulated_transfer_matrix : np.ndarray | None
-            The first of the cumulated transfer matrices. The default is None,
-            in which case we insert an eye matrix at the first position.
-            Otherwise, we insert the given matrix. This insertion is skipped if
-            the matrix we try to insert is already the first transfer matrix.
+        first_cumulated_transfer_matrix : np.ndarray
+            The first of the cumulated transfer matrices.
         tol : float, optional
             The max allowed difference between ``cumulated`` and
             ``first_cumulated_transfer_matrix`` when determining if they are
@@ -210,9 +207,6 @@ class TransferMatrix:
                           "cumulated transfer matrices.")
             raise IOError("Wrong input")
         n_points = cumulated.shape[0]
-
-        if first_cumulated_transfer_matrix is None:
-            first_cumulated_transfer_matrix = np.eye(6)
 
         if (np.abs(cumulated[0]
                    - first_cumulated_transfer_matrix)).any() > tol:
