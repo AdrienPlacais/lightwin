@@ -260,7 +260,7 @@ class PhaseSpaceInitialBeamParameters:
 
     def init_eye_tm_cumul(self) -> None:
         """Set eye transfer matrix."""
-        self.tm_cumul = np.ones((2, 2))
+        self.tm_cumul = np.eye(2)
 
     def _compute_eps_from_sigma(self,
                                 sigma: np.ndarray,
