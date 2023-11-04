@@ -262,15 +262,12 @@ def accelerator_factory(beam_calculators: tuple[object | None],
         n_simulations=n_simulations,
         out_folders=out_folders
     )
+    initial_beam_parameters_factories = [
+        beam_calculator.initial_beam_parameters_factory
+        for beam_calculator in beam_calculators
+        if beam_calculator is not None]
 
     names = ['Broken' if i > 0 else 'Working' for i in range(n_simulations)]
-
-    initial_beam_parameters_factories = [
-        InitialBeamParametersFactory(
-            beam_calculator.is_a_3d_simulation,
-            beam_calculator.is_a_multiparticle_simulation
-        ) for beam_calculator in beam_calculators
-        if beam_calculator is not None]
 
     accelerators = [Accelerator(
         name=name,

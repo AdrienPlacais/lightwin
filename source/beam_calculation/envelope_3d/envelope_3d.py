@@ -12,6 +12,7 @@ from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.beam_parameters.beam_parameters import BeamParameters
+from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
@@ -39,6 +40,10 @@ class Envelope3D(BeamCalculator):
         self.id = self.__repr__()
         self.out_folder += "_Envelope3D"
 
+        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation
+            )
         self.beam_parameters_factory = BeamParametersFactoryEnvelope3D(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation

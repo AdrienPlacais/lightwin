@@ -94,6 +94,7 @@ class FaultScenario(list):
                 broken_elts=self.fix_acc.elts,
                 failed_cavities=faulty_cavities,
                 compensating_cavities=compensating_cavities,
+                initial_beam_parameters_factory=beam_calculator.initial_beam_parameters_factory,
                 )
             faults.append(fault)
         super().__init__(faults)

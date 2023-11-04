@@ -17,10 +17,12 @@ from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.beam_parameters.beam_parameters import BeamParameters
+from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
+
 from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
     SingleElementEnvelope1DParameters
 from beam_calculation.envelope_1d.beam_parameters_factory import \
@@ -59,6 +61,10 @@ class Envelope1D(BeamCalculator):
                 transf_mat
         self.transf_mat_module = transf_mat
 
+        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation
+            )
         self.beam_parameters_factory = BeamParametersFactoryEnvelope1D(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation

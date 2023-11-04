@@ -50,6 +50,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
 from core.beam_parameters.beam_parameters import BeamParameters
+from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.tracewin.beam_parameters_factory import (
@@ -117,6 +118,10 @@ class TraceWin(BeamCalculator):
         self.dat_file: str
         self._tracewin_command: list[str] | None = None
 
+        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation
+            )
         self.beam_parameters_factory = BeamParametersFactoryTraceWin(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation)
