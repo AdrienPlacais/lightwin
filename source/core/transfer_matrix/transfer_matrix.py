@@ -34,9 +34,9 @@ class TransferMatrix:
 
     def __init__(self,
                  is_3d: bool,
+                 first_cumulated_transfer_matrix: np.ndarray,
                  individual: np.ndarray | None = None,
                  cumulated: np.ndarray | None = None,
-                 first_cumulated_transfer_matrix: np.ndarray | None = None,
                  element_to_index: Callable | None = None,
                  ) -> None:
         """Create the object and compute the cumulated transfer matrix.
@@ -45,17 +45,14 @@ class TransferMatrix:
         ----------
         is_3d : bool
             If the simulation is in 3d or not.
+        first_cumulated_transfer_matrix : np.ndarray
+            First transfer matrix.
         individual : np.ndarray | list[np.ndarray] | None, optional
             Individual transfer matrices. The default is None, in which case
             the ``cumulated`` transfer matrix must be provided directly.
         cumulated : np.ndarray | None, optional
             Cumulated transfer matrices. The default is None, in which case the
             ``individual`` transfer matrices must be given.
-        first_cumulated_transfer_matrix : np.ndarray
-            First transfer matrix. The default is None, in which case it will
-            be converted to the eye matrix -- corresponds to the study of a
-            full linac. It should be the cumulated transfer matrix of the
-            previous portion of linac otherwise.
         element_to_index :
             to doc
 
@@ -63,10 +60,6 @@ class TransferMatrix:
         if isinstance(individual, list):
             logging.warning("should not receive a list as input")
             individual = np.array(individual)
-
-        if first_cumulated_transfer_matrix is None:
-            logging.warning("In future versions, giving in a first cumulated "
-                            "transfer matrix will be mandatory.")
 
         self.is_3d = is_3d
 

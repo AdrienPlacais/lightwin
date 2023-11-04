@@ -55,6 +55,7 @@ class TransferMatrixFactoryTraceWin(TransferMatrixFactory):
         return elements_numbers, position_in_m, transfer_matrices
 
     def run(self,
+            tm_cumul_in: np.ndarray,
             path_cal: str,
             element_to_index: Callable,
             ) -> TransferMatrix:
@@ -62,6 +63,8 @@ class TransferMatrixFactoryTraceWin(TransferMatrixFactory):
 
         Parameters
         ----------
+        tm_cumul_in : np.ndarray
+            Cumulated transfer matrix at entrance of linac or linac subset.
         path_cal : str
             Full path to transfer matrix file.
         element_to_index : Callable
@@ -75,6 +78,9 @@ class TransferMatrixFactoryTraceWin(TransferMatrixFactory):
 
         """
         _, _, cumulated = self._load_transfer_matrices(path_cal)
-        transfer_matrix = TransferMatrix(self.is_3d,
-                                         cumulated=cumulated)
+        transfer_matrix = TransferMatrix(
+            self.is_3d,
+            first_cumulated_transfer_matrix=tm_cumul_in,
+            cumulated=cumulated,
+            element_to_index=element_to_index)
         return transfer_matrix

@@ -373,6 +373,7 @@ class TraceWin(BeamCalculator):
         element_to_index = self._generate_element_to_index_func(elts)
 
         transfer_matrix: TransferMatrix = self.transfer_matrix_factory.run(
+            elts.tm_cumul_in,
             path_cal,
             element_to_index
         )
