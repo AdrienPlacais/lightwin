@@ -19,7 +19,7 @@ from beam_calculation.output import SimulationOutput
 from beam_calculation.envelope_3d.single_element_envelope_3d_parameters import\
     SingleElementEnvelope3DParameters
 from beam_calculation.envelope_3d.beam_parameters_factory import \
-    Envelope3DBeamParametersFactory
+    BeamParametersFactoryEnvelope3D
 from beam_calculation.envelope_3d.transfer_matrix_factory import \
     TransferMatrixFactoryEnvelope3D
 
@@ -39,6 +39,10 @@ class Envelope3D(BeamCalculator):
         self.id = self.__repr__()
         self.out_folder += "_Envelope3D"
 
+        self.beam_parameters_factory = BeamParametersFactoryEnvelope3D(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation
+            )
         self.transfer_matrix_factory = TransferMatrixFactoryEnvelope3D(
             self.is_a_3d_simulation)
 
@@ -205,18 +209,15 @@ class Envelope3D(BeamCalculator):
             single_elts_results,
             element_to_index)
 
-        # Should be initialized only once
-        my_beam_parameters_factory = Envelope3DBeamParametersFactory(
-            z_abs=elts.get('abs_mesh', remove_first=True),
-            is_3d=self.is_a_3d_simulation,
-            is_multipart=self.is_a_multiparticle_simulation,
-            element_to_index=element_to_index,
-            sigma_in=elts.input_beam.sigma,
-            )
+        z_abs = elts.get('abs_mesh', remove_first=True)
         beam_parameters: BeamParameters = \
-            my_beam_parameters_factory.factory_method(
+            self.beam_parameters_factory.factory_method(
+                elts.input_beam.sigma_in,
+                z_abs,
                 gamma_kin,
-                transfer_matrix)
+                transfer_matrix,
+                element_to_index,
+                )
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,

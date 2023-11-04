@@ -11,6 +11,8 @@ BeamParameters in BeamCalculator         -> called for every SimulationOutput
 ... even for ListOfElements, should be linked with BeamCalculator, they do not
 need the same BeamParameters!
 
+.. todo::
+    Check if :meth:`._check_sigma_in` is still useful...
 
 """
 from abc import ABC, abstractmethod
@@ -30,32 +32,13 @@ class BeamParametersFactory(ABC):
     """Declare factory method, that returns the :class:`.BeamParameters`."""
 
     def __init__(self,
-                 z_abs: np.ndarray | float,
                  is_3d: bool,
                  is_multipart: bool,
-                 element_to_index: Callable[[str | Element, str | None],
-                                            int | slice] | None = None,
-                 sigma_in: np.ndarray | None = None,
                  ) -> None:
-        """Initialize the class.
-
-        Here we set the things that do not vary between two executions of the
-        code.
-
-        For non-TraceWin, also provide sigma_in
-
-
-        """
-        self.z_abs = np.atleast_1d(z_abs)
-        self.n_points = self.z_abs.shape[0]
-        self.element_to_index = element_to_index
-
+        """Initialize the class."""
         self.phase_spaces = self._determine_phase_spaces(is_3d, is_multipart)
         self.is_3d = is_3d
         self.is_multipart = is_multipart
-
-        if sigma_in is not None:
-            self.sigma_in = sigma_in
 
     def _determine_phase_spaces(self,
                                 is_3d: bool,
@@ -67,46 +50,27 @@ class BeamParametersFactory(ABC):
         return ('x', 'y', 't', 'z', 'zdelta', 'phiw', 'x99', 'y99', 'phiw99')
 
     @abstractmethod
-    def factory_method(
-            self,
-            gamma_kin: np.ndarray | float,
-            # sigma_in for non-tracewin
-            # results dict for tracewin
-            ) -> BeamParameters:
-        """Create the :class:`.BeamParameters` object.
-
-        This is the actual method that creates the BeamParameters object.
-
-        It takes in as argument everything that may change.
-
-        """
-        gamma_kin, beta_kin = self._check_and_set_gamma_beta(gamma_kin)
-        beam_parameters = BeamParameters(self.z_abs,
-                                         gamma_kin,
-                                         beta_kin,
-                                         self.element_to_index)
-
-        # todo: this should be in the BeamParameters.__init__
-        beam_parameters.create_phase_spaces(*self.phase_spaces)
-        # warning, this method also requires some kwargs
+    def factory_method(self, *args, **kwargs) -> BeamParameters:
+        """Create the :class:`.BeamParameters` object."""
+        beam_parameters = BeamParameters(*args, **kwargs)
         return beam_parameters
 
-    def _check_and_set_gamma_beta(self, gamma_kin: np.ndarray | float
-                                  ) -> tuple[np.ndarray, np.ndarray]:
-        """Compute Lorentz beta, ensure shape of arrays are consistent."""
+    def _check_and_set_arrays(
+            self,
+            z_abs: np.ndarray | float,
+            gamma_kin: np.ndarray | float
+            ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Ensure that inputs are arrays with proper shape, compute beta."""
+        z_abs = np.atleast_1d(z_abs)
         gamma_kin = np.atleast_1d(gamma_kin)
-        assert gamma_kin.shape == self.z_abs.shape, "The shape of gamma kin "\
-            f"is {gamma_kin.shape}, while it should be {self.z_abs.shape}. "\
-            "Maybe the meshing or the export of the BeamCalculator slightly "\
-            "changed? Try to recreate a new BeamParametersFactory whenever "\
-            "this error is raised."
+        assert gamma_kin.shape == z_abs.shape, "Shape mismatch: " \
+            + f"{gamma_kin.shape = } different from {z_abs.shape = }."
 
         beta_kin = converters.energy(gamma_kin, 'gamma to beta')
         assert isinstance(beta_kin, np.ndarray)
+        return z_abs, gamma_kin, beta_kin
 
-        return gamma_kin, beta_kin
-
-    def _check_sigma_in(self, sigma_in: np.ndarray) -> np.ndarray:
+    def _check_sigma_in(self, sigma_in: np.ndarray | None) -> np.ndarray:
         """Change shape of ``sigma_in`` if necessary."""
         if sigma_in.shape == (2, 2):
             assert self.is_3d, "(2, 2) shape is only for 1D simulation (and "\

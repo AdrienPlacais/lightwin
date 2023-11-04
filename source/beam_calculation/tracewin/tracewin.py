@@ -53,7 +53,7 @@ from core.beam_parameters.beam_parameters import BeamParameters
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.tracewin.beam_parameters_factory import (
-    TraceWinBeamParametersFactory,
+    BeamParametersFactoryTraceWin,
     )
 from beam_calculation.tracewin.transfer_matrix_factory import (
     TransferMatrixFactoryTraceWin
@@ -117,6 +117,9 @@ class TraceWin(BeamCalculator):
         self.dat_file: str
         self._tracewin_command: list[str] | None = None
 
+        self.beam_parameters_factory = BeamParametersFactoryTraceWin(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation)
         self.transfer_matrix_factory = TransferMatrixFactoryTraceWin(
             self.is_a_3d_simulation)
 
@@ -374,23 +377,13 @@ class TraceWin(BeamCalculator):
             element_to_index
         )
 
-        # will have to be initialized only once
-        my_beam_parameters_factory = TraceWinBeamParametersFactory(
-            results['z(m)'],
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation,
-            element_to_index=element_to_index)
-
+        z_abs = results['z(m)']
         gamma_kin = synch_trajectory.get('gamma')
-        assert isinstance(gamma_kin, np.ndarray)
         beam_parameters: BeamParameters = \
-            my_beam_parameters_factory.factory_method(
+            self.beam_parameters_factory.factory_method(
+                z_abs,
                 gamma_kin,
                 results)
-        # beam_parameters = tracewin_beam_parameters_factory(element_to_index,
-        #                                                    multipart,
-        #                                                    results,
-        #                                                    )
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,

@@ -13,27 +13,25 @@ from core.beam_parameters.factory import BeamParametersFactory
 from util import converters
 
 
-class TraceWinBeamParametersFactory(BeamParametersFactory):
+class BeamParametersFactoryTraceWin(BeamParametersFactory):
     """A class holding method to generate :class:`.BeamParameters`."""
 
     def factory_method(
             self,
+            z_abs: np.ndarray,
             gamma_kin: np.ndarray,
             results: dict[str, np.ndarray],
+            element_to_index: Callable[[str | Element, str | None],
+                                       int | slice] | None = None,
             ) -> BeamParameters:
-        """Create the :class:`.BeamParameters` object.
+        """Create the :class:`.BeamParameters` object."""
+        z_abs, gamma_kin, beta_kin = self._check_and_set_arrays(z_abs,
+                                                                gamma_kin)
 
-        This is the actual method that creates the BeamParameters object.
-
-        It takes in as argument everything that may change.
-
-        """
-        gamma_kin, beta_kin = self._check_and_set_gamma_beta(gamma_kin)
-
-        beam_parameters = BeamParameters(self.z_abs,
+        beam_parameters = BeamParameters(z_abs,
                                          gamma_kin,
                                          beta_kin,
-                                         self.element_to_index)
+                                         element_to_index)
 
         # todo: this should be in the BeamParameters.__init__
         beam_parameters.create_phase_spaces(*self.phase_spaces)

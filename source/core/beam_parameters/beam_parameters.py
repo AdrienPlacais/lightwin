@@ -11,6 +11,9 @@ For a list of the units associated with every parameter, see
     Why use z and not zdelta? Needed here... Or rather in
     initial_beam_parameters?
 
+.. todo::
+    Initialization of phase spaces directly in the __init__ method.
+
 """
 from typing import Any, Callable
 from dataclasses import dataclass
