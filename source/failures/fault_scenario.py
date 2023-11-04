@@ -316,7 +316,8 @@ class FaultScenario(list):
 
 
 def fault_scenario_factory(
-    accelerators: list[Accelerator], beam_calculator: BeamCalculator,
+    accelerators: list[Accelerator],
+    beam_calculator: BeamCalculator,
     wtf: dict[str, str | int | bool | list[str] | list[float]]
 ) -> list[FaultScenario]:
     """

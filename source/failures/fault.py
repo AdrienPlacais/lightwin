@@ -136,7 +136,6 @@ class Fault:
             is_3d, is_multipart)
         # i think factory should be created at a higher level
 
-
         self.elts: ListOfElements = subset_of_pre_existing_list_of_elements(
             elts_of_compensation_zone,
             reference_simulation_output,

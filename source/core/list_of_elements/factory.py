@@ -186,8 +186,6 @@ def subset_of_pre_existing_list_of_elements(
               'to_numpy': False,
               'phase_space': None}
     input_particle = _subset_input_particle(simulation_output, **kwargs)
-    # input_beam: BeamParameters = _subset_beam_parameters(simulation_output,
-    #                                                      **kwargs)
     input_beam: InitialBeamParameters
     input_beam = input_beam_factory.factory_subset(simulation_output,
                                                    kwargs)
