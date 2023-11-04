@@ -256,16 +256,16 @@ def accelerator_factory(beam_calculators: tuple[object | None],
                         for beam_calculator in beam_calculators
                         if beam_calculator is not None
                          ])
+    initial_beam_parameters_factories = [
+        beam_calculator.initial_beam_parameters_factory
+        for beam_calculator in beam_calculators
+        if beam_calculator is not None]
 
     accelerator_paths = _generate_folders_tree_structure(
         project_folder=files['project_folder'],
         n_simulations=n_simulations,
         out_folders=out_folders
     )
-    initial_beam_parameters_factories = [
-        beam_calculator.initial_beam_parameters_factory
-        for beam_calculator in beam_calculators
-        if beam_calculator is not None]
 
     names = ['Broken' if i > 0 else 'Working' for i in range(n_simulations)]
 
