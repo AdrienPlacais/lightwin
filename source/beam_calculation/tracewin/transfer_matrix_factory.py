@@ -75,5 +75,6 @@ class TransferMatrixFactoryTraceWin(TransferMatrixFactory):
 
         """
         _, _, cumulated = self._load_transfer_matrices(path_cal)
-        transfer_matrix = TransferMatrix(cumulated=cumulated)
+        transfer_matrix = TransferMatrix(self.is_3d,
+                                         cumulated=cumulated)
         return transfer_matrix
