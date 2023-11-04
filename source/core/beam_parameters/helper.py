@@ -3,7 +3,8 @@
 import numpy as np
 
 
-def sigma_beam_matrices(tm_cumul: np.ndarray, sigma_in: np.ndarray
+def sigma_beam_matrices(tm_cumul: np.ndarray,
+                        sigma_in: np.ndarray
                         ) -> np.ndarray:
     r"""
     Compute the :math:`\sigma` beam matrices over the linac.
@@ -13,6 +14,8 @@ def sigma_beam_matrices(tm_cumul: np.ndarray, sigma_in: np.ndarray
 
     """
     sigma = []
+    if tm_cumul.ndim == 2:
+        tm_cumul = tm_cumul[np.newaxis]
     n_points = tm_cumul.shape[0]
 
     for i in range(n_points):
