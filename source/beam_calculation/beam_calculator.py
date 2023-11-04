@@ -19,11 +19,15 @@ from abc import ABC, abstractmethod
 from functools import partial
 
 from beam_calculation.output import SimulationOutput
+
 from failures.set_of_cavity_settings import SetOfCavitySettings
+
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt
 from core.accelerator import Accelerator
+from core.beam_parameters.factory import BeamParametersFactory
+from core.transfer_matrix.factory import TransferMatrixFactory
 
 
 @dataclass
@@ -35,6 +39,8 @@ class BeamCalculator(ABC):
     def __post_init__(self):
         """List the mandatory arguments."""
         self.id: str = self.__repr__()
+        self.beam_parameters_factory: BeamParametersFactory
+        self.transfer_matrix_factory: TransferMatrixFactory
 
     @abstractmethod
     def run(self, elts: ListOfElements) -> SimulationOutput:
