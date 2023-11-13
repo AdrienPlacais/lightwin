@@ -23,7 +23,6 @@ import config_manager
 from core.elements.element import Element
 from core.elements.field_map import FieldMap
 
-from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.particle import ParticleInitialState
 from core.electric_field import phi_0_abs_with_new_phase_reference
@@ -40,7 +39,7 @@ class ListOfElements(list):
 
     def __init__(self, elts: list[Element],
                  input_particle: ParticleInitialState,
-                 input_beam: BeamParameters | InitialBeamParameters,
+                 input_beam: InitialBeamParameters,
                  tm_cumul_in: np.ndarray,
                  first_init: bool = True,
                  files: dict[str, str | list[list[str]]] | None = None
@@ -60,7 +59,7 @@ class ListOfElements(list):
         input_particle : ParticleInitialState
             An object to hold initial energy and phase of the particle at the
             entry of the first element/
-        input_beam : BeamParameters | InitialBeamParameters
+        input_beam : InitialBeamParameters
             An object to hold emittances, Twiss, sigma beam matrix, etc at the
             entry of the first element.
         first_init : bool, optional
