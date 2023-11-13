@@ -32,6 +32,23 @@ from util.helper import diff_angle
 from failures.set_of_cavity_settings import SingleCavitySettings
 
 
+IMPLEMENTED_STATUS = (
+    # Cavity settings not changed from .dat
+    "nominal",
+    # Cavity ABSOLUTE phase changed; relative phase unchanged
+    "rephased (in progress)",
+    "rephased (ok)",
+    # Cavity norm is 0
+    "failed",
+    # Trying to fit
+    "compensate (in progress)",
+    # Compensating, proper setting found
+    "compensate (ok)",
+    # Compensating, proper setting not found
+    "compensate (not ok)",
+)  #:
+
+
 class FieldMap(Element):
     """A generic ``FIELD_MAP``."""
 
@@ -69,6 +86,22 @@ class FieldMap(Element):
         """Tell if the cavity is working."""
         return self.elt_info['status'] != 'failed'
 
+    def update_status(self, new_status: str) -> None:
+        """
+        Change the status of a cavity.
+
+        We also ensure that the value new_status is correct. If the new value
+        is 'failed', we also set the norm of the electric field to 0.
+
+        """
+        assert new_status in IMPLEMENTED_STATUS
+
+        self.elt_info['status'] = new_status
+        if new_status == 'failed':
+            self.acc_field.k_e = 0.
+            for beam_calc_param in self.beam_calc_param.values():
+                beam_calc_param.re_set_for_broken_cavity()
+
     def set_full_path(self, extensions: dict[str, list[str]]) -> None:
         """
         Set absolute paths with extensions of electromagnetic files.
@@ -85,8 +118,7 @@ class FieldMap(Element):
 
         """
         self.field_map_file_name = [os.path.join(
-            self.field_map_folder,
-            self.field_map_file_name + '.' + ext)
+            self.field_map_folder, '.'.join((self.field_map_file_name, ext)))
             for extension in extensions.values()
             for ext in extension]
 
@@ -116,7 +148,7 @@ class FieldMap(Element):
 
         """
         status = self.elt_info['status']
-        if status in ['none', 'failed']:
+        if status in ('none', 'failed'):
             return {}
 
         generic_rf_param = {
@@ -136,9 +168,8 @@ class FieldMap(Element):
 
         elif status in ('compensate (in progress)'):
             assert isinstance(cavity_settings, SingleCavitySettings)
-            norm_and_phases, abs_to_rel = \
-                _try_this(solver_id, cavity_settings, w_kin_in, self,
-                          generic_rf_param)
+            norm_and_phases, abs_to_rel = _try_this(solver_id, cavity_settings, w_kin_in, self,
+                                                    generic_rf_param)
         else:
             logging.error(f'{self} {status = } is not allowed.')
             return {}
