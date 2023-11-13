@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define a class to easily create :class:`.Element` objects."""
+from typing import Any
 from core.elements.element import Element
 from core.elements.aperture import Aperture
 from core.elements.drift import Drift
@@ -24,15 +25,11 @@ IMPLEMENTED_ELEMENTS = {
 class ElementFactory:
     """An object to create :class:`.Element` objects."""
 
-    def __init__(self) -> None:
-        """Do nothing for now.
-
-        .. todo::
-            Check if it would be relatable to hold some arguments? As for now,
-            I would be better off with a run function instead of a class.
-
-        """
-        return
+    def __init__(self,
+                 default_field_map_folder: str,
+                 **factory_kw: Any) -> None:
+        """Save the default folder for field maps."""
+        self.default_field_map_folder = default_field_map_folder
 
     def run(self,
             line: list[str],
@@ -41,7 +38,12 @@ class ElementFactory:
         """Call proper constructor."""
         elt_name, line = self._personalized_name(line)
         element_creator = IMPLEMENTED_ELEMENTS[line[0]]
-        element = element_creator(line, dat_idx, elt_name, **kwargs)
+        element = element_creator(
+            line,
+            dat_idx,
+            elt_name,
+            default_field_map_folder=self.default_field_map_folder,
+            **kwargs)
         return element
 
     def _personalized_name(self,

@@ -43,23 +43,15 @@ from core.instruction import Instruction, Dummy
 
 from core.elements.factory import ElementFactory, IMPLEMENTED_ELEMENTS
 from core.elements.element import Element
-from core.elements.aperture import Aperture
 from core.elements.drift import Drift
 from core.elements.dummy import DummyElement
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
-from core.elements.thin_steering import ThinSteering
 
 from core.commands.factory import CommandFactory, IMPLEMENTED_COMMANDS
 from core.commands.command import Command
-from core.commands.end import End
-from core.commands.field_map_path import FieldMapPath
-from core.commands.freq import Freq
-from core.commands.lattice import Lattice, LatticeEnd
-from core.commands.shift import Shift
-from core.commands.steerer import Steerer
-from core.commands.superpose_map import SuperposeMap
+from core.instructions_factory import InstructionsFactory
 
 from tracewin_utils.electromagnetic_fields import (
     geom_to_field_map_type,
@@ -115,11 +107,11 @@ def create_structure(dat_content: list[list[str]],
         List containing all the :class:`Element` objects.
 
     """
-    # elts_n_cmds = _create_element_n_command_objects(dat_content, dat_filepath)
-    elts_n_cmds = _create_instructions(dat_content, dat_filepath)
-    elts_n_cmds = _apply_commands(elts_n_cmds, kwargs['freq_bunch'])
+    instructions_factory = InstructionsFactory(dat_filepath=dat_filepath,
+                                               **kwargs)
+    instructions = instructions_factory.run(dat_content)
 
-    elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
+    elts = [elt for elt in instructions if isinstance(elt, Element)]
     give_name(elts)
 
     elts_no_dummies = list(filter(
@@ -136,132 +128,9 @@ def create_structure(dat_content: list[list[str]],
         _load_electromagnetic_fields(field_maps)
 
     if check_consistency:
-        _check_consistency(elts_n_cmds)
+        _check_consistency(instructions)
 
-    return elts_n_cmds
-
-
-def _create_element_n_command_objects(dat_content: list[list[str]],
-                                      dat_filepath: str
-                                      ) -> list[Instruction]:
-    """
-    Initialize the :class:`.Element` and :class:`.Command`.
-
-    .. note::
-        Elements and Command names in the ``subclasses_dispatcher`` dictionary
-        are in uppercase. In the ``.dat`` file, you can use lower or uppercase,
-        but they will be converted to uppercase in the routine anyway.
-
-    """
-    subclasses_dispatcher = {
-        # Elements
-        'APERTURE': Aperture,
-        'DRIFT': Drift,
-        'FIELD_MAP': FieldMap,
-        'QUAD': Quad,
-        'SOLENOID': Solenoid,
-        'THIN_STEERING': ThinSteering,
-        # Commands
-        'END': End,
-        'FIELD_MAP_PATH': FieldMapPath,
-        'FREQ': Freq,
-        'LATTICE': Lattice,
-        'LATTICE_END': LatticeEnd,
-        'SHIFT': Shift,
-        'STEERER': Steerer,
-        'SUPERPOSE_MAP': SuperposeMap,
-    }
-    kwargs = {'default_field_map_folder': dat_filepath}
-
-    classes = []
-    for line in dat_content:
-        name = line[0].upper()
-        if name in subclasses_dispatcher:
-            classes.append(subclasses_dispatcher[name])
-            continue
-        name = line[2].upper()
-        if name in subclasses_dispatcher:
-            classes.append(subclasses_dispatcher[name])
-            continue
-        classes.append(None)
-
-    elts_n_cmds = [classes[dat_idx](line, dat_idx, **kwargs)
-                   if classes[dat_idx] is not None
-                   else Dummy(line, dat_idx, warning=True)
-                   for dat_idx, line in enumerate(dat_content)
-                   ]
-    return elts_n_cmds
-
-
-def _create_instructions(dat_content: list[list[str]],
-                         dat_filepath: str
-                         ) -> list[Instruction]:
-    """Initialize the :class:`.Element` and :class:`.Command`."""
-    instructions_kw = {'default_field_map_folder': dat_filepath}
-    args = (CommandFactory(), ElementFactory(), instructions_kw)
-
-    instructions = [_call_proper_factory(line,
-                                         dat_idx,
-                                         *args)
-                    for dat_idx, line in enumerate(dat_content)]
     return instructions
-
-
-def _call_proper_factory(line: list[str],
-                         dat_idx: int,
-                         command_fac: CommandFactory,
-                         element_fac: ElementFactory,
-                         instruction_kw: dict[str, str]) -> Instruction:
-    """Create proper :class:`.Instruction`, or :class:`.Dummy`.
-
-    We go across every word of ``line``, and create the first instruction
-    that we find. If we do not recognize it, we return a dummy instruction
-    instead.
-
-    Parameters
-    ----------
-    line : list[str]
-        A single line of the ``.dat`` file.
-    dat_idx : int
-        Line number of the line (starts at 0).
-    command_fac : CommandFactory
-        A factory to create :class:`.Command`.
-    element_fac : ElementFactory
-        A factory to create :class:`.Element`.
-    instruction_kw : dict
-        Keywords given to the ``run`` method of the proper factory.
-
-    Returns
-    -------
-    Instruction
-        Proper :class:`.Command` or :class:`.Element`, or :class:`.Dummy`.
-
-    """
-    for word in line:
-        word = word.upper()
-        if word in IMPLEMENTED_COMMANDS:
-            return command_fac.run(line, dat_idx, **instruction_kw)
-        if word in IMPLEMENTED_ELEMENTS:
-            return element_fac.run(line, dat_idx, **instruction_kw)
-    return Dummy(line, dat_idx, warning=True)
-
-
-
-def _apply_commands(elts_n_cmds: list[Instruction],
-                    freq_bunch: float,
-                    ) -> list[Instruction]:
-    """Apply all the commands that are implemented."""
-    index = 0
-    while index < len(elts_n_cmds):
-        elt_or_cmd = elts_n_cmds[index]
-
-        if isinstance(elt_or_cmd, Command):
-            elt_or_cmd.set_influenced_elements(elts_n_cmds)
-            if elt_or_cmd.is_implemented:
-                elts_n_cmds = elt_or_cmd.apply(elts_n_cmds,
-                                               freq_bunch=freq_bunch)
-        index += 1
-    return elts_n_cmds
 
 
 def _load_electromagnetic_fields(field_maps: list[FieldMap]) -> None:

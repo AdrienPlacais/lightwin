@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define a class to easily create :class:`.Command` objects."""
+from typing import Any
 from core.commands.command import Command
 from core.commands.dummy_command import DummyCommand
 from core.commands.end import End
@@ -27,7 +28,7 @@ IMPLEMENTED_COMMANDS = {
 class CommandFactory:
     """An object to create :class:`.Command` objects."""
 
-    def __init__(self) -> None:
+    def __init__(self, **factory_kw: Any) -> None:
         """Do nothing for now.
 
         .. todo::
@@ -40,8 +41,8 @@ class CommandFactory:
     def run(self,
             line: list[str],
             dat_idx: int,
-            **kwargs) -> Command:
+            **command_kw) -> Command:
         """Call proper constructor."""
         command_creator = IMPLEMENTED_COMMANDS[line[0]]
-        command = command_creator(line, dat_idx, **kwargs)
+        command = command_creator(line, dat_idx, **command_kw)
         return command
