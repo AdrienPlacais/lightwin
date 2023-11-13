@@ -8,6 +8,7 @@ import datetime
 import config_manager as conf_man
 
 from core.accelerator import Accelerator, accelerator_factory
+from core.beam_parameters.factory import InitialBeamParametersFactory
 
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 
@@ -83,12 +84,19 @@ if __name__ == '__main__':
     my_beam_calc: BeamCalculator = my_beam_calculators[0]
     solv1 = my_beam_calc.id
 
+    initial_beam_parameters_factory = InitialBeamParametersFactory(
+        is_3d=True,
+        is_multipart=True)
+
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
     # Reference accelerator
     accelerators: list[Accelerator] = \
-        accelerator_factory(my_beam_calculators, **my_configs)
+        accelerator_factory(
+            my_beam_calculators,
+            initial_beam_parameters_factory=initial_beam_parameters_factory,
+            **my_configs)
     beam_calc_and_save(accelerators[0], my_beam_calc)
     # FIXME dirty patch to initialize _element_to_index function
     if "TraceWin" in solv1:
@@ -118,14 +126,7 @@ if __name__ == '__main__':
 
     # Get calculated transfer matrices
     sim = accelerators[0].simulation_outputs[solv1]
-    individual_transfer_matrices = sim.transfer_matrix
-    n_points = len(individual_transfer_matrices)
-    cumulated_transfer_matrices = np.empty((n_points, 6, 6))
-    cumulated_transfer_matrices[0] = individual_transfer_matrices[0]
-    for i in range(1, n_points):
-        cumulated_transfer_matrices[i] = \
-            individual_transfer_matrices[i] \
-            @ cumulated_transfer_matrices[i - 1]
+    cumulated_transfer_matrices = sim.transfer_matrix.cumulated
     pos = sim.get('z_abs')
 
     # Get reference transfer matrices
@@ -140,7 +141,7 @@ if __name__ == '__main__':
     for i in range(6):
         for j in range(6):
             _, interp_cumulated[:, i, j], _, _ = resample(
-                x_1=pos[1:],
+                x_1=pos,
                 y_1=cumulated_transfer_matrices[:, i, j],
                 x_2=ref_pos,
                 y_2=ref_cumulated_transfer_matrices[:, i, j])
@@ -163,7 +164,7 @@ if __name__ == '__main__':
     axes[0].plot(ref_pos,
                  ref_cumulated_transfer_matrices[:, i, j],
                  label='Reference')
-    axes[0].plot(pos[1:],
+    axes[0].plot(pos,
                  cumulated_transfer_matrices[:, i, j],
                  label='Calculated')
     axes[0].legend()

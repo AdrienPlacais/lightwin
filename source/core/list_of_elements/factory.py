@@ -29,9 +29,12 @@ import numpy as np
 from core.elements.element import Element
 from core.commands.command import Command
 from core.particle import ParticleInitialState
-from core.beam_parameters import BeamParameters
-from core.list_of_elements.list_of_elements import ListOfElements
 
+from core.beam_parameters.beam_parameters import BeamParameters
+from core.beam_parameters.factory import InitialBeamParametersFactory
+
+from core.list_of_elements.list_of_elements import ListOfElements
+from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 import tracewin_utils.load
 from tracewin_utils.dat_files import (
     create_structure,
@@ -40,7 +43,6 @@ from tracewin_utils.dat_files import (
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
 from beam_calculation.output import SimulationOutput
-
 import config_manager as con
 
 
@@ -49,6 +51,7 @@ import config_manager as con
 # =============================================================================
 def new_list_of_elements(dat_filepath: str,
                          accelerator_path: str,
+                         input_beam_factory: InitialBeamParametersFactory,
                          **kwargs: Any,
                          ) -> ListOfElements:
     """
@@ -60,13 +63,6 @@ def new_list_of_elements(dat_filepath: str,
     ----------
     dat_filepath : str
         Path to the ``.dat`` file (TraceWin).
-    input_particle : ParticleInitialState
-        An object to hold initial energy and phase of the particle.
-    input_beam : BeamParameters
-        Holds some of the initial properties of the beam. It does not hold very
-        much for now, as :class:`.Envelope1D` does not need a lot of beam
-        properties, and as the ones required by :class:`.TraceWin` are already
-        defined in the ``.ini`` file.
     accelerator_path : str
         Where results should be stored.
 
@@ -94,12 +90,18 @@ def new_list_of_elements(dat_filepath: str,
     files['elts_n_cmds'] = elts_n_cmds
 
     input_particle = _new_input_particle(**kwargs)
-    input_beam = _new_beam_parameters(**kwargs)
-    list_of_elements = ListOfElements(elts=elts,
-                                      input_particle=input_particle,
-                                      input_beam=input_beam,
-                                      files=files,
-                                      first_init=True)
+    input_beam: InitialBeamParameters
+    input_beam = input_beam_factory.factory_new(sigma_in=kwargs['sigma_in'],
+                                                w_kin=kwargs['w_kin'])
+
+    tm_cumul_in = np.eye(6)
+    list_of_elements = ListOfElements(
+        elts=elts,
+        input_particle=input_particle,
+        input_beam=input_beam,
+        tm_cumul_in=tm_cumul_in,
+        files=files,
+        first_init=True)
     return list_of_elements
 
 
@@ -113,16 +115,6 @@ def _new_input_particle(w_kin: float,
                                           z_in=z_in,
                                           synchronous=True,)
     return input_particle
-
-
-def _new_beam_parameters(sigma_in_zdelta: np.ndarray,
-                         **kwargs: float) -> BeamParameters:
-    """Generate a :class:`.BeamParameters` objet for the linac entrance."""
-    input_beam = BeamParameters()
-    input_beam.create_phase_spaces('zdelta')
-    input_beam.zdelta.tm_cumul = np.eye(2)
-    input_beam.zdelta.sigma_in = sigma_in_zdelta
-    return input_beam
 
 
 def _dat_filepath_to_plain_list_of_elements(
@@ -154,6 +146,7 @@ def subset_of_pre_existing_list_of_elements(
     elts: list[Element],
     simulation_output: SimulationOutput,
     files_from_full_list_of_elements: dict[str, str | list[list[str]]],
+    input_beam_factory: InitialBeamParametersFactory,
 ) -> ListOfElements:
     """
     Create a :class:`.ListOfElements` which is a subset of a previous one.
@@ -188,13 +181,12 @@ def subset_of_pre_existing_list_of_elements(
                  f"elements: {elts[0]} to {elts[-1]}.")
 
     input_elt, input_pos = _get_initial_element(elts, simulation_output)
-    kwargs = {'elt': input_elt,
+    get_kw = {'elt': input_elt,
               'pos': input_pos,
               'to_numpy': False,
-              'phase_space': None}
-    input_particle = _subset_input_particle(simulation_output, **kwargs)
-    input_beam: BeamParameters = _subset_beam_parameters(simulation_output,
-                                                         **kwargs)
+              }
+    input_particle = _subset_input_particle(simulation_output, **get_kw)
+    input_beam = input_beam_factory.factory_subset(simulation_output, get_kw)
 
     logging.warning("The phase_info dict, which handles how and if cavities "
                     "are rephased in the .dat file, is hard-coded. It should"
@@ -205,11 +197,17 @@ def subset_of_pre_existing_list_of_elements(
         files_from_full_list_of_elements,
     )
 
-    list_of_elements = ListOfElements(elts=elts,
-                                      input_particle=input_particle,
-                                      input_beam=input_beam,
-                                      files=files,
-                                      first_init=False)
+    transfer_matrix = simulation_output.transfer_matrix
+    assert transfer_matrix is not None
+    tm_cumul_in = transfer_matrix.cumulated[0]
+
+    list_of_elements = ListOfElements(
+        elts=elts,
+        input_particle=input_particle,
+        input_beam=input_beam,
+        tm_cumul_in=tm_cumul_in,
+        files=files,
+        first_init=False)
 
     return list_of_elements
 
@@ -283,62 +281,3 @@ def _subset_input_particle(simulation_output: SimulationOutput,
     input_particle = ParticleInitialState(w_kin, phi_abs, z_abs,
                                           synchronous=True)
     return input_particle
-
-
-def _subset_beam_parameters(simulation_output: SimulationOutput,
-                            **kwargs: Any
-                            ) -> BeamParameters:
-    """Create `BeamParameters` for an incomplete list of `Element`s."""
-    z_abs, gamma_kin, beta_kin = simulation_output.get(
-        *('z_abs', 'gamma', 'beta'), **kwargs)
-    input_beam = BeamParameters(z_abs=z_abs,
-                                gamma_kin=gamma_kin,
-                                beta_kin=beta_kin)
-
-    phase_spaces = _required_phase_spaces(simulation_output.is_3d,
-                                          simulation_output.is_multiparticle)
-    quantities = _required_quantities()
-    full_beam_parameters = simulation_output.beam_parameters
-    assert full_beam_parameters is not None
-    beam_param_kwargs = _get_quantities_from_phase_spaces(
-        phase_spaces,
-        quantities,
-        full_beam_parameters,
-        **kwargs)
-    input_beam.create_phase_spaces(*phase_spaces, **beam_param_kwargs)
-
-    return input_beam
-
-
-def _required_phase_spaces(is_3d: bool, is_multiparticle: bool
-                           ) -> tuple[str, ...]:
-    """Give necessary phase spaces according to `SimulationOutput` flags."""
-    phase_spaces = ('z', 'zdelta')
-    if is_3d:
-        phase_spaces = ('x', 'y', 't', 'z', 'zdelta')
-    if is_multiparticle:
-        phase_spaces = ('x', 'y', 't', 'z', 'zdelta', 'x99', 'y99', 'wphi99')
-    return phase_spaces
-
-
-def _required_quantities() -> tuple[str, ...]:
-    """Give quantities to set."""
-    return ('eps', 'alpha', 'beta', 'tm_cumul')
-
-
-def _get_quantities_from_phase_spaces(phase_spaces: tuple[str, ...],
-                                      quantities: tuple[str, ...],
-                                      full_beam_parameters: BeamParameters,
-                                      **kwargs: Any
-                                      ) -> dict[str, dict[str, Any] | None]:
-    """Get desired quantities at proper place in every phase space."""
-    beam_param_kwargs = {phase_space_name: None
-                         for phase_space_name in phase_spaces}
-
-    for phase_space_name in phase_spaces:
-        phase_space = getattr(full_beam_parameters, phase_space_name)
-
-        beam_param_kwargs[phase_space_name] = {
-            quantity: phase_space.get(quantity, **kwargs)
-            for quantity in quantities}
-    return beam_param_kwargs

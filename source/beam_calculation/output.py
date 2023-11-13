@@ -12,6 +12,10 @@ We define a class to store outputs from different :class:`.BeamCalculator`.
 .. todo::
     Do I really need z_abs? Envelope1D does not uses it while TraceWin does.
 
+.. todo::
+    Transfer matrices are stored in :class:`.TransferMatrix`, but also in
+    :data:`.BeamParameters.zdelta`.
+
 """
 import logging
 import os.path
@@ -24,7 +28,12 @@ import pandas as pd
 from core.particle import ParticleFullTrajectory
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.beam_parameters import BeamParameters, mismatch_from_objects
+from core.beam_parameters.beam_parameters import (
+    BeamParameters,
+    mismatch_from_objects,
+)
+from core.transfer_matrix.transfer_matrix import TransferMatrix
+
 from util.helper import recursive_items, recursive_getter, range_vals
 
 
@@ -38,10 +47,10 @@ class SimulationOutput:
     Attributes
     ----------
     out_folder : str
-        Results folder used by the `BeamCalculator` that created this.
+        Results folder used by the :class:`.BeamCalculator` that created this.
     is_multiparticle : bool
         Tells if the simulation is a multiparticle simulation.
-    is_3D : bool
+    is_3d : bool
         Tells if the simulation is in 3D.
     synch_trajectory : ParticleFullTrajectory | None
         Holds energy, phase of the synchronous particle.
@@ -51,22 +60,25 @@ class SimulationOutput:
     rf_fields : list[dict] | None
         Holds amplitude, synchronous phase, absolute phase, relative phase of
         cavities.
-    r_zz_elt : list[np.ndarray] | None
-        Cumulated transfer matrices in the [z-delta] plane.
     beam_parameters : BeamParameters | None
         Holds emittance, Twiss parameters, envelopes in the various phase
         spaces.
-    element_to_index : Callable[[str | Element, str | None],
-    int | slice] | None
-        Takes an `Element`, its name, 'first' or 'last' as argument, and
-        returns correspondinf index. Index should be the same in all the arrays
-        attributes of this class: `z_abs`, `beam_parameters` attributes, etc.
-        Used to easily `get` the desired properties at the proper position.
+    element_to_index : Callable[[str | Element, str | None], int | slice] | None
+        Takes an :class:`.Element`, its name, 'first' or 'last' as argument,
+        and returns corresponding index. Index should be the same in all the
+        arrays attributes of this class: ``z_abs``, ``beam_parameters``
+        attributes, etc.  Used to easily `get` the desired properties at the
+        proper position.
+    transfer_matrix : TransferMatrix
+         Holds absolute and relative transfer matrices in all planes.
     z_abs : np.ndarray | None, optional
         Absolute position in the linac in m. The default is None.
     in_tw_fashion : pd.DataFrame | None, optional
-        A way to output the `SimulationOutput` in the same way as the `Data`
-        tab of TraceWin. The default is None.
+        A way to output the :class:`.SimulationOutput` in the same way as the
+        ``Data`` tab of TraceWin. The default is None.
+    r_zz_elt : list[np.ndarray] | None, optional
+        Cumulated transfer matrices in the [z-delta] plane. The default is
+        None.
 
     """
 
@@ -79,14 +91,15 @@ class SimulationOutput:
     cav_params: dict[str, float | None] | None
     rf_fields: list[dict] | None
 
-    r_zz_elt: list[np.ndarray] | None
     beam_parameters: BeamParameters | None
 
     element_to_index: Callable[[str | Element, str | None], int | slice] \
         | None
 
+    transfer_matrix: TransferMatrix | None = None
     z_abs: np.ndarray | None = None
     in_tw_fashion: pd.DataFrame | None = None
+    r_zz_elt: list[np.ndarray] | None = None
 
     def __post_init__(self) -> None:
         """Save complementary data, such as `Element` indexes."""
@@ -110,7 +123,7 @@ class SimulationOutput:
 
     @property
     def beam_calculator_information(self) -> str:
-        """Use `out_path` to retrieve information on `BeamCalculator`."""
+        """Use ``out_path`` to retrieve info on :class:`BeamCalculator`."""
         if self.out_path is None:
             return self.out_folder
         return get_nth_parent(self.out_path, nth=2)
@@ -119,8 +132,8 @@ class SimulationOutput:
         """
         Tell if the required attribute is in this class.
 
-        We also call the beam_parameters.has, as it is designed to handle the
-        alias (twiss_zdelta <-> zdelta.twiss).
+        We also call the :meth:`.BeamParameters.has`, as it is designed to
+        handle the alias (such as ``twiss_zdelta`` <=> ``zdelta.twiss``).
 
         """
         return key in recursive_items(vars(self)) \
@@ -140,12 +153,13 @@ class SimulationOutput:
             If you want the list output to be converted to a np.ndarray. The
             default is True.
         to_deg : bool, optional
-            To apply np.rad2deg function over every `key` containing the string
+            To apply np.rad2deg function over every ``key`` containing the
+            string.
         elt : Element | None, optional
-            If provided, return the attributes only at the considered Element.
+            If provided, return the attributes only at the considered element.
         pos : 'in' | 'out' | None
             If you want the attribute at the entry, exit, or in the whole
-            Element.
+            element.
         none_to_nan : bool, optional
             To convert None to np.NaN. The default is False.
         **kwargs : str | bool | None
@@ -210,8 +224,8 @@ class SimulationOutput:
         Parameters
         ----------
         elts : ListOfElements
-            Must be a full ListOfElements, containing all the Elements of the
-            linac.
+            Must be a full :class:`.ListOfElements`, containing all the
+            elements of the linac.
         ref_twiss_zdelta : np.ndarray | None, optional
             A reference array of Twiss parameters. If provided, it allows the
             calculation of the mismatch factor. The default is None.
@@ -241,7 +255,7 @@ class SimulationOutput:
 
 def _to_deg(val: np.ndarray | list | float | None
             ) -> np.ndarray | list | float | None:
-    """Convert the val[key] into deg if it is not None."""
+    """Convert the ``val[key]`` into deg if it is not None."""
     if val is None:
         return None
     if isinstance(val, list):

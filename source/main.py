@@ -9,6 +9,9 @@ This module is the holds a generic compensation workflow.
 .. todo::
     Proper example file, maybe with a Jupyter Notebook.
 
+.. todo::
+    Too many responsibilities in this script!!
+
 """
 import logging
 import time
@@ -23,6 +26,7 @@ from failures.fault_scenario import FaultScenario, fault_scenario_factory
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_objects
 from beam_calculation.output import SimulationOutput
+from core.beam_parameters.factory import InitialBeamParametersFactory
 
 from visualization import plot
 
@@ -79,10 +83,10 @@ if __name__ == '__main__':
     MY_KEYS = {
         'files': 'files',
         'plots': 'plots.complete',
-        'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
-        # 'beam_calculator': 'beam_calculator.tracewin.envelope',
+        # 'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
+        'beam_calculator': 'beam_calculator.tracewin.envelope',
         'beam': 'beam',
-        # 'wtf': 'wtf.for_tracewin',
+        # 'wtf': 'wtf.quick_debug',
         'wtf': 'wtf.k_out_of_n',
         # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
         # 'evaluators': 'evaluators.fred',
@@ -110,12 +114,18 @@ if __name__ == '__main__':
     solv1 = my_beam_calc.id
     solv2 = my_beam_calc_post.id if my_beam_calc_post is not None else None
 
+    initial_beam_parameters_factory = InitialBeamParametersFactory(
+        is_3d=True,
+        is_multipart=True)
+
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
     # Reference accelerator
-    accelerators: list[Accelerator] = \
-        accelerator_factory(my_beam_calculators, **my_configs)
+    accelerators: list[Accelerator] = accelerator_factory(
+        my_beam_calculators,
+        initial_beam_parameters_factory=initial_beam_parameters_factory,
+        **my_configs)
     beam_calc_and_save(accelerators[0], my_beam_calc)
     # FIXME dirty patch to initialize _element_to_index function
     if "TraceWin" in solv1:
@@ -130,7 +140,9 @@ if __name__ == '__main__':
         beam_calc_and_save(accelerators[1], my_beam_calc)
 
     fault_scenarios: list[FaultScenario]
-    fault_scenarios = fault_scenario_factory(accelerators, my_beam_calc,
+    fault_scenarios = fault_scenario_factory(accelerators,
+                                             my_beam_calc,
+                                             initial_beam_parameters_factory,
                                              my_configs['wtf'])
 
     # =========================================================================

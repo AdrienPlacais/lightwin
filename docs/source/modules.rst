@@ -9,6 +9,7 @@ source
    config_manager
    constants
    core
+   envelope3d
    evaluator
    failures
    main

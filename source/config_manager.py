@@ -40,6 +40,7 @@ GAMMA_INIT = float()
 F_BUNCH_MHZ, OMEGA_0_BUNCH, LAMBDA_BUNCH = float(), float(), float()
 Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
 SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
+SIGMA = np.full((6, 6), np.NaN)
 
 
 def process_config(config_path: str,
@@ -165,7 +166,7 @@ def _make_global(beam_calculator: dict, beam: dict, **kwargs) -> None:
 
     global Q_ADIM, E_REST_MEV, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT, \
         LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, F_BUNCH_MHZ, E_MEV, SIGMA_ZDELTA, \
-        LINAC
+        SIGMA, LINAC
     Q_ADIM = beam["q_adim"]
     E_REST_MEV = beam["e_rest_mev"]
     INV_E_REST_MEV = beam["inv_e_rest_mev"]
@@ -177,6 +178,7 @@ def _make_global(beam_calculator: dict, beam: dict, **kwargs) -> None:
     F_BUNCH_MHZ = beam["f_bunch_mhz"]
     E_MEV = beam["e_mev"]
     SIGMA_ZDELTA = beam["sigma_zdelta"]
+    SIGMA = beam["sigma"]
     LINAC = beam["linac"]
 
 

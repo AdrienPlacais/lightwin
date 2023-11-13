@@ -5,6 +5,7 @@
 
 Here we define the main properties of the beam at the entrance of the linac.
 Note that with :class:`.TraceWin`, most of these properties are defined within it's own ``.ini`` file.
+The units must be consistent with LightWin's system of units, see also :ref:`units-label`.
 
 .. csv-table::
    :file: configuration_entries/beam.csv

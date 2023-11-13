@@ -13,7 +13,7 @@ import numpy as np
 from optimisation.objective.objective import Objective
 
 from core.elements.element import Element
-from core.beam_parameters import mismatch_from_arrays
+from core.beam_parameters.helper import mismatch_from_arrays
 
 from beam_calculation.output import SimulationOutput
 

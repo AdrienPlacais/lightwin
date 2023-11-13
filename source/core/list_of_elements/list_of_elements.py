@@ -23,7 +23,7 @@ import config_manager
 from core.elements.element import Element
 from core.elements.field_map import FieldMap
 
-from core.beam_parameters import BeamParameters
+from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.particle import ParticleInitialState
 from core.electric_field import phi_0_abs_with_new_phase_reference
 
@@ -39,7 +39,9 @@ class ListOfElements(list):
 
     def __init__(self, elts: list[Element],
                  input_particle: ParticleInitialState,
-                 input_beam: BeamParameters, first_init: bool = True,
+                 input_beam: InitialBeamParameters,
+                 tm_cumul_in: np.ndarray,
+                 first_init: bool = True,
                  files: dict[str, str | list[list[str]]] | None = None
                  ) -> None:
         """
@@ -57,7 +59,7 @@ class ListOfElements(list):
         input_particle : ParticleInitialState
             An object to hold initial energy and phase of the particle at the
             entry of the first element/
-        input_beam : BeamParameters
+        input_beam : InitialBeamParameters
             An object to hold emittances, Twiss, sigma beam matrix, etc at the
             entry of the first element.
         first_init : bool, optional
@@ -76,6 +78,8 @@ class ListOfElements(list):
         self.input_particle = input_particle
         self.input_beam = input_beam
         self.files = files
+        assert tm_cumul_in.shape == (6, 6)
+        self.tm_cumul_in = tm_cumul_in
 
         super().__init__(elts)
         self.by_section_and_lattice: list[list[list[Element]]] | None = None
@@ -99,11 +103,6 @@ class ListOfElements(list):
     def phi_abs_in(self):
         """Get absolute phase at entry of first element of self."""
         return self.input_particle.phi_abs
-
-    @property
-    def tm_cumul_in(self):
-        """Get transfer matrix at entry of first element of self."""
-        return self.input_beam.zdelta.tm_cumul
 
     @property
     def l_cav(self):

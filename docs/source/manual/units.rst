@@ -1,7 +1,12 @@
+.. _units-label:
+
 Units and conventions
 =====================
 .. toctree::
    :maxdepth: 4
+
+.. todo::
+   Consistency between font size of normal text and math text. Not aesthetic when I have text and units side to side.
 
 .. todo::
    General units: MeV etc
@@ -21,10 +26,9 @@ RMS emittances
     :widths: 30, 30, 30, 10
     :header-rows: 1
 
-.. note::
-    In TraceWin, and in particular in ``partran.out`` and ``tracewin.out``
-    files, ``eps_zdelta`` can also be expressed in :math:`\pi`.mm.mrad. The
-    conversion is: :math:`1\pi\mathrm{.mm.mrad} = 10\pi\mathrm{.mm.\%}`
+.. warning::
+   In TraceWin's output files ``partran.out`` and ``tracewin.out``, ``eps_zdelta`` is expressed in :math:`\pi\mathrm{.mm.mrad}`, not in :math:`\pi\mathrm{mm.\%}`!
+   The conversion is: :math:`1\pi\mathrm{.mm.mrad} = 10\pi\mathrm{.mm.\%}`
 
 Twiss
 -----
@@ -34,7 +38,7 @@ Twiss
     :widths: 33, 33, 33
     :header-rows: 1
 
-Note that ``beta``, ``gamma`` without a subscript are the Lorentz factors.
+Note that ``beta_kin``, ``gamma_kin`` are the Lorentz factors.
 
 Envelopes
 ---------
@@ -53,3 +57,7 @@ Envelopes
     :math:`[z-\delta]` and :math:`[z-z']` planes, but they are calculated with
     normalized emittance in the :math:`[\phi-W]` plane.
 
+:math:`\sigma` beam matrix
+--------------------------
+We save this matrix in SI units, *i.e.* in :math:`\mathrm{m}` and :math:`\mathrm{rad}`.
+When given in the ``.ini`` configuration file, it must also be in SI units.

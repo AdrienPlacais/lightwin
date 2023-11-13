@@ -11,8 +11,11 @@ from typing import Any
 
 import config_manager as con
 
-from core.elements.element import Element
 from core.elements.field_map import FieldMap
+
+from core.beam_parameters.factory import InitialBeamParametersFactory
+from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
+
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt
 from core.list_of_elements.factory import (
@@ -72,6 +75,7 @@ class Fault:
                  broken_elts: ListOfElements,
                  failed_cavities: list[FieldMap],
                  compensating_cavities: list[FieldMap],
+                 initial_beam_parameters_factory: InitialBeamParametersFactory,
                  ) -> None:
         """
         Create the Fault object.
@@ -125,10 +129,12 @@ class Fault:
                 failed_cavities=failed_cavities,
                 compensating_cavities=compensating_cavities,
                 )
+
         self.elts: ListOfElements = subset_of_pre_existing_list_of_elements(
             elts_of_compensation_zone,
             reference_simulation_output,
             files_from_full_list_of_elements,
+            initial_beam_parameters_factory,
         )
 
     def fix(self, optimisation_algorithm: OptimisationAlgorithm

@@ -9,17 +9,24 @@ It is fast, but should not be used at low energies.
 import logging
 from dataclasses import dataclass
 
+import numpy as np
+
 from core.particle import ParticleFullTrajectory
 from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.list_of_elements.helper import indiv_to_cumul_transf_mat
 from core.accelerator import Accelerator
-from core.beam_parameters import BeamParameters
+from core.beam_parameters.beam_parameters import BeamParameters
+from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
+
 from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
     SingleElementEnvelope1DParameters
+from beam_calculation.envelope_1d.beam_parameters_factory import \
+    BeamParametersFactoryEnvelope1D
+from beam_calculation.envelope_1d.transfer_matrix_factory import \
+    TransferMatrixFactoryEnvelope1D
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
@@ -36,7 +43,7 @@ class Envelope1D(BeamCalculator):
 
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
-        self.id = self.__repr__()
+        super().__post_init__()
         self.out_folder += "_Envelope1D"
 
         if self.flag_cython:
@@ -51,6 +58,14 @@ class Envelope1D(BeamCalculator):
             import beam_calculation.envelope_1d.transfer_matrices_p as \
                 transf_mat
         self.transf_mat_module = transf_mat
+
+        self.beam_parameters_factory = BeamParametersFactoryEnvelope1D(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation
+        )
+        self.transfer_matrix_factory = TransferMatrixFactoryEnvelope1D(
+            self.is_a_3d_simulation
+        )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -174,7 +189,14 @@ class Envelope1D(BeamCalculator):
                                     single_elts_results: list[dict],
                                     rf_fields: list[dict]
                                     ) -> SimulationOutput:
-        """Transform the outputs of BeamCalculator to a SimulationOutput."""
+        """
+        Transform the outputs of BeamCalculator to a SimulationOutput.
+
+        .. todo::
+            Patch in transfer matrix to get proper input transfer matrix. In
+            future, input beam will not hold transf mat in anymore.
+
+        """
         w_kin = [energy
                  for results in single_elts_results
                  for energy in results['w_kin']
@@ -189,6 +211,8 @@ class Envelope1D(BeamCalculator):
         synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
                                                   phi_abs=phi_abs_array,
                                                   synchronous=True)
+        gamma_kin = synch_trajectory.gamma
+        assert isinstance(gamma_kin, np.ndarray)
 
         cav_params = [results['cav_params'] for results in single_elts_results]
         cav_params = {'v_cav_mv': [cav_param['v_cav_mv']
@@ -199,26 +223,22 @@ class Envelope1D(BeamCalculator):
                                 for cav_param in cav_params],
                       }
 
-        r_zz_elt = [results['r_zz'][i, :, :]
-                    for results in single_elts_results
-                    for i in range(results['r_zz'].shape[0])]
-        tm_cumul = indiv_to_cumul_transf_mat(elts.tm_cumul_in,
-                                             r_zz_elt,
-                                             len(w_kin))
-
         element_to_index = self._generate_element_to_index_func(elts)
-
-        beam_params = BeamParameters(z_abs=elts.get('abs_mesh',
-                                                    remove_first=True),
-                                     gamma_kin=synch_trajectory.gamma,
-                                     element_to_index=element_to_index)
-        beam_params.create_phase_spaces('zdelta', 'z', 'phiw')
-        beam_params.zdelta.init_from_cumulated_transfer_matrices(
-            gamma_kin=beam_params.gamma_kin,
-            tm_cumul=tm_cumul,
-            beta_kin=beam_params.beta_kin
+        transfer_matrix: TransferMatrix = self.transfer_matrix_factory.run(
+            elts.tm_cumul_in,
+            single_elts_results,
+            element_to_index,
         )
-        beam_params.init_other_phase_spaces_from_zdelta(*('phiw', 'z'))
+
+        z_abs = elts.get('abs_mesh', remove_first=True)
+        beam_parameters: BeamParameters = \
+            self.beam_parameters_factory.factory_method(
+                elts.input_beam.sigma_in,
+                z_abs,
+                gamma_kin,
+                transfer_matrix,
+                element_to_index,
+            )
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
@@ -226,10 +246,10 @@ class Envelope1D(BeamCalculator):
             is_3d=self.is_a_3d_simulation,
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
-            r_zz_elt=r_zz_elt,
             rf_fields=rf_fields,
-            beam_parameters=beam_params,
-            element_to_index=element_to_index
+            beam_parameters=beam_parameters,
+            element_to_index=element_to_index,
+            transfer_matrix=transfer_matrix
         )
         return simulation_output
 

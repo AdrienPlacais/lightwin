@@ -12,9 +12,11 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   core.beam_parameters
    core.commands
    core.elements
    core.list_of_elements
+   core.transfer_matrix
 
 Submodules
 ----------
@@ -23,7 +25,6 @@ Submodules
    :maxdepth: 4
 
    core.accelerator
-   core.beam_parameters
    core.electric_field
    core.element_or_command
    core.particle

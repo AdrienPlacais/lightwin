@@ -16,6 +16,9 @@ at the entry of its :class:`.ListOfElements`.
     Compute_transfer_matrices: simplify, add a calculation of missing phi_0
     at the end
 
+.. todo::
+    Cleaner Accelerator factory (use class, not just a function).
+
 """
 import os.path
 import logging
@@ -27,6 +30,7 @@ import pandas as pd
 import config_manager as con
 
 from beam_calculation.output import SimulationOutput
+from core.beam_parameters.factory import InitialBeamParametersFactory
 
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -38,17 +42,33 @@ from util.helper import recursive_items, recursive_getter
 
 
 class Accelerator():
-    """Class holding the list of the accelerator's elements."""
+    """Class holding a :class:`.ListOfElements`."""
 
-    def __init__(self, name: str, dat_file: str, project_folder: str,
-                 accelerator_path: str, out_folders: tuple[str]) -> None:
-        """
-        Create Accelerator object.
+    def __init__(self,
+                 name: str,
+                 dat_file: str,
+                 project_folder: str,
+                 accelerator_path: str,
+                 out_folders: tuple[str],
+                 initial_beam_parameters_factory: InitialBeamParametersFactory,
+                 ) -> None:
+        """Create object.
 
-        The different elements constituting the accelerator will be stored
-        in the list self.
-        The data such as the synch phase or the beam energy will be stored in
-        the self.synch Particle object.
+        Parameters
+        ----------
+        name : str
+            Name of the accelerator, used in plots.
+        dat_file : str
+            Path to the linac ``.dat`` file.
+        project_folder : str
+            Path where all data will be saved.
+        accelerator_path : str
+            Folder where all data will be saved.
+        out_folders : tuple[str]
+            Not used anymore.
+        initial_beam_parameters_factory : InitialBeamParametersFactory
+            A factory to create the beam parameters (emittance, etc) at the
+            beginning of the accelerator.
 
         """
         self.name = name
@@ -58,13 +78,17 @@ class Accelerator():
         self.files = {'project_folder': project_folder,
                       'accelerator_path': accelerator_path}
 
+        # self.initial_beam_parameters_factory = initial_beam_parameters_factory
+
         kwargs = {'w_kin': con.E_MEV,
                   'phi_abs': 0.,
                   'z_in': 0.,
-                  'sigma_in_zdelta': con.SIGMA_ZDELTA}
+                  'sigma_in': con.SIGMA}
         self.elts: ListOfElements
-        self.elts = new_list_of_elements(dat_file, accelerator_path, **kwargs)
-        # self.synch: ParticleInitialState = self.elts.input_particle
+        self.elts = new_list_of_elements(dat_file,
+                                         accelerator_path,
+                                         initial_beam_parameters_factory,
+                                         **kwargs)
 
         self._special_getters = self._create_special_getters()
         self._check_consistency_phases()
@@ -217,12 +241,14 @@ class Accelerator():
         return equivalent_elt(self.elts, elt)
 
 
-def accelerator_factory(beam_calculators: tuple[object | None],
-                        files: dict[str, str],
-                        beam: dict[str, Any],
-                        wtf: dict[str, Any] | None = None,
-                        **kwargs
-                        ) -> list[Accelerator]:
+def accelerator_factory(
+        beam_calculators: tuple[object | None],
+        files: dict[str, str],
+        beam: dict[str, Any],
+        initial_beam_parameters_factory: InitialBeamParametersFactory,
+        wtf: dict[str, Any] | None = None,
+        **kwargs
+) -> list[Accelerator]:
     """Create the required Accelerators as well as their output folders."""
     n_simulations = 1
     if wtf is not None:
@@ -238,12 +264,16 @@ def accelerator_factory(beam_calculators: tuple[object | None],
         n_simulations=n_simulations,
         out_folders=out_folders
     )
+
     names = ['Broken' if i > 0 else 'Working' for i in range(n_simulations)]
 
-    accelerators = [Accelerator(name, accelerator_path=accelerator_path,
-                                out_folders=out_folders, **files)
-                    for name, accelerator_path
-                    in zip(names, accelerator_paths)]
+    accelerators = [Accelerator(
+        name=name,
+        accelerator_path=accelerator_path,
+        out_folders=out_folders,
+        initial_beam_parameters_factory=initial_beam_parameters_factory,
+        **files
+    ) for name, accelerator_path in zip(names, accelerator_paths)]
     return accelerators
 
 
