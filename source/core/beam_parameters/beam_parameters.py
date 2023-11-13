@@ -50,13 +50,18 @@ class BeamParameters:
         Lorentz gamma factor.
     beta_kin : np.ndarray
         Lorentz gamma factor.
-    element_to_index : Callable[[str | Element, str | None],
-                                 int | slice] | None, optional
+    element_to_index : Callable[[str | Element, str | None], int | slice]
         Takes an :class:`.Element`, its name, ``'first'`` or ``'last'`` as
         argument, and returns corresponding index. Index should be the same in
         all the arrays attributes of this class: ``z_abs``, ``beam_parameters``
         attributes, etc. Used to easily ``get`` the desired properties at the
-        proper position. The default is None.
+        proper position.
+    sigma_in : np.ndarray | None, optional
+        Holds the (6, 6) :math:`\sigma` beam matrix at the entrance of the
+        linac/portion of linac. The default is None.
+    n_points : int | None, optional
+        Holds the number of points along the linac (1 if the object defines a
+        beam at the entry of the linac/a linac portion). The default is None.
     zdelta, z, phiw, x, y, t : PhaseSpaceBeamParameters
         Holds beam parameters respectively in the :math:`[z-z\delta]`,
         :math:`[z-z']`, :math:`[\phi-W]`, :math:`[x-x']`, :math:`[y-y']` and
@@ -65,29 +70,19 @@ class BeamParameters:
         Holds 99% beam parameters respectively in the :math:`[\phi-W]`,
         :math:`[x-x']` and :math:`[y-y']` planes. Only used with multiparticle
         simulations.
-    sigma_in : np.ndarray | None, optional
-        Holds the (6, 6) :math:`\sigma` beam matrix at the entrance of the
-        linac/portion of linac.  The default is None.
-    n_points : int | None, optional
-        Holds the number of points along the linac (1 if the object defines a
-        beam at the entry of the linac/a linac portion). The default is None.
 
     """
 
     z_abs: np.ndarray
     gamma_kin: np.ndarray
     beta_kin: np.ndarray
-    element_to_index: Callable[[str | Element, str | None], int | slice] \
-        | None = None
+    element_to_index: Callable[[str | Element, str | None], int | slice]
     sigma_in: np.ndarray | None = None
-    n_points: int | None = None
 
     def __post_init__(self) -> None:
         """Define the attributes that may be used."""
-        if self.n_points is not None:
-            logging.warning("giving n_points to BeamParameters.__init__ is "
-                            "deprecated")
         self.n_points = np.atleast_1d(self.z_abs).shape[0]
+
         self.zdelta: PhaseSpaceBeamParameters
         self.z: PhaseSpaceBeamParameters
         self.phiw: PhaseSpaceBeamParameters
@@ -241,7 +236,6 @@ class BeamParameters:
             Could be cleaner.
 
         """
-        assert isinstance(self.n_points, int)
         sigma = np.zeros((self.n_points, 6, 6))
 
         sigma_x = np.zeros((self.n_points, 2, 2))
@@ -258,15 +252,6 @@ class BeamParameters:
         sigma[:, 2:4, 2:4] = sigma_y
         sigma[:, 4:, 4:] = sigma_zdelta
         return sigma
-
-    @sigma.setter
-    def sigma(self, value: np.ndarray) -> None:
-        logging.warning("You shall not set sigma directly, but rather the "
-                        "sub-sigma matrices in x, y, zdelta planes.")
-        assert value.shape == (self.n_points, 6, 6)
-        self.x.sigma = value[:, :2, :2]
-        self.y.sigma = value[:, 2:4, 2:4]
-        self.zdelta.sigma = value[:, 4:, 4:]
 
     def _create_tracewin_command(self, warn_missing_phase_space: bool = True
                                  ) -> list[str]:
@@ -307,6 +292,14 @@ class BeamParameters:
         """
         Recursively create the phase spaces with their initial values.
 
+        .. todo::
+            Move this in the __init__ method.
+
+        .. todo::
+            Avoid type checking in the self.sigma_in. sigma_in is always None
+            with TraceWin, and is always set with EnvelopeiD. So this
+            anti-pattern could easily be avoided.
+
         Parameters
         ----------
         *args : str
@@ -320,12 +313,14 @@ class BeamParameters:
             ``'envelope_pos'`` and ``'envelope_energy'`` are allowed values.
 
         """
-        sigma_in = self._format_sigma_in()
-        phase_space_to_proper_sigma_in = {
-            'x': sigma_in[:2, :2],
-            'y': sigma_in[2:4, 2:4],
-            'zdelta': sigma_in[4:, 4:],
-        }
+        phase_space_to_proper_sigma_in = {}
+
+        if self.sigma_in is not None:
+            phase_space_to_proper_sigma_in = {
+                    'x': self.sigma_in[:2, :2],
+                    'y': self.sigma_in[2:4, 2:4],
+                    'zdelta': self.sigma_in[4:, 4:],
+                    }
 
         for phase_space_name in args:
             this_phase_space_kw = kwargs.get(phase_space_name, {})
@@ -340,30 +335,6 @@ class BeamParameters:
                 **this_phase_space_kw,
             )
             setattr(self, phase_space_name, phase_space_beam_param)
-
-    def _format_sigma_in(self) -> np.ndarray:
-        r"""Format the input :math:`\sigma` beam matrix for uniformity.
-
-        Returns
-        -------
-        sigma_in : np.ndarray
-            (6, 6) sigma beam matrix filled with np.NaN where data is missing.
-
-        .. deprecated:: v3.2.2.3
-            This matrix should always be set, and always have a (6, 6) shape.
-            This method will be removed in the future.
-
-        """
-        if self.sigma_in is not None:
-            return self.sigma_in
-
-        sigma_in_from_conf = con.SIGMA
-        if ~np.isnan(sigma_in_from_conf).any():
-            logging.warning("Initialized sigma beam matrix from config"
-                            " manager. Please give it to "
-                            "BeamParameters.__init__ instead."
-                            "Ignore this if solver is TW.")
-        return sigma_in_from_conf
 
 
 # =============================================================================
