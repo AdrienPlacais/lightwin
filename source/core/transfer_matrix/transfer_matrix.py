@@ -64,10 +64,6 @@ class TransferMatrix:
             to doc
 
         """
-        if isinstance(individual, list):
-            logging.warning("should not receive a list as input")
-            individual = np.array(individual)
-
         self.is_3d = is_3d
 
         self.individual: np.ndarray
