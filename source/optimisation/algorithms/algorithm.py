@@ -37,7 +37,7 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
 from beam_calculation.output import SimulationOutput
 
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.elements.field_map import FieldMap
+from core.elements.element import Element
 
 
 @dataclass
@@ -47,7 +47,7 @@ class OptimisationAlgorithm(ABC):
 
     Parameters
     ----------
-    compensating_cavities : list[FieldMap]
+    compensating_elements : list[Element]
         Cavity objects used to compensate for the faults.
     elts : ListOfElements
         Holds the whole compensation zone under study.
@@ -62,8 +62,8 @@ class OptimisationAlgorithm(ABC):
     supports_constraints : bool
         If the method handles constraints or not.
     compute_beam_propagation: Callable[[SetOfCavitySettings], SimulationOutput]
-        Method to compute propagation of the beam with the given cavity
-        settings. Defined by a :func:`BeamCalculator.run_with_this` method, the
+        Method to compute propagation of the beam with the given settings.
+        Defined by a :func:`BeamCalculator.run_with_this` method, the
         positional argument ``elts`` being set by a :func:`functools.partial`.
     compute_residuals : Callable[[SimulationOutput], Any]
         Method to compute residuals from a :class:`SimulationOutput`.
@@ -75,7 +75,7 @@ class OptimisationAlgorithm(ABC):
 
     """
 
-    compensating_cavities: list[FieldMap]
+    compensating_elements: list[Element]
     elts: ListOfElements
 
     objectives: list[Objective]
@@ -90,6 +90,7 @@ class OptimisationAlgorithm(ABC):
 
     def __post_init__(self) -> None:
         """Set the output object."""
+        assert all([elt.can_be_retuned for elt in self.compensating_elements])
         self.solution: dict
         self.supports_constraints: bool
 
@@ -165,12 +166,12 @@ class OptimisationAlgorithm(ABC):
         Make generic the ``var``, specific to each optimisation algorithm.
 
         Also very useful to avoid mixing up the norms and phases between the
-        different cavities.
+        different elements.
 
         """
         my_phi = list(var[:var.shape[0] // 2])
         my_ke = list(var[var.shape[0] // 2:])
-        my_vars = zip(self.compensating_cavities, my_ke, my_phi)
+        my_vars = zip(self.compensating_elements, my_ke, my_phi)
 
         if 'phi_s' in self.variable_names:
             my_set = [SingleCavitySettings(cavity=cavity,

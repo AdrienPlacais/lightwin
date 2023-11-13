@@ -28,7 +28,7 @@ class Variable:
     """
 
     name: str
-    cavity_name: str
+    element_name: str
     x_0: float
     limits: tuple
 
@@ -44,7 +44,7 @@ class Variable:
 
     def __str__(self) -> str:
         """Output variable name, initial value and limits."""
-        out = f"{markdown[self.name]:25} | {self.cavity_name:15} | "
+        out = f"{markdown[self.name]:25} | {self.element_name:15} | "
         out += f"{self.x_0_fmt:>8.3f} | "
         out += f"{self.limits_fmt[0]:>9.3f} | {self.limits_fmt[1]:>9.3f}"
         return out

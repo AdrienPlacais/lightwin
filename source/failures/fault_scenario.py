@@ -98,8 +98,8 @@ class FaultScenario(list):
                 files_from_full_list_of_elements=files_from_full_list_of_elements,
                 wtf=self.wtf,
                 broken_elts=self.fix_acc.elts,
-                failed_cavities=faulty_cavities,
-                compensating_cavities=compensating_cavities,
+                failed_elements=faulty_cavities,
+                compensating_elements=compensating_cavities,
                 initial_beam_parameters_factory=initial_beam_parameters_factory,
             )
             faults.append(fault)
@@ -149,7 +149,7 @@ class FaultScenario(list):
 
         for fault, optimisation_algorithm in zip(self,
                                                  optimisation_algorithms):
-            fault.update_cavities_status(optimisation='not started')
+            fault.update_elements_status(optimisation='not started')
             _succ, optimized_cavity_settings, _info = fault.fix(
                 optimisation_algorithm)
 
@@ -169,7 +169,7 @@ class FaultScenario(list):
                 = simulation_output
 
             fault.get_x_sol_in_real_phase()
-            fault.update_cavities_status(optimisation='finished', success=True)
+            fault.update_elements_status(optimisation='finished', success=True)
 
             if not con.FLAG_PHI_ABS:
                 # Tell LW to keep the new phase of the rephased cavities

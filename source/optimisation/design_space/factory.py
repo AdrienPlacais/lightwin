@@ -28,7 +28,7 @@ from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
 
 from core.list_of_elements.helper import equivalent_elt
-from core.elements.field_map import FieldMap
+from core.elements.element import Element
 
 from beam_calculation.output import SimulationOutput
 
@@ -46,17 +46,21 @@ class DesignSpaceFactory(ABC):
     preset : str
         The name of the linac, to select the limits (in particular for ``k_e``
         and ``phi_s``) and the initial values.
-    reference_cavities : list[FieldMap]
-       All the cavities with the reference setting.
-    compensating_cavities : list[FieldMap]
-        The cavities from the linac under fixing that will be used for
+    reference_elements : list[Element]
+       All the elements with the reference setting.
+    compensating_elements : list[Element]
+        The elements from the linac under fixing that will be used for
         compensation.
 
     """
 
     preset: str
-    reference_cavities: list[FieldMap]
-    compensating_cavities: list[FieldMap]
+    reference_elements: list[Element]
+    compensating_elements: list[Element]
+
+    def __post_init__(self):
+        """Check that given elements can be retuned."""
+        assert all([elt.can_be_retuned for elt in self.compensating_elements])
 
     @abstractmethod
     def get_variables(self) -> list[Variable]:
@@ -68,7 +72,7 @@ class DesignSpaceFactory(ABC):
 
     def _get_initial_value_from_preset(self,
                                        variable: str,
-                                       reference_cavity: FieldMap,
+                                       reference_element: Element,
                                        preset: str | None = None,
                                        **kwargs) -> float:
         """Select initial value for given preset and parameter.
@@ -79,8 +83,8 @@ class DesignSpaceFactory(ABC):
         ----------
         variable : {'k_e', 'phi_0_rel', 'phi_0_abs', 'phi_s'}
             The variable from which you want the limits.
-        reference_cavity : FieldMap | None, optional
-            The cavity in its nominal tuning. The default is None.
+        reference_element : Element | None, optional
+            The element in its nominal tuning. The default is None.
         preset : str | None, optional
             Key of the ``INITIAL_VALUE_GETTERS`` dict to select proper initial
             value. The default is None, in which case we take ``self.preset``.
@@ -95,11 +99,11 @@ class DesignSpaceFactory(ABC):
             preset = self.preset
         return INITIAL_VALUE_GETTERS[preset](
             variable,
-            reference_cavity=reference_cavity)
+            reference_element=reference_element)
 
     def _get_limits_from_preset(self,
                                 variable: str,
-                                reference_cavity: FieldMap | None = None,
+                                reference_element: Element | None = None,
                                 preset: str | None = None,
                                 **kwargs) -> tuple[float | None]:
         """
@@ -111,8 +115,8 @@ class DesignSpaceFactory(ABC):
         ----------
         variable : {'k_e', 'phi_0_rel', 'phi_0_abs', 'phi_s'}
             The variable from which you want the limits.
-        reference_cavity : FieldMap | None, optional
-            The cavity in its nominal tuning. The default is None.
+        reference_element : Element | None, optional
+            The element in its nominal tuning. The default is None.
         preset : str | None, optional
             Key of the ``LIMITS_GETTERS`` dict to select proper initial value.
             The default is None, in which case we take ``self.preset``.
@@ -127,8 +131,8 @@ class DesignSpaceFactory(ABC):
             preset = self.preset
         return LIMITS_GETTERS[preset](
             variable,
-            reference_cavity=reference_cavity,
-            reference_cavities=self.reference_cavities)
+            reference_element=reference_element,
+            reference_elements=self.reference_elements)
 
     @staticmethod
     def _output_variables(variables: list[Variable]) -> None:
@@ -154,19 +158,19 @@ class DesignSpaceFactory(ABC):
 
 
 class Unconstrained(DesignSpaceFactory):
-    """Factory to set amplitude and phase of cavities, no phi_s."""
+    """Factory to set amplitude and phase of elements, no phi_s."""
 
     def get_variables(self) -> list[Variable]:
         """Set up all the required variables."""
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
-            for cavity in self.compensating_cavities:
-                ref_cav = equivalent_elt(self.reference_cavities, cavity)
+            for element in self.compensating_elements:
+                ref_elt = equivalent_elt(self.reference_elements, element)
                 variable = Variable(
                     name=var_name,
-                    cavity_name=str(cavity),
-                    x_0=self._get_initial_value_from_preset(var_name, ref_cav),
-                    limits=self._get_limits_from_preset(var_name, ref_cav),
+                    element_name=str(element),
+                    x_0=self._get_initial_value_from_preset(var_name, ref_elt),
+                    limits=self._get_limits_from_preset(var_name, ref_elt),
                 )
                 variables.append(variable)
         self._output_variables(variables)
@@ -180,19 +184,19 @@ class Unconstrained(DesignSpaceFactory):
 
 
 class ConstrainedSyncPhase(DesignSpaceFactory):
-    """Factory to set k_e and phase of cavities, with phi_s constraint."""
+    """Factory to set k_e and phase of elements, with phi_s constraint."""
 
     def get_variables(self) -> list[Variable]:
         """Set up all the required variables."""
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
-            for cavity in self.compensating_cavities:
-                ref_cav = equivalent_elt(self.reference_cavities, cavity)
+            for element in self.compensating_elements:
+                ref_elt = equivalent_elt(self.reference_elements, element)
                 variable = Variable(
                     name=var_name,
-                    cavity_name=str(cavity),
-                    x_0=self._get_initial_value_from_preset(var_name, ref_cav),
-                    limits=self._get_limits_from_preset(var_name, ref_cav),
+                    element_name=str(element),
+                    x_0=self._get_initial_value_from_preset(var_name, ref_elt),
+                    limits=self._get_limits_from_preset(var_name, ref_elt),
                 )
                 variables.append(variable)
         self._output_variables(variables)
@@ -202,13 +206,13 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
         """Return constraint on synchronous phase."""
         constraints = []
         for constraint_name in ('phi_s',):
-            for cavity in self.compensating_cavities:
-                ref_cav = equivalent_elt(self.reference_elements, cavity)
+            for element in self.compensating_elements:
+                ref_elt = equivalent_elt(self.reference_elements, element)
                 constraint = Constraint(
                     name=constraint_name,
-                    cavity_name=str(cavity),
+                    element_name=str(element),
                     limits=self._get_limits_from_preset(constraint_name,
-                                                        ref_cav),
+                                                        ref_elt),
                 )
                 constraints.append(constraint)
         self._output_constraints(constraints)
@@ -216,19 +220,19 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
 
 
 class SyncPhaseAsVariable(DesignSpaceFactory):
-    """Factory to set k_e and phi_s of cavities, no constraint."""
+    """Factory to set k_e and phi_s of elements, no constraint."""
 
     def get_variables(self) -> list[Variable]:
         """Set up all the required variables."""
         variables = []
         for var_name in ('phi_s', 'k_e'):
-            for cavity in self.compensating_cavities:
-                ref_cav = equivalent_elt(self.reference_cavities, cavity)
+            for element in self.compensating_elements:
+                ref_elt = equivalent_elt(self.reference_elements, element)
                 variable = Variable(
                     name=var_name,
-                    cavity_name=str(cavity),
-                    x_0=self._get_initial_value_from_preset(var_name, ref_cav),
-                    limits=self._get_limits_from_preset(var_name, ref_cav),
+                    element_name=str(element),
+                    x_0=self._get_initial_value_from_preset(var_name, ref_elt),
+                    limits=self._get_limits_from_preset(var_name, ref_elt),
                 )
                 variables.append(variable)
         self._output_variables(variables)
@@ -247,7 +251,7 @@ class FM4_MYRRHA(DesignSpaceFactory):
     def __post_init__(self):
         """Check that we are in the proper case."""
         assert self.preset == 'MYRRHA'
-        assert [str(cav) for cav in self.compensating_cavities] == [
+        assert [str(elt) for elt in self.compensating_elements] == [
             'FM1', 'FM2', 'FM3', 'FM5', 'FM6']
 
     def get_variables(self) -> list[Variable]:
@@ -269,11 +273,11 @@ class FM4_MYRRHA(DesignSpaceFactory):
         tol = 1e-3
 
         for var_name in ('phi_0_abs', 'k_e'):
-            for cavity in self.compensating_cavities:
-                my_initial_value = my_initial_values[var_name][str(cavity)]
+            for element in self.compensating_elements:
+                my_initial_value = my_initial_values[var_name][str(element)]
                 variable = Variable(
                     name=var_name,
-                    cavity_name=str(cavity),
+                    element_name=str(element),
                     x_0=my_initial_value,
                     limits=(my_initial_value - tol, my_initial_value + tol),
                 )
@@ -289,29 +293,29 @@ class FM4_MYRRHA(DesignSpaceFactory):
 
 
 class OneCavityMegaPower(DesignSpaceFactory):
-    """Factory to have a cavity with huge power margins."""
+    """Factory to have a element with huge power margins."""
 
     def __post_init__(self) -> None:
         """Check that we are in the proper case."""
-        assert len(self.compensating_cavities) == 1, \
-            "This case is designed to have ONE compensating cavities (but " \
+        assert len(self.compensating_elements) == 1, \
+            "This case is designed to have ONE compensating elements (but " \
             "with huge power margins, so that it can compensate anything)."
 
     def get_variables(self) -> list[Variable]:
         """Return normal variables, except very high k_e."""
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
-            for cavity in self.compensating_cavities:
-                ref_cav = equivalent_elt(self.reference_cavities, cavity)
+            for element in self.compensating_elements:
+                ref_elt = equivalent_elt(self.reference_elements, element)
 
-                limits = self._get_limits_from_preset(var_name, ref_cav)
+                limits = self._get_limits_from_preset(var_name, ref_elt)
                 if var_name == 'k_e':
                     limits = (limits[0], 10. * limits[1])
 
                 variable = Variable(
                     name=var_name,
-                    cavity_name=str(cavity),
-                    x_0=self._get_initial_value_from_preset(var_name, ref_cav),
+                    element_name=str(element),
+                    x_0=self._get_initial_value_from_preset(var_name, ref_elt),
                     limits=limits,
                 )
                 variables.append(variable)
@@ -322,13 +326,13 @@ class OneCavityMegaPower(DesignSpaceFactory):
         """Return constraint on synchronous phase."""
         constraints = []
         for constraint_name in ('phi_s',):
-            for cavity in self.compensating_cavities:
-                ref_cav = equivalent_elt(self.reference_cavities, cavity)
+            for element in self.compensating_elements:
+                ref_elt = equivalent_elt(self.reference_elements, element)
                 constraint = Constraint(
                     name=constraint_name,
-                    cavity_name=str(cavity),
+                    element_name=str(element),
                     limits=self._get_limits_from_preset(constraint_name,
-                                                        ref_cav,
+                                                        ref_elt,
                                                         preset='MYRRHA'),
                 )
                 constraints.append(constraint)
@@ -343,7 +347,7 @@ def _read_design_space(design_space_preset: str) -> ABCMeta:
         'constrained_sync_phase': ConstrainedSyncPhase,
         'sync_phase_as_variable': SyncPhaseAsVariable,
         'FM4_MYRRHA': FM4_MYRRHA,
-        'one_cavity_mega_power': OneCavityMegaPower,
+        'one_element_mega_power': OneCavityMegaPower,
     }
     return factories[design_space_preset]
 
@@ -354,8 +358,8 @@ def _read_design_space(design_space_preset: str) -> ABCMeta:
 def get_design_space_and_constraint_function(
     linac_name: str,
     design_space_preset: str,
-    reference_cavities: Sequence[FieldMap],
-    compensating_cavities: list[FieldMap],
+    reference_elements: Sequence[Element],
+    compensating_elements: list[Element],
     **wtf: Any,
 ) -> tuple[list[Variable],
            list[Constraint],
@@ -366,9 +370,9 @@ def get_design_space_and_constraint_function(
 
     design_space_factory_instance = design_space_factory(
         linac_name,
-        reference_cavities,
-        compensating_cavities,
-        )
+        reference_elements,
+        compensating_elements,
+    )
 
     variables = design_space_factory_instance.get_variables()
     constraints = design_space_factory_instance.get_constraints()
@@ -397,10 +401,10 @@ def _compute_constraints(simulation_output: SimulationOutput,
 # Initial value for k_e, phi_0, phi_s for every implemented linac
 # =============================================================================
 def _initial_value_myrrha(variable: str,
-                          reference_cavity: FieldMap | None = None,
+                          reference_element: Element | None = None,
                           **kwargs) -> float | None:
     """Set the initial value for a quantity in MYRRHA ADS linac."""
-    reference_value = reference_cavity.get(variable, to_numpy=False)
+    reference_value = reference_element.get(variable, to_numpy=False)
     myrrha_initial_value = {
         'phi_s': lambda reference_value: reference_value,
         'k_e': lambda reference_value: reference_value,
@@ -414,10 +418,10 @@ def _initial_value_myrrha(variable: str,
 
 
 def _initial_value_jaea(variable: str,
-                        reference_cavity: FieldMap | None = None,
+                        reference_element: Element | None = None,
                         **kwargs) -> float:
     """Set the initial value for a quantity in JAEA ADS linac."""
-    reference_value = reference_cavity.get(variable, to_numpy=False)
+    reference_value = reference_element.get(variable, to_numpy=False)
     jaea_initial_value = {
         'phi_s': lambda reference_value: reference_value,
         'k_e': lambda reference_value: reference_value,
@@ -431,10 +435,10 @@ def _initial_value_jaea(variable: str,
 
 
 def _initial_value_spiral2(variable: str,
-                           reference_cavity: FieldMap | None = None,
+                           reference_element: Element | None = None,
                            **kwargs) -> float:
     """Set the initial_value for a quantity in SPIRAL2 linac."""
-    reference_value = reference_cavity.get(variable, to_numpy=False)
+    reference_value = reference_element.get(variable, to_numpy=False)
     spiral2_initial_value = {
         'phi_s': lambda reference_value: reference_value,
         'k_e': lambda reference_value: reference_value,
@@ -458,8 +462,8 @@ INITIAL_VALUE_GETTERS = {
 # Limits for k_e, phi_0, phi_s for every implemented linac
 # =============================================================================
 def _limits_myrrha(variable: str,
-                   reference_cavity: FieldMap | None = None,
-                   reference_cavities: list[FieldMap] | None = None,
+                   reference_element: Element | None = None,
+                   reference_elements: list[Element] | None = None,
                    **kwargs) -> tuple[float | None]:
     """
     Set the limits for a quantity in MYRRHA ADS linac.
@@ -468,20 +472,20 @@ def _limits_myrrha(variable: str,
     ----------
     variable : {'k_e', 'phi_s', 'phi_0_abs', 'phi_0_rel'}
         Quantity under study.
-    reference_cavity : FieldMap | None, optional
+    reference_element : Element | None, optional
         Cavity with nominal settings. The default is None.
-    reference_cavities : list[FieldMap] | None, optional
-        List holding all the reference cavities, in their nominal settings. The
+    reference_elements : list[Element] | None, optional
+        List holding all the reference elements, in their nominal settings. The
         default is None.
 
     Returns
     -------
     tuple[float | None]
-        Lower and upper limit for the current ``variable`` and cavity. None
+        Lower and upper limit for the current ``variable`` and element. None
         means that there is no limit.
 
     """
-    reference_value = reference_cavity.get(variable, to_numpy=False)
+    reference_value = reference_element.get(variable, to_numpy=False)
     myrrha_limits = {
         'phi_s': lambda reference_value: (
             # Minimum: -90deg
@@ -493,8 +497,8 @@ def _limits_myrrha(variable: str,
             # Minimum: 50% of ref k_e
             reference_value * 0.5,
             # Maximum: maximum of section + 30%
-            1.3 * _get_maximum_k_e_of_section(reference_cavity.idx['section'],
-                                              reference_cavities)
+            1.3 * _get_maximum_k_e_of_section(reference_element.idx['section'],
+                                              reference_elements)
         ),
         'phi_0_rel': lambda reference_value: (-2. * np.pi, 2. * np.pi),
         'phi_0_abs': lambda reference_value: (-2. * np.pi, 2. * np.pi),
@@ -506,10 +510,10 @@ def _limits_myrrha(variable: str,
 
 
 def _limits_jaea(variable: str,
-                 reference_cavity: FieldMap | None = None,
+                 reference_element: Element | None = None,
                  **kwargs) -> tuple[float | None]:
     """Set the limits for a quantity in JAEA ADS linac."""
-    reference_value = reference_cavity.get(variable, to_numpy=False)
+    reference_value = reference_element.get(variable, to_numpy=False)
     jaea_limits = {
         'phi_s': lambda reference_value: (
             # Minimum: -90deg
@@ -529,10 +533,10 @@ def _limits_jaea(variable: str,
 
 
 def _limits_spiral2(variable: str,
-                    reference_cavity: FieldMap | None = None,
+                    reference_element: Element | None = None,
                     **kwargs) -> tuple[float | None]:
     """Set the limits for a quantity in SPIRAL2 linac."""
-    reference_value = reference_cavity.get(variable, to_numpy=False)
+    reference_value = reference_element.get(variable, to_numpy=False)
     spiral2_limits = {
         'phi_s': lambda reference_value: (
             # Minimum: -90deg
@@ -552,14 +556,14 @@ def _limits_spiral2(variable: str,
 
 
 def _get_maximum_k_e_of_section(section_idx: int,
-                                reference_cavities: list[FieldMap],
+                                reference_elements: list[Element],
                                 ) -> float:
     """Get the maximum ``k_e`` of section."""
-    cavities_in_current_section = list(filter(
-        lambda cavity: cavity.idx['section'] == section_idx,
-        reference_cavities))
-    k_e_in_current_section = [cavity.get('k_e', to_numpy=False)
-                              for cavity in cavities_in_current_section]
+    elements_in_current_section = list(filter(
+        lambda element: element.idx['section'] == section_idx,
+        reference_elements))
+    k_e_in_current_section = [element.get('k_e', to_numpy=False)
+                              for element in elements_in_current_section]
     maximum_k_e = np.nanmax(k_e_in_current_section)
     return maximum_k_e
 

@@ -12,6 +12,14 @@ This module holds a :class:`FieldMap`.
 .. todo::
     Hande phi_s fitting with :class:`beam_calculation.tracewin.Tracewin`
 
+.. todo::
+    when subclassing field_maps, do not forget to update the transfer matrix
+    selector in:
+    - :class:`.Envelope3D`
+    - :class:`.SingleElementEnvelope3DParameters`
+    - :class:`.SetOfCavitySettings`
+    - the ``run_with_this`` methods
+
 """
 import logging
 from typing import Any

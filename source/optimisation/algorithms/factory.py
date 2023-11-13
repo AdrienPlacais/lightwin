@@ -101,7 +101,7 @@ def _optimisation_algorithm_kwargs(
         "compute_beam_propagation": compute_beam_propagation,
         "objectives": fault.objectives,
         "compute_residuals": fault.compute_residuals,
-        "compensating_cavities": fault.compensating_cavities,
+        "compensating_elements": fault.compensating_elements,
         "elts": fault.elts,
         "variables": fault.variables,
         "constraints": fault.constraints,

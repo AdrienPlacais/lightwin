@@ -29,7 +29,7 @@ class Constraint:
     """
 
     name: str
-    cavity_name: str
+    element_name: str
     limits: tuple
 
     def __post_init__(self):
@@ -47,8 +47,8 @@ class Constraint:
 
     def __str__(self) -> str:
         """Output constraint name and limits."""
-        out = f"{markdown[self.name]:25} | {self.cavity_name:15} | {' ':<8} | "
-        out += f"limits={self.limits_fmt[0]:>9.3f} {self.limits_fmt[1]:>9.3f}"
+        out = f"{markdown[self.name]:25} | {self.element_name:15} | {' ':<8} |"
+        out += f" limits={self.limits_fmt[0]:>9.3f} {self.limits_fmt[1]:>9.3f}"
         return out
 
     @staticmethod
@@ -63,7 +63,7 @@ class Constraint:
         """Return the `kwargs` to send a `get` method."""
         _kwargs = {'to_deg': self._to_deg,
                    'to_numpy': self._to_numpy,
-                   'elt': self.cavity_name}
+                   'elt': self.element_name}
         return _kwargs
 
     @property

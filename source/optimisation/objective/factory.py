@@ -40,6 +40,7 @@ from core.list_of_elements.helper import equivalent_elt
 from beam_calculation.output import SimulationOutput
 
 from util.dicts_output import markdown
+from experimental.test import assert_are_field_maps
 
 
 # =============================================================================
@@ -63,9 +64,9 @@ class ObjectiveFactory(ABC):
         The reference simulation of the reference linac.
     broken_elts : ListOfElements
         List containing all the elements of the broken linac.
-    failed_cavities : list[FieldMap]
+    failed_elements : list[Element]
         Cavities that failed.
-    compensating_cavities : list[FieldMap]
+    compensating_elements : list[Element]
         Cavities that will be used for the compensation.
 
     """
@@ -75,11 +76,12 @@ class ObjectiveFactory(ABC):
     reference_simulation_output: SimulationOutput
 
     broken_elts: ListOfElements
-    failed_cavities: list[FieldMap]
-    compensating_cavities: list[FieldMap]
+    failed_elements: list[Element]
+    compensating_elements: list[Element]
 
     def __post_init__(self):
         """Determine the compensation zone."""
+        assert all([elt.can_be_retuned for elt in self.compensating_elements])
         self.elts_of_compensation_zone = self._set_zone_to_recompute()
 
     @abstractmethod
@@ -123,10 +125,10 @@ class ObjectiveFactory(ABC):
         You can override this method for your specific preset.
 
         """
-        fault_idx = [cavity.idx['elt_idx']
-                     for cavity in self.failed_cavities]
-        comp_idx = [cavity.idx['elt_idx']
-                    for cavity in self.compensating_cavities]
+        fault_idx = [element.idx['elt_idx']
+                     for element in self.failed_elements]
+        comp_idx = [element.idx['elt_idx']
+                    for element in self.compensating_elements]
 
         if 'position' in wtf:
             logging.warning("position key should not be present in the .ini "
@@ -277,13 +279,18 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
                       self._get_phi_abs(elt=last_element),
                       self._get_mismatch(elt=last_element)]
 
-        working_cavities_in_compensation_zone = list(filter(
-            lambda cavity: (isinstance(cavity, FieldMap)
-                            and cavity not in self.failed_cavities),
+        working_and_tunable_elements_in_compensation_zone = list(filter(
+            lambda element: (element.can_be_retuned
+                             and element not in self.failed_elements),
             self.elts_of_compensation_zone))
 
-        objectives += [self._get_phi_s(cavity)
-                       for cavity in working_cavities_in_compensation_zone]
+        assert_are_field_maps(
+            working_and_tunable_elements_in_compensation_zone,
+            detail='accessing phi_s property of a non field map')
+
+        objectives += [self._get_phi_s(element)
+                       for element in
+                       working_and_tunable_elements_in_compensation_zone]
 
         self._output_objectives(objectives)
         return objectives
@@ -364,8 +371,8 @@ def get_objectives_and_residuals_function(
     reference_elts: ListOfElements,
     reference_simulation_output: SimulationOutput,
     broken_elts: ListOfElements,
-    failed_cavities: list[FieldMap],
-    compensating_cavities: list[FieldMap],
+    failed_elements: list[Element],
+    compensating_elements: list[Element],
 ) -> tuple[list[Element],
            list[Objective],
            Callable[[SimulationOutput], np.ndarray]]:
@@ -382,10 +389,10 @@ def get_objectives_and_residuals_function(
         The reference simulation of the reference linac.
     broken_elts : ListOfElements
         The elements of the broken linac.
-    failed_cavities : list[FieldMap]
-        Cavities that failed.
-    compensating_cavities : list[FieldMap]
-        Cavities that will be used for the compensation.
+    failed_elements : list[Element]
+        Elements that failed.
+    compensating_elements : list[Element]
+        Elements that will be used for the compensation.
 
     Returns
     -------
@@ -407,8 +414,8 @@ def get_objectives_and_residuals_function(
         reference_elts=reference_elts,
         reference_simulation_output=reference_simulation_output,
         broken_elts=broken_elts,
-        failed_cavities=failed_cavities,
-        compensating_cavities=compensating_cavities,
+        failed_elements=failed_elements,
+        compensating_elements=compensating_elements,
     )
 
     elts_of_compensation_zone = objective_factory.elts_of_compensation_zone

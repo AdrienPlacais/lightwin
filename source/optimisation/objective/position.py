@@ -24,7 +24,6 @@ In this module, we define helper functions to determine this zone.
 import logging
 
 from core.elements.element import Element
-from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 
 
@@ -175,15 +174,6 @@ def _reduce_idx_start_to_include_full_lattice(idx: int,
     elt = elts.by_lattice[lattice_idx][0]
     idx = elt.get('elt_idx', to_numpy=False)
     return idx
-
-
-def _to_elt_idx(elts: ListOfElements,
-                indexes: list[int]) -> list[int]:
-    """Convert list of k-th cavity to list of i-th elements."""
-    indexes = [cavity.idx['elt_idx']
-               for cavity in elts
-               if isinstance(cavity, FieldMap)]
-    return indexes
 
 
 POSITION_TO_INDEX = {

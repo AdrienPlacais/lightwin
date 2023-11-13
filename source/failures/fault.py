@@ -3,7 +3,7 @@
 """
 This module holds the class :class:`Fault`.
 
-It's purpose is to hold information on a cavity failure and to fix it.
+It's purpose is to hold information on a failure and to fix it.
 
 """
 import logging
@@ -11,7 +11,7 @@ from typing import Any
 
 import config_manager as con
 
-from core.elements.field_map import FieldMap
+from core.elements.field_map import Element
 
 from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
@@ -43,14 +43,14 @@ class Fault:
 
     Attributes
     ----------
-    failed_cavities : list[FieldMap]
-        Holds the failed cavities.
-    compensating_cavities : list[FieldMap]
-        Holds the compensating cavities.
+    failed_elements : list[Element]
+        Holds the failed elements.
+    compensating_elements : list[Element]
+        Holds the compensating elements.
     elts : ListOfElements
         Holds the portion of the linac that will be computed again and again in
         the optimisation process. It is as short as possible, but must contain
-        all `failed_cavities`, `compensating_cavities` and
+        all `failed_elements`, `compensating_elements` and
         `elt_eval_objectives`.
     variables : list[Variable]
         Holds information on the optimisation variables.
@@ -73,8 +73,8 @@ class Fault:
                  files_from_full_list_of_elements: dict[str, Any],
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  broken_elts: ListOfElements,
-                 failed_cavities: list[FieldMap],
-                 compensating_cavities: list[FieldMap],
+                 failed_elements: list[Element],
+                 compensating_elements: list[Element],
                  initial_beam_parameters_factory: InitialBeamParametersFactory,
                  ) -> None:
         """
@@ -84,7 +84,7 @@ class Fault:
         ----------
         reference_elts : ListOfElements
             List of elements of the reference linac. In particular, these
-            elements hold the original cavity settings.
+            elements hold the original element settings.
         reference_simulation_output : SimulationOutput
             Nominal simulation.
         files_from_full_list_of_elements : dict
@@ -92,26 +92,29 @@ class Fault:
             calculation paths.
         wtf : dict[str, str | int | bool | list[str] | list[float]]
             What To Fit dictionary. Holds information on the fixing method.
-        failed_cavities : list[FieldMap]
-            Holds the failed cavities.
-        compensating_cavities : list[FieldMap]
-            Holds the compensating cavities.
+        failed_elements : list[Element]
+            Holds the failed elements.
+        compensating_elements : list[Element]
+            Holds the compensating elements.
         elts : list[Element]
             Holds the portion of the linac that will be computed again and
             again in the optimisation process. It is as short as possible, but
-            must contain all altered cavities as well as the elements where
+            must contain all altered elements as well as the elements where
             objectives will be evaluated.
 
         """
-        self.failed_cavities = failed_cavities
-        self.compensating_cavities = compensating_cavities
+        assert all([element.can_be_retuned for element in failed_elements])
+        self.failed_elements = failed_elements
+        assert all([element.can_be_retuned
+                    for element in compensating_elements])
+        self.compensating_elements = compensating_elements
 
-        reference_cavities = [equivalent_elt(reference_elts, cavity)
-                              for cavity in self.compensating_cavities]
+        reference_elements = [equivalent_elt(reference_elts, element)
+                              for element in self.compensating_elements]
         design_space = get_design_space_and_constraint_function(
             linac_name=con.LINAC,
-            reference_cavities=reference_cavities,
-            compensating_cavities=self.compensating_cavities,
+            reference_elements=reference_elements,
+            compensating_elements=self.compensating_elements,
             **wtf,
         )
         self.variables, self.constraints, self.compute_constraints = \
@@ -126,8 +129,8 @@ class Fault:
                 reference_elts=reference_elts,
                 reference_simulation_output=reference_simulation_output,
                 broken_elts=broken_elts,
-                failed_cavities=failed_cavities,
-                compensating_cavities=compensating_cavities,
+                failed_elements=failed_elements,
+                compensating_elements=compensating_elements,
                 )
 
         self.elts: ListOfElements = subset_of_pre_existing_list_of_elements(
@@ -161,35 +164,35 @@ class Fault:
         success, optimized_cavity_settings, self.info = outputs
         return success, optimized_cavity_settings, self.info
 
-    def update_cavities_status(self, optimisation: str,
+    def update_elements_status(self, optimisation: str,
                                success: bool | None = None) -> None:
-        """Update status of compensating and failed cavities."""
+        """Update status of compensating and failed elements."""
         if optimisation not in ['not started', 'finished']:
             logging.error("{optimisation =} not understood. Not changing any "
-                          + "status...")
+                          "status...")
             return
 
         if optimisation == 'not started':
-            cavities = self.failed_cavities + self.compensating_cavities
-            status = ['failed' for cav in self.failed_cavities]
+            elements = self.failed_elements + self.compensating_elements
+            status = ['failed' for cav in self.failed_elements]
             status += ['compensate (in progress)'
-                       for cav in self.compensating_cavities]
+                       for cav in self.compensating_elements]
 
-            if {cav.get('status') for cav in cavities} != {'nominal'}:
-                logging.error("At least one compensating or failed cavity is "
-                              + "already compensating or faulty, probably "
-                              + "in another Fault object. Updating its status "
-                              + "anyway...")
+            if {cav.get('status') for cav in elements} != {'nominal'}:
+                logging.error("At least one compensating or failed element is "
+                              "already compensating or faulty, probably in"
+                              "another Fault object. Updating its status "
+                              "anyway...")
 
         elif optimisation == 'finished':
             assert success is not None
 
-            cavities = self.compensating_cavities
-            status = ['compensate (ok)' for cav in cavities]
+            elements = self.compensating_elements
+            status = ['compensate (ok)' for _ in elements]
             if not success:
-                status = ['compensate (not ok)' for cav in cavities]
+                status = ['compensate (not ok)' for _ in elements]
 
-        for cav, stat in zip(cavities, status):
+        for cav, stat in zip(elements, status):
             cav.update_status(stat)
         self.elts.store_settings_in_dat(self.elts.files['dat_filepath'],
                                         save=True)
@@ -203,16 +206,16 @@ class Fault:
         comparison between solutions.
 
         """
-        # First half of X array: phase of cavities (relative or synchronous
+        # First half of X array: phase of elements (relative or synchronous
         # according to the value of wtf['phi_s fit']).
-        # Second half is the norms of cavities
+        # Second half is the norms of elements
         x_in_real_phase = self.info["X"].copy()
 
         key = 'phi_0_rel'
         if con.FLAG_PHI_ABS:
             key = 'phi_0_abs'
 
-        for i, cav in enumerate(self.compensating_cavities):
+        for i, cav in enumerate(self.compensating_elements):
             x_in_real_phase[i] = cav.acc_field.phi_0[key]
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase

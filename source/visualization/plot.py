@@ -18,6 +18,10 @@ implemented plots in :mod:`config.plots`.
 .. todo::
     Fix when there is only one accelerator to plot.
 
+.. todo::
+    Different plot according to dimension of FieldMap, or according to if it
+    accelerates or not (ex when quadrupole defined by a field map)
+
 """
 
 import os
