@@ -41,7 +41,6 @@ import config_manager as con
 
 from core.instruction import Instruction, Dummy
 
-from core.elements.factory import ElementFactory, IMPLEMENTED_ELEMENTS
 from core.elements.element import Element
 from core.elements.drift import Drift
 from core.elements.dummy import DummyElement
@@ -49,7 +48,6 @@ from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
 
-from core.commands.factory import CommandFactory, IMPLEMENTED_COMMANDS
 from core.commands.command import Command
 from core.instructions_factory import InstructionsFactory
 
