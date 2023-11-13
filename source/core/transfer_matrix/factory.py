@@ -21,15 +21,12 @@ class TransferMatrixFactory(ABC):
     def __init__(self,
                  is_3d: bool,
                  ) -> None:
-        """Store the first cumulated transfer matrix.
+        """Store if simulation is in 3D or not.
 
-        This quantity is a constant of the :class:`.ListOfElements`.
-
-        first_cumulated_transfer_matrix : np.ndarray
-            First transfer matrix. The default is None, in which case it will
-            be converted to the eye matrix -- corresponds to the study of a
-            full linac. It should be the cumulated transfer matrix of the
-            previous portion of linac otherwise.
+        Parameters
+        ----------
+        is_3d : bool
+            If the simulation is 3D or not.
 
         """
         self.is_3d = is_3d
@@ -45,8 +42,8 @@ class TransferMatrixFactory(ABC):
 
         """
         if self.is_3d:
-            return np.eye((6, 6))
-        return np.eye((2, 2))
+            return np.eye(6)
+        return np.eye(2)
 
     def _preprocess(self, *args, **kwargs) -> None:
         """Preprocess the data given by the :class:`.BeamCalculator`."""
