@@ -43,17 +43,17 @@ class Element(Instruction):
         Parameters
         ----------
         line : list[str]
-            A valid line of the ``.dat`` file.
+            A line of the ``.dat`` file. If the element was given a name, it
+            must not appear in ``line`` but rather in ``elt_name``. First
+            element of the list must be in :data:`.IMPLEMENTED_ELEMENTS`.
         dat_idx : int
             Position in the ``.dat`` file.
+        elt_name : str | None, optional
+            Non-default name of the element, as given in the ``.dat`` file. The
+            default is None, in which case an automatic name will be given
+            later.
 
         """
-        if elt_name is None:
-            if line[1] == ':':
-                elt_name = line[0]
-                del line[1]
-                del line[0]
-
         super().__init__(line, dat_idx, is_implemented=True)
 
         self.elt_info = {

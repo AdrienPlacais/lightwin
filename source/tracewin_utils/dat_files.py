@@ -41,6 +41,7 @@ import config_manager as con
 
 from core.instruction import Instruction, Dummy
 
+from core.elements.factory import ElementFactory, IMPLEMENTED_ELEMENTS
 from core.elements.element import Element
 from core.elements.aperture import Aperture
 from core.elements.drift import Drift
@@ -50,6 +51,7 @@ from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
 from core.elements.thin_steering import ThinSteering
 
+from core.commands.factory import CommandFactory, IMPLEMENTED_COMMANDS
 from core.commands.command import Command
 from core.commands.end import End
 from core.commands.field_map_path import FieldMapPath
@@ -113,7 +115,8 @@ def create_structure(dat_content: list[list[str]],
         List containing all the :class:`Element` objects.
 
     """
-    elts_n_cmds = _create_element_n_command_objects(dat_content, dat_filepath)
+    # elts_n_cmds = _create_element_n_command_objects(dat_content, dat_filepath)
+    elts_n_cmds = _create_instructions(dat_content, dat_filepath)
     elts_n_cmds = _apply_commands(elts_n_cmds, kwargs['freq_bunch'])
 
     elts = list(filter(lambda elt: isinstance(elt, Element), elts_n_cmds))
@@ -188,6 +191,60 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
                    for dat_idx, line in enumerate(dat_content)
                    ]
     return elts_n_cmds
+
+
+def _create_instructions(dat_content: list[list[str]],
+                         dat_filepath: str
+                         ) -> list[Instruction]:
+    """Initialize the :class:`.Element` and :class:`.Command`."""
+    instructions_kw = {'default_field_map_folder': dat_filepath}
+    args = (CommandFactory(), ElementFactory(), instructions_kw)
+
+    instructions = [_call_proper_factory(line,
+                                         dat_idx,
+                                         *args)
+                    for dat_idx, line in enumerate(dat_content)]
+    return instructions
+
+
+def _call_proper_factory(line: list[str],
+                         dat_idx: int,
+                         command_fac: CommandFactory,
+                         element_fac: ElementFactory,
+                         instruction_kw: dict[str, str]) -> Instruction:
+    """Create proper :class:`.Instruction`, or :class:`.Dummy`.
+
+    We go across every word of ``line``, and create the first instruction
+    that we find. If we do not recognize it, we return a dummy instruction
+    instead.
+
+    Parameters
+    ----------
+    line : list[str]
+        A single line of the ``.dat`` file.
+    dat_idx : int
+        Line number of the line (starts at 0).
+    command_fac : CommandFactory
+        A factory to create :class:`.Command`.
+    element_fac : ElementFactory
+        A factory to create :class:`.Element`.
+    instruction_kw : dict
+        Keywords given to the ``run`` method of the proper factory.
+
+    Returns
+    -------
+    Instruction
+        Proper :class:`.Command` or :class:`.Element`, or :class:`.Dummy`.
+
+    """
+    for word in line:
+        word = word.upper()
+        if word in IMPLEMENTED_COMMANDS:
+            return command_fac.run(line, dat_idx, **instruction_kw)
+        if word in IMPLEMENTED_ELEMENTS:
+            return element_fac.run(line, dat_idx, **instruction_kw)
+    return Dummy(line, dat_idx, warning=True)
+
 
 
 def _apply_commands(elts_n_cmds: list[Instruction],

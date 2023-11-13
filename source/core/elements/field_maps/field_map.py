@@ -63,10 +63,11 @@ class FieldMap(Element):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
-                 default_field_map_folder: str,
+                 elt_name: str | None = None,
+                 default_field_map_folder: str | None = None,
                  **kwargs) -> None:
         """Set most of attributes defined in ``TraceWin``."""
-        super().__init__(line, dat_idx)
+        super().__init__(line, dat_idx, elt_name)
         n_attributes = len(line) - 1
         assert n_attributes in [9, 10]
 

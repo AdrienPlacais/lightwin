@@ -11,9 +11,10 @@ class DummyElement(Element):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
+                 elt_name: str | None = None,
                  **kwargs: str) -> None:
         """Force an element with null-length, with no index."""
-        super().__init__(line, dat_idx)
+        super().__init__(line, dat_idx, elt_name)
         self.length_m = 0.
         self.idx['increment_lattice_idx'] = False
         self.idx['increment_elt_idx'] = True

@@ -14,7 +14,7 @@ IMPLEMENTED_ELEMENTS = {
     'APERTURE': Aperture,
     'DRIFT': Drift,
     'DUMMY_ELEMENT': DummyElement,
-    'FIELDMAP': FieldMap,
+    'FIELD_MAP': FieldMap,
     'QUAD': Quad,
     'SOLENOID': Solenoid,
     'THIN_STEERING': ThinSteering,
@@ -53,9 +53,12 @@ class ElementFactory:
             Make this robust.
 
         """
-        if line[1] == ':':
-            elt_name = line[0]
-            del line[1]
-            del line[0]
-            return elt_name, line
+        original_line = ' '.join(line)
+        line_delimited_with_name = original_line.split(':', maxsplit=1)
+
+        if len(line_delimited_with_name) == 2:
+            elt_name = line_delimited_with_name[0]
+            cleaned_line = line_delimited_with_name[1].split()
+            return elt_name, cleaned_line
+
         return None, line

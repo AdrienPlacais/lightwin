@@ -14,7 +14,11 @@ from core.elements.element import Element
 class Aperture(Element):
     """A dummy object."""
 
-    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+    def __init__(self,
+                 line: list[str],
+                 dat_idx: int,
+                 elt_name: str | None = None,
+                 **kwargs: str) -> None:
         """Force an element with null-length."""
-        super().__init__(line, dat_idx)
+        super().__init__(line, dat_idx, elt_name)
         self.length_m = 0.
