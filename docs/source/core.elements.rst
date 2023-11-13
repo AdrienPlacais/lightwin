@@ -6,6 +6,14 @@ core.elements package
    :undoc-members:
    :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   core.elements.field_maps
+
 Submodules
 ----------
 
@@ -16,7 +24,6 @@ Submodules
    core.elements.drift
    core.elements.dummy
    core.elements.element
-   core.elements.field_map
    core.elements.quad
    core.elements.solenoid
    core.elements.superposed_field_map
