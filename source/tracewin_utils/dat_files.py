@@ -39,7 +39,7 @@ from typing import TypeVar
 import numpy as np
 import config_manager as con
 
-from core.element_or_command import Dummy
+from core.instruction import Instruction, Dummy
 
 from core.elements.element import Element
 from core.elements.aperture import Aperture
@@ -87,7 +87,7 @@ def create_structure(dat_content: list[list[str]],
                      force_a_section_to_each_element: bool = True,
                      load_electromagnetic_files: bool = True,
                      check_consistency: bool = True,
-                     **kwargs: str | float) -> list[Element | Command]:
+                     **kwargs: str | float) -> list[Instruction]:
     """
     Create structure using the loaded ``.dat`` file.
 
@@ -142,7 +142,7 @@ def create_structure(dat_content: list[list[str]],
 
 def _create_element_n_command_objects(dat_content: list[list[str]],
                                       dat_filepath: str
-                                      ) -> list[Element | Command]:
+                                      ) -> list[Instruction]:
     """
     Initialize the :class:`.Element` and :class:`.Command`.
 
@@ -192,9 +192,9 @@ def _create_element_n_command_objects(dat_content: list[list[str]],
     return elts_n_cmds
 
 
-def _apply_commands(elts_n_cmds: list[Element | Command],
+def _apply_commands(elts_n_cmds: list[Instruction],
                     freq_bunch: float,
-                    ) -> list[Element | Command]:
+                    ) -> list[Instruction]:
     """Apply all the commands that are implemented."""
     index = 0
     while index < len(elts_n_cmds):
@@ -252,7 +252,7 @@ def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
 
 
 # Handle when no lattice
-def _check_consistency(elts_n_cmds: list[Element | Command]) -> None:
+def _check_consistency(elts_n_cmds: list[Instruction]) -> None:
     """Check that every element has a lattice index."""
     elts = list(filter(lambda elt: isinstance(elt, Element),
                        elts_n_cmds))
@@ -391,9 +391,9 @@ def update_field_maps_in_dat(
 
 
 def dat_filecontent_from_smaller_list_of_elements(
-    original_elts_n_cmds: list[Element | Command],
+    original_elts_n_cmds: list[Instruction],
     elts: list[Element],
-) -> tuple[list[list[str]], list[Element | Command]]:
+) -> tuple[list[list[str]], list[Instruction]]:
     """
     Create a ``.dat`` with only elements of ``elts`` (and concerned commands).
 
@@ -405,7 +405,7 @@ def dat_filecontent_from_smaller_list_of_elements(
     last_index = indexes_to_keep[-1] + 1
 
     new_dat_filecontent: list[list[str]] = []
-    new_elts_n_cmds: list[Element | Command] = []
+    new_elts_n_cmds: list[Instruction] = []
     for i, elt_or_cmd in enumerate(original_elts_n_cmds[:last_index]):
         element_to_keep = (isinstance(elt_or_cmd, Element | Dummy)
                            and elt_or_cmd.idx['dat_idx'] in indexes_to_keep)

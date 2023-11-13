@@ -3,18 +3,18 @@
 """
 Here we define a dummy :class:`.Element`/:class:`.Command`.
 
-We use it to keep track of an non-implemented element/command.
+We use it to keep track of non-implemented elements/commands.
 
-.. note::
-    Maybe :class:`.Element` and :class:`.Command` should inherit from this? It
-    would be much more consistent and pythonic.
+
+.. todo::
+    Clarify nature of ``dat_idx``.
 
 """
 import logging
 from abc import ABC
 
 
-class ElementOrCommand(ABC):
+class Instruction(ABC):
     """An object corresponding to a line in a ``.dat`` file."""
 
     line: list[str]
@@ -30,18 +30,32 @@ class ElementOrCommand(ABC):
         self.is_implemented = is_implemented
 
 
-class Dummy(ElementOrCommand):
+class Dummy(Instruction):
     """An object corresponding to a non-implemented element or command."""
 
-    def __init__(self, line: list[str],
+    def __init__(self,
+                 line: list[str],
                  dat_idx: dict[str, str | slice],
                  warning: bool = False,
                  ) -> None:
+        """Create the dummy object, raise a warning if necessary.
+
+        Parameters
+        ----------
+        line : list[str]
+            Arguments of the line in the ``.dat`` file.
+        dat_idx : dict[str, str | slice]
+            dat_idx
+        warning : bool, optional
+            To raise a warning when the element is not implemented. The default
+            is False.
+
+        """
         super().__init__(line, dat_idx, is_implemented=False)
         if warning:
             logging.warning("A dummy element was added as the corresponding "
                             "element or command is not implemented. If the "
-                            "BeamCalculator is Envelope1D, this may be a "
+                            "BeamCalculator is not TraceWni, this may be a "
                             "problem. In particular if the missing element "
                             "has a length that is non-zero. You can disable "
                             "this warning in tracewin_utils.dat_files._create"

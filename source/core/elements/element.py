@@ -14,10 +14,11 @@ This module holds :class:`Element`, declined in Drift, FieldMap, etc.
     __repr__ won't work with retuned elements
 
 """
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any
 import numpy as np
 
+from core.instruction import Instruction
 from core.electric_field import RfField
 
 from util.helper import recursive_items, recursive_getter
@@ -28,7 +29,7 @@ from beam_calculation.single_element_beam_calculator_parameters import (
     SingleElementCalculatorParameters)
 
 
-class Element(ABC):
+class Element(Instruction):
     """Generic element."""
 
     def __init__(self,
@@ -51,26 +52,28 @@ class Element(ABC):
             elt_name = line[0]
             del line[1]
             del line[0]
+
+        super().__init__(line, dat_idx, is_implemented=True)
+
         self.elt_info = {
             'elt_name': elt_name,
             'nature': line[0],
             'status': 'none',    # Only make sense for cavities
         }
-        self.line = line
         self.length_m = 1e-3 * float(line[1])
 
         # By default, an element is non accelerating and has a dummy
         # accelerating field.
         self.acc_field = RfField()
 
-        self.idx = {'dat_idx': dat_idx,
-                    'elt_idx': None,
-                    'increment_elt_idx': True,
-                    'lattice': None,
-                    'idx_in_lattice': None,
-                    'increment_lattice_idx': True,
-                    'section': None,
-                    }
+        new_idx = {'elt_idx': None,
+                   'increment_elt_idx': True,
+                   'lattice': None,
+                   'idx_in_lattice': None,
+                   'increment_lattice_idx': True,
+                   'section': None,
+                   }
+        self.idx = self.idx | new_idx
         self.beam_calc_param: dict[str, SingleElementCalculatorParameters] = {}
 
     def __str__(self) -> str:
@@ -79,13 +82,6 @@ class Element(ABC):
         if out is None:
             out = str(self.line)
         return out
-
-    def __repr__(self) -> str:
-        """Return __str__ for now."""
-        # if self.elt_info['status'] not in ['none', 'nominal']:
-        #     logging.warning("Element properties where changed.")
-        # return f"{self.__class__}(line={self.line})"
-        return self.__str__()
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""

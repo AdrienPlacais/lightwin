@@ -26,6 +26,7 @@ from typing import Any
 
 import numpy as np
 
+from core.instruction import Instruction
 from core.elements.element import Element
 from core.commands.command import Command
 from core.particle import ParticleInitialState
@@ -81,7 +82,7 @@ def new_list_of_elements(dat_filepath: str,
         'dat_filepath': dat_filepath,
         'dat_content': tracewin_utils.load.dat_file(dat_filepath),
         'out_path': accelerator_path,
-        'elts_n_cmds': list[Element | Command],
+        'elts_n_cmds': list[Instruction],
     }
 
     elts_n_cmds = _dat_filepath_to_plain_list_of_elements(files)
@@ -119,7 +120,7 @@ def _new_input_particle(w_kin: float,
 
 def _dat_filepath_to_plain_list_of_elements(
         files: dict[str, Any]
-) -> list[Element | Command]:
+) -> list[Instruction]:
     """
     Convert the content of the ``.dat`` file to a list of elements/commands.
 
@@ -131,7 +132,7 @@ def _dat_filepath_to_plain_list_of_elements(
 
     Returns
     -------
-    elts_n_cmds : list[Element | Command]
+    elts_n_cmds : list[Instruction]
         List containing all objects from the ``.dat`` file.
 
     """
