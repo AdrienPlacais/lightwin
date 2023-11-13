@@ -154,9 +154,14 @@ class BeamParametersFactory(ABC):
 
 class InitialBeamParametersFactory(ABC):
     """
-    This used when creating new :class:`.ListOfElements`.
+    This is used when creating new :class:`.ListOfElements`.
 
     This factory is not subclassed. Only one instance should be created.
+
+    .. todo::
+        Remove the ``is_3d``, ``is_multipart`` as I always create the same
+        object with ``True``, ``True``.
+        Also :meth:`self._determine_phase_spaces` is useless.
 
     """
 
