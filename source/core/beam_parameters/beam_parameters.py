@@ -328,10 +328,10 @@ class BeamParameters:
         }
 
         for phase_space_name in args:
-            this_phase_space_kw = kwargs.get(phase_space_name, default={})
+            this_phase_space_kw = kwargs.get(phase_space_name, {})
             proper_sigma_in = phase_space_to_proper_sigma_in.get(
                 phase_space_name,
-                default=None)
+                None)
             phase_space_beam_param = PhaseSpaceBeamParameters(
                 phase_space_name,
                 element_to_index=self.element_to_index,
