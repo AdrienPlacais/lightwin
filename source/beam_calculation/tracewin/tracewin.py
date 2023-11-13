@@ -50,15 +50,14 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.particle import ParticleFullTrajectory, ParticleInitialState
 from core.beam_parameters.beam_parameters import BeamParameters
-from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.tracewin.beam_parameters_factory import (
     BeamParametersFactoryTraceWin,
-    )
+)
 from beam_calculation.tracewin.transfer_matrix_factory import (
     TransferMatrixFactoryTraceWin
-    )
+)
 
 
 @dataclass
@@ -101,11 +100,11 @@ class TraceWin(BeamCalculator):
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
+        super().__post_init__()
         logging.warning("TraceWin solver currently cannot work with relative "
                         "phases (last arg of FIELD_MAP should be 1). You "
                         "should check this, because I will not.")
         self.ini_path = os.path.abspath(self.ini_path)
-        self.id = self.__repr__()
         self.out_folder += "_TraceWin"
 
         filename = 'tracewin.out'
@@ -118,10 +117,6 @@ class TraceWin(BeamCalculator):
         self.dat_file: str
         self._tracewin_command: list[str] | None = None
 
-        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation
-            )
         self.beam_parameters_factory = BeamParametersFactoryTraceWin(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation)

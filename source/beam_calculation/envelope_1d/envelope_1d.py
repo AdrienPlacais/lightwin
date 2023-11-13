@@ -7,7 +7,6 @@ It is fast, but should not be used at low energies.
 
 """
 import logging
-from typing import Any
 from dataclasses import dataclass
 
 import numpy as np
@@ -17,7 +16,6 @@ from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.beam_parameters.beam_parameters import BeamParameters
-from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
@@ -45,7 +43,7 @@ class Envelope1D(BeamCalculator):
 
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
-        self.id = self.__repr__()
+        super().__post_init__()
         self.out_folder += "_Envelope1D"
 
         if self.flag_cython:
@@ -61,17 +59,13 @@ class Envelope1D(BeamCalculator):
                 transf_mat
         self.transf_mat_module = transf_mat
 
-        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation
-            )
         self.beam_parameters_factory = BeamParametersFactoryEnvelope1D(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation
-            )
+        )
         self.transfer_matrix_factory = TransferMatrixFactoryEnvelope1D(
             self.is_a_3d_simulation
-            )
+        )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -244,7 +238,7 @@ class Envelope1D(BeamCalculator):
                 gamma_kin,
                 transfer_matrix,
                 element_to_index,
-                )
+            )
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,

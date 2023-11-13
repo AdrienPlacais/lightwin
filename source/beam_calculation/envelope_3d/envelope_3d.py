@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """Define :class:`Envelope3D`, an envelope solver."""
 from dataclasses import dataclass
-from typing import Any
-import logging
 
 import numpy as np
 
@@ -12,7 +10,6 @@ from core.elements.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 from core.beam_parameters.beam_parameters import BeamParameters
-from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
@@ -37,17 +34,13 @@ class Envelope3D(BeamCalculator):
 
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
-        self.id = self.__repr__()
+        super().__post_init__()
         self.out_folder += "_Envelope3D"
 
-        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation
-            )
         self.beam_parameters_factory = BeamParametersFactoryEnvelope3D(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation
-            )
+        )
         self.transfer_matrix_factory = TransferMatrixFactoryEnvelope3D(
             self.is_a_3d_simulation)
 
@@ -222,7 +215,7 @@ class Envelope3D(BeamCalculator):
                 gamma_kin,
                 transfer_matrix,
                 element_to_index,
-                )
+            )
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
