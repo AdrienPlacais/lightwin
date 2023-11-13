@@ -35,6 +35,7 @@ class Element(Instruction):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
+                 elt_name: str | None = None,
                  **kwargs: str) -> None:
         """
         Init parameters common to all elements.
@@ -47,11 +48,11 @@ class Element(Instruction):
             Position in the ``.dat`` file.
 
         """
-        elt_name = None
-        if line[1] == ':':
-            elt_name = line[0]
-            del line[1]
-            del line[0]
+        if elt_name is None:
+            if line[1] == ':':
+                elt_name = line[0]
+                del line[1]
+                del line[0]
 
         super().__init__(line, dat_idx, is_implemented=True)
 

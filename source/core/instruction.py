@@ -29,6 +29,10 @@ class Instruction(ABC):
         self.idx = {'dat_idx': dat_idx}
         self.is_implemented = is_implemented
 
+    def __str__(self) -> str:
+        """Give information on current command."""
+        return str(self.line)
+
 
 class Dummy(Instruction):
     """An object corresponding to a non-implemented element or command."""
