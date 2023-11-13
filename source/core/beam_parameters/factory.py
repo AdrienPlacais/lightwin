@@ -178,27 +178,30 @@ class InitialBeamParametersFactory(ABC):
             If the simulation is a multiparticle.
 
         """
-        self.phase_spaces = self._determine_phase_spaces(is_3d)
-        self.is_3d = is_3d
-        self.is_multipart = is_multipart
+        # self.phase_spaces = self._determine_phase_spaces(is_3d)
+        # self.is_3d = is_3d
+        # self.is_multipart = is_multipart
 
-    def _determine_phase_spaces(self, is_3d: bool) -> tuple[str, ...]:
-        """Set the phase spaces that we will need to start a calculation.
+        # self.phase_spaces = ('x', 'y', 'z', 'zdelta')
+        self.phase_spaces = ('x', 'y', 'zdelta')
 
-        Parameters
-        ----------
-        is_3d : bool
-            If the simulation is in 3D.
+    # def _determine_phase_spaces(self, is_3d: bool) -> tuple[str, ...]:
+    #     """Set the phase spaces that we will need to start a calculation.
 
-        Returns
-        -------
-        tuple[str, ...]
-            Name of the phase spaces to create.
+    #     Parameters
+    #     ----------
+    #     is_3d : bool
+    #         If the simulation is in 3D.
 
-        """
-        if not is_3d:
-            return ('zdelta',)
-        return ('x', 'y', 'zdelta')
+    #     Returns
+    #     -------
+    #     tuple[str, ...]
+    #         Name of the phase spaces to create.
+
+    #     """
+    #     if not is_3d:
+    #         return ('zdelta',)
+    #     return ('x', 'y', 'zdelta')
 
     def factory_new(self,
                     sigma_in: np.ndarray,
@@ -235,7 +238,8 @@ class InitialBeamParametersFactory(ABC):
         input_beam.init_phase_spaces_from_sigma(sub_sigmas)
         return input_beam
 
-    def _generate_dict_of_sigma_matrices(self, sigma_in: np.ndarray
+    def _generate_dict_of_sigma_matrices(self,
+                                         sigma_in: np.ndarray
                                          ) -> dict[str, np.ndarray]:
         r"""Separate the sigma beam matrices into its three components.
 
