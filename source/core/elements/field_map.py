@@ -86,6 +86,11 @@ class FieldMap(Element):
         """Tell if the cavity is working."""
         return self.elt_info['status'] != 'failed'
 
+    @property
+    def can_be_retuned(self) -> bool:
+        """Tell if we can modify the element's tuning."""
+        return True
+
     def update_status(self, new_status: str) -> None:
         """
         Change the status of a cavity.

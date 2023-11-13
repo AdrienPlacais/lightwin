@@ -13,8 +13,3 @@ class Drift(Element):
         super().__init__(line, dat_idx)
         n_attributes = len(line) - 1
         assert n_attributes in [2, 3, 5]
-
-    @property
-    def is_accelerating(self) -> bool:
-        """Return ``False``."""
-        return False

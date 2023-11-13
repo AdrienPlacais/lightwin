@@ -131,40 +131,6 @@ class Element(ABC):
             return out[0]
         return tuple(out)
 
-    def update_status(self, new_status: str) -> None:
-        """
-        Change the status of a cavity.
-
-        We also ensure that the value new_status is correct. If the new value
-        is 'failed', we also set the norm of the electric field to 0.
-
-        """
-        assert self.elt_info['nature'] == 'FIELD_MAP', 'The status of an ' + \
-            'element only makes sense for cavities.'
-
-        authorized_values = [
-            # Cavity settings not changed from .dat
-            "nominal",
-            # Cavity ABSOLUTE phase changed; relative phase unchanged
-            "rephased (in progress)",
-            "rephased (ok)",
-            # Cavity norm is 0
-            "failed",
-            # Trying to fit
-            "compensate (in progress)",
-            # Compensating, proper setting found
-            "compensate (ok)",
-            # Compensating, proper setting not found
-            "compensate (not ok)",
-        ]
-        assert new_status in authorized_values
-
-        self.elt_info['status'] = new_status
-        if new_status == 'failed':
-            self.acc_field.k_e = 0.
-            for beam_calc_param in self.beam_calc_param.values():
-                beam_calc_param.re_set_for_broken_cavity()
-
     def keep_rf_field(self, rf_field: dict, v_cav_mv: float, phi_s: float,
                       ) -> None:
         """Save data calculated by :func:`BeamCalculator.run_with_this`."""
@@ -203,7 +169,19 @@ class Element(ABC):
         return {}
 
     @property
-    @abstractmethod
     def is_accelerating(self) -> bool:
-        """Say if this element is accelerating or not."""
+        """Say if this element is accelerating or not.
+
+        Will return False by default.
+
+        """
+        return False
+
+    @property
+    def can_be_retuned(self) -> bool:
+        """Tell if we can modify the element's tuning.
+
+        Will return False by default.
+
+        """
         return False

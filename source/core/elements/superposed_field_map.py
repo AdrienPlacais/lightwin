@@ -21,8 +21,3 @@ class SuperposedFieldMap(Element):
                  **kwargs: str) -> None:
         super().__init__(line, dat_idx)
         self.length_m = total_length
-
-    @property
-    def is_accelerating(self) -> bool:
-        """Return ``False``."""
-        return False
