@@ -83,10 +83,6 @@ class PhaseSpaceBeamParameters:
         self.mismatch_factor: np.ndarray
         self._store_input_if_not_none(**kwargs)
 
-        if self.phase_space == 'zdelta' and self.is_not_set('sigma_in'):
-            logging.warning("Manually set sigma_in, should be done "
-                            "explicitly.")
-            self.sigma_in = con.SIGMA_ZDELTA
         self._eps_no_norm: np.ndarray
 
     def _check_input_is_implemented(self, keys_of_kwargs: tuple[str, ...]
@@ -284,6 +280,7 @@ class PhaseSpaceBeamParameters:
                         beta_kin: np.ndarray,
                         ) -> None:
         """Compute Twiss, eps, envelopes just from sigma matrix."""
+        self.sigma_in = sigma[0]
         eps_no_normalisation, eps_normalized = self._compute_eps_from_sigma(
             sigma,
             gamma_kin,
