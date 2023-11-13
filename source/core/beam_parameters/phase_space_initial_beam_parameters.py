@@ -368,3 +368,50 @@ class PhaseSpaceInitialBeamParameters:
         if self.phase_space == 'zdelta':
             envelope_energy /= 10.
         return envelope_pos, envelope_energy
+
+    def init_from_another_plane(self,
+                                eps_orig: float,
+                                twiss_orig: np.ndarray,
+                                gamma_kin: float,
+                                beta_kin: float,
+                                convert: str) -> None:
+        """Fully initialize from another phase space."""
+        _, eps_normalized = self._compute_eps_from_other_plane(eps_orig,
+                                                               convert,
+                                                               gamma_kin,
+                                                               beta_kin)
+        self.eps = eps_normalized
+        self._compute_twiss_from_other_plane(twiss_orig,
+                                             convert,
+                                             gamma_kin,
+                                             beta_kin)
+
+    def _compute_eps_from_other_plane(self,
+                                      eps_orig: float,
+                                      convert: str,
+                                      gamma_kin: float,
+                                      beta_kin: float
+                                      ) -> tuple[float, float]:
+        """Convert emittance from another phase space."""
+        eps_normalized = converters.emittance(eps_orig, convert,
+                                              gamma_kin=gamma_kin,
+                                              beta_kin=beta_kin)
+
+        eps_no_normalisation = converters.emittance(
+            eps_normalized,
+            f"de-normalize {self.phase_space}",
+            gamma_kin,
+            beta_kin
+        )
+        return eps_no_normalisation, eps_normalized
+
+    def _compute_twiss_from_other_plane(self,
+                                        twiss_orig: np.ndarray,
+                                        convert: str,
+                                        gamma_kin: float,
+                                        beta_kin: float) -> None:
+        """Compute Twiss parameters from Twiss parameters in another plane."""
+        self.twiss = converters.twiss(twiss_orig[np.newaxis],
+                                      np.array(gamma_kin),
+                                      convert,
+                                      beta_kin=np.array(beta_kin))[0]

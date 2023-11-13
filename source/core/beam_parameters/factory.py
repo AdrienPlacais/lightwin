@@ -1,20 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Define a factory for the :class:`.BeamParameters`.
-
-try something...
-
-InitialBeamParameters in ListOfElements  -> called once per ListOfElements
-BeamParameters in BeamCalculator         -> called for every SimulationOutput
-
-... even for ListOfElements, should be linked with BeamCalculator, they do not
-need the same BeamParameters!
-
-.. todo::
-    Check if :meth:`._check_sigma_in` is still useful...
-
-"""
+"""Define a factory for the :class:`.BeamParameters`."""
 from abc import ABC, abstractmethod
 from typing import Callable, Sequence
 import logging
@@ -182,8 +168,8 @@ class InitialBeamParametersFactory(ABC):
         # self.is_3d = is_3d
         # self.is_multipart = is_multipart
 
-        # self.phase_spaces = ('x', 'y', 'z', 'zdelta')
-        self.phase_spaces = ('x', 'y', 'zdelta')
+        self.phase_spaces = ('x', 'y', 'z', 'zdelta')
+        # self.phase_spaces = ('x', 'y', 'zdelta')
 
     # def _determine_phase_spaces(self, is_3d: bool) -> tuple[str, ...]:
     #     """Set the phase spaces that we will need to start a calculation.
@@ -236,6 +222,9 @@ class InitialBeamParametersFactory(ABC):
                                            )
         sub_sigmas = self._generate_dict_of_sigma_matrices(sigma_in)
         input_beam.init_phase_spaces_from_sigma(sub_sigmas)
+        input_beam.init_phase_space_from_another_one('zdelta', 'z',
+                                                     gamma_kin,
+                                                     beta_kin)
         return input_beam
 
     def _generate_dict_of_sigma_matrices(self,
@@ -304,6 +293,9 @@ class InitialBeamParametersFactory(ABC):
                                            gamma_kin,
                                            beta_kin)
         input_beam.init_phase_spaces_from_kwargs(initial_beam_kw)
+        input_beam.init_phase_space_from_another_one('zdelta', 'z',
+                                                     gamma_kin,
+                                                     beta_kin)
         logging.critical(f"Is this sigma_in ok? {input_beam.zdelta.sigma}")
         return input_beam
 

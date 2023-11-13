@@ -70,7 +70,7 @@ class InitialBeamParameters:
         self.y99: PhaseSpaceInitialBeamParameters
 
     def init_phase_spaces_from_sigma(self,
-                                     sub_sigmas: dict[str, np.ndarray]
+                                     sub_sigmas: dict[str, np.ndarray],
                                      ) -> None:
         r"""Init phase space from a sigma matrix.
 
@@ -81,8 +81,7 @@ class InitialBeamParameters:
             beam matrix in corresponding plane. Shape is (2, 2).
 
         """
-        for phase_space_name in self.phase_spaces:
-            sub_sigma = sub_sigmas[phase_space_name]
+        for phase_space_name, sub_sigma in sub_sigmas.items():
             phase_space = PhaseSpaceInitialBeamParameters(phase_space_name,
                                                           sigma=sub_sigma)
             phase_space.init_from_sigma(self.gamma_kin, self.beta_kin)
@@ -104,6 +103,40 @@ class InitialBeamParameters:
             assert key in IMPLEMENTED_PHASE_SPACES, f"{key = } should be the "\
                 "name of a phase space."
             setattr(self, key, PhaseSpaceInitialBeamParameters(key, **value))
+
+    def init_phase_space_from_another_one(self,
+                                          phase_space_name_in: str,
+                                          phase_space_name_out: str,
+                                          gamma_kin: float,
+                                          beta_kin: float) -> None:
+        """Initialize a phase space from another one that is known.
+
+        Parameters
+        ----------
+        phase_space_name_in : {'zdelta'}
+            Name of the known phase space.
+        phase_space_name_out : {'phiw', 'z'}
+            Name of the unknown phase space.
+        gamma_kin, beta_kin : float
+            Lorentz factors.
+
+        """
+        implemented_in = ('zdelta', )
+        implemented_out = ('phiw', 'z')
+        assert phase_space_name_in in implemented_in, \
+            f"{phase_space_name_in = } not in {implemented_in = }"
+        assert phase_space_name_out in implemented_out, \
+            f"{phase_space_name_out = } not in {implemented_out = }"
+
+        phase_space_in = self.get(phase_space_name_in)
+        phase_space_out = PhaseSpaceInitialBeamParameters(phase_space_name_out)
+        conversion_name = f"{phase_space_name_in} to {phase_space_name_out}"
+        phase_space_out.init_from_another_plane(phase_space_in.eps,
+                                                phase_space_in.twiss,
+                                                gamma_kin,
+                                                beta_kin,
+                                                conversion_name)
+        setattr(self, phase_space_name_out, phase_space_out)
 
     def __str__(self) -> str:
         """Give compact information on the data that is stored."""

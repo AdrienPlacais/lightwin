@@ -6,14 +6,6 @@ Gather the beam parameters of all the phase spaces.
 For a list of the units associated with every parameter, see
 :ref:`units-label`.
 
-.. todo::
-    Recheck the _create_tracewin_command. ``phases_are_needed`` = not clear.
-    Why use z and not zdelta? Needed here... Or rather in
-    initial_beam_parameters?
-
-.. todo::
-    Initialization of phase spaces directly in the __init__ method.
-
 """
 from typing import Any, Callable
 from dataclasses import dataclass
