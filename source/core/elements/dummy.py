@@ -17,3 +17,8 @@ class DummyElement(Element):
         self.length_m = 0.
         self.idx['increment_lattice_idx'] = False
         self.idx['increment_elt_idx'] = True
+
+    @property
+    def is_accelerating(self) -> bool:
+        """Return ``False``."""
+        return False

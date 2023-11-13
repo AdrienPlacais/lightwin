@@ -120,7 +120,7 @@ class Envelope1D(BeamCalculator):
                                            cavity_settings)
             elt_results = \
                 elt.beam_calc_param[self.id].transf_mat_function_wrapper(
-                    w_kin, elt.is_accelerating(), elt.get('status'),
+                    w_kin, elt.is_accelerating, elt.get('status'),
                     **rf_field_kwargs)
 
             single_elts_results.append(elt_results)
@@ -174,7 +174,7 @@ class Envelope1D(BeamCalculator):
         for elt in elts:
             elt.beam_calc_param[self.id] = SingleElementEnvelope1DParameters(
                 length_m=elt.get('length_m', to_numpy=False),
-                is_accelerating=elt.is_accelerating(),
+                is_accelerating=elt.is_accelerating,
                 n_cells=elt.get('n_cell', to_numpy=False),
                 **kwargs)
 

@@ -105,7 +105,7 @@ class Envelope3D(BeamCalculator):
             elt_results = \
                 elt.beam_calc_param[self.id].transf_mat_function_wrapper(
                     w_kin,
-                    elt.is_accelerating(),
+                    elt.is_accelerating,
                     elt.get('status'),
                     gradient=gradient,
                     **rf_field_kwargs)

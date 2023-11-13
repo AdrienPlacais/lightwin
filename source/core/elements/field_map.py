@@ -64,6 +64,11 @@ class FieldMap(Element):
                                  phi_0=np.deg2rad(float(line[3])))
         self.update_status('nominal')
 
+    @property
+    def is_accelerating(self) -> bool:
+        """Tell if the cavity is working."""
+        return self.elt_info['status'] != 'failed'
+
     def set_full_path(self, extensions: dict[str, list[str]]) -> None:
         """
         Set absolute paths with extensions of electromagnetic files.

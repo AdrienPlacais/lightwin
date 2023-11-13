@@ -18,3 +18,8 @@ class Aperture(Element):
         """Force an element with null-length."""
         super().__init__(line, dat_idx)
         self.length_m = 0.
+
+    @property
+    def is_accelerating(self) -> bool:
+        """Return ``False``."""
+        return False

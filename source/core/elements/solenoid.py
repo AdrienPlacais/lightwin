@@ -13,3 +13,8 @@ class Solenoid(Element):
         super().__init__(line, dat_idx)
         n_attributes = len(line) - 1
         assert n_attributes == 3
+
+    @property
+    def is_accelerating(self) -> bool:
+        """Return ``False``."""
+        return False

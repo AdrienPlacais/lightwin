@@ -14,6 +14,7 @@ This module holds :class:`Element`, declined in Drift, FieldMap, etc.
     __repr__ won't work with retuned elements
 
 """
+from abc import ABC, abstractmethod
 from typing import Any
 import numpy as np
 
@@ -27,7 +28,7 @@ from beam_calculation.single_element_beam_calculator_parameters import (
     SingleElementCalculatorParameters)
 
 
-class Element():
+class Element(ABC):
     """Generic element."""
 
     def __init__(self,
@@ -201,7 +202,8 @@ class Element():
         """
         return {}
 
+    @property
+    @abstractmethod
     def is_accelerating(self) -> bool:
         """Say if this element is accelerating or not."""
-        return self.get('nature') == 'FIELD_MAP' \
-            and self.get('status') != 'failed'
+        return False
