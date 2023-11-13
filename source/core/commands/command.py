@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 
 from core.elements.element import Element
 from core.elements.dummy import DummyElement
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 from core.elements.superposed_field_map import SuperposedFieldMap
 
 from core.electric_field import RfField

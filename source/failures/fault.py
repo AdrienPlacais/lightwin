@@ -11,7 +11,7 @@ from typing import Any
 
 import config_manager as con
 
-from core.elements.field_map import Element
+from core.elements.element import Element
 
 from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters

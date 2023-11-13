@@ -8,7 +8,7 @@
 
 """
 from core.elements.element import Element
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 
 
 class SuperposedFieldMap(Element):

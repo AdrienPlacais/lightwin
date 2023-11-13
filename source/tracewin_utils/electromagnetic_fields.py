@@ -7,7 +7,7 @@ from typing import Callable
 import pandas as pd
 import numpy as np
 
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 import tracewin_utils.load
 
 

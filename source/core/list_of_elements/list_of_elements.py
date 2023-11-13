@@ -21,7 +21,7 @@ import numpy as np
 import config_manager
 
 from core.elements.element import Element
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.particle import ParticleInitialState

@@ -3,7 +3,7 @@
 """Define simple tests for functionality under implementation."""
 from typing import Sequence
 from core.elements.element import Element
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 
 
 def assert_are_field_maps(elements: Sequence[Element], detail: str) -> None:

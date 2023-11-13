@@ -32,7 +32,7 @@ from optimisation.objective.position import zone_to_recompute
 from optimisation.design_space.factory import LIMITS_GETTERS
 
 from core.elements.element import Element
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt

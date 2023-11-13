@@ -14,7 +14,7 @@ from functools import partial
 import numpy as np
 
 from core.elements.element import Element
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 
 

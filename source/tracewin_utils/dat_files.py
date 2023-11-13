@@ -45,7 +45,7 @@ from core.elements.element import Element
 from core.elements.aperture import Aperture
 from core.elements.drift import Drift
 from core.elements.dummy import DummyElement
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
 from core.elements.thin_steering import ThinSteering

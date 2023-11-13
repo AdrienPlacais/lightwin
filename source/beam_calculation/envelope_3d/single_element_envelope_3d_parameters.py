@@ -27,7 +27,7 @@ from beam_calculation.single_element_beam_calculator_parameters import (
 from core.elements.element import Element
 from core.elements.drift import Drift
 from core.elements.quad import Quad
-from core.elements.field_map import FieldMap
+from core.elements.field_maps.field_map import FieldMap
 
 
 implemented_transfer_matrices = (Drift, Quad, FieldMap)  #:
