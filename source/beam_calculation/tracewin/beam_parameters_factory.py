@@ -25,7 +25,6 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
                                        int | slice],
     ) -> BeamParameters:
         """Create the :class:`.BeamParameters` object."""
-        assert element_to_index is not None
         z_abs, gamma_kin, beta_kin = self._check_and_set_arrays(z_abs,
                                                                 gamma_kin)
 

@@ -20,7 +20,7 @@ class BeamParametersFactoryEnvelope1D(BeamParametersFactory):
             gamma_kin: np.ndarray,
             transfer_matrix: TransferMatrix,
             element_to_index: Callable[[str | Element, str | None],
-                                       int | slice] | None = None,
+                                       int | slice]
             ) -> BeamParameters:
         """Create the :class:`.BeamParameters` object."""
         z_abs, gamma_kin, beta_kin = self._check_and_set_arrays(z_abs,
