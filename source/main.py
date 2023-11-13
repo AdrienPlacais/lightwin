@@ -23,6 +23,7 @@ from failures.fault_scenario import FaultScenario, fault_scenario_factory
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_objects
 from beam_calculation.output import SimulationOutput
+from core.beam_parameters.factory import InitialBeamParametersFactory
 
 from visualization import plot
 
@@ -107,6 +108,10 @@ if __name__ == '__main__':
     my_beam_calc_post: BeamCalculator | None
     my_beam_calc, my_beam_calc_post = my_beam_calculators
 
+    initial_beam_parameters_factory = InitialBeamParametersFactory(
+        is_3d=True,
+        is_multipart=True)
+
     solv1 = my_beam_calc.id
     solv2 = my_beam_calc_post.id if my_beam_calc_post is not None else None
 
@@ -114,8 +119,10 @@ if __name__ == '__main__':
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
     # Reference accelerator
-    accelerators: list[Accelerator] = \
-        accelerator_factory(my_beam_calculators, **my_configs)
+    accelerators: list[Accelerator] = accelerator_factory(
+        my_beam_calculators,
+        initial_beam_parameters_factory=initial_beam_parameters_factory,
+        **my_configs)
     beam_calc_and_save(accelerators[0], my_beam_calc)
     # FIXME dirty patch to initialize _element_to_index function
     if "TraceWin" in solv1:
@@ -130,7 +137,9 @@ if __name__ == '__main__':
         beam_calc_and_save(accelerators[1], my_beam_calc)
 
     fault_scenarios: list[FaultScenario]
-    fault_scenarios = fault_scenario_factory(accelerators, my_beam_calc,
+    fault_scenarios = fault_scenario_factory(accelerators,
+                                             my_beam_calc,
+                                             initial_beam_parameters_factory,
                                              my_configs['wtf'])
 
     # =========================================================================

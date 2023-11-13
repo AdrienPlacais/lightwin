@@ -78,7 +78,7 @@ class Accelerator():
         self.files = {'project_folder': project_folder,
                       'accelerator_path': accelerator_path}
 
-        self.initial_beam_parameters_factory = initial_beam_parameters_factory
+        # self.initial_beam_parameters_factory = initial_beam_parameters_factory
 
         kwargs = {'w_kin': con.E_MEV,
                   'phi_abs': 0.,
@@ -241,12 +241,14 @@ class Accelerator():
         return equivalent_elt(self.elts, elt)
 
 
-def accelerator_factory(beam_calculators: tuple[object | None],
-                        files: dict[str, str],
-                        beam: dict[str, Any],
-                        wtf: dict[str, Any] | None = None,
-                        **kwargs
-                        ) -> list[Accelerator]:
+def accelerator_factory(
+        beam_calculators: tuple[object | None],
+        files: dict[str, str],
+        beam: dict[str, Any],
+        initial_beam_parameters_factory: InitialBeamParametersFactory,
+        wtf: dict[str, Any] | None = None,
+        **kwargs
+) -> list[Accelerator]:
     """Create the required Accelerators as well as their output folders."""
     n_simulations = 1
     if wtf is not None:
@@ -256,10 +258,6 @@ def accelerator_factory(beam_calculators: tuple[object | None],
                         for beam_calculator in beam_calculators
                         if beam_calculator is not None
                          ])
-    initial_beam_parameters_factories = [
-        beam_calculator.initial_beam_parameters_factory
-        for beam_calculator in beam_calculators
-        if beam_calculator is not None]
 
     accelerator_paths = _generate_folders_tree_structure(
         project_folder=files['project_folder'],
@@ -275,10 +273,7 @@ def accelerator_factory(beam_calculators: tuple[object | None],
         out_folders=out_folders,
         initial_beam_parameters_factory=initial_beam_parameters_factory,
         **files
-        ) for name, accelerator_path, initial_beam_parameters_factory
-                    in zip(names,
-                           accelerator_paths,
-                           initial_beam_parameters_factories)]
+    ) for name, accelerator_path in zip(names, accelerator_paths)]
     return accelerators
 
 

@@ -133,9 +133,14 @@ class BeamParameters:
             return hasattr(phase_space, key)
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
-            elt: Element | None = None, pos: str | None = None,
-            phase_space: str | None = None, **kwargs: Any) -> Any:
+    def get(self,
+            *keys: str,
+            to_numpy: bool = True,
+            none_to_nan: bool = False,
+            elt: Element | None = None,
+            pos: str | None = None,
+            phase_space: str | None = None,
+            **kwargs: Any) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 

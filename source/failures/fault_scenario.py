@@ -13,13 +13,15 @@ import config_manager as con
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.output import SimulationOutput
-from optimisation.algorithms.factory import optimisation_algorithm_factory
 
 from failures.fault import Fault
 from failures import strategy
 
 from core.elements.element import Element
 from core.accelerator import Accelerator
+from core.beam_parameters.factory import InitialBeamParametersFactory
+
+from optimisation.algorithms.factory import optimisation_algorithm_factory
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
 
 from util import debug
@@ -37,6 +39,7 @@ class FaultScenario(list):
                  ref_acc: Accelerator,
                  fix_acc: Accelerator,
                  beam_calculator: BeamCalculator,
+                 initial_beam_parameters_factory: InitialBeamParametersFactory,
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  fault_idx: list[int] | list[list[int]],
                  comp_idx: list[list[int]] | None = None,
@@ -52,6 +55,9 @@ class FaultScenario(list):
             The broken linac to be fixed.
         beam_calculator : BeamCalculator
             The solver that will be called during the optimisation process.
+        initial_beam_parameters_factory : InitialBeamParametersFactory
+            An object to create beam parameters at the entrance of the linac
+            portion.
         wtf : dict[str, str | int | bool | list[str] | list[float]]
             What To Fit dictionary. Holds information on the fixing method.
         fault_idx : list[int | list[int]]
@@ -94,8 +100,8 @@ class FaultScenario(list):
                 broken_elts=self.fix_acc.elts,
                 failed_cavities=faulty_cavities,
                 compensating_cavities=compensating_cavities,
-                initial_beam_parameters_factory=beam_calculator.initial_beam_parameters_factory,
-                )
+                initial_beam_parameters_factory=initial_beam_parameters_factory,
+            )
             faults.append(fault)
         super().__init__(faults)
         self._set_optimisation_algorithms()
@@ -319,6 +325,7 @@ class FaultScenario(list):
 def fault_scenario_factory(
     accelerators: list[Accelerator],
     beam_calculator: BeamCalculator,
+    initial_beam_parameters_factory: InitialBeamParametersFactory,
     wtf: dict[str, str | int | bool | list[str] | list[float]]
 ) -> list[FaultScenario]:
     """
@@ -343,21 +350,23 @@ def fault_scenario_factory(
     """
     scenarios_fault_idx = wtf.pop('failed')
 
-    scenarios_comp_idx = [None for accelerator in accelerators[1:]]
+    scenarios_comp_idx = [None for _ in accelerators[1:]]
     if 'manual list' in wtf:
         scenarios_comp_idx = wtf.pop('manual list')
 
     _ = [beam_calculator.init_solver_parameters(accelerator)
          for accelerator in accelerators]
 
-    fault_scenarios = [FaultScenario(ref_acc=accelerators[0],
-                                     fix_acc=accelerator,
-                                     beam_calculator=beam_calculator,
-                                     wtf=wtf,
-                                     fault_idx=fault_idx,
-                                     comp_idx=comp_idx)
-                       for accelerator, fault_idx, comp_idx
-                       in zip(accelerators[1:], scenarios_fault_idx,
-                              scenarios_comp_idx)]
+    fault_scenarios = [
+        FaultScenario(
+            ref_acc=accelerators[0],
+            fix_acc=accelerator,
+            beam_calculator=beam_calculator,
+            initial_beam_parameters_factory=initial_beam_parameters_factory,
+            wtf=wtf,
+            fault_idx=fault_idx,
+            comp_idx=comp_idx)
+        for accelerator, fault_idx, comp_idx
+        in zip(accelerators[1:], scenarios_fault_idx, scenarios_comp_idx)]
 
     return fault_scenarios

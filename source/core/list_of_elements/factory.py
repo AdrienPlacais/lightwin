@@ -181,14 +181,12 @@ def subset_of_pre_existing_list_of_elements(
                  f"elements: {elts[0]} to {elts[-1]}.")
 
     input_elt, input_pos = _get_initial_element(elts, simulation_output)
-    kwargs = {'elt': input_elt,
+    get_kw = {'elt': input_elt,
               'pos': input_pos,
               'to_numpy': False,
-              'phase_space': None}
-    input_particle = _subset_input_particle(simulation_output, **kwargs)
-    input_beam: InitialBeamParameters
-    input_beam = input_beam_factory.factory_subset(simulation_output,
-                                                   kwargs)
+              }
+    input_particle = _subset_input_particle(simulation_output, **get_kw)
+    input_beam = input_beam_factory.factory_subset(simulation_output, get_kw)
 
     logging.warning("The phase_info dict, which handles how and if cavities "
                     "are rephased in the .dat file, is hard-coded. It should"

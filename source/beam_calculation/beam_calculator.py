@@ -26,10 +26,7 @@ from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt
 from core.accelerator import Accelerator
-from core.beam_parameters.factory import (
-    BeamParametersFactory,
-    InitialBeamParametersFactory,
-)
+from core.beam_parameters.factory import BeamParametersFactory
 from core.transfer_matrix.factory import TransferMatrixFactory
 
 
@@ -40,12 +37,8 @@ class BeamCalculator(ABC):
     out_folder: str
 
     def __post_init__(self):
-        """Set ``id`` and :class:`.InitialBeamParametersFactory`."""
+        """Set ``id``."""
         self.id: str = self.__repr__()
-        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation
-        )
         self.beam_parameters_factory: BeamParametersFactory
         self.transfer_matrix_factory: TransferMatrixFactory
 

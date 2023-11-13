@@ -29,7 +29,12 @@ from util import converters
 
 
 class BeamParametersFactory(ABC):
-    """Declare factory method, that returns the :class:`.BeamParameters`."""
+    """
+    Declare factory method, that returns the :class:`.BeamParameters`.
+
+    Subclassed by every :class:`.BeamCalculator`.
+
+    """
 
     def __init__(self,
                  is_3d: bool,
@@ -59,7 +64,7 @@ class BeamParametersFactory(ABC):
             self,
             z_abs: np.ndarray | float,
             gamma_kin: np.ndarray | float
-            ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Ensure that inputs are arrays with proper shape, compute beta."""
         z_abs = np.atleast_1d(z_abs)
         gamma_kin = np.atleast_1d(gamma_kin)
@@ -144,11 +149,16 @@ class BeamParametersFactory(ABC):
                 tm_cumul=transfer_matrix,
                 gamma_kin=gamma_kin,
                 beta_kin=beta_kin
-                )
+            )
 
 
 class InitialBeamParametersFactory(ABC):
-    """This used when creating new :class:`.ListOfElements`."""
+    """
+    This used when creating new :class:`.ListOfElements`.
+
+    This factory is not subclassed. Only one instance should be created.
+
+    """
 
     def __init__(self,
                  is_3d: bool,
@@ -240,12 +250,12 @@ class InitialBeamParametersFactory(ABC):
             'x': sigma_in[:2, :2],
             'y': sigma_in[2:4, 2:4],
             'zdelta': sigma_in[4:, 4:]
-            }
+        }
         return sub_sigmas
 
     def factory_subset(self,
                        simulation_output: SimulationOutput,
-                       get_kwargs: dict[str, Element | str | bool | None],
+                       get_kw: dict[str, Element | str | bool | None],
                        ) -> InitialBeamParameters:
         """Generate :class:`.InitialBeamParameters` for a linac portion.
 
@@ -253,7 +263,7 @@ class InitialBeamParametersFactory(ABC):
         ----------
         simulation_output : SimulationOutput
             Object from which the beam parameters data will be taken.
-        get_kwargs : dict[str, Element | str | bool | None]
+        get_kw : dict[str, Element | str | bool | None]
             dict that can be passed to the `get` method and that will return
             the data at the beginning of the linac portion.
 
@@ -265,33 +275,36 @@ class InitialBeamParametersFactory(ABC):
 
         """
         args = ('z_abs', 'gamma', 'beta', 'sigma')
-        z_abs, gamma_kin, beta_kin, sigma = simulation_output.get(
-            *args,
-            **get_kwargs)
+        z_abs, gamma_kin, beta_kin, _ = simulation_output.get(*args, **get_kw)
 
         original_beam_parameters = simulation_output.beam_parameters
         assert original_beam_parameters is not None
         necessary = ('eps', 'twiss', 'sigma', 'envelope', 'tm_cumul')
-        initial_beam_kwargs = self._generate_initial_beam_kwargs(
+
+        # Avoid error when some phase spaces in the InitialBeamParameters are
+        # not defined in the BeamParametersFactory
+        skip_missing_phase_spaces = True
+        initial_beam_kw = self._generate_initial_beam_kw(
             original_beam_parameters,
             necessary,
-            get_kwargs)
+            get_kw,
+            skip_missing_phase_spaces)
 
         input_beam = InitialBeamParameters(self.phase_spaces,
                                            z_abs,
                                            gamma_kin,
                                            beta_kin)
-                                           # sigma_in=np.array(sigma_in))
-        input_beam.init_phase_spaces_from_kwargs(initial_beam_kwargs)
+        input_beam.init_phase_spaces_from_kwargs(initial_beam_kw)
         logging.critical(f"Is this sigma_in ok? {input_beam.zdelta.sigma}")
         return input_beam
 
-    def _generate_initial_beam_kwargs(
+    def _generate_initial_beam_kw(
             self,
             original_beam_parameters: BeamParameters,
             necessary: tuple[str, ...],
-            get_kwargs: dict[str, Element | str | bool | None],
-            ) -> dict[str, dict[str, float | np.ndarray]]:
+            get_kw: dict[str, Element | str | bool | None],
+            skip_missing_phase_spaces: bool,
+    ) -> dict[str, dict[str, float | np.ndarray]]:
         """Get all beam data at proper position and store it in a dict.
 
         Parameters
@@ -301,34 +314,46 @@ class InitialBeamParametersFactory(ABC):
         necessary : tuple[str, ...]
             Quantities necessary to initialize the
             :class:`.PhaseSpaceInitialBeamParameters`.
-        get_kwargs : dict[str, Element | str | bool | None]
+        get_kw : dict[str, Element | str | bool | None]
             dict that can be passed to the `get` method and that will return
             the data at the beginning of the linac portion.
+        skip_missing_phase_spaces : bool
+            To handle when a phase space from :var:`self.phase_spaces` is not
+            defined in ``original_beam_parameters``, and is therefore not
+            initializable. If True, we just skip it. If False and such a case
+            happens, an ``AttributeError`` will be raised.
 
         Returns
         -------
-        initial_beam_kwargs : dict[str, dict[str, float | np.ndarray]]
+        initial_beam_kw : dict[str, dict[str, float | np.ndarray]]
             Keys are the name of the phase spaces.
             The values are other dictionaries, which keys-values are
             :class:`.PhaseSpaceInitialBeamParameters` attributes.
 
         """
-        initial_beam_kwargs = {
-            phase_space_name: self._generate_phase_space_initial_beam_kwargs(
-                phase_space_name,
-                original_beam_parameters,
-                necessary,
-                get_kwargs)
-            for phase_space_name in self.phase_spaces}
-        return initial_beam_kwargs
+        to_skip = (skip_missing_phase_spaces
+                   and not hasattr(original_beam_parameters, phase_space_name)
+                   for phase_space_name in self.phase_spaces)
+        initial_beam_kw = {}
+        for phase_space_name, to_skip in zip(self.phase_spaces, to_skip):
+            if to_skip:
+                continue
+            initial_beam_kw[phase_space_name] = \
+                self._generate_phase_space_initial_beam_kw(
+                    phase_space_name,
+                    original_beam_parameters,
+                    necessary,
+                    get_kw,
+            )
+        return initial_beam_kw
 
-    def _generate_phase_space_initial_beam_kwargs(
+    def _generate_phase_space_initial_beam_kw(
             self,
             phase_space_name: str,
             original_beam_parameters: BeamParameters,
             necessary: tuple[str, ...],
-            get_kwargs: dict
-            ) -> dict[str, float | np.ndarray]:
+            get_kw: dict[str, Element | str | bool | None],
+    ) -> dict[str, float | np.ndarray]:
         """Get beam data of a single phase space.
 
         Parameters
@@ -340,21 +365,21 @@ class InitialBeamParametersFactory(ABC):
         necessary : tuple[str, ...]
             Quantities necessary to initialize the
             :class:`.PhaseSpaceInitialBeamParameters`.
-        get_kwargs : dict[str, Element | str | bool | None]
+        get_kw : dict[str, Element | str | bool | None]
             dict that can be passed to the `get` method and that will return
             the data at the beginning of the linac portion.
 
         Returns
         -------
-        phase_space_kwargs : dict[str, float | np.ndarray]
+        phase_space_kw : dict[str, float | np.ndarray]
             A dict, which keys-values are
             :class:`.PhaseSpaceInitialBeamParameters` attributes.
 
         """
-        phase_space_kwargs = {
+        phase_space_kw = {
             quantity: original_beam_parameters.get(
                 quantity,
                 phase_space=phase_space_name,
-                **get_kwargs)
+                **get_kw)
             for quantity in necessary}
-        return phase_space_kwargs
+        return phase_space_kw
