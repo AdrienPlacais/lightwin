@@ -40,7 +40,8 @@ class ElementFactory:
             **kwargs) -> Element:
         """Call proper constructor."""
         elt_name, line = self._personalized_name(line)
-        element = Element(line, dat_idx, elt_name, **kwargs)
+        element_creator = IMPLEMENTED_ELEMENTS[line[0]]
+        element = element_creator(line, dat_idx, elt_name, **kwargs)
         return element
 
     def _personalized_name(self,
