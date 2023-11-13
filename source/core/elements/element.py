@@ -6,11 +6,11 @@ This module holds :class:`Element`, declined in Drift, FieldMap, etc.
 .. todo::
     check FLAG_PHI_S_FIT
 
-:: todo::
+.. todo::
     rf_param should also return phi_rf_rel. Will be necessary for non-synch
     particles.
 
-:: todo::
+.. todo::
     __repr__ won't work with retuned elements
 
 """
@@ -24,19 +24,22 @@ from util.helper import recursive_items, recursive_getter
 from failures.set_of_cavity_settings import SingleCavitySettings
 
 from beam_calculation.single_element_beam_calculator_parameters import (
-   SingleElementCalculatorParameters)
+    SingleElementCalculatorParameters)
 
 
 class Element():
     """Generic element."""
 
-    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+    def __init__(self,
+                 line: list[str],
+                 dat_idx: int,
+                 **kwargs: str) -> None:
         """
         Init parameters common to all elements.
 
         Parameters
         ----------
-        line : list of string
+        line : list[str]
             A valid line of the ``.dat`` file.
         dat_idx : int
             Position in the ``.dat`` file.
@@ -70,12 +73,14 @@ class Element():
         self.beam_calc_param: dict[str, SingleElementCalculatorParameters] = {}
 
     def __str__(self) -> str:
+        """Give the same name as TraceWin would."""
         out = self.elt_info['elt_name']
         if out is None:
             out = str(self.line)
         return out
 
     def __repr__(self) -> str:
+        """Return __str__ for now."""
         # if self.elt_info['status'] not in ['none', 'nominal']:
         #     logging.warning("Element properties where changed.")
         # return f"{self.__class__}(line={self.line})"
