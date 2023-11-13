@@ -50,16 +50,14 @@ from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
 from core.elements.thin_steering import ThinSteering
 
-from core.commands.command import (Command,
-                                   End,
-                                   FieldMapPath,
-                                   Freq,
-                                   Lattice,
-                                   LatticeEnd,
-                                   Shift,
-                                   Steerer,
-                                   SuperposeMap,
-                                   )
+from core.commands.command import Command
+from core.commands.end import End
+from core.commands.field_map_path import FieldMapPath
+from core.commands.freq import Freq
+from core.commands.lattice import Lattice, LatticeEnd
+from core.commands.shift import Shift
+from core.commands.steerer import Steerer
+from core.commands.superpose_map import SuperposeMap
 
 from tracewin_utils.electromagnetic_fields import (
     geom_to_field_map_type,
