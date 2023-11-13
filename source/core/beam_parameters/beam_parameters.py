@@ -320,8 +320,6 @@ class BeamParameters:
             ``'envelope_pos'`` and ``'envelope_energy'`` are allowed values.
 
         """
-        logging.warning(f"Creating phase spaces {args}")
-
         sigma_in = self._format_sigma_in()
         phase_space_to_proper_sigma_in = {
             'x': sigma_in[:2, :2],
@@ -330,18 +328,16 @@ class BeamParameters:
         }
 
         for phase_space_name in args:
-            kwargs_for_this_phase_space = kwargs.get(phase_space_name, None)
-            if kwargs_for_this_phase_space is None:
-                kwargs_for_this_phase_space = {}
+            this_phase_space_kw = kwargs.get(phase_space_name, default={})
             proper_sigma_in = phase_space_to_proper_sigma_in.get(
                 phase_space_name,
-                None)
+                default=None)
             phase_space_beam_param = PhaseSpaceBeamParameters(
                 phase_space_name,
                 element_to_index=self.element_to_index,
                 sigma_in=proper_sigma_in,
                 n_points=self.n_points,
-                **kwargs_for_this_phase_space,
+                **this_phase_space_kw,
             )
             setattr(self, phase_space_name, phase_space_beam_param)
 
