@@ -354,36 +354,16 @@ class BeamParameters:
             This method will be removed in the future.
 
         """
-        if self.sigma_in is None:
-            if hasattr(con, 'SIGMA'):
-                sigma_in_from_conf = con.SIGMA
-                if ~np.isnan(sigma_in_from_conf).any():
-                    logging.warning("Initialized sigma beam matrix from config"
-                                    " manager. Please give it to "
-                                    "BeamParameters.__init__ instead."
-                                    "Ignore this if solver is TW.")
-                    return sigma_in_from_conf
+        if self.sigma_in is not None:
+            return self.sigma_in
 
+        sigma_in_from_conf = con.SIGMA
+        if ~np.isnan(sigma_in_from_conf).any():
             logging.warning("Initialized sigma beam matrix from config"
                             " manager. Please give it to "
                             "BeamParameters.__init__ instead."
-                            "Also, should use SIGMA instead of "
-                            "SIGMA_ZDELTA which will be deprecated.")
-            sigma_in_from_conf = con.SIGMA_ZDELTA
-            sigma_in = np.full((6, 6), np.NaN)
-            sigma_in[4:, 4:] = sigma_in_from_conf
-            return sigma_in
-
-        shape = self.sigma_in.shape
-        if shape == (6, 6):
-            return self.sigma_in
-
-        if shape == (2, 2):
-            sigma_in = np.full((6, 6), np.NaN)
-            sigma_in[4:, 4:] = self.sigma_in
-            return sigma_in
-
-        raise IOError("Given sigma_in was not understood.")
+                            "Ignore this if solver is TW.")
+        return sigma_in_from_conf
 
 
 # =============================================================================
