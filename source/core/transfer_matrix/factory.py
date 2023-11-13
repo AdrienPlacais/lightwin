@@ -31,20 +31,6 @@ class TransferMatrixFactory(ABC):
         """
         self.is_3d = is_3d
 
-    def _eye_matrix_with_proper_shape(self) -> np.ndarray:
-        """Give initial transfer matrix with good shape.
-
-        Returns
-        -------
-        np.ndarray
-            Eye matrix. Shape is (6, 6) if the simulation is in 3D, or (2, 2)
-            otherwise.
-
-        """
-        if self.is_3d:
-            return np.eye(6)
-        return np.eye(2)
-
     def _preprocess(self, *args, **kwargs) -> None:
         """Preprocess the data given by the :class:`.BeamCalculator`."""
         return

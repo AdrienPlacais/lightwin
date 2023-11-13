@@ -384,7 +384,8 @@ class TraceWin(BeamCalculator):
             self.beam_parameters_factory.factory_method(
                 z_abs,
                 gamma_kin,
-                results)
+                results,
+                element_to_index)
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,

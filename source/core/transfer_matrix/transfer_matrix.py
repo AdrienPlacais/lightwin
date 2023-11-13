@@ -6,6 +6,12 @@ Hold the transfer matrix along the linac.
 .. todo::
     Check if it can be more efficient. Maybe store R_xx, R_yy, R_zz separately?
 
+.. todo::
+    Maybe transfer matrices should always be (6, 6)??
+
+.. todo::
+    ``_init_from`` methods in factory???
+
 """
 import logging
 from typing import Any, Callable
@@ -35,9 +41,10 @@ class TransferMatrix:
     def __init__(self,
                  is_3d: bool,
                  first_cumulated_transfer_matrix: np.ndarray,
+                 element_to_index: Callable[[str | Element, str | None],
+                                            int | slice],
                  individual: np.ndarray | None = None,
                  cumulated: np.ndarray | None = None,
-                 element_to_index: Callable | None = None,
                  ) -> None:
         """Create the object and compute the cumulated transfer matrix.
 
@@ -139,7 +146,7 @@ class TransferMatrix:
             self,
             individual: np.ndarray,
             first_cumulated_transfer_matrix: np.ndarray | None,
-            ) -> tuple[int, np.ndarray]:
+    ) -> tuple[int, np.ndarray]:
         """Compute cumulated transfer matrix from individual.
 
         Parameters
@@ -179,7 +186,7 @@ class TransferMatrix:
             cumulated: np.ndarray | None,
             first_cumulated_transfer_matrix: np.ndarray,
             tol: float = 1e-8
-            ) -> tuple[int, np.ndarray]:
+    ) -> tuple[int, np.ndarray]:
         """Check that the given cumulated matrix is valid.
 
         Parameters

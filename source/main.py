@@ -9,6 +9,9 @@ This module is the holds a generic compensation workflow.
 .. todo::
     Proper example file, maybe with a Jupyter Notebook.
 
+.. todo::
+    Too many responsibilities in this script!!
+
 """
 import logging
 import time
@@ -83,8 +86,8 @@ if __name__ == '__main__':
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         # 'beam_calculator': 'beam_calculator.tracewin.envelope',
         'beam': 'beam',
-        'wtf': 'wtf.quick_debug',
-        # 'wtf': 'wtf.k_out_of_n',
+        # 'wtf': 'wtf.quick_debug',
+        'wtf': 'wtf.k_out_of_n',
         # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
         # 'evaluators': 'evaluators.fred',
     }
@@ -108,12 +111,12 @@ if __name__ == '__main__':
     my_beam_calc_post: BeamCalculator | None
     my_beam_calc, my_beam_calc_post = my_beam_calculators
 
+    solv1 = my_beam_calc.id
+    solv2 = my_beam_calc_post.id if my_beam_calc_post is not None else None
+
     initial_beam_parameters_factory = InitialBeamParametersFactory(
         is_3d=True,
         is_multipart=True)
-
-    solv1 = my_beam_calc.id
-    solv2 = my_beam_calc_post.id if my_beam_calc_post is not None else None
 
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']

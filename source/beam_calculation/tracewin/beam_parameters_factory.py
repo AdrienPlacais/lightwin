@@ -22,9 +22,10 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
             gamma_kin: np.ndarray,
             results: dict[str, np.ndarray],
             element_to_index: Callable[[str | Element, str | None],
-                                       int | slice] | None = None,
-            ) -> BeamParameters:
+                                       int | slice],
+    ) -> BeamParameters:
         """Create the :class:`.BeamParameters` object."""
+        assert element_to_index is not None
         z_abs, gamma_kin, beta_kin = self._check_and_set_arrays(z_abs,
                                                                 gamma_kin)
 
@@ -83,7 +84,7 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
             self,
             phase_space_name: str,
             results: dict[str, np.ndarray],
-            ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
         phase_space_to_keys = {
             'x': ('SizeX', "sxx'", 'ex'),
@@ -105,7 +106,7 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
             'x99': results['ex99'],
             'y99': results['ey99'],
             'phiw99': results['ep99']
-            }
+        }
         for phase_space_name in phase_space_names:
             assert phase_space_name in getters
             self._set_only_emittance(beam_parameters,

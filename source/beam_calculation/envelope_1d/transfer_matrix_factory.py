@@ -43,14 +43,8 @@ class TransferMatrixFactoryEnvelope1D(TransferMatrixFactory):
             Holds all cumulated transfer matrices in all the planes.
 
         """
-        if first_cumulated_transfer_matrix.shape == (2, 2):
-            logging.warning("Here I should initialize TransferMatrix with "
-                            "an initial transfer matrix, but I have a shape "
-                            "mismatch. It is ok for now.")
-        if first_cumulated_transfer_matrix.shape == (6, 6):
-            logging.warning("shapes 1d vs 3d not correctly handled")
-            first_cumulated_transfer_matrix = first_cumulated_transfer_matrix[
-                4:, 4:]
+        first_cumulated_transfer_matrix = \
+            first_cumulated_transfer_matrix[4:, 4:]
 
         individual = self._preprocess((single_elts_results))
         transfer_matrix = TransferMatrix(
