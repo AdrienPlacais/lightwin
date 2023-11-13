@@ -69,7 +69,8 @@ class InitialBeamParameters:
         self.x99: PhaseSpaceInitialBeamParameters
         self.y99: PhaseSpaceInitialBeamParameters
 
-    def init_phase_spaces_from_sigma(self, sub_sigmas: dict[str, np.ndarray]
+    def init_phase_spaces_from_sigma(self,
+                                     sub_sigmas: dict[str, np.ndarray]
                                      ) -> None:
         r"""Init phase space from a sigma matrix.
 
@@ -148,8 +149,8 @@ class InitialBeamParameters:
         Notes
         -----
         What is particular in this getter is that all
-        :class:`PhaseSpaceInitialBeamParameters` attributes have attributes with
-        the same name: ``twiss``, ``alpha``, ``beta``, ``gamma``, ``eps``,
+        :class:`.PhaseSpaceInitialBeamParameters` attributes have attributes
+        with the same name: ``twiss``, ``alpha``, ``beta``, ``gamma``, ``eps``,
         ``envelopes_pos`` and ``envelopes_energy``.
 
         Hence, you must provide either a ``phase_space`` argument which shall
