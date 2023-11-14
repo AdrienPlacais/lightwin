@@ -70,12 +70,8 @@ def create_structure(dat_content: list[list[str]],
     ----------
     dat_content : list[list[str]]
         List containing all the lines of ``dat_filepath``.
-    dat_path : str
+    dat_filepath : str
         Absolute path to the ``.dat``.
-    force_a_section_to_each_element : bool
-        To force each element to have a section.
-    force_a_lattice_to_each_element : bool
-        To force each element to have a lattice.
     load_electromagnetic_files : bool
         Load the files for the FIELD_MAPs.
     check_consistency : bool
@@ -90,11 +86,10 @@ def create_structure(dat_content: list[list[str]],
         List containing all the :class:`Element` objects.
 
     """
-    instructions_factory = InstructionsFactory(dat_filepath=dat_filepath,
-                                               **kwargs)
-    instructions = instructions_factory.run(dat_content,
-                                            cython=con.FLAG_CYTHON,
-                                            )
+    instructions_factory = InstructionsFactory(
+        default_field_map_folder=dat_filepath,
+        **kwargs)
+    instructions = instructions_factory.run(dat_content)
     return instructions
 
 

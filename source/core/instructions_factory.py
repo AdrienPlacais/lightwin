@@ -12,6 +12,8 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
 from typing import Any
 import logging
 
+import config_manager as con
+
 from core.instruction import Instruction, Dummy
 
 from core.elements.element import Element
@@ -34,24 +36,43 @@ class InstructionsFactory:
 
     def __init__(self,
                  freq_bunch: float,
-                 dat_filepath: str,
+                 default_field_map_folder: str,
                  **factory_kw: Any) -> None:
         """Instantiate the command and element factories."""
+        # arguments for commands
         self._freq_bunch = freq_bunch
+
+        # factories
         self._command_factory = CommandFactory(**factory_kw)
         self._element_factory = ElementFactory(
-            default_field_map_folder=dat_filepath,
+            default_field_map_folder=default_field_map_folder,
             **factory_kw)
+
+        # TODO
+        # parameters that depend on the BeamCalculator
+        self._load_electromagnetic_fields: bool = True
+
+        self._cython: bool = con.FLAG_CYTHON
+        # would be better without config dependency
 
     def run(self,
             dat_content: list[list[str]],
-            cython: bool,
             ) -> list[Instruction]:
         """
         Create all the elements and commands.
 
         .. todo::
             Check if the return value from ``apply_commands`` is necessary.
+
+        .. todo::
+            remove ``cython`` from here.
+
+        Parameters
+        ----------
+        dat_content : list[list[str]]
+            List containing all the lines of ``dat_filepath``.
+        cython : bool
+            If the field maps should be loaded for Cython.
 
         """
         instructions = [self._call_proper_factory(line, dat_idx)
@@ -66,7 +87,7 @@ class InstructionsFactory:
         self._check_every_elt_has_lattice_and_section(elts)
 
         field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
-        load_electromagnetic_fields(field_maps, cython)
+        load_electromagnetic_fields(field_maps, self._cython)
 
         return instructions
 
