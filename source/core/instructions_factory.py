@@ -1,12 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Define methods to easily create :class:`.Command` or :class:`.Element`."""
+"""
+Define methods to easily create :class:`.Command` or :class:`.Element`.
+
+.. todo::
+    Instantiate this in :class:`.BeamCalculator`. It could be initialized with
+    the ``load_electromagnetic_files`` flag (False for TraceWin), the list of
+    implemented elements/commands (ex Envelope3D, not everything is set).
+
+"""
 from typing import Any
 
 from core.instruction import Instruction, Dummy
+
+from core.elements.element import Element
+from core.elements.dummy import DummyElement
+from core.elements.field_maps.field_map import FieldMap
 from core.elements.factory import ElementFactory, IMPLEMENTED_ELEMENTS
-from core.commands.command import Command
+from core.elements.helper import (give_name_to_elements,
+                                  force_a_lattice_for_every_element,
+                                  force_a_section_for_every_element,
+                                  )
+
 from core.commands.factory import CommandFactory, IMPLEMENTED_COMMANDS
+from core.commands.helper import apply_commands
+
+from tracewin_utils.electromagnetic_fields import load_electromagnetic_fields
 
 
 class InstructionsFactory:
@@ -25,11 +44,28 @@ class InstructionsFactory:
 
     def run(self,
             dat_content: list[list[str]],
+            cython: bool,
             ) -> list[Instruction]:
-        """Create all the elements and commands."""
+        """
+        Create all the elements and commands.
+
+        .. todo::
+            Check if the return value from ``apply_commands`` is necessary.
+
+        """
         instructions = [self._call_proper_factory(line, dat_idx)
                         for dat_idx, line in enumerate(dat_content)]
-        instructions = self._apply_commands(instructions)
+
+        new = apply_commands(instructions, self._freq_bunch)
+        assert new == instructions
+
+        elts = [elt for elt in instructions if isinstance(elt, Element)]
+        give_name_to_elements(elts)
+        self._handle_lattice_and_section(elts)
+
+        field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
+        load_electromagnetic_fields(field_maps, cython)
+
         return instructions
 
     def _call_proper_factory(self,
@@ -73,18 +109,9 @@ class InstructionsFactory:
                                                  **instruction_kw)
         return Dummy(line, dat_idx, warning=True)
 
-    def _apply_commands(self,
-                        instructions: list[Instruction]) -> list[Instruction]:
-        """Apply all the implemented commands."""
-        index = 0
-        while index < len(instructions):
-            instruction = instructions[index]
-
-            if isinstance(instruction, Command):
-                instruction.set_influenced_elements(instructions)
-                if instruction.is_implemented:
-                    instructions = instruction.apply(
-                        instructions,
-                        freq_bunch=self._freq_bunch)
-            index += 1
-        return instructions
+    def _handle_lattice_and_section(self, elts: list[Element]) -> None:
+        """Ensure that every element has proper lattice, section indexes."""
+        elts_without_dummies = [elt for elt in elts
+                                if not isinstance(elt, DummyElement)]
+        force_a_section_for_every_element(elts_without_dummies)
+        force_a_lattice_for_every_element(elts_without_dummies)

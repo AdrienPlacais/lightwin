@@ -11,7 +11,51 @@ from core.elements.field_maps.field_map import FieldMap
 import tracewin_utils.load
 
 
-def geom_to_field_map_type(geom: int,
+def load_electromagnetic_fields(field_maps: list[FieldMap],
+                                cython: bool) -> None:
+    """
+    Load field map files.
+
+    As for now, only 1D RF electric field are handled by :class:`Envelope1D`.
+    With :class:`TraceWin`, every field is supported.
+
+    """
+    for field_map in field_maps:
+        field_map_types = _geom_to_field_map_type(field_map.geometry,
+                                                  remove_no_field=True)
+        extensions = _file_map_extensions(field_map_types)
+
+        field_map.set_full_path(extensions)
+
+        args = _load_field_map_file(field_map)
+        if args is not None:
+            field_map.acc_field.e_spat = args[0]
+            field_map.acc_field.n_z = args[1]
+
+    if cython:
+        _load_electromagnetic_fields_for_cython(field_maps)
+
+
+def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
+                                            ) -> None:
+    """Load one electric field per section."""
+    valid_files = [field_map.field_map_file_name
+                   for field_map in field_maps
+                   if field_map.acc_field.e_spat is not None
+                   and field_map.acc_field.n_z is not None]
+    # Trick to remouve duplicates and keep order
+    valid_files = list(dict.fromkeys(valid_files))
+
+    for valid_file in valid_files:
+        if isinstance(valid_file, list):
+            logging.error("A least one FieldMap still has several file maps, "
+                          "which Cython will not support. Skipping...")
+            valid_files.remove(valid_file)
+    tm_c.init_arrays(valid_files)
+
+
+
+def _geom_to_field_map_type(geom: int,
                            remove_no_field: bool = True
                            ) -> dict[str, str]:
     """
@@ -54,7 +98,7 @@ def geom_to_field_map_type(geom: int,
     return out
 
 
-def file_map_extensions(field_map_type: dict[str, str]
+def _file_map_extensions(field_map_type: dict[str, str]
                         ) -> dict[str, list[str]]:
     """
     Get the proper field map extensions.
@@ -112,7 +156,7 @@ def file_map_extensions(field_map_type: dict[str, str]
     return extensions
 
 
-def load_field_map_file(
+def _load_field_map_file(
     field_map: FieldMap
 ) -> tuple[Callable[[float | np.ndarray], float | np.ndarray] | None,
            int | None]:
@@ -124,8 +168,8 @@ def load_field_map_file(
 
     """
     if len(field_map.field_map_file_name) > 1:
-            logging.debug("Loading of several field_maps not handled")
-            return None, None
+        logging.debug("Loading of several field_maps not handled")
+        return None, None
 
     for file_name in field_map.field_map_file_name:
         _, extension = os.path.splitext(file_name)

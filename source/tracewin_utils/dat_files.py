@@ -42,20 +42,12 @@ import config_manager as con
 from core.instruction import Instruction, Dummy
 
 from core.elements.element import Element
-from core.elements.drift import Drift
-from core.elements.dummy import DummyElement
 from core.elements.field_maps.field_map import FieldMap
-from core.elements.quad import Quad
-from core.elements.solenoid import Solenoid
 
 from core.commands.command import Command
 from core.instructions_factory import InstructionsFactory
 
-from tracewin_utils.electromagnetic_fields import (
-    geom_to_field_map_type,
-    file_map_extensions,
-    load_field_map_file,
-)
+from tracewin_utils.electromagnetic_fields import load_electromagnetic_fields
 
 try:
     import beam_calculation.envelope_1d.transfer_matrices_c as tm_c
@@ -73,10 +65,6 @@ ListOfElements = TypeVar('ListOfElements')
 
 def create_structure(dat_content: list[list[str]],
                      dat_filepath: str,
-                     force_a_lattice_to_each_element: bool = True,
-                     force_a_section_to_each_element: bool = True,
-                     load_electromagnetic_files: bool = True,
-                     check_consistency: bool = True,
                      **kwargs: str | float) -> list[Instruction]:
     """
     Create structure using the loaded ``.dat`` file.
@@ -107,77 +95,19 @@ def create_structure(dat_content: list[list[str]],
     """
     instructions_factory = InstructionsFactory(dat_filepath=dat_filepath,
                                                **kwargs)
-    instructions = instructions_factory.run(dat_content)
-
-    elts = [elt for elt in instructions if isinstance(elt, Element)]
-    give_name(elts)
-
-    elts_no_dummies = list(filter(
-        lambda elt: not isinstance(elt, DummyElement),
-        elts))
-    if force_a_section_to_each_element:
-        _force_a_section_for_every_element(elts_no_dummies)
-    if force_a_lattice_to_each_element:
-        _force_a_lattice_for_every_element(elts_no_dummies)
-
-    field_maps = list(filter(lambda field_map: isinstance(field_map, FieldMap),
-                             elts))
-    if load_electromagnetic_files:
-        _load_electromagnetic_fields(field_maps)
-
-    if check_consistency:
-        _check_consistency(instructions)
+    instructions = instructions_factory.run(dat_content,
+                                            cython=con.FLAG_CYTHON,
+                                            )
+    _check_every_elt_has_lattice_and_section(instructions)
 
     return instructions
 
 
-def _load_electromagnetic_fields(field_maps: list[FieldMap]) -> None:
-    """
-    Load field map files.
-
-    As for now, only 1D RF electric field are handled by :class:`Envelope1D`.
-    With :class:`TraceWin`, every field is supported.
-
-    """
-    for field_map in field_maps:
-        field_map_types = geom_to_field_map_type(field_map.geometry,
-                                                 remove_no_field=True)
-        extensions = file_map_extensions(field_map_types)
-
-        field_map.set_full_path(extensions)
-
-        args = load_field_map_file(field_map)
-        if args is not None:
-            field_map.acc_field.e_spat = args[0]
-            field_map.acc_field.n_z = args[1]
-
-    if con.FLAG_CYTHON:
-        _load_electromagnetic_fields_for_cython(field_maps)
-
-
-def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
-                                            ) -> None:
-    """Load one electric field per section."""
-    valid_files = [field_map.field_map_file_name
-                   for field_map in field_maps
-                   if field_map.acc_field.e_spat is not None
-                   and field_map.acc_field.n_z is not None]
-    # Trick to remouve duplicates and keep order
-    valid_files = list(dict.fromkeys(valid_files))
-
-    for valid_file in valid_files:
-        if isinstance(valid_file, list):
-            logging.error("A least one FieldMap still has several file maps, "
-                          "which Cython will not support. Skipping...")
-            valid_files.remove(valid_file)
-    tm_c.init_arrays(valid_files)
-
-
-# Handle when no lattice
-def _check_consistency(elts_n_cmds: list[Instruction]) -> None:
-    """Check that every element has a lattice index."""
+def _check_every_elt_has_lattice_and_section(
+        instructions: list[Instruction]) -> None:
+    """Check that every element has a lattice and section index."""
     elts = list(filter(lambda elt: isinstance(elt, Element),
-                       elts_n_cmds))
+                       instructions))
     for elt in elts:
         if elt.get('lattice', to_numpy=False) is None:
             logging.error("At least one Element is outside of any lattice. "
@@ -189,100 +119,6 @@ def _check_consistency(elts_n_cmds: list[Instruction]) -> None:
             logging.error("At least one Element is outside of any section. "
                           "This may cause problems...")
             break
-
-
-def _force_a_section_for_every_element(elts_without_dummies: list[Element]
-                                       ) -> None:
-    """Give a section index to every element."""
-    idx_section = 0
-    for elt in elts_without_dummies:
-        idx = elt.idx['section']
-        if idx is None:
-            elt.idx['section'] = idx_section
-            continue
-        idx_section = idx
-
-
-def _force_a_lattice_for_every_element(elts_without_dummies: list[Element]
-                                       ) -> None:
-    """
-    Give a lattice index to every element.
-
-    Elements before the first LATTICE command will be in the same lattice as
-    the elements after the first LATTICE command.
-
-    Elements after the first LATTICE command will be in the previous lattice.
-
-    Example
-    -------
-    .. list-table ::
-        :widths: 10 10 10
-        :header-rows: 1
-
-        * - Element/Command
-          - Lattice before
-          - Lattice after
-        * - ``QP1``
-          - None
-          - 0
-        * - ``DR1``
-          - None
-          - 0
-        * - ``LATTICE``
-          -
-          -
-        * - ``QP2``
-          - 0
-          - 0
-        * - ``DR2``
-          - 0
-          - 0
-        * - ``END LATTICE``
-          -
-          -
-        * - ``QP3``
-          - None
-          - 0
-        * - ``LATTICE``
-          -
-          -
-        * - ``DR3``
-          - 1
-          - 1
-        * - ``END LATTICE``
-          -
-          -
-        * - ``QP4``
-          - None
-          - 1
-    """
-    idx_lattice = 0
-    for elt in elts_without_dummies:
-        idx = elt.idx['lattice']
-        if idx is None:
-            elt.idx['lattice'] = idx_lattice
-            continue
-        idx_lattice = idx
-
-
-def give_name(elts: list[Element]) -> None:
-    """Give a name (the same as TW) to every element."""
-    civil_register = {
-        Quad: 'QP',
-        Drift: 'DR',
-        FieldMap: 'FM',
-        Solenoid: 'SOL',
-    }
-    for key, value in civil_register.items():
-        sub_list = list(filter(lambda elt: isinstance(elt, key), elts))
-        for i, elt in enumerate(sub_list, start=1):
-            if elt.elt_info['elt_name'] is None:
-                elt.elt_info['elt_name'] = value + str(i)
-    other_elements = list(filter(lambda elt: type(elt) not in civil_register,
-                          elts))
-    for i, elt in enumerate(other_elements, start=1):
-        if elt.elt_info['elt_name'] is None:
-            elt.elt_info['elt_name'] = 'ELT' + str(i)
 
 
 def update_field_maps_in_dat(
@@ -299,21 +135,21 @@ def update_field_maps_in_dat(
 
     """
     dat_content: list[list[str]] = []
-    for elt_or_cmd in elts.files['elts_n_cmds']:
-        line = elt_or_cmd.line
+    for instruction in elts.files['elts_n_cmds']:
+        line = instruction.line
 
-        if elt_or_cmd in new_phases:
-            line[3] = str(np.rad2deg(new_phases[elt_or_cmd]))
-        if elt_or_cmd in new_k_e:
-            line[6] = str(new_k_e[elt_or_cmd])
-        if elt_or_cmd in new_abs_phase_flag:
-            line[10] = str(new_abs_phase_flag[elt_or_cmd])
+        if instruction in new_phases:
+            line[3] = str(np.rad2deg(new_phases[instruction]))
+        if instruction in new_k_e:
+            line[6] = str(new_k_e[instruction])
+        if instruction in new_abs_phase_flag:
+            line[10] = str(new_abs_phase_flag[instruction])
 
         dat_content.append(line)
 
 
 def dat_filecontent_from_smaller_list_of_elements(
-    original_elts_n_cmds: list[Instruction],
+    original_instructions: list[Instruction],
     elts: list[Element],
 ) -> tuple[list[list[str]], list[Instruction]]:
     """
@@ -327,24 +163,24 @@ def dat_filecontent_from_smaller_list_of_elements(
     last_index = indexes_to_keep[-1] + 1
 
     new_dat_filecontent: list[list[str]] = []
-    new_elts_n_cmds: list[Instruction] = []
-    for i, elt_or_cmd in enumerate(original_elts_n_cmds[:last_index]):
-        element_to_keep = (isinstance(elt_or_cmd, Element | Dummy)
-                           and elt_or_cmd.idx['dat_idx'] in indexes_to_keep)
+    new_instructions: list[Instruction] = []
+    for instruction in original_instructions[:last_index]:
+        element_to_keep = (isinstance(instruction, Element | Dummy)
+                           and instruction.idx['dat_idx'] in indexes_to_keep)
 
-        useful_command = (isinstance(elt_or_cmd, Command)
-                          and elt_or_cmd.concerns_one_of(indexes_to_keep))
+        useful_command = (isinstance(instruction, Command)
+                          and instruction.concerns_one_of(indexes_to_keep))
 
         if not (element_to_keep or useful_command):
             continue
 
-        new_dat_filecontent.append(elt_or_cmd.line)
-        new_elts_n_cmds.append(elt_or_cmd)
+        new_dat_filecontent.append(instruction.line)
+        new_instructions.append(instruction)
 
-    end = original_elts_n_cmds[-1]
+    end = original_instructions[-1]
     new_dat_filecontent.append(end.line)
-    new_elts_n_cmds.append(end)
-    return new_dat_filecontent, new_elts_n_cmds
+    new_instructions.append(end)
+    return new_dat_filecontent, new_instructions
 
 
 def save_dat_filecontent_to_dat(dat_content: list[list[str]],
