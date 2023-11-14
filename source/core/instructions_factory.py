@@ -10,6 +10,7 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
 
 """
 from typing import Any
+import logging
 
 from core.instruction import Instruction, Dummy
 
@@ -62,6 +63,7 @@ class InstructionsFactory:
         elts = [elt for elt in instructions if isinstance(elt, Element)]
         give_name_to_elements(elts)
         self._handle_lattice_and_section(elts)
+        self._check_every_elt_has_lattice_and_section(elts)
 
         field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
         load_electromagnetic_fields(field_maps, cython)
@@ -115,3 +117,18 @@ class InstructionsFactory:
                                 if not isinstance(elt, DummyElement)]
         force_a_section_for_every_element(elts_without_dummies)
         force_a_lattice_for_every_element(elts_without_dummies)
+
+    def _check_every_elt_has_lattice_and_section(self, elts: list[Element]
+                                                 ) -> None:
+        """Check that every element has a lattice and section index."""
+        for elt in elts:
+            if elt.get('lattice', to_numpy=False) is None:
+                logging.error("At least one Element is outside of any lattice. "
+                              "This may cause problems...")
+                break
+
+        for elt in elts:
+            if elt.get('section', to_numpy=False) is None:
+                logging.error("At least one Element is outside of any section. "
+                              "This may cause problems...")
+                break

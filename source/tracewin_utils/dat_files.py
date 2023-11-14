@@ -42,12 +42,9 @@ import config_manager as con
 from core.instruction import Instruction, Dummy
 
 from core.elements.element import Element
-from core.elements.field_maps.field_map import FieldMap
 
 from core.commands.command import Command
 from core.instructions_factory import InstructionsFactory
-
-from tracewin_utils.electromagnetic_fields import load_electromagnetic_fields
 
 try:
     import beam_calculation.envelope_1d.transfer_matrices_c as tm_c
@@ -98,27 +95,7 @@ def create_structure(dat_content: list[list[str]],
     instructions = instructions_factory.run(dat_content,
                                             cython=con.FLAG_CYTHON,
                                             )
-    _check_every_elt_has_lattice_and_section(instructions)
-
     return instructions
-
-
-def _check_every_elt_has_lattice_and_section(
-        instructions: list[Instruction]) -> None:
-    """Check that every element has a lattice and section index."""
-    elts = list(filter(lambda elt: isinstance(elt, Element),
-                       instructions))
-    for elt in elts:
-        if elt.get('lattice', to_numpy=False) is None:
-            logging.error("At least one Element is outside of any lattice. "
-                          "This may cause problems...")
-            break
-
-    for elt in elts:
-        if elt.get('section', to_numpy=False) is None:
-            logging.error("At least one Element is outside of any section. "
-                          "This may cause problems...")
-            break
 
 
 def update_field_maps_in_dat(
