@@ -54,10 +54,9 @@ def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
     tm_c.init_arrays(valid_files)
 
 
-
 def _geom_to_field_map_type(geom: int,
-                           remove_no_field: bool = True
-                           ) -> dict[str, str]:
+                            remove_no_field: bool = True
+                            ) -> dict[str, str]:
     """
     Determine the field map type from TW ``geom`` parameter.
 
@@ -66,7 +65,7 @@ def _geom_to_field_map_type(geom: int,
     Last compatibility check: TraceWin v2.22.1.0
 
     """
-    figures = [int(i) for i in f"{abs(geom):0>5}"]
+    figures = (int(i) for i in f"{abs(geom):0>5}")
     field_types = ('static electric field',
                    'static magnetic field',
                    'RF electric field',
@@ -99,7 +98,7 @@ def _geom_to_field_map_type(geom: int,
 
 
 def _file_map_extensions(field_map_type: dict[str, str]
-                        ) -> dict[str, list[str]]:
+                         ) -> dict[str, list[str]]:
     """
     Get the proper field map extensions.
 
@@ -157,9 +156,9 @@ def _file_map_extensions(field_map_type: dict[str, str]
 
 
 def _load_field_map_file(
-    field_map: FieldMap
-) -> tuple[Callable[[float | np.ndarray], float | np.ndarray] | None,
-           int | None]:
+    field_map: FieldMap) -> tuple[Callable[[float | np.ndarray],
+                                           float | np.ndarray] | None,
+                                  int | None]:
     """
     Go across the field map file names and load the first recognized.
 
@@ -229,6 +228,8 @@ def _is_a_valid_electric_field(n_z: int, zmax: float, norm: float,
 # FIXME Cannot import Accelerator type (circular import)
 # Maybe this routine would be better in Accelerator?
 # |-> more SimulationOutput
+
+
 def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     """Mimick TW's Data tab."""
     larousse = {

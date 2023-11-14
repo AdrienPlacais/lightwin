@@ -7,6 +7,7 @@ from core.elements.aperture import Aperture
 from core.elements.drift import Drift
 from core.elements.dummy import DummyElement
 from core.elements.field_maps.field_map import FieldMap
+from core.elements.field_maps.factory import FieldMapFactory
 from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
 from core.elements.thin_steering import ThinSteering
@@ -15,7 +16,7 @@ IMPLEMENTED_ELEMENTS = {
     'APERTURE': Aperture,
     'DRIFT': Drift,
     'DUMMY_ELEMENT': DummyElement,
-    'FIELD_MAP': FieldMap,
+    'FIELD_MAP': FieldMap,  # replaced in ElementFactory initialisation
     'QUAD': Quad,
     'SOLENOID': Solenoid,
     'THIN_STEERING': ThinSteering,
@@ -28,8 +29,10 @@ class ElementFactory:
     def __init__(self,
                  default_field_map_folder: str,
                  **factory_kw: Any) -> None:
-        """Save the default folder for field maps."""
-        self.default_field_map_folder = default_field_map_folder
+        """Create a factory for the field maps."""
+        field_map_factory = FieldMapFactory(default_field_map_folder,
+                                            **factory_kw)
+        IMPLEMENTED_ELEMENTS['FIELD_MAP'] = field_map_factory.run
 
     def run(self,
             line: list[str],
@@ -42,7 +45,6 @@ class ElementFactory:
             line,
             dat_idx,
             elt_name,
-            default_field_map_folder=self.default_field_map_folder,
             **kwargs)
         return element
 

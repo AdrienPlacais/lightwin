@@ -69,25 +69,20 @@ class FieldMap(Element):
         """Set most of attributes defined in ``TraceWin``."""
         super().__init__(line, dat_idx, elt_name)
         n_attributes = len(line) - 1
-        assert n_attributes in [9, 10]
+        assert n_attributes == 10
 
         self.geometry = int(line[1])
         self.length_m = 1e-3 * float(line[2])
         self.aperture_flag = int(line[8])               # K_a
-        if self.aperture_flag > 0:
-            logging.warning("Space charge compensation maps not handled.")
+
+        # handled by TW
+        # if self.aperture_flag > 0:
+        #     logging.warning("Space charge compensation maps not handled.")
         # FIXME according to doc, may also be float
 
-        self.field_map_file_name: str | list[str] = str(line[9])   # FileName
         self.field_map_folder = default_field_map_folder
-
-        if len(line) == 10:
-            line.append('1')
-        absolute_phase_flag = int(line[10])
-
-        self.acc_field = RfField(k_e=float(line[6]),
-                                 absolute_phase_flag=bool(absolute_phase_flag),
-                                 phi_0=np.deg2rad(float(line[3])))
+        self.field_map_file_name: str | list[str]
+        self._prepare_field_map(line)
         self.update_status('nominal')
 
     @property
@@ -99,6 +94,26 @@ class FieldMap(Element):
     def can_be_retuned(self) -> bool:
         """Tell if we can modify the element's tuning."""
         return True
+
+    def _prepare_field_map(self, line: list[str]) -> None:
+        """Set field map related parameters.
+
+        Field map file(s) are not loaded at initialization, but rather once all
+        :class:`.Command` and in particular :class:`.FieldMapPath` have been
+        dealt with.
+
+        Parameters
+        ----------
+        line : list[str]
+            Full line corresponding to current field map.
+
+        """
+        phi_0 = np.deg2rad(float(line[3]))
+        self.field_map_file_name = str(line[9])
+        absolute_phase_flag = bool(int(line[10]))
+        self.acc_field = RfField(k_e=float(line[6]),
+                                 absolute_phase_flag=absolute_phase_flag,
+                                 phi_0=phi_0)
 
     def update_status(self, new_status: str) -> None:
         """
@@ -136,15 +151,18 @@ class FieldMap(Element):
             for extension in extensions.values()
             for ext in extension]
 
-    def rf_param(self, solver_id: str, phi_bunch_abs: float, w_kin_in: float,
+    def rf_param(self,
+                 solver_id: str,
+                 phi_bunch_abs: float,
+                 w_kin_in: float,
                  cavity_settings: SingleCavitySettings | None = None) -> dict:
         """
-        Set the properties of the rf field; specific to FieldMap.
+        Set the properties of the rf field.
 
         Parameters
         ----------
         solver_id : str
-            Identificator of the :class:`BeamCalculator`.
+            Identificator of the :class:`.BeamCalculator`.
         phi_bunch_abs : float
             Absolute phase of the particle (bunch frequency).
         w_kin_in : float
@@ -182,7 +200,10 @@ class FieldMap(Element):
 
         elif status in ('compensate (in progress)'):
             assert isinstance(cavity_settings, SingleCavitySettings)
-            norm_and_phases, abs_to_rel = _try_this(solver_id, cavity_settings, w_kin_in, self,
+            norm_and_phases, abs_to_rel = _try_this(solver_id,
+                                                    cavity_settings,
+                                                    w_kin_in,
+                                                    self,
                                                     generic_rf_param)
         else:
             logging.error(f'{self} {status = } is not allowed.')
