@@ -27,11 +27,11 @@ from typing import Any
 import numpy as np
 
 from core.instruction import Instruction
+from core.instructions_factory import InstructionsFactory
 from core.elements.element import Element
 from core.commands.command import Command
 from core.particle import ParticleInitialState
 
-from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.factory import InitialBeamParametersFactory
 
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -50,11 +50,13 @@ import config_manager as con
 # =============================================================================
 # New (whole) list of elements, called from `Accelerator`
 # =============================================================================
-def new_list_of_elements(dat_filepath: str,
-                         accelerator_path: str,
-                         input_beam_factory: InitialBeamParametersFactory,
-                         **kwargs: Any,
-                         ) -> ListOfElements:
+def new_list_of_elements(
+        dat_filepath: str,
+        accelerator_path: str,
+        input_beam_factory: InitialBeamParametersFactory,
+        instruction_factory: InstructionsFactory | None = None,
+        **kwargs: Any,
+) -> ListOfElements:
     """
     Create a new :class:`.ListOfElements`, encompassing a full linac.
 
@@ -85,10 +87,14 @@ def new_list_of_elements(dat_filepath: str,
         'elts_n_cmds': list[Instruction],
     }
 
-    elts_n_cmds = _dat_filepath_to_plain_list_of_elements(files)
-    elts = [elt for elt in elts_n_cmds if isinstance(elt, Element)]
+    if instruction_factory is None:
+        instructions = _dat_filepath_to_plain_list_of_elements(files)
+    else:
+        dat_filecontent = files['dat_content']
+        instructions = instruction_factory.run(dat_filecontent)
+    elts = [elt for elt in instructions if isinstance(elt, Element)]
 
-    files['elts_n_cmds'] = elts_n_cmds
+    files['elts_n_cmds'] = instructions
 
     input_particle = _new_input_particle(**kwargs)
     input_beam: InitialBeamParameters
@@ -118,6 +124,7 @@ def _new_input_particle(w_kin: float,
     return input_particle
 
 
+# future deprecation
 def _dat_filepath_to_plain_list_of_elements(
         files: dict[str, Any]
 ) -> list[Instruction]:
@@ -132,12 +139,12 @@ def _dat_filepath_to_plain_list_of_elements(
 
     Returns
     -------
-    elts_n_cmds : list[Instruction]
+    instructions : list[Instruction]
         List containing all objects from the ``.dat`` file.
 
     """
-    elts_n_cmds = create_structure(freq_bunch=con.F_BUNCH_MHZ, **files)
-    return elts_n_cmds
+    instructions = create_structure(freq_bunch=con.F_BUNCH_MHZ, **files)
+    return instructions
 
 
 # =============================================================================
@@ -224,18 +231,18 @@ def _subset_files_dictionary(
     assert isinstance(dirname, str)
     dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
 
-    original_elts_n_cmds = files_from_full_list_of_elements['elts_n_cmds']
-    assert isinstance(original_elts_n_cmds, list)
+    original_instructions = files_from_full_list_of_elements['elts_n_cmds']
+    assert isinstance(original_instructions, list)
     assert all(isinstance(elt, (Element, Command))
-               for elt in original_elts_n_cmds)
-    dat_content, elts_n_cmds = dat_filecontent_from_smaller_list_of_elements(
+               for elt in original_instructions)
+    dat_content, instructions = dat_filecontent_from_smaller_list_of_elements(
         files_from_full_list_of_elements['elts_n_cmds'],
         elts,
     )
 
     files = {'dat_filepath': dat_filepath,
              'dat_content': dat_content,
-             'elts_n_cmds': elts_n_cmds,
+             'elts_n_cmds': instructions,
              'out_path': os.path.dirname(dat_filepath)}
 
     os.mkdir(os.path.join(dirname, tmp_folder))
