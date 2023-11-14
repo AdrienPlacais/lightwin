@@ -78,8 +78,6 @@ class Accelerator():
         self.files = {'project_folder': project_folder,
                       'accelerator_path': accelerator_path}
 
-        # self.initial_beam_parameters_factory = initial_beam_parameters_factory
-
         kwargs = {'w_kin': con.E_MEV,
                   'phi_abs': 0.,
                   'z_in': 0.,
