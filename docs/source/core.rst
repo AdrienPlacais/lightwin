@@ -26,5 +26,6 @@ Submodules
 
    core.accelerator
    core.electric_field
-   core.element_or_command
+   core.instruction
+   core.instructions_factory
    core.particle
