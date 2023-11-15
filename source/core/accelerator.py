@@ -241,7 +241,6 @@ class Accelerator():
 def accelerator_factory(
         beam_calculators: tuple[object | None],
         files: dict[str, str],
-        beam: dict[str, Any],
         wtf: dict[str, Any] | None = None,
         **kwargs
 ) -> list[Accelerator]:
