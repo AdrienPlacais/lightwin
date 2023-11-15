@@ -12,25 +12,22 @@ propagation of the beam in a :class:`.ListOfElements`, possibly with a specific
     Precise that BeamParametersFactory and TransferMatrixFactory are mandatory.
 
 """
-import logging
-from typing import Any, Callable
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from functools import partial
-from beam_calculation.simulation_output.factory import SimulationOutputFactory
 
+import config_manager as con
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
-from core.elements.element import Element
-from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.list_of_elements.helper import equivalent_elt
 from core.accelerator import Accelerator
-from core.beam_parameters.factory import BeamParametersFactory
-from core.transfer_matrix.factory import TransferMatrixFactory
+
+from beam_calculation.simulation_output.factory import SimulationOutputFactory
+from core.beam_parameters.factory import InitialBeamParametersFactory
+from core.list_of_elements.factory import ListOfElementsFactory
+from core.instructions_factory import InstructionsFactory
 
 
 @dataclass
@@ -40,15 +37,32 @@ class BeamCalculator(ABC):
     out_folder: str
 
     def __post_init__(self):
-        """Set ``id``."""
+        """Set ``id`` and factories."""
         self.id: str = self.__repr__()
         self.simulation_output_factory: SimulationOutputFactory
         self.list_of_elements_factory: ListOfElementsFactory
-        self._set_up_factories()
+        self._set_up_common_factories()
+        self._set_up_specific_factories()
+
+    def _set_up_common_factories(self) -> None:
+        """Create the factories declared in :meth:`__post_init__`."""
+        # FIXME
+        initial_beam_parameters_factory = InitialBeamParametersFactory(
+            True,
+            True,
+        )
+        instructions_factory = InstructionsFactory(
+            con.F_BUNCH_MHZ,
+            default_field_map_folder='/home/placais/LightWin/data',
+        )
+        self.list_of_elements_factory = ListOfElementsFactory(
+            initial_beam_parameters_factory,
+            instructions_factory,
+        )
 
     @abstractmethod
-    def _set_up_factories(self) -> None:
-        """Create the factories declared in :meth:`__post_init__`."""
+    def _set_up_specific_factories(self) -> None:
+        """Set up the factories specific to the :class:`.BeamCalculator`."""
 
     @abstractmethod
     def run(self, elts: ListOfElements) -> SimulationOutput:

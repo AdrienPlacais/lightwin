@@ -30,8 +30,6 @@ import os
 import logging
 import subprocess
 
-import config_manager as con
-
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
 from beam_calculation.beam_calculator import BeamCalculator
@@ -44,10 +42,6 @@ from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 
-# factories no heritance
-from core.beam_parameters.factory import InitialBeamParametersFactory
-from core.list_of_elements.factory import ListOfElementsFactory
-from core.instructions_factory import InstructionsFactory
 # factories subclassed from ABC
 from beam_calculation.tracewin.simulation_output_factory import \
     SimulationOutputFactoryTraceWin
@@ -94,12 +88,14 @@ class TraceWin(BeamCalculator):
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
         self.out_folder += "_TraceWin"
+
         filename = 'tracewin.out'
         if self.is_a_multiparticle_simulation:
             filename = 'partran1.out'
         self._filename = filename
 
         super().__post_init__()
+
         logging.warning("TraceWin solver currently cannot work with relative "
                         "phases (last arg of FIELD_MAP should be 1). You "
                         "should check this, because I will not.")
@@ -108,32 +104,19 @@ class TraceWin(BeamCalculator):
         self.dat_file: str
         self._tracewin_command: list[str] | None = None
 
-    def _set_up_factories(self) -> None:
-        """Create the factories declared in :meth:`super().__post_init__`.
+    def _set_up_specific_factories(self) -> None:
+        """Set up the factories specific to the :class:`.BeamCalculator`.
 
         This method is called in the :meth:`super().__post_init__`, hence it
         appears only in the base :class:`.BeamCalculator`.
 
         """
-        # FIXME
-        initial_beam_parameters_factory = InitialBeamParametersFactory(
-            True,
-            True,
-        )
         self.simulation_output_factory = SimulationOutputFactoryTraceWin(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation,
             self.id,
             self.out_folder,
             self._filename,
-        )
-        instructions_factory = InstructionsFactory(
-            con.F_BUNCH_MHZ,
-            default_field_map_folder='/home/placais/LightWin/data',
-        )
-        self.list_of_elements_factory = ListOfElementsFactory(
-            initial_beam_parameters_factory,
-            instructions_factory,
         )
 
     def _tracewin_base_command(self, base_path_cal: str, **kwargs

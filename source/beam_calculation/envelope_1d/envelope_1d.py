@@ -12,8 +12,6 @@ from dataclasses import dataclass
 from beam_calculation.envelope_1d.simulation_output_factory import \
     SimulationOutputFactoryEnvelope1D
 
-import config_manager as con
-
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
@@ -24,11 +22,6 @@ from beam_calculation.simulation_output.simulation_output import \
 
 from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
     SingleElementEnvelope1DParameters
-
-# factories no heritance
-from core.beam_parameters.factory import InitialBeamParametersFactory
-from core.list_of_elements.factory import ListOfElementsFactory
-from core.instructions_factory import InstructionsFactory
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
@@ -61,32 +54,18 @@ class Envelope1D(BeamCalculator):
                 transf_mat
         self.transf_mat_module = transf_mat
 
-    def _set_up_factories(self) -> None:
-        """Create the factories declared in :meth:`super().__post_init__`.
+    def _set_up_specific_factories(self) -> None:
+        """Set up the factories specific to the :class:`.BeamCalculator`.
 
         This method is called in the :meth:`super().__post_init__`, hence it
         appears only in the base :class:`.BeamCalculator`.
 
         """
-        # FIXME
-        initial_beam_parameters_factory = InitialBeamParametersFactory(
-            True,
-            True,
-        )
-
         self.simulation_output_factory = SimulationOutputFactoryEnvelope1D(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation,
             self.id,
             self.out_folder,
-        )
-        instructions_factory = InstructionsFactory(
-            con.F_BUNCH_MHZ,
-            default_field_map_folder='/home/placais/LightWin/data',
-        )
-        self.list_of_elements_factory = ListOfElementsFactory(
-            initial_beam_parameters_factory,
-            instructions_factory,
         )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
