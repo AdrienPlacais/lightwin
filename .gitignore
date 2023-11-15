@@ -172,6 +172,7 @@ source/untitled*.py
 # *.cal
 # *.gif
 # *.html
+*.json
 # *.log
 *.old
 # *.old.ini
