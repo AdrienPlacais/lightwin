@@ -37,7 +37,8 @@ import config_manager as con
 from constants import c
 import util.converters as convert
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.tracewin.single_element_tracewin_parameters import (
     SingleElementTraceWinParameters)

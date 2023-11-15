@@ -21,7 +21,8 @@ from core.beam_parameters.beam_parameters import BeamParameters
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
     SingleElementEnvelope1DParameters

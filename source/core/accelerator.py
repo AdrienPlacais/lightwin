@@ -29,7 +29,8 @@ import pandas as pd
 
 import config_manager as con
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements

@@ -34,7 +34,8 @@ from optimisation.design_space.constraint import Constraint
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.elements.element import Element

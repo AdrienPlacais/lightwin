@@ -18,7 +18,8 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from functools import partial
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 

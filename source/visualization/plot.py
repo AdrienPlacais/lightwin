@@ -45,7 +45,8 @@ from core.elements.drift import Drift
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 import util.dicts_output as dic
 

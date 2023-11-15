@@ -37,7 +37,8 @@ from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from util.dicts_output import markdown
 from experimental.test import assert_are_field_maps

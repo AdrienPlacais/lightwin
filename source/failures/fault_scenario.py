@@ -12,7 +12,8 @@ import logging
 import config_manager as con
 
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from failures.fault import Fault
 from failures import strategy

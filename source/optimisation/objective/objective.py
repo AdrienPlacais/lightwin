@@ -4,7 +4,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 
 @dataclass

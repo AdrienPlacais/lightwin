@@ -11,7 +11,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from util.dicts_output import markdown
 

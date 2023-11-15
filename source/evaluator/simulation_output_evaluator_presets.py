@@ -13,7 +13,8 @@ from functools import partial
 import numpy as np
 
 from core.elements.element import Element
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 from evaluator import post_treaters, testers
 from util.dicts_output import markdown
 

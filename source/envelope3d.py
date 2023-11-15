@@ -14,7 +14,8 @@ from failures.fault_scenario import FaultScenario, fault_scenario_factory
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import create_beam_calculator_objects
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from visualization import plot
 

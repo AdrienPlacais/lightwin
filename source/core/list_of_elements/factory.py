@@ -43,7 +43,8 @@ from tracewin_utils.dat_files import (
 )
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 import config_manager as con
 
 

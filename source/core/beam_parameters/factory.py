@@ -10,7 +10,8 @@ import numpy as np
 from core.elements.element import Element
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 from util import converters
 
 

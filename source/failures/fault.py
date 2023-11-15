@@ -17,7 +17,8 @@ from core.list_of_elements.factory import ListOfElementsFactory
 
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
 

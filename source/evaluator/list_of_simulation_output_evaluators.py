@@ -12,7 +12,8 @@ import pandas as pd
 
 from core.elements.element import Element
 from failures.fault import Fault
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 from evaluator.simulation_output_evaluator import SimulationOutputEvaluator
 from evaluator.simulation_output_evaluator_presets import (
     PRESETS,

@@ -30,7 +30,8 @@ from optimisation.design_space.constraint import Constraint
 from core.list_of_elements.helper import equivalent_elt
 from core.elements.element import Element
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 
 
 # =============================================================================

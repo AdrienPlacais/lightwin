@@ -17,7 +17,8 @@ from abc import ABC
 
 import numpy as np
 
-from beam_calculation.output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 from evaluator.post_treaters import do_nothing
 from util.helper import resample
 from visualization import plot
