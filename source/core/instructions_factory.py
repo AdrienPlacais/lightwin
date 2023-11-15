@@ -8,6 +8,9 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
     the ``load_electromagnetic_files`` flag (False for TraceWin), the list of
     implemented elements/commands (ex Envelope3D, not everything is set).
 
+.. todo::
+    to fix!!! does not recognize lower case commands such as ``end``
+
 """
 from typing import Any
 import logging
