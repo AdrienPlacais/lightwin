@@ -33,6 +33,7 @@ from functools import partial
 
 import numpy as np
 
+import config_manager as con
 from constants import c
 import util.converters as convert
 
@@ -52,6 +53,11 @@ from core.particle import ParticleFullTrajectory, ParticleInitialState
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
+# factories no heritance
+from core.beam_parameters.factory import InitialBeamParametersFactory
+from core.list_of_elements.factory import ListOfElementsFactory
+from core.instructions_factory import InstructionsFactory
+# factories subclassed from ABC
 from beam_calculation.tracewin.beam_parameters_factory import (
     BeamParametersFactoryTraceWin,
 )
@@ -117,11 +123,33 @@ class TraceWin(BeamCalculator):
         self.dat_file: str
         self._tracewin_command: list[str] | None = None
 
+    def _set_up_factories(self) -> None:
+        """Create the factories declared in :meth:`super().__post_init__`.
+
+        This method is called in the :meth:`super().__post_init__`, hence it
+        appears only in the base :class:`.BeamCalculator`.
+
+        """
+        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation,
+        )
         self.beam_parameters_factory = BeamParametersFactoryTraceWin(
             self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation)
+            self.is_a_multiparticle_simulation
+        )
         self.transfer_matrix_factory = TransferMatrixFactoryTraceWin(
-            self.is_a_3d_simulation)
+            self.is_a_3d_simulation
+        )
+        instructions_factory = InstructionsFactory(
+            con.F_BUNCH_MHZ,
+            default_field_map_folder='/home/placais/LightWin/data',
+        )
+        self.list_of_elements_factory = ListOfElementsFactory(
+            self.initial_beam_parameters_factory,
+            instructions_factory,
+        )
+
 
     def _tracewin_base_command(self, base_path_cal: str, **kwargs
                                ) -> tuple[list[str], str]:

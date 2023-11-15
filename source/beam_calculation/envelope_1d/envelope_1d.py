@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+import config_manager as con
+
 from core.particle import ParticleFullTrajectory
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -23,6 +25,12 @@ from beam_calculation.output import SimulationOutput
 
 from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
     SingleElementEnvelope1DParameters
+
+# factories no heritance
+from core.beam_parameters.factory import InitialBeamParametersFactory
+from core.list_of_elements.factory import ListOfElementsFactory
+from core.instructions_factory import InstructionsFactory
+# factories subclassed from ABC
 from beam_calculation.envelope_1d.beam_parameters_factory import \
     BeamParametersFactoryEnvelope1D
 from beam_calculation.envelope_1d.transfer_matrix_factory import \
@@ -59,12 +67,31 @@ class Envelope1D(BeamCalculator):
                 transf_mat
         self.transf_mat_module = transf_mat
 
+    def _set_up_factories(self) -> None:
+        """Create the factories declared in :meth:`super().__post_init__`.
+
+        This method is called in the :meth:`super().__post_init__`, hence it
+        appears only in the base :class:`.BeamCalculator`.
+
+        """
+        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation,
+        )
         self.beam_parameters_factory = BeamParametersFactoryEnvelope1D(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation
         )
         self.transfer_matrix_factory = TransferMatrixFactoryEnvelope1D(
             self.is_a_3d_simulation
+        )
+        instructions_factory = InstructionsFactory(
+            con.F_BUNCH_MHZ,
+            default_field_map_folder='/home/placais/LightWin/data',
+        )
+        self.list_of_elements_factory = ListOfElementsFactory(
+            self.initial_beam_parameters_factory,
+            instructions_factory,
         )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
