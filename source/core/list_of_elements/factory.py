@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module holds two functions to create :class:`.ListOfElements`.
+This module holds a class to create :class:`.ListOfElements`.
 
-Their main goal is to initialize it with the proper input synchronous particle
-and beam properties.
-The first one, :func:`new_list_of_elements`, is called within the
-:class:`.Accelerator` class and generate a full :class:`.ListOfElements` from
-scratch.
-The second one, :func:`subset_of_pre_existing_list_of_elements`, is called
-within the :class:`.Fault` class and generates a :class:`.ListOfElements` that
-contains only a fraction of the linac.
+Its main goal is to initialize :class:`.ListOfElements` with the proper input
+synchronous particle and beam properties.
+:meth:`.whole_list_run` is called within the :class:`.Accelerator` and generate
+a full :class:`.ListOfElements` from scratch.
+
+:meth:`.subset_list_run` is called within :class:`.Fault` and generates a
+:class:`.ListOfElements` that contains only a fraction of the linac.
 
 .. todo::
-    Also handle `.dst` file in `subset_of_pre_existing_list_of_elements`.
+    Also handle ``.dst`` file in :meth:`.subset_list_run`.
 
 .. todo::
     Maybe it will be necessary to handle cases where the synch particle is not
     perfectly on the axis?
+
+.. todo::
+    fix the initial beam factory!!!!
 
 """
 import os
@@ -26,46 +28,39 @@ from typing import Any
 
 import numpy as np
 
-from core.instruction import Instruction
 from core.instructions_factory import InstructionsFactory
+from core.beam_parameters.factory import InitialBeamParametersFactory
+
+from core.instruction import Instruction
 from core.elements.element import Element
 from core.commands.command import Command
 from core.particle import ParticleInitialState
 
-from core.beam_parameters.factory import InitialBeamParametersFactory
-
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 import tracewin_utils.load
 from tracewin_utils.dat_files import (
-    create_structure,
     dat_filecontent_from_smaller_list_of_elements,
 )
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
-import config_manager as con
 
 
 class ListOfElementsFactory:
-    """Factory class to easily create list of elements from different contexts.
-
-    """
+    """Factory class to create list of elements from different contexts."""
 
     def __init__(self,
-                 initial_beam_factory: InitialBeamParametersFactory,
-                 instructions_factory: InstructionsFactory,
-                 ):
-        # idea would be to make those change according to BeamCalculator,
-        # right?
-        self.initial_beam_factory = initial_beam_factory
-        self.instructions_factory = instructions_factory
+                 is_3d: bool,
+                 is_multipart: bool,
+                 freq_bunch: float,
+                 default_field_map_folder: str):
+        """Declare and create some mandatory factories."""
+        self.initial_beam_factory = InitialBeamParametersFactory(True, True)
+        self.instructions_factory = InstructionsFactory(
+            freq_bunch,
+            default_field_map_folder)
 
-        # Idea 1: each BeamCalculator has its own ListOfElementsFactory
-        # Idea 2: the factory method takes in the proper factories as argument
-
-    # needs initial_beam_factory and instructions_factory
     def whole_list_run(
             self,
             dat_filepath: str,
@@ -135,7 +130,6 @@ class ListOfElementsFactory:
                                               synchronous=True,)
         return input_particle
 
-    # needs initial_beam_factory but not instructions_factory
     def subset_list_run(
         self,
         elts: list[Element],

@@ -25,9 +25,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
 
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
-from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.list_of_elements.factory import ListOfElementsFactory
-from core.instructions_factory import InstructionsFactory
 
 
 @dataclass
@@ -46,18 +44,11 @@ class BeamCalculator(ABC):
 
     def _set_up_common_factories(self) -> None:
         """Create the factories declared in :meth:`__post_init__`."""
-        # FIXME
-        initial_beam_parameters_factory = InitialBeamParametersFactory(
-            True,
-            True,
-        )
-        instructions_factory = InstructionsFactory(
+        self.list_of_elements_factory = ListOfElementsFactory(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation,
             con.F_BUNCH_MHZ,
             default_field_map_folder='/home/placais/LightWin/data',
-        )
-        self.list_of_elements_factory = ListOfElementsFactory(
-            initial_beam_parameters_factory,
-            instructions_factory,
         )
 
     @abstractmethod
