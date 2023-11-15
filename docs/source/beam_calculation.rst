@@ -24,5 +24,4 @@ Submodules
 
    beam_calculation.beam_calculator
    beam_calculation.factory
-   beam_calculation.output
    beam_calculation.single_element_beam_calculator_parameters
