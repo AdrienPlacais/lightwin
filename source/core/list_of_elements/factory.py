@@ -19,7 +19,9 @@ a full :class:`.ListOfElements` from scratch.
     perfectly on the axis?
 
 .. todo::
-    fix the initial beam factory!!!!
+    Find a smart way to sublass :class:`.ListOfElementsFactory` according to
+    the :class:`.BeamCalculator`... Loading field maps not necessary with
+    :class:`.TraceWin` for example.
 
 """
 import os
@@ -28,6 +30,7 @@ from typing import Any
 
 import numpy as np
 
+import config_manager as con
 from core.instructions_factory import InstructionsFactory
 from core.beam_parameters.factory import InitialBeamParametersFactory
 
@@ -76,7 +79,14 @@ class ListOfElementsFactory:
 
         self.instructions_factory = InstructionsFactory(
             freq_bunch,
-            default_field_map_folder)
+            default_field_map_folder,
+            # Useless with TraceWin
+            load_field_maps=True,
+            # Not implemented
+            field_maps_in_3d=False,
+            # Different loading of field maps if Cython
+            load_cython_field_maps=con.FLAG_CYTHON,
+        )
 
     def whole_list_run(
             self,

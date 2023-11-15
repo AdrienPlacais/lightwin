@@ -43,7 +43,16 @@ class BeamCalculator(ABC):
         self._set_up_specific_factories()
 
     def _set_up_common_factories(self) -> None:
-        """Create the factories declared in :meth:`__post_init__`."""
+        """
+        Create the factories declared in :meth:`__post_init__`.
+
+        .. todo::
+            ``default_field_map_folder`` has a wrong default value. Should take
+            path to the ``.dat`` file, that is not known at this point. Maybe
+            handle this directly in the :class:`.InstructionsFactory` or
+            whatever.
+
+        """
         self.list_of_elements_factory = ListOfElementsFactory(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation,

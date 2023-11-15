@@ -40,8 +40,34 @@ class InstructionsFactory:
     def __init__(self,
                  freq_bunch: float,
                  default_field_map_folder: str,
+                 load_field_maps: bool,
+                 field_maps_in_3d: bool,
+                 load_cython_field_maps: bool,
                  **factory_kw: Any) -> None:
-        """Instantiate the command and element factories."""
+        """Instantiate the command and element factories.
+
+        Parameters
+        ----------
+        freq_bunch : float
+            Beam bunch frequency in MHz.
+        default_field_map_folder : str
+            Where to look for field maps when no ``FIELD_MAP_PATH`` is
+            precised.
+        load_field_maps : bool
+            To load or not the field maps (useless to do it with
+            :class:`.TraceWin`).
+        field_maps_in_3d : bool
+            To load or not the field maps in 3D (useful only with
+            :class:`.Envelope3D`... Except that this is not supported yet, so
+            it is never useful.
+        load_cython_field_maps : bool
+            To load or not the field maps for Cython (useful only with
+            :class:`.Envelope1D` and :class:`.Envelope3D` used with Cython).
+        factory_kw : Any
+            Other parameters passed to the :class:`.CommandFactory` and
+            :class:`.ElementFactory`.
+
+        """
         # arguments for commands
         self._freq_bunch = freq_bunch
 
@@ -51,9 +77,14 @@ class InstructionsFactory:
             default_field_map_folder=default_field_map_folder,
             **factory_kw)
 
-        # TODO
-        # parameters that depend on the BeamCalculator
-        self._load_electromagnetic_fields: bool = True
+        self._load_field_maps = load_field_maps
+        if field_maps_in_3d:
+            raise NotImplementedError("No solver can handle 3D field maps yet."
+                                      " Except TraceWin, but you do not need "
+                                      "to load the field maps with this solver"
+                                      ", it does it itself.")
+        self._field_maps_in_3d = field_maps_in_3d
+        self._load_cython_field_maps = load_cython_field_maps
 
         self._cython: bool = con.FLAG_CYTHON
         # would be better without config dependency
@@ -89,8 +120,10 @@ class InstructionsFactory:
         self._handle_lattice_and_section(elts)
         self._check_every_elt_has_lattice_and_section(elts)
 
-        field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
-        load_electromagnetic_fields(field_maps, self._cython)
+        if self._load_field_maps:
+            field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
+            load_electromagnetic_fields(field_maps,
+                                        self._load_cython_field_maps)
 
         return instructions
 
@@ -147,12 +180,12 @@ class InstructionsFactory:
         """Check that every element has a lattice and section index."""
         for elt in elts:
             if elt.get('lattice', to_numpy=False) is None:
-                logging.error("At least one Element is outside of any lattice. "
-                              "This may cause problems...")
+                logging.error("At least one Element is outside of any lattice."
+                              " This may cause problems...")
                 break
 
         for elt in elts:
             if elt.get('section', to_numpy=False) is None:
-                logging.error("At least one Element is outside of any section. "
-                              "This may cause problems...")
+                logging.error("At least one Element is outside of any section."
+                              " This may cause problems...")
                 break
