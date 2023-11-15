@@ -51,12 +51,6 @@ from core.instructions_factory import InstructionsFactory
 # factories subclassed from ABC
 from beam_calculation.tracewin.simulation_output_factory import \
     SimulationOutputFactoryTraceWin
-from beam_calculation.tracewin.beam_parameters_factory import (
-    BeamParametersFactoryTraceWin,
-)
-from beam_calculation.tracewin.transfer_matrix_factory import (
-    TransferMatrixFactoryTraceWin
-)
 
 
 @dataclass
@@ -126,16 +120,9 @@ class TraceWin(BeamCalculator):
             True,
             True,
         )
-        beam_parameters_factory = BeamParametersFactoryTraceWin(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation
-        )
-        transfer_matrix_factory = TransferMatrixFactoryTraceWin(
-            self.is_a_3d_simulation
-        )
         self.simulation_output_factory = SimulationOutputFactoryTraceWin(
-            transfer_matrix_factory,
-            beam_parameters_factory,
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation,
             self.id,
             self.out_folder,
             self._filename,

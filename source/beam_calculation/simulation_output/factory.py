@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Define a class to easily generate the :class:`.SimulationOutput.
+"""Define a class to easily generate the :class:`.SimulationOutput`.
 
 This class should be subclassed by every :class:`.BeamCalculator` to match its
 own specific outputs.
 
 """
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
 from functools import partial
 import logging
@@ -25,9 +25,34 @@ from core.beam_parameters.factory import BeamParametersFactory
 class SimulationOutputFactory(ABC):
     """A base class for creation of :class:`.SimulationOutput`."""
 
-    transfer_matrix_factory: TransferMatrixFactory
-    beam_parameters_factory: BeamParametersFactory
+    _is_3d: bool
+    _is_multipart: bool
     _solver_id: str
+
+    def __post_init__(self) -> None:
+        """Create the factories.
+
+        The created factories are :class:`.TransferMatrixFactory` and
+        :class:`.BeamParametersFactory`. The sub-class that is used is declared
+        in :meth:`._transfer_matrix_factory_class` and
+        :meth:`._beam_parameters_factory_class`.
+
+        """
+        self.transfer_matrix_factory = self._transfer_matrix_factory_class(
+            self._is_3d)
+        self.beam_parameters_factory = self._beam_parameters_factory_class(
+            self._is_3d,
+            self._is_multipart)
+
+    @property
+    @abstractmethod
+    def _transfer_matrix_factory_class(self) -> ABCMeta:
+        """Declare the **class** of the transfer matrix factory."""
+
+    @property
+    @abstractmethod
+    def _beam_parameters_factory_class(self) -> ABCMeta:
+        """Declare the **class** of the beam parameters factory."""
 
     @abstractmethod
     def run(self, *args, **kwargs) -> SimulationOutput:
@@ -57,7 +82,7 @@ def _element_to_index(_elts: ListOfElements,
     """
     Convert ``elt`` and ``pos`` into a mesh index.
 
-    This way, you can call :func:`get('w_kin', elt='FM5', pos='out')` and
+    This way, you can call ``get('w_kin', elt='FM5', pos='out')`` and
     systematically get the energy at the exit of FM5, whatever the
     :class:`.BeamCalculator` or the mesh size is.
 

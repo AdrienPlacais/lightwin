@@ -63,16 +63,9 @@ class Envelope3D(BeamCalculator):
             True,
         )
 
-        beam_parameters_factory = BeamParametersFactoryEnvelope3D(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation
-        )
-        transfer_matrix_factory = TransferMatrixFactoryEnvelope3D(
-            self.is_a_3d_simulation
-        )
         self.simulation_output_factory = SimulationOutputFactoryEnvelope3D(
-            transfer_matrix_factory,
-            beam_parameters_factory,
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation,
             self.id,
             self.out_folder,
         )

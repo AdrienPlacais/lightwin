@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Define a class to easily generate the :class:`.SimulationOutput."""
+"""Define a class to easily generate the :class:`.SimulationOutput`."""
+from abc import ABCMeta
 from dataclasses import dataclass
 import numpy as np
 
@@ -9,6 +10,10 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
     TransferMatrix
 )
+from beam_calculation.envelope_1d.beam_parameters_factory import \
+    BeamParametersFactoryEnvelope1D
+from beam_calculation.envelope_1d.transfer_matrix_factory import \
+    TransferMatrixFactoryEnvelope1D
 
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.particle import ParticleFullTrajectory
@@ -19,6 +24,28 @@ class SimulationOutputFactoryEnvelope1D(SimulationOutputFactory):
     """A class for creating simulation outputs for :class:`.Envelope1D`."""
 
     out_folder: str
+
+    def __post_init__(self) -> None:
+        """Create the factories.
+
+        The created factories are :class:`.TransferMatrixFactory` and
+        :class:`.BeamParametersFactory`. The sub-class that is used is declared
+        in :meth:`._transfer_matrix_factory_class` and
+        :meth:`._beam_parameters_factory_class`.
+
+        """
+        # Factories created in ABC's __post_init__
+        return super().__post_init__()
+
+    @property
+    def _transfer_matrix_factory_class(self) -> ABCMeta:
+        """Give the **class** of the transfer matrix factory."""
+        return TransferMatrixFactoryEnvelope1D
+
+    @property
+    def _beam_parameters_factory_class(self) -> ABCMeta:
+        """Give the **class** of the beam parameters factory."""
+        return BeamParametersFactoryEnvelope1D
 
     def run(self,
             elts: ListOfElements,

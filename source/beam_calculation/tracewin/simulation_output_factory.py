@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Define a class to easily generate the :class:`.SimulationOutput."""
+"""Define a class to easily generate the :class:`.SimulationOutput`."""
+from abc import ABCMeta
 from functools import partial
 import logging
 import os.path
@@ -14,6 +15,10 @@ from beam_calculation.simulation_output.simulation_output import (
 )
 from beam_calculation.tracewin.single_element_tracewin_parameters import \
     SingleElementTraceWinParameters
+from beam_calculation.tracewin.transfer_matrix_factory import \
+    TransferMatrixFactoryTraceWin
+from beam_calculation.tracewin.beam_parameters_factory import \
+    BeamParametersFactoryTraceWin
 from core.list_of_elements.list_of_elements import ListOfElements
 
 from core.particle import ParticleFullTrajectory, ParticleInitialState
@@ -29,9 +34,28 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
     _filename: str
 
     def __post_init__(self) -> None:
-        """Set filepath-related attributes."""
+        """Set filepath-related attributes and create factories.
+
+        The created factories are :class:`.TransferMatrixFactory` and
+        :class:`.BeamParametersFactory`. The sub-class that is used is declared
+        in :meth:`._transfer_matrix_factory_class` and
+        :meth:`._beam_parameters_factory_class`.
+
+        """
         self.load_results = partial(_load_results_generic,
                                     filename=self._filename)
+        # Factories created in ABC's __post_init__
+        return super().__post_init__()
+
+    @property
+    def _transfer_matrix_factory_class(self) -> ABCMeta:
+        """Give the **class** of the transfer matrix factory."""
+        return TransferMatrixFactoryTraceWin
+
+    @property
+    def _beam_parameters_factory_class(self) -> ABCMeta:
+        """Give the **class** of the beam parameters factory."""
+        return BeamParametersFactoryTraceWin
 
     def run(self,
             elts: ListOfElements,

@@ -9,17 +9,14 @@ It is fast, but should not be used at low energies.
 import logging
 from dataclasses import dataclass
 
-import numpy as np
-from beam_calculation.envelope_1d.simulation_output_factory import SimulationOutputFactoryEnvelope1D
+from beam_calculation.envelope_1d.simulation_output_factory import \
+    SimulationOutputFactoryEnvelope1D
 
 import config_manager as con
 
-from core.particle import ParticleFullTrajectory
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
-from core.beam_parameters.beam_parameters import BeamParameters
-from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.simulation_output.simulation_output import \
@@ -32,11 +29,6 @@ from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
 from core.beam_parameters.factory import InitialBeamParametersFactory
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.instructions_factory import InstructionsFactory
-# factories subclassed from ABC
-from beam_calculation.envelope_1d.beam_parameters_factory import \
-    BeamParametersFactoryEnvelope1D
-from beam_calculation.envelope_1d.transfer_matrix_factory import \
-    TransferMatrixFactoryEnvelope1D
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
@@ -82,16 +74,9 @@ class Envelope1D(BeamCalculator):
             True,
         )
 
-        beam_parameters_factory = BeamParametersFactoryEnvelope1D(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation
-        )
-        transfer_matrix_factory = TransferMatrixFactoryEnvelope1D(
-            self.is_a_3d_simulation
-        )
         self.simulation_output_factory = SimulationOutputFactoryEnvelope1D(
-            transfer_matrix_factory,
-            beam_parameters_factory,
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation,
             self.id,
             self.out_folder,
         )

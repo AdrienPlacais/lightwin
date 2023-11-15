@@ -8,7 +8,6 @@ import datetime
 import config_manager as conf_man
 
 from core.accelerator import Accelerator, accelerator_factory
-from core.beam_parameters.factory import InitialBeamParametersFactory
 
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 
