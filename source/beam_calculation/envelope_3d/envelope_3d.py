@@ -3,14 +3,11 @@
 """Define :class:`Envelope3D`, an envelope solver."""
 from dataclasses import dataclass
 
-import numpy as np
+import config_manager as con
 
-from core.particle import ParticleFullTrajectory
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.accelerator import Accelerator
-from core.beam_parameters.beam_parameters import BeamParameters
-from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.simulation_output.simulation_output import \
@@ -24,6 +21,11 @@ from beam_calculation.envelope_3d.transfer_matrix_factory import \
 
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
+from beam_calculation.envelope_3d.simulation_output_factory import \
+    SimulationOutputFactoryEnvelope3D
+from core.beam_parameters.factory import InitialBeamParametersFactory
+from core.instructions_factory import InstructionsFactory
+from core.list_of_elements.factory import ListOfElementsFactory
 
 
 @dataclass
@@ -35,8 +37,8 @@ class Envelope3D(BeamCalculator):
 
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
-        super().__post_init__()
         self.out_folder += "_Envelope3D"
+        super().__post_init__()
 
         self.beam_parameters_factory = BeamParametersFactoryEnvelope3D(
             self.is_a_3d_simulation,
@@ -47,6 +49,41 @@ class Envelope3D(BeamCalculator):
 
         import beam_calculation.envelope_3d.transfer_matrices_p as transf_mat
         self.transf_mat_module = transf_mat
+
+    def _set_up_factories(self) -> None:
+        """Create the factories declared in :meth:`super().__post_init__`.
+
+        This method is called in the :meth:`super().__post_init__`, hence it
+        appears only in the base :class:`.BeamCalculator`.
+
+        """
+        # FIXME
+        initial_beam_parameters_factory = InitialBeamParametersFactory(
+            True,
+            True,
+        )
+
+        beam_parameters_factory = BeamParametersFactoryEnvelope3D(
+            self.is_a_3d_simulation,
+            self.is_a_multiparticle_simulation
+        )
+        transfer_matrix_factory = TransferMatrixFactoryEnvelope3D(
+            self.is_a_3d_simulation
+        )
+        self.simulation_output_factory = SimulationOutputFactoryEnvelope3D(
+            transfer_matrix_factory,
+            beam_parameters_factory,
+            self.id,
+            self.out_folder,
+        )
+        instructions_factory = InstructionsFactory(
+            con.F_BUNCH_MHZ,
+            default_field_map_folder='/home/placais/LightWin/data',
+        )
+        self.list_of_elements_factory = ListOfElementsFactory(
+            initial_beam_parameters_factory,
+            instructions_factory,
+        )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -170,67 +207,6 @@ class Envelope3D(BeamCalculator):
             position, index = \
                 elt.beam_calc_param[self.id].set_absolute_meshes(position,
                                                                  index)
-
-    def _generate_simulation_output(self, elts: ListOfElements,
-                                    single_elts_results: list[dict],
-                                    rf_fields: list[dict]
-                                    ) -> SimulationOutput:
-        """Transform the outputs of BeamCalculator to a SimulationOutput."""
-        w_kin = [energy
-                 for results in single_elts_results
-                 for energy in results['w_kin']
-                 ]
-        w_kin.insert(0, elts.w_kin_in)
-
-        phi_abs_array = [elts.phi_abs_in]
-        for elt_results in single_elts_results:
-            phi_abs = [phi_rel + phi_abs_array[-1]
-                       for phi_rel in elt_results['phi_rel']]
-            phi_abs_array.extend(phi_abs)
-        synch_trajectory = ParticleFullTrajectory(w_kin=w_kin,
-                                                  phi_abs=phi_abs_array,
-                                                  synchronous=True)
-        gamma_kin = synch_trajectory.gamma
-        assert isinstance(gamma_kin, np.ndarray)
-
-        cav_params = [results['cav_params'] for results in single_elts_results]
-        cav_params = {'v_cav_mv': [cav_param['v_cav_mv']
-                                   if cav_param is not None else None
-                                   for cav_param in cav_params],
-                      'phi_s': [cav_param['phi_s']
-                                if cav_param is not None else None
-                                for cav_param in cav_params],
-                      }
-
-        element_to_index = self._generate_element_to_index_func(elts)
-        transfer_matrix: TransferMatrix = self.transfer_matrix_factory.run(
-            elts.tm_cumul_in,
-            single_elts_results,
-            element_to_index)
-
-        z_abs = elts.get('abs_mesh', remove_first=True)
-        beam_parameters: BeamParameters = \
-            self.beam_parameters_factory.factory_method(
-                elts.input_beam.sigma_in,
-                z_abs,
-                gamma_kin,
-                transfer_matrix,
-                element_to_index,
-            )
-
-        simulation_output = SimulationOutput(
-            out_folder=self.out_folder,
-            is_multiparticle=self.is_a_multiparticle_simulation,
-            is_3d=self.is_a_3d_simulation,
-            synch_trajectory=synch_trajectory,
-            cav_params=cav_params,
-            rf_fields=rf_fields,
-            beam_parameters=beam_parameters,
-            element_to_index=element_to_index,
-            transfer_matrix=transfer_matrix
-        )
-
-        return simulation_output
 
     @property
     def is_a_multiparticle_simulation(self) -> bool:

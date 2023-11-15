@@ -85,19 +85,12 @@ if __name__ == '__main__':
     my_beam_calc: BeamCalculator = my_beam_calculators[0]
     solv1 = my_beam_calc.id
 
-    initial_beam_parameters_factory = InitialBeamParametersFactory(
-        is_3d=True,
-        is_multipart=True)
-
     FILEPATH = my_configs['files']['dat_file']
     PROJECT_FOLDER = my_configs['files']['project_folder']
 
     # Reference accelerator
-    accelerators: list[Accelerator] = \
-        accelerator_factory(
-            my_beam_calculators,
-            initial_beam_parameters_factory=initial_beam_parameters_factory,
-            **my_configs)
+    accelerators: list[Accelerator] = accelerator_factory(my_beam_calculators,
+                                                          **my_configs)
     beam_calc_and_save(accelerators[0], my_beam_calc)
     # FIXME dirty patch to initialize _element_to_index function
     if "TraceWin" in solv1:
