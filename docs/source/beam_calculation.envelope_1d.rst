@@ -14,6 +14,7 @@ Submodules
 
    beam_calculation.envelope_1d.beam_parameters_factory
    beam_calculation.envelope_1d.envelope_1d
+   beam_calculation.envelope_1d.simulation_output_factory
    beam_calculation.envelope_1d.single_element_envelope_1d_parameters
    beam_calculation.envelope_1d.transfer_matrices_c
    beam_calculation.envelope_1d.transfer_matrices_p

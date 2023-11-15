@@ -14,6 +14,7 @@ Subpackages
 
    beam_calculation.envelope_1d
    beam_calculation.envelope_3d
+   beam_calculation.simulation_output
    beam_calculation.tracewin
 
 Submodules
