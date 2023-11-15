@@ -55,8 +55,25 @@ class ListOfElementsFactory:
                  is_multipart: bool,
                  freq_bunch: float,
                  default_field_map_folder: str):
-        """Declare and create some mandatory factories."""
-        self.initial_beam_factory = InitialBeamParametersFactory(True, True)
+        """
+        Declare and create some mandatory factories.
+
+        .. note::
+            For now, we have only one ``input_beam`` parameters, we create only
+            one :class:`.ListOfElements`. Hence we create in the most general
+            way possible.
+            We instantiate :class:`.InitialBeamParametersFactory` with
+            ``is_3d=True`` and ``is_multipart=True`` because it will work with
+            all the :class:`.BeamCalculator` objects -- some phase-spaces may
+            be created but never used though.
+
+        """
+        self.initial_beam_factory = InitialBeamParametersFactory(
+            # Useless with Envelope1D
+            is_3d=True,
+            # Useless with Envelope1D, Envelope3D, TraceWin if partran = 0
+            is_multipart=True)
+
         self.instructions_factory = InstructionsFactory(
             freq_bunch,
             default_field_map_folder)
