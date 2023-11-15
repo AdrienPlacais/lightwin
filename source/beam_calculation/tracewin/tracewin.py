@@ -131,7 +131,7 @@ class TraceWin(BeamCalculator):
 
         """
         # FIXME
-        self.initial_beam_parameters_factory = InitialBeamParametersFactory(
+        initial_beam_parameters_factory = InitialBeamParametersFactory(
             True,
             True,
         )
@@ -147,7 +147,7 @@ class TraceWin(BeamCalculator):
             default_field_map_folder='/home/placais/LightWin/data',
         )
         self.list_of_elements_factory = ListOfElementsFactory(
-            self.initial_beam_parameters_factory,
+            initial_beam_parameters_factory,
             instructions_factory,
         )
 
