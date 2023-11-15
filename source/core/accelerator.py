@@ -30,11 +30,10 @@ import pandas as pd
 import config_manager as con
 
 from beam_calculation.output import SimulationOutput
-from core.beam_parameters.factory import InitialBeamParametersFactory
 
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.list_of_elements.factory import new_list_of_elements
+from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.helper import (elt_at_this_s_idx,
                                           equivalent_elt)
 
@@ -50,7 +49,7 @@ class Accelerator():
                  project_folder: str,
                  accelerator_path: str,
                  out_folders: tuple[str],
-                 initial_beam_parameters_factory: InitialBeamParametersFactory,
+                 list_of_elements_factory: ListOfElementsFactory,
                  ) -> None:
         """Create object.
 
@@ -66,9 +65,8 @@ class Accelerator():
             Folder where all data will be saved.
         out_folders : tuple[str]
             Not used anymore.
-        initial_beam_parameters_factory : InitialBeamParametersFactory
-            A factory to create the beam parameters (emittance, etc) at the
-            beginning of the accelerator.
+        list_of_elements_factory : ListOfElementsFactory
+            A factory to create the list of elements.
 
         """
         self.name = name
@@ -83,10 +81,10 @@ class Accelerator():
                   'z_in': 0.,
                   'sigma_in': con.SIGMA}
         self.elts: ListOfElements
-        self.elts = new_list_of_elements(dat_file,
-                                         accelerator_path,
-                                         initial_beam_parameters_factory,
-                                         **kwargs)
+        self.elts = list_of_elements_factory.whole_list_run(
+            dat_file,
+            accelerator_path,
+            **kwargs)
 
         self._special_getters = self._create_special_getters()
         self._check_consistency_phases()
@@ -243,7 +241,6 @@ def accelerator_factory(
         beam_calculators: tuple[object | None],
         files: dict[str, str],
         beam: dict[str, Any],
-        initial_beam_parameters_factory: InitialBeamParametersFactory,
         wtf: dict[str, Any] | None = None,
         **kwargs
 ) -> list[Accelerator]:
@@ -265,11 +262,12 @@ def accelerator_factory(
 
     names = ['Broken' if i > 0 else 'Working' for i in range(n_simulations)]
 
+    list_of_elements_factory = beam_calculators[0].list_of_elements_factory
     accelerators = [Accelerator(
         name=name,
         accelerator_path=accelerator_path,
         out_folders=out_folders,
-        initial_beam_parameters_factory=initial_beam_parameters_factory,
+        list_of_elements_factory=list_of_elements_factory,
         **files
     ) for name, accelerator_path in zip(names, accelerator_paths)]
     return accelerators

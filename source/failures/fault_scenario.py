@@ -19,7 +19,6 @@ from failures import strategy
 
 from core.elements.element import Element
 from core.accelerator import Accelerator
-from core.beam_parameters.factory import InitialBeamParametersFactory
 
 from optimisation.algorithms.factory import optimisation_algorithm_factory
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
@@ -39,7 +38,6 @@ class FaultScenario(list):
                  ref_acc: Accelerator,
                  fix_acc: Accelerator,
                  beam_calculator: BeamCalculator,
-                 initial_beam_parameters_factory: InitialBeamParametersFactory,
                  wtf: dict[str, str | int | bool | list[str] | list[float]],
                  fault_idx: list[int] | list[list[int]],
                  comp_idx: list[list[int]] | None = None,
@@ -92,6 +90,7 @@ class FaultScenario(list):
             faulty_cavities = [fix_acc.l_cav[i] for i in fault]
             compensating_cavities = [fix_acc.l_cav[i] for i in comp]
 
+            list_of_elements_factory = beam_calculator.list_of_elements_factory
             fault = Fault(
                 reference_elts=self.ref_acc.elts,
                 reference_simulation_output=reference_simulation_output,
@@ -100,7 +99,7 @@ class FaultScenario(list):
                 broken_elts=self.fix_acc.elts,
                 failed_elements=faulty_cavities,
                 compensating_elements=compensating_cavities,
-                initial_beam_parameters_factory=initial_beam_parameters_factory,
+                list_of_elements_factory=list_of_elements_factory,
             )
             faults.append(fault)
         super().__init__(faults)
@@ -325,7 +324,6 @@ class FaultScenario(list):
 def fault_scenario_factory(
     accelerators: list[Accelerator],
     beam_calculator: BeamCalculator,
-    initial_beam_parameters_factory: InitialBeamParametersFactory,
     wtf: dict[str, str | int | bool | list[str] | list[float]]
 ) -> list[FaultScenario]:
     """
@@ -362,7 +360,6 @@ def fault_scenario_factory(
             ref_acc=accelerators[0],
             fix_acc=accelerator,
             beam_calculator=beam_calculator,
-            initial_beam_parameters_factory=initial_beam_parameters_factory,
             wtf=wtf,
             fault_idx=fault_idx,
             comp_idx=comp_idx)

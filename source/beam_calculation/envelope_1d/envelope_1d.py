@@ -74,9 +74,10 @@ class Envelope1D(BeamCalculator):
         appears only in the base :class:`.BeamCalculator`.
 
         """
+        # FIXME
         self.initial_beam_parameters_factory = InitialBeamParametersFactory(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation,
+            True,
+            True,
         )
         self.beam_parameters_factory = BeamParametersFactoryEnvelope1D(
             self.is_a_3d_simulation,

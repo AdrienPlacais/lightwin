@@ -13,14 +13,10 @@ import config_manager as con
 
 from core.elements.element import Element
 
-from core.beam_parameters.factory import InitialBeamParametersFactory
-from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
+from core.list_of_elements.factory import ListOfElementsFactory
 
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt
-from core.list_of_elements.factory import (
-    subset_of_pre_existing_list_of_elements
-)
 from beam_calculation.output import SimulationOutput
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
@@ -75,7 +71,7 @@ class Fault:
                  broken_elts: ListOfElements,
                  failed_elements: list[Element],
                  compensating_elements: list[Element],
-                 initial_beam_parameters_factory: InitialBeamParametersFactory,
+                 list_of_elements_factory: ListOfElementsFactory,
                  ) -> None:
         """
         Create the Fault object.
@@ -133,11 +129,10 @@ class Fault:
                 compensating_elements=compensating_elements,
                 )
 
-        self.elts: ListOfElements = subset_of_pre_existing_list_of_elements(
+        self.elts: ListOfElements = list_of_elements_factory.subset_list_run(
             elts_of_compensation_zone,
             reference_simulation_output,
             files_from_full_list_of_elements,
-            initial_beam_parameters_factory,
         )
 
     def fix(self, optimisation_algorithm: OptimisationAlgorithm

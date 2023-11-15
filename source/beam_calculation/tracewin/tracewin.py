@@ -130,9 +130,10 @@ class TraceWin(BeamCalculator):
         appears only in the base :class:`.BeamCalculator`.
 
         """
+        # FIXME
         self.initial_beam_parameters_factory = InitialBeamParametersFactory(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation,
+            True,
+            True,
         )
         self.beam_parameters_factory = BeamParametersFactoryTraceWin(
             self.is_a_3d_simulation,
