@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""This module holds functions to handle TraceWin electromagnetic fields."""
+"""
+This module holds functions to handle TraceWin electromagnetic fields.
+
+.. note::
+    Last compatibility check: TraceWin v2.22.1.0
+
+"""
 import logging
 import os.path
 from typing import Callable
@@ -16,8 +22,8 @@ def load_electromagnetic_fields(field_maps: list[FieldMap],
     """
     Load field map files.
 
-    As for now, only 1D RF electric field are handled by :class:`Envelope1D`.
-    With :class:`TraceWin`, every field is supported.
+    As for now, only 1D RF electric field are handled by :class:`.Envelope1D`.
+    With :class:`.TraceWin`, every field is supported.
 
     """
     for field_map in field_maps:
@@ -43,7 +49,7 @@ def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
                    for field_map in field_maps
                    if field_map.acc_field.e_spat is not None
                    and field_map.acc_field.n_z is not None]
-    # Trick to remouve duplicates and keep order
+    # Trick to remove duplicates and keep order
     valid_files = list(dict.fromkeys(valid_files))
 
     for valid_file in valid_files:
@@ -58,7 +64,7 @@ def _geom_to_field_map_type(geom: int,
                             remove_no_field: bool = True
                             ) -> dict[str, str]:
     """
-    Determine the field map type from TW ``geom`` parameter.
+    Determine the field map type from TraceWin's ``geom`` parameter.
 
     Notes
     -----
@@ -114,16 +120,14 @@ def _file_map_extensions(field_map_type: dict[str, str]
         Dictionary with the same keys as input. The values are lists containing
         all the extensions of the files to load (no "." in front of extension).
 
-    Notes
-    -----
-    Last compatibility check: TraceWin v2.22.1.0
-
     """
     extensions = {field_type: None
                   for field_type in field_map_type}
 
-    char_1 = {'electric': 'e', 'magnetic': 'b'}
-    char_2 = {'static': 's', 'RF': 'd'}
+    char_1 = {'electric': 'e',
+              'magnetic': 'b'}
+    char_2 = {'static': 's',
+              'RF': 'd'}
     char_3 = {'1D:': ['z'],
               '2D cylindrical': ['r', 'z', 'q'],
               '2D cartesian': ['x', 'y'],
@@ -162,7 +166,7 @@ def _load_field_map_file(
     """
     Go across the field map file names and load the first recognized.
 
-    For now, only `.edz` files (1D electric RF) are implemented. This will be a
+    For now, only ``.edz`` files (1D electric RF) are implemented. This will be a
     problem with :class:`Envelope1D`, but :class:`TraceWin` does not care.
 
     """
