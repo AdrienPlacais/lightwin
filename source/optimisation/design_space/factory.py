@@ -361,10 +361,9 @@ def get_design_space_and_constraint_function(
     design_space_preset: str,
     reference_elements: Sequence[Element],
     compensating_elements: list[Element],
-    **wtf: Any,
-) -> tuple[list[Variable],
-           list[Constraint],
-           Callable[[SimulationOutput], np.ndarray]]:
+    **wtf: Any) -> tuple[list[Variable],
+                         list[Constraint],
+                         Callable[[SimulationOutput], np.ndarray]]:
     """Instantiante design space factory and create design space."""
     assert isinstance(design_space_preset, str)
     design_space_factory = _read_design_space(design_space_preset)

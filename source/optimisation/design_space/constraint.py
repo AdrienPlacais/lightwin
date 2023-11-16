@@ -17,7 +17,7 @@ from beam_calculation.simulation_output.simulation_output import \
 from util.dicts_output import markdown
 
 
-IMPLEMENTED = ('phi_s')
+IMPLEMENTED_CONSTRAINTS = ('phi_s',)  #:
 
 
 @dataclass
@@ -39,7 +39,7 @@ class Constraint:
         if 'phi' in self.name:
             self.limits_fmt = np.rad2deg(self.limits)
 
-        if self.name not in IMPLEMENTED:
+        if self.name not in IMPLEMENTED_CONSTRAINTS:
             logging.warning("Constraint not tested.")
         # in particular: phi_s is hard-coded in get_value!!
 

@@ -14,7 +14,7 @@ import numpy as np
 from util.dicts_output import markdown
 
 
-IMPLEMENTED = ('k_e', 'phi_0_abs', 'phi_0_rel', 'phi_s')
+IMPLEMENTED_VARIABLES = ('k_e', 'phi_0_abs', 'phi_0_rel', 'phi_s')  #:
 
 
 @dataclass
@@ -34,7 +34,7 @@ class Variable:
 
     def __post_init__(self):
         """Convert values in deg for output if it is angle."""
-        if self.name not in IMPLEMENTED:
+        if self.name not in IMPLEMENTED_VARIABLES:
             logging.warning(f"Variable {self.name} not tested.")
 
         self.x_0_fmt, self.limits_fmt = self.x_0, self.limits
