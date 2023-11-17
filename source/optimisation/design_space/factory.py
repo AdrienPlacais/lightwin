@@ -26,12 +26,14 @@ import numpy as np
 
 from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
+from optimisation.design_space.design_space import DesignSpace
 
 from core.list_of_elements.helper import equivalent_elt
 from core.elements.element import Element
 
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
+from util.helper import chunks, flatten
 
 
 # =============================================================================
@@ -64,12 +66,19 @@ class DesignSpaceFactory(ABC):
         assert all([elt.can_be_retuned for elt in self.compensating_elements])
 
     @abstractmethod
-    def get_variables(self) -> list[Variable]:
+    def _run_variables(self) -> list[Variable]:
         """Set up all the required variables."""
 
     @abstractmethod
-    def get_constraints(self) -> list[Constraint]:
+    def _run_constraints(self) -> list[Constraint]:
         """Set up all the required constraints."""
+
+    def run(self) -> DesignSpace:
+        """Set up variables and constraints."""
+        variables = self._run_variables()
+        constraints = self._run_constraints()
+        design_space = DesignSpace(variables, constraints)
+        return design_space
 
     def _get_initial_value_from_preset(self,
                                        variable: str,
@@ -141,7 +150,7 @@ class DesignSpaceFactory(ABC):
         info = [str(variable) for variable in variables]
         info.insert(0, "Created variables:")
         info.insert(1, "=" * 100)
-        info.insert(2, Variable.str_header())
+        info.insert(2, Variable.header_of__str__())
         info.insert(3, "-" * 100)
         info.append("=" * 100)
         logging.info('\n'.join(info))
@@ -152,7 +161,7 @@ class DesignSpaceFactory(ABC):
         info = [str(constraint) for constraint in constraints]
         info.insert(0, "Created constraints:\n")
         info.insert(1, "=" * 100)
-        info.insert(2, Constraint.str_header())
+        info.insert(2, Constraint.header_of__str__())
         info.insert(3, "-" * 100)
         info.append("=" * 100)
         logging.info('\n'.join(info))
@@ -161,7 +170,7 @@ class DesignSpaceFactory(ABC):
 class Unconstrained(DesignSpaceFactory):
     """Factory to set amplitude and phase of elements, no phi_s."""
 
-    def get_variables(self) -> list[Variable]:
+    def _run_variables(self) -> list[Variable]:
         """Set up all the required variables."""
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
@@ -170,14 +179,14 @@ class Unconstrained(DesignSpaceFactory):
                 variable = Variable(
                     name=var_name,
                     element_name=str(element),
-                    x_0=self._get_initial_value_from_preset(var_name, ref_elt),
                     limits=self._get_limits_from_preset(var_name, ref_elt),
+                    x_0=self._get_initial_value_from_preset(var_name, ref_elt),
                 )
                 variables.append(variable)
         self._output_variables(variables)
         return variables
 
-    def get_constraints(self) -> list[Constraint]:
+    def _run_constraints(self) -> list[Constraint]:
         """Return no constraint."""
         constraints = []
         self._output_constraints(constraints)
@@ -187,7 +196,7 @@ class Unconstrained(DesignSpaceFactory):
 class ConstrainedSyncPhase(DesignSpaceFactory):
     """Factory to set k_e and phase of elements, with phi_s constraint."""
 
-    def get_variables(self) -> list[Variable]:
+    def _run_variables(self) -> list[Variable]:
         """Set up all the required variables."""
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
@@ -203,7 +212,7 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
         self._output_variables(variables)
         return variables
 
-    def get_constraints(self) -> list[Constraint]:
+    def _run_constraints(self) -> list[Constraint]:
         """Return constraint on synchronous phase."""
         constraints = []
         for constraint_name in ('phi_s',):
@@ -223,7 +232,7 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
 class SyncPhaseAsVariable(DesignSpaceFactory):
     """Factory to set k_e and phi_s of elements, no constraint."""
 
-    def get_variables(self) -> list[Variable]:
+    def _run_variables(self) -> list[Variable]:
         """Set up all the required variables."""
         variables = []
         for var_name in ('phi_s', 'k_e'):
@@ -239,7 +248,7 @@ class SyncPhaseAsVariable(DesignSpaceFactory):
         self._output_variables(variables)
         return variables
 
-    def get_constraints(self) -> list[Constraint]:
+    def _run_constraints(self) -> list[Constraint]:
         """Return no constraint."""
         constraints = []
         self._output_constraints(constraints)
@@ -255,7 +264,7 @@ class FM4_MYRRHA(DesignSpaceFactory):
         assert [str(elt) for elt in self.compensating_elements] == [
             'FM1', 'FM2', 'FM3', 'FM5', 'FM6']
 
-    def get_variables(self) -> list[Variable]:
+    def _run_variables(self) -> list[Variable]:
         """Set up all the required variables."""
         variables = []
         my_initial_values = {'phi_0_abs': {'FM1': 1.2428429564125352,
@@ -286,7 +295,7 @@ class FM4_MYRRHA(DesignSpaceFactory):
         self._output_variables(variables)
         return variables
 
-    def get_constraints(self) -> list[Constraint]:
+    def _run_constraints(self) -> list[Constraint]:
         """Return no constraint."""
         constraints = []
         self._output_constraints(constraints)
@@ -302,7 +311,7 @@ class OneCavityMegaPower(DesignSpaceFactory):
             "This case is designed to have ONE compensating elements (but " \
             "with huge power margins, so that it can compensate anything)."
 
-    def get_variables(self) -> list[Variable]:
+    def _run_variables(self) -> list[Variable]:
         """Return normal variables, except very high k_e."""
         variables = []
         for var_name in ('phi_0_abs', 'k_e'):
@@ -323,7 +332,7 @@ class OneCavityMegaPower(DesignSpaceFactory):
         self._output_variables(variables)
         return variables
 
-    def get_constraints(self) -> list[Constraint]:
+    def _run_constraints(self) -> list[Constraint]:
         """Return constraint on synchronous phase."""
         constraints = []
         for constraint_name in ('phi_s',):
@@ -366,20 +375,18 @@ def get_design_space_and_constraint_function(
                          Callable[[SimulationOutput], np.ndarray]]:
     """Instantiante design space factory and create design space."""
     assert isinstance(design_space_preset, str)
-    design_space_factory = _read_design_space(design_space_preset)
+    design_space_factory_class = _read_design_space(design_space_preset)
 
-    design_space_factory_instance = design_space_factory(
+    design_space_factory = design_space_factory_class(
         linac_name,
-        reference_elements,
         compensating_elements,
+        reference_elements,
     )
 
-    variables = design_space_factory_instance.get_variables()
-    constraints = design_space_factory_instance.get_constraints()
-
+    design_space = design_space_factory.run()
+    variables, constraints = design_space.variables, design_space.constraints
     compute_constraints = partial(_compute_constraints,
                                   constraints=constraints)
-
     return variables, constraints, compute_constraints
 
 

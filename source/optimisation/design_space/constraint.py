@@ -13,15 +13,15 @@ import numpy as np
 
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
-
-from util.dicts_output import markdown
+from optimisation.design_space.design_space_parameter import \
+    DesignSpaceParameter
 
 
 IMPLEMENTED_CONSTRAINTS = ('phi_s',)  #:
 
 
 @dataclass
-class Constraint:
+class Constraint(DesignSpaceParameter):
     """
     A single constraint.
 
@@ -29,35 +29,15 @@ class Constraint:
 
     """
 
-    name: str
-    element_name: str
-    limits: tuple
-
     def __post_init__(self):
         """Convert values in deg for output if it is angle."""
-        self.limits_fmt = self.limits
-        if 'phi' in self.name:
-            self.limits_fmt = np.rad2deg(self.limits)
-
         if self.name not in IMPLEMENTED_CONSTRAINTS:
             logging.warning("Constraint not tested.")
         # in particular: phi_s is hard-coded in get_value!!
 
+        super().__post_init__()
         self._to_deg = False
         self._to_numpy = False
-
-    def __str__(self) -> str:
-        """Output constraint name and limits."""
-        out = f"{markdown[self.name]:25} | {self.element_name:15} | {' ':<8} |"
-        out += f" limits={self.limits_fmt[0]:>9.3f} {self.limits_fmt[1]:>9.3f}"
-        return out
-
-    @staticmethod
-    def str_header() -> str:
-        """Give information on what :func:`__str__` is about."""
-        header = f"{'Constraint':<25} | {'Element':<15} | {'x_0':<8} | "
-        header += f"{'Lower lim':<9} | {'Upper lim':<9}"
-        return header
 
     @property
     def kwargs(self) -> dict[str, bool]:
