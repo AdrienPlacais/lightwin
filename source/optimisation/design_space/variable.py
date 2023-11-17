@@ -8,6 +8,8 @@ It keeps it's name, bounds, initial value, etc.
 """
 import logging
 from dataclasses import dataclass
+import pandas as pd
+from ast import literal_eval
 
 from optimisation.design_space.design_space_parameter import \
     DesignSpaceParameter
@@ -46,3 +48,14 @@ class Variable(DesignSpaceParameter):
     def str_header2_for_file(self) -> list[str]:
         """Give the second line header of the linac design-space file."""
         return ['min', 'x_0', 'max']
+
+    @classmethod
+    def from_pd_series(cls,
+                       name: str,
+                       element_name: str,
+                       pd_series: pd.Series) -> object:
+        """Init object from a pd series (file import)."""
+        limits = pd_series.loc[f"{name}: limits"]
+        limits = literal_eval(limits)
+        x_0 = pd_series.loc[f"{name}: x_0"]
+        return cls(name, element_name, limits, x_0)

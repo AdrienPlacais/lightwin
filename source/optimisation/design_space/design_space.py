@@ -3,7 +3,8 @@
 """Define an object to hold variables and constraints."""
 import os.path
 import logging
-from typing import Any
+from abc import ABCMeta
+from typing import Any, Self
 from collections import defaultdict
 from dataclasses import dataclass
 import numpy as np
@@ -70,7 +71,7 @@ class DesignSpace:
 
     def to_files(self,
                  basepath: str,
-                 overwrite: bool = False,
+                 overwrite: bool = True,
                  **to_csv_kw: dict[str, Any]) -> None:
         """Save variables and constraints in files.
 
@@ -125,7 +126,70 @@ class DesignSpace:
         lines = [self._parameters_to_single_file_line(name, param)
                  for name, param in elements_and_parameters.items()]
         as_df = pd.DataFrame(lines, columns=list(lines[0].keys()))
-        as_df.to_csv(filepath, sep=delimiter, **to_csv_kw)
+        as_df.to_csv(filepath,
+                     sep=delimiter,
+                     index=False,
+                     **to_csv_kw)
+
+    def _from_file(self,
+                   filepath: str,
+                   parameters_names: tuple[str, ...],
+                   elements_names: tuple[str, ...],
+                   delimiter: str = ',',
+                   ) -> list[DesignSpaceParameter]:
+        as_df = pd.read_csv(filepath, index_col='element_name')
+        # can get data with:
+        as_df.loc['FM8', 'k_e: limits']
+
+        parameters = []
+
+        pass
+
+    @classmethod
+    def from_files(cls,
+                   elements_names: tuple[str, ...],
+                   filepath_variables: str,
+                   variables_names: tuple[str, ...],
+                   filepath_constraints: str | None = None,
+                   constraints_names: tuple[str, ...] | None = None,
+                   delimiter: str = ',',
+                   ) -> Self:
+        """Generate design space from files.
+
+        Parameters
+        ----------
+        elements_names : tuple[str, ...]
+            Name of the elements with variables and constraints.
+        filepath_variables : str
+            Path to the ``variables.csv`` file.
+        variables_names : tuple[str, ...]
+            Name of the variables to create.
+        filepath_constraints : str
+            Path to the ``constraints.csv`` file.
+        constraints_names : tuple[str, ...]
+            Name of the constraints to create.
+        delimiter : str
+            Delimiter in the files.
+
+        Returns
+        -------
+        cls
+
+        """
+        variables = _from_file(Variable,
+                               filepath_variables,
+                               elements_names,
+                               variables_names,
+                               delimiter=delimiter)
+        if filepath_constraints is None:
+            return cls(variables, [])
+
+        constraints = _from_file(Constraint,
+                                 filepath_constraints,
+                                 elements_names,
+                                 constraints_names,
+                                 delimiter=delimiter)
+        return cls(variables, constraints)
 
     def _parameters_to_single_file_line(
             self,
@@ -159,6 +223,7 @@ class DesignSpace:
 # =============================================================================
 # Private helpers
 # =============================================================================
+
 
     def _check_dimensions(self,
                           parameters: list[Variable] | list[Constraint]
@@ -227,3 +292,45 @@ def _parameters_to_dict(parameters: list[DesignSpaceParameter],
 def _merge(dicts: list[dict]) -> dict:
     """Merge a list of dicts in a single dict."""
     return {key: value for dic in dicts for key, value in dic.items()}
+
+
+def _from_file(parameter_class: ABCMeta,
+               filepath: str,
+               elements_names: tuple[str, ...],
+               parameters_names: tuple[str, ...],
+               delimiter: str = ',',
+               ) -> list[DesignSpaceParameter]:
+    """Generate list of variables or constraints from a given ``.csv``.
+
+    .. todo::
+        Add support for when all element do not have the same
+        variables/constraints.
+
+    Parameters
+    ----------
+    parameter_class : {Variable, Constraint}
+        Object which ``from_pd_series`` method will be called.
+    filepath : str
+        Path to the ``.csv``.
+    elements_names : tuple[str, ...]
+        Name of the elements.
+    parameters_names : tuple[str, ...]
+        Name of the parameters.
+    delimiter : str
+        Delimiter in the ``.csv``.
+
+    Returns
+    -------
+    list[DesignSpaceParameter]
+        List of variables or constraints.
+
+    """
+    assert hasattr(parameter_class, 'from_pd_series')
+    as_df = pd.read_csv(filepath, index_col='element_name', sep=delimiter)
+    parameters = [parameter_class.from_pd_series(parameter_name,
+                                                 element_name,
+                                                 as_df.loc[element_name])
+                  for element_name in elements_names
+                  for parameter_name in parameters_names
+                  ]
+    return parameters

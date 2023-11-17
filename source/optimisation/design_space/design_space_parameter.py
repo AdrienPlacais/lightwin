@@ -3,8 +3,10 @@
 """Create a base class for :class:`.Variable` and :class:`.Constraint`."""
 from abc import ABC
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Sequence, Self
 import numpy as np
+import pandas as pd
+from ast import literal_eval
 
 from util.dicts_output import markdown
 
@@ -69,3 +71,13 @@ class DesignSpaceParameter(ABC):
         if not prepend_parameter_name:
             return out
         return {f"{self.name}: {key}": value for key, value in out.items()}
+
+    @classmethod
+    def from_pd_series(cls,
+                       name: str,
+                       element_name: str,
+                       pd_series: pd.Series) -> Self:
+        """Init object from a pd series (file import)."""
+        limits = pd_series.loc[f"{name}: limits"]
+        limits = literal_eval(limits)
+        return cls(name, element_name, limits)
