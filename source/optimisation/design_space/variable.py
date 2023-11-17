@@ -34,4 +34,15 @@ class Variable(DesignSpaceParameter):
             logging.warning(f"Variable {self.name} not tested.")
         super().__post_init__()
 
+    def str_for_file(self, fmt: str = '.5f') -> list[str]:
+        """Give what should be written in the linac design-space file."""
+        data = [self.limits[0], self.x_0, self.limits[1]]
+        return [f"{number:{fmt}}" for number in data]
 
+    def str_header1_for_file(self) -> list[str]:
+        """Give the first line header of the linac design-space file."""
+        return [self.name, self.name, self.name]
+
+    def str_header2_for_file(self) -> list[str]:
+        """Give the second line header of the linac design-space file."""
+        return ['min', 'x_0', 'max']

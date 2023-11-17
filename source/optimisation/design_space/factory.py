@@ -58,8 +58,8 @@ class DesignSpaceFactory(ABC):
     """
 
     preset: str
-    reference_elements: list[Element]
     compensating_elements: list[Element]
+    reference_elements: list[Element] | None = None
 
     def __post_init__(self):
         """Check that given elements can be retuned."""
@@ -78,6 +78,7 @@ class DesignSpaceFactory(ABC):
         variables = self._run_variables()
         constraints = self._run_constraints()
         design_space = DesignSpace(variables, constraints)
+        logging.info(str(design_space))
         return design_space
 
     def _get_initial_value_from_preset(self,
@@ -144,28 +145,6 @@ class DesignSpaceFactory(ABC):
             reference_element=reference_element,
             reference_elements=self.reference_elements)
 
-    @staticmethod
-    def _output_variables(variables: list[Variable]) -> None:
-        """Print information on the variables that were created."""
-        info = [str(variable) for variable in variables]
-        info.insert(0, "Created variables:")
-        info.insert(1, "=" * 100)
-        info.insert(2, Variable.header_of__str__())
-        info.insert(3, "-" * 100)
-        info.append("=" * 100)
-        logging.info('\n'.join(info))
-
-    @staticmethod
-    def _output_constraints(constraints: list[Constraint]) -> None:
-        """Print information on the constraints that were created."""
-        info = [str(constraint) for constraint in constraints]
-        info.insert(0, "Created constraints:\n")
-        info.insert(1, "=" * 100)
-        info.insert(2, Constraint.header_of__str__())
-        info.insert(3, "-" * 100)
-        info.append("=" * 100)
-        logging.info('\n'.join(info))
-
 
 class Unconstrained(DesignSpaceFactory):
     """Factory to set amplitude and phase of elements, no phi_s."""
@@ -183,13 +162,11 @@ class Unconstrained(DesignSpaceFactory):
                     x_0=self._get_initial_value_from_preset(var_name, ref_elt),
                 )
                 variables.append(variable)
-        self._output_variables(variables)
         return variables
 
     def _run_constraints(self) -> list[Constraint]:
         """Return no constraint."""
         constraints = []
-        self._output_constraints(constraints)
         return constraints
 
 
@@ -209,7 +186,6 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
                     limits=self._get_limits_from_preset(var_name, ref_elt),
                 )
                 variables.append(variable)
-        self._output_variables(variables)
         return variables
 
     def _run_constraints(self) -> list[Constraint]:
@@ -225,7 +201,6 @@ class ConstrainedSyncPhase(DesignSpaceFactory):
                                                         ref_elt),
                 )
                 constraints.append(constraint)
-        self._output_constraints(constraints)
         return constraints
 
 
@@ -245,13 +220,11 @@ class SyncPhaseAsVariable(DesignSpaceFactory):
                     limits=self._get_limits_from_preset(var_name, ref_elt),
                 )
                 variables.append(variable)
-        self._output_variables(variables)
         return variables
 
     def _run_constraints(self) -> list[Constraint]:
         """Return no constraint."""
         constraints = []
-        self._output_constraints(constraints)
         return constraints
 
 
@@ -292,13 +265,11 @@ class FM4_MYRRHA(DesignSpaceFactory):
                     limits=(my_initial_value - tol, my_initial_value + tol),
                 )
                 variables.append(variable)
-        self._output_variables(variables)
         return variables
 
     def _run_constraints(self) -> list[Constraint]:
         """Return no constraint."""
         constraints = []
-        self._output_constraints(constraints)
         return constraints
 
 
@@ -329,7 +300,6 @@ class OneCavityMegaPower(DesignSpaceFactory):
                     limits=limits,
                 )
                 variables.append(variable)
-        self._output_variables(variables)
         return variables
 
     def _run_constraints(self) -> list[Constraint]:
@@ -346,7 +316,6 @@ class OneCavityMegaPower(DesignSpaceFactory):
                                                         preset='MYRRHA'),
                 )
                 constraints.append(constraint)
-        self._output_constraints(constraints)
         return constraints
 
 
@@ -373,7 +342,13 @@ def get_design_space_and_constraint_function(
     **wtf: Any) -> tuple[list[Variable],
                          list[Constraint],
                          Callable[[SimulationOutput], np.ndarray]]:
-    """Instantiante design space factory and create design space."""
+    """
+    Instantiante design space factory and create design space.
+
+    .. todo::
+        becoming less and less useful
+
+    """
     assert isinstance(design_space_preset, str)
     design_space_factory_class = _read_design_space(design_space_preset)
 
@@ -385,23 +360,8 @@ def get_design_space_and_constraint_function(
 
     design_space = design_space_factory.run()
     variables, constraints = design_space.variables, design_space.constraints
-    compute_constraints = partial(_compute_constraints,
-                                  constraints=constraints)
+    compute_constraints = design_space.compute_constraints
     return variables, constraints, compute_constraints
-
-
-def _compute_constraints(simulation_output: SimulationOutput,
-                         constraints: list[Constraint]) -> np.ndarray:
-    """Compute constraint violation for given `SimulationOutput`."""
-    constraints_with_tuples = [constraint.evaluate(simulation_output)
-                               for constraint in constraints]
-    constraint_violation = [
-        single_constraint
-        for constraint_with_tuples in constraints_with_tuples
-        for single_constraint in constraint_with_tuples
-        if ~np.isnan(single_constraint)
-    ]
-    return np.array(constraint_violation)
 
 
 # =============================================================================

@@ -40,7 +40,7 @@ class DesignSpaceParameter(ABC):
         return x_0
 
     def __str__(self) -> str:
-        """Output constraint name and limits."""
+        """Output parameter name and limits."""
         out = f"{markdown[self.name]:25} | {self.element_name:15} | "
         if hasattr(self, 'x_0'):
             out += f"{self._fmt_x_0:>8.3f} | "
@@ -51,10 +51,21 @@ class DesignSpaceParameter(ABC):
 
         return out
 
-    @staticmethod
-    def header_of__str__() -> str:
+    @classmethod
+    def header_of__str__(cls) -> str:
         """Give information on what :func:`__str__` is about."""
-        header = f"{'Constraint':<25} | {'Element':<15} | {'x_0':<8} | "
+        header = f"{cls.__name__:<25} | {'Element':<15} | {'x_0':<8} | "
         header += f"{'Lower lim':<9} | {'Upper lim':<9}"
         return header
 
+    def to_dict(self,
+                *to_get: str,
+                missing_value: float | None = None,
+                prepend_parameter_name: bool = False
+                ) -> dict[str, float | None | tuple[float, float] | str]:
+        """Convert important data to dict to convert it later in pandas df."""
+        out = {attribute: getattr(self, attribute, missing_value)
+               for attribute in to_get}
+        if not prepend_parameter_name:
+            return out
+        return {f"{self.name}: {key}": value for key, value in out.items()}
