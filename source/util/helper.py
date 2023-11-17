@@ -7,7 +7,7 @@
 
 """
 import logging
-from collections.abc import Iterable
+from collections.abc import Iterable, Generator
 from typing import Iterator, Any
 import numpy as np
 import pandas as pd
@@ -61,6 +61,16 @@ def flatten(nest: list[int | float]) -> Iterator[int | float]:
             yield from flatten(_in)
         else:
             yield _in
+
+
+def chunks(lst: list[Any], n_size: int) -> Generator[list[Any], int, None]:
+    """
+    Yield successive ``n_size``-ed chunks from ``lst``.
+
+    https://stackoverflow.com/questions/312443/how-do-i-split-a-list-into-equally-sized-chunks
+    """
+    for i in range(0, len(lst), n_size):
+        yield lst[i:i + n_size]
 
 
 # =============================================================================

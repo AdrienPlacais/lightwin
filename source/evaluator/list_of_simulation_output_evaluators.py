@@ -21,7 +21,7 @@ from evaluator.simulation_output_evaluator_presets import (
     presets_for_fault_scenario_rms_over_full_linac
 )
 from util.dicts_output import markdown
-from util.helper import pd_output
+from util.helper import pd_output, chunks
 
 
 class ListOfSimulationOutputEvaluators(list):
@@ -180,13 +180,3 @@ class FaultScenarioSimulationOutputEvaluators:
         # FIXME
         title += "(FIXME: settings in FaultScenario, not config_manager)"
         logging.info(pd_output(evaluations, header=title))
-
-
-def chunks(lst: list, n_size: int) -> list[list]:
-    """
-    Yield successive `n-siz` ed chunks from lst.
-
-    https://stackoverflow.com/questions/312443/how-do-i-split-a-list-into-equally-sized-chunks
-    """
-    for i in range(0, len(lst), n_size):
-        yield lst[i:i + n_size]
