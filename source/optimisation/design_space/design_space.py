@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define an object to hold variables and constraints."""
+import os.path
 import logging
 from typing import Any
 from collections import defaultdict
@@ -67,12 +68,46 @@ class DesignSpace:
         dicts = [var.to_dict(*to_get) for var in self.variables]
         return pd.DataFrame(dicts, columns=to_get)
 
-    def to_file(self,
-                parameters: list[DesignSpaceParameter],
-                filepath: str,
-                delimiter: str = ',',
-                **to_csv_kw: dict[str, Any],
-                ) -> None:
+    def to_files(self,
+                 basepath: str,
+                 overwrite: bool = False,
+                 **to_csv_kw: dict[str, Any]) -> None:
+        """Save variables and constraints in files.
+
+        Parameters
+        ----------
+        basepath : str
+            Folder where the files will be stored.
+        to_csv_kw : dict[str, Any]
+            to_csv_kw
+
+        Returns
+        -------
+        None
+
+        """
+        for parameter_name in ('variables', 'constraints'):
+            filepath = os.path.join(basepath, f"{parameter_name}.csv")
+
+            if os.path.isfile(filepath) and not overwrite:
+                logging.warning(f"{filepath = } already exists. Skipping...")
+                continue
+
+            parameter = getattr(self, parameter_name)
+            if len(parameter) == 0:
+                logging.info(f"{parameter_name} not defined for this "
+                             "DesignSpace. Skipping... ")
+                continue
+
+            self._to_file(parameter, filepath, **to_csv_kw)
+            logging.info(f"{parameter_name} saved in {filepath}")
+
+    def _to_file(self,
+                 parameters: list[DesignSpaceParameter],
+                 filepath: str,
+                 delimiter: str = ',',
+                 **to_csv_kw: dict[str, Any],
+                 ) -> None:
         """Save all the design space parameters in a compact file.
 
         Parameters
@@ -91,13 +126,12 @@ class DesignSpace:
                  for name, param in elements_and_parameters.items()]
         as_df = pd.DataFrame(lines, columns=list(lines[0].keys()))
         as_df.to_csv(filepath, sep=delimiter, **to_csv_kw)
-        logging.info(f"Variables or Contraints saved in {filepath}")
 
     def _parameters_to_single_file_line(
             self,
             element_name: str,
             parameters: list[DesignSpaceParameter]
-            ) -> dict[str, float | None | tuple[float, float]]:
+    ) -> dict[str, float | None | tuple[float, float]]:
         """Prepare a dict containing all info of a single element.
 
         Parameters
@@ -125,6 +159,7 @@ class DesignSpace:
 # =============================================================================
 # Private helpers
 # =============================================================================
+
     def _check_dimensions(self,
                           parameters: list[Variable] | list[Constraint]
                           ) -> int:
