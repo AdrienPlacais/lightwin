@@ -40,7 +40,7 @@ from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.accelerator import Accelerator
+from core.accelerator.accelerator import Accelerator
 
 # factories subclassed from ABC
 from beam_calculation.tracewin.simulation_output_factory import \

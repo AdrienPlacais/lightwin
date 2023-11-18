@@ -40,7 +40,7 @@ from cycler import cycler
 
 from util import helper
 
-from core.accelerator import Accelerator
+from core.accelerator.accelerator import Accelerator
 from core.elements.drift import Drift
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad

@@ -17,7 +17,7 @@ from scipy.interpolate import interp1d
 import pandas as pd
 
 from util import helper
-from core.accelerator import Accelerator
+from core.accelerator.accelerator import Accelerator
 
 
 # TODO modernize

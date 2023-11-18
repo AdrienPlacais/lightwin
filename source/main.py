@@ -19,7 +19,7 @@ import datetime
 
 import config_manager as conf_man
 
-from core.accelerator import Accelerator, accelerator_factory
+from core.accelerator.accelerator import Accelerator, accelerator_factory
 
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 
@@ -86,8 +86,8 @@ if __name__ == '__main__':
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
         # 'beam_calculator': 'beam_calculator.tracewin.envelope',
         'beam': 'beam',
-        # 'wtf': 'wtf.quick_debug',
-        'wtf': 'wtf.k_out_of_n',
+        'wtf': 'wtf.quick_debug',
+        # 'wtf': 'wtf.k_out_of_n',
         # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
         # 'evaluators': 'evaluators.fred',
     }

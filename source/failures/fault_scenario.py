@@ -19,7 +19,7 @@ from failures.fault import Fault
 from failures import strategy
 
 from core.elements.element import Element
-from core.accelerator import Accelerator
+from core.accelerator.accelerator import Accelerator
 
 from optimisation.algorithms.factory import optimisation_algorithm_factory
 from optimisation.algorithms.algorithm import OptimisationAlgorithm

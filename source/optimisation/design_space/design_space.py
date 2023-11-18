@@ -26,6 +26,52 @@ class DesignSpace:
     variables: list[Variable]
     constraints: list[Constraint]
 
+    @classmethod
+    def from_files(cls,
+                   elements_names: tuple[str, ...],
+                   filepath_variables: str,
+                   variables_names: tuple[str, ...],
+                   filepath_constraints: str | None = None,
+                   constraints_names: tuple[str, ...] | None = None,
+                   delimiter: str = ',',
+                   ) -> Self:
+        """Generate design space from files.
+
+        Parameters
+        ----------
+        elements_names : tuple[str, ...]
+            Name of the elements with variables and constraints.
+        filepath_variables : str
+            Path to the ``variables.csv`` file.
+        variables_names : tuple[str, ...]
+            Name of the variables to create.
+        filepath_constraints : str
+            Path to the ``constraints.csv`` file.
+        constraints_names : tuple[str, ...]
+            Name of the constraints to create.
+        delimiter : str
+            Delimiter in the files.
+
+        Returns
+        -------
+        cls
+
+        """
+        variables = _from_file(Variable,
+                               filepath_variables,
+                               elements_names,
+                               variables_names,
+                               delimiter=delimiter)
+        if filepath_constraints is None:
+            return cls(variables, [])
+
+        constraints = _from_file(Constraint,
+                                 filepath_constraints,
+                                 elements_names,
+                                 constraints_names,
+                                 delimiter=delimiter)
+        return cls(variables, constraints)
+
     def compute_constraints(self, simulation_output: SimulationOutput
                             ) -> np.ndarray:
         """Compute constraint violation for ``simulation_output``."""
@@ -131,52 +177,6 @@ class DesignSpace:
                      sep=delimiter,
                      index=False,
                      **to_csv_kw)
-
-    @classmethod
-    def from_files(cls,
-                   elements_names: tuple[str, ...],
-                   filepath_variables: str,
-                   variables_names: tuple[str, ...],
-                   filepath_constraints: str | None = None,
-                   constraints_names: tuple[str, ...] | None = None,
-                   delimiter: str = ',',
-                   ) -> Self:
-        """Generate design space from files.
-
-        Parameters
-        ----------
-        elements_names : tuple[str, ...]
-            Name of the elements with variables and constraints.
-        filepath_variables : str
-            Path to the ``variables.csv`` file.
-        variables_names : tuple[str, ...]
-            Name of the variables to create.
-        filepath_constraints : str
-            Path to the ``constraints.csv`` file.
-        constraints_names : tuple[str, ...]
-            Name of the constraints to create.
-        delimiter : str
-            Delimiter in the files.
-
-        Returns
-        -------
-        cls
-
-        """
-        variables = _from_file(Variable,
-                               filepath_variables,
-                               elements_names,
-                               variables_names,
-                               delimiter=delimiter)
-        if filepath_constraints is None:
-            return cls(variables, [])
-
-        constraints = _from_file(Constraint,
-                                 filepath_constraints,
-                                 elements_names,
-                                 constraints_names,
-                                 delimiter=delimiter)
-        return cls(variables, constraints)
 
     def _parameters_to_single_file_line(
             self,

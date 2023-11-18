@@ -7,7 +7,7 @@ import datetime
 
 import config_manager as conf_man
 
-from core.accelerator import Accelerator, accelerator_factory
+from core.accelerator.accelerator import Accelerator, accelerator_factory
 
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 

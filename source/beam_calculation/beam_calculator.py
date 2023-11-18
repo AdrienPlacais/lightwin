@@ -22,7 +22,7 @@ from beam_calculation.simulation_output.simulation_output import \
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.accelerator import Accelerator
+from core.accelerator.accelerator import Accelerator
 
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
 from core.list_of_elements.factory import ListOfElementsFactory

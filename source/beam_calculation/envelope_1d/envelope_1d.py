@@ -14,7 +14,7 @@ from beam_calculation.envelope_1d.simulation_output_factory import \
 
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.accelerator import Accelerator
+from core.accelerator.accelerator import Accelerator
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.simulation_output.simulation_output import \
