@@ -13,16 +13,79 @@ from util.dicts_output import markdown
 
 @dataclass
 class DesignSpaceParameter(ABC):
-    """Hold a single variable or constraint."""
+    """
+    Hold a single variable or constraint.
+
+    Attributes
+    ----------
+    name : str
+        Name of the parameter. Must be compatible with the
+        :meth:`.SimulationOutput.get` method, and be in
+        :data:`.IMPLEMENTED_VARIABLES` or :data:`.IMPLEMENTED_CONSTRAINTS`.
+    element_name : str
+        Name of the element concerned by the parameter.
+    limits : tuple[float, float]
+        Lower and upper bound for the variable. ``np.NaN`` deactivates a bound.
+
+    """
 
     name: str
     element_name: str
     limits: tuple[float, float]
 
+    @classmethod
+    def from_floats(cls,
+                    name: str,
+                    element_name: str,
+                    x_min: float,
+                    x_max: float) -> Self:
+        """Initialize object with ``x_min``, ``x_max`` instead of ``limits``.
+
+        Parameters
+        ----------
+        name : str
+            Name of the parameter. Must be compatible with the
+            :meth:`.SimulationOutput.get` method, and be in
+            :data:`.IMPLEMENTED_VARIABLES` or :data:`.IMPLEMENTED_CONSTRAINTS`.
+        element_name : str
+            Name of the element concerned by the parameter.
+        x_min : float
+            Lower limit. ``np.NaN`` to deactivate lower bound.
+        x_max : float
+            Upper limit. ``np.NaN`` to deactivate lower bound.
+
+        Returns
+        -------
+        Self
+            A DesignSpaceParameter with limits = (x_min, x_max).
+
+        """
+        return cls(name, element_name, (x_min, x_max))
+
+    @classmethod
+    def from_pd_series(cls,
+                       name: str,
+                       element_name: str,
+                       pd_series: pd.Series) -> Self:
+        """Init object from a pd series (file import)."""
+        x_min = pd_series.loc[f"{name}: x_min"]
+        x_max = pd_series.loc[f"{name}: x_max"]
+        return cls.from_floats(name, element_name, x_min, x_max)
+
     def __post_init__(self):
         """Convert values in deg for output if it is angle."""
         self._to_deg = False
         self._to_numpy = False
+
+    @property
+    def x_min(self) -> float:
+        """Return lower variable/constraint bound."""
+        return self.limits[0]
+
+    @property
+    def x_max(self) -> float:
+        """Return upper variable/constraint bound."""
+        return self.limits[1]
 
     @property
     def _fmt_limits(self) -> Sequence[float]:
@@ -71,13 +134,3 @@ class DesignSpaceParameter(ABC):
         if not prepend_parameter_name:
             return out
         return {f"{self.name}: {key}": value for key, value in out.items()}
-
-    @classmethod
-    def from_pd_series(cls,
-                       name: str,
-                       element_name: str,
-                       pd_series: pd.Series) -> Self:
-        """Init object from a pd series (file import)."""
-        limits = pd_series.loc[f"{name}: limits"]
-        limits = literal_eval(limits)
-        return cls(name, element_name, limits)

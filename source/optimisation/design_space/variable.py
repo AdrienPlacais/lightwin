@@ -8,6 +8,7 @@ It keeps it's name, bounds, initial value, etc.
 """
 import logging
 from dataclasses import dataclass
+from typing import Self
 import pandas as pd
 from ast import literal_eval
 
@@ -26,36 +27,68 @@ class Variable(DesignSpaceParameter):
     It can be a cavity amplitude, absolute phase, relative phase or synchronous
     phase with an initial value and limits.
 
+    Attributes
+    ----------
+    name : str
+        Name of the parameter. Must be compatible with the
+        :meth:`.SimulationOutput.get` method, and be in
+        :data:`.IMPLEMENTED_VARIABLES`.
+    element_name : str
+        Name of the element concerned by the parameter.
+    limits : tuple[float, float]
+        Lower and upper bound for the variable. ``np.NaN`` deactivates a bound.
+    x_0 : float
+        Initial value.
+
     """
 
     x_0: float
+
+    @classmethod
+    def from_floats(cls,
+                    name: str,
+                    element_name: str,
+                    x_min: float,
+                    x_max: float,
+                    x_0: float) -> Self:
+        """Initialize object with ``x_min``, ``x_max`` instead of ``limits``.
+
+        Parameters
+        ----------
+        name : str
+            Name of the parameter. Must be compatible with the
+            :meth:`.SimulationOutput.get` method, and be in
+            :data:`.IMPLEMENTED_VARIABLES`.
+        element_name : str
+            Name of the element concerned by the parameter.
+        x_min : float
+            Lower limit. ``np.NaN`` to deactivate lower bound.
+        x_max : float
+            Upper limit. ``np.NaN`` to deactivate lower bound.
+        x_0: float
+            Initial value.
+
+        Returns
+        -------
+        Self
+            A Variable with limits = (x_min, x_max).
+
+        """
+        return cls(name, element_name, (x_min, x_max), x_0)
+
+    @classmethod
+    def from_pd_series(cls,
+                       name: str,
+                       element_name: str,
+                       pd_series: pd.Series) -> Self:
+        """Init object from a pd series (file import)."""
+        x_min = pd_series.loc[f"{name}: x_min"]
+        x_max = pd_series.loc[f"{name}: x_max"]
+        x_0 = pd_series.loc[f"{name}: x_0"]
+        return cls.from_floats(name, element_name, x_min, x_max, x_0)
 
     def __post_init__(self):
         """Convert values in deg for output if it is angle."""
         if self.name not in IMPLEMENTED_VARIABLES:
             logging.warning(f"Variable {self.name} not tested.")
         super().__post_init__()
-
-    def str_for_file(self, fmt: str = '.5f') -> list[str]:
-        """Give what should be written in the linac design-space file."""
-        data = [self.limits[0], self.x_0, self.limits[1]]
-        return [f"{number:{fmt}}" for number in data]
-
-    def str_header1_for_file(self) -> list[str]:
-        """Give the first line header of the linac design-space file."""
-        return [self.name, self.name, self.name]
-
-    def str_header2_for_file(self) -> list[str]:
-        """Give the second line header of the linac design-space file."""
-        return ['min', 'x_0', 'max']
-
-    @classmethod
-    def from_pd_series(cls,
-                       name: str,
-                       element_name: str,
-                       pd_series: pd.Series) -> object:
-        """Init object from a pd series (file import)."""
-        limits = pd_series.loc[f"{name}: limits"]
-        limits = literal_eval(limits)
-        x_0 = pd_series.loc[f"{name}: x_0"]
-        return cls(name, element_name, limits, x_0)
