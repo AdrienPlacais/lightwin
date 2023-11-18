@@ -8,6 +8,8 @@ the required :class:`FaultScenario` objects.
 
 """
 import logging
+import time
+import datetime
 
 import config_manager as con
 
@@ -141,7 +143,15 @@ class FaultScenario(list):
         return optimisation_algorithms
 
     def fix_all(self) -> None:
-        """Fix all the :class:`Fault` objects in self."""
+        """
+        Fix all the :class:`Fault` objects in self.
+
+        .. todo::
+            make this more readable
+
+        """
+        start_time = time.monotonic()
+
         success, info = [], []
         ref_simulation_output = \
             self.ref_acc.simulation_outputs[self.beam_calculator.id]
@@ -187,6 +197,9 @@ class FaultScenario(list):
 
         self._evaluate_fit_quality(save=True)
 
+        end_time = time.monotonic()
+        delta_t = datetime.timedelta(seconds=end_time - start_time)
+        logging.info(f"Elapsed time in optimisation: {delta_t}")
         # Legacy, does not work anymore with the new implementation
         # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
 

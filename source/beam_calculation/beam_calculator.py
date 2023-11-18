@@ -12,6 +12,9 @@ propagation of the beam in a :class:`.ListOfElements`, possibly with a specific
     Precise that BeamParametersFactory and TransferMatrixFactory are mandatory.
 
 """
+import logging
+import time
+import datetime
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
@@ -141,3 +144,47 @@ class BeamCalculator(ABC):
     def is_a_3d_simulation(self) -> bool:
         """Tell if the simulation is in 3D."""
         pass
+
+    def compute(self,
+                accelerator: Accelerator,
+                keep_settings: bool = True,
+                recompute_reference: bool = True,
+                output_time: bool = True,
+                **kwargs: SimulationOutput,
+                ) -> None:
+        """Wrap full process to compute propagation of beam in accelerator.
+
+        Parameters
+        ----------
+        accelerator : Accelerator
+            Accelerator under study.
+        keep_settings : bool, optional
+            If settings/simulation output should be saved. The default is True.
+        recompute_reference : bool, optional
+            If results should be taken from a file instead of recomputing
+            everything each time. The default is True.
+        kwargs : SimulationOutput
+            For calculation of mismatch factors..
+
+        """
+        start_time = time.monotonic()
+
+        self.init_solver_parameters(accelerator)
+
+        simulation_output = self.run(accelerator.elts)
+        simulation_output.compute_complementary_data(accelerator.elts,
+                                                     **kwargs)
+        if keep_settings:
+            accelerator.keep_settings(simulation_output)
+            accelerator.keep_simulation_output(simulation_output,
+                                               self.id)
+
+        end_time = time.monotonic()
+        delta_t = datetime.timedelta(seconds=end_time - start_time)
+        if output_time:
+            logging.info(f"Elapsed time in beam calculation: {delta_t}")
+
+        if not recompute_reference:
+            raise NotImplementedError("idea is to take results from file if "
+                                      "simulations are too long. will be easy "
+                                      "for tracewin.")
