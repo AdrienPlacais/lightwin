@@ -65,26 +65,25 @@ class DesignSpace:
 
     def to_pandas_dataframe(self) -> pd.DataFrame:
         """Convert list of variables to a pandas dataframe."""
-        to_get = ('element_name', 'x_0', 'limits')
+        to_get = ('element_name', 'x_min', 'x_max', 'x_0')
         dicts = [var.to_dict(*to_get) for var in self.variables]
         return pd.DataFrame(dicts, columns=to_get)
 
     def to_files(self,
                  basepath: str,
-                 overwrite: bool = True,
-                 **to_csv_kw: dict[str, Any]) -> None:
+                 overwrite: bool = False,
+                 **to_csv_kw: Any) -> None:
         """Save variables and constraints in files.
 
         Parameters
         ----------
         basepath : str
             Folder where the files will be stored.
+        overwrite : bool, optional
+            To overwrite an existing file with the same name or not. The
+            default is False.
         to_csv_kw : dict[str, Any]
-            to_csv_kw
-
-        Returns
-        -------
-        None
+            Keyword arguments given to the pandas ``to_csv`` method.
 
         """
         for parameter_name in ('variables', 'constraints'):
@@ -107,7 +106,7 @@ class DesignSpace:
                  parameters: list[DesignSpaceParameter],
                  filepath: str,
                  delimiter: str = ',',
-                 **to_csv_kw: dict[str, Any],
+                 **to_csv_kw: Any,
                  ) -> None:
         """Save all the design space parameters in a compact file.
 
@@ -119,6 +118,8 @@ class DesignSpace:
             Where file will be stored.
         delimiter : str
             Delimiter between two columns. The default is ','.
+        to_csv_kw: dict[str, Any]
+            Keyword arguments given to the pandas ``to_csv`` method.
 
         """
         elements_and_parameters = _gather_dicts_by_key(parameters,
@@ -130,20 +131,6 @@ class DesignSpace:
                      sep=delimiter,
                      index=False,
                      **to_csv_kw)
-
-    def _from_file(self,
-                   filepath: str,
-                   parameters_names: tuple[str, ...],
-                   elements_names: tuple[str, ...],
-                   delimiter: str = ',',
-                   ) -> list[DesignSpaceParameter]:
-        as_df = pd.read_csv(filepath, index_col='element_name')
-        # can get data with:
-        as_df.loc['FM8', 'k_e: limits']
-
-        parameters = []
-
-        pass
 
     @classmethod
     def from_files(cls,
@@ -214,15 +201,10 @@ class DesignSpace:
 
         """
         line_as_list_of_dicts = _parameters_to_dict(parameters,
-                                                    ('x_0', 'limits'))
+                                                    ('x_min', 'x_max', 'x_0'))
         line_as_list_of_dicts.insert(0, {'element_name': element_name})
         line_as_dict = _merge(line_as_list_of_dicts)
         return line_as_dict
-
-
-# =============================================================================
-# Private helpers
-# =============================================================================
 
 
     def _check_dimensions(self,
@@ -239,6 +221,9 @@ class DesignSpace:
         return n_different_parameters
 
 
+# =============================================================================
+# Private helpers
+# =============================================================================
 def _gather_dicts_by_key(parameters: list[DesignSpaceParameter],
                          key: str) -> dict[str, list[DesignSpaceParameter]]:
     """Gather parameters with the same ``key`` attribute value in lists.
