@@ -163,6 +163,8 @@ class BeamCalculator(ABC):
         recompute_reference : bool, optional
             If results should be taken from a file instead of recomputing
             everything each time. The default is True.
+        output_time : bool, optional
+            To print in log the time the calculation took. The default is True.
         kwargs : SimulationOutput
             For calculation of mismatch factors..
 
