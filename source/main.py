@@ -98,7 +98,8 @@ if __name__ == '__main__':
     # Beam calculators
     # =========================================================================
     beam_calculator_factory = BeamCalculatorsFactory(**my_configs)
-    my_beam_calculators = beam_calculator_factory.run_all()
+    my_beam_calculators: tuple[BeamCalculator, ...] = \
+        beam_calculator_factory.run_all()
     beam_calculators_id = beam_calculator_factory.beam_calculators_id
 
     # =========================================================================
