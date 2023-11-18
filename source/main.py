@@ -25,7 +25,7 @@ from core.accelerator.factory import FullStudyAcceleratorFactory
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.factory import create_beam_calculator_objects
+from beam_calculation.factory import BeamCalculatorsFactory
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
 
@@ -59,12 +59,10 @@ def beam_calc_and_save(accelerator: Accelerator,
 
 
 def post_beam_calc_and_save(accelerator: Accelerator,
-                            beam_calculator: BeamCalculator | None,
+                            beam_calculator: BeamCalculator,
                             recompute_reference: bool = True,
                             **kwargs: SimulationOutput):
     """Perform the simulation, save it into Accelerator.simulation_output."""
-    if beam_calculator is None:
-        return
 
     beam_calculator.init_solver_parameters(accelerator)
     if accelerator.name == 'Working' and not recompute_reference:
@@ -94,24 +92,22 @@ if __name__ == '__main__':
     }
     my_configs = config_manager.process_config(ini_filepath, ini_keys)
 
-    perform_post_simulation = 'beam_calculator_post' in my_configs
     RECOMPUTE_REFERENCE = False
 
     # =========================================================================
     # Beam calculators
     # =========================================================================
-    beam_calculators_parameters = (
-        my_configs['beam_calculator'],
-        my_configs['beam_calculator_post'] if perform_post_simulation else None
-    )
-    my_beam_calculators = create_beam_calculator_objects(
-        *beam_calculators_parameters)
-    my_beam_calc: BeamCalculator
-    my_beam_calc_post: BeamCalculator | None
-    my_beam_calc, my_beam_calc_post = my_beam_calculators
+    beam_calculators_parameters = (my_configs['beam_calculator'], )
+    config_post = my_configs.get('beam_calculator_post', None)
+    if config_post is not None:
+        beam_calculators_parameters = (my_configs['beam_calculator'],
+                                       config_post)
 
-    solv1 = my_beam_calc.id
-    solv2 = my_beam_calc_post.id if my_beam_calc_post is not None else None
+    beam_calculator_factory = BeamCalculatorsFactory(
+        beam_calculators_parameters)
+    my_beam_calculators = beam_calculator_factory.run_all()
+
+    beam_calculators_id = beam_calculator_factory.beam_calculators_id
 
     # =========================================================================
     # Accelerators
@@ -130,9 +126,9 @@ if __name__ == '__main__':
 
     accelerators: list[Accelerator] = accelerator_factory.run_all()
 
-    beam_calc_and_save(accelerators[0], my_beam_calc)
+    beam_calc_and_save(accelerators[0], my_beam_calculators[0])
     # FIXME dirty patch to initialize _element_to_index function
-    if "TraceWin" in solv1:
+    if "TraceWin" in beam_calculators_id[0]:
         logging.info("Fault initialisation requires initialisation of a "
                      "sub-ListOfElements. It requires the initialisation of "
                      "a _element_to_index method, which in turn requires the "
@@ -141,11 +137,11 @@ if __name__ == '__main__':
                      "Envelope1D.init_solver_parameters. "
                      "But with TraceWin, we need a first simulation to link "
                      "an index in the .out file to a position in the linac.")
-        beam_calc_and_save(accelerators[1], my_beam_calc)
+        beam_calc_and_save(accelerators[1], my_beam_calculators[0])
 
     fault_scenarios: list[FaultScenario]
     fault_scenarios = fault_scenario_factory(accelerators,
-                                             my_beam_calc,
+                                             my_beam_calculators[0],
                                              my_configs['wtf'])
 
     # =========================================================================
@@ -168,10 +164,11 @@ if __name__ == '__main__':
         start_time = time.monotonic()
 
         ref_simulation_output = None
-        if accelerator != accelerators[0] and solv2 is not None:
-            ref_simulation_output = accelerators[0].simulation_outputs[solv2]
-        post_beam_calc_and_save(accelerator, my_beam_calc_post,
-                                ref_simulation_output=ref_simulation_output)
+        if accelerator != accelerators[0] and len(my_beam_calculators) > 1:
+            ref_simulation_output = \
+                accelerators[0].simulation_outputs[beam_calculators_id[1]]
+            post_beam_calc_and_save(accelerator, my_beam_calculators[1],
+                                    ref_simulation_output=ref_simulation_output)
 
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)

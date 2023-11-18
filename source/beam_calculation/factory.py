@@ -2,53 +2,69 @@
 # -*- coding: utf-8 -*-
 """This module holds a factory to create the :class:`.BeamCalculator`."""
 from typing import Any
+from abc import ABCMeta
+from dataclasses import dataclass
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.envelope_1d.envelope_1d import Envelope1D
-from beam_calculation.tracewin.tracewin import TraceWin
 from beam_calculation.envelope_3d.envelope_3d import Envelope3D
+from beam_calculation.tracewin.tracewin import TraceWin
+
+IMPLEMENTED_BEAM_CALCULATORS = {
+    'Envelope1D': Envelope1D,
+    'TraceWin': TraceWin,
+    'Envelope3D': Envelope3D,
+}  #:
 
 
-def create_beam_calculator_objects(
-        *beam_calculators_parameters: dict[str, Any] | None,
-) -> tuple[BeamCalculator | None]:
-    """
-    Take the appropriate beam calculators and set them up.
+@dataclass
+class BeamCalculatorsFactory:
+    """A class to create :class:`.BeamCalculator` objects."""
 
-    Parameters
-    ----------
-    *beam_calculator_parameters : dict | None
-        Tuple holding beam calculator parameters, as returned by the
-        `config_manager`.
+    all_beam_calculator_kw: tuple[dict, ...]
 
-    Returns
-    -------
-    beam_calculators : tuple[BeamCalculator | None]
-        The solvers that will compute propagation of the beam in the
-        accelerator, set up according to `beam_calculator_parameters`.
+    def __post_init__(self) -> None:
+        """Patch to remove a key not understood by TraceWin. Declare id list.
 
-    """
-    out_folder = 'beam_calculation'
-    beam_calculators = []
+        .. todo::
+            fixme
 
-    for beam_calculator_parameters in beam_calculators_parameters:
-        if beam_calculator_parameters is None:
-            beam_calculators.append(None)
-            continue
+        """
+        for beam_calculator_kw in self.all_beam_calculator_kw:
+            if 'simulation type' in beam_calculator_kw:
+                del beam_calculator_kw['simulation type']
 
-        tool = beam_calculator_parameters['tool']
-        keys_not_handled = ('tool', 'simulation type')
-        clean_parameters = {key: val
-                            for key, val in beam_calculator_parameters.items()
-                            if key not in keys_not_handled}
+        self.beam_calculators_id: list[str] = []
 
-        calculators = {
-            'Envelope1D': Envelope1D,
-            'TraceWin': TraceWin,
-            'Envelope3D': Envelope3D,
-        }
+    def _run(self,
+             tool: str,
+             out_folder: str,
+             **beam_calculator_kw) -> BeamCalculator:
+        """Create a single :class:`.BeamCalculator`.
 
-        beam_calculators.append(calculators[tool](out_folder=out_folder,
-                                                  **clean_parameters))
-        out_folder += '_post'
-    return tuple(beam_calculators)
+        Parameters
+        ----------
+        beam_calculator_class : ABCMeta
+            The specific beam calculator.
+
+        Returns
+        -------
+        BeamCalculator
+
+        """
+        beam_calculator_class = IMPLEMENTED_BEAM_CALCULATORS[tool]
+        beam_calculator = beam_calculator_class(out_folder=out_folder,
+                                                **beam_calculator_kw)
+        self.beam_calculators_id.append(beam_calculator.id)
+        return beam_calculator
+
+    def run_all(self) -> tuple[BeamCalculator, ...]:
+        """Create all the beam calculators."""
+        out_folders = (f"beam_calculation_{i}"
+                       for i, _ in enumerate(self.all_beam_calculator_kw))
+        beam_calculators = [
+            self._run(out_folder=out_folder,
+                      **beam_calculator_kw)
+            for beam_calculator_kw, out_folder
+            in zip(self.all_beam_calculator_kw, out_folders)]
+        return tuple(beam_calculators)
