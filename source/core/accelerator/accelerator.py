@@ -49,7 +49,6 @@ class Accelerator():
                  dat_file: str,
                  project_folder: str,
                  accelerator_path: str,
-                 out_folders: tuple[str],
                  list_of_elements_factory: ListOfElementsFactory,
                  ) -> None:
         """Create object.
@@ -266,7 +265,6 @@ def accelerator_factory(
     accelerators = [Accelerator(
         name=name,
         accelerator_path=accelerator_path,
-        out_folders=out_folders,
         list_of_elements_factory=list_of_elements_factory,
         **files
     ) for name, accelerator_path in zip(names, accelerator_paths)]

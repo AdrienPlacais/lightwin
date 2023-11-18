@@ -17,9 +17,10 @@ import logging
 import time
 import datetime
 
-import config_manager as conf_man
+import config_manager
 
-from core.accelerator.accelerator import Accelerator, accelerator_factory
+from core.accelerator.accelerator import Accelerator
+from core.accelerator.factory import FullStudyAcceleratorFactory
 
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 
@@ -79,8 +80,8 @@ def post_beam_calc_and_save(accelerator: Accelerator,
 # Main function
 # =============================================================================
 if __name__ == '__main__':
-    MY_CONFIG_FILE = '../data/MYRRHA/lightwin.ini'
-    MY_KEYS = {
+    ini_filepath = '../data/MYRRHA/lightwin.ini'
+    ini_keys = {
         'files': 'files',
         'plots': 'plots.complete',
         'beam_calculator': 'beam_calculator.lightwin.envelope_longitudinal',
@@ -91,16 +92,15 @@ if __name__ == '__main__':
         # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
         # 'evaluators': 'evaluators.fred',
     }
-    my_configs = conf_man.process_config(MY_CONFIG_FILE, MY_KEYS)
+    my_configs = config_manager.process_config(ini_filepath, ini_keys)
 
     break_and_fix = 'wtf' in my_configs
     perform_post_simulation = 'beam_calculator_post' in my_configs
     RECOMPUTE_REFERENCE = False
 
     # =========================================================================
-    # Set up
-    # =========================================================================
     # Beam calculators
+    # =========================================================================
     beam_calculators_parameters = (
         my_configs['beam_calculator'],
         my_configs['beam_calculator_post'] if perform_post_simulation else None
@@ -114,13 +114,24 @@ if __name__ == '__main__':
     solv1 = my_beam_calc.id
     solv2 = my_beam_calc_post.id if my_beam_calc_post is not None else None
 
+    # =========================================================================
+    # Accelerators
+    # =========================================================================
     FILEPATH = my_configs['files']['dat_file']
+    assert FILEPATH is not None
     PROJECT_FOLDER = my_configs['files']['project_folder']
+    assert PROJECT_FOLDER is not None
 
-    # Reference accelerator
-    accelerators: list[Accelerator] = accelerator_factory(
-        my_beam_calculators,
-        **my_configs)
+    accelerator_factory = FullStudyAcceleratorFactory(
+        dat_file=FILEPATH,
+        project_folder=PROJECT_FOLDER,
+        beam_calculators=my_beam_calculators,
+    )
+
+    accelerators: list[Accelerator] = accelerator_factory.run_all(
+        **my_configs['wtf']
+    )
+
     beam_calc_and_save(accelerators[0], my_beam_calc)
     # FIXME dirty patch to initialize _element_to_index function
     if "TraceWin" in solv1:
