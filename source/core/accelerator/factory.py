@@ -43,7 +43,7 @@ class FullStudyAcceleratorFactory(AcceleratorFactory):
                  dat_file: str,
                  project_folder: str,
                  beam_calculators: tuple[BeamCalculator | None, ...],
-                 failed: list[int] | None = None,
+                 failed: list[list[int]] | None = None,
                  **kwargs: str | float | list[int],
                  ) -> None:
         """Initialize."""
@@ -63,11 +63,11 @@ class FullStudyAcceleratorFactory(AcceleratorFactory):
         if self._n_simulations > 0:
             return self._n_simulations
 
-        if self.failed is None:
-            self._n_simulations = 1
-            return self._n_simulations
+        self._n_simulations = 1
 
-        self._n_simulations = len(self.failed) + 1
+        if self.failed is not None:
+            self._n_simulations += len(self.failed)
+
         return self._n_simulations
 
     def run(self, *args, **kwargs) -> Accelerator:
@@ -75,7 +75,6 @@ class FullStudyAcceleratorFactory(AcceleratorFactory):
         return Accelerator(*args, **kwargs)
 
     def run_all(self,
-                wtf: dict[str, str | float | list] | None = None,
                 **kwargs
                 ) -> list[Accelerator]:
         """Create the required Accelerators as well as their output folders."""

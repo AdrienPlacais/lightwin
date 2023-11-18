@@ -94,7 +94,6 @@ if __name__ == '__main__':
     }
     my_configs = config_manager.process_config(ini_filepath, ini_keys)
 
-    break_and_fix = 'wtf' in my_configs
     perform_post_simulation = 'beam_calculator_post' in my_configs
     RECOMPUTE_REFERENCE = False
 
@@ -126,11 +125,10 @@ if __name__ == '__main__':
         dat_file=FILEPATH,
         project_folder=PROJECT_FOLDER,
         beam_calculators=my_beam_calculators,
-    )
-
-    accelerators: list[Accelerator] = accelerator_factory.run_all(
         **my_configs['wtf']
     )
+
+    accelerators: list[Accelerator] = accelerator_factory.run_all()
 
     beam_calc_and_save(accelerators[0], my_beam_calc)
     # FIXME dirty patch to initialize _element_to_index function
