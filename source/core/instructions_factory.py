@@ -12,6 +12,7 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
     to fix!!! does not recognize lower case commands such as ``end``
 
 """
+import os.path
 from typing import Any
 import logging
 
@@ -70,6 +71,9 @@ class InstructionsFactory:
         """
         # arguments for commands
         self._freq_bunch = freq_bunch
+
+        if load_field_maps:
+            assert os.path.isdir(default_field_map_folder)
 
         # factories
         self._command_factory = CommandFactory(**factory_kw)
