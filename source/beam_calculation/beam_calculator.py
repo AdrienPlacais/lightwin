@@ -58,6 +58,10 @@ class BeamCalculator(ABC):
             self.is_a_multiparticle_simulation,
             con.F_BUNCH_MHZ,
             default_field_map_folder='/home/placais/LightWin/data',
+            load_field_maps=True,  # useless with TraceWin
+            field_maps_in_3d=False,  # not implemented anyway
+            # Different loading of field maps if Cython
+            load_cython_field_maps=con.FLAG_CYTHON,
         )
 
     @abstractmethod
