@@ -57,7 +57,10 @@ class ListOfElementsFactory:
                  is_3d: bool,
                  is_multipart: bool,
                  freq_bunch: float,
-                 default_field_map_folder: str):
+                 default_field_map_folder: str = '',
+                 load_field_maps: bool = True,
+                 field_maps_in_3d: bool = False,
+                 load_cython_field_maps: bool = False):
         """
         Declare and create some mandatory factories.
 
@@ -80,12 +83,9 @@ class ListOfElementsFactory:
         self.instructions_factory = InstructionsFactory(
             freq_bunch,
             default_field_map_folder,
-            # Useless with TraceWin
-            load_field_maps=True,
-            # Not implemented
-            field_maps_in_3d=False,
-            # Different loading of field maps if Cython
-            load_cython_field_maps=con.FLAG_CYTHON,
+            load_field_maps=load_field_maps,
+            field_maps_in_3d=field_maps_in_3d,
+            load_cython_field_maps=load_cython_field_maps,
         )
 
     def whole_list_run(
