@@ -97,35 +97,24 @@ if __name__ == '__main__':
     # =========================================================================
     # Beam calculators
     # =========================================================================
-    beam_calculators_parameters = (my_configs['beam_calculator'], )
-    config_post = my_configs.get('beam_calculator_post', None)
-    if config_post is not None:
-        beam_calculators_parameters = (my_configs['beam_calculator'],
-                                       config_post)
-
-    beam_calculator_factory = BeamCalculatorsFactory(
-        beam_calculators_parameters)
+    beam_calculator_factory = BeamCalculatorsFactory(**my_configs)
     my_beam_calculators = beam_calculator_factory.run_all()
-
     beam_calculators_id = beam_calculator_factory.beam_calculators_id
 
     # =========================================================================
     # Accelerators
     # =========================================================================
-    FILEPATH = my_configs['files']['dat_file']
-    assert FILEPATH is not None
-    PROJECT_FOLDER = my_configs['files']['project_folder']
-    assert PROJECT_FOLDER is not None
-
     accelerator_factory = FullStudyAcceleratorFactory(
-        dat_file=FILEPATH,
-        project_folder=PROJECT_FOLDER,
         beam_calculators=my_beam_calculators,
+        **my_configs['files'],
         **my_configs['wtf']
     )
 
     accelerators: list[Accelerator] = accelerator_factory.run_all()
 
+    # =========================================================================
+    # Compute propagation in nominal accelerator
+    # =========================================================================
     beam_calc_and_save(accelerators[0], my_beam_calculators[0])
     # FIXME dirty patch to initialize _element_to_index function
     if "TraceWin" in beam_calculators_id[0]:
@@ -139,6 +128,9 @@ if __name__ == '__main__':
                      "an index in the .out file to a position in the linac.")
         beam_calc_and_save(accelerators[1], my_beam_calculators[0])
 
+    # =========================================================================
+    # Set up faults
+    # =========================================================================
     fault_scenarios: list[FaultScenario]
     fault_scenarios = fault_scenario_factory(accelerators,
                                              my_beam_calculators[0],
@@ -149,9 +141,7 @@ if __name__ == '__main__':
     # =========================================================================
     for fault_scenario in fault_scenarios:
         start_time = time.monotonic()
-
         fault_scenario.fix_all()
-
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time in optimisation: {delta_t}")

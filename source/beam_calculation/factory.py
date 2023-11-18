@@ -17,13 +17,24 @@ IMPLEMENTED_BEAM_CALCULATORS = {
 }  #:
 
 
-@dataclass
 class BeamCalculatorsFactory:
     """A class to create :class:`.BeamCalculator` objects."""
 
-    all_beam_calculator_kw: tuple[dict, ...]
+    def __init__(
+            self,
+            beam_calculator: dict[str, str | float | bool | int],
+            beam_calculator_post: dict[str, str | float | bool | int] | None = None,
+            **other_kw: dict) -> None:
+        """Create the object."""
+        self.all_beam_calculator_kw = (beam_calculator, )
+        if beam_calculator_post is not None:
+            self.all_beam_calculator_kw = (beam_calculator,
+                                           beam_calculator_post)
 
-    def __post_init__(self) -> None:
+        self.beam_calculators_id: list[str] = []
+        self._patch_to_remove_misunderstood_key()
+
+    def _patch_to_remove_misunderstood_key(self) -> None:
         """Patch to remove a key not understood by TraceWin. Declare id list.
 
         .. todo::
@@ -33,8 +44,6 @@ class BeamCalculatorsFactory:
         for beam_calculator_kw in self.all_beam_calculator_kw:
             if 'simulation type' in beam_calculator_kw:
                 del beam_calculator_kw['simulation type']
-
-        self.beam_calculators_id: list[str] = []
 
     def _run(self,
              tool: str,
