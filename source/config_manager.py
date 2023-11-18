@@ -155,15 +155,10 @@ def _config_to_dict(config: configparser.ConfigParser,
     return output_dict
 
 
-def _make_global(beam_calculator: dict, beam: dict, **kwargs) -> None:
+def _make_global(beam: dict,
+                 beam_calculator: dict | None = None,
+                 **kwargs) -> None:
     """Update the values of some variables so they can be used everywhere."""
-    global FLAG_CYTHON, FLAG_PHI_ABS, N_STEPS_PER_CELL, METHOD
-    FLAG_CYTHON = beam_calculator.get("flag_cython", None)
-    FLAG_PHI_ABS = beam_calculator.get("flag_phi_abs", True)
-    N_STEPS_PER_CELL = beam_calculator.get("n_steps_per_cell", None)
-    METHOD = beam_calculator.get("method", None)
-    logging.warning('default flags for tracewin')
-
     global Q_ADIM, E_REST_MEV, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT, \
         LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, F_BUNCH_MHZ, E_MEV, SIGMA_ZDELTA, \
         SIGMA, LINAC
@@ -180,6 +175,17 @@ def _make_global(beam_calculator: dict, beam: dict, **kwargs) -> None:
     SIGMA_ZDELTA = beam["sigma_zdelta"]
     SIGMA = beam["sigma"]
     LINAC = beam["linac"]
+
+    if beam_calculator is None:
+        return
+
+    global FLAG_CYTHON, FLAG_PHI_ABS, N_STEPS_PER_CELL, METHOD
+    FLAG_CYTHON = beam_calculator.get("flag_cython", None)
+    FLAG_PHI_ABS = beam_calculator.get("flag_phi_abs", True)
+    N_STEPS_PER_CELL = beam_calculator.get("n_steps_per_cell", None)
+    METHOD = beam_calculator.get("method", None)
+    logging.warning('default flags for tracewin')
+
 
 
 # =============================================================================
