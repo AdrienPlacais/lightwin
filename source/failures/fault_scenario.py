@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module holds a list-based class holding all the :class:`Fault` to fix.
+This module holds a list-based class holding all the :class:`.Fault` to fix.
 
 We also define :func:`fault_scenario_factory`, a factory function creating all
 the required :class:`FaultScenario` objects.
