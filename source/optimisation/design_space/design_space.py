@@ -117,6 +117,8 @@ class DesignSpace:
 
     def to_files(self,
                  basepath: str,
+                 variables_filename: str = 'variables',
+                 constraints_filename: str = 'constraints',
                  overwrite: bool = False,
                  **to_csv_kw: Any) -> None:
         """Save variables and constraints in files.
@@ -125,6 +127,8 @@ class DesignSpace:
         ----------
         basepath : str
             Folder where the files will be stored.
+        variables_filename, constraints_filename : str
+            Name of the output files without extension.
         overwrite : bool, optional
             To overwrite an existing file with the same name or not. The
             default is False.
@@ -132,8 +136,10 @@ class DesignSpace:
             Keyword arguments given to the pandas ``to_csv`` method.
 
         """
-        for parameter_name in ('variables', 'constraints'):
-            filepath = os.path.join(basepath, f"{parameter_name}.csv")
+        zipper = zip(('variables', 'constraints'),
+                     (variables_filename, constraints_filename))
+        for parameter_name, filename in zipper:
+            filepath = os.path.join(basepath, f"{filename}.csv")
 
             if os.path.isfile(filepath) and not overwrite:
                 logging.warning(f"{filepath = } already exists. Skipping...")
