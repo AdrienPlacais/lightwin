@@ -26,7 +26,9 @@ from core.accelerator.accelerator import Accelerator
 
 from optimisation.algorithms.factory import optimisation_algorithm_factory
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
-from optimisation.design_space.factory import DesignSpaceFactory
+from optimisation.design_space.factory import (DesignSpaceFactory,
+                                               get_design_space_factory)
+
 
 from util import debug
 
@@ -345,7 +347,7 @@ def fault_scenario_factory(
     accelerators: list[Accelerator],
     beam_calculator: BeamCalculator,
     wtf: dict[str, Any],
-    design_space_factory: DesignSpaceFactory,
+    design_space_kw: dict[str, str | bool | float],
 ) -> list[FaultScenario]:
     """
     Create the :class:`FaultScenario` objects (factory template).
@@ -359,14 +361,14 @@ def fault_scenario_factory(
         The solver that will be called during the optimisation process.
     wtf : dict[str, str | int | bool | list[str] | list[float]]
         What To Fit dictionary. Holds information on the fixing method.
-    design_space_factory : DesignSpaceFactory
-        An object to easily create the proper :class:`.DesignSpace`.
+    design_space_kw : dict[str, str | bool | float]
+        The ``[design_space]`` entries from the ``.ini`` file.
 
     Returns
     -------
     fault_scenarios : list[FaultScenario]
-    Holds all the initialized :class:`FaultScenario` objects, holding their
-    already initialied :class:`Fault` objects.
+        Holds all the initialized :class:`FaultScenario` objects, holding their
+        already initialied :class:`Fault` objects.
 
     """
     scenarios_fault_idx = wtf.pop('failed')
@@ -377,6 +379,9 @@ def fault_scenario_factory(
 
     _ = [beam_calculator.init_solver_parameters(accelerator)
          for accelerator in accelerators]
+
+    design_space_factory: DesignSpaceFactory
+    design_space_factory = get_design_space_factory(**design_space_kw)
 
     fault_scenarios = [
         FaultScenario(
