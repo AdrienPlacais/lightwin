@@ -35,6 +35,74 @@ class AcceleratorFactory(ABC):
         """Create the object."""
         return Accelerator(*args, **kwargs)
 
+    def _generate_folders_tree_structure(self,
+                                         out_folders: tuple[str, ...],
+                                         n_simulations: int,
+                                         ) -> list[str]:
+        """
+        Create the proper folders for every :class:`.Accelerator`.
+
+        The default structure is:
+
+        where_original_dat_is/
+            YYYY.MM.DD_HHhMM_SSs_MILLIms/              <- project_folder
+                000000_ref/                            <- accelerator_path
+                    beam_calculation_0_toolname/         <- beam_calc
+                    (beam_calculation_1_toolname)/  <- beam_calc_post
+                000001/
+                    beam_calculation_0_toolname/
+                    (beam_calculation_1_toolname)/
+                000002/
+                    beam_calculation__0_toolname/
+                    (beam_calculation_1_toolname)/
+                etc
+
+        """
+        accelerator_paths = [os.path.join(self.project_folder, f"{i:06d}")
+                             for i in range(n_simulations)]
+        accelerator_paths[0] += '_ref'
+
+        _ = [os.makedirs(os.path.join(fault_scenar, out_folder))
+             for fault_scenar in accelerator_paths
+             for out_folder in out_folders]
+        return accelerator_paths
+
+
+class StudyWithoutFaultsAcceleratorFactory(AcceleratorFactory):
+    """Factory used to generate a single accelerator, no faults."""
+
+    def __init__(self,
+                 dat_file: str,
+                 project_folder: str,
+                 beam_calculator: BeamCalculator,
+                 **files_kw,
+                 ) -> None:
+        """Initialize."""
+        super().__init__(dat_file,
+                         project_folder,
+                         **files_kw)
+        self.beam_calculator = beam_calculator
+
+    def run(self) -> Accelerator:
+
+        out_folder = self.beam_calculator.out_folder
+        accelerator_path = self._generate_folders_tree_structure(
+            out_folders=(out_folder, ),
+            n_simulations=1,
+        )[0]
+        list_of_elements_factory = \
+            self.beam_calculator.list_of_elements_factory
+        name = 'Working'
+
+        accelerator = super().run(
+            name=name,
+            dat_file=self.dat_file,
+            project_folder=self.project_folder,
+            accelerator_path=accelerator_path,
+            list_of_elements_factory=list_of_elements_factory,
+        )
+        return accelerator
+
 
 class FullStudyAcceleratorFactory(AcceleratorFactory):
     """Factory used to generate several accelerators for a fault study."""
@@ -84,7 +152,8 @@ class FullStudyAcceleratorFactory(AcceleratorFactory):
                              ])
 
         accelerator_paths = self._generate_folders_tree_structure(
-            out_folders=out_folders
+            out_folders=out_folders,
+            n_simulations=self.n_simulations
         )
 
         names = ['Working' if i == 0 else 'Broken'
@@ -101,34 +170,3 @@ class FullStudyAcceleratorFactory(AcceleratorFactory):
             list_of_elements_factory=list_of_elements_factory,
         ) for name, accelerator_path in zip(names, accelerator_paths)]
         return accelerators
-
-    def _generate_folders_tree_structure(self,
-                                         out_folders: tuple[str, ...]
-                                         ) -> list[str]:
-        """
-        Create the proper folders for every :class:`.Accelerator`.
-
-        The default structure is:
-
-        where_original_dat_is/
-            YYYY.MM.DD_HHhMM_SSs_MILLIms/              <- project_folder
-                000000_ref/                            <- accelerator_path
-                    beam_calculation_toolname/         <- beam_calc
-                    (beam_calculation_post_toolname)/  <- beam_calc_post
-                000001/
-                    beam_calculation_toolname/
-                    (beam_calculation_post_toolname)/
-                000002/
-                    beam_calculation_toolname/
-                    (beam_calculation_post_toolname)/
-                etc
-
-        """
-        accelerator_paths = [os.path.join(self.project_folder, f"{i:06d}")
-                             for i in range(self.n_simulations)]
-        accelerator_paths[0] += '_ref'
-
-        _ = [os.makedirs(os.path.join(fault_scenar, out_folder))
-             for fault_scenar in accelerator_paths
-             for out_folder in out_folders]
-        return accelerator_paths
