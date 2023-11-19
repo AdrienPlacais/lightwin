@@ -28,7 +28,8 @@ implemented_design_space_presets = ('unconstrained',
                                     'constrained_sync_phase',
                                     'sync_phase_as_variable',
                                     'FM4_MYRRHA',
-                                    'experimental'
+                                    'experimental',
+                                    'everything',
                                     )
 
 

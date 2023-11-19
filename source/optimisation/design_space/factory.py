@@ -252,6 +252,29 @@ class SyncPhaseAsVariable(DesignSpaceFactory):
 
     variables_names: tuple[str, str] = ('phi_s', 'k_e')
 
+@dataclass
+class Everything(DesignSpaceFactory):
+    """This class creates all possible variables and constraints.
+
+    This is not to be used in an optimisation problem, but rather to save in a
+    ``.csv`` all the limits and initial values for every variable/constraint.
+
+    """
+
+    variables_names: tuple[str, str, str, str] = ('k_e',
+                                                  'phi_s',
+                                                  'phi_0_abs',
+                                                  'phi_0_rel',
+                                                  )
+    constraints_names: tuple[str] = ('phi_s', )
+
+    def run(self, *args, **kwargs) -> DesignSpace:
+        """Launch normal run but with an info message."""
+        logging.info("Creating DesignSpace with all implemented variables and "
+                     f"constraints, i.e. {self.variables_names = } and "
+                     f"{self.constraints_names = }.")
+        return super().run(*args, **kwargs)
+
 
 # should not exist
 @dataclass
@@ -310,6 +333,7 @@ DESIGN_SPACE_FACTORY_PRESETS = {
     'constrained_sync_phase': ConstrainedSyncPhase,
     'sync_phase_as_variable': SyncPhaseAsVariable,
     'FM4_MYRRHA': FM4_MYRRHA,
+    'everything': Everything,
 }  #:
 
 
