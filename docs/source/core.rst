@@ -12,6 +12,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   core.accelerator
    core.beam_parameters
    core.commands
    core.elements
@@ -24,7 +25,6 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   core.accelerator
    core.electric_field
    core.instruction
    core.instructions_factory

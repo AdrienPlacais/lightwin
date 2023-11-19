@@ -10,7 +10,7 @@ import os
 import sys
 import re
 
-sys.path.insert(0, os.path.abspath("../../source/"))
+sys.path.insert(0, os.path.abspath(os.path.join("..", ".." "source")))
 
 project = 'LightWin'
 copyright = '2023, A. Plaçais, F. Bouly'
@@ -46,7 +46,16 @@ default_role = 'literal'
 todo_include_todos = True
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'experimental']
+exclude_patterns = ['_build',
+                    'Thumbs.db',
+                    '.DS_Store',
+                    'experimental',
+                    'source/config_manager.py',
+                    'source/constants.py',
+                    'source/envelope3d.py',
+                    'source/main.py',
+                    'source/spiral2.py'
+                    ]
 
 
 # -- Options for HTML output -------------------------------------------------

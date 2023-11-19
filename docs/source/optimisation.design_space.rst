@@ -16,4 +16,5 @@ Submodules
    optimisation.design_space.design_space
    optimisation.design_space.design_space_parameter
    optimisation.design_space.factory
+   optimisation.design_space.helper
    optimisation.design_space.variable
