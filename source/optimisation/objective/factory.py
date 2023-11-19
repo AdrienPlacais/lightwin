@@ -29,8 +29,6 @@ from optimisation.objective.minimize_mismatch import MinimizeMismatch
 from optimisation.objective.quantity_is_between import QuantityIsBetween
 from optimisation.objective.position import zone_to_recompute
 
-from optimisation.design_space.factory import LIMITS_GETTERS
-
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
 
@@ -39,6 +37,7 @@ from core.list_of_elements.helper import equivalent_elt
 
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
+from optimisation.design_space.helper import LIMITS_KW, phi_s_limits
 
 from util.dicts_output import markdown
 from experimental.test import assert_are_field_maps
@@ -338,10 +337,17 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
         return objective
 
     def _get_phi_s(self, cavity: FieldMap) -> Objective:
-        """Objective to have sync phase within bounds."""
+        """
+        Objective to have sync phase within bounds.
+
+        .. todo::
+            I do not like this dependency on ``LIMITS_KW``.
+
+        """
         reference_cavity = equivalent_elt(self.reference_elts, cavity)
-        limits_getter = LIMITS_GETTERS[self.linac_name]
-        limits = limits_getter('phi_s', reference_cavity)
+        limits_kw = LIMITS_KW[self.linac_name]
+
+        limits = phi_s_limits(reference_cavity, **limits_kw)
 
         objective = QuantityIsBetween(
             name=markdown['phi_s'].replace('deg', 'rad'),
@@ -373,10 +379,8 @@ def get_objectives_and_residuals_function(
     reference_simulation_output: SimulationOutput,
     broken_elts: ListOfElements,
     failed_elements: list[Element],
-    compensating_elements: list[Element],
-) -> tuple[list[Element],
-           list[Objective],
-           Callable[[SimulationOutput], np.ndarray]]:
+    compensating_elements: list[Element]
+) -> tuple[list[Element], list[Objective], Callable[[SimulationOutput], np.ndarray]]:
     """
     Instantiate objective factory and create objectives.
 

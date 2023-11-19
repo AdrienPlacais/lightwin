@@ -83,7 +83,7 @@ def k_e_limits(
         maximum_k_e_is_calculated_wrt_maximum_k_e_of_section: bool = False,
         reference_elements: list[Element] | None = None,
         **kwargs
-        ) -> tuple[float, float]:
+) -> tuple[float, float]:
     r"""Get classic limits for ``k_e``.
 
     Parameters
@@ -139,3 +139,44 @@ def _get_maximum_k_e_of_section(section_idx: int,
                               for element in elements_in_current_section]
     maximum_k_e = np.nanmax(k_e_in_current_section)
     return maximum_k_e
+
+
+LIMITS_CALCULATORS = {
+    'phi_s': phi_s_limits,
+    'phi_0_abs': phi_0_limits,
+    'phi_0_rel': phi_0_limits,
+    'k_e': k_e_limits,
+}
+
+myrrha_limits_kw = {
+    'max_increase_sync_phase_in_percent': 40.,
+    'max_absolute_sync_phase_in_rad': 0.,
+    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_decrease_k_e_in_percent': 50.,
+    'max_increase_k_e_in_percent': 30.,
+    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': True,
+}
+
+jaea_limits_kw = {
+    'max_increase_sync_phase_in_percent': 50.,
+    'max_absolute_sync_phase_in_rad': 0.,
+    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_decrease_k_e_in_percent': 50.,
+    'max_increase_k_e_in_percent': 20.,
+    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
+}
+
+spiral2_limits_kw = {
+    'max_increase_sync_phase_in_percent': 50.,
+    'max_absolute_sync_phase_in_rad': 0.,
+    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_decrease_k_e_in_percent': 70.,
+    'max_increase_k_e_in_percent': 20.,
+    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
+}
+
+LIMITS_KW = {
+    'MYRRHA': myrrha_limits_kw,
+    'JAEA': jaea_limits_kw,
+    'SPIRAL2': spiral2_limits_kw,
+}

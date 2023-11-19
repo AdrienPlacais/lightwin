@@ -27,9 +27,8 @@ from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.design_space import DesignSpace
 from optimisation.design_space.helper import (same_value_as_nominal,
-                                              phi_s_limits,
-                                              phi_0_limits,
-                                              k_e_limits,
+                                              LIMITS_KW,
+                                              LIMITS_CALCULATORS,
                                               )
 
 from core.list_of_elements.helper import equivalent_elt
@@ -165,9 +164,9 @@ class DesignSpaceFactory(ABC):
 
     def _get_limits_from_preset(self,
                                 variable: str,
-                                reference_element: Element | None = None,
+                                reference_element: Element,
                                 preset: str | None = None,
-                                **kwargs) -> tuple[float, float]:
+                                **limits_kw) -> tuple[float, float]:
         """
         Select limits for given preset and parameter.
 
@@ -192,11 +191,13 @@ class DesignSpaceFactory(ABC):
         if preset is None:
             preset = self.preset
         assert self.reference_elements is not None, "Need reference_elements" \
-            " to generate the design space with this preset."
-        return LIMITS_GETTERS[preset](
-            variable,
-            reference_element=reference_element,
-            reference_elements=self.reference_elements)
+            " to generate the design space with presets."
+
+        limits_calculator = LIMITS_CALCULATORS[variable]
+        limits_kw = LIMITS_KW[preset]
+        return limits_calculator(reference_element=reference_element,
+                                 reference_elements=self.reference_elements,
+                                 **limits_kw)
 
     def _run_from_file(self,
                        variables_names: tuple[str, ...],
@@ -392,148 +393,3 @@ def get_design_space_and_constraint_function(
     variables, constraints = design_space.variables, design_space.constraints
     compute_constraints = design_space.compute_constraints
     return variables, constraints, compute_constraints
-
-
-# =============================================================================
-# Limits for k_e, phi_0, phi_s for every implemented linac
-# =============================================================================
-def _limits_myrrha(variable: str,
-                   reference_element: Element | None = None,
-                   reference_elements: list[Element] | None = None,
-                   **kwargs) -> tuple[float | None]:
-    """
-    Set the limits for a quantity in MYRRHA ADS linac.
-
-    Parameters
-    ----------
-    variable : {'k_e', 'phi_s', 'phi_0_abs', 'phi_0_rel'}
-        Quantity under study.
-    reference_element : Element | None, optional
-        Cavity with nominal settings. The default is None.
-    reference_elements : list[Element] | None, optional
-        List holding all the reference elements, in their nominal settings. The
-        default is None.
-
-    Returns
-    -------
-    tuple[float | None]
-        Lower and upper limit for the current ``variable`` and element. None
-        means that there is no limit.
-
-    """
-    reference_value = reference_element.get(variable, to_numpy=False)
-    myrrha_limits = {
-        'phi_s': lambda reference_value: (
-            # Minimum: -90deg
-            -np.pi / 2.,
-            # Maximum: 0deg or reference + 40%           (reminder: phi_s < 0)
-            min(0., reference_value * (1. - 0.4))
-        ),
-        'k_e': lambda reference_value: (
-            # Minimum: 50% of ref k_e
-            reference_value * 0.5,
-            # Maximum: maximum of section + 30%
-            1.3 * _get_maximum_k_e_of_section(reference_element.idx['section'],
-                                              reference_elements)
-        ),
-        'phi_0_rel': lambda reference_value: (-2. * np.pi, 2. * np.pi),
-        'phi_0_abs': lambda reference_value: (-2. * np.pi, 2. * np.pi),
-    }
-    if variable not in myrrha_limits:
-        logging.error(f"Preset MYRRHA has no preset for {variable}.")
-        return (None, None)
-    return myrrha_limits[variable](reference_value)
-
-
-def _limits_jaea(variable: str,
-                 reference_element: Element | None = None,
-                 **kwargs) -> tuple[float | None]:
-    """Set the limits for a quantity in JAEA ADS linac."""
-    reference_value = reference_element.get(variable, to_numpy=False)
-    jaea_limits = {
-        'phi_s': lambda reference_value: (
-            # Minimum: -90deg
-            -np.pi / 2.,
-            # Maximum: 0deg or reference + 50%           (reminder: phi_s < 0)
-            min(0., reference_value * (1. - 0.5))
-        ),
-        'k_e': lambda reference_value: (0.5 * reference_value,
-                                        1.2 * reference_value),
-        'phi_0_rel': lambda reference_value: (-2. * np.pi, 2. * np.pi),
-        'phi_0_abs': lambda reference_value: (-2. * np.pi, 2. * np.pi),
-    }
-    if variable not in jaea_limits:
-        logging.error(f"Preset JAEA has no preset for {variable}.")
-        return (None, None)
-    return jaea_limits[variable](reference_value)
-
-
-def _limits_spiral2(variable: str,
-                    reference_element: Element | None = None,
-                    **kwargs) -> tuple[float | None]:
-    """Set the limits for a quantity in SPIRAL2 linac."""
-    reference_value = reference_element.get(variable, to_numpy=False)
-    spiral2_limits = {
-        'phi_s': lambda reference_value: (
-            # Minimum: -90deg
-            -np.pi / 2.,
-            # Maximum: 0deg or reference + 50%           (reminder: phi_s < 0)
-            min(0., reference_value * (1. - 0.5))
-        ),
-        'k_e': lambda reference_value: (0.3 * reference_value,
-                                        1.05 * reference_value),
-        'phi_0_rel': lambda reference_value: (-2. * np.pi, 2. * np.pi),
-        'phi_0_abs': lambda reference_value: (-2. * np.pi, 2. * np.pi),
-    }
-    if variable not in spiral2_limits:
-        logging.error(f"Preset SPIRAL2 has no preset for {variable}.")
-        return (None, None)
-    return spiral2_limits[variable](reference_value)
-
-
-def _get_maximum_k_e_of_section(section_idx: int,
-                                reference_elements: list[Element],
-                                ) -> float:
-    """Get the maximum ``k_e`` of section."""
-    elements_in_current_section = list(filter(
-        lambda element: element.idx['section'] == section_idx,
-        reference_elements))
-    k_e_in_current_section = [element.get('k_e', to_numpy=False)
-                              for element in elements_in_current_section]
-    maximum_k_e = np.nanmax(k_e_in_current_section)
-    return maximum_k_e
-
-
-LIMITS_GETTERS = {
-    'MYRRHA': _limits_myrrha,
-    'JAEA': _limits_jaea,
-    'SPIRAL2': _limits_spiral2,
-}
-
-
-myrrha_design_space = {
-    'max_increase_sync_phase_in_percent': 40.,
-    'max_absolute_sync_phase_in_rad': 0.,
-    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
-    'max_decrease_k_e_in_percent': 50.,
-    'max_increase_k_e_in_percent': 30.,
-    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': True,
-}
-
-jaea_design_space = {
-    'max_increase_sync_phase_in_percent': 50.,
-    'max_absolute_sync_phase_in_rad': 0.,
-    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
-    'max_decrease_k_e_in_percent': 50.,
-    'max_increase_k_e_in_percent': 20.,
-    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
-}
-
-spiral2_design_space = {
-    'max_increase_sync_phase_in_percent': 50.,
-    'max_absolute_sync_phase_in_rad': 0.,
-    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
-    'max_decrease_k_e_in_percent': 70.,
-    'max_increase_k_e_in_percent': 20.,
-    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
-}
