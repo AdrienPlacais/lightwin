@@ -20,7 +20,6 @@ from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.design_space import DesignSpace
 from optimisation.design_space.helper import (same_value_as_nominal,
-                                              LIMITS_KW,
                                               LIMITS_CALCULATORS,
                                               )
 
@@ -48,16 +47,17 @@ class DesignSpaceFactory(ABC):
 
     """
 
-    compensating_elements: list[Element]
-    reference_elements: list[Element]
     design_space_kw: dict[str, float | bool]
 
     def __post_init__(self):
-        """Check that given elements can be retuned."""
-        assert all([elt.can_be_retuned for elt in self.compensating_elements])
-
+        """Declare complementary variables."""
         self.filepath_variables: str
         self.filepath_constraints: str
+
+    def _check_can_be_retuned(self, compensating_elements: list[Element]
+                              ) -> None:
+        """Check that given elements can be retuned."""
+        assert all([elt.can_be_retuned for elt in compensating_elements])
 
     @property
     @abstractmethod
@@ -88,42 +88,55 @@ class DesignSpaceFactory(ABC):
             self.filepath_constraints = filepath_constraints
         self.run = self._run_from_file
 
-    def _run_variables(self) -> list[Variable]:
+    def _run_variables(self,
+                       compensating_elements: list[Element],
+                       reference_elements: list[Element]) -> list[Variable]:
         """Set up all the required variables."""
-        assert self.reference_elements is not None
+        assert reference_elements is not None
         variables = []
         for var_name in self.variables_names:
-            for element in self.compensating_elements:
-                ref_elt = equivalent_elt(self.reference_elements, element)
+            for element in compensating_elements:
+                ref_elt = equivalent_elt(reference_elements, element)
                 variable = Variable(
                     name=var_name,
                     element_name=str(element),
-                    limits=self._get_limits_from_kw(var_name, ref_elt),
+                    limits=self._get_limits_from_kw(var_name,
+                                                    ref_elt,
+                                                    reference_elements),
                     x_0=self._get_initial_value_from_kw(var_name, ref_elt),
                 )
                 variables.append(variable)
         return variables
 
-    def _run_constraints(self) -> list[Constraint]:
+    def _run_constraints(self,
+                         compensating_elements: list[Element],
+                         reference_elements: list[Element]
+                         ) -> list[Constraint]:
         """Set up all the required constraints."""
-        assert self.reference_elements is not None
+        assert reference_elements is not None
         constraints = []
         for constraint_name in self.constraints_names:
-            for element in self.compensating_elements:
-                ref_elt = equivalent_elt(self.reference_elements, element)
+            for element in compensating_elements:
+                ref_elt = equivalent_elt(reference_elements, element)
                 constraint = Constraint(
                     name=constraint_name,
                     element_name=str(element),
                     limits=self._get_limits_from_kw(constraint_name,
-                                                    ref_elt),
+                                                    ref_elt,
+                                                    reference_elements),
                 )
                 constraints.append(constraint)
         return constraints
 
-    def run(self) -> DesignSpace:
+    def run(self,
+            compensating_elements: list[Element],
+            reference_elements: list[Element]) -> DesignSpace:
         """Set up variables and constraints."""
-        variables = self._run_variables()
-        constraints = self._run_constraints()
+        self._check_can_be_retuned(compensating_elements)
+        variables = self._run_variables(compensating_elements,
+                                        reference_elements)
+        constraints = self._run_constraints(compensating_elements,
+                                            reference_elements)
         design_space = DesignSpace(variables, constraints)
         logging.info(str(design_space))
         return design_space
@@ -154,6 +167,7 @@ class DesignSpaceFactory(ABC):
     def _get_limits_from_kw(self,
                             variable: str,
                             reference_element: Element,
+                            reference_elements: list[Element],
                             ) -> tuple[float, float]:
         """
         Select limits for given variable.
@@ -164,8 +178,10 @@ class DesignSpaceFactory(ABC):
         ----------
         variable : {'k_e', 'phi_0_rel', 'phi_0_abs', 'phi_s'}
             The variable from which you want the limits.
-        reference_element : Element | None, optional
-            The element in its nominal tuning. The default is None.
+        reference_element : Element
+            The element in its nominal tuning.
+        reference_elements : list[Element]
+            List of reference elements.
 
         Returns
         -------
@@ -173,13 +189,14 @@ class DesignSpaceFactory(ABC):
             Lower and upper limit for current variable.
 
         """
-        assert self.reference_elements is not None
+        assert reference_elements is not None
         limits_calculator = LIMITS_CALCULATORS[variable]
         return limits_calculator(reference_element=reference_element,
-                                 reference_elements=self.reference_elements,
+                                 reference_elements=reference_elements,
                                  **self.design_space_kw)
 
     def _run_from_file(self,
+                       compensating_elements: list[Element],
                        variables_names: tuple[str, ...],
                        constraints_names: tuple[str, ...] | None = None,
                        **kwargs: str,
@@ -198,11 +215,12 @@ class DesignSpaceFactory(ABC):
         DesignSpace
 
         """
+        self._check_can_be_retuned(compensating_elements)
         assert 'filepath_variables' in self.__dir__()
         filepath_constraints = getattr(self, 'filepath_constraints', None)
 
         elements_names = tuple([str(elt)
-                                for elt in self.compensating_elements])
+                                for elt in compensating_elements])
         design_space = DesignSpace.from_files(elements_names,
                                               self.filepath_variables,
                                               variables_names,
@@ -245,10 +263,18 @@ class FM4_MYRRHA(DesignSpaceFactory):
     def __post_init__(self):
         """Check that we are in the proper case."""
         super().__post_init__()
-        assert [str(elt) for elt in self.compensating_elements] == [
-            'FM1', 'FM2', 'FM3', 'FM5', 'FM6']
 
-    def _run_variables(self) -> list[Variable]:
+    def run(self, compensating_elements: list[Element], *args, **kwargs
+            ) -> DesignSpace:
+        """Classic run but check name of compensating elements first."""
+        assert [str(elt) for elt in compensating_elements] == [
+            'FM1', 'FM2', 'FM3', 'FM5', 'FM6']
+        return super().run(*args,
+                           compensating_elements=compensating_elements,
+                           **kwargs)
+
+    def _run_variables(self, compensating_elements: list[Element]
+                       ) -> list[Variable]:
         """Set up all the required variables."""
         variables = []
         my_initial_values = {'phi_0_abs': {'FM1': 1.2428429564125352,
@@ -267,7 +293,7 @@ class FM4_MYRRHA(DesignSpaceFactory):
         tol = 1e-3
 
         for var_name in self.variables_names:
-            for element in self.compensating_elements:
+            for element in compensating_elements:
                 my_initial_value = my_initial_values[var_name][str(element)]
                 variable = Variable(
                     name=var_name,
@@ -285,3 +311,28 @@ DESIGN_SPACE_FACTORY_PRESETS = {
     'sync_phase_as_variable': SyncPhaseAsVariable,
     'FM4_MYRRHA': FM4_MYRRHA,
 }  #:
+
+
+def get_design_space_factory(design_space_preset: str,
+                             **design_space_kw: float | bool
+                             ) -> DesignSpaceFactory:
+    """Select proper factory, instantiate it and return it.
+
+    Parameters
+    ----------
+    design_space_preset : str
+        design_space_preset
+    design_space_kw : float | bool
+        design_space_kw
+
+    Returns
+    -------
+    DesignSpaceFactory
+
+    """
+    design_space_factory_class = DESIGN_SPACE_FACTORY_PRESETS[
+        design_space_preset]
+    design_space_factory = design_space_factory_class(
+        design_space_kw=design_space_kw,
+    )
+    return design_space_factory

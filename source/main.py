@@ -24,6 +24,9 @@ from failures.fault_scenario import FaultScenario, fault_scenario_factory
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import BeamCalculatorsFactory
 
+from optimisation.design_space.factory import (DesignSpaceFactory,
+                                               get_design_space_factory)
+
 from visualization import plot
 
 from evaluator.list_of_simulation_output_evaluators import (
@@ -90,11 +93,15 @@ if __name__ == '__main__':
     # =========================================================================
     # Set up faults
     # =========================================================================
+    design_space_factory: DesignSpaceFactory
+    design_space_factory = get_design_space_factory(
+        **my_configs['design_space'])
     fault_scenarios: list[FaultScenario]
     fault_scenarios = fault_scenario_factory(accelerators,
                                              my_beam_calculators[0],
                                              my_configs['wtf'],
-                                             my_configs['design_space'])
+                                             design_space_factory,
+                                             )
 
     # =========================================================================
     # Fix

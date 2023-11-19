@@ -29,7 +29,7 @@ from optimisation.objective.factory import (
 from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.design_space import DesignSpace
-from optimisation.design_space.factory import DESIGN_SPACE_FACTORY_PRESETS
+from optimisation.design_space.factory import DesignSpaceFactory
 
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
 
@@ -69,7 +69,7 @@ class Fault:
                  reference_simulation_output: SimulationOutput,
                  files_from_full_list_of_elements: dict[str, Any],
                  wtf: dict[str, Any],
-                 design_space_kw: dict[str, str | bool | float],
+                 design_space_factory: DesignSpaceFactory,
                  broken_elts: ListOfElements,
                  failed_elements: list[Element],
                  compensating_elements: list[Element],
@@ -90,8 +90,8 @@ class Fault:
             calculation paths.
         wtf : dict[str, str | int | bool | list[str] | list[float]]
             What To Fit dictionary. Holds information on the fixing method.
-        design_space_kw : dict[str, bool | float]
-            The entries of ``[design_space]`` in ``.ini`` file.
+        design_space_factory : DesignSpaceFactory
+            An object to easily create the proper :class:`.DesignSpace`.
         failed_elements : list[Element]
             Holds the failed elements.
         compensating_elements : list[Element]
@@ -111,10 +111,8 @@ class Fault:
 
         reference_elements = [equivalent_elt(reference_elts, element)
                               for element in self.compensating_elements]
-        design_space = self._get_design_space(
-            reference_elements=reference_elements,
-            **design_space_kw
-            )
+        design_space = design_space_factory.run(compensating_elements,
+                                                reference_elements)
 
         self.variables = design_space.variables
         self.constraints = design_space.constraints
@@ -138,37 +136,6 @@ class Fault:
             reference_simulation_output,
             files_from_full_list_of_elements,
         )
-
-    def _get_design_space(self,
-                          design_space_preset: str,
-                          reference_elements: list[Element] | None = None,
-                          **design_space_kw: bool | float,
-                          ) -> DesignSpace:
-        """Create the proper :class:`.DesignSpaceFactory` and run it.
-
-        Parameters
-        ----------
-        design_space_preset : str
-            Name of a design space preset.
-        reference_elements : list[Element] | None
-            Reference elements.
-        design_space_kw : dict[str, bool | float]
-            The entries of ``[design_space]`` in ``.ini`` file.
-
-        Returns
-        -------
-        DesignSpace
-
-        """
-        design_space_factory_class = DESIGN_SPACE_FACTORY_PRESETS[
-            design_space_preset]
-        design_space_factory = design_space_factory_class(
-            compensating_elements=self.compensating_elements,
-            reference_elements=reference_elements,
-            design_space_kw=design_space_kw,
-        )
-        design_space = design_space_factory.run()
-        return design_space
 
     def fix(self, optimisation_algorithm: OptimisationAlgorithm
             ) -> tuple[bool, SetOfCavitySettings, dict]:
