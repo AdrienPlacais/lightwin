@@ -27,6 +27,7 @@ import configparser
 import numpy as np
 
 from config import files, plots, beam_calculator, beam, wtf, evaluators
+from config.optimisation import design_space
 
 
 # Values that will be available everywhere
@@ -196,6 +197,7 @@ TESTERS = {
     'beam_calculator': beam_calculator.test,
     'beam': beam.test,
     'wtf': wtf.test,
+    'design_space': design_space.test,
     'beam_calculator_post': beam_calculator.test,
     'evaluators': evaluators.test,
 }
@@ -206,6 +208,7 @@ DICTIONARIZERS = {
     'beam_calculator': beam_calculator.config_to_dict,
     'beam': beam.config_to_dict,
     'wtf': wtf.config_to_dict,
+    'design_space': design_space.config_to_dict,
     'beam_calculator_post': beam_calculator.config_to_dict,
     'evaluators': evaluators.config_to_dict,
 }

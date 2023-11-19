@@ -7,6 +7,7 @@ We also define :func:`fault_scenario_factory`, a factory function creating all
 the required :class:`FaultScenario` objects.
 
 """
+from typing import Any
 import logging
 import time
 import datetime
@@ -41,7 +42,8 @@ class FaultScenario(list):
                  ref_acc: Accelerator,
                  fix_acc: Accelerator,
                  beam_calculator: BeamCalculator,
-                 wtf: dict[str, str | int | bool | list[str] | list[float]],
+                 wtf: dict[str, Any],
+                 design_space_kw: dict[str, str | bool | float],
                  fault_idx: list[int] | list[list[int]],
                  comp_idx: list[list[int]] | None = None,
                  info_other_sol: list[dict] | None = None) -> None:
@@ -99,6 +101,7 @@ class FaultScenario(list):
                 reference_simulation_output=reference_simulation_output,
                 files_from_full_list_of_elements=files_from_full_list_of_elements,
                 wtf=self.wtf,
+                design_space_kw=design_space_kw,
                 broken_elts=self.fix_acc.elts,
                 failed_elements=faulty_cavities,
                 compensating_elements=compensating_cavities,
@@ -338,7 +341,8 @@ class FaultScenario(list):
 def fault_scenario_factory(
     accelerators: list[Accelerator],
     beam_calculator: BeamCalculator,
-    wtf: dict[str, str | int | bool | list[str] | list[float]]
+    wtf: dict[str, Any],
+    design_space_kw: dict[str, str | bool | float],
 ) -> list[FaultScenario]:
     """
     Create the :class:`FaultScenario` objects (factory template).
@@ -352,6 +356,8 @@ def fault_scenario_factory(
         The solver that will be called during the optimisation process.
     wtf : dict[str, str | int | bool | list[str] | list[float]]
         What To Fit dictionary. Holds information on the fixing method.
+    design_space_kw : dict[str, bool | float]
+        The entries of ``[design_space]`` in ``.ini`` file.
 
     Returns
     -------
@@ -375,6 +381,7 @@ def fault_scenario_factory(
             fix_acc=accelerator,
             beam_calculator=beam_calculator,
             wtf=wtf,
+            design_space_kw=design_space_kw,
             fault_idx=fault_idx,
             comp_idx=comp_idx)
         for accelerator, fault_idx, comp_idx

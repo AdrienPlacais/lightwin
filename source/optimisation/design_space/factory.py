@@ -3,25 +3,18 @@
 """
 We define factory and presets to handle variables, constraints, limits, etc..
 
-When you add you own presets, do not forget to add them to the list of
-implemented presets in :mod:`config.optimisation.design_space`.
+.. note::
+    If you add your own DesignSpaceFactory preset, do not forget to add it to
+    the list of supported presets in :mod:`config.optimisation.design_space`.
 
 .. todo::
     decorator to auto output the variables and constraints?
 
-.. todo::
-    ``pyright`` is not very happy about this module.
-
-.. todo::
-    initial values, limits, etc would be better in every linac own project.
-
 """
 import logging
-from abc import ABC, abstractmethod, ABCMeta
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Any, Sequence
 
-import numpy as np
 
 from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
@@ -34,9 +27,6 @@ from optimisation.design_space.helper import (same_value_as_nominal,
 from core.list_of_elements.helper import equivalent_elt
 from core.elements.element import Element
 
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
-
 
 # =============================================================================
 # Factories / presets
@@ -48,20 +38,19 @@ class DesignSpaceFactory(ABC):
 
     Attributes
     ----------
-    preset : str
-        The name of the linac, to select the limits (in particular for ``k_e``
-        and ``phi_s``) and the initial values.
     reference_elements : list[Element]
        All the elements with the reference setting.
     compensating_elements : list[Element]
         The elements from the linac under fixing that will be used for
         compensation.
+    design_space_kw : dict[str, float | bool
+        The entries of ``[design_space]`` in ``.ini`` file.
 
     """
 
-    preset: str
     compensating_elements: list[Element]
-    reference_elements: list[Element] | None = None
+    reference_elements: list[Element]
+    design_space_kw: dict[str, float | bool]
 
     def __post_init__(self):
         """Check that given elements can be retuned."""
@@ -100,7 +89,7 @@ class DesignSpaceFactory(ABC):
         self.run = self._run_from_file
 
     def _run_variables(self) -> list[Variable]:
-        """Set up all the required variables from presets."""
+        """Set up all the required variables."""
         assert self.reference_elements is not None
         variables = []
         for var_name in self.variables_names:
@@ -109,14 +98,14 @@ class DesignSpaceFactory(ABC):
                 variable = Variable(
                     name=var_name,
                     element_name=str(element),
-                    limits=self._get_limits_from_preset(var_name, ref_elt),
-                    x_0=self._get_initial_value_from_preset(var_name, ref_elt),
+                    limits=self._get_limits_from_kw(var_name, ref_elt),
+                    x_0=self._get_initial_value_from_kw(var_name, ref_elt),
                 )
                 variables.append(variable)
         return variables
 
     def _run_constraints(self) -> list[Constraint]:
-        """Set up all the required constraints from presets."""
+        """Set up all the required constraints."""
         assert self.reference_elements is not None
         constraints = []
         for constraint_name in self.constraints_names:
@@ -125,8 +114,8 @@ class DesignSpaceFactory(ABC):
                 constraint = Constraint(
                     name=constraint_name,
                     element_name=str(element),
-                    limits=self._get_limits_from_preset(constraint_name,
-                                                        ref_elt),
+                    limits=self._get_limits_from_kw(constraint_name,
+                                                    ref_elt),
                 )
                 constraints.append(constraint)
         return constraints
@@ -139,10 +128,10 @@ class DesignSpaceFactory(ABC):
         logging.info(str(design_space))
         return design_space
 
-    def _get_initial_value_from_preset(self,
-                                       variable: str,
-                                       reference_element: Element) -> float:
-        """Select initial value for given preset and parameter.
+    def _get_initial_value_from_kw(self,
+                                   variable: str,
+                                   reference_element: Element) -> float:
+        """Select initial value for given variable.
 
         The default behavior is to return the value of ``variable`` from
         ``reference_element``, which is a good starting point for optimisation.
@@ -162,13 +151,12 @@ class DesignSpaceFactory(ABC):
         """
         return same_value_as_nominal(variable, reference_element)
 
-    def _get_limits_from_preset(self,
-                                variable: str,
-                                reference_element: Element,
-                                preset: str | None = None,
-                                **limits_kw) -> tuple[float, float]:
+    def _get_limits_from_kw(self,
+                            variable: str,
+                            reference_element: Element,
+                            ) -> tuple[float, float]:
         """
-        Select limits for given preset and parameter.
+        Select limits for given variable.
 
         Call this method for classic limits.
 
@@ -178,9 +166,6 @@ class DesignSpaceFactory(ABC):
             The variable from which you want the limits.
         reference_element : Element | None, optional
             The element in its nominal tuning. The default is None.
-        preset : str | None, optional
-            Key of the ``LIMITS_GETTERS`` dict to select proper initial value.
-            The default is None, in which case we take ``self.preset``.
 
         Returns
         -------
@@ -188,16 +173,11 @@ class DesignSpaceFactory(ABC):
             Lower and upper limit for current variable.
 
         """
-        if preset is None:
-            preset = self.preset
-        assert self.reference_elements is not None, "Need reference_elements" \
-            " to generate the design space with presets."
-
+        assert self.reference_elements is not None
         limits_calculator = LIMITS_CALCULATORS[variable]
-        limits_kw = LIMITS_KW[preset]
         return limits_calculator(reference_element=reference_element,
                                  reference_elements=self.reference_elements,
-                                 **limits_kw)
+                                 **self.design_space_kw)
 
     def _run_from_file(self,
                        variables_names: tuple[str, ...],
@@ -255,6 +235,7 @@ class SyncPhaseAsVariable(DesignSpaceFactory):
     variables_names: tuple[str, str] = ('phi_s', 'k_e')
 
 
+# should not exist
 @dataclass
 class FM4_MYRRHA(DesignSpaceFactory):
     """Factory to set reduce design space around a pre-existing solution."""
@@ -264,7 +245,6 @@ class FM4_MYRRHA(DesignSpaceFactory):
     def __post_init__(self):
         """Check that we are in the proper case."""
         super().__post_init__()
-        assert self.preset == 'MYRRHA'
         assert [str(elt) for elt in self.compensating_elements] == [
             'FM1', 'FM2', 'FM3', 'FM5', 'FM6']
 
@@ -299,97 +279,9 @@ class FM4_MYRRHA(DesignSpaceFactory):
         return variables
 
 
-@dataclass
-class OneCavityMegaPower(DesignSpaceFactory):
-    """Factory to have a element with huge power margins."""
-
-    variables_names: tuple[str, str] = ('phi_0_abs', 'k_e')
-    constraints_names: tuple[str] = ('phi_s', )
-
-    def __post_init__(self) -> None:
-        """Check that we are in the proper case."""
-        super().__post_init__()
-        assert len(self.compensating_elements) == 1, \
-            "This case is designed to have ONE compensating elements (but " \
-            "with huge power margins, so that it can compensate anything)."
-
-    def _run_variables(self) -> list[Variable]:
-        """Return normal variables, except very high k_e."""
-        variables = []
-        for var_name in self.variables_names:
-            for element in self.compensating_elements:
-                ref_elt = equivalent_elt(self.reference_elements, element)
-
-                limits = self._get_limits_from_preset(var_name, ref_elt)
-                if var_name == 'k_e':
-                    limits = (limits[0], 10. * limits[1])
-
-                variable = Variable(
-                    name=var_name,
-                    element_name=str(element),
-                    x_0=self._get_initial_value_from_preset(var_name, ref_elt),
-                    limits=limits,
-                )
-                variables.append(variable)
-        return variables
-
-    def _run_constraints(self) -> list[Constraint]:
-        """Return constraint on synchronous phase."""
-        constraints = []
-        for constraint_name in self.constraints_names:
-            for element in self.compensating_elements:
-                ref_elt = equivalent_elt(self.reference_elements, element)
-                constraint = Constraint(
-                    name=constraint_name,
-                    element_name=str(element),
-                    limits=self._get_limits_from_preset(constraint_name,
-                                                        ref_elt,
-                                                        preset='MYRRHA'),
-                )
-                constraints.append(constraint)
-        return constraints
-
-
-def _read_design_space(design_space_preset: str) -> ABCMeta:
-    """Return proper factory."""
-    factories = {
-        'unconstrained': Unconstrained,
-        'constrained_sync_phase': ConstrainedSyncPhase,
-        'sync_phase_as_variable': SyncPhaseAsVariable,
-        'FM4_MYRRHA': FM4_MYRRHA,
-        'one_element_mega_power': OneCavityMegaPower,
-    }
-    return factories[design_space_preset]
-
-
-# =============================================================================
-# Interface with LightWin
-# =============================================================================
-def get_design_space_and_constraint_function(
-    linac_name: str,
-    design_space_preset: str,
-    reference_elements: Sequence[Element],
-    compensating_elements: list[Element],
-    **wtf: Any) -> tuple[list[Variable],
-                         list[Constraint],
-                         Callable[[SimulationOutput], np.ndarray]]:
-    """
-    Instantiante design space factory and create design space.
-
-    .. todo::
-        becoming less and less useful
-
-    """
-    assert isinstance(design_space_preset, str)
-    design_space_factory_class = _read_design_space(design_space_preset)
-
-    design_space_factory = design_space_factory_class(
-        linac_name,
-        compensating_elements,
-        reference_elements,
-    )
-
-    design_space = design_space_factory.run()
-    variables, constraints = design_space.variables, design_space.constraints
-    compute_constraints = design_space.compute_constraints
-    return variables, constraints, compute_constraints
+DESIGN_SPACE_FACTORY_PRESETS = {
+    'unconstrained': Unconstrained,
+    'constrained_sync_phase': ConstrainedSyncPhase,
+    'sync_phase_as_variable': SyncPhaseAsVariable,
+    'FM4_MYRRHA': FM4_MYRRHA,
+}  #:

@@ -27,15 +27,15 @@ def same_value_as_nominal(variable: str,
 
 def phi_s_limits(reference_element: Element,
                  max_increase_sync_phase_in_percent: float,
-                 max_absolute_sync_phase_in_rad: float = 0.,
-                 min_absolute_sync_phase_in_rad: float = -0.5 * np.pi,
+                 max_absolute_sync_phase_in_deg: float = 0.,
+                 min_absolute_sync_phase_in_deg: float = -90.,
                  **kwargs,
                  ) -> tuple[float, float]:
     r"""Return classic limits for the synchronous phase.
 
-    Minimum is ``min_absolute_sync_phase_in_rad``, which is -90 degrees by
+    Minimum is ``min_absolute_sync_phase_in_deg``, which is -90 degrees by
     default. Maximum is nominal synchronous phase +
-    ``max_increase_in_percent``, or ``max_absolute_sync_phase_in_rad`` which is
+    ``max_increase_in_percent``, or ``max_absolute_sync_phase_in_deg`` which is
     0 degrees by default.
 
     Parameters
@@ -44,9 +44,9 @@ def phi_s_limits(reference_element: Element,
         Element in its nominal tuning.
     max_increase_in_percent : float
         Maximum increase of the synchronous phase in percent.
-    max_absolute_sync_phase_in_rad : float, optional
+    max_absolute_sync_phase_in_deg : float, optional
         Maximum absolute synchronous phase in radians. The default is 0.
-    min_absolute_sync_phase_in_rad : float, optional
+    min_absolute_sync_phase_in_deg : float, optional
         Minimum absolute synchronous phase in radians. The default is
         :math:`-\pi / 2`.
 
@@ -57,9 +57,9 @@ def phi_s_limits(reference_element: Element,
 
     """
     reference_phi_s = same_value_as_nominal('phi_s', reference_element)
-    phi_s_min = min_absolute_sync_phase_in_rad
+    phi_s_min = np.deg2rad(min_absolute_sync_phase_in_deg)
     phi_s_max = min(
-        max_absolute_sync_phase_in_rad,
+        np.deg2rad(max_absolute_sync_phase_in_deg),
         reference_phi_s * (1. - 1e-2 * max_increase_sync_phase_in_percent))
     return (phi_s_min, phi_s_max)
 
@@ -150,8 +150,8 @@ LIMITS_CALCULATORS = {
 
 myrrha_limits_kw = {
     'max_increase_sync_phase_in_percent': 40.,
-    'max_absolute_sync_phase_in_rad': 0.,
-    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_absolute_sync_phase_in_deg': 0.,
+    'min_absolute_sync_phase_in_deg': -90.,
     'max_decrease_k_e_in_percent': 50.,
     'max_increase_k_e_in_percent': 30.,
     'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': True,
@@ -159,8 +159,8 @@ myrrha_limits_kw = {
 
 jaea_limits_kw = {
     'max_increase_sync_phase_in_percent': 50.,
-    'max_absolute_sync_phase_in_rad': 0.,
-    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_absolute_sync_phase_in_deg': 0.,
+    'min_absolute_sync_phase_in_deg': -90.,
     'max_decrease_k_e_in_percent': 50.,
     'max_increase_k_e_in_percent': 20.,
     'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
@@ -168,8 +168,8 @@ jaea_limits_kw = {
 
 spiral2_limits_kw = {
     'max_increase_sync_phase_in_percent': 50.,
-    'max_absolute_sync_phase_in_rad': 0.,
-    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_absolute_sync_phase_in_deg': 0.,
+    'min_absolute_sync_phase_in_deg': -90.,
     'max_decrease_k_e_in_percent': 70.,
     'max_increase_k_e_in_percent': 20.,
     'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
