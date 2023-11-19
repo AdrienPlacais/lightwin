@@ -88,11 +88,18 @@ class DesignSpaceParameter(ABC):
         return self.limits[1]
 
     @property
-    def _fmt_limits(self) -> Sequence[float]:
-        """Limits but with a better output."""
+    def _fmt_x_min(self) -> float:
+        """Lower limit in deg if it is has ``'phi'`` in it's name."""
         if 'phi' in self.name:
-            return np.rad2deg(self.limits)
-        return self.limits
+            return np.rad2deg(self.x_min)
+        return self.x_min
+
+    @property
+    def _fmt_x_max(self) -> float:
+        """Lower limit in deg if it is has ``'phi'`` in it's name."""
+        if 'phi' in self.name:
+            return np.rad2deg(self.x_max)
+        return self.x_max
 
     @property
     def _fmt_x_0(self) -> float:
@@ -110,9 +117,8 @@ class DesignSpaceParameter(ABC):
         if hasattr(self, 'x_0'):
             out += f"{self._fmt_x_0:>8.3f} | "
         else:
-            out += "{' ':<8} | "
-        out += f"limits={self._fmt_limits[0]:>9.3f} "
-        out += f"{self._fmt_limits[1]:>9.3f}"
+            out += "         | "
+        out += f"{self._fmt_x_min:>9.3f} | {self._fmt_x_max:>9.3f}"
 
         return out
 
