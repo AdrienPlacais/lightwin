@@ -26,6 +26,11 @@ import numpy as np
 from optimisation.design_space.variable import Variable
 from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.design_space import DesignSpace
+from optimisation.design_space.helper import (same_value_as_nominal,
+                                              phi_s_limits,
+                                              phi_0_limits,
+                                              k_e_limits,
+                                              )
 
 from core.list_of_elements.helper import equivalent_elt
 from core.elements.element import Element
@@ -137,22 +142,18 @@ class DesignSpaceFactory(ABC):
 
     def _get_initial_value_from_preset(self,
                                        variable: str,
-                                       reference_element: Element,
-                                       preset: str | None = None,
-                                       **kwargs) -> float:
+                                       reference_element: Element) -> float:
         """Select initial value for given preset and parameter.
 
-        Call this method for classic initial values.
+        The default behavior is to return the value of ``variable`` from
+        ``reference_element``, which is a good starting point for optimisation.
 
         Parameters
         ----------
         variable : {'k_e', 'phi_0_rel', 'phi_0_abs', 'phi_s'}
             The variable from which you want the limits.
-        reference_element : Element | None, optional
-            The element in its nominal tuning. The default is None.
-        preset : str | None, optional
-            Key of the ``INITIAL_VALUE_GETTERS`` dict to select proper initial
-            value. The default is None, in which case we take ``self.preset``.
+        reference_element : Element
+            The element in its nominal tuning.
 
         Returns
         -------
@@ -160,11 +161,7 @@ class DesignSpaceFactory(ABC):
             Initial value.
 
         """
-        if preset is None:
-            preset = self.preset
-        return INITIAL_VALUE_GETTERS[preset](
-            variable,
-            reference_element=reference_element)
+        return same_value_as_nominal(variable, reference_element)
 
     def _get_limits_from_preset(self,
                                 variable: str,
@@ -240,11 +237,6 @@ class Unconstrained(DesignSpaceFactory):
     """Factory to set amplitude and phase of elements, no phi_s."""
 
     variables_names: tuple[str, str] = ('phi_0_abs', 'k_e')
-
-    def _run_constraints(self) -> list[Constraint]:
-        """Return no constraint."""
-        constraints = []
-        return constraints
 
 
 @dataclass
@@ -403,67 +395,6 @@ def get_design_space_and_constraint_function(
 
 
 # =============================================================================
-# Initial value for k_e, phi_0, phi_s for every implemented linac
-# =============================================================================
-def _initial_value_myrrha(variable: str,
-                          reference_element: Element | None = None,
-                          **kwargs) -> float | None:
-    """Set the initial value for a quantity in MYRRHA ADS linac."""
-    reference_value = reference_element.get(variable, to_numpy=False)
-    myrrha_initial_value = {
-        'phi_s': lambda reference_value: reference_value,
-        'k_e': lambda reference_value: reference_value,
-        'phi_0_rel': lambda reference_value: reference_value,
-        'phi_0_abs': lambda reference_value: reference_value,
-    }
-    if variable not in myrrha_initial_value:
-        logging.error(f"Preset MYRRHA has no preset for {variable}.")
-        return None
-    return myrrha_initial_value[variable](reference_value)
-
-
-def _initial_value_jaea(variable: str,
-                        reference_element: Element | None = None,
-                        **kwargs) -> float:
-    """Set the initial value for a quantity in JAEA ADS linac."""
-    reference_value = reference_element.get(variable, to_numpy=False)
-    jaea_initial_value = {
-        'phi_s': lambda reference_value: reference_value,
-        'k_e': lambda reference_value: reference_value,
-        'phi_0_rel': lambda reference_value: reference_value,
-        'phi_0_abs': lambda reference_value: reference_value,
-    }
-    if variable not in jaea_initial_value:
-        logging.error(f"Preset JAEA has no preset for {variable}.")
-        return None
-    return jaea_initial_value[variable](reference_value)
-
-
-def _initial_value_spiral2(variable: str,
-                           reference_element: Element | None = None,
-                           **kwargs) -> float:
-    """Set the initial_value for a quantity in SPIRAL2 linac."""
-    reference_value = reference_element.get(variable, to_numpy=False)
-    spiral2_initial_value = {
-        'phi_s': lambda reference_value: reference_value,
-        'k_e': lambda reference_value: reference_value,
-        'phi_0_rel': lambda reference_value: reference_value,
-        'phi_0_abs': lambda reference_value: reference_value,
-    }
-    if variable not in spiral2_initial_value:
-        logging.error(f"Preset SPIRAL2 has no preset for {variable}.")
-        return None
-    return spiral2_initial_value[variable](reference_value)
-
-
-INITIAL_VALUE_GETTERS = {
-    'MYRRHA': _initial_value_myrrha,
-    'JAEA': _initial_value_jaea,
-    'SPIRAL2': _initial_value_spiral2,
-}
-
-
-# =============================================================================
 # Limits for k_e, phi_0, phi_s for every implemented linac
 # =============================================================================
 def _limits_myrrha(variable: str,
@@ -577,4 +508,32 @@ LIMITS_GETTERS = {
     'MYRRHA': _limits_myrrha,
     'JAEA': _limits_jaea,
     'SPIRAL2': _limits_spiral2,
+}
+
+
+myrrha_design_space = {
+    'max_increase_sync_phase_in_percent': 40.,
+    'max_absolute_sync_phase_in_rad': 0.,
+    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_decrease_k_e_in_percent': 50.,
+    'max_increase_k_e_in_percent': 30.,
+    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': True,
+}
+
+jaea_design_space = {
+    'max_increase_sync_phase_in_percent': 50.,
+    'max_absolute_sync_phase_in_rad': 0.,
+    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_decrease_k_e_in_percent': 50.,
+    'max_increase_k_e_in_percent': 20.,
+    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
+}
+
+spiral2_design_space = {
+    'max_increase_sync_phase_in_percent': 50.,
+    'max_absolute_sync_phase_in_rad': 0.,
+    'min_absolute_sync_phase_in_rad': -np.pi / 2.,
+    'max_decrease_k_e_in_percent': 70.,
+    'max_increase_k_e_in_percent': 20.,
+    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
 }
