@@ -14,6 +14,7 @@ become very complex in the future: 3D, superposed fields...
 
 """
 from typing import Any
+from functools import lru_cache
 from abc import ABCMeta
 import logging
 
@@ -25,8 +26,21 @@ from core.elements.field_maps.field_map_7700 import FieldMap7700
 IMPLEMENTED_FIELD_MAPS = {
     100: FieldMap100,
     7700: FieldMap7700,
-    }  #:
-IMPLEMENTATION_WARNING_ALREADY_RAISED = False
+}  #:
+
+
+@lru_cache(100)
+def warn_once(geometry: int):
+    """Raise this warning only once.
+
+    https://stackoverflow.com/questions/31953272/logging-print-message-only-once
+
+    """
+    logging.warning(
+        f"3D field maps ({geometry = }) not implemented "
+        "yet. If solver is Envelope1D or Envelope3D, "
+        "only the longitudinal rf electric field will be "
+        "used (equivalent of 'FIELD_MAP 100').")
 
 
 class FieldMapFactory:
@@ -75,13 +89,7 @@ class FieldMapFactory:
             raise NotImplementedError(f"{geometry = } not supported")
 
         if geometry == 7700:
-            if not IMPLEMENTATION_WARNING_ALREADY_RAISED:
-                logging.warning(
-                    f"3D field maps ({geometry = }) not implemented "
-                    "yet. If solver is Envelope1D or Envelope3D, "
-                    "only the longitudinal rf electric field will be "
-                    "used (equivalent of 'FIELD_MAP 100').")
-                IMPLEMENTATION_WARNING_ALREADY_RAISED = True
+            warn_once(geometry)
             return FieldMap100
 
         return IMPLEMENTED_FIELD_MAPS[geometry]
