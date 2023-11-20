@@ -4,23 +4,23 @@
 from typing import Any
 from core.elements.element import Element
 from core.elements.aperture import Aperture
+from core.elements.bend import Bend
 from core.elements.drift import Drift
 from core.elements.dummy import DummyElement
 from core.elements.edge import Edge
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.factory import FieldMapFactory
-from core.elements.marker import Marker
 from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
 from core.elements.thin_steering import ThinSteering
 
 IMPLEMENTED_ELEMENTS = {
     'APERTURE': Aperture,
+    'BEND': Bend,
     'DRIFT': Drift,
     'DUMMY_ELEMENT': DummyElement,
     'EDGE': Edge,
     'FIELD_MAP': FieldMap,  # replaced in ElementFactory initialisation
-    'MARKER': Marker,
     'QUAD': Quad,
     'SOLENOID': Solenoid,
     'THIN_STEERING': ThinSteering,
@@ -44,7 +44,7 @@ class ElementFactory:
             **kwargs) -> Element:
         """Call proper constructor."""
         elt_name, line = self._personalized_name(line)
-        element_creator = IMPLEMENTED_ELEMENTS[line[0]]
+        element_creator = IMPLEMENTED_ELEMENTS[line[0].upper()]
         element = element_creator(
             line,
             dat_idx,

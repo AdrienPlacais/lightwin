@@ -11,6 +11,10 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
 .. todo::
     to fix!!! does not recognize lower case commands such as ``end``
 
+.. todo::
+    maybe ElementFactory and CommandFactory should be instantiated from this?
+    Or from another class, but they do have a lot in common
+
 """
 import os.path
 from typing import Any

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""This module holds :class:`Marker`. It does nothing."""
+"""This module holds :class:`Bend`. It does nothing."""
 
 from core.elements.element import Element
 
 
-class Marker(Element):
+class Bend(Element):
     """A dummy object."""
 
     def __init__(self,
