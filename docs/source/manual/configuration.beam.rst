@@ -12,11 +12,16 @@ The units must be consistent with LightWin's system of units, see also :ref:`uni
    :widths: 30, 5, 50, 10, 5
    :header-rows: 1
 
-Format for the ``sigma_zdelta`` entry:
+Format for the ``sigma`` entry:
 
 .. code-block:: ini
 
-   sigma_zdelta =    ; Line skip is required
-      1e-6, -2e-7
-      -2e-7, 8e-7
+   sigma =    ; Line skip is required
+       1e-6, -2e-7,  0e+0, 0e+0,  0e+0, 0e+0,
+      -2e-7,  8e-7,  0e+0, 0e+0,  0e+0, 0e+0,
+       0e+0,  0e+0, -2e-7, 8e-7,  0e+0, 0e+0,
+       0e+0,  0e+0, -2e-7, 8e-7,  0e+0, 0e+0,
+       0e+0,  0e+0,  0e+0, 0e+0, -2e-7, 8e-7,
+       0e+0,  0e+0,  0e+0, 0e+0, -2e-7, 8e-7
+       ; no ',' after last number!
 
