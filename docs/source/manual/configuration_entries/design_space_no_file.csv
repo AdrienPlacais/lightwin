@@ -1,9 +1,9 @@
 Entry,Type,Description,Allowed values,Mandatory?
-``from_file``,bool,If files should be used,False,✅
+``from_file``,bool,If files should be used,``False``,✅
 ``design_space_preset``,str,What variables/constraints should be used,:data:`~optimisation.design_space.factory.DESIGN_SPACE_FACTORY_PRESETS`,✅
-``max_increase_sync_phase_in_percent``,float,Max relative increase of :math:`\phi_s` wrt nominal,,✅
-``max_absolute_sync_phase_in_deg``,float,Max absolute :math:`\phi_s`,default ``0.``,❌
-``min_absolute_sync_phase_in_deg``,float,Min absolute :math:`\phi_s`,default ``90.``,❌
-``max_decrease_k_e_in_percent``,float,Max decrease of :math:`k_e` wrt nominal,,✅
-``max_increase_k_e_in_percent``,float,Max increase of :math:`k_e` wrt nominal,,✅
+``max_increase_sync_phase_in_percent``,float,Max relative increase of :math:`\phi_s` wrt nominal in :math:`\mathrm{\%}`,,✅
+``max_absolute_sync_phase_in_deg``,float,Max absolute :math:`\phi_s` in :math:`\mathrm{deg}`,default ``0.``,❌
+``min_absolute_sync_phase_in_deg``,float,Min absolute :math:`\phi_s` in :math:`\mathrm{deg}`,default ``90.``,❌
+``max_decrease_k_e_in_percent``,float,Max decrease of :math:`k_e` wrt nominal in :math:`\mathrm{\%}`,,✅
+``max_increase_k_e_in_percent``,float,Max increase of :math:`k_e` wrt nominal in :math:`\mathrm{\%}`,,✅
 ``maximum_k_e_is_calculated_wrt_maximum_k_e_of_section``,bool,If max :math:`k_e` should be the same for the whole section,default ``False``,❌
