@@ -47,12 +47,16 @@ class DesignSpaceFactory(ABC):
 
     """
 
-    design_space_kw: dict[str, float | bool]
+    design_space_kw: dict[str, float | bool | str]
 
     def __post_init__(self):
         """Declare complementary variables."""
-        self.filepath_variables: str
-        self.filepath_constraints: str
+        self.variables_filepath: str
+        self.constraints_filepath: str
+
+        from_file = self.design_space_kw['from_file']
+        if from_file:
+            self.use_files(**self.design_space_kw)
 
     def _check_can_be_retuned(self, compensating_elements: list[Element]
                               ) -> None:
@@ -71,21 +75,22 @@ class DesignSpaceFactory(ABC):
         return ()
 
     def use_files(self,
-                  filepath_variables: str,
-                  filepath_constraints: str | None = None) -> None:
+                  variables_filepath: str,
+                  constraints_filepath: str | None = None,
+                  **design_space_kw: float | bool | str) -> None:
         """Tell factory to generate design space from the provided files.
 
         Parameters
         ----------
-        filepath_variables : str
+        variables_filepath : str
             Path to the ``variables.csv`` file.
-        filepath_constraints : str | None
+        constraints_filepath : str | None
             Path to the ``constraints.csv`` file. The default is None.
 
         """
-        self.filepath_variables = filepath_variables
-        if filepath_constraints is not None:
-            self.filepath_constraints = filepath_constraints
+        self.variables_filepath = variables_filepath
+        if constraints_filepath is not None:
+            self.constraints_filepath = constraints_filepath
         self.run = self._run_from_file
 
     def _run_variables(self,
@@ -197,9 +202,7 @@ class DesignSpaceFactory(ABC):
 
     def _run_from_file(self,
                        compensating_elements: list[Element],
-                       variables_names: tuple[str, ...],
-                       constraints_names: tuple[str, ...] | None = None,
-                       **kwargs: str,
+                       reference_elements: list[Element] | None = None,
                        ) -> DesignSpace:
         """Use the :meth:`.DesignSpace.from_files` constructor.
 
@@ -216,17 +219,16 @@ class DesignSpaceFactory(ABC):
 
         """
         self._check_can_be_retuned(compensating_elements)
-        assert 'filepath_variables' in self.__dir__()
-        filepath_constraints = getattr(self, 'filepath_constraints', None)
+        assert 'variables_filepath' in self.__dir__()
+        constraints_filepath = getattr(self, 'constraints_filepath', None)
 
         elements_names = tuple([str(elt)
                                 for elt in compensating_elements])
         design_space = DesignSpace.from_files(elements_names,
-                                              self.filepath_variables,
-                                              variables_names,
-                                              filepath_constraints,
-                                              constraints_names,
-                                              **kwargs,
+                                              self.variables_filepath,
+                                              self.variables_names,
+                                              constraints_filepath,
+                                              self.constraints_names,
                                               )
         return design_space
 
@@ -251,6 +253,7 @@ class SyncPhaseAsVariable(DesignSpaceFactory):
     """Factory to set k_e and phi_s of elements, no constraint."""
 
     variables_names: tuple[str, str] = ('phi_s', 'k_e')
+
 
 @dataclass
 class Everything(DesignSpaceFactory):
