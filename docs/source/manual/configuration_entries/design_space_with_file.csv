@@ -1,0 +1,5 @@
+Entry,Type,Description,Allowed values,Mandatory?
+``from_file``,bool,If files should be used,True,✅
+``design_space_preset``,str,What variables/constraints should be used,:data:`~optimisation.design_space.factory.DESIGN_SPACE_FACTORY_PRESETS`,✅
+``variables_filepath``,str,Path to the ``.csv`` holding variables,,✅
+``constraints_filepath``,str,Path to the ``.csv`` holding constraints,,❌

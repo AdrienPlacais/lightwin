@@ -9,6 +9,7 @@ Configuration
    configuration.beam_calculator
    configuration.plots
    configuration.wtf
+   configuration.optimisation.design_space
    configuration.evaluators
 
 Most of the configuration of LightWin is performed through a ``.ini`` configuration file, which should be given as argument to several objects initialisation.
@@ -56,5 +57,6 @@ It is however recommended to use explicit names.
 .. include:: configuration.beam_calculator.rst
 .. include:: configuration.plots.rst
 .. include:: configuration.wtf.rst
+.. include:: configuration.optimisation.design_space.rst
 .. include:: configuration.evaluators.rst
 
