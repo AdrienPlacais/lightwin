@@ -49,7 +49,6 @@ def config_to_dict(c_beam: configparser.SectionProxy) -> dict:
         'e_mev': c_beam.getfloat,
         'f_bunch_mhz': c_beam.getfloat,
         'i_milli_a': c_beam.getfloat,
-        'sigma_zdelta': c_beam.getmatrixfloat,
         'sigma': c_beam.getmatrixfloat,
     }
 
