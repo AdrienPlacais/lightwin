@@ -14,7 +14,6 @@ This module holds :class:`Element`, declined in Drift, FieldMap, etc.
     __repr__ won't work with retuned elements
 
 """
-from abc import abstractmethod
 from typing import Any
 import numpy as np
 

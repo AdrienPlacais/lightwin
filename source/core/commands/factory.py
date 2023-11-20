@@ -13,8 +13,18 @@ from core.commands.steerer import Steerer
 from core.commands.superpose_map import SuperposeMap
 
 IMPLEMENTED_COMMANDS = {
+    'ADJUST': DummyCommand,
+    'ADJUST_STEERER': DummyCommand,
+    'DIAG_ACHROMAT': DummyCommand,
+    'DIAG_POSITION': DummyCommand,
+    'DIAG_SIZE': DummyCommand,
+    'DIAG_DSIZE': DummyCommand,
     'DUMMY_COMMAND': DummyCommand,
     'END': End,
+    'ERROR_BEAM_STAT': DummyCommand,
+    'ERROR_CAV_NCPL_STAT': DummyCommand,
+    'ERROR_QUAD_NCPL_STAT': DummyCommand,
+    'ERROR_GAUSSIAN_CUT_OFF': DummyCommand,
     'FIELD_MAP_PATH': FieldMapPath,
     'FREQ': Freq,
     'LATTICE': Lattice,
