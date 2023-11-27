@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Define a class to easily create :class:`.Element` objects."""
 from typing import Any
+from pathlib import Path
+
 from core.elements.element import Element
 from core.elements.aperture import Aperture
 from core.elements.bend import Bend
@@ -31,7 +33,7 @@ class ElementFactory:
     """An object to create :class:`.Element` objects."""
 
     def __init__(self,
-                 default_field_map_folder: str,
+                 default_field_map_folder: Path,
                  **factory_kw: Any) -> None:
         """Create a factory for the field maps."""
         field_map_factory = FieldMapFactory(default_field_map_folder,

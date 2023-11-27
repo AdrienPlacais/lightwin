@@ -15,6 +15,7 @@ Everything related to the ``beam_calculator`` key.
 
 """
 import logging
+from pathlib import Path
 import os
 import configparser
 
@@ -22,9 +23,11 @@ tools = ('Envelope1D', 'TraceWin', 'Envelope3D')  #:
 methods = ('leapfrog', 'RK')  #:
 
 TRACEWIN_EXECUTABLES = {  # Should match with your installation
-    "X11 full": "/usr/local/bin/TraceWin/./TraceWin",
-    "noX11 full": "/usr/local/bin/TraceWin/./TraceWin_noX11",
-    "noX11 minimal": "/home/placais/TraceWin/exe/./tracelx64",
+    "X11 full": Path("/", "usr", "local", "bin", "TraceWin", "./TraceWin"),
+    "noX11 full": Path("/", "usr", "local", "bin", "TraceWin",
+                       "./TraceWin_noX11"),
+    "noX11 minimal": Path("/", "home", "placais", "TraceWin", "exe",
+                          "./tracelx64"),
     "no run": None
 }
 simulation_types = tuple(TRACEWIN_EXECUTABLES.keys())  #:
@@ -123,7 +126,7 @@ def _test_beam_calculator_tracewin(
             logging.error(f"{key} is mandatory and missing.")
             return False
 
-    if not os.path.isfile(c_beam_calculator["ini_path"]):
+    if not c_beam_calculator.getpath("ini_path").is_file():
         logging.error(f"{c_beam_calculator['ini_path']} does not exist.")
         return False
 
@@ -140,7 +143,7 @@ def _test_beam_calculator_tracewin(
                         "as the executable is None.")
         return True
 
-    if not os.path.isfile(tw_exe):
+    if not tw_exe.is_file():
         logging.error(f"The TraceWin executable was not found: {tw_exe}. You "
                       "should update the TRACEWIN_EXECUTABLES dictionary in "
                       "config/beam_calculator.py.")
@@ -159,8 +162,8 @@ def _test_beam_calculator_tracewin(
                           "work.")
             return False
 
-        if key in ['partran', 'toutatis']:
-            if c_beam_calculator.get(key) not in ['0', '1']:
+        if key in ('partran', 'toutatis'):
+            if c_beam_calculator.get(key) not in ('0', '1'):
                 logging.error("partran and toutatis keys should be 0 or 1.")
                 return False
     return True
@@ -225,15 +228,15 @@ def _config_to_dict_tracewin(c_tw: configparser.SectionProxy) -> dict:
     args_for_lightwin = {}
     args_for_tracewin = {}
     getter_arg_for_lightwin = {
-        'executable': c_tw.get,
+        'executable': c_tw.getpath,
     }
 
     getter_arg_for_tracewin = {
         'hide': c_tw.get,
-        'tab_file': c_tw.get,
+        'tab_file': c_tw.getpath,
         'nbr_thread': c_tw.getint,
-        'dst_file1': c_tw.get,
-        'dst_file2': c_tw.get,
+        'dst_file1': c_tw.getpath,
+        'dst_file2': c_tw.getpath,
         'current1': c_tw.getfloat,
         'current2': c_tw.getfloat,
         'nbr_part1': c_tw.getint,

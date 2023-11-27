@@ -32,8 +32,8 @@ class Envelope3D(BeamCalculator):
 
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
-        self.out_folder += "_Envelope3D"
-        super().__post_init__()
+        solver_name = "Envelope3D"
+        super().__post_init__(solver_name)
 
         self.beam_parameters_factory = BeamParametersFactoryEnvelope3D(
             self.is_a_3d_simulation,

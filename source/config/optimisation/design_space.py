@@ -9,8 +9,8 @@ own presets.
 
 """
 import logging
+from pathlib import Path
 import configparser
-import os.path
 
 
 MANDATORY_DESIGN_SPACE_KEYS = (
@@ -93,11 +93,11 @@ def _test_from_file(c_design_space: configparser.SectionProxy) -> bool:
             passed_bis = False
 
     for path in ('variables_filepath', 'constraints_filepath'):
-        filepath = c_design_space.get(path, fallback=None)
+        filepath: Path = c_design_space.getpath(path, fallback=None)
         if filepath is None:
             continue
-        filepath = os.path.abspath(filepath)
-        if not os.path.isfile(filepath):
+        filepath = filepath.absolute()
+        if not filepath.is_file():
             logging.error(f"The design space path {filepath} does not exists.")
             passed_bis = False
         c_design_space[path] = filepath
@@ -111,8 +111,8 @@ def config_to_dict(c_design_space: configparser.SectionProxy) -> dict:
     # Special getters
     getter = {
         'from_file': c_design_space.getboolean,
-        'variables_filepath': c_design_space.get,
-        'constraints_filepath': c_design_space.get,
+        'variables_filepath': c_design_space.getpath,
+        'constraints_filepath': c_design_space.getpath,
         'max_increase_sync_phase_in_percent': c_design_space.getfloat,
         'max_decrease_k_e_in_percent': c_design_space.getfloat,
         'max_increase_k_e_in_percent': c_design_space.getfloat,

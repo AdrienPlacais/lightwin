@@ -11,6 +11,7 @@ This module holds the function to load and preprocess the TraceWin files.
 
 """
 import logging
+from pathlib import Path
 import os.path
 import re
 from tkinter import Tk
@@ -31,14 +32,14 @@ TRACEWIN_IMPORT_DATA_TABLE = {
 }
 
 
-def dat_file(dat_path: str) -> list[list[str]]:
+def dat_file(dat_path: Path) -> list[list[str]]:
     """
     Load the dat file and convert it into a list of lines.
 
     Parameters
     ----------
-    dat_path : string
-        Filepath to the .dat file, as understood by TraceWin.
+    dat_path : Path
+        Filepath to the ``.dat`` file, as understood by TraceWin.
 
     Returns
     -------
@@ -48,7 +49,7 @@ def dat_file(dat_path: str) -> list[list[str]]:
     """
     dat_filecontent = []
 
-    with open(dat_path) as file:
+    with open(dat_path, 'r', encoding='utf-8') as file:
         for line in file:
             line = line.strip()
 
@@ -65,7 +66,7 @@ def dat_file(dat_path: str) -> list[list[str]]:
     return dat_filecontent
 
 
-def table_structure_file(path: str,
+def table_structure_file(path: Path,
                          ) -> list[list[str]]:
     """Load the file produced by ``Data`` ``Save table to file``."""
     file_content = []
@@ -81,16 +82,16 @@ def table_structure_file(path: str,
     return file_content
 
 
-def results(path: str, prop: str) -> np.ndarray:
+def results(path: Path, prop: str) -> np.ndarray:
     """
     Load a property from TraceWin's "Data" table.
 
     Parameters
     ----------
-    path : string
+    path : Path
         Path to results file. It must be saved from TraceWin:
         ``Data`` > ``Save table to file``.
-    prop : string
+    prop : str
         Name of the desired property. Must be in d_property.
 
     Returns
@@ -99,17 +100,18 @@ def results(path: str, prop: str) -> np.ndarray:
         Array containing the desired property.
 
     """
-    if not os.path.isfile(path):
-        logging.warning(
-            "Filepath to results is incorrect. Provide another one.")
+    if not path.is_file():
+        logging.warning("Filepath to results is incorrect. Provide another "
+                        "one.")
         Tk().withdraw()
         path = askopenfilename(
             filetypes=[("TraceWin energies file", ".txt")])
+        path = Path(path)
 
     idx = TRACEWIN_IMPORT_DATA_TABLE[prop]
 
     data_ref = []
-    with open(path) as file:
+    with open(path, encoding='utf-8') as file:
         for line in file:
             try:
                 int(line.split('\t')[0])
@@ -124,14 +126,14 @@ def results(path: str, prop: str) -> np.ndarray:
     return data_ref
 
 
-def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
+def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray]:
     """
     Load a 1D electric field (.edz extension).
 
     Parameters
     ----------
-    path : string
-        The path to the .edz file to load.
+    path : Path
+        The path to the ``.edz`` file to load.
 
     Returns
     -------
@@ -177,7 +179,7 @@ def electric_field_1d(path: str) -> tuple[int, float, float, np.ndarray]:
     return n_z, zmax, norm, np.array(f_z)
 
 
-def transfer_matrices(path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def transfer_matrices(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Load the transfer matrix as calculated by TraceWin."""
     transfer_matrices = []
     position_in_m = []
@@ -208,4 +210,4 @@ def _transfer_matrix(lines: list[str]) -> np.ndarray:
 
 FIELD_MAP_LOADERS = {
     ".edz": electric_field_1d
-}
+}  #:

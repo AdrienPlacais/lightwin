@@ -7,6 +7,9 @@ This module holds :class:`RfField`, which is a simple electric field.
     Untouched for many time... Should modernize this module, maybe move it
     to beam_calculation/?
 
+.. todo::
+    confusion n_cell vs f_bunch / f_rf
+
 """
 import logging
 import cmath

@@ -12,34 +12,36 @@ propagation of the beam in a :class:`.ListOfElements`, possibly with a specific
     Precise that BeamParametersFactory and TransferMatrixFactory are mandatory.
 
 """
-import logging
-import time
-import datetime
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+import datetime
+import logging
+from pathlib import Path
+import time
 
 import config_manager as con
+from core.accelerator.accelerator import Accelerator
+from beam_calculation.simulation_output.factory import SimulationOutputFactory
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
-
-from failures.set_of_cavity_settings import SetOfCavitySettings
-
-from core.list_of_elements.list_of_elements import ListOfElements
-from core.accelerator.accelerator import Accelerator
-
-from beam_calculation.simulation_output.factory import SimulationOutputFactory
 from core.list_of_elements.factory import ListOfElementsFactory
+from core.list_of_elements.list_of_elements import ListOfElements
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
 @dataclass
 class BeamCalculator(ABC):
     """A generic class to store a beam dynamics solver and its results."""
 
-    out_folder: str
+    out_folder: Path
+    default_field_map_folder: Path
 
-    def __post_init__(self):
+    def __post_init__(self, solver_name: str | None = None):
         """Set ``id`` and factories."""
         self.id: str = self.__repr__()
+        if solver_name is not None:
+            self.out_folder = self.out_folder.parent \
+                / f"{self.out_folder.name}_{solver_name}"
         self.simulation_output_factory: SimulationOutputFactory
         self.list_of_elements_factory: ListOfElementsFactory
         self._set_up_common_factories()
@@ -60,7 +62,7 @@ class BeamCalculator(ABC):
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation,
             con.F_BUNCH_MHZ,
-            default_field_map_folder='/home/placais/LightWin/data',
+            default_field_map_folder=self.default_field_map_folder,
             load_field_maps=True,  # useless with TraceWin
             field_maps_in_3d=False,  # not implemented anyway
             # Different loading of field maps if Cython

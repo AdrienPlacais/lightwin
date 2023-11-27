@@ -20,7 +20,7 @@ at the entry of its :class:`.ListOfElements`.
     Cleaner Accelerator factory (use class, not just a function).
 
 """
-import os.path
+from pathlib import Path
 import logging
 from typing import Any
 
@@ -190,15 +190,15 @@ class Accelerator():
         if con.FLAG_PHI_ABS and False in flags_absolute:
             logging.warning(
                 "You asked LW a simulation in absolute phase, while there "
-                + "is at least one cavity in relative phase in the .dat file "
-                + "used by TW. Results won't match if there are faulty "
-                + "cavities.")
+                "is at least one cavity in relative phase in the .dat file "
+                "used by TW. Results won't match if there are faulty "
+                "cavities.")
         elif not con.FLAG_PHI_ABS and True in flags_absolute:
             logging.warning(
                 "You asked LW a simulation in relative phase, while there "
-                + "is at least one cavity in absolute phase in the .dat file "
-                + "used by TW. Results won't match if there are faulty "
-                + "cavities.")
+                "is at least one cavity in absolute phase in the .dat file "
+                "used by TW. Results won't match if there are faulty "
+                "cavities.")
 
     def keep_settings(self, simulation_output: SimulationOutput) -> None:
         """Save cavity parameters in Elements and new .dat file."""
@@ -208,10 +208,11 @@ class Accelerator():
             phi_s = simulation_output.cav_params['phi_s'][i]
             elt.keep_rf_field(rf_field, v_cav_mv, phi_s)
 
-        dat_filepath = os.path.join(
+        dat_filepath = Path(
             self.files['accelerator_path'],
             simulation_output.out_folder,
-            os.path.basename(self.elts.files['dat_filepath']))
+            self.elts.files['dat_filepath'].name,
+        )
         self.elts.store_settings_in_dat(dat_filepath, save=True)
 
     def keep_simulation_output(self, simulation_output: SimulationOutput,
@@ -223,8 +224,8 @@ class Accelerator():
         so we can study it and save Figures/study results in the proper folder.
 
         """
-        simulation_output.out_path = os.path.join(self.get('accelerator_path'),
-                                                  simulation_output.out_folder)
+        simulation_output.out_path = Path(self.get('accelerator_path'),
+                                          simulation_output.out_folder)
         self.simulation_outputs[beam_calculator_id] = simulation_output
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False

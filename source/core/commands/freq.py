@@ -49,7 +49,7 @@ class Freq(Command):
 
         for instruction in instructions[self.idx['influenced']]:
             if isinstance(instruction, FieldMap):
-                n_cell = int(self.f_rf_mhz / freq_bunch)
+                n_cell = self.f_rf_mhz / freq_bunch
                 instruction.acc_field.set_pulsation_ncell(
                     self.f_rf_mhz, n_cell)
         return instructions

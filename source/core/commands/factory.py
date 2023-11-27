@@ -7,7 +7,9 @@ Define a class to easily create :class:`.Command` objects.
     handle personalized name of commands (marker)
 
 """
+from pathlib import Path
 from typing import Any
+
 from core.commands.command import Command
 from core.commands.dummy_command import DummyCommand
 from core.commands.end import End
@@ -48,7 +50,9 @@ IMPLEMENTED_COMMANDS = {
 class CommandFactory:
     """An object to create :class:`.Command` objects."""
 
-    def __init__(self, **factory_kw: Any) -> None:
+    def __init__(self,
+                 default_field_map_folder: Path,
+                 **factory_kw: Any) -> None:
         """Do nothing for now.
 
         .. todo::
@@ -56,6 +60,7 @@ class CommandFactory:
             I would be better off with a run function instead of a class.
 
         """
+        self.default_field_map_folder = default_field_map_folder
         return
 
     def run(self,
@@ -65,7 +70,11 @@ class CommandFactory:
         """Call proper constructor."""
         cmd_name, line = self._personalized_name(line)
         command_creator = IMPLEMENTED_COMMANDS[line[0].upper()]
-        command = command_creator(line, dat_idx, **command_kw)
+        command = command_creator(
+            line,
+            dat_idx,
+            default_field_map_folder=self.default_field_map_folder,
+            **command_kw)
         return command
 
     def _personalized_name(self,

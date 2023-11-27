@@ -18,9 +18,10 @@ https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 
 """
 # Imports
-import os
-import sys
 import logging
+import os
+from pathlib import Path
+import sys
 
 
 class LogFormatter(logging.Formatter):
@@ -49,10 +50,9 @@ class LogFormatter(logging.Formatter):
         return super(LogFormatter, self).format(record, *args, **kwargs)
 
 
-
 def set_up_logging(console_log_output='stdout', console_log_level='INFO', console_log_color=True,
                    console_log_line_template="%(color_on)s[%(levelname)-8s] [%(filename)-20s]%(color_off)s %(message)s",
-                   logfile_file='lightwin.log', logfile_log_level='INFO', logfile_log_color=False,
+                   logfile_file=Path('lightwin.log'), logfile_log_level='INFO', logfile_log_color=False,
                    logfile_line_template="%(color_on)s[%(asctime)s] [%(levelname)-8s] [%(filename)-20s]%(color_off)s %(message)s"):
     """Set up logging."""
     # Remove previous logger
@@ -118,6 +118,7 @@ def set_up_logging(console_log_output='stdout', console_log_level='INFO', consol
 
     # Success
     return True
+
 
 def main():
     """Main function."""

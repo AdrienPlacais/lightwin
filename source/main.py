@@ -15,6 +15,7 @@ This module is the holds a generic compensation workflow.
 """
 import logging
 import config_manager
+from pathlib import Path
 
 from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import FullStudyAcceleratorFactory
@@ -36,8 +37,8 @@ from evaluator.list_of_simulation_output_evaluators import (
 # Main function
 # =============================================================================
 if __name__ == '__main__':
-    ini_filepath = '../data/MINERVA/lightwin.ini'
-    # ini_filepath = '../data/MYRRHA/lightwin.ini'
+    ini_filepath = Path('..', 'data', 'MINERVA', 'lightwin.ini')
+    # ini_filepath = Path('..', 'data', 'MYRRHA', 'lightwin.ini')
     ini_keys = {
         'files': 'files',
         'plots': 'plots.complete',
@@ -90,10 +91,10 @@ if __name__ == '__main__':
     # =========================================================================
     fault_scenarios: list[FaultScenario]
     fault_scenarios = fault_scenario_factory(accelerators,
-                                              my_beam_calculators[0],
-                                              my_configs['wtf'],
-                                              my_configs['design_space'],
-                                              )
+                                             my_beam_calculators[0],
+                                             my_configs['wtf'],
+                                             my_configs['design_space'],
+                                             )
 
     # =========================================================================
     # Fix

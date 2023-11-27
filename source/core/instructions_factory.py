@@ -16,7 +16,7 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
     Or from another class, but they do have a lot in common
 
 """
-import os.path
+from pathlib import Path
 from typing import Any
 import logging
 
@@ -44,7 +44,7 @@ class InstructionsFactory:
 
     def __init__(self,
                  freq_bunch: float,
-                 default_field_map_folder: str,
+                 default_field_map_folder: Path,
                  load_field_maps: bool,
                  field_maps_in_3d: bool,
                  load_cython_field_maps: bool,
@@ -55,9 +55,9 @@ class InstructionsFactory:
         ----------
         freq_bunch : float
             Beam bunch frequency in MHz.
-        default_field_map_folder : str
+        default_field_map_folder : Path
             Where to look for field maps when no ``FIELD_MAP_PATH`` is
-            precised.
+            precised. This is also the folder where the ``.dat`` is.
         load_field_maps : bool
             To load or not the field maps (useless to do it with
             :class:`.TraceWin`).
@@ -77,10 +77,12 @@ class InstructionsFactory:
         self._freq_bunch = freq_bunch
 
         if load_field_maps:
-            assert os.path.isdir(default_field_map_folder)
+            assert default_field_map_folder.is_dir()
 
         # factories
-        self._command_factory = CommandFactory(**factory_kw)
+        self._command_factory = CommandFactory(
+            default_field_map_folder=default_field_map_folder,
+            **factory_kw)
         self._element_factory = ElementFactory(
             default_field_map_folder=default_field_map_folder,
             **factory_kw)

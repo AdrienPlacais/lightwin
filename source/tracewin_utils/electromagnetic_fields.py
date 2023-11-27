@@ -6,8 +6,12 @@ This module holds functions to handle TraceWin electromagnetic fields.
 .. note::
     Last compatibility check: TraceWin v2.22.1.0
 
+.. todo::
+    some functions are not used anymore I guess...
+
 """
 import logging
+from pathlib import Path
 import os.path
 from typing import Callable
 import pandas as pd
@@ -279,6 +283,11 @@ def _load_field_map_file(
 
         # this will require an update if I want to implement new field map
         # extensions
+        if isinstance(file_name, str):
+            logging.info("legacy: file_name is a str, while it should be a "
+                         "Path object")
+            file_name = Path(file_name)
+        assert isinstance(file_name, Path)
         n_z, zmax, norm, f_z = import_function(file_name)
         if n_z is None:
             return None, None

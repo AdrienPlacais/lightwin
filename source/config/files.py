@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """All the functions for the ``files`` key of the config file."""
 import logging
-import os
+from pathlib import Path
 import configparser
 import datetime
 
@@ -21,13 +21,16 @@ def test(c_files: configparser.SectionProxy) -> None:
             logging.error(f"Key {key} is mandatory and missing.")
             passed = False
 
-    dat_file, project_folder = _create_project_folders(c_files['dat_file'])
-    logfile_file = os.path.join(project_folder, 'lightwin.log')
+    dat_file, project_folder = _create_project_folders(
+        c_files.getpath('dat_file'))
+
+    logfile_file = Path(project_folder, 'lightwin.log')
     set_up_logging(logfile_file=logfile_file)
     logging.info(f"Setting {project_folder = }\nSetting {logfile_file = }")
+
     c_files['dat_file'], c_files['project_folder'] = dat_file, project_folder
 
-    if not os.path.isfile(c_files.get("dat_file")):
+    if not c_files.getpath("dat_file").is_file():
         logging.error("The provided path for the .dat does not exist.")
         passed = False
 
@@ -40,7 +43,15 @@ def test(c_files: configparser.SectionProxy) -> None:
 def config_to_dict(c_files: configparser.SectionProxy) -> dict:
     """Save files info into a dict."""
     files = {}
+    # Special getters
+    getter = {
+        "dat_file": c_files.getpath,
+        "project_folder": c_files.getpath,
+    }
     for key in c_files.keys():
+        if key in getter:
+            files[key] = getter[key](key)
+            continue
         files[key] = c_files.get(key)
     return files
 
@@ -48,11 +59,11 @@ def config_to_dict(c_files: configparser.SectionProxy) -> dict:
 # =============================================================================
 # Handle project folders to save logs
 # =============================================================================
-def _create_project_folders(dat_file: str) -> None:
+def _create_project_folders(dat_file: Path) -> tuple[str, str]:
     """Create a folder to store outputs and log messages."""
-    dat_file = os.path.abspath(dat_file)
-    project_folder = os.path.join(
-        os.path.dirname(dat_file),
+    dat_file = dat_file.absolute()
+    project_folder = Path(
+        dat_file.parent,
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
-    os.makedirs(project_folder)
-    return dat_file, project_folder
+    project_folder.mkdir()
+    return str(dat_file), str(project_folder)

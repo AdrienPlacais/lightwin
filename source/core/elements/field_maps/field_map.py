@@ -22,8 +22,8 @@ This module holds a :class:`FieldMap`.
 
 """
 import logging
+from pathlib import Path
 from typing import Any
-import os.path
 
 import numpy as np
 
@@ -63,8 +63,8 @@ class FieldMap(Element):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
+                 default_field_map_folder: Path,
                  elt_name: str | None = None,
-                 default_field_map_folder: str | None = None,
                  **kwargs) -> None:
         """Set most of attributes defined in ``TraceWin``."""
         super().__init__(line, dat_idx, elt_name)
@@ -81,14 +81,18 @@ class FieldMap(Element):
         # FIXME according to doc, may also be float
 
         self.field_map_folder = default_field_map_folder
-        self.field_map_file_name: str | list[str]
+        self.field_map_file_name: Path | list[Path]
         self._prepare_field_map(line)
         self.update_status('nominal')
 
     @property
     def is_accelerating(self) -> bool:
         """Tell if the cavity is working."""
-        return self.elt_info['status'] != 'failed'
+        if self.elt_info['status'] == 'failed':
+            return False
+        # if self.acc_field.k_e < 1e-8:
+        #     return False
+        return True
 
     @property
     def can_be_retuned(self) -> bool:
@@ -109,7 +113,7 @@ class FieldMap(Element):
 
         """
         phi_0 = np.deg2rad(float(line[3]))
-        self.field_map_file_name = str(line[9])
+        self.field_map_file_name = Path(line[9])
         absolute_phase_flag = bool(int(line[10]))
         self.acc_field = RfField(k_e=float(line[6]),
                                  absolute_phase_flag=absolute_phase_flag,
@@ -146,10 +150,12 @@ class FieldMap(Element):
         :func:`tracewin_utils.electromagnetic_fields.file_map_extensions`
 
         """
-        self.field_map_file_name = [os.path.join(
-            self.field_map_folder, '.'.join((self.field_map_file_name, ext)))
+        self.field_map_file_name = [
+            Path(self.field_map_folder,
+                 self.field_map_file_name).with_suffix('.' + ext)
             for extension in extensions.values()
-            for ext in extension]
+            for ext in extension
+        ]
 
     def rf_param(self,
                  solver_id: str,

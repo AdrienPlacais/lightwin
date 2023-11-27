@@ -15,6 +15,7 @@ Two objects can have a :class:`ListOfElements` as attribute:
 
 """
 import logging
+from pathlib import Path
 from typing import Any
 import numpy as np
 
@@ -42,7 +43,7 @@ class ListOfElements(list):
                  input_beam: InitialBeamParameters,
                  tm_cumul_in: np.ndarray,
                  first_init: bool = True,
-                 files: dict[str, str | list[list[str]]] | None = None
+                 files: dict[str, Path | str | list[list[str]]] | None = None
                  ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.
@@ -254,7 +255,7 @@ class ListOfElements(list):
             elt.idx['elt_idx'] = i
 
     def store_settings_in_dat(self,
-                              dat_filepath: str,
+                              dat_filepath: Path,
                               save: bool = True
                               ) -> None:
         """

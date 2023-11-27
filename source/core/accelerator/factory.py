@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Define a factory to easily create :class:`.Accelerator`."""
 from abc import ABC, abstractmethod
-import os.path
+from pathlib import Path
 from dataclasses import dataclass
 
 from core.accelerator.accelerator import Accelerator
@@ -14,14 +14,16 @@ class AcceleratorFactory(ABC):
     """A class to create accelerators."""
 
     def __init__(self,
-                 dat_file: str,
-                 project_folder: str,
-                 **files_kw: str) -> None:
+                 dat_file: Path,
+                 project_folder: Path,
+                 **files_kw: str | Path) -> None:
         """Create the object from the ``project_folder``.
 
         Parameters
         ----------
-        project_folder : str
+        dat_file : Path
+            The original ``.dat`` file, as understood by TraceWin.
+        project_folder : Path
             Base folder where ``.dat`` should be found.
         files_kw :
             Other arguments from the ``file`` entry of the ``.ini``.
@@ -36,9 +38,9 @@ class AcceleratorFactory(ABC):
         return Accelerator(*args, **kwargs)
 
     def _generate_folders_tree_structure(self,
-                                         out_folders: tuple[str, ...],
+                                         out_folders: tuple[Path, ...],
                                          n_simulations: int,
-                                         ) -> list[str]:
+                                         ) -> list[Path]:
         """
         Create the proper folders for every :class:`.Accelerator`.
 
@@ -58,11 +60,13 @@ class AcceleratorFactory(ABC):
                 etc
 
         """
-        accelerator_paths = [os.path.join(self.project_folder, f"{i:06d}")
+        accelerator_paths = [Path(self.project_folder, f"{i:06d}")
                              for i in range(n_simulations)]
-        accelerator_paths[0] += '_ref'
+        accelerator_paths[0] = accelerator_paths[0].with_name(
+            f"{accelerator_paths[0].name}_ref"
+        )
 
-        _ = [os.makedirs(os.path.join(fault_scenar, out_folder))
+        _ = [Path(fault_scenar, out_folder).mkdir(parents=True)
              for fault_scenar in accelerator_paths
              for out_folder in out_folders]
         return accelerator_paths
@@ -72,8 +76,8 @@ class StudyWithoutFaultsAcceleratorFactory(AcceleratorFactory):
     """Factory used to generate a single accelerator, no faults."""
 
     def __init__(self,
-                 dat_file: str,
-                 project_folder: str,
+                 dat_file: Path,
+                 project_folder: Path,
                  beam_calculator: BeamCalculator,
                  **files_kw,
                  ) -> None:
@@ -84,7 +88,6 @@ class StudyWithoutFaultsAcceleratorFactory(AcceleratorFactory):
         self.beam_calculator = beam_calculator
 
     def run(self) -> Accelerator:
-
         out_folder = self.beam_calculator.out_folder
         accelerator_path = self._generate_folders_tree_structure(
             out_folders=(out_folder, ),
@@ -108,11 +111,11 @@ class FullStudyAcceleratorFactory(AcceleratorFactory):
     """Factory used to generate several accelerators for a fault study."""
 
     def __init__(self,
-                 dat_file: str,
-                 project_folder: str,
+                 dat_file: Path,
+                 project_folder: Path,
                  beam_calculators: tuple[BeamCalculator | None, ...],
                  failed: list[list[int]] | None = None,
-                 **kwargs: str | float | list[int],
+                 **kwargs: Path | str | float | list[int],
                  ) -> None:
         """Initialize."""
         super().__init__(dat_file,

@@ -38,8 +38,8 @@ class Envelope1D(BeamCalculator):
 
     def __post_init__(self):
         """Set the proper motion integration function, according to inputs."""
-        self.out_folder += "_Envelope1D"
-        super().__post_init__()
+        solver_name = "Envelope1D"
+        super().__post_init__(solver_name)
 
         if self.flag_cython:
             try:
@@ -108,11 +108,12 @@ class Envelope1D(BeamCalculator):
         """
         single_elts_results = []
         rf_fields = []
-
+        import numpy as np
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
 
         for elt in elts:
+            print(f"{elt.elt_info['elt_name']}, {w_kin=}, {np.rad2deg(phi_abs)}")
             cavity_settings = set_of_cavity_settings.get(elt) \
                 if isinstance(set_of_cavity_settings, SetOfCavitySettings) \
                 else None
@@ -176,7 +177,7 @@ class Envelope1D(BeamCalculator):
             elt.beam_calc_param[self.id] = SingleElementEnvelope1DParameters(
                 length_m=elt.get('length_m', to_numpy=False),
                 is_accelerating=elt.is_accelerating,
-                n_cells=elt.get('n_cell', to_numpy=False),
+                n_cells=int(elt.get('n_cell', to_numpy=False)),
                 **kwargs)
 
         position = 0.

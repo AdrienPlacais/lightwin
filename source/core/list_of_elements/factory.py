@@ -27,10 +27,10 @@ a full :class:`.ListOfElements` from scratch.
 import os
 import logging
 from typing import Any
+from pathlib import Path
 
 import numpy as np
 
-import config_manager as con
 from core.instructions_factory import InstructionsFactory
 from core.beam_parameters.factory import InitialBeamParametersFactory
 
@@ -57,7 +57,7 @@ class ListOfElementsFactory:
                  is_3d: bool,
                  is_multipart: bool,
                  freq_bunch: float,
-                 default_field_map_folder: str = '',
+                 default_field_map_folder: Path,
                  load_field_maps: bool = True,
                  field_maps_in_3d: bool = False,
                  load_cython_field_maps: bool = False):
@@ -90,8 +90,8 @@ class ListOfElementsFactory:
 
     def whole_list_run(
             self,
-            dat_filepath: str,
-            accelerator_path: str,
+            dat_filepath: Path,
+            accelerator_path: Path,
             **kwargs: Any,
     ) -> ListOfElements:
         """
@@ -113,7 +113,7 @@ class ListOfElementsFactory:
             particle and beam properties at its entry.
 
         """
-        dat_filepath = os.path.abspath(dat_filepath)
+        dat_filepath = dat_filepath.absolute()
         logging.info("First initialisation of ListOfElements, ecompassing all "
                      f"linac. Created with {dat_filepath = }")
 
@@ -161,7 +161,8 @@ class ListOfElementsFactory:
         self,
         elts: list[Element],
         simulation_output: SimulationOutput,
-        files_from_full_list_of_elements: dict[str, str | list[list[str]]],
+        files_from_full_list_of_elements: dict[str,
+                                               Path | str | list[list[str]]],
     ) -> ListOfElements:
         """
         Create a :class:`.ListOfElements` which is a subset of a previous one.
@@ -192,8 +193,8 @@ class ListOfElementsFactory:
             entry.
 
         """
-        logging.info(f"Initalisation of ListOfElements from already initialized "
-                     f"elements: {elts[0]} to {elts[-1]}.")
+        logging.info(f"Initalisation of ListOfElements from already "
+                     f"initialized elements: {elts[0]} to {elts[-1]}.")
 
         input_elt, input_pos = self._get_initial_element(elts,
                                                          simulation_output)
@@ -206,9 +207,10 @@ class ListOfElementsFactory:
         input_beam = self.initial_beam_factory.factory_subset(
             simulation_output, get_kw)
 
-        logging.warning("The phase_info dict, which handles how and if cavities "
-                        "are rephased in the .dat file, is hard-coded. It should"
-                        " take config_manager.PHI_ABS_FLAG as input.")
+        logging.warning("The phase_info dict, which handles how and if "
+                        "cavities are rephased in the .dat file, is hard-"
+                        "coded. It should take config_manager.PHI_ABS_FLAG as "
+                        "input.")
 
         files = self._subset_files_dictionary(
             elts,
@@ -233,29 +235,30 @@ class ListOfElementsFactory:
         self,
         elts: list[Element],
         files_from_full_list_of_elements: dict[str, Any],
-        tmp_folder: str = 'tmp',
-        tmp_dat: str = 'tmp.dat',
+        tmp_folder: Path = Path('tmp'),
+        tmp_dat: Path = Path('tmp.dat'),
     ) -> dict[str, str | list[list[str]]]:
         """Set the new ``.dat`` file containing only elements of ``elts``."""
         dirname = files_from_full_list_of_elements['out_path']
-        assert isinstance(dirname, str)
-        dat_filepath = os.path.join(dirname, tmp_folder, tmp_dat)
+        assert isinstance(dirname, Path)
+        dat_filepath = Path(dirname, tmp_folder, tmp_dat)
 
         original_instructions = files_from_full_list_of_elements['elts_n_cmds']
         assert isinstance(original_instructions, list)
         assert all(isinstance(elt, (Element, Command))
                    for elt in original_instructions)
-        dat_content, instructions = dat_filecontent_from_smaller_list_of_elements(
-            files_from_full_list_of_elements['elts_n_cmds'],
-            elts,
-        )
+        dat_content, instructions = \
+            dat_filecontent_from_smaller_list_of_elements(
+                files_from_full_list_of_elements['elts_n_cmds'],
+                elts,
+            )
 
         files = {'dat_filepath': dat_filepath,
                  'dat_content': dat_content,
                  'elts_n_cmds': instructions,
-                 'out_path': os.path.dirname(dat_filepath)}
+                 'out_path': dat_filepath.parent}
 
-        os.mkdir(os.path.join(dirname, tmp_folder))
+        os.mkdir(Path(dirname, tmp_folder))
         save_dat_filecontent_to_dat(dat_content, dat_filepath)
         return files
 
@@ -271,7 +274,8 @@ class ListOfElementsFactory:
 
         """
         phi_at_linac_entry = 0.
-        delta_phi_bunch = phi_at_entry_of_compensation_zone - phi_at_linac_entry
+        delta_phi_bunch = \
+            phi_at_entry_of_compensation_zone - phi_at_linac_entry
         return delta_phi_bunch
 
     def _get_initial_element(self,

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define a useless command to serve as place holder."""
+from pathlib import Path
+import logging
 from core.instruction import Instruction
 from core.commands.command import Command
 from core.elements.field_maps.field_map import FieldMap
@@ -9,10 +11,18 @@ from core.elements.field_maps.field_map import FieldMap
 class FieldMapPath(Command):
     """Used to get the base path of field maps."""
 
-    def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
+    def __init__(self,
+                 line: list[str],
+                 dat_idx: int,
+                 default_field_map_folder: Path,
+                 **kwargs: str) -> None:
         """Save the given path as attribute."""
         super().__init__(line, dat_idx, is_implemented=True)
-        self.path = line[1]
+        path = Path(line[1])
+        if not path.is_dir():
+            path = Path(default_field_map_folder, path)
+        assert path.is_dir(), "The path given in FIELD_MAP_PATH was not found"
+        self.path = path
 
     def set_influenced_elements(self,
                                 instructions: list[Instruction],

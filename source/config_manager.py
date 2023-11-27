@@ -21,9 +21,12 @@ In particular:
         - maybe add this? Unnecessary at this point
 
 """
+from typing import Any
+from pathlib import Path
 import logging
 import os
 import configparser
+
 import numpy as np
 
 from config import files, plots, beam_calculator, beam, wtf, evaluators
@@ -40,19 +43,18 @@ E_MEV, E_REST_MEV, INV_E_REST_MEV = float(), float(), float()
 GAMMA_INIT = float()
 F_BUNCH_MHZ, OMEGA_0_BUNCH, LAMBDA_BUNCH = float(), float(), float()
 Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
-SIGMA_ZDELTA = np.ndarray(shape=(2, 2))
 SIGMA = np.full((6, 6), np.NaN)
 
 
-def process_config(config_path: str,
+def process_config(config_path: Path,
                    config_keys: dict[str, str],
-                   ) -> dict[str, dict[str, str | None]]:
+                   ) -> dict[str, dict[str, Any]]:
     """
     Frontend for config: load ``.ini``, test it, return its content as dicts.
 
     Parameters
     ----------
-    config_path : str
+    config_path : Path
         Path to the .ini file.
     config_keys : dict[str, str]
         Associate the name of the Sections in the config_file to the proper
@@ -111,6 +113,7 @@ def process_config(config_path: str,
             'matrixfloat': lambda x: np.array(
                 [[float(i.strip()) for i in y.split(',')]
                  for y in x.split(',\n')]),
+            'path': lambda x: Path(x),
         },
         allow_no_value=True,
     )
@@ -125,8 +128,7 @@ def process_config(config_path: str,
     _ = [config.remove_section(key) for key in list(config.keys())
          if key not in config_keys.keys()]
 
-    with open(os.path.join(output_dict['files']['project_folder'],
-                           'lighwin.ini'),
+    with open(Path(output_dict['files']['project_folder'], 'lighwin.ini'),
               'w', encoding='utf-8') as file:
         config.write(file)
 

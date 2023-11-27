@@ -26,6 +26,7 @@ the particles in envelope or multipart, in 3D. In contrary to
 
 """
 from dataclasses import dataclass
+from pathlib import Path
 import os
 import logging
 import subprocess
@@ -82,26 +83,26 @@ class TraceWin(BeamCalculator):
     """
 
     executable: str
-    ini_path: str
+    ini_path: Path
     base_kwargs: dict[str, str | int | float | bool | None]
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
-        self.out_folder += "_TraceWin"
+        solver_name = "TraceWin"
 
-        filename = 'tracewin.out'
+        filename = Path('tracewin.out')
         if self.is_a_multiparticle_simulation:
-            filename = 'partran1.out'
+            filename = Path('partran1.out')
         self._filename = filename
 
-        super().__post_init__()
+        super().__post_init__(solver_name)
 
         logging.warning("TraceWin solver currently cannot work with relative "
                         "phases (last arg of FIELD_MAP should be 1). You "
                         "should check this, because I will not.")
-        self.ini_path = os.path.abspath(self.ini_path)
-        self.path_cal: str
-        self.dat_file: str
+        self.ini_path = self.ini_path.absolute()
+        self.path_cal: Path
+        self.dat_file: Path
         self._tracewin_command: list[str] | None = None
 
     def _set_up_specific_factories(self) -> None:
