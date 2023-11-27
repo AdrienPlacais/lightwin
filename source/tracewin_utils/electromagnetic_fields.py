@@ -17,19 +17,43 @@ from core.elements.field_maps.field_map import FieldMap
 import tracewin_utils.load
 
 
+FIELD_GEOMETRIES = {
+    0: 'no field',
+    1: '1D: F(z)',
+    2: 'not available',
+    3: 'not available',
+    4: '2D cylindrical static or RF electric field',
+    5: '2D cylindrical static or RF magnetic field',
+    6: '2D cartesian field',
+    7: '3D cartesian field',
+    8: '3D cylindrical field',
+    9: '1D: G(z)',
+}  #:
+
+FIELD_TYPES = ('static electric field',
+               'static magnetic field',
+               'RF electric field',
+               'RF magnetic field',
+               '3D aperture map',
+               )  #:
+
+
 def load_electromagnetic_fields(field_maps: list[FieldMap],
                                 cython: bool) -> None:
     """
-    Load field map files.
+    Load field map files into the :class:`.FieldMap` objects.
 
     As for now, only 1D RF electric field are handled by :class:`.Envelope1D`.
     With :class:`.TraceWin`, every field is supported.
 
+    .. todo::
+        I think that this should be a method right? Different FieldMap objects
+        -> different loading func?
+
     """
     for field_map in field_maps:
-        field_map_types = _geom_to_field_map_type(field_map.geometry,
-                                                  remove_no_field=True)
-        extensions = _file_map_extensions(field_map_types)
+        field_map_types = _geom_to_field_map_type(field_map.geometry)
+        extensions = _get_filemaps_extensions(field_map_types)
 
         field_map.set_full_path(extensions)
 
@@ -60,11 +84,21 @@ def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
     tm_c.init_arrays(valid_files)
 
 
-def _geom_to_field_map_type(geom: int,
-                            remove_no_field: bool = True
-                            ) -> dict[str, str]:
+def _geom_to_field_map_type(geom: int) -> dict[str, str]:
     """
     Determine the field map type from TraceWin's ``geom`` parameter.
+
+    Examples
+    --------
+    ``geom == 100`` will lead to ``{'RF electric field': '1D: F(z)', 'static \
+magnetic field': 'no field', 'static electric field': 'no field'}``
+
+    ``geom == 7700`` will lead to ``{'RF magnetic field': '3D cartesian field'\
+, 'RF electric field': '3D cartesian field', 'static magnetic field': 'no \
+field', 'static electric field': 'no field'}``
+
+    Note that every key associated with a ``'no field'`` or ``'not available'``
+    value will be removed from the dictionary before returning.
 
     Notes
     -----
@@ -72,91 +106,151 @@ def _geom_to_field_map_type(geom: int,
 
     """
     figures = (int(i) for i in f"{abs(geom):0>5}")
-    field_types = ('static electric field',
-                   'static magnetic field',
-                   'RF electric field',
-                   'RF magnetic field',
-                   '3D aperture map')
-    field_geometries = {
-        0: 'no field',
-        1: '1D: F(z)',
-        2: 'not available',
-        3: 'not available',
-        4: '2D cylindrical static or RF electric field',
-        5: '2D cylindrical static or RF magnetic field',
-        6: '2D cartesian field',
-        7: '3D cartesian field',
-        8: '3D cylindrical field',
-        9: '1D: G(z)',
-    }
-    out = {field_type: field_geometries[figure]
-           for figure, field_type in zip(figures, field_types)}
+    out = {field_type: FIELD_GEOMETRIES[figure]
+           for figure, field_type in zip(figures, FIELD_TYPES)}
+
     if 'not available' in out.values():
-        logging.warning("At least one invalid field geometry was given in the "
-                        ".dat.")
-    if not remove_no_field:
-        return out
+        logging.error("At least one invalid field geometry was given in the "
+                      ".dat.")
 
     for key in list(out):
-        if out[key] == 'no field':
-            out.pop(key)
+        if out[key] in ('no field', 'not available'):
+            del out[key]
+
     return out
 
 
-def _file_map_extensions(field_map_type: dict[str, str]
-                         ) -> dict[str, list[str]]:
+def _get_filemaps_extensions(field_map_type: dict[str, str]
+                             ) -> dict[str, list[str]]:
     """
-    Get the proper field map extensions.
+    Get the proper file extensions for every field map.
 
     Parameters
     ----------
     field_map_type : dict[str, str]
-        Dictionary which keys are the type of electromagnetic field, and values
-        are the geometry.
+        Dictionary which keys are in :data:`FIELD_TYPE` and values are values
+        of :data:`.FIELD_GEOMETRIES`.
 
     Returns
     -------
     extensions : dict[str, list[str]]
         Dictionary with the same keys as input. The values are lists containing
-        all the extensions of the files to load (no "." in front of extension).
+        all the extensions of the files to load, without a '.'.
 
     """
-    extensions = {field_type: None
-                  for field_type in field_map_type}
+    all_extensions = {
+        field_type: _get_filemap_extensions(field_type, field_geometry)
+        for field_type, field_geometry in field_map_type.items()
+        if field_geometry != 'not available'
+        }
+    return all_extensions
 
-    char_1 = {'electric': 'e',
-              'magnetic': 'b'}
-    char_2 = {'static': 's',
-              'RF': 'd'}
-    char_3 = {'1D:': ['z'],
-              '2D cylindrical': ['r', 'z', 'q'],
-              '2D cartesian': ['x', 'y'],
-              '3D cartesian': ['x', 'y', 'z'],
-              '3D cylindrical': ['r', 'q', 'z']
-              }
 
-    for field_type, geometry in field_map_type.items():
-        if geometry == 'not available':
-            continue
+def _get_filemap_extensions(field_type: str, field_geometry: str) -> list[str]:
+    """
+    Get the proper file extensions for the file map under study.
 
-        if field_type == '3D aperture map':
-            extensions[field_type] = ['ouv']
-            continue
+    Parameters
+    ----------
+    field_type : str
+        Type of the field/aperture. Allowed values are in :data:`FIELD_TYPES`.
+    field_geometry : str
+        Name of the geometry of the field, as in TraceWin. Allowed values are
+        values of :data:`FIELD_GEOMETRIES`.
 
-        splitted = field_type.split(' ')
-        base_extension = [char_1.get(splitted[1], None),
-                          char_2.get(splitted[0], None)]
+    Returns
+    -------
+    extensions : list[str]
+        Extension without '.' of every file to load.
 
-        geometry_as_a_key = geometry.split(' ')
-        if geometry_as_a_key[0] == '1D:':
-            geometry_as_a_key = geometry_as_a_key[0]
-        else:
-            geometry_as_a_key = ' '.join(geometry_as_a_key[:2])
+    """
+    if field_type == '3D aperture map':
+        return ['ouv']
 
-        extension = [base_extension + [last_char]
-                     for last_char in char_3[geometry_as_a_key]]
-        extensions[field_type] = [''.join(ext) for ext in extension]
+    first_word_field_type, second_word_field_type, _ = field_type.split(' ')
+    first_character = _get_field_nature(second_word_field_type)
+    second_character = _get_type(first_word_field_type)
+
+    first_words_field_geometry = field_geometry.split()[0]
+    if first_words_field_geometry != '1D:':
+        first_words_field_geometry = ' '.join(field_geometry.split()[:2])
+    third_characters = _get_field_components(first_words_field_geometry)
+
+    extensions = [first_character + second_character + third_character
+                  for third_character in third_characters]
     return extensions
+
+
+def _get_field_nature(second_word_field_type: str) -> str:
+    """Give first letter of the file extension.
+
+    Parameters
+    ----------
+    second_word_field_type : {'electric', 'magnetic'}
+        This is the second word in a :data:`FIELD_TYPE` entry.
+
+    Returns
+    -------
+    first_character : {'e', 'b'}
+        First character in the file extension.
+
+    """
+    if second_word_field_type == 'electric':
+        return 'e'
+    if second_word_field_type == 'magnetic':
+        return 'b'
+    raise IOError(f"{second_word_field_type = } while it must be in "
+                  "('electric', 'magnetic')")
+
+
+def _get_type(first_word_field_type: str) -> str:
+    """Give second letter of the file extension.
+
+    Parameters
+    ----------
+    first_word_field_type : {'static', 'RF'}
+        The first word in a :data:`FIELD_TYPE` entry.
+
+    Returns
+    -------
+    second_character : {'s', 'd'}
+        Second character in the file extension.
+
+    """
+    if first_word_field_type == 'static':
+        return 's'
+    if first_word_field_type == 'RF':
+        return 'd'
+    raise IOError(
+        f"{first_word_field_type = } while it must be in ('static', 'RF')")
+
+
+def _get_field_components(first_words_field_geometry: str) -> list[str]:
+    """Give last letter of the extension of every file to load.
+
+    Parameters
+    ----------
+    first_words_field_geometry : {'1D:', '2D cylindrical', '2D cartesian',\
+                                  '3D cartesian', '3D cylindrical'}
+        Beginning of a :data:`FIELD_GEOMETRIES` value.
+
+    Returns
+    -------
+    third_characters : list[str]
+        Last extension character of every file to load.
+
+    """
+    selectioner = {'1D:': ['z'],
+                   '2D cylindrical': ['r', 'z', 'q'],
+                   '2D cartesian': ['x', 'y'],
+                   '3D cartesian': ['x', 'y', 'z'],
+                   '3D cylindrical': ['r', 'q', 'z']
+                   }
+    if first_words_field_geometry not in selectioner:
+        raise IOError(f"{first_words_field_geometry = } while it should be in "
+                      f"{tuple(selectioner.keys())}.")
+    third_characters = selectioner[first_words_field_geometry]
+    return third_characters
 
 
 def _load_field_map_file(
@@ -166,8 +260,8 @@ def _load_field_map_file(
     """
     Go across the field map file names and load the first recognized.
 
-    For now, only ``.edz`` files (1D electric RF) are implemented. This will be a
-    problem with :class:`Envelope1D`, but :class:`TraceWin` does not care.
+    For now, only ``.edz`` files (1D electric RF) are implemented. This will be
+    a problem with :class:`Envelope1D`, but :class:`TraceWin` does not care.
 
     """
     if len(field_map.field_map_file_name) > 1:
