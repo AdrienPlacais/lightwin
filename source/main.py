@@ -36,7 +36,8 @@ from evaluator.list_of_simulation_output_evaluators import (
 # Main function
 # =============================================================================
 if __name__ == '__main__':
-    ini_filepath = '../data/MYRRHA/lightwin.ini'
+    ini_filepath = '../data/MINERVA/lightwin.ini'
+    # ini_filepath = '../data/MYRRHA/lightwin.ini'
     ini_keys = {
         'files': 'files',
         'plots': 'plots.complete',
@@ -44,10 +45,7 @@ if __name__ == '__main__':
         # 'beam_calculator': 'beam_calculator.tracewin.envelope',
         'beam': 'beam',
         'wtf': 'wtf.quick_debug',
-        'design_space': 'design_space.quick_debug',
-        # 'wtf': 'wtf.k_out_of_n',
-        # 'beam_calculator_post': 'beam_calculator_post.tracewin.quick_debug',
-        # 'evaluators': 'evaluators.fred',
+        'design_space': 'design_space.classic',
     }
     my_configs = config_manager.process_config(ini_filepath, ini_keys)
 
@@ -92,10 +90,10 @@ if __name__ == '__main__':
     # =========================================================================
     fault_scenarios: list[FaultScenario]
     fault_scenarios = fault_scenario_factory(accelerators,
-                                             my_beam_calculators[0],
-                                             my_configs['wtf'],
-                                             my_configs['design_space'],
-                                             )
+                                              my_beam_calculators[0],
+                                              my_configs['wtf'],
+                                              my_configs['design_space'],
+                                              )
 
     # =========================================================================
     # Fix
