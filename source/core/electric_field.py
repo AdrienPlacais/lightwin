@@ -19,18 +19,9 @@ from util.helper import recursive_items, recursive_getter
 import config_manager as con
 
 
-def compute_param_cav(integrated_field, status):
-    """
-    Compute synchronous phase and accelerating field.
-
-    .. todo::
-        Remove ``status``
-
-    """
-    if status == 'failed':
-        polar_itg = np.array([np.NaN, np.NaN])
-    else:
-        polar_itg = cmath.polar(integrated_field)
+def compute_param_cav(integrated_field: complex) -> dict[str, float]:
+    """Compute synchronous phase and accelerating field."""
+    polar_itg = cmath.polar(integrated_field)
     cav_params = {'v_cav_mv': polar_itg[0],
                   'phi_s': polar_itg[1]}
     return cav_params

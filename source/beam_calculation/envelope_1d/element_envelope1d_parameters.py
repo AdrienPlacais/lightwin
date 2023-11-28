@@ -202,7 +202,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         assert itg_field is not None
         w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
         gamma_phi[:, 1] /= self.n_cell
-        cav_params = compute_param_cav(itg_field, status='nominal')
+        cav_params = compute_param_cav(itg_field)
         results = {'r_zz': r_zz,
                    'cav_params': cav_params,
                    'w_kin': w_kin,
@@ -226,7 +226,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
             """
             assert itg_field is None
             w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
-            cav_params = compute_param_cav(np.NaN, status='nominal')
+            cav_params = compute_param_cav(np.NaN)
             results = {'r_zz': r_zz,
                        'cav_params': cav_params,
                        'w_kin': w_kin,

@@ -25,7 +25,6 @@ from beam_calculation.envelope_1d.element_envelope1d_parameters import (
 from core.electric_field import compute_param_cav
 from core.elements.bend import Bend
 from core.elements.drift import Drift
-from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
@@ -210,7 +209,7 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
         assert itg_field is not None
         w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
         gamma_phi[:, 1] /= self.n_cell
-        cav_params = compute_param_cav(itg_field, status='nominal')
+        cav_params = compute_param_cav(itg_field)
         results = {'transfer_matrix': transfer_matrix,
                    'r_zz': transfer_matrix[:, 4:, 4:],
                    'cav_params': cav_params,
@@ -235,7 +234,7 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
             """
             assert itg_field is None
             w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
-            cav_params = compute_param_cav(np.NaN, status='nominal')
+            cav_params = compute_param_cav(np.NaN)
             results = {'transfer_matrix': transfer_matrix,
                        'r_zz': transfer_matrix[:, 4:, 4:],
                        'cav_params': cav_params,
