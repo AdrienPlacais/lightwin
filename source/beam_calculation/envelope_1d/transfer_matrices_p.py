@@ -14,6 +14,9 @@ line is ``dp/p``.
     May speed up the code, especially in _c.
     But numpy is fast, no?
 
+.. todo::
+    send beta as argument to avoid recomputing it each time
+
 """
 from typing import Callable
 
@@ -304,3 +307,40 @@ def z_thin_lense(gamma_in: float,
         @ (np.array(([k_3, 0.], [k_1, k_2]))
            @ z_drift(half_dz, gamma_in)[0][0])
     return r_zz_array
+
+
+def z_bend(gamma_in: float,
+           delta_s: float,
+           factor_1: float,
+           factor_2: float,
+           factor_3: float,
+           ) -> tuple[np.ndarray, np.ndarray, None]:
+    r"""
+    Compute the longitudinal transfer matrix of a bend.
+
+    ``factor_1`` is:
+
+    .. math::
+        \frac{-h^2\Delta s}{k_x^2}
+
+    ``factor_2`` is:
+
+    .. math::
+        \frac{h^2 \sin{(k_x\Delta s)}}{k_x^3}
+
+    ``factor_3`` is:
+
+    .. math::
+        \Delta s \left(1 - \frac{h^2}{k_x^2}\right)
+
+    """
+    gamma_in_min2 = gamma_in**-2
+    beta_in_squared = 1. - gamma_in_min2
+
+    topright = factor_1 * beta_in_squared + factor_2 + factor_3 * gamma_in_min2
+    r_zz = np.ones(2)
+    r_zz[0, 1] = topright
+
+    delta_phi = con.OMEGA_0_BUNCH * delta_s / (np.sqrt(beta_in_squared) * c)
+    gamma_phi = np.array([gamma_in, delta_phi])
+    return r_zz, gamma_phi, None
