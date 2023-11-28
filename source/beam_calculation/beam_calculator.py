@@ -26,6 +26,8 @@ from beam_calculation.parameters.factory import (
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
+from core.elements.aperture import Aperture
+from core.elements.edge import Edge
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
@@ -71,6 +73,7 @@ class BeamCalculator(ABC):
             field_maps_in_3d=False,  # not implemented anyway
             # Different loading of field maps if Cython
             load_cython_field_maps=con.FLAG_CYTHON,
+            elements_to_remove=(Aperture, Edge),
         )
 
     @abstractmethod
