@@ -2,27 +2,30 @@
 # -*- coding: utf-8 -*-
 """Define a class to easily generate the :class:`.SimulationOutput`."""
 from abc import ABCMeta
+from dataclasses import dataclass
 from functools import partial
 import logging
-import os.path
-from dataclasses import dataclass
+from pathlib import Path
+
 import numpy as np
 
-from constants import c
-from beam_calculation.simulation_output.factory import SimulationOutputFactory
-from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput,
+from beam_calculation.simulation_output.factory import (
+    SimulationOutputFactory,
 )
-from beam_calculation.tracewin.single_element_tracewin_parameters import \
-    SingleElementTraceWinParameters
-from beam_calculation.tracewin.transfer_matrix_factory import \
-    TransferMatrixFactoryTraceWin
-from beam_calculation.tracewin.beam_parameters_factory import \
-    BeamParametersFactoryTraceWin
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput)
+from beam_calculation.tracewin.beam_parameters_factory import (
+    BeamParametersFactoryTraceWin,
+)
+from beam_calculation.tracewin.element_tracewin_parameters import (
+    ElementTraceWinParameters,
+)
+from beam_calculation.tracewin.transfer_matrix_factory import (
+    TransferMatrixFactoryTraceWin,
+)
+from constants import c
 from core.list_of_elements.list_of_elements import ListOfElements
-
 from core.particle import ParticleFullTrajectory, ParticleInitialState
-
 import util.converters as convert
 
 
@@ -30,8 +33,8 @@ import util.converters as convert
 class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
     """A class for creating simulation outputs for :class:`.TraceWin`."""
 
-    out_folder: str
-    _filename: str
+    out_folder: Path
+    _filename: Path
 
     def __post_init__(self) -> None:
         """Set filepath-related attributes and create factories.
@@ -59,7 +62,7 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
 
     def run(self,
             elts: ListOfElements,
-            path_cal: str,
+            path_cal: Path,
             rf_fields: list[dict[str, float | None]],
             exception: bool
             ) -> SimulationOutput:
@@ -70,7 +73,7 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
         ----------
         elts : ListOfElements
             Contains all elements or only a fraction or all the elements.
-        path_cal : str
+        path_cal : Path
             Path to results folder.
         rf_fields : list[dict[str, float | None]]
             List of dicts which are empty if corresponding element has no rf
@@ -87,7 +90,7 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
 
         """
         if exception:
-            filepath = os.path.join(path_cal, self._filename)
+            filepath = Path(path_cal, self._filename)
             _remove_incomplete_line(filepath)
             _add_dummy_data(filepath, elts)
 
@@ -145,7 +148,7 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
         return simulation_output
 
     def _create_main_results_dictionary(self,
-                                        path_cal: str,
+                                        path_cal: Path,
                                         input_particle: ParticleInitialState
                                         ) -> dict[str, np.ndarray]:
         """Load the TraceWin results, compute common interest quantities."""
@@ -156,7 +159,9 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
                                              phi_in=input_particle.phi_abs)
         return results
 
-    def _save_tracewin_meshing_in_elements(self, elts: ListOfElements,
+    # TODO FIXME
+    def _save_tracewin_meshing_in_elements(self,
+                                           elts: ListOfElements,
                                            elt_numbers: np.ndarray,
                                            z_abs: np.ndarray) -> None:
         """Take output files to determine where are evaluated w_kin, etc."""
@@ -169,16 +174,17 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
             z_element = z_abs[s_in:s_out + 1]
 
             elt.beam_calc_param[self._solver_id] = \
-                SingleElementTraceWinParameters(elt.length_m,
-                                                z_element,
-                                                s_in,
-                                                s_out)
+                ElementTraceWinParameters(elt.length_m,
+                                          z_element,
+                                          s_in,
+                                          s_out)
 
-    def _create_cavity_parameters(self,
-                                  path_cal: str,
-                                  n_elts: int,
-                                  filename: str = 'Cav_set_point_res.dat',
-                                  ) -> dict[str, list[float | None]]:
+    def _create_cavity_parameters(
+        self,
+            path_cal: Path,
+            n_elts: int,
+            filename: Path = Path('Cav_set_point_res.dat'),
+    ) -> dict[str, list[float | None]]:
         """
         Load and format a dict containing v_cav and phi_s.
 
@@ -186,13 +192,13 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
 
         Parameters
         ----------
-        path_cal : str
+        path_cal : Path
             Path to the folder where the cavity parameters file is stored.
         n_elts : int
             Number of elements under study.
-        filename : str, optional
+        filename : Path, optional
             The name of the cavity parameters file produced by TraceWin. The
-            default is 'Cav_set_point_res.dat'.
+            default is Path('Cav_set_point_res.dat').
 
         Returns
         -------
@@ -255,8 +261,8 @@ def _remove_invalid_values(results: dict[str, np.ndarray]
     return results
 
 
-def _load_results_generic(filename: str,
-                          path_cal: str) -> dict[str, np.ndarray]:
+def _load_results_generic(filename: Path,
+                          path_cal: Path) -> dict[str, np.ndarray]:
     """
     Load the TraceWin results.
 
@@ -268,9 +274,9 @@ def _load_results_generic(filename: str,
 
     Parameters
     ----------
-    filename : str
+    filename : Path
         Results file produced by TraceWin.
-    path_cal : str
+    path_cal : Path
         Folder where the results file is located.
 
     Returns
@@ -279,7 +285,7 @@ def _load_results_generic(filename: str,
         Dictionary containing the raw outputs from TraceWin.
 
     """
-    f_p = os.path.join(path_cal, filename)
+    f_p = Path(path_cal, filename)
 
     n_lines_header = 9
     results = {}
@@ -376,7 +382,7 @@ def _set_phase_related_results(results: dict[str, np.ndarray],
 # =============================================================================
 # Handle errors
 # =============================================================================
-def _remove_incomplete_line(filepath: str) -> None:
+def _remove_incomplete_line(filepath: Path) -> None:
     """
     Remove incomplete line from ``.out`` file.
 
@@ -410,7 +416,7 @@ def _remove_incomplete_line(filepath: str) -> None:
             file.write(line)
 
 
-def _add_dummy_data(filepath: str, elts: ListOfElements) -> None:
+def _add_dummy_data(filepath: Path, elts: ListOfElements) -> None:
     """
     Add dummy data at the end of the ``.out`` to reach end of linac.
 
@@ -444,16 +450,16 @@ def _add_dummy_data(filepath: str, elts: ListOfElements) -> None:
 # =============================================================================
 # Cavity parameters
 # =============================================================================
-def _load_cavity_parameters(path_cal: str,
-                            filename: str) -> dict[str, np.ndarray]:
+def _load_cavity_parameters(path_cal: Path,
+                            filename: Path) -> dict[str, np.ndarray]:
     """
     Get the cavity parameters calculated by TraceWin.
 
     Parameters
     ----------
-    path_cal : str
+    path_cal : Path
         Path to the folder where the cavity parameters file is stored.
-    filename : str
+    filename : Path
         The name of the cavity parameters file produced by TraceWin.
 
     Returns
@@ -462,7 +468,7 @@ def _load_cavity_parameters(path_cal: str,
         Contains the cavity parameters.
 
     """
-    f_p = os.path.join(path_cal, filename)
+    f_p = Path(path_cal, filename)
     n_lines_header = 1
 
     with open(f_p, 'r', encoding='utf-8') as file:
