@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module is the holds a generic compensation workflow.
+Define a generic compensation workflow.
 
 .. todo::
     phi_s fit is included in design_space preset
@@ -37,8 +37,8 @@ from evaluator.list_of_simulation_output_evaluators import (
 # Main function
 # =============================================================================
 if __name__ == '__main__':
-    # ini_filepath = Path('..', 'data', 'MINERVA', 'lightwin.ini')
-    ini_filepath = Path('..', 'data', 'MYRRHA', 'lightwin.ini')
+    ini_filepath = Path('..', 'data', 'MINERVA', 'lightwin.ini')
+    # ini_filepath = Path('..', 'data', 'MYRRHA', 'lightwin.ini')
     ini_keys = {
         'files': 'files',
         'plots': 'plots.complete',
