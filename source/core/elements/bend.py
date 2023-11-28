@@ -25,7 +25,7 @@ class Bend(Element):
         # Basics
         bend_angle = float(np.deg2rad(float(line[1])))
         curvature_radius = float(line[2]) * 1e-3
-        field_grad_index = int(line[3])
+        field_grad_index = float(line[3])
         self.length_m = curvature_radius * abs(bend_angle)
 
         # For transfer matrix -> to move elsewhere? Not used by TW
