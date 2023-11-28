@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Here we define a class to hold solver parameters for :class:`.Envelope1D`.
+Define a class to hold solver parameters for :class:`.Envelope1D`.
 
 This module holds :class:`SingleElementEnvelope1DParameters`, that inherits
 from the Abstract Base Class :class:`.SingleElementCalculatorParameters`.
@@ -20,6 +20,12 @@ from beam_calculation.single_element_beam_calculator_parameters import (
     SingleElementCalculatorParameters)
 
 
+FIELD_MAP_INTEGRATION_METHOD_TO_FUNC = {
+    "RK": lambda module: module.z_field_map_rk4,
+    "leapfrog": lambda module: module.z_field_map_leapfrog,
+}
+
+
 class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
     """
     Holds the parameters to compute beam propagation in an Element.
@@ -29,8 +35,12 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
 
     """
 
-    def __init__(self, length_m: float, is_accelerating: bool,
-                 n_cells: int | None, n_steps_per_cell: int, method: str,
+    def __init__(self,
+                 length_m: float,
+                 is_accelerating: bool,
+                 n_cells: int | None,
+                 n_steps_per_cell: int,
+                 method: str,
                  transf_mat_module: ModuleType) -> None:
         """Set the actually useful parameters."""
         self.n_steps = 1
@@ -43,11 +53,8 @@ class SingleElementEnvelope1DParameters(SingleElementCalculatorParameters):
             assert n_cells is not None
             self.n_steps = n_cells * n_steps_per_cell
 
-            if method == 'RK':
-                self.transf_mat_function = transf_mat_module.z_field_map_rk4
-            elif method == 'leapfrog':
-                self.transf_mat_function = \
-                    transf_mat_module.z_field_map_leapfrog
+            self.transf_mat_function = FIELD_MAP_INTEGRATION_METHOD_TO_FUNC[
+                method](transf_mat_module)
 
         self.d_z = length_m / self.n_steps
         self.rel_mesh = np.linspace(0., length_m, self.n_steps + 1)
