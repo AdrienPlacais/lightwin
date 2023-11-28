@@ -13,9 +13,10 @@ Submodules
    :maxdepth: 4
 
    beam_calculation.envelope_1d.beam_parameters_factory
+   beam_calculation.envelope_1d.element_envelope1d_parameters
+   beam_calculation.envelope_1d.element_envelope1d_parameters_factory
    beam_calculation.envelope_1d.envelope_1d
    beam_calculation.envelope_1d.simulation_output_factory
-   beam_calculation.envelope_1d.single_element_envelope_1d_parameters
    beam_calculation.envelope_1d.transfer_matrices_c
    beam_calculation.envelope_1d.transfer_matrices_p
    beam_calculation.envelope_1d.transfer_matrix_factory

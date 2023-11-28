@@ -21,8 +21,10 @@ Submodules
    :maxdepth: 4
 
    core.elements.aperture
+   core.elements.bend
    core.elements.drift
    core.elements.dummy
+   core.elements.edge
    core.elements.element
    core.elements.factory
    core.elements.helper
