@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module holds :class:`Envelope1D`, a longitudinal envelope solver.
+Define :class:`Envelope1D`, a longitudinal envelope solver.
 
 It is fast, but should not be used at low energies.
 
@@ -13,8 +13,8 @@ from beam_calculation.envelope_1d.simulation_output_factory import \
     SimulationOutputFactoryEnvelope1D
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
-from beam_calculation.envelope_1d.element_envelope1d_parameters_factory import(
-    ElementEnvelope1DParametersFactory)
+from beam_calculation.envelope_1d.element_envelope1d_parameters_factory import\
+    ElementEnvelope1DParametersFactory
 from core.accelerator.accelerator import Accelerator
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
