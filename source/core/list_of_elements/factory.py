@@ -23,6 +23,9 @@ a full :class:`.ListOfElements` from scratch.
     the :class:`.BeamCalculator`... Loading field maps not necessary with
     :class:`.TraceWin` for example.
 
+.. todo::
+    The ``elements_to_remove`` key should be in the configuration file
+
 """
 from abc import ABCMeta
 import os
