@@ -78,8 +78,8 @@ def rk4(u, du, x, dx):
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def drift(delta_s: float,
-          gamma_in: float,
+def drift(gamma_in: float,
+          delta_s: float,
           n_steps: int = 1,
           **kwargs
           ) -> tuple[np.ndarray, np.ndarray, None]:
@@ -127,10 +127,9 @@ def drift(delta_s: float,
     return transfer_matrix, gamma_phi, None
 
 
-def quad(delta_s: float,
-         gamma_in: float,
-         n_steps: int = 1,
-         gradient: float | None = None,
+def quad(gamma_in: float,
+         delta_s: float,
+         gradient: float,
          **kwargs
          ) -> tuple[np.ndarray, np.ndarray, None]:
     """Calculate the transfer matrix of a quadrupole.
@@ -218,8 +217,8 @@ def _horizontal_defocusing_quadrupole(focusing_strength: float,
     return transfer_matrix
 
 
-def field_map_rk4(d_z: float,
-                  gamma_in: float,
+def field_map_rk4(gamma_in: float,
+                  d_z: float,
                   n_steps: int,
                   omega0_rf: float,
                   k_e: float,
@@ -359,7 +358,7 @@ def thin_lense(gamma_in: float,
     k_2xy = 1. - k_speed2
     k_3xy = (1. - k_speed2) / k_2xy
 
-    transfer_matrix = drift(half_dz, gamma_out)[0][0] \
+    transfer_matrix = drift(gamma_out, half_dz)[0][0] \
         @ (
             np.array(([k_3xy, 0.,    0.,    0.,    0.,  0.],
                       [k_1xy, k_2xy, 0.,    0.,    0.,  0.],
@@ -367,7 +366,7 @@ def thin_lense(gamma_in: float,
                       [0.,    0.,    k_1xy, k_2xy, 0.,  0.],
                       [0.,    0.,    0.,    0.,    k_3, 0.],
                       [0.,    0.,    0.,    0.,    k_1, k_2]))
-            @ drift(half_dz, gamma_in)[0][0]
+            @ drift(gamma_in, half_dz)[0][0]
         )
     return transfer_matrix
 

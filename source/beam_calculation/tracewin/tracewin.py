@@ -26,26 +26,25 @@ the particles in envelope or multipart, in 3D. In contrary to
 
 """
 from dataclasses import dataclass
-from pathlib import Path
-import os
 import logging
+import os
+from pathlib import Path
 import subprocess
 
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
 from beam_calculation.beam_calculator import BeamCalculator
-
-from tracewin_utils.interface import beam_calculator_to_command
-
-from failures.set_of_cavity_settings import SetOfCavitySettings
-
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
+from beam_calculation.tracewin.element_tracewin_parameters_factory import (
+    ElementTraceWinParametersFactory)
+from beam_calculation.tracewin.simulation_output_factory import (
+    SimulationOutputFactoryTraceWin,
+)
+from core.accelerator.accelerator import Accelerator
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.accelerator.accelerator import Accelerator
-
-# factories subclassed from ABC
-from beam_calculation.tracewin.simulation_output_factory import \
-    SimulationOutputFactoryTraceWin
+from failures.set_of_cavity_settings import SetOfCavitySettings
+from tracewin_utils.interface import beam_calculator_to_command
 
 
 @dataclass
@@ -82,7 +81,7 @@ class TraceWin(BeamCalculator):
 
     """
 
-    executable: str
+    executable: Path
     ini_path: Path
     base_kwargs: dict[str, str | int | float | bool | None]
 
@@ -112,12 +111,15 @@ class TraceWin(BeamCalculator):
         appears only in the base :class:`.BeamCalculator`.
 
         """
+        self.beam_calc_parameters_factory = ElementTraceWinParametersFactory()
+
         self.simulation_output_factory = SimulationOutputFactoryTraceWin(
             self.is_a_3d_simulation,
             self.is_a_multiparticle_simulation,
             self.id,
             self.out_folder,
             self._filename,
+            self.beam_calc_parameters_factory,
         )
 
     def _tracewin_base_command(self, base_path_cal: str, **kwargs
@@ -306,10 +308,18 @@ class TraceWin(BeamCalculator):
         We also set the ``_tracewin_command`` attribute to None, as it must be
         updated when ``path_cal`` changes.
 
+        .. note::
+            In contrary to :class:`.Element1D` and :class:`.Element3D`, this
+            routine does not set parameters for the :class:`.BeamCalculator`.
+            As a matter of a fact, TraceWin is a standalone code and does not
+            need out solver parameters.
+            However, if we want to save the meshing used by TraceWin, we will
+            have to use the :class:`.ElementTraceWinParametersFactory` later.
+
         """
-        self.path_cal = os.path.join(accelerator.get('accelerator_path'),
-                                     self.out_folder)
-        assert os.path.exists(self.path_cal)
+        self.path_cal = Path(accelerator.get('accelerator_path'),
+                             self.out_folder)
+        assert self.path_cal.is_dir()
 
         self._tracewin_command = None
 
@@ -318,7 +328,7 @@ class TraceWin(BeamCalculator):
         """Tell if you should buy Bitcoins now or wait a few months."""
         if 'partran' in self.base_kwargs:
             return self.base_kwargs['partran'] == 1
-        return os.path.isfile(os.path.join(self.path_cal, 'partran1.out'))
+        return Path(self.path_cal, 'partran1.out').is_file()
 
     @property
     def is_a_3d_simulation(self) -> bool:

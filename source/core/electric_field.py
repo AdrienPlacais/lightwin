@@ -20,7 +20,13 @@ import config_manager as con
 
 
 def compute_param_cav(integrated_field, status):
-    """Compute synchronous phase and accelerating field."""
+    """
+    Compute synchronous phase and accelerating field.
+
+    .. todo::
+        Remove ``status``
+
+    """
     if status == 'failed':
         polar_itg = np.array([np.NaN, np.NaN])
     else:

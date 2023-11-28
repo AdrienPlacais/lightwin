@@ -187,7 +187,7 @@ cdef du(DTYPE_t z_rel, DTYPE_t[:] u,
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-cpdef z_drift(DTYPE_t delta_s, DTYPE_t gamma_in, np.int64_t n_steps=1):
+cpdef z_drift(DTYPE_t gamma_in, DTYPE_t delta_s, np.int64_t n_steps=1):
     """Calculate the transfer matrix of a drift."""
     # Variables:
     cdef DTYPE_t gamma_in_min2 = gamma_in**-2
@@ -211,8 +211,8 @@ cpdef z_drift(DTYPE_t delta_s, DTYPE_t gamma_in, np.int64_t n_steps=1):
     return r_zz_array, gamma_phi_array, None
 
 
-def z_field_map_rk4(DTYPE_t dz_s,
-                    DTYPE_t gamma_in,
+def z_field_map_rk4(DTYPE_t gamma_in,
+                    DTYPE_t dz_s,
                     np.int64_t n_steps,
                     DTYPE_t omega0_rf,
                     DTYPE_t k_e,
@@ -285,8 +285,8 @@ def z_field_map_rk4(DTYPE_t dz_s,
     return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
-def z_field_map_leapfrog(DTYPE_t dz_s,
-                         DTYPE_t gamma_in,
+def z_field_map_leapfrog(DTYPE_t gamma_in,
+                         DTYPE_t dz_s,
                          np.int64_t n_steps,
                          DTYPE_t omega0_rf,
                          DTYPE_t k_e,
@@ -391,7 +391,7 @@ cdef z_thin_lense(gamma_in, gamma_m, gamma_out, phi_m, half_dz_s,
     k_3 = (1. - k_speed2) / k_2
 
     # Faster than matmul or matprod_22
-    r_zz_array = z_drift(half_dz_s, gamma_out)[0][0] \
+    r_zz_array = z_drift(gamma_out, half_dz_s)[0][0] \
                  @ (np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE) \
-                    @ z_drift(half_dz_s, gamma_in)[0][0])
+                    @ z_drift(gamma_in, half_dz_s)[0][0])
     return r_zz_array

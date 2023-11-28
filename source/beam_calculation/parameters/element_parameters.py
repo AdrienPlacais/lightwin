@@ -3,12 +3,9 @@
 """
 We define a base class to hold the parameters for the :class:`.BeamCalculator`.
 
-:class:`SingleElementCalculatorParameters` is attribute of an :class:`.Element`
+:class:`ElementBeamCalculatorParameters` is attribute of an :class:`.Element`
 and holds parameters that depend both on the :class:`.Element` under study and
-the on the :class:`.BeamCalculator` solver that is used.
-
-Currently, it is used by :class:`.Envelope1D` only, as :class:`.TraceWin`
-handles it itself.
+on the :class:`.BeamCalculator` solver that is used.
 
 """
 from typing import Any
@@ -19,7 +16,7 @@ import numpy as np
 from util.helper import recursive_items, recursive_getter
 
 
-class SingleElementCalculatorParameters(ABC):
+class ElementBeamCalculatorParameters(ABC):
     """
     Parent class to hold solving parameters. Attribute of :class:`.Element`.
 

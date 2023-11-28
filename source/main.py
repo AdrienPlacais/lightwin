@@ -37,8 +37,8 @@ from evaluator.list_of_simulation_output_evaluators import (
 # Main function
 # =============================================================================
 if __name__ == '__main__':
-    ini_filepath = Path('..', 'data', 'MINERVA', 'lightwin.ini')
-    # ini_filepath = Path('..', 'data', 'MYRRHA', 'lightwin.ini')
+    # ini_filepath = Path('..', 'data', 'MINERVA', 'lightwin.ini')
+    ini_filepath = Path('..', 'data', 'MYRRHA', 'lightwin.ini')
     ini_keys = {
         'files': 'files',
         'plots': 'plots.complete',

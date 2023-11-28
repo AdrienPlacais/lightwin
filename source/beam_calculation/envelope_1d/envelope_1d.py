@@ -6,23 +6,18 @@ This module holds :class:`Envelope1D`, a longitudinal envelope solver.
 It is fast, but should not be used at low energies.
 
 """
-import logging
 from dataclasses import dataclass
 
+from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.envelope_1d.simulation_output_factory import \
     SimulationOutputFactoryEnvelope1D
-
-from core.elements.field_maps.field_map import FieldMap
-from core.list_of_elements.list_of_elements import ListOfElements
-from core.accelerator.accelerator import Accelerator
-
-from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
-
-from beam_calculation.envelope_1d.single_element_envelope_1d_parameters import\
-    SingleElementEnvelope1DParameters
-
+from beam_calculation.envelope_1d.element_envelope1d_parameters_factory import(
+    ElementEnvelope1DParametersFactory)
+from core.accelerator.accelerator import Accelerator
+from core.elements.field_maps.field_map import FieldMap
+from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
 
@@ -41,19 +36,6 @@ class Envelope1D(BeamCalculator):
         solver_name = "Envelope1D"
         super().__post_init__(solver_name)
 
-        if self.flag_cython:
-            try:
-                import beam_calculation.envelope_1d.transfer_matrices_c as \
-                    transf_mat
-            except ModuleNotFoundError:
-                logging.error("Cython version of transfer_matrices was not "
-                              + "compiled. Check util/setup.py.")
-                raise ModuleNotFoundError("Cython not compiled.")
-        else:
-            import beam_calculation.envelope_1d.transfer_matrices_p as \
-                transf_mat
-        self.transf_mat_module = transf_mat
-
     def _set_up_specific_factories(self) -> None:
         """Set up the factories specific to the :class:`.BeamCalculator`.
 
@@ -67,6 +49,12 @@ class Envelope1D(BeamCalculator):
             self.id,
             self.out_folder,
         )
+        self.beam_calc_parameters_factory = \
+            ElementEnvelope1DParametersFactory(
+                self.method,
+                self.n_steps_per_cell,
+                self.flag_cython,
+            )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
         """
@@ -108,12 +96,10 @@ class Envelope1D(BeamCalculator):
         """
         single_elts_results = []
         rf_fields = []
-        import numpy as np
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
 
         for elt in elts:
-            print(f"{elt.elt_info['elt_name']}, {w_kin=}, {np.rad2deg(phi_abs)}")
             cavity_settings = set_of_cavity_settings.get(elt) \
                 if isinstance(set_of_cavity_settings, SetOfCavitySettings) \
                 else None
@@ -122,7 +108,7 @@ class Envelope1D(BeamCalculator):
                                            cavity_settings)
             elt_results = \
                 elt.beam_calc_param[self.id].transf_mat_function_wrapper(
-                    w_kin, elt.is_accelerating, elt.get('status'),
+                    w_kin,
                     **rf_field_kwargs)
 
             single_elts_results.append(elt_results)
@@ -157,28 +143,22 @@ class Envelope1D(BeamCalculator):
         """
         Create the number of steps, meshing, transfer functions for elts.
 
-        The solver parameters are stored in self.parameters. As for now, for
-        memory purposes, only one set of solver parameters is stored. In other
-        words, if you compute the transfer matrices of several ListOfElements
-        back and forth, the solver paramters will be re-initialized each time.
+        The solver parameters are stored in ``self.parameters``. As for now,
+        for memory purposes, only one set of solver parameters is stored.
+        In other words, if you compute the transfer matrices of several
+        :class:`.ListOfElements` back and forth, the solver paramters will be
+        re-initialized each time.
 
         Parameters
         ----------
         accelerator : Accelerator
-            Accelerator object which ListOfElements must be initialized.
+            Object which :class:`.ListOfElements` must be initialized.
 
         """
         elts = accelerator.elts
-        kwargs = {'n_steps_per_cell': self.n_steps_per_cell,
-                  'method': self.method,
-                  'transf_mat_module': self.transf_mat_module,
-                  }
         for elt in elts:
-            elt.beam_calc_param[self.id] = SingleElementEnvelope1DParameters(
-                length_m=elt.get('length_m', to_numpy=False),
-                is_accelerating=elt.is_accelerating,
-                n_cells=int(elt.get('n_cell', to_numpy=False)),
-                **kwargs)
+            solver_param = self.beam_calc_parameters_factory.run(elt)
+            elt.beam_calc_param[self.id] = solver_param
 
         position = 0.
         index = 0

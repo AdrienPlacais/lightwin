@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module holds a base class for beam propagation computing tools.
+Define a base class for beam propagation computing tools.
 
-It defines the base class :class:`BeamCalculator`, which computes the
-propagation of the beam in a :class:`.ListOfElements`, possibly with a specific
+Define the base class :class:`BeamCalculator`, which computes the propagation
+of the beam in a :class:`.ListOfElements`, possibly with a specific
 :class:`.SetOfCavitySettings` (optimisation process). It should return a
 :class:`.SimulationOutput`.
 
@@ -21,6 +21,8 @@ import time
 
 import config_manager as con
 from core.accelerator.accelerator import Accelerator
+from beam_calculation.parameters.factory import (
+    ElementBeamCalculatorParametersFactory)
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
@@ -44,6 +46,8 @@ class BeamCalculator(ABC):
                 / f"{self.out_folder.name}_{solver_name}"
         self.simulation_output_factory: SimulationOutputFactory
         self.list_of_elements_factory: ListOfElementsFactory
+        self.beam_calc_parameters_factory: \
+            ElementBeamCalculatorParametersFactory
         self._set_up_common_factories()
         self._set_up_specific_factories()
 
@@ -129,7 +133,7 @@ class BeamCalculator(ABC):
 
     @abstractmethod
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
-        """Init some `BeamCalculator` solver parameters."""
+        """Init some :class:`BeamCalculator` solver parameters."""
 
     def _generate_simulation_output(self, *args, **kwargs) -> SimulationOutput:
         """Transform the output of ``run`` to a :class:`.SimulationOutput`."""

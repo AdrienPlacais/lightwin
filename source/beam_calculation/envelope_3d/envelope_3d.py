@@ -3,24 +3,22 @@
 """Define :class:`Envelope3D`, an envelope solver."""
 from dataclasses import dataclass
 
-from core.elements.field_maps.field_map import FieldMap
-from core.list_of_elements.list_of_elements import ListOfElements
-from core.accelerator.accelerator import Accelerator
-
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
-from beam_calculation.envelope_3d.single_element_envelope_3d_parameters import\
-    SingleElementEnvelope3DParameters
 from beam_calculation.envelope_3d.beam_parameters_factory import \
     BeamParametersFactoryEnvelope3D
+from beam_calculation.envelope_3d.element_envelope3d_parameters_factory import\
+    ElementEnvelope3DParametersFactory
 from beam_calculation.envelope_3d.transfer_matrix_factory import \
     TransferMatrixFactoryEnvelope3D
-
-from failures.set_of_cavity_settings import (SetOfCavitySettings,
-                                             SingleCavitySettings)
 from beam_calculation.envelope_3d.simulation_output_factory import \
     SimulationOutputFactoryEnvelope3D
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
+from core.accelerator.accelerator import Accelerator
+from core.elements.field_maps.field_map import FieldMap
+from core.list_of_elements.list_of_elements import ListOfElements
+from failures.set_of_cavity_settings import (SetOfCavitySettings,
+                                             SingleCavitySettings)
 
 
 @dataclass
@@ -57,6 +55,11 @@ class Envelope3D(BeamCalculator):
             self.is_a_multiparticle_simulation,
             self.id,
             self.out_folder,
+        )
+        self.beam_calc_parameters_factory = ElementEnvelope3DParametersFactory(
+            method='RK',
+            flag_cython=False,
+            n_steps_per_cell=self.n_steps_per_cell,
         )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
@@ -166,14 +169,9 @@ class Envelope3D(BeamCalculator):
 
         """
         elts = accelerator.elts
-        kwargs = {
-            'n_steps_per_cell': self.n_steps_per_cell,
-            'transf_mat_module': self.transf_mat_module,
-        }
         for elt in elts:
-            elt.beam_calc_param[self.id] = SingleElementEnvelope3DParameters(
-                elt,
-                **kwargs)
+            elt.beam_calc_param[self.id] = \
+                self.beam_calc_parameters_factory.run(elt)
 
         position = 0.
         index = 0

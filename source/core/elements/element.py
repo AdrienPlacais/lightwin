@@ -17,15 +17,12 @@ This module holds :class:`Element`, declined in Drift, FieldMap, etc.
 from typing import Any
 import numpy as np
 
-from core.instruction import Instruction
+from beam_calculation.parameters.element_parameters import (
+    ElementBeamCalculatorParameters)
 from core.electric_field import RfField
-
-from util.helper import recursive_items, recursive_getter
-
+from core.instruction import Instruction
 from failures.set_of_cavity_settings import SingleCavitySettings
-
-from beam_calculation.single_element_beam_calculator_parameters import (
-    SingleElementCalculatorParameters)
+from util.helper import recursive_items, recursive_getter
 
 
 class Element(Instruction):
@@ -74,7 +71,7 @@ class Element(Instruction):
                    'section': None,
                    }
         self.idx = self.idx | new_idx
-        self.beam_calc_param: dict[str, SingleElementCalculatorParameters] = {}
+        self.beam_calc_param: dict[str, ElementBeamCalculatorParameters] = {}
 
     def __str__(self) -> str:
         """Give the same name as TraceWin would."""

@@ -79,7 +79,9 @@ def rk4(u, du, x, dx):
 # =============================================================================
 # Transfer matrices
 # =============================================================================
-def z_drift(delta_s: float, gamma_in: float, n_steps: int = 1, **kwargs
+def z_drift(gamma_in: float,
+            delta_s: float,
+            n_steps: int = 1
             ) -> tuple[np.ndarray, np.ndarray, None]:
     """Calculate the transfer matrix of a drift."""
     gamma_in_min2 = gamma_in**-2
@@ -100,8 +102,8 @@ def z_drift(delta_s: float, gamma_in: float, n_steps: int = 1, **kwargs
     return r_zz, gamma_phi, None
 
 
-def z_field_map_rk4(d_z: float,
-                    gamma_in: float,
+def z_field_map_rk4(gamma_in: float,
+                    d_z: float,
                     n_steps: int,
                     omega0_rf: float,
                     k_e: float,
@@ -303,9 +305,9 @@ def z_thin_lense(gamma_in: float,
     k_3 = (1. - k_speed2) / k_2
 
     # Faster than matmul or matprod_22
-    r_zz_array = z_drift(half_dz, gamma_out)[0][0] \
+    r_zz_array = z_drift(gamma_out, half_dz)[0][0] \
         @ (np.array(([k_3, 0.], [k_1, k_2]))
-           @ z_drift(half_dz, gamma_in)[0][0])
+           @ z_drift(gamma_in, half_dz)[0][0])
     return r_zz_array
 
 

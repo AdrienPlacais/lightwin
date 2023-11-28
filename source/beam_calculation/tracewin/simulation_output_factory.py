@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from functools import partial
 import logging
 from pathlib import Path
+from beam_calculation.tracewin.element_tracewin_parameters_factory import ElementTraceWinParametersFactory
 
 import numpy as np
 
@@ -35,6 +36,7 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
 
     out_folder: Path
     _filename: Path
+    beam_calc_parameters_factory: ElementTraceWinParametersFactory
 
     def __post_init__(self) -> None:
         """Set filepath-related attributes and create factories.
@@ -164,7 +166,7 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
                                            elts: ListOfElements,
                                            elt_numbers: np.ndarray,
                                            z_abs: np.ndarray) -> None:
-        """Take output files to determine where are evaluated w_kin, etc."""
+        """Take output files to determine where are evaluated ``w_kin``..."""
         elt_numbers = elt_numbers.astype(int)
 
         for elt_number, elt in enumerate(elts, start=1):
@@ -174,10 +176,10 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
             z_element = z_abs[s_in:s_out + 1]
 
             elt.beam_calc_param[self._solver_id] = \
-                ElementTraceWinParameters(elt.length_m,
-                                          z_element,
-                                          s_in,
-                                          s_out)
+                self.beam_calc_parameters_factory.run(elt,
+                                                      z_element,
+                                                      s_in,
+                                                      s_out)
 
     def _create_cavity_parameters(
         self,
