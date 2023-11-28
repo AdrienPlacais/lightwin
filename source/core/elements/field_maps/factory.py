@@ -13,10 +13,11 @@ become very complex in the future: 3D, superposed fields...
     etc
 
 """
-from typing import Any
-from functools import lru_cache
 from abc import ABCMeta
+from functools import lru_cache
 import logging
+from pathlib import Path
+from typing import Any
 
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.field_map_100 import FieldMap100
@@ -47,7 +48,7 @@ class FieldMapFactory:
     """An object to create :class:`.FieldMap` objects."""
 
     def __init__(self,
-                 default_field_map_folder: str,
+                 default_field_map_folder: Path,
                  default_absolute_phase_flag: str = '0',
                  **factory_kw: Any) -> None:
         """Save the default folder for field maps."""
