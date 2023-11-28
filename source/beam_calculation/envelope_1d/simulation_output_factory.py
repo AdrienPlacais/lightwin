@@ -3,18 +3,18 @@
 """Define a class to easily generate the :class:`.SimulationOutput`."""
 from abc import ABCMeta
 from dataclasses import dataclass
+from pathlib import Path
+
 import numpy as np
 
+from beam_calculation.envelope_1d.beam_parameters_factory import (
+    BeamParametersFactoryEnvelope1D)
+from beam_calculation.envelope_1d.transfer_matrix_factory import (
+    TransferMatrixFactoryEnvelope1D)
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
-    TransferMatrix
-)
-from beam_calculation.envelope_1d.beam_parameters_factory import \
-    BeamParametersFactoryEnvelope1D
-from beam_calculation.envelope_1d.transfer_matrix_factory import \
-    TransferMatrixFactoryEnvelope1D
-
+    TransferMatrix)
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.particle import ParticleFullTrajectory
 
@@ -23,7 +23,7 @@ from core.particle import ParticleFullTrajectory
 class SimulationOutputFactoryEnvelope1D(SimulationOutputFactory):
     """A class for creating simulation outputs for :class:`.Envelope1D`."""
 
-    out_folder: str
+    out_folder: Path
 
     def __post_init__(self) -> None:
         """Create the factories.
