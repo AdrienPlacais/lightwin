@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Create the solver parameters for :class:`.Envelope3D`."""
 from abc import ABCMeta
+import logging
 
 from beam_calculation.parameters.factory import (
     ElementBeamCalculatorParametersFactory)
@@ -102,8 +103,8 @@ class ElementEnvelope3DParametersFactory(
 
         """
         element_subclass = type(elt)
-        assert element_subclass in IMPLEMENTED_ELEMENTS, "Solver parameters "\
-            f"not implemented for {elt = } of type {element_subclass}."
+
+        self._check_is_implemented(element_subclass)
         element_parameters_class = IMPLEMENTED_ELEMENTS[element_subclass]
 
         if not isinstance(elt, FieldMap):
@@ -113,3 +114,12 @@ class ElementEnvelope3DParametersFactory(
             return element_parameters_class
 
         return IMPLEMENTED_ELEMENTS[Drift]
+
+    def _check_is_implemented(self, element_subclass: ABCMeta) -> None:
+        """Check if the element under study has a defined transfer matrix."""
+        if element_subclass not in IMPLEMENTED_ELEMENTS:
+            logging.error(f"The element subclass {element_subclass} is not "
+                          "implemented. Implement it, or use the "
+                          "elements_to_remove key in the "
+                          "BeamCalculator.ListOfElementFactory class.")
+            raise IOError
