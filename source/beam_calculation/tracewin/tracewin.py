@@ -27,7 +27,6 @@ the particles in envelope or multipart, in 3D. In contrary to
 """
 from dataclasses import dataclass
 import logging
-import os
 from pathlib import Path
 import subprocess
 
@@ -122,7 +121,9 @@ class TraceWin(BeamCalculator):
             self.beam_calc_parameters_factory,
         )
 
-    def _tracewin_base_command(self, base_path_cal: str, **kwargs
+    def _tracewin_base_command(self,
+                               base_path_cal: Path,
+                               **kwargs
                                ) -> tuple[list[str], str]:
         """
         Define the 'base' command for TraceWin.
@@ -143,9 +144,9 @@ class TraceWin(BeamCalculator):
             if key not in kwargs:
                 kwargs[key] = val
 
-        path_cal = os.path.join(base_path_cal, self.out_folder)
-        if not os.path.exists(path_cal):
-            os.makedirs(path_cal)
+        path_cal = Path(base_path_cal, self.out_folder)
+        if not path_cal.is_dir():
+            path_cal.mkdir()
 
         _tracewin_command = beam_calculator_to_command(
             self.executable,
@@ -178,6 +179,7 @@ class TraceWin(BeamCalculator):
         out_path = elts.get('out_path', to_numpy=False)
         command, path_cal = self._tracewin_base_command(out_path, **kwargs)
         command.extend(elts.tracewin_command)
+
         if set_of_cavity_settings is not None:
             command.extend(set_of_cavity_settings.tracewin_command(
                 delta_phi_bunch=elts.input_particle.phi_abs
@@ -334,6 +336,7 @@ class TraceWin(BeamCalculator):
     def is_a_3d_simulation(self) -> bool:
         """Tell if the simulation is in 3D."""
         return True
+
 
 # =============================================================================
 # Bash

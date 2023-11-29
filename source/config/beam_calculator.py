@@ -148,7 +148,7 @@ def _test_beam_calculator_tracewin(
                       "should update the TRACEWIN_EXECUTABLES dictionary in "
                       "config/beam_calculator.py.")
         return False
-    c_beam_calculator["executable"] = tw_exe
+    c_beam_calculator["executable"] = str(tw_exe)
 
     for key in c_beam_calculator.keys():
         if "Ele" in key:
@@ -229,6 +229,7 @@ def _config_to_dict_tracewin(c_tw: configparser.SectionProxy) -> dict:
     args_for_tracewin = {}
     getter_arg_for_lightwin = {
         'executable': c_tw.getpath,
+        'ini_path': c_tw.getpath,
     }
 
     getter_arg_for_tracewin = {

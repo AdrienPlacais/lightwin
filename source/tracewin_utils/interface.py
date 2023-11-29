@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """This module holds dicts to import TraceWin results with correct type."""
 import logging
+from pathlib import Path
 
 import numpy as np
 
@@ -101,20 +102,22 @@ def variables_to_command(warn_skipped: bool = False,
     return command
 
 
-def beam_calculator_to_command(executable: str, ini_path: str, path_cal: str,
+def beam_calculator_to_command(executable: Path,
+                               ini_path: Path,
+                               path_cal: Path,
                                **kwargs: str | int | float | bool | None
                                ) -> list[str]:
     """Give command calling TraceWin according to `BeamCalculator` attribs."""
     kwargs = {
-        'path_cal': path_cal,
+        'path_cal': str(path_cal),
     } | kwargs
     command = variables_to_command(**kwargs)
-    command.insert(0, executable)
-    command.insert(1, ini_path)
+    command.insert(0, str(executable))
+    command.insert(1, str(ini_path))
     return command
 
 
-def list_of_elements_to_command(dat_filepath: str) -> list[str]:
+def list_of_elements_to_command(dat_filepath: Path) -> list[str]:
     """
     Return a command from `ListOfElements` attributes.
 
@@ -123,7 +126,7 @@ def list_of_elements_to_command(dat_filepath: str) -> list[str]:
 
     """
     kwargs = {
-        'dat_file': dat_filepath,
+        'dat_file': str(dat_filepath),
     }
     return variables_to_command(**kwargs)
 
