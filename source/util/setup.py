@@ -5,9 +5,8 @@ This module simply holds the function to build the Cython module(s).
 
 To compile, go to ``LightWin/source/`` and enter:
 ``python3 util/setup.py build_ext --inplace``
-and manually move the ``source/build/lib.blabla/beam_calculation/envelope_1d/tr
-ansfer_matrices_c.cpython-blabla.so`` to
-``source/beam_calculation/envelope1d/``
+and manually move the ``build/lib.blabla/beam_calculation/envelope_1d/transfer_
+matrices_c.cpython-blabla.so`` to ``beam_calculation/envelope1d/``
 
 .. todo::
     Auto move the ``.so``.
