@@ -15,6 +15,9 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
     maybe ElementFactory and CommandFactory should be instantiated from this?
     Or from another class, but they do have a lot in common
 
+.. todo::
+    for now, forcing loading of cython field maps
+
 """
 from pathlib import Path
 from typing import Any
@@ -133,7 +136,8 @@ class InstructionsFactory:
         if self._load_field_maps:
             field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
             load_electromagnetic_fields(field_maps,
-                                        self._load_cython_field_maps)
+                                        True)
+                                        # self._load_cython_field_maps)
 
         return instructions
 
