@@ -55,8 +55,6 @@ class ObjectiveFactory(ABC):
 
     Attributes
     ----------
-    linac_name : str
-        Name of the linac.
     reference_elts : ListOfElements
         All the reference elements.
     reference_simulation_output : SimulationOutput
@@ -74,7 +72,6 @@ class ObjectiveFactory(ABC):
 
     """
 
-    linac_name: str
     reference_elts: ListOfElements
     reference_simulation_output: SimulationOutput
 
@@ -381,7 +378,6 @@ def _read_objective(objective_preset: str) -> ABCMeta:
 # Interface with LightWin
 # =============================================================================
 def get_objectives_and_residuals_function(
-    linac_name: str,
     objective_preset: str,
     reference_elts: ListOfElements,
     reference_simulation_output: SimulationOutput,
@@ -395,8 +391,6 @@ def get_objectives_and_residuals_function(
 
     Parameters
     ----------
-    linac_name : str
-        Name of the linac.
     reference_elts : ListOfElements
         All the reference elements.
     reference_simulation_output : SimulationOutput
@@ -427,7 +421,6 @@ def get_objectives_and_residuals_function(
     objective_factory_class = _read_objective(objective_preset)
 
     objective_factory = objective_factory_class(
-        linac_name=linac_name,
         reference_elts=reference_elts,
         reference_simulation_output=reference_simulation_output,
         broken_elts=broken_elts,

@@ -38,7 +38,6 @@ FLAG_CYTHON, FLAG_PHI_ABS = bool, bool
 METHOD = str
 N_STEPS_PER_CELL = int()
 
-LINAC = str
 E_MEV, E_REST_MEV, INV_E_REST_MEV = float(), float(), float()
 GAMMA_INIT = float()
 F_BUNCH_MHZ, OMEGA_0_BUNCH, LAMBDA_BUNCH = float(), float(), float()
@@ -176,7 +175,6 @@ def _make_global(beam: dict,
     F_BUNCH_MHZ = beam["f_bunch_mhz"]
     E_MEV = beam["e_mev"]
     SIGMA = beam["sigma"]
-    LINAC = beam["linac"]
 
     if beam_calculator is None:
         return

@@ -122,7 +122,6 @@ class Fault:
         assert isinstance(objective_preset, str)
         elts_of_compensation_zone, self.objectives, self.compute_residuals = \
             get_objectives_and_residuals_function(
-                linac_name=con.LINAC,
                 objective_preset=objective_preset,
                 reference_elts=reference_elts,
                 reference_simulation_output=reference_simulation_output,

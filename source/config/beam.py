@@ -8,8 +8,7 @@ import numpy as np
 from constants import c
 
 
-MANDATORY_BEAM_KEYS = ("linac",
-                       "e_rest_mev",
+MANDATORY_BEAM_KEYS = ("e_rest_mev",
                        "q_adim",
                        "e_mev",
                        "f_bunch_mhz",

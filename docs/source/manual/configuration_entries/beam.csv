@@ -1,5 +1,4 @@
 Entry,Type,Description,Allowed values,Mandatory?
-``linac``,str,Name of the linac,,✅
 ``e_rest_mev``,float,Rest energy of particle in :math:`\mathrm{MeV}`,,✅
 ``q_adim``,float,Adimensioned charge of particle,,✅
 ``e_mev``,float,Energy of particle at entrance in :math:`\mathrm{MeV}`,,✅
