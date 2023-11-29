@@ -1,37 +1,37 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module holds the class :class:`Fault`.
+Define the class :class:`Fault`.
 
 It's purpose is to hold information on a failure and to fix it.
+
+.. todo::
+    not clear what happens here. separate __init__ in several functions
+
+.. todo::
+    store DesignSpace as attribute rather than Variable Constraint
+    compute_constraints
 
 """
 import logging
 from typing import Any
 
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput)
 import config_manager as con
-
 from core.elements.element import Element
-
 from core.list_of_elements.factory import ListOfElementsFactory
-
-from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
-
+from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
-
-from optimisation.objective.objective import Objective
-from optimisation.objective.factory import (
-    get_objectives_and_residuals_function
-)
-from optimisation.design_space.variable import Variable
+from optimisation.algorithms.algorithm import OptimisationAlgorithm
 from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.design_space import DesignSpace
 from optimisation.design_space.factory import DesignSpaceFactory
-
-from optimisation.algorithms.algorithm import OptimisationAlgorithm
+from optimisation.design_space.variable import Variable
+from optimisation.objective.factory import (
+    get_objectives_and_residuals_function)
+from optimisation.objective.objective import Objective
 
 
 class Fault:
@@ -129,6 +129,7 @@ class Fault:
                 broken_elts=broken_elts,
                 failed_elements=failed_elements,
                 compensating_elements=compensating_elements,
+                design_space_kw=design_space_factory.design_space_kw,
             )
 
         self.elts: ListOfElements = list_of_elements_factory.subset_list_run(

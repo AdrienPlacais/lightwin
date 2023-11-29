@@ -149,36 +149,3 @@ LIMITS_CALCULATORS = {
     'phi_0_rel': phi_0_limits,
     'k_e': k_e_limits,
 }
-
-myrrha_limits_kw = {
-    'max_increase_sync_phase_in_percent': 40.,
-    'max_absolute_sync_phase_in_deg': 0.,
-    'min_absolute_sync_phase_in_deg': -90.,
-    'max_decrease_k_e_in_percent': 50.,
-    'max_increase_k_e_in_percent': 30.,
-    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': True,
-}
-
-jaea_limits_kw = {
-    'max_increase_sync_phase_in_percent': 50.,
-    'max_absolute_sync_phase_in_deg': 0.,
-    'min_absolute_sync_phase_in_deg': -90.,
-    'max_decrease_k_e_in_percent': 50.,
-    'max_increase_k_e_in_percent': 20.,
-    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
-}
-
-spiral2_limits_kw = {
-    'max_increase_sync_phase_in_percent': 50.,
-    'max_absolute_sync_phase_in_deg': 0.,
-    'min_absolute_sync_phase_in_deg': -90.,
-    'max_decrease_k_e_in_percent': 70.,
-    'max_increase_k_e_in_percent': 20.,
-    'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
-}
-
-LIMITS_KW = {
-    'MYRRHA': myrrha_limits_kw,
-    'JAEA': jaea_limits_kw,
-    'SPIRAL2': spiral2_limits_kw,
-}

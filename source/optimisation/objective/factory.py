@@ -14,33 +14,32 @@ implemented presets in :mod:`config.optimisation.objective`.
     :mod:`failures.position`.
 
 """
-import logging
-from abc import ABC, abstractmethod, ABCMeta
+from abc import ABC, ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Any, Sequence
 from functools import partial
+import logging
+from pathlib import Path
+from typing import Any, Callable, Sequence
 
 import numpy as np
 
-from optimisation.objective.objective import Objective
-from optimisation.objective.minimize_difference_with_ref import \
-    MinimizeDifferenceWithRef
-from optimisation.objective.minimize_mismatch import MinimizeMismatch
-from optimisation.objective.quantity_is_between import QuantityIsBetween
-from optimisation.objective.position import zone_to_recompute
-
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
-
-from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.helper import equivalent_elt
-
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
-from optimisation.design_space.helper import LIMITS_KW, phi_s_limits
-
-from util.dicts_output import markdown
+from core.list_of_elements.list_of_elements import ListOfElements
 from experimental.test import assert_are_field_maps
+from optimisation.design_space.helper import phi_s_limits
+from optimisation.objective.minimize_difference_with_ref import (
+    MinimizeDifferenceWithRef,
+)
+from optimisation.objective.minimize_mismatch import MinimizeMismatch
+from optimisation.objective.objective import Objective
+from optimisation.objective.position import zone_to_recompute
+from optimisation.objective.quantity_is_between import QuantityIsBetween
+from util.dicts_output import markdown
 
 
 # =============================================================================
@@ -68,6 +67,10 @@ class ObjectiveFactory(ABC):
         Cavities that failed.
     compensating_elements : list[Element]
         Cavities that will be used for the compensation.
+    design_space_kw : dict[str, str | bool | Path | float]
+        Holds information on variables/constraints limits/initial values. Used
+        to compute the limits that ``phi_s`` must respect when the synchronous
+        phase is defined as an objective.
 
     """
 
@@ -78,6 +81,8 @@ class ObjectiveFactory(ABC):
     broken_elts: ListOfElements
     failed_elements: list[Element]
     compensating_elements: list[Element]
+
+    design_space_kw: dict[str, str | bool | Path | float]
 
     def __post_init__(self):
         """Determine the compensation zone."""
@@ -341,13 +346,16 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
         Objective to have sync phase within bounds.
 
         .. todo::
-            I do not like this dependency on ``LIMITS_KW``.
+            Allow ``from_file``.
 
         """
         reference_cavity = equivalent_elt(self.reference_elts, cavity)
-        limits_kw = LIMITS_KW[self.linac_name]
 
-        limits = phi_s_limits(reference_cavity, **limits_kw)
+        if self.design_space_kw['from_file']:
+            raise IOError("For now, synchronous phase cannot be taken from "
+                          "the variables or constraints.csv files when used as"
+                          " objectives.")
+        limits = phi_s_limits(reference_cavity, **self.design_space_kw)
 
         objective = QuantityIsBetween(
             name=markdown['phi_s'].replace('deg', 'rad'),
@@ -379,7 +387,8 @@ def get_objectives_and_residuals_function(
     reference_simulation_output: SimulationOutput,
     broken_elts: ListOfElements,
     failed_elements: list[Element],
-    compensating_elements: list[Element]
+    compensating_elements: list[Element],
+    design_space_kw: dict[str, float | bool | str | Path],
 ) -> tuple[list[Element], list[Objective], Callable[[SimulationOutput], np.ndarray]]:
     """
     Instantiate objective factory and create objectives.
@@ -398,6 +407,9 @@ def get_objectives_and_residuals_function(
         Elements that failed.
     compensating_elements : list[Element]
         Elements that will be used for the compensation.
+    design_space_kw : dict | None, optional
+        Used when we need to determine the limits for ``phi_s``. Those limits
+        are defined in the ``.ini`` configuration file.
 
     Returns
     -------
@@ -421,6 +433,7 @@ def get_objectives_and_residuals_function(
         broken_elts=broken_elts,
         failed_elements=failed_elements,
         compensating_elements=compensating_elements,
+        design_space_kw=design_space_kw,
     )
 
     elts_of_compensation_zone = objective_factory.elts_of_compensation_zone

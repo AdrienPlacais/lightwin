@@ -11,20 +11,18 @@ We define factory and presets to handle variables, constraints, limits, etc..
     decorator to auto output the variables and constraints?
 
 """
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import logging
+from pathlib import Path
 
-
-from optimisation.design_space.variable import Variable
+from core.elements.element import Element
+from core.list_of_elements.helper import equivalent_elt
 from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.design_space import DesignSpace
-from optimisation.design_space.helper import (same_value_as_nominal,
-                                              LIMITS_CALCULATORS,
-                                              )
-
-from core.list_of_elements.helper import equivalent_elt
-from core.elements.element import Element
+from optimisation.design_space.helper import (LIMITS_CALCULATORS,
+                                              same_value_as_nominal)
+from optimisation.design_space.variable import Variable
 
 
 # =============================================================================
@@ -47,12 +45,12 @@ class DesignSpaceFactory(ABC):
 
     """
 
-    design_space_kw: dict[str, float | bool | str]
+    design_space_kw: dict[str, float | bool | str | Path]
 
     def __post_init__(self):
         """Declare complementary variables."""
-        self.variables_filepath: str
-        self.constraints_filepath: str
+        self.variables_filepath: Path
+        self.constraints_filepath: Path
 
         from_file = self.design_space_kw['from_file']
         if from_file:
@@ -75,16 +73,16 @@ class DesignSpaceFactory(ABC):
         return ()
 
     def use_files(self,
-                  variables_filepath: str,
-                  constraints_filepath: str | None = None,
-                  **design_space_kw: float | bool | str) -> None:
+                  variables_filepath: Path,
+                  constraints_filepath: Path | None = None,
+                  **design_space_kw: float | bool | str | Path) -> None:
         """Tell factory to generate design space from the provided files.
 
         Parameters
         ----------
-        variables_filepath : str
+        variables_filepath : Path
             Path to the ``variables.csv`` file.
-        constraints_filepath : str | None
+        constraints_filepath : Path | None
             Path to the ``constraints.csv`` file. The default is None.
 
         """

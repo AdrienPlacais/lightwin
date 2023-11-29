@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define an object to hold variables and constraints."""
-import os.path
 import logging
 from abc import ABCMeta
+from pathlib import Path
 from typing import Any, Self
 from collections import defaultdict
 from dataclasses import dataclass
@@ -29,9 +29,9 @@ class DesignSpace:
     @classmethod
     def from_files(cls,
                    elements_names: tuple[str, ...],
-                   filepath_variables: str,
+                   filepath_variables: Path,
                    variables_names: tuple[str, ...],
-                   filepath_constraints: str | None = None,
+                   filepath_constraints: Path | None = None,
                    constraints_names: tuple[str, ...] | None = None,
                    delimiter: str = ',',
                    ) -> Self:
@@ -41,11 +41,11 @@ class DesignSpace:
         ----------
         elements_names : tuple[str, ...]
             Name of the elements with variables and constraints.
-        filepath_variables : str
+        filepath_variables : Path
             Path to the ``variables.csv`` file.
         variables_names : tuple[str, ...]
             Name of the variables to create.
-        filepath_constraints : str
+        filepath_constraints : Path
             Path to the ``constraints.csv`` file.
         constraints_names : tuple[str, ...]
             Name of the constraints to create.
@@ -116,18 +116,18 @@ class DesignSpace:
         return pd.DataFrame(dicts, columns=to_get)
 
     def to_files(self,
-                 basepath: str,
-                 variables_filename: str = 'variables',
-                 constraints_filename: str = 'constraints',
+                 basepath: Path,
+                 variables_filename: Path = Path('variables'),
+                 constraints_filename: Path = Path('constraints'),
                  overwrite: bool = False,
                  **to_csv_kw: Any) -> None:
         """Save variables and constraints in files.
 
         Parameters
         ----------
-        basepath : str
+        basepath : Path
             Folder where the files will be stored.
-        variables_filename, constraints_filename : str
+        variables_filename, constraints_filename : Path
             Name of the output files without extension.
         overwrite : bool, optional
             To overwrite an existing file with the same name or not. The
@@ -139,9 +139,9 @@ class DesignSpace:
         zipper = zip(('variables', 'constraints'),
                      (variables_filename, constraints_filename))
         for parameter_name, filename in zipper:
-            filepath = os.path.join(basepath, f"{filename}.csv")
+            filepath = Path(basepath, filename.with_suffix('.csv'))
 
-            if os.path.isfile(filepath) and not overwrite:
+            if filepath.is_file() and not overwrite:
                 logging.warning(f"{filepath = } already exists. Skipping...")
                 continue
 
@@ -156,7 +156,7 @@ class DesignSpace:
 
     def _to_file(self,
                  parameters: list[DesignSpaceParameter],
-                 filepath: str,
+                 filepath: Path,
                  delimiter: str = ',',
                  **to_csv_kw: Any,
                  ) -> None:
@@ -166,7 +166,7 @@ class DesignSpace:
         ----------
         parameters : list[DesignSpaceParameter]
             All the defined parameters.
-        filepath : str
+        filepath : Path
             Where file will be stored.
         delimiter : str
             Delimiter between two columns. The default is ','.
@@ -286,7 +286,7 @@ def _merge(dicts: list[dict]) -> dict:
 
 
 def _from_file(parameter_class: ABCMeta,
-               filepath: str,
+               filepath: Path,
                elements_names: tuple[str, ...],
                parameters_names: tuple[str, ...],
                delimiter: str = ',',
@@ -301,7 +301,7 @@ def _from_file(parameter_class: ABCMeta,
     ----------
     parameter_class : {Variable, Constraint}
         Object which ``from_pd_series`` method will be called.
-    filepath : str
+    filepath : Path
         Path to the ``.csv``.
     elements_names : tuple[str, ...]
         Name of the elements.
