@@ -225,6 +225,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
     def re_set_for_broken_cavity(self) -> None:
         """Make beam calculator call Drift func instead of FieldMap."""
         self.transf_mat_function = self._transf_mat_module.z_drift
+        self.transfer_matrix_kw = lambda: {}
 
         def _new_transfer_matrix_results_to_dict(r_zz: np.ndarray,
                                                  gamma_phi: np.ndarray,
