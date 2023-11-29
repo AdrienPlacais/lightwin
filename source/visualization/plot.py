@@ -23,31 +23,26 @@ implemented plots in :mod:`config.plots`.
     accelerates or not (ex when quadrupole defined by a field map)
 
 """
-
-import os
-import logging
-from typing import Any, Callable
 import itertools
+import logging
+from pathlib import Path
+from typing import Any, Callable
 
-import numpy as np
 import matplotlib
+import matplotlib.patches as pat
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
-import matplotlib.patches as pat
-
+import numpy as np
 from palettable.colorbrewer.qualitative import Dark2_8
-from cycler import cycler
 
-from util import helper
-
+from beam_calculation.simulation_output.simulation_output import \
+    SimulationOutput
 from core.accelerator.accelerator import Accelerator
 from core.elements.drift import Drift
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad
-
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
-
+from cycler import cycler
+from util import helper
 import util.dicts_output as dic
 
 figure_type = matplotlib.figure.Figure
@@ -102,7 +97,8 @@ ERROR_REFERENCE = "ref accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)"
 # =============================================================================
 # Front end
 # =============================================================================
-def factory(accelerators: list[Accelerator], plots: dict[str, bool],
+def factory(accelerators: list[Accelerator],
+            plots: dict[str, bool],
             **kwargs: bool) -> list[figure_type]:
     """Create all the desired plots."""
     if (kwargs['clean_fig']
@@ -112,6 +108,9 @@ def factory(accelerators: list[Accelerator], plots: dict[str, bool],
                         " previous will be erased without saving.")
 
     ref_acc = accelerators[0]
+    # Dirty patch to force plot even when only one accelerator
+    if len(accelerators) == 1:
+        accelerators = [ref_acc, ref_acc]
     figs = [_plot_preset(preset, *(ref_acc, fix_acc),
                          **_proper_kwargs(preset, kwargs))
             for fix_acc in accelerators[1:]
@@ -123,9 +122,12 @@ def factory(accelerators: list[Accelerator], plots: dict[str, bool],
 # Used in factory
 # =============================================================================
 # Main func
-def _plot_preset(str_preset: str, *args: Accelerator,
-                 x_axis: str = 'z_abs', all_y_axis: list[str] | None = None,
-                 save_fig: bool = True, **kwargs: bool | str | int,
+def _plot_preset(str_preset: str,
+                 *args: Accelerator,
+                 x_axis: str = 'z_abs',
+                 all_y_axis: list[str] | None = None,
+                 save_fig: bool = True,
+                 **kwargs: bool | str | int,
                  ) -> plt.figure:
     """
     Plot a preset.
@@ -157,8 +159,7 @@ def _plot_preset(str_preset: str, *args: Accelerator,
     axx[-1].set_xlabel(dic.markdown[x_axis])
 
     if save_fig:
-        file = os.path.join(args[-1].get('accelerator_path'),
-                            f"{str_preset}.png")
+        file = Path(args[-1].get('accelerator_path'), f"{str_preset}.png")
         _savefig(fig, file)
 
     return fig
