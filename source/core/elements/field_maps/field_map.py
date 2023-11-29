@@ -230,8 +230,11 @@ class FieldMap(Element):
         return rf_parameters
 
     # FIXME to refactor, in particular send proper beam_parameters directly.
-    def phi_0_rel_matching_this(self, solver_id: str, phi_s: float,
-                                w_kin_in: float, **rf_parameters: dict
+    def phi_0_rel_matching_this(self,
+                                solver_id: str,
+                                phi_s: float,
+                                w_kin_in: float,
+                                **rf_parameters: dict
                                 ) -> float:
         """
         Sweeps phi_0_rel until the cavity synch phase matches phi_s.
@@ -252,6 +255,7 @@ class FieldMap(Element):
         phi_0_rel : float
             The relative cavity entrance phase that leads to a synchronous
             phase of phi_s_objective.
+
         """
         bounds = (0, 2. * np.pi)
         beam_calc_param = self.beam_calc_param[solver_id]
@@ -259,10 +263,9 @@ class FieldMap(Element):
         def _wrapper_synch(phi_0_rel: float) -> float:
             rf_parameters['phi_0_rel'] = phi_0_rel
             rf_parameters['phi_0_abs'] = None
-            # FIXME should not have dependencies is_accelerating, status
-            args = (w_kin_in, self.is_accelerating(), self.get('status'))
             results = beam_calc_param.transf_mat_function_wrapper(
-                *args, **rf_parameters)
+                w_kin_in,
+                **rf_parameters)
             diff = diff_angle(phi_s, results['cav_params']['phi_s'])
             return diff**2
 
