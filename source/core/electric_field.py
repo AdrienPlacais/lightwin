@@ -8,12 +8,15 @@ This module holds :class:`RfField`, which is a simple electric field.
     to beam_calculation/?
 
 """
+import itertools
 import logging
+from typing import Callable
+
 import cmath
 import numpy as np
 
-from util.helper import recursive_items, recursive_getter
 import config_manager as con
+from util.helper import recursive_items, recursive_getter
 
 
 def compute_param_cav(integrated_field: complex) -> dict[str, float]:
@@ -43,7 +46,7 @@ class RfField():
 
     Attributes
     ----------
-    e_spat : Callable[float, float]
+    e_spat : Callable[[float], float]
         Spatial component of the electric field. Needs to be multiplied by the
         cos(omega t) to have the full electric field. Initialized to null
         function.
@@ -83,7 +86,10 @@ class RfField():
                  absolute_phase_flag: bool = False,
                  phi_0: float | None = None) -> None:
         """Instantiate object."""
-        self.e_spat = lambda x: 0.
+        self.e_spat: Callable[[float], float]
+        self.n_cell: int
+        self.set_e_spat(lambda _: 0., n_cell=2)
+
         self.k_e = k_e
 
         self.phi_0 = {'phi_0_rel': None,
@@ -103,7 +109,6 @@ class RfField():
         self.v_cav_mv = np.NaN
         self.phi_s = np.NaN
 
-        self.n_cell: int = 2
         # Default values, overwritten by the FREQ command
         self.omega0_rf: float
         self.bunch_to_rf: float
@@ -161,6 +166,13 @@ class RfField():
         """Initialize the pulsation and the rf / bunch fraction."""
         self.omega0_rf = 2e6 * np.pi * f_mhz
         self.bunch_to_rf = f_mhz / con.F_BUNCH_MHZ
+
+    def set_e_spat(self,
+                   e_spat: Callable[[float], float],
+                   n_cell: int) -> None:
+        """Set the pos. component of electric field, set number of cells."""
+        self.e_spat = e_spat
+        self.n_cell = n_cell
 
     def update_phi_0_abs_to_adapt_to_new_ref_phase(
             self,

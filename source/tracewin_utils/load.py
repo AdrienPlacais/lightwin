@@ -10,6 +10,7 @@ This module holds the function to load and preprocess the TraceWin files.
     Handle non-absolute field map paths in the FIELD_MAP_PATH
 
 """
+import itertools
 import logging
 from pathlib import Path
 import os.path
@@ -126,7 +127,7 @@ def results(path: Path, prop: str) -> np.ndarray:
     return data_ref
 
 
-def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray]:
+def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray, int]:
     """
     Load a 1D electric field (.edz extension).
 
@@ -147,8 +148,14 @@ def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray]:
         k_e/norm, hence norm should be unity by default.
     f_z : np.ndarray
         Array of electric field in MV/m.
+    n_cell : int
+        Number of cells in the cavity.
 
     """
+    n_z: int | None = None
+    zmax: float | None = None
+    norm: float | None = None
+
     f_z = []
     try:
         with open(path, 'r', encoding='utf-8') as file:
@@ -174,9 +181,26 @@ def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray]:
     except UnicodeDecodeError:
         logging.error("File could not be loaded. Check that it is non-binary."
                       "Returning nothing and trying to continue without it.")
-        return None, None, None, None
+        raise IOError()
 
-    return n_z, zmax, norm, np.array(f_z)
+    assert n_z is not None
+    assert zmax is not None
+    assert norm is not None
+    n_cell = _get_number_of_cells(f_z)
+    return n_z, zmax, norm, np.array(f_z), n_cell
+
+
+def _get_number_of_cells(f_z: list[float]) -> int:
+    """
+    Count number of times the array of z-electric field changes sign.
+
+    See `SO`_.
+
+    .. _SO: https://stackoverflow.com/a/2936859/12188681
+
+    """
+    n_cell = len(list(itertools.groupby(f_z, lambda z: z > 0.)))
+    return n_cell
 
 
 def transfer_matrices(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:

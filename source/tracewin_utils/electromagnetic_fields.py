@@ -63,7 +63,7 @@ def load_electromagnetic_fields(field_maps: list[FieldMap],
 
         args = _load_field_map_file(field_map)
         if args is not None:
-            field_map.acc_field.e_spat = args[0]
+            field_map.acc_field.set_e_spat(args[0], args[2])
             field_map.acc_field.n_z = args[1]
 
     if cython:
@@ -260,6 +260,7 @@ def _get_field_components(first_words_field_geometry: str) -> list[str]:
 def _load_field_map_file(
     field_map: FieldMap) -> tuple[Callable[[float | np.ndarray],
                                            float | np.ndarray] | None,
+                                  int | None,
                                   int | None]:
     """
     Go across the field map file names and load the first recognized.
@@ -270,7 +271,7 @@ def _load_field_map_file(
     """
     if len(field_map.field_map_file_name) > 1:
         logging.debug("Loading of several field_maps not handled")
-        return None, None
+        return None, None, None
 
     for file_name in field_map.field_map_file_name:
         _, extension = os.path.splitext(file_name)
@@ -283,14 +284,7 @@ def _load_field_map_file(
 
         # this will require an update if I want to implement new field map
         # extensions
-        if isinstance(file_name, str):
-            logging.info("legacy: file_name is a str, while it should be a "
-                         "Path object")
-            file_name = Path(file_name)
-        assert isinstance(file_name, Path)
-        n_z, zmax, norm, f_z = import_function(file_name)
-        if n_z is None:
-            return None, None
+        n_z, zmax, norm, f_z, n_cell = import_function(file_name)
 
         assert _is_a_valid_electric_field(n_z,
                                           zmax,
@@ -309,7 +303,7 @@ def _load_field_map_file(
         # the future...
         field_map.field_map_file_name = file_name
 
-        return e_spat, n_z
+        return e_spat, n_z, n_cell
 
 
 def _is_a_valid_electric_field(n_z: int, zmax: float, norm: float,
