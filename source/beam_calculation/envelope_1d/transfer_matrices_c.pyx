@@ -100,9 +100,10 @@ cdef DTYPE_t interp(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e, int n_points_e)
 cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
                     int n_points_e, DTYPE_t phi, DTYPE_t phi_0):
     """
-    Give the electric field at position z and phase phi.
+    Give the electric field at position ``z`` and phase ``phi``.
 
-    The field is normalized and should be multiplied by k_e.
+    The field is normalized and should be multiplied by ``k_e``.
+
     """
     return interp(z, e_z, inv_dz_e, n_points_e) * cos(phi + phi_0)
 
@@ -110,9 +111,15 @@ cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
 # =============================================================================
 # Motion integration functions
 # =============================================================================
-cdef rk4(DTYPE_t z, DTYPE_t[:] u,
-         DTYPE_t dz_s, DTYPE_t k_k, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
-         int n_points_e, DTYPE_t phi_0_rel, DTYPE_t delta_phi_norm):
+cdef rk4(DTYPE_t z,
+         DTYPE_t[:] u,
+         DTYPE_t dz_s,
+         DTYPE_t k_k,
+         DTYPE_t[:] e_z,
+         DTYPE_t inv_dz_e,
+         int n_points_e,
+         DTYPE_t phi_0_rel,
+         DTYPE_t delta_phi_norm):
     """
     Integrate the motion over the space step.
 
