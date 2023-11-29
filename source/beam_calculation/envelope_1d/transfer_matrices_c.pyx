@@ -13,6 +13,9 @@ Cython needs to be compiled to work. Check the instructions in ``setup.py``.
 .. todo::
     Field maps better to create the transfer matrix in one passage at the end?
 
+.. todo::
+    the passing of the field maps is not clean at all
+
 """
 import cython
 from libc.math cimport sin, cos, sqrt, tan, floor
@@ -35,16 +38,16 @@ cdef DTYPE_t q_adim_cdef = con.Q_ADIM
 cdef DTYPE_t GAMMA_cdef = con.GAMMA_INIT
 
 
-cpdef init_arrays(list l_filepaths):
+cpdef init_arrays(list filepaths):
     """Initialize electric fields for efficiency."""
     cdef int n_points = 0
     cdef Py_ssize_t i
     cdef DTYPE_t inv_dz = 0.
     cdef DTYPE_t[:] e_z
-    global l_d_ez
+    global electric_fields
 
-    l_d_ez = []
-    for filepath in l_filepaths:
+    electric_fields = {}
+    for filepath in filepaths:
         with open(filepath) as file:
             for i, line in enumerate(file):
                 if i == 0:
@@ -53,7 +56,10 @@ cpdef init_arrays(list l_filepaths):
                     e_z = np.empty([n_points], dtype=DTYPE)
                 elif i > 1:
                     e_z[i - 2] = float(line)
-        l_d_ez.append({"e_z": e_z, "n_points": n_points, "inv_dz": inv_dz})
+        electric_fields[str(filepath)] = {"e_z": e_z,
+                                          "n_points": n_points,
+                                          "inv_dz": inv_dz}
+
 
     global c_cdef
     c_cdef = c
@@ -224,7 +230,6 @@ def z_field_map_rk4(DTYPE_t gamma_in,
                     DTYPE_t omega0_rf,
                     DTYPE_t k_e,
                     DTYPE_t phi_0_rel,
-                    np.int64_t section_idx,
                     **kwargs):
     """Calculate the transfer matrix of a field map using Runge-Kutta."""
     # Variables:
@@ -250,9 +255,10 @@ def z_field_map_rk4(DTYPE_t gamma_in,
     cdef DTYPE_t delta_gamma_norm = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
     cdef DTYPE_t k_k = delta_gamma_norm * k_e
 
-    inv_dz_e = l_d_ez[section_idx]["inv_dz"]
-    e_z = l_d_ez[section_idx]["e_z"]
-    n_points_e = l_d_ez[section_idx]["n_points"]
+    filename = kwargs['filename']
+    inv_dz_e = electric_fields[filename]["inv_dz"]
+    e_z = electric_fields[filename]["e_z"]
+    n_points_e = electric_fields[filename]["n_points"]
 
     # Initial values for gamma and relative phase
     gamma_phi[0, 0] = gamma_in
@@ -338,9 +344,10 @@ def z_field_map_leapfrog(DTYPE_t gamma_in,
     cdef DTYPE_t delta_gamma_middle_max
     cdef DTYPE_t gamma_middle, phi_middle
 
-    inv_dz_e = l_d_ez[section_idx]["inv_dz"]
-    e_z = l_d_ez[section_idx]["e_z"]
-    n_points_e = l_d_ez[section_idx]["n_points"]
+    raise IOError
+    inv_dz_e = electric_fields[section_idx]["inv_dz"]
+    e_z = electric_fields[section_idx]["e_z"]
+    n_points_e = electric_fields[section_idx]["n_points"]
 
     # Initial values for gamma and relative phase
     gamma_phi[0, 1] = 0.

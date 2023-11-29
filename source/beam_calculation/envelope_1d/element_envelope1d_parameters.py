@@ -86,12 +86,17 @@ class ElementEnvelope1DParameters(ElementBeamCalculatorParameters):
         r_zz, gamma_phi, itg_field = self.transf_mat_function(
             gamma_in,
             *self.transfer_matrix_arguments(),
+            **self.transfer_matrix_kw(),
             **rf_field_kwargs)
 
         results = self._transfer_matrix_results_to_dict(r_zz,
                                                         gamma_phi,
                                                         itg_field)
         return results
+
+    def transfer_matrix_kw(self) -> dict:
+        """Keyword arguments."""
+        return {}
 
     def _transfer_matrix_results_to_dict(self,
                                          r_zz: np.ndarray,
@@ -184,11 +189,16 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
                          n_steps,
                          )
         self._transf_mat_module = transf_mat_module
+        self.field_map_file_name = str(elt.field_map_file_name)
 
     def transfer_matrix_arguments(self
                                   ) -> tuple[float, int]:
         """Give the element parameters necessary to compute transfer matrix."""
         return self.d_z, self.n_steps
+
+    def transfer_matrix_kw(self) -> dict:
+        """Give field map filename, used by Cython."""
+        return {'filename': self.field_map_file_name}
 
     def _transfer_matrix_results_to_dict(self,
                                          r_zz: np.ndarray,
