@@ -169,11 +169,12 @@ def z_field_map_rk4(gamma_in: float,
                               x=z_rel,
                               dx=d_z)
 
-        # Update
         gamma_phi[i + 1, :] = gamma_phi[i, :] + delta_gamma_phi
 
-        # Update itg_field. Used to compute V_cav and phi_s.
-        itg_field += k_e * e_func(z_rel, e_spat, gamma_phi[i, 1], phi_0_rel) \
+        itg_field += k_e * e_func(z_rel,
+                                  e_spat,
+                                  gamma_phi[i, 1],
+                                  phi_0_rel) \
             * (1. + 1j * math.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         # Compute gamma and phi at the middle of the thin lense
@@ -184,9 +185,13 @@ def z_field_map_rk4(gamma_in: float,
         delta_gamma_middle_max = k_k * e_spat(z_rel + half_dz)
 
         # Compute thin lense transfer matrix
-        r_zz[i, :, :] = z_thin_lense(
-            gamma_phi[i, 0], gamma_phi[i + 1, 0], gamma_phi_middle,
-            half_dz, delta_gamma_middle_max, phi_0_rel, omega0_rf)
+        r_zz[i, :, :] = z_thin_lense(gamma_phi[i, 0],
+                                     gamma_phi[i + 1, 0],
+                                     gamma_phi_middle,
+                                     half_dz,
+                                     delta_gamma_middle_max,
+                                     phi_0_rel,
+                                     omega0_rf)
 
         z_rel += d_z
 

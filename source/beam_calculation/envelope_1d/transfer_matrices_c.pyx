@@ -113,7 +113,7 @@ cdef DTYPE_t e_func(DTYPE_t z, DTYPE_t[:] e_z, DTYPE_t inv_dz_e,
 # =============================================================================
 cdef rk4(DTYPE_t z,
          DTYPE_t[:] u,
-         DTYPE_t dz_s,
+         DTYPE_t d_z,
          DTYPE_t k_k,
          DTYPE_t[:] e_z,
          DTYPE_t inv_dz_e,
@@ -127,7 +127,7 @@ cdef rk4(DTYPE_t z,
     proportional to delta_u instead of du_dz.
     """
     # Variables:
-    cdef DTYPE_t half_dz_s = .5 * dz_s
+    cdef DTYPE_t half_dz = .5 * d_z
     cdef Py_ssize_t i
 
     # Memory views:
@@ -156,7 +156,7 @@ cdef rk4(DTYPE_t z,
     for i in [1, 2]:
         tmp[0] = u[0] + .5 * k_i[i - 1, 0]
         tmp[1] = u[1] + .5 * k_i[i - 1, 1]
-        delta_u_i = du(z + half_dz_s, tmp,
+        delta_u_i = du(z + half_dz, tmp,
                         k_k, e_z, inv_dz_e, n_points_e, phi_0_rel, delta_phi_norm)
         k_i[i, 0] = delta_u_i[0]
         k_i[i, 1] = delta_u_i[1]
@@ -165,7 +165,7 @@ cdef rk4(DTYPE_t z,
     tmp[0] = u[0] + k_i[2, 0]
     tmp[1] = u[1] + k_i[2, 1]
     # Equiv of k_4 = du_dx(x + dx, u + dx * k_3)
-    delta_u_i = du(z + dz_s, tmp,
+    delta_u_i = du(z + d_z, tmp,
                     k_k, e_z, inv_dz_e, n_points_e, phi_0_rel, delta_phi_norm)
     k_i[3, 0] = delta_u_i[0]
     k_i[3, 1] = delta_u_i[1]
@@ -219,7 +219,7 @@ cpdef z_drift(DTYPE_t gamma_in, DTYPE_t delta_s, np.int64_t n_steps=1):
 
 
 def z_field_map_rk4(DTYPE_t gamma_in,
-                    DTYPE_t dz_s,
+                    DTYPE_t d_z,
                     np.int64_t n_steps,
                     DTYPE_t omega0_rf,
                     DTYPE_t k_e,
@@ -230,7 +230,7 @@ def z_field_map_rk4(DTYPE_t gamma_in,
     # Variables:
     cdef DTYPE_t z_rel = 0.
     cdef complex itg_field = 0.
-    cdef DTYPE_t half_dz_s = .5 * dz_s
+    cdef DTYPE_t half_dz = .5 * d_z
     cdef np.int64_t i
     cdef DTYPE_t gamma_middle, phi_middle
 
@@ -246,8 +246,8 @@ def z_field_map_rk4(DTYPE_t gamma_in,
     cdef int n_points_e
 
     # Constants to speed up calculation
-    cdef DTYPE_t delta_phi_norm = omega0_rf * dz_s / c_cdef
-    cdef DTYPE_t delta_gamma_norm = q_adim_cdef * dz_s * inv_E_rest_MeV_cdef
+    cdef DTYPE_t delta_phi_norm = omega0_rf * d_z / c_cdef
+    cdef DTYPE_t delta_gamma_norm = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
     cdef DTYPE_t k_k = delta_gamma_norm * k_e
 
     inv_dz_e = l_d_ez[section_idx]["inv_dz"]
@@ -260,40 +260,51 @@ def z_field_map_rk4(DTYPE_t gamma_in,
 
     for i in range(n_steps):
         # Compute gamma and phase changes
-        delta_gamma_phi = rk4(z_rel, gamma_phi[i, :],
-                              dz_s, k_k, e_z, inv_dz_e, n_points_e, phi_0_rel,
+        delta_gamma_phi = rk4(z_rel,
+                              gamma_phi[i, :],
+                              d_z,
+                              k_k,
+                              e_z,
+                              inv_dz_e,
+                              n_points_e,
+                              phi_0_rel,
                               delta_phi_norm)
 
-        # Update
         gamma_phi[i + 1, 0] = gamma_phi[i, 0] + delta_gamma_phi[0]
         gamma_phi[i + 1, 1] = gamma_phi[i, 1] + delta_gamma_phi[1]
 
-        # For synchronous phase and accelerating potential
-        itg_field += k_e * e_func(z_rel, e_z, inv_dz_e, n_points_e,
-                                  gamma_phi[i, 1], phi_0_rel) \
-            * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * dz_s
+        itg_field += k_e * e_func(z_rel,
+                                  e_z,
+                                  inv_dz_e,
+                                  n_points_e,
+                                  gamma_phi[i, 1],
+                                  phi_0_rel) \
+            * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
-        # Compute gamma and phi at the middle of the thin lense
-        gamma_middle = .5 * (gamma_phi[i, 0] + gamma_phi[i + 1, 0])
+        gamma_middle = gamma_phi[i, 0] + .5 * delta_gamma_phi[0]
         phi_middle = gamma_phi[i, 1] + .5 * delta_gamma_phi[1]
 
-        # To speed up (corresponds to the gamma_variation at the middle of the
-        # thin lense at cos(phi + phi_0) = 1
-        delta_gamma_middle_max = k_k * interp(z_rel + half_dz_s, e_z,
-                                              inv_dz_e, n_points_e)
+        delta_gamma_middle_max = k_k * interp(z_rel + half_dz,
+                                              e_z,
+                                              inv_dz_e,
+                                              n_points_e)
 
         # Compute thin lense transfer matrix
-        r_zz_array[i, :, :] = z_thin_lense(
-            gamma_phi[i, 0], gamma_middle, gamma_phi[i + 1, 0], phi_middle,
-            half_dz_s, delta_gamma_middle_max, phi_0_rel, omega0_rf)
-
-        z_rel += dz_s
+        r_zz_array[i, :, :] = z_thin_lense(gamma_phi[i, 0],
+                                           gamma_phi[i + 1, 0],
+                                           gamma_middle,
+                                           phi_middle,
+                                           half_dz,
+                                           delta_gamma_middle_max,
+                                           phi_0_rel,
+                                           omega0_rf)
+        z_rel += d_z
 
     return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
 def z_field_map_leapfrog(DTYPE_t gamma_in,
-                         DTYPE_t dz_s,
+                         DTYPE_t d_z,
                          np.int64_t n_steps,
                          DTYPE_t omega0_rf,
                          DTYPE_t k_e,
@@ -307,7 +318,7 @@ def z_field_map_leapfrog(DTYPE_t gamma_in,
     cdef DTYPE_t beta = sqrt(1. - gamma_in**-2)
     cdef np.int64_t i
     cdef DTYPE_t delta_gamma, delta_phi
-    cdef DTYPE_t half_dz_s = .5 * dz_s
+    cdef DTYPE_t half_dz = .5 * d_z
 
     # Arrays:
     cdef np.ndarray[DTYPE_t, ndim=3] r_zz_array = np.empty([n_steps, 2, 2],
@@ -321,8 +332,8 @@ def z_field_map_leapfrog(DTYPE_t gamma_in,
     cdef int n_points_e
 
     # Constants to speed up calculation
-    cdef DTYPE_t delta_phi_norm = omega0_rf * dz_s / c_cdef
-    cdef DTYPE_t delta_gamma_norm = q_adim_cdef * dz_s * inv_E_rest_MeV_cdef
+    cdef DTYPE_t delta_phi_norm = omega0_rf * d_z / c_cdef
+    cdef DTYPE_t delta_gamma_norm = q_adim_cdef * d_z * inv_E_rest_MeV_cdef
     cdef DTYPE_t k_k = delta_gamma_norm * k_e
     cdef DTYPE_t delta_gamma_middle_max
     cdef DTYPE_t gamma_middle, phi_middle
@@ -357,7 +368,7 @@ def z_field_map_leapfrog(DTYPE_t gamma_in,
         itg_field += k_e * e_func(z_rel, e_z,
                                   inv_dz_e, n_points_e, gamma_phi[i, 1],
                                   phi_0_rel) \
-            * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * dz_s
+            * (1. + 1j * tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         # Compute gamma and phi at the middle of the thin lense
         gamma_middle = gamma_phi[i, 0]
@@ -367,24 +378,24 @@ def z_field_map_leapfrog(DTYPE_t gamma_in,
 
         # To speed up (corresponds to the gamma_variation at the middle of the
         # thin lense at cos(phi + phi_0) = 1
-        delta_gamma_middle_max = k_k * interp(z_rel + half_dz_s, e_z,
+        delta_gamma_middle_max = k_k * interp(z_rel + half_dz, e_z,
                                               inv_dz_e, n_points_e)
         # Compute thin lense transfer matrix
         r_zz_array[i, :, :] = z_thin_lense(
             gamma_phi[i, 0], gamma_middle, gamma_phi[i + 1, 0],
-            phi_middle, half_dz_s, delta_gamma_middle_max, phi_0_rel,
+            phi_middle, half_dz, delta_gamma_middle_max, phi_0_rel,
             omega0_rf)
 
-        z_rel += dz_s
+        z_rel += d_z
 
     return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
 cdef z_thin_lense(DTYPE_t gamma_in,
-                  DTYPE_t gamma_m,
                   DTYPE_t gamma_out,
+                  DTYPE_t gamma_m,
                   DTYPE_t phi_m,
-                  DTYPE_t half_dz_s,
+                  DTYPE_t half_dz,
                   DTYPE_t delta_gamma_m_max,
                   DTYPE_t phi_0,
                   DTYPE_t omega0_rf
@@ -405,9 +416,9 @@ cdef z_thin_lense(DTYPE_t gamma_in,
     k_3 = (1. - k_speed2) / k_2
 
     # Faster than matmul or matprod_22
-    r_zz_array = z_drift(gamma_out, half_dz_s)[0][0] \
+    r_zz_array = z_drift(gamma_out, half_dz)[0][0] \
                  @ (np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE) \
-                    @ z_drift(gamma_in, half_dz_s)[0][0])
+                    @ z_drift(gamma_in, half_dz)[0][0])
     return r_zz_array
 
 
@@ -431,4 +442,3 @@ cpdef z_bend(DTYPE_t gamma_in,
           OMEGA_0_BUNCH_cdef * delta_s / (sqrt(beta_in_squared) * c_cdef)
          ]], dtype=DTYPE)
     return r_zz, gamma_phi, None
-
