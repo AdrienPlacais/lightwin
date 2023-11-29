@@ -6,6 +6,7 @@
     maybe show what the file should look like?
 
 """
+from pathlib import Path
 import sys
 sys.path.append('/home/placais/LightWin/source')
 import config_manager
@@ -20,13 +21,12 @@ from optimisation.design_space.factory import get_design_space_factory
 from optimisation.design_space.design_space import DesignSpace
 
 
-
 if __name__ == '__main__':
     # =========================================================================
     # Set up the accelerator
     # =========================================================================
-    project_folder = '/home/placais/LightWin/data/MYRRHA/'
-    ini_filepath = os.path.join(project_folder, 'lightwin.ini')
+    project_folder = Path('/home/placais/LightWin/data/MYRRHA/')
+    ini_filepath = Path(project_folder, 'lightwin.ini')
     ini_keys = {
         'files': 'files',  # defines input/output files
         'beam': 'beam',    # defines beam initial properties
