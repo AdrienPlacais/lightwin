@@ -17,6 +17,7 @@ from abc import abstractmethod
 from types import ModuleType
 from typing import Any, Callable, Sequence
 
+import math
 import numpy as np
 
 from beam_calculation.parameters.element_parameters import (
@@ -112,7 +113,7 @@ class ElementEnvelope1DParameters(ElementBeamCalculatorParameters):
             r_zz: np.ndarray,
             gamma_phi: np.ndarray,
             itg_field: float | None,
-            ) -> dict:
+    ) -> dict:
         """Convert the results given by the transf_mat function to dict.
 
         This method should override the default
@@ -271,19 +272,20 @@ class BendEnvelope1DParameters(ElementEnvelope1DParameters):
                          n_steps=1,
                          )
 
-        h_squared = (elt.bend_angle
-                     / abs(elt.curvature_radius * elt.bend_angle))**2
-        k_x = np.sqrt((1. - elt.field_grad_index) * h_squared)
-        factors = self._pre_compute_factors_for_transfer_matrix(elt.length_m,
-                                                                h_squared,
-                                                                k_x)
+        factors = self._pre_compute_factors_for_transfer_matrix(
+            elt.length_m,
+            elt.h_squared,
+            elt.k_x,
+            elt.field_grad_index <= 1.,
+        )
         self.factor_1, self.factor_2, self.factor_3 = factors
 
     def _pre_compute_factors_for_transfer_matrix(
         self,
         length_m: float,
         h_squared: float,
-        k_x: float
+        k_x: float,
+        index_is_lower_than_unity: bool,
     ) -> tuple[float, float, float]:
         r"""
         Compute factors to speed up the transfer matrix calculation.
@@ -298,6 +300,11 @@ class BendEnvelope1DParameters(ElementEnvelope1DParameters):
         .. math::
             \frac{h^2 \sin{(k_x\Delta s)}}{k_x^3}
 
+        if :math:`n \leq 1`. Else:
+
+        .. math::
+            \frac{h^2 \sinh{(k_x\Delta s)}}{k_x^3}
+
         ``factor_3`` is:
 
         .. math::
@@ -305,7 +312,10 @@ class BendEnvelope1DParameters(ElementEnvelope1DParameters):
 
         """
         factor_1 = -h_squared * length_m / k_x**2
-        factor_2 = h_squared * np.sin(k_x * length_m) / k_x**3
+        if index_is_lower_than_unity:
+            factor_2 = h_squared * math.sin(k_x * length_m) / k_x**3
+        else:
+            factor_2 = h_squared * math.sinh(k_x * length_m) / k_x**3
         factor_3 = length_m * (1. - h_squared / k_x**2)
         assert isinstance(factor_1, float)
         assert isinstance(factor_2, float)

@@ -340,9 +340,9 @@ def z_bend(gamma_in: float,
     beta_in_squared = 1. - gamma_in_min2
 
     topright = factor_1 * beta_in_squared + factor_2 + factor_3 * gamma_in_min2
-    r_zz = np.ones(2)
+    r_zz = np.eye(2)
     r_zz[0, 1] = topright
 
     delta_phi = con.OMEGA_0_BUNCH * delta_s / (np.sqrt(beta_in_squared) * c)
     gamma_phi = np.array([gamma_in, delta_phi])
-    return r_zz, gamma_phi, None
+    return r_zz[np.newaxis, :], gamma_phi[np.newaxis, :], None
