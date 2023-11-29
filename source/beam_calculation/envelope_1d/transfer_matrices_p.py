@@ -20,51 +20,62 @@ line is ``dp/p``.
 """
 from typing import Callable
 
+import math
 import numpy as np
 
-from constants import c
 import config_manager as con
+from constants import c
 
 
 # =============================================================================
 # Electric field functions
 # =============================================================================
-def e_func(z, e_spat, phi, phi_0):
+def e_func(z: float,
+           e_spat: Callable[[float], float],
+           phi: float,
+           phi_0: float) -> float:
     """
     Give the electric field at position z and phase phi.
 
     The field is normalized and should be multiplied by k_e.
 
     """
-    return e_spat(z) * np.cos(phi + phi_0)
+    return e_spat(z) * math.cos(phi + phi_0)
 
 
 # =============================================================================
 # Motion integration functions
 # =============================================================================
-def rk4(u, du, x, dx):
+def rk4(u: np.ndarray,
+        du: Callable[[float, np.ndarray], np.ndarray],
+        x: float,
+        dx: float) -> np.ndarray:
     """
     4-th order Runge-Kutta integration.
 
-    This function calculates the variation of u between x and x+dx.
-    Warning: this is a slightly modified version of the RK. The k_i are
-    proportional to delta_u instead of du_dz.
+    This function calculates the variation of ``u`` components between ``x``
+    and ``x+dx``.
+
+    Note
+    ----
+    This is a slightly modified version of the RK. The ``k_i`` are proportional
+    to ``delta_u`` instead of ``du_dz``.
 
     Parameters
     ----------
-    u : np.array
-        Holds the value of the function to integrate in x.
-    du_dx : function
-        Gives the variation of u components with x.
-    x : real
-        Where u is known.
-    dx : real
+    u : np.ndarray
+        Holds the value of the function to integrate in ``x``.
+    du_dx : Callable[[float, np.ndarray], np.ndarray]
+        Gives the variation of ``u`` components with ``x``.
+    x : float
+        Where ``u`` is known.
+    dx : float
         Integration step.
 
     Return
     ------
-    delta_u : real
-        Variation of u between x and x+dx.
+    delta_u : np.ndarray
+        Variation of ``u`` between ``x`` and ``x+dx``.
 
     """
     half_dx = .5 * dx
@@ -87,7 +98,7 @@ def z_drift(gamma_in: float,
     gamma_in_min2 = gamma_in**-2
     r_zz = np.full((n_steps, 2, 2), np.array([[1., delta_s * gamma_in_min2],
                                               [0., 1.]]))
-    beta_in = np.sqrt(1. - gamma_in_min2)
+    beta_in = math.sqrt(1. - gamma_in_min2)
     delta_phi = con.OMEGA_0_BUNCH * delta_s / (beta_in * c)
 
     # Two possibilites: second one is faster
@@ -108,8 +119,8 @@ def z_field_map_rk4(gamma_in: float,
                     omega0_rf: float,
                     k_e: float,
                     phi_0_rel: float,
-                    e_spat: Callable[[float, np.ndarray, float, float], float],
-                    **kwargs) -> tuple[np.ndarray, np.ndarray, float]:
+                    e_spat: Callable[[float], float],
+                    **kwargs) -> tuple[np.ndarray, np.ndarray, complex]:
     """Calculate the transfer matrix of a FIELD_MAP using Runge-Kutta."""
     z_rel = 0.
     itg_field = 0.
@@ -127,7 +138,7 @@ def z_field_map_rk4(gamma_in: float,
 
     # Define the motion function to integrate
     def du(z: float, u: np.ndarray) -> np.ndarray:
-        """
+        r"""
         Compute variation of energy and phase.
 
         Parameters
@@ -140,8 +151,10 @@ def z_field_map_rk4(gamma_in: float,
         Return
         ------
         v : np.ndarray
-            First component is delta gamma / delta z in MeV / m.
-            Second is delta phase / delta_z in rad / m.
+            First component is :math:`\Delta \gamma / \Delta z` in
+            :math:`\mathrm{MeV / m}`.
+            Second is :math:`\Delta \phi / \Delta z` in
+            :math:`\mathrm{rad / m}`.
 
         """
         v0 = k_k * e_func(z, e_spat, u[1], phi_0_rel)
@@ -151,15 +164,17 @@ def z_field_map_rk4(gamma_in: float,
 
     for i in range(n_steps):
         # Compute gamma and phase changes
-        delta_gamma_phi = rk4(u=gamma_phi[i, :], du=du,
-                              x=z_rel, dx=d_z)
+        delta_gamma_phi = rk4(u=gamma_phi[i, :],
+                              du=du,
+                              x=z_rel,
+                              dx=d_z)
 
         # Update
         gamma_phi[i + 1, :] = gamma_phi[i, :] + delta_gamma_phi
 
         # Update itg_field. Used to compute V_cav and phi_s.
         itg_field += k_e * e_func(z_rel, e_spat, gamma_phi[i, 1], phi_0_rel) \
-            * (1. + 1j * np.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
+            * (1. + 1j * math.tan(gamma_phi[i, 1] + phi_0_rel)) * d_z
 
         # Compute gamma and phi at the middle of the thin lense
         gamma_phi_middle = gamma_phi[i, :] + .5 * delta_gamma_phi
@@ -184,11 +199,13 @@ def z_field_map_leapfrog(d_z: float,
                          omega0_rf: float,
                          k_e: float,
                          phi_0_rel: float,
-                         e_spat: Callable[[float, np.ndarray, float, float],
-                                          float],
+                         e_spat: Callable[[float], float],
                          **kwargs) -> tuple[np.ndarray, np.ndarray, float]:
     """
-    Calculate the transfer matrix of a FIELD_MAP using leapfrog.
+    Calculate the transfer matrix of a ``FIELD_MAP`` using leapfrog.
+
+    .. todo::
+        clean
 
     This method is less precise than RK4. However, it is much faster.
 
@@ -295,12 +312,13 @@ def z_thin_lense(gamma_in: float,
 
     """
     # Used for tm components
-    beta_m = np.sqrt(1. - gamma_phi_m[0]**-2)
+    beta_m = math.sqrt(1. - gamma_phi_m[0]**-2)
     k_speed1 = delta_gamma_m_max / (gamma_phi_m[0] * beta_m**2)
-    k_speed2 = k_speed1 * np.cos(gamma_phi_m[1] + phi_0)
+    k_speed2 = k_speed1 * math.cos(gamma_phi_m[1] + phi_0)
 
     # Thin lense transfer matrices components
-    k_1 = k_speed1 * omega0_rf / (beta_m * c) * np.sin(gamma_phi_m[1] + phi_0)
+    k_1 = k_speed1 * omega0_rf / (beta_m * c) * math.sin(
+        gamma_phi_m[1] + phi_0)
     k_2 = 1. - (2. - beta_m**2) * k_speed2
     k_3 = (1. - k_speed2) / k_2
 
@@ -343,6 +361,6 @@ def z_bend(gamma_in: float,
     r_zz = np.eye(2)
     r_zz[0, 1] = topright
 
-    delta_phi = con.OMEGA_0_BUNCH * delta_s / (np.sqrt(beta_in_squared) * c)
+    delta_phi = con.OMEGA_0_BUNCH * delta_s / (math.sqrt(beta_in_squared) * c)
     gamma_phi = np.array([gamma_in, delta_phi])
     return r_zz[np.newaxis, :], gamma_phi[np.newaxis, :], None
