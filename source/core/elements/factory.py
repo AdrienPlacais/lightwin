@@ -67,7 +67,7 @@ class ElementFactory:
         line_delimited_with_name = original_line.split(':', maxsplit=1)
 
         if len(line_delimited_with_name) == 2:
-            elt_name = line_delimited_with_name[0]
+            elt_name = line_delimited_with_name[0].strip()
             cleaned_line = line_delimited_with_name[1].split()
             return elt_name, cleaned_line
 
