@@ -88,6 +88,7 @@ class StudyWithoutFaultsAcceleratorFactory(AcceleratorFactory):
         self.beam_calculator = beam_calculator
 
     def run(self) -> Accelerator:
+        """Create a single accelerator."""
         out_folder = self.beam_calculator.out_folder
         accelerator_path = self._generate_folders_tree_structure(
             out_folders=(out_folder, ),
