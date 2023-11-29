@@ -40,6 +40,8 @@ from beam_calculation.simulation_output.simulation_output import \
 from core.accelerator.accelerator import Accelerator
 from core.elements.drift import Drift
 from core.elements.field_maps.field_map import FieldMap
+from core.elements.field_maps.field_map_100 import FieldMap100
+from core.elements.field_maps.field_map_7700 import FieldMap7700
 from core.elements.quad import Quad
 from cycler import cycler
 from util import helper
@@ -478,56 +480,64 @@ def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
 # =============================================================================
 # Specific plots: structure
 # =============================================================================
-def _plot_structure(linac, ax, x_axis='z_abs'):
-    """Plot a structure of the linac under study."""
+def _plot_structure(linac: Accelerator,
+                    ax: ax_type,
+                    x_axis: str = 'z_abs') -> None:
+    """Plot structure of the linac under study."""
     type_to_plot_func = {
         Drift: _plot_drift,
         Quad: _plot_quad,
-        FieldMap: _plot_field_map,
+        FieldMap100: _plot_field_map,
+        FieldMap7700: _plot_field_map,
     }
-    d_x_axis = {  # first element is patch dimension. second is x limits
-        'z_abs': lambda elt, i: [
-            {'x0': elt.get('abs_mesh')[0], 'width': elt.length_m},
-            [linac.elts[0].get('abs_mesh')[0],
-             linac.elts[-1].get('abs_mesh')[-1]]
-        ],
-        'elt_idx': lambda elt, i: [
-            {'x0': i, 'width': 1},
-            [0, i]
-        ]
+
+    patch_kw = {
+        'z_abs': lambda elt, _: {'x_0': elt.get('abs_mesh')[0],
+                                 'width': elt.length_m},
+        'elt_idx': lambda _, idx: {'x_0': idx,
+                                   'width': 1}
+    }
+    x_limits = {
+        'z_abs': [linac.elts[0].get('abs_mesh')[0],
+                  linac.elts[-1].get('abs_mesh')[-1]],
+        'elt_idx': [0, len(linac.elts)],
     }
 
     for i, elt in enumerate(linac.elts):
-        kwargs = d_x_axis[x_axis](elt, i)[0]
+        kwargs = patch_kw[x_axis](elt, i)
         plot_func = type_to_plot_func.get(type(elt), _plot_drift)
         ax.add_patch(plot_func(elt, **kwargs))
 
-    ax.set_xlim(d_x_axis[x_axis](elt, i)[1])
+    ax.set_xlim(x_limits[x_axis])
     ax.set_yticklabels([])
     ax.set_yticks([])
     ax.set_ylim([-.05, 1.05])
 
 
-def _plot_drift(drift, x0, width):
+def _plot_drift(drift: Drift, x_0: float, width: float) -> pat.Rectangle:
     """Add a little rectangle to show a drift."""
     height = .4
     y0 = .3
-    patch = pat.Rectangle((x0, y0), width, height, fill=False, lw=0.5)
+    patch = pat.Rectangle((x_0, y0), width, height, fill=False, lw=0.5)
     return patch
 
 
-def _plot_quad(quad, x0, width):
+def _plot_quad(quad: Quad,
+               x_0: float,
+               width: float) -> pat.Polygon:
     """Add a crossed large rectangle to show a quad."""
     height = 1.
     y0 = 0.
-    path = np.array(([x0, y0], [x0 + width, y0], [x0 + width, y0 + height],
-                     [x0, y0 + height], [x0, y0], [x0 + width, y0 + height],
-                     [np.NaN, np.NaN], [x0, y0 + height], [x0 + width, y0]))
+    path = np.array(([x_0, y0], [x_0 + width, y0], [x_0 + width, y0 + height],
+                     [x_0, y0 + height], [x_0, y0], [x_0 + width, y0 + height],
+                     [np.NaN, np.NaN], [x_0, y0 + height], [x_0 + width, y0]))
     patch = pat.Polygon(path, closed=False, fill=False, lw=0.5)
     return patch
 
 
-def _plot_field_map(field_map, x0, width):
+def _plot_field_map(field_map: FieldMap,
+                    x_0: float,
+                    width: float) -> pat.Ellipse:
     """Add an ellipse to show a field_map."""
     height = 1.
     y0 = height * .5
@@ -540,9 +550,9 @@ def _plot_field_map(field_map, x0, width):
         'compensate (ok)': 'orange',
         'compensate (not ok)': 'orange',
     }
-    patch = pat.Ellipse((x0 + .5 * width, y0), width, height, fill=True,
-                        lw=0.5, fc=colors[field_map.get('status',
-                                                        to_numpy=False)],
+    color = colors[field_map.get('status', to_numpy=False)]
+    patch = pat.Ellipse((x_0 + .5 * width, y0), width, height, fill=True,
+                        lw=0.5, fc=color,
                         ec='k')
     return patch
 
