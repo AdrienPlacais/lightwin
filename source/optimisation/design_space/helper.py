@@ -7,7 +7,9 @@ Define some functions to set initial values/limits in DesignSpaceFactory.
     check docstrings ref [1]
 
 """
+import math
 import numpy as np
+
 from core.elements.element import Element
 
 
@@ -57,9 +59,9 @@ def phi_s_limits(reference_element: Element,
 
     """
     reference_phi_s = same_value_as_nominal('phi_s', reference_element)
-    phi_s_min = np.deg2rad(min_absolute_sync_phase_in_deg)
+    phi_s_min = math.radians(min_absolute_sync_phase_in_deg)
     phi_s_max = min(
-        np.deg2rad(max_absolute_sync_phase_in_deg),
+        math.radians(max_absolute_sync_phase_in_deg),
         reference_phi_s * (1. - 1e-2 * max_increase_sync_phase_in_percent))
     return (phi_s_min, phi_s_max)
 
@@ -73,7 +75,7 @@ def phi_0_limits(**kwargs) -> tuple[float, float]:
         Always :math:`(-2\pi, 2\pi)`.
 
     """
-    return (-2. * np.pi, 2. * np.pi)
+    return (-2. * math.pi, 2. * math.pi)
 
 
 def k_e_limits(
