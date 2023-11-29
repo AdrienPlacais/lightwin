@@ -73,7 +73,7 @@ class BeamCalculator(ABC):
             field_maps_in_3d=False,  # not implemented anyway
             # Different loading of field maps if Cython
             load_cython_field_maps=con.FLAG_CYTHON,
-            elements_to_remove=(Aperture, Edge),
+            elements_to_remove=(),
         )
 
     @abstractmethod
