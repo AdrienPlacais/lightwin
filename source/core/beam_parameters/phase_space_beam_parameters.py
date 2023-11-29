@@ -402,7 +402,8 @@ class PhaseSpaceBeamParameters:
     def _compute_eps_from_sigma(self,
                                 sigma: np.ndarray,
                                 gamma_kin: np.ndarray,
-                                beta_kin: np.ndarray
+                                beta_kin: np.ndarray,
+                                replace_nan_by_0: bool = True,
                                 ) -> tuple[np.ndarray, np.ndarray]:
         r"""
         Compute emittance from :math:`\sigma` beam matrix.
@@ -421,6 +422,9 @@ class PhaseSpaceBeamParameters:
             Lorentz gamma factor.
         beta_kin : np.ndarray
             Lorentz beta factor.
+        replace_nan_by_0 : bool, optional
+            To avoid raising of errors and allow the code to reach the creation
+            of a :class:`.SimulationOutput`. Useful for debugging.
 
         Returns
         -------
@@ -441,6 +445,10 @@ class PhaseSpaceBeamParameters:
             eps_no_normalisation *= 1e5
         elif self.phase_space in ('x', 'y', 'x99', 'y99'):
             eps_no_normalisation *= 1e6
+
+        if replace_nan_by_0 and np.isnan(eps_no_normalisation).any():
+            logging.error("Replacing NaN by 0. in emittance array.")
+            eps_no_normalisation[np.where(np.isnan(eps_no_normalisation))] = 0.
 
         assert ~np.isnan(eps_no_normalisation).any()
         eps_normalized = converters.emittance(eps_no_normalisation,
