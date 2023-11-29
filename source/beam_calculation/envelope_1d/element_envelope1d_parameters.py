@@ -264,8 +264,6 @@ class BendEnvelope1DParameters(ElementEnvelope1DParameters):
             kwargs
 
         """
-        assert hasattr(transf_mat_module, "z_bend"), "BEND transfer matrix " \
-            "not implement yet in Cython."
         transf_mat_function = transf_mat_module.z_bend
 
         super().__init__(transf_mat_function,

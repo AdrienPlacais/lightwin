@@ -380,8 +380,15 @@ def z_field_map_leapfrog(DTYPE_t gamma_in,
     return r_zz_array, gamma_phi_array[1:, :], itg_field
 
 
-cdef z_thin_lense(gamma_in, gamma_m, gamma_out, phi_m, half_dz_s,
-                  delta_gamma_m_max, phi_0, omega0_rf):
+cdef z_thin_lense(DTYPE_t gamma_in,
+                  DTYPE_t gamma_m,
+                  DTYPE_t gamma_out,
+                  DTYPE_t phi_m,
+                  DTYPE_t half_dz_s,
+                  DTYPE_t delta_gamma_m_max,
+                  DTYPE_t phi_0,
+                  DTYPE_t omega0_rf
+                  ):
     # Used for tm components
     cdef DTYPE_t beta_m = sqrt(1. - gamma_m**-2)
     cdef DTYPE_t k_speed1 = delta_gamma_m_max / (gamma_m * beta_m**2)
@@ -402,3 +409,26 @@ cdef z_thin_lense(gamma_in, gamma_m, gamma_out, phi_m, half_dz_s,
                  @ (np.array(([k_3, 0.], [k_1, k_2]), dtype=DTYPE) \
                     @ z_drift(gamma_in, half_dz_s)[0][0])
     return r_zz_array
+
+
+cpdef z_bend(DTYPE_t gamma_in,
+             DTYPE_t delta_s,
+             DTYPE_t factor_1,
+             DTYPE_t factor_2,
+             DTYPE_t factor_3,
+             ):
+    cdef DTYPE_t gamma_in_min2 = gamma_in**-2
+    cdef DTYPE_t beta_in_squared = 1. - gamma_in_min2
+    cdef DTYPE_t topright = factor_1 * beta_in_squared + factor_2 \
+        + factor_3 * gamma_in_min2
+
+    cdef np.ndarray[DTYPE_t, ndim=3] r_zz = np.array(
+        [[[1., topright],
+          [0., 1.]]], dtype=DTYPE
+        )
+    cdef np.ndarray[DTYPE_t, ndim=2] gamma_phi = np.array(
+        [[gamma_in,
+          OMEGA_0_BUNCH_cdef * delta_s / (sqrt(beta_in_squared) * c_cdef)
+         ]], dtype=DTYPE)
+    return r_zz, gamma_phi, None
+
