@@ -13,9 +13,11 @@ from beam_calculation.envelope_1d.\
         ElementEnvelope1DParameters,
         FieldMapEnvelope1DParameters,
     )
-from core.elements.element import Element
+from core.elements.aperture import Aperture
 from core.elements.bend import Bend
 from core.elements.drift import Drift
+from core.elements.edge import Edge
+from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.field_map_100 import FieldMap100
 from core.elements.field_maps.field_map_7700 import FieldMap7700
@@ -24,7 +26,9 @@ from core.elements.solenoid import Solenoid
 
 
 IMPLEMENTED_ELEMENTS = {
+    Aperture: DriftEnvelope1DParameters,
     Bend: BendEnvelope1DParameters,
+    Edge: DriftEnvelope1DParameters,
     Drift: DriftEnvelope1DParameters,
     FieldMap100: FieldMapEnvelope1DParameters,
     FieldMap7700: FieldMapEnvelope1DParameters,

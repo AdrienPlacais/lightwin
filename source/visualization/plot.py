@@ -517,26 +517,27 @@ def _plot_structure(linac: Accelerator,
     ax.set_xlim(x_limits[x_axis])
     ax.set_yticklabels([])
     ax.set_yticks([])
-    ax.set_ylim([-.05, 1.05])
+    ax.set_ylim([-.55, .55])
 
 
 def _plot_aperture(aperture: Aperture, x_0: float, width: float
                    ) -> pat.Rectangle:
     """Add a thin line to show an aperture."""
     height = 1.
-    y0 = .3
-    patch = pat.Rectangle((x_0, y0), width, height, fill=False, lw=0.5)
+    y_0 = -height * .5
+    patch = pat.Rectangle((x_0, y_0), width, height, fill=False, lw=0.5)
     return patch
 
 
 def _plot_bend(bend: Bend, x_0: float, width: float) -> pat.Rectangle:
     """Add a greyed rectangle to show a bend."""
     height = .7
-    y0 = .3
-    patch = pat.Rectangle((x_0, y0),
+    y_0 = -height * .5
+    patch = pat.Rectangle((x_0, y_0),
                           width,
                           height,
                           fill=True,
+                          fc='gray',
                           lw=0.5)
     return patch
 
@@ -544,8 +545,8 @@ def _plot_bend(bend: Bend, x_0: float, width: float) -> pat.Rectangle:
 def _plot_drift(drift: Drift, x_0: float, width: float) -> pat.Rectangle:
     """Add a little rectangle to show a drift."""
     height = .4
-    y0 = .3
-    patch = pat.Rectangle((x_0, y0), width, height, fill=False, lw=0.5)
+    y_0 = -height * .5
+    patch = pat.Rectangle((x_0, y_0), width, height, fill=False, lw=0.5)
     return patch
 
 
@@ -554,7 +555,7 @@ def _plot_field_map(field_map: FieldMap,
                     width: float) -> pat.Ellipse:
     """Add an ellipse to show a field_map."""
     height = 1.
-    y0 = height * .5
+    y_0 = 0.
     colors = {
         'nominal': 'green',
         'rephased (in progress)': 'yellow',
@@ -565,7 +566,7 @@ def _plot_field_map(field_map: FieldMap,
         'compensate (not ok)': 'orange',
     }
     color = colors[field_map.get('status', to_numpy=False)]
-    patch = pat.Ellipse((x_0 + .5 * width, y0), width, height, fill=True,
+    patch = pat.Ellipse((x_0 + .5 * width, y_0), width, height, fill=True,
                         lw=0.5, fc=color,
                         ec='k')
     return patch
@@ -574,8 +575,8 @@ def _plot_field_map(field_map: FieldMap,
 def _plot_edge(edge: Edge, x_0: float, width: float) -> pat.Rectangle:
     """Add a thin line to show an edge."""
     height = 1.
-    y0 = .3
-    patch = pat.Rectangle((x_0, y0), width, height, fill=False, lw=0.5)
+    y_0 = -height * .5
+    patch = pat.Rectangle((x_0, y_0), width, height, fill=False, lw=0.5)
     return patch
 
 
@@ -584,10 +585,16 @@ def _plot_quad(quad: Quad,
                width: float) -> pat.Polygon:
     """Add a crossed large rectangle to show a quad."""
     height = 1.
-    y0 = 0.
-    path = np.array(([x_0, y0], [x_0 + width, y0], [x_0 + width, y0 + height],
-                     [x_0, y0 + height], [x_0, y0], [x_0 + width, y0 + height],
-                     [np.NaN, np.NaN], [x_0, y0 + height], [x_0 + width, y0]))
+    y_0 = -height * .5
+    path = np.array(([x_0, y_0],
+                     [x_0 + width, y_0],
+                     [x_0 + width, y_0 + height],
+                     [x_0, y_0 + height],
+                     [x_0, y_0],
+                     [x_0 + width, y_0 + height],
+                     [np.NaN, np.NaN],
+                     [x_0, y_0 + height],
+                     [x_0 + width, y_0]))
     patch = pat.Polygon(path, closed=False, fill=False, lw=0.5)
     return patch
 

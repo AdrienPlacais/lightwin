@@ -167,8 +167,9 @@ class ListOfElementsFactory:
             logging.warning(f"Removed {n_removed} elements, according to the "
                             "ListOfElementFactory.elements_to_remove key. The "
                             f"removed elements have types: {types}."
-                            "Note that with TraceWin, every Command and "
-                            "Element is kept.")
+                            "\nNote that with TraceWin, every Command and "
+                            "Element is kept.\nNote that this will likely"
+                            "lead to problems when visualising structure.")
         return elts
 
     def _whole_list_input_particle(self,
