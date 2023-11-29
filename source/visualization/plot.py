@@ -38,7 +38,10 @@ from palettable.colorbrewer.qualitative import Dark2_8
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
 from core.accelerator.accelerator import Accelerator
+from core.elements.aperture import Aperture
+from core.elements.bend import Bend
 from core.elements.drift import Drift
+from core.elements.edge import Edge
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.field_map_100 import FieldMap100
 from core.elements.field_maps.field_map_7700 import FieldMap7700
@@ -485,10 +488,13 @@ def _plot_structure(linac: Accelerator,
                     x_axis: str = 'z_abs') -> None:
     """Plot structure of the linac under study."""
     type_to_plot_func = {
+        Aperture: _plot_aperture,
+        Bend: _plot_bend,
         Drift: _plot_drift,
-        Quad: _plot_quad,
+        Edge: _plot_edge,
         FieldMap100: _plot_field_map,
         FieldMap7700: _plot_field_map,
+        Quad: _plot_quad,
     }
 
     patch_kw = {
@@ -514,24 +520,32 @@ def _plot_structure(linac: Accelerator,
     ax.set_ylim([-.05, 1.05])
 
 
-def _plot_drift(drift: Drift, x_0: float, width: float) -> pat.Rectangle:
-    """Add a little rectangle to show a drift."""
-    height = .4
+def _plot_aperture(aperture: Aperture, x_0: float, width: float
+                   ) -> pat.Rectangle:
+    """Add a thin line to show an aperture."""
+    height = 1.
     y0 = .3
     patch = pat.Rectangle((x_0, y0), width, height, fill=False, lw=0.5)
     return patch
 
 
-def _plot_quad(quad: Quad,
-               x_0: float,
-               width: float) -> pat.Polygon:
-    """Add a crossed large rectangle to show a quad."""
-    height = 1.
-    y0 = 0.
-    path = np.array(([x_0, y0], [x_0 + width, y0], [x_0 + width, y0 + height],
-                     [x_0, y0 + height], [x_0, y0], [x_0 + width, y0 + height],
-                     [np.NaN, np.NaN], [x_0, y0 + height], [x_0 + width, y0]))
-    patch = pat.Polygon(path, closed=False, fill=False, lw=0.5)
+def _plot_bend(bend: Bend, x_0: float, width: float) -> pat.Rectangle:
+    """Add a greyed rectangle to show a bend."""
+    height = .7
+    y0 = .3
+    patch = pat.Rectangle((x_0, y0),
+                          width,
+                          height,
+                          fill=True,
+                          lw=0.5)
+    return patch
+
+
+def _plot_drift(drift: Drift, x_0: float, width: float) -> pat.Rectangle:
+    """Add a little rectangle to show a drift."""
+    height = .4
+    y0 = .3
+    patch = pat.Rectangle((x_0, y0), width, height, fill=False, lw=0.5)
     return patch
 
 
@@ -554,6 +568,27 @@ def _plot_field_map(field_map: FieldMap,
     patch = pat.Ellipse((x_0 + .5 * width, y0), width, height, fill=True,
                         lw=0.5, fc=color,
                         ec='k')
+    return patch
+
+
+def _plot_edge(edge: Edge, x_0: float, width: float) -> pat.Rectangle:
+    """Add a thin line to show an edge."""
+    height = 1.
+    y0 = .3
+    patch = pat.Rectangle((x_0, y0), width, height, fill=False, lw=0.5)
+    return patch
+
+
+def _plot_quad(quad: Quad,
+               x_0: float,
+               width: float) -> pat.Polygon:
+    """Add a crossed large rectangle to show a quad."""
+    height = 1.
+    y0 = 0.
+    path = np.array(([x_0, y0], [x_0 + width, y0], [x_0 + width, y0 + height],
+                     [x_0, y0 + height], [x_0, y0], [x_0 + width, y0 + height],
+                     [np.NaN, np.NaN], [x_0, y0 + height], [x_0 + width, y0]))
+    patch = pat.Polygon(path, closed=False, fill=False, lw=0.5)
     return patch
 
 
