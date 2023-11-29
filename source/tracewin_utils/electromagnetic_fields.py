@@ -9,16 +9,24 @@ This module holds functions to handle TraceWin electromagnetic fields.
 .. todo::
     some functions are not used anymore I guess...
 
+.. todo::
+    Better handling of the module import
+
 """
 import logging
-from pathlib import Path
 import os.path
 from typing import Callable
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 from core.elements.field_maps.field_map import FieldMap
 import tracewin_utils.load
+
+try:
+    import beam_calculation.envelope_1d.transfer_matrices_c as tm_c
+except ImportError:
+    logging.error("Could not import the Cython version of transfer matrices.")
 
 
 FIELD_GEOMETRIES = {
