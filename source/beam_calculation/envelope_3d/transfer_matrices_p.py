@@ -16,6 +16,9 @@ sizth line is ``dp/p``.
 .. todo::
     Will be necessary to separate this module into several sub-packages
 
+.. todo::
+    more math, less numpy. look at envelope 1d version
+
 """
 from typing import Callable
 
