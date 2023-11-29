@@ -36,7 +36,7 @@ class Freq(Command):
               **kwargs: float
               ) -> list[Instruction]:
         """
-        Set :class:`FieldMap` frequency, number of cells.
+        Set :class:`FieldMap` frequency.
 
         If another :class:`Freq` is found, we stop and the new :class:`Freq`
         will be dealt with later.
@@ -49,7 +49,5 @@ class Freq(Command):
 
         for instruction in instructions[self.idx['influenced']]:
             if isinstance(instruction, FieldMap):
-                n_cell = self.f_rf_mhz / freq_bunch
-                instruction.acc_field.set_pulsation_ncell(
-                    self.f_rf_mhz, n_cell)
+                instruction.acc_field.set_rf_freq(self.f_rf_mhz)
         return instructions

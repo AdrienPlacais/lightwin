@@ -143,7 +143,7 @@ class ListOfElements(list):
         phi_0_abs_rephased = {
             cavity: phi_0_abs_with_new_phase_reference(
                 phi_0_abs,
-                delta_phi_bunch * cavity.acc_field.n_cell
+                delta_phi_bunch * cavity.acc_field.bunch_to_rf
             )
             for cavity, phi_0_abs in self._stored_phi_0_abs.items()
         }

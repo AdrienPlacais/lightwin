@@ -200,7 +200,8 @@ class Envelope3D(BeamCalculator):
             'omega0_rf': cavity.get('omega0_rf'),
             'e_spat': cavity.acc_field.e_spat,
             'section_idx': cavity.idx['section'],
-            'n_cell': cavity.get('n_cell')
+            'n_cell': cavity.get('n_cell'),
+            'bunch_to_rf': cavity.get('bunch_to_rf')
         }
 
         getter = RF_FIELD_GETTERS[cavity.status]

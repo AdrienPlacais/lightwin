@@ -193,7 +193,8 @@ class FieldMap(Element):
             'omega0_rf': self.get('omega0_rf'),
             'e_spat': self.acc_field.e_spat,
             'section_idx': self.idx['section'],
-            'n_cell': self.get('n_cell')
+            'n_cell': self.get('n_cell'),
+            'bunch_to_rf': self.get('bunch_to_rf'),
         }
 
         if status in ('nominal', 'rephased (ok)', 'compensate (ok)',
@@ -215,7 +216,7 @@ class FieldMap(Element):
             logging.error(f'{self} {status = } is not allowed.')
             return {}
 
-        phi_rf_abs = phi_bunch_abs * generic_rf_param['n_cell']
+        phi_rf_abs = phi_bunch_abs * generic_rf_param['bunch_to_rf']
 
         if abs_to_rel:
             norm_and_phases['phi_0_rel'] = phi_0_rel_corresponding_to(

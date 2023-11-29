@@ -7,9 +7,6 @@ This module holds :class:`RfField`, which is a simple electric field.
     Untouched for many time... Should modernize this module, maybe move it
     to beam_calculation/?
 
-.. todo::
-    confusion n_cell vs f_bunch / f_rf
-
 """
 import logging
 import cmath
@@ -28,15 +25,21 @@ def compute_param_cav(integrated_field: complex) -> dict[str, float]:
 
 
 class RfField():
-    """
+    r"""
     Cos-like RF field.
 
     Warning, all phases are defined as:
-        phi = omega_0_rf * t
+
+    .. math::
+        \phi = \omega_0^{rf} t
+
     While in the rest of the code and in particular in Particle, it is defined
     as:
-        phi = omega_0_bunch * t
-    All phases are stored as radian.
+
+    .. math::
+        \phi = \omega_0_^{bunch} t
+
+    All phases are stored in radian.
 
     Attributes
     ----------
@@ -53,17 +56,21 @@ class RfField():
             nominal_rel : relative phi_0 in rad in the nominal (ref) linac
             abs_phase_flag : if the relative or absolute phi_0 must be used
             phi_0_abs_but_reference_phase_is_different : used when the
-            `ListOfElements` under study does not start at the beginning of the
-            linac and we use TraceWin.
+            :class:`.ListOfElements` under study does not start at the
+            beginning of the linac and we use TraceWin.
             new_reference_phase : phase at the entrance of this
             `ListOfElements`.
     v_cav_mv : float
         Cavity accelerating field in MV.
     phi_s : float
         Cavity synchronous phase in rad.
-    omega0_rf : float | None
+    omega0_rf : float
         RF pulsation of the cavity in rad/s.
-    n_cell : int | None
+    bunch_to_rf : float
+        :math:`f_{rf} / f_{bunch}`. In particular, it is used to convert the rf
+        absolute phase given by the transfer matrix function of
+        :class:`.Envelope1D` and :class:`.Envelope3D` to bunch absolute phase.
+    n_cell : int
         Number of cells in the cavity.
     n_z : int | None
         Number of points in the file that gives `e_spat`, the spatial component
@@ -71,8 +78,11 @@ class RfField():
 
     """
 
-    def __init__(self, k_e: float = np.NaN, absolute_phase_flag: bool = False,
-                 phi_0: float = None) -> None:
+    def __init__(self,
+                 k_e: float = np.NaN,
+                 absolute_phase_flag: bool = False,
+                 phi_0: float | None = None) -> None:
+        """Instantiate object."""
         self.e_spat = lambda x: 0.
         self.k_e = k_e
 
@@ -93,8 +103,11 @@ class RfField():
         self.v_cav_mv = np.NaN
         self.phi_s = np.NaN
 
+        self.n_cell: int = 2
         # Default values, overwritten by the FREQ command
-        self.set_pulsation_ncell(con.F_BUNCH_MHZ, 1)
+        self.omega0_rf: float
+        self.bunch_to_rf: float
+        self.set_rf_freq(con.F_BUNCH_MHZ)
 
         # Depends on beam_computer, but also on n_cell
         self.n_z = None
@@ -142,10 +155,12 @@ class RfField():
             return out[0]
         return tuple(out)
 
-    def set_pulsation_ncell(self, f_mhz: float, n_cell: int) -> None:
-        """Initialize the frequency and the number of cells."""
+    def set_rf_freq(self,
+                    f_mhz: float,
+                    ) -> None:
+        """Initialize the pulsation and the rf / bunch fraction."""
         self.omega0_rf = 2e6 * np.pi * f_mhz
-        self.n_cell = n_cell
+        self.bunch_to_rf = f_mhz / con.F_BUNCH_MHZ
 
     def update_phi_0_abs_to_adapt_to_new_ref_phase(
             self,
@@ -164,8 +179,8 @@ class RfField():
         delta_phi_rf = new_phi_in - old_phi_in
 
         if phases_are_bunch:
-            delta_phi_rf *= self.n_cell
-            new_phi_in *= self.n_cell
+            delta_phi_rf *= self.bunch_to_rf
+            new_phi_in *= self.bunch_to_rf
 
         new_phi_0_abs = phi_0_abs_with_new_phase_reference(
             self.phi_0['phi_0_abs'],

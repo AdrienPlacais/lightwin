@@ -183,7 +183,8 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
         transf_mat_function = FIELD_MAP_INTEGRATION_METHOD_TO_FUNC[method](
             transf_mat_module)
 
-        self.n_cell = int(elt.get('n_cell'))
+        self.n_cell = elt.get('n_cell')
+        self.bunch_to_rf = elt.get('bunch_to_rf')
         n_steps = self.n_cell * n_steps_per_cell
         super().__init__(transf_mat_function,
                          elt.length_m,
@@ -208,7 +209,7 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
         """
         assert itg_field is not None
         w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
-        gamma_phi[:, 1] /= self.n_cell
+        gamma_phi[:, 1] /= self.bunch_to_rf
         cav_params = compute_param_cav(itg_field)
         results = {'transfer_matrix': transfer_matrix,
                    'r_zz': transfer_matrix[:, 4:, 4:],
