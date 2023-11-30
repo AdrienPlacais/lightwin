@@ -15,7 +15,6 @@ from abc import ABC
 from dataclasses import dataclass
 from functools import partial
 import logging
-import os.path
 from pathlib import Path
 from typing import Any, Callable
 
@@ -27,6 +26,7 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from evaluator.post_treaters import do_nothing
+import util.dicts_output as dic
 from util.helper import resample
 from visualization import plot
 
@@ -170,7 +170,8 @@ class SimulationOutputEvaluator(ABC):
 
         self._fig: Figure | None = None
         self.main_ax: Axes | None = None
-        self._create_plot(**self.plt_kwargs)
+        self._create_plot(
+            **self.plt_kwargs)
 
     def __repr__(self) -> str:
         """Output the descriptor string."""
@@ -190,9 +191,9 @@ class SimulationOutputEvaluator(ABC):
         """
         if self.main_ax is not None:
             plot.remove_artists(self.main_ax)
+            self._add_structure_plot(simulation_output)
 
-        plt_kw = {'label': simulation_output.beam_calculator_information,
-                  }
+        plt_kw = {}
         x_data, y_data = self._get_data(simulation_output)
         if y_data is None:
             logging.error(f"A value misses in test: {self}. Skipping...")
@@ -278,7 +279,6 @@ class SimulationOutputEvaluator(ABC):
                 assert self.main_ax is not None
                 assert isinstance(x_data, np.ndarray)
                 self._add_a_value_plot(x_data, y_data, **plot_kw)
-                self.main_ax.legend()
         return y_data
 
     def _apply_test(self,
@@ -297,7 +297,6 @@ class SimulationOutputEvaluator(ABC):
             assert self.main_ax is not None
             limits = _limits_given_in_functoolspartial_args(self.tester)
             self._add_a_limit_plot(x_data, limits, **plot_kw)
-            self.main_ax.legend()
         return y_data
 
     def _create_plot(self,
@@ -306,6 +305,7 @@ class SimulationOutputEvaluator(ABC):
         """Prepare the plot."""
         if fignum is None:
             return
+
         fig, axx = plot.create_fig_if_not_exists(num=fignum, **kwargs)
         fig.suptitle(self.descriptor, fontsize=14)
         axx[0].set_ylabel(self.markdown)
@@ -313,7 +313,16 @@ class SimulationOutputEvaluator(ABC):
 
         self._fig = fig
         self.main_ax = axx[0]
-        # see what are the kwargs for create_fig_if_not_exists...
+        self._struct_ax = axx[1]
+
+    def _add_structure_plot(self,
+                            simulation_output: SimulationOutput,
+                            ) -> None:
+        """Add a plot of the structure in the bottom ax."""
+        elts = simulation_output.element_to_index.keywords['_elts']
+        plot.clean_axes((self._struct_ax, ))
+        self._struct_ax.set_xlabel(dic.markdown['z_abs'])
+        plot._plot_structure(elts, self._struct_ax)
 
     def _add_a_value_plot(self,
                           z_data: np.ndarray,

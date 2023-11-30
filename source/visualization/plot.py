@@ -7,9 +7,6 @@ When adding you own presets, do not forget to add them to the list of
 implemented plots in :mod:`config.plots`.
 
 .. todo::
-    _plot_structure needs a ListOfElements, not an Accelerator. I think.
-
-.. todo::
     better detection of what is a multiparticle simulation and what is not.
     Currently looking for "'partran': 0" in the name of the solver, making the
     assumption that multipart is the default. But it depends on the .ini...
@@ -28,6 +25,7 @@ import logging
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
+from cycler import cycler
 import matplotlib
 import matplotlib.patches as pat
 import matplotlib.pyplot as plt
@@ -46,18 +44,18 @@ from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.field_map_100 import FieldMap100
 from core.elements.field_maps.field_map_7700 import FieldMap7700
 from core.elements.quad import Quad
-from cycler import cycler
+from core.list_of_elements.list_of_elements import ListOfElements
 from util import helper
 import util.dicts_output as dic
 
 figure_type = matplotlib.figure.Figure
 ax_type = matplotlib.axes._axes.Axes
 
-font = {'family': 'serif', 'size': 25}
+font = {'family': 'serif'}#, 'size': 25}
 plt.rc('font', **font)
 plt.rcParams['axes.prop_cycle'] = cycler(color=Dark2_8.mpl_colors)
-plt.rcParams["figure.figsize"] = (9.2, 5.62)
-plt.rcParams["figure.dpi"] = 100
+# plt.rcParams["figure.figsize"] = (13.64, 25.6)
+# plt.rcParams["figure.dpi"] = 100
 
 FALLBACK_PRESETS = {'x_axis': 'z_abs',
                     'plot_section': True, 'clean_fig': False, 'sharex': True}
@@ -369,7 +367,7 @@ def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
         _plot_section(accelerators[0], axe, x_axis=x_axis)
 
     if y_axis == 'struct':
-        _plot_structure(accelerators[-1], axe, x_axis=x_axis)
+        _plot_structure(accelerators[-1].elts, axe, x_axis=x_axis)
         return
 
     all_my_data = _all_accelerators_data(x_axis, y_axis, *accelerators)
@@ -467,8 +465,11 @@ def _autoscale_based_on(axx: ax_type, to_ignore: str) -> None:
     axx.autoscale_view()
 
 
-def _savefig(fig, filepath):
+def _savefig(fig: figure_type,
+             filepath: Path) -> None:
     """Save the figure."""
+    fig.set_size_inches(25.6, 13.64)
+    fig.tight_layout()
     fig.savefig(filepath)
     logging.debug(f"Fig. saved in {filepath}")
 
@@ -496,7 +497,7 @@ def plot_pty_with_data_tags(ax, x, y, idx_list, tags=True):
 # =============================================================================
 # Specific plots: structure
 # =============================================================================
-def _plot_structure(linac: Accelerator,
+def _plot_structure(elts: ListOfElements,
                     ax: ax_type,
                     x_axis: str = 'z_abs') -> None:
     """Plot structure of the linac under study."""
@@ -517,12 +518,11 @@ def _plot_structure(linac: Accelerator,
                                    'width': 1}
     }
     x_limits = {
-        'z_abs': [linac.elts[0].get('abs_mesh')[0],
-                  linac.elts[-1].get('abs_mesh')[-1]],
-        'elt_idx': [0, len(linac.elts)],
+        'z_abs': [elts[0].get('abs_mesh')[0], elts[-1].get('abs_mesh')[-1]],
+        'elt_idx': [0, len(elts)],
     }
 
-    for i, elt in enumerate(linac.elts):
+    for i, elt in enumerate(elts):
         kwargs = patch_kw[x_axis](elt, i)
         plot_func = type_to_plot_func.get(type(elt), _plot_drift)
         ax.add_patch(plot_func(elt, **kwargs))
