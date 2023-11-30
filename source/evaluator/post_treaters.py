@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Here we define the functions used by :class:`.SimulationOutputEvaluator`.
+Define the functions used by :class:`.SimulationOutputEvaluator`.
 
-They dedicated to treat data. They all take a value and a reference value as
-arguments and return the treated value (ref is unchanged).
+They are dedicated to treat data. They all take a value and a reference value
+as arguments and return the treated value (ref is unchanged).
 
 """
 import logging
+
 import numpy as np
 
 
@@ -16,11 +17,20 @@ def do_nothing(*args: np.ndarray | float | None, **kwargs: bool
     """
     Do nothing.
 
-    If you want to plot the data as imported from the `SimulationOutput`, set
-    the first of the `post_treaters` keys to:
+    If you want to plot the data as imported from the
+    :class:`.SimulationOutput`, set the first of the ``post_treaters`` keys to:
     partial(_do_nothing, to_plot=True)
 
     """
+    assert args[0] is not None
+    return args[0]
+
+
+def set_first_value_to(*args: np.ndarray,
+                       value: float,
+                       **kwargs: bool) -> np.ndarray:
+    """Set first element of array to ``value``, sometimes bugs in TW output."""
+    args[0][0] = value
     return args[0]
 
 
@@ -31,19 +41,20 @@ def difference(value: np.ndarray | float, reference_value: np.ndarray | float,
     return delta
 
 
-def relative_difference(
-    value: np.ndarray | float, reference_value: np.ndarray | float,
-    replace_zeros_by_nan_in_ref: bool = True,
-    **kwargs: bool,
-) -> np.ndarray | float:
+def relative_difference(value: np.ndarray | float,
+                        reference_value: np.ndarray | float,
+                        replace_zeros_by_nan_in_ref: bool = True,
+                        **kwargs: bool,
+                        ) -> np.ndarray | float:
     """Compute the relative difference."""
     if replace_zeros_by_nan_in_ref:
         if not isinstance(reference_value, np.ndarray):
-            logging.warning("You demanded the null values to be removed in "
+            logging.warning("You asked the null values to be removed in "
                             "the `reference_value` array, but it is not an "
                             "array. I will set it to an array of size 1.")
-            reference_value = np.array(reference_value)
+            reference_value = np.atleast_1d(reference_value)
 
+        assert isinstance(reference_value, np.ndarray)
         reference_value = reference_value.copy()
         reference_value[reference_value == 0.] = np.NaN
 
