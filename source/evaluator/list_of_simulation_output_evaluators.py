@@ -1,47 +1,59 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Here we define an object to regroup several :class:`.SimulationOutputEvaluator`
+Define an object to regroup several :class:`.SimulationOutputEvaluator``s.
 
 We also define some factory functions to facilitate their creation.
 
 """
 import logging
+from pathlib import Path
 
 import pandas as pd
 
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput)
 from core.elements.element import Element
-from failures.fault import Fault
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
 from evaluator.simulation_output_evaluator import SimulationOutputEvaluator
 from evaluator.simulation_output_evaluator_presets import (
     PRESETS,
     presets_for_fault_scenario_rel_diff_at_some_element,
-    presets_for_fault_scenario_rms_over_full_linac
+    presets_for_fault_scenario_rms_over_full_linac,
 )
+from failures.fault import Fault
 from util.dicts_output import markdown
-from util.helper import pd_output, chunks
+from util.helper import chunks, pd_output
 
 
 class ListOfSimulationOutputEvaluators(list):
-    """A simple list of `SimulationOutputEvaluator` s."""
+    """A simple list of :class:`.SimulationOutputEvaluator``s."""
 
     def __init__(self, evaluators: list[SimulationOutputEvaluator]) -> None:
         """Create the objects (factory)."""
         super().__init__(evaluators)
 
-    def run(self, *simulation_outputs: SimulationOutput
-            ) -> list[bool | float | None]:
-        """Call `run` method of every `SimulationOutputEvaluator`."""
-        for evaluator in self:
-            output_info = [f"{evaluator}:"]
-            for simulation_output in simulation_outputs:
-                evaluation = evaluator.run(simulation_output)
-                beam_calculator_info = \
-                    simulation_output.beam_calculator_information
-                output_info.append(f"{beam_calculator_info}: {evaluation}")
-            logging.info('\n'.join(output_info))
+    def run(self, *simulation_outputs: SimulationOutput,
+            project_folder: Path | None = None,
+            **kwargs
+            ) -> pd.DataFrame:
+        """Run all the evaluations."""
+        index = [simulation_output.beam_calculator_information
+                 for simulation_output in simulation_outputs]
+        columns = [evaluator.descriptor for evaluator in self]
+
+        data = [[evaluator.run(simulation_output)
+                for evaluator in self]
+                for simulation_output in simulation_outputs]
+
+        evaluations = pd.DataFrame(data=data,
+                                   columns=columns,
+                                   index=index)
+
+        if project_folder is not None:
+            csv_path = Path(project_folder, "evaluations.csv")
+            evaluations.to_csv(csv_path)
+            logging.info(f"Saved all evaluations in {str(csv_path)}.")
+        return evaluations
 
 
 def factory_simulation_output_evaluators_from_presets(
@@ -51,6 +63,7 @@ def factory_simulation_output_evaluators_from_presets(
     """Create the `ListOfSimulationOutputEvaluators` using `PRESETS`."""
     all_kwargs = [PRESETS[name] for name in evaluator_names]
 
+    assert ref_simulation_output is not None
     evaluators = [SimulationOutputEvaluator(
         ref_simulation_output=ref_simulation_output,
         **kwargs)

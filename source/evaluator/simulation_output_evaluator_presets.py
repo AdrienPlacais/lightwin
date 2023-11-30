@@ -33,8 +33,7 @@ PRESETS = {
         'tester': partial(testers.value_is, objective_value=0., to_plot=True),
         'markdown': markdown["pow_lost"],
         'descriptor': """Lost power shall be null.""",
-        'plt_kwargs': {'fignum': 101,
-                       'savefig': True},
+        'plt_kwargs': {'fignum': 101, 'savefig': True},
     },
     "transverse eps_x shall not grow too much": {
         'value_getter': lambda s: s.get('eps_x'),
