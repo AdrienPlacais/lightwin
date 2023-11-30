@@ -26,7 +26,9 @@ PRESETS = {
     # Legacy "Fred tests"
     "no power loss": {
         'value_getter': lambda s: s.get('pow_lost'),
-        'post_treaters': (partial(post_treaters.do_nothing, to_plot=True),),
+        'post_treaters': (
+            partial(post_treaters.set_first_value_to, value=0., to_plot=True),
+        ),
         'tester': partial(testers.value_is, objective_value=0., to_plot=True),
         'markdown': markdown["pow_lost"],
         'descriptor': """Lost power shall be null.""",
