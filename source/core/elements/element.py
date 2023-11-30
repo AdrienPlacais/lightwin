@@ -80,6 +80,10 @@ class Element(Instruction):
             out = str(self.line)
         return out
 
+    def __repr__(self) -> str:
+        """Give the same name as TraceWin would."""
+        return str(self)
+
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
