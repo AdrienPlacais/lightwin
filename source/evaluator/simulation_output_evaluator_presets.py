@@ -7,14 +7,15 @@ We defining your presets, do not forget to add them to
 :mod:`config.evaluators`.
 
 """
+from functools import partial
 from typing import Callable
 
-from functools import partial
 import numpy as np
 
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.elements.element import Element
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
 from evaluator import post_treaters, testers
 from util.dicts_output import markdown
 
@@ -37,14 +38,15 @@ PRESETS = {
     },
     "transverse eps_x shall not grow too much": {
         'value_getter': lambda s: s.get('eps_x'),
-        'ref_value_getter': lambda ref_s, s: s.get('eps_x',
-                                                   elt='first', pos='in'),
-        'post_treaters': (post_treaters.relative_difference,
-                          partial(post_treaters.scale_by,
-                                  scale=100., to_plot=True),
-                          post_treaters.maximum),
+        'ref_value_getter': lambda _, s: s.get('eps_x', elt='first', pos='in'),
+        'post_treaters': (
+            post_treaters.relative_difference,
+            partial(post_treaters.scale_by, scale=100., to_plot=True),
+            post_treaters.maximum,
+        ),
         'tester': partial(testers.value_is_below,
-                          upper_limit=20., to_plot=True),
+                          upper_limit=20.,
+                          to_plot=True),
         'markdown': r"$\Delta\epsilon_{xx'} / \epsilon_{xx'}$ (ref $z=0$) [%]",
         'descriptor': """Transverse emittance should not grow by more than
                          20% along the linac.""",
@@ -53,12 +55,12 @@ PRESETS = {
     },
     "transverse eps_y shall not grow too much": {
         'value_getter': lambda s: s.get('eps_y'),
-        'ref_value_getter': lambda ref_s, s: s.get('eps_y',
-                                                   elt='first', pos='in'),
-        'post_treaters': (post_treaters.relative_difference,
-                          partial(post_treaters.scale_by,
-                                  scale=100., to_plot=True),
-                          post_treaters.maximum),
+        'ref_value_getter': lambda _, s: s.get('eps_y', elt='first', pos='in'),
+        'post_treaters': (
+            post_treaters.relative_difference,
+            partial(post_treaters.scale_by, scale=100., to_plot=True),
+            post_treaters.maximum
+        ),
         'tester': partial(testers.value_is_below,
                           upper_limit=20., to_plot=True),
         'markdown': r"$\Delta\epsilon_{yy'} / \epsilon_{yy'}$ (ref $z=0$) [%]",
@@ -69,14 +71,17 @@ PRESETS = {
     },
     "longitudinal eps shall not grow too much": {
         'value_getter': lambda s: s.get('eps_phiw'),
-        'ref_value_getter': lambda ref_s, s: s.get('eps_phiw',
-                                                   elt='first', pos='in'),
-        'post_treaters': (post_treaters.relative_difference,
-                          partial(post_treaters.scale_by,
-                                  scale=100., to_plot=True),
-                          post_treaters.maximum),
+        'ref_value_getter': lambda _, s: s.get('eps_phiw',
+                                               elt='first',
+                                               pos='in'),
+        'post_treaters': (
+            post_treaters.relative_difference,
+            partial(post_treaters.scale_by, scale=100., to_plot=True),
+            post_treaters.maximum
+        ),
         'tester': partial(testers.value_is_below,
-                          upper_limit=20., to_plot=True),
+                          upper_limit=20.,
+                          to_plot=True),
         'markdown': r"$\Delta\epsilon_{\phi W} / \epsilon_{\phi W}$ "
                     + r"(ref $z=0$) [%]",
         'descriptor': """Longitudinal emittance should not grow by more than
@@ -86,13 +91,16 @@ PRESETS = {
     },
     "max of 99percent transverse eps_x shall not be too high": {
         'value_getter': lambda s: s.get('eps_x99'),
-        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_x99')),
-        'post_treaters': (post_treaters.maximum,
-                          partial(post_treaters.relative_difference,
-                                  replace_zeros_by_nan_in_ref=False,
-                                  to_plot=True)),
+        'ref_value_getter': lambda ref_s, _: np.max(ref_s.get('eps_x99')),
+        'post_treaters': (
+            post_treaters.maximum,
+            partial(post_treaters.relative_difference,
+                    replace_zeros_by_nan_in_ref=False,
+                    to_plot=True),
+        ),
         'tester': partial(testers.value_is_below,
-                          upper_limit=30., to_plot=True),
+                          upper_limit=30.,
+                          to_plot=True),
         'markdown': r"$\frac{max(\epsilon_{xx'}) - "
                     + r"max(\epsilon_{xx'}^{ref}))}"
                     + r"{max(\epsilon_{xx'}^{ref})}$ @ 99%",
@@ -103,11 +111,13 @@ PRESETS = {
     },
     "max of 99percent transverse eps_y shall not be too high": {
         'value_getter': lambda s: s.get('eps_y99'),
-        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_y99')),
-        'post_treaters': (post_treaters.maximum,
-                          partial(post_treaters.relative_difference,
-                                  replace_zeros_by_nan_in_ref=False,
-                                  to_plot=True)),
+        'ref_value_getter': lambda ref_s, _: np.max(ref_s.get('eps_y99')),
+        'post_treaters': (
+            post_treaters.maximum,
+            partial(post_treaters.relative_difference,
+                    replace_zeros_by_nan_in_ref=False,
+                    to_plot=True),
+        ),
         'tester': partial(testers.value_is_below,
                           upper_limit=30., to_plot=True),
         'markdown': r"$\frac{max(\epsilon_{yy'}) - "
@@ -120,11 +130,13 @@ PRESETS = {
     },
     "max of 99percent longitudinal eps shall not be too high": {
         'value_getter': lambda s: s.get('eps_phiw99'),
-        'ref_value_getter': lambda ref_s, s: np.max(ref_s.get('eps_phiw99')),
-        'post_treaters': (post_treaters.maximum,
-                          partial(post_treaters.relative_difference,
-                                  replace_zeros_by_nan_in_ref=False,
-                                  to_plot=True)),
+        'ref_value_getter': lambda ref_s, _: np.max(ref_s.get('eps_phiw99')),
+        'post_treaters': (
+            post_treaters.maximum,
+            partial(post_treaters.relative_difference,
+                    replace_zeros_by_nan_in_ref=False,
+                    to_plot=True),
+        ),
         'tester': partial(testers.value_is_below,
                           upper_limit=30., to_plot=True),
         'markdown': r"$\frac{max(\epsilon_{\phi W}) - "
@@ -139,8 +151,9 @@ PRESETS = {
     # Legacy "Bruce tests"
     "longitudinal eps at end": {
         'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
-        'ref_value_getter': lambda ref_s, s: ref_s.get('eps_zdelta',
-                                                       elt='last', pos='out'),
+        'ref_value_getter': lambda ref_s, _: ref_s.get('eps_zdelta',
+                                                       elt='last',
+                                                       pos='out'),
         'post_treaters': (post_treaters.relative_difference,),
         'markdown': markdown['eps_zdelta'],
         'descriptor': """Relative difference of emittance in [z-delta] plane
@@ -148,8 +161,9 @@ PRESETS = {
     },
     "transverse eps at end": {
         'value_getter': lambda s: s.get('eps_t', elt='last', pos='out'),
-        'ref_value_getter': lambda ref_s, s: ref_s.get('eps_t',
-                                                       elt='last', pos='out'),
+        'ref_value_getter': lambda ref_s, _: ref_s.get('eps_t',
+                                                       elt='last',
+                                                       pos='out'),
         'post_treaters': (post_treaters.relative_difference,),
         'markdown': markdown['eps_t'],
         'descriptor': """Relative difference of emittance in transverse plane
@@ -192,7 +206,7 @@ def presets_for_fault_scenario_rel_diff_at_some_element(
 
     base_dict = {
         'value_getter': lambda s: s.get(quantity, **kwargs),
-        'ref_value_getter': lambda ref_s, s: ref_s.get(quantity, **kwargs),
+        'ref_value_getter': lambda ref_s, _: ref_s.get(quantity, **kwargs),
         'ref_simulation_output': ref_simulation_output,
         'post_treaters': (post_treaters.relative_difference,
                           partial(post_treaters.scale_by, scale=100.)),
@@ -223,7 +237,7 @@ def presets_for_fault_scenario_rms_over_full_linac(
 
     base_dict = {
         'value_getter': lambda s: s.get(quantity, **kwargs),
-        'ref_value_getter': lambda ref_s, s: ref_s.get(quantity, **kwargs),
+        'ref_value_getter': lambda ref_s, _: ref_s.get(quantity, **kwargs),
         'ref_simulation_output': ref_simulation_output,
         'post_treaters': (post_treaters.rms_error,),
         'markdown': markdown[quantity].replace('deg', 'rad'),
@@ -232,7 +246,7 @@ def presets_for_fault_scenario_rms_over_full_linac(
     }
 
     if 'mismatch' in quantity:
-        base_dict['value_getter'] = lambda s: np.NaN
+        base_dict['value_getter'] = lambda _: np.NaN
         base_dict['ref_value_getter'] = None
         base_dict['post_treaters'] = (post_treaters.do_nothing,)
 
