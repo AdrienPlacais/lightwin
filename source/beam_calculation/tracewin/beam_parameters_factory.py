@@ -2,15 +2,12 @@
 # -*- coding: utf-8 -*-
 """Define a function to generate a :class:`.BeamParameters` for TraceWin."""
 from typing import Callable
-import logging
 
 import numpy as np
 
-from core.elements.element import Element
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.factory import BeamParametersFactory
-
-from util import converters
+from core.elements.element import Element
 
 
 class BeamParametersFactoryTraceWin(BeamParametersFactory):
@@ -55,7 +52,7 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
                                       beta_kin)
 
         if self.is_multipart:
-            phase_space_names = ('x99', 'y99', 'phi99')
+            phase_space_names = ('x99', 'y99', 'phiw99')
             self._set_99percent_emittances(beam_parameters,
                                            results,
                                            *phase_space_names)
@@ -101,6 +98,19 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
                                   results: dict[str, np.ndarray],
                                   *phase_space_names: str
                                   ) -> None:
+        """Save the 99% emittances.
+
+        Parameters
+        ----------
+        beam_parameters : BeamParameters
+            Objects in which emittances should be stored.
+        results : dict[str, np.ndarray]
+            Results dictionary, holding the values of the ``partran1.out``
+            file.
+        phase_space_names : {'x99', 'y99', 'phiw99'}
+            Name of the phase spaces to save.
+
+        """
         getters = {
             'x99': results['ex99'],
             'y99': results['ey99'],
