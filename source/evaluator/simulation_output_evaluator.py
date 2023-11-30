@@ -7,6 +7,9 @@ Define an object to evaluate quality of a set of cavity settings.
     We do not directly evaluate a :class:`.SetOfCavitySettings` though, but
     rather a :class:`.SimulationOutput`.
 
+.. todo::
+    different factories for evaluation during the fit and evaluation after
+
 """
 from abc import ABC
 from dataclasses import dataclass
@@ -66,21 +69,20 @@ def _return_value_should_be_plotted(partial_function: Callable) -> bool:
 
 
 def _limits_given_in_functoolspartial_args(partial_function: Callable
-                                           ) -> tuple[np.ndarray | float]:
+                                           ) -> tuple[np.ndarray | float, ...]:
     """Extract the limits given to a test function."""
     if not isinstance(partial_function, partial):
-        logging.warning("Given function must be a functools.partial func.")
-        return tuple(np.NaN)
+        logging.error("Given function must be a functools.partial func.")
+        return (np.NaN, np.NaN)
 
     keywords = partial_function.keywords
-
     if 'limits' in keywords:
         return keywords['limits']
 
     limits = [keywords[key] for key in keywords.keys()
               if key in ['lower_limit', 'upper_limit', 'objective_value']
               ]
-    assert len(limits) in [1, 2]
+    assert len(limits) in (1, 2)
     return tuple(limits)
 
 
@@ -160,6 +162,11 @@ class SimulationOutputEvaluator(ABC):
 
         if self.plt_kwargs is None:
             self.plt_kwargs = {}
+        self.plt_kwargs = {
+            'axnum': 2,
+            'clean_fig': True,
+            'sharex': True,
+        } | self.plt_kwargs
 
         self._fig: Figure | None = None
         self.main_ax: Axes | None = None
@@ -169,7 +176,8 @@ class SimulationOutputEvaluator(ABC):
         """Output the descriptor string."""
         return self.descriptor
 
-    def run(self, simulation_output: SimulationOutput) -> bool | float | None:
+    def run(self, simulation_output: SimulationOutput
+            ) -> np.ndarray | bool | float | None:
         """
         Run the test.
 
@@ -180,45 +188,114 @@ class SimulationOutputEvaluator(ABC):
         bunch of configurations.
 
         """
-        z_abs = simulation_output.get('z_abs')
-        try:
-            value = self.value_getter(simulation_output)
-        except IndexError:
-            logging.error("Mismatch between z_abs and value shapes. Current "
-                          "quantity is probably a mismatch_factor, which "
-                          "was interpolated. Returning None.")
-            value = None
-
-        if value is None:
+        plt_kw = {'label': simulation_output.beam_calculator_information,
+                  }
+        x_data, y_data = self._get_data(simulation_output)
+        if y_data is None:
             logging.error(f"A value misses in test: {self}. Skipping...")
             return None
 
-        ref_value = None
-        if self.ref_value_getter is not None:
-            ref_value = self.ref_value_getter(self.ref_simulation_output,
-                                              simulation_output)
+        y_ref_data = self._get_ref_data(simulation_output)
+        if y_ref_data is None:
+            # this happens with mismatch
+            return y_data
 
-            if _need_to_resample(value, ref_value):
-                ref_z_abs = self.ref_simulation_output.get('z_abs')
-                z_abs, value, ref_z_abs, ref_value = resample(
-                    z_abs, value, ref_z_abs, ref_value)
+        if _need_to_resample(y_data, y_ref_data):
+            x_data, y_data, _, y_ref_data = self._resampled(
+                x_data,
+                y_data,
+                y_ref_data)
 
-        for post_treater in self.post_treaters:
-            value = post_treater(*(value, ref_value))
-            if _return_value_should_be_plotted(post_treater):
-                self._add_a_value_plot(z_abs, value)
+        y_data = self._apply_post_treatments(x_data,
+                                             y_data,
+                                             y_ref_data,
+                                             **plt_kw)
 
-        if self.tester is None:
-            self._save_plot(simulation_output.out_path, **self.plt_kwargs)
-            return value
-
-        test = self.tester(value)
-        if _return_value_should_be_plotted(self.tester):
-            limits = _limits_given_in_functoolspartial_args(self.tester)
-            self._add_a_limit_plot(z_abs, limits)
+        if self.tester is not None:
+            y_data = self._apply_test(x_data, y_data, **plt_kw)
 
         self._save_plot(simulation_output.out_path, **self.plt_kwargs)
-        return test
+        return y_data
+
+    def _get_data(self,
+                  simulation_output: SimulationOutput,
+                  ) -> tuple[np.ndarray,
+                             np.ndarray | float | None]:
+        """Get da data."""
+        x_data = simulation_output.get('z_abs')
+        try:
+            y_data = self.value_getter(simulation_output)
+        except IndexError:
+            logging.error("Mismatch between x_data and y_data shapes. Current "
+                          "quantity is probably a mismatch_factor, which "
+                          "was interpolated. Returning None.")
+            y_data = None
+        return x_data, y_data
+
+    def _get_ref_data(self,
+                      simulation_output: SimulationOutput
+                      ) -> np.ndarray | float | None:
+        """Get da reference data."""
+        if self.ref_value_getter is None:
+            return None
+        y_ref_data = self.ref_value_getter(self.ref_simulation_output,
+                                           simulation_output)
+        return y_ref_data
+
+    def _resampled(self,
+                   x_data: np.ndarray,
+                   y_data: np.ndarray | float,
+                   y_ref_data: np.ndarray | float,
+                   ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Resample data."""
+        x_ref_data = self.ref_simulation_output.get('z_abs')
+        x_data, y_data, x_ref_data, y_ref_data = resample(
+            x_data,
+            np.atleast_1d(y_data),
+            x_ref_data,
+            np.atleast_1d(y_ref_data))
+        return x_data, y_data, x_ref_data, y_ref_data
+
+    def _apply_post_treatments(self,
+                               x_data: np.ndarray | float,
+                               y_data: np.ndarray | float,
+                               y_ref_data: np.ndarray | float,
+                               **plot_kw: str,
+                               ) -> np.ndarray | float:
+        """Apply all the ``post_treaters`` functions.
+
+        Can also plot the post-treated data after all or some of the
+        post-treatments have been performed.
+
+        """
+        for post_treater in self.post_treaters:
+            y_data = post_treater(*(y_data, y_ref_data))
+
+            if _return_value_should_be_plotted(post_treater):
+                assert self.main_ax is not None
+                assert isinstance(x_data, np.ndarray)
+                self._add_a_value_plot(x_data, y_data, **plot_kw)
+                self.main_ax.legend()
+        return y_data
+
+    def _apply_test(self,
+                    x_data: np.ndarray,
+                    y_data: np.ndarray | float,
+                    **plot_kw: str,
+                    ) -> bool | float | None:
+        """Apply da testing functions.
+
+        Can also plot the test results if asked.
+
+        """
+        y_data = self.tester(y_data)
+
+        if _return_value_should_be_plotted(self.tester):
+            assert self.main_ax is not None
+            limits = _limits_given_in_functoolspartial_args(self.tester)
+            self._add_a_limit_plot(x_data, limits, **plot_kw)
+            self.main_ax.legend()
+        return y_data
 
     def _create_plot(self,
                      fignum: int | None = None,
@@ -226,10 +303,7 @@ class SimulationOutputEvaluator(ABC):
         """Prepare the plot."""
         if fignum is None:
             return
-        fig, axx = plot._create_fig_if_not_exists(axnum=[211, 212],
-                                                  sharex=True,
-                                                  num=fignum,
-                                                  clean_fig=True,)
+        fig, axx = plot._create_fig_if_not_exists(num=fignum, **kwargs)
         fig.suptitle(self.descriptor, fontsize=14)
         axx[0].set_ylabel(self.markdown)
         axx[0].grid(True)
@@ -240,19 +314,24 @@ class SimulationOutputEvaluator(ABC):
 
     def _add_a_value_plot(self,
                           z_data: np.ndarray,
-                          value: np.ndarray | float
+                          value: np.ndarray | float,
+                          **plot_kw: str,
                           ) -> None:
         """Add (treated) data to the plot."""
         assert self.main_ax is not None
         if isinstance(value, float) or value.shape == ():
-            self.main_ax.axhline(value, xmin=z_data[0], xmax=z_data[-1])
+            self.main_ax.axhline(value,
+                                 xmin=z_data[0],
+                                 xmax=z_data[-1],
+                                 **plot_kw)
             return
-        self.main_ax.plot(z_data, value)
+        self.main_ax.plot(z_data, value, **plot_kw)
 
     def _add_a_limit_plot(self,
                           z_data: np.ndarray,
                           limit: tuple[np.ndarray | float,
-                                       np.ndarray | float]) -> None:
+                                       np.ndarray | float],
+                          **plot_kw: str) -> None:
         """Add limits to the plot."""
         assert self.main_ax is not None
 
@@ -261,9 +340,12 @@ class SimulationOutputEvaluator(ABC):
                 self.main_ax.axhline(lim,
                                      xmin=z_data[0],
                                      xmax=z_data[-1],
-                                     c='r', ls='--', lw=5)
+                                     c='r',
+                                     ls='--',
+                                     lw=5,
+                                     **plot_kw)
                 continue
-            self.main_ax.plot(z_data, lim)
+            self.main_ax.plot(z_data, lim, **plot_kw)
 
     def _save_plot(self,
                    out_path: Path,
