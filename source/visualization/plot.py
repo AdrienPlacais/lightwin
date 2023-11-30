@@ -26,7 +26,7 @@ implemented plots in :mod:`config.plots`.
 import itertools
 import logging
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 import matplotlib
 import matplotlib.patches as pat
@@ -153,7 +153,7 @@ def _plot_preset(str_preset: str,
     **kwargs : bool | str | int
         Holds all complementary data on the plots.
     """
-    fig, axx = _create_fig_if_not_exists(len(all_y_axis), **kwargs)
+    fig, axx = create_fig_if_not_exists(len(all_y_axis), **kwargs)
 
     colors = None
     for i, (axe, y_axis) in enumerate(zip(axx, all_y_axis)):
@@ -395,10 +395,12 @@ def _make_a_subplot(axe: ax_type, x_axis: str, y_axis: str,
 # =============================================================================
 # Basic helpers
 # =============================================================================
-def _create_fig_if_not_exists(axnum: int | list[int], sharex: bool = False,
-                              num: int = 1, clean_fig: bool = False,
-                              **kwargs: bool | str | int
-                              ) -> tuple[figure_type, list[ax_type]]:
+def create_fig_if_not_exists(axnum: int | list[int],
+                             sharex: bool = False,
+                             num: int = 1,
+                             clean_fig: bool = False,
+                             **kwargs: bool | str | int
+                             ) -> tuple[figure_type, list[ax_type]]:
     """
     Check if figures were already created, create it if not.
 
@@ -424,7 +426,7 @@ def _create_fig_if_not_exists(axnum: int | list[int], sharex: bool = False,
         fig = plt.figure(num)
         axlist = fig.get_axes()
         if clean_fig:
-            _clean_fig([num])
+            clean_figure([num])
         return fig, axlist
     fig = plt.figure(num)
     axlist = [fig.add_subplot(axnum[0])]
@@ -435,12 +437,23 @@ def _create_fig_if_not_exists(axnum: int | list[int], sharex: bool = False,
     return fig, axlist
 
 
-def _clean_fig(fignumlist):
+def clean_figure(fignumlist: Sequence[figure_type]) -> None:
     """Clean axis of Figs in fignumlist."""
     for fignum in fignumlist:
         fig = plt.figure(fignum)
-        for axx in fig.get_axes():
-            axx.cla()
+        clean_axes(fig.get_axes())
+
+
+def clean_axes(axlist: Sequence[ax_type]) -> None:
+    """Clean given axis."""
+    for axx in axlist:
+        axx.cla()
+
+
+def remove_artists(axe: ax_type) -> None:
+    """Remove lines and plots, but keep labels and grids."""
+    for artist in axe.lines:
+        artist.remove()
 
 
 def _autoscale_based_on(axx: ax_type, to_ignore: str) -> None:
@@ -733,7 +746,7 @@ def plot_ellipse_emittance(axx, accelerator, idx, phase_space="w"):
 
 def plot_fit_progress(hist_f, l_label, nature='Relative'):
     """Plot the evolution of the objective functions w/ each iteration."""
-    _, axx = _create_fig_if_not_exists(1, num=32)
+    _, axx = create_fig_if_not_exists(1, num=32)
     axx = axx[0]
 
     scales = {'Relative': lambda x: x / x[0],

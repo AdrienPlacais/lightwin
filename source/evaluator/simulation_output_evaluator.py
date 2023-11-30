@@ -188,6 +188,9 @@ class SimulationOutputEvaluator(ABC):
         bunch of configurations.
 
         """
+        if self.main_ax is not None:
+            plot.remove_artists(self.main_ax)
+
         plt_kw = {'label': simulation_output.beam_calculator_information,
                   }
         x_data, y_data = self._get_data(simulation_output)
@@ -303,14 +306,14 @@ class SimulationOutputEvaluator(ABC):
         """Prepare the plot."""
         if fignum is None:
             return
-        fig, axx = plot._create_fig_if_not_exists(num=fignum, **kwargs)
+        fig, axx = plot.create_fig_if_not_exists(num=fignum, **kwargs)
         fig.suptitle(self.descriptor, fontsize=14)
         axx[0].set_ylabel(self.markdown)
         axx[0].grid(True)
 
         self._fig = fig
         self.main_ax = axx[0]
-        # see what are the kwargs for _create_fig_if_not_exists...
+        # see what are the kwargs for create_fig_if_not_exists...
 
     def _add_a_value_plot(self,
                           z_data: np.ndarray,

@@ -127,15 +127,15 @@ if __name__ == '__main__':
     normal_diff = interp_cumulated - ref_cumulated_transfer_matrices
 
     # Now a plot
-    from visualization.plot import (_create_fig_if_not_exists,
+    from visualization.plot import (create_fig_if_not_exists,
                                     _plot_structure,
                                     )
     i = 1
     j = 1
-    fig, axes = _create_fig_if_not_exists(axnum=3,
-                                          sharex=True,
-                                          num=25,
-                                          clean_fig=True)
+    fig, axes = create_fig_if_not_exists(axnum=3,
+                                         sharex=True,
+                                         num=25,
+                                         clean_fig=True)
     axes[0].plot(ref_pos,
                  ref_cumulated_transfer_matrices[:, i, j],
                  label='Reference')
@@ -159,7 +159,8 @@ if __name__ == '__main__':
 
     tw_energy = 80.668954
     my_energy = sim.get('w_kin', elt='last', pos='out')
-    print(f"Rel error on energy: {100. * (tw_energy - my_energy) / tw_energy}%")
+    print(
+        f"Rel error on energy: {100. * (tw_energy - my_energy) / tw_energy}%")
 
     tw_beta = 0.38996284
     my_beta = sim.get('beta', elt='last', pos='out')
