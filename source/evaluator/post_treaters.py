@@ -62,29 +62,34 @@ def relative_difference(value: np.ndarray | float,
     return delta_rel
 
 
-def rms_error(value: np.ndarray | float, reference_value: np.ndarray | float,
+def rms_error(value: np.ndarray,
+              reference_value: np.ndarray,
               **kwargs: bool) -> float:
     """Compute the RMS error."""
     rms = np.sqrt(np.sum((value - reference_value)**2)) / value.shape[0]
     return rms
 
 
-def absolute(*args: np.ndarray | float, **kwargs: bool) -> np.ndarray | float:
-    """Return the absolute value `value`. A bit dumb, but adds consistency."""
+def absolute(*args: np.ndarray | float,
+             **kwargs: bool) -> np.ndarray | float:
+    """Return the absolute ``value``."""
     return np.abs(args[0])
 
 
-def scale_by(*args: np.ndarray | float, scale: np.ndarray | float = 1.,
+def scale_by(*args: np.ndarray | float,
+             scale: np.ndarray | float = 1.,
              **kwargs) -> np.ndarray | float:
-    """Return `value` scaled by `scale`."""
+    """Return ``value`` scaled by ``scale``."""
     return args[0] * scale
 
 
-def maximum(*args: np.ndarray | float, **kwargs: bool) -> float:
-    """Return the maximum of `value`. A bit dumb, but adds consistency."""
+def maximum(*args: np.ndarray,
+            **kwargs: bool) -> float:
+    """Return the maximum of ``value``."""
     return np.max(args[0])
 
 
-def minimum(*args: np.ndarray | float, **kwargs: bool) -> float:
-    """Return the minimum of `value`. A bit dumb, but adds consistency."""
+def minimum(*args: np.ndarray,
+            **kwargs: bool) -> float:
+    """Return the minimum of ``value``."""
     return np.min(args[0])
