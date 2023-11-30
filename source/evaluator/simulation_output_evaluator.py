@@ -202,7 +202,9 @@ class SimulationOutputEvaluator(ABC):
         y_ref_data = self._get_ref_data(simulation_output)
         if y_ref_data is None:
             # this happens with mismatch
-            return y_data
+            # return y_data
+            # logging.critical(self.descriptor)
+            y_ref_data = y_data
 
         if _need_to_resample(y_data, y_ref_data):
             x_data, y_data, _, y_ref_data = self._resampled(
@@ -336,8 +338,12 @@ class SimulationOutputEvaluator(ABC):
                                  xmin=z_data[0],
                                  xmax=z_data[-1],
                                  **plot_kw)
+            self.main_ax.relim()
+            self.main_ax.autoscale()
             return
         self.main_ax.plot(z_data, value, **plot_kw)
+        self.main_ax.relim()
+        self.main_ax.autoscale()
 
     def _add_a_limit_plot(self,
                           z_data: np.ndarray,
@@ -358,6 +364,8 @@ class SimulationOutputEvaluator(ABC):
                                      **plot_kw)
                 continue
             self.main_ax.plot(z_data, lim, **plot_kw)
+        # self.main_ax.relim()
+        # self.main_ax.autoscale()
 
     def _save_plot(self,
                    out_path: Path,
