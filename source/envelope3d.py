@@ -155,7 +155,7 @@ if __name__ == '__main__':
         axes[1].set_ylabel('Abs diff')
 
     axes[1].grid(True)
-    _plot_structure(accelerators[0], axes[2])
+    _plot_structure(accelerators[0].elts, axes[2])
 
     tw_energy = 80.668954
     my_energy = sim.get('w_kin', elt='last', pos='out')
