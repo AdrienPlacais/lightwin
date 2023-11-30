@@ -138,13 +138,13 @@ class PhaseSpaceBeamParameters:
                 setattr(self, attribute_name, given_value)
 
     def is_not_set(self, name: str) -> bool:
-        """Tells if there is a np.Nan in the array."""
+        """Tells if there is a ``np.NaN`` in the array."""
         array = self.get(name)
         assert isinstance(array, np.ndarray)
         return np.isnan(array).any()
 
     def is_set(self, name: str) -> bool:
-        """Tells if there is no np.Nan in the array."""
+        """Tells if there is no ``np.NaN`` in the array."""
         return ~self.is_not_set(name)
 
     @property
@@ -375,7 +375,8 @@ class PhaseSpaceBeamParameters:
         if self.phase_space == 'phiw':
             eps_for_envelope = eps_normalized
 
-        assert self.is_set('twiss')
+        if not self.is_set('twiss'):
+            logging.warning("Invalid values detected in Twiss array.")
         self.compute_envelopes(self.twiss[:, 1],
                                self.twiss[:, 2],
                                eps_for_envelope)
@@ -403,7 +404,6 @@ class PhaseSpaceBeamParameters:
                                 sigma: np.ndarray,
                                 gamma_kin: np.ndarray,
                                 beta_kin: np.ndarray,
-                                replace_nan_by_0: bool = True,
                                 ) -> tuple[np.ndarray, np.ndarray]:
         r"""
         Compute emittance from :math:`\sigma` beam matrix.
@@ -422,9 +422,6 @@ class PhaseSpaceBeamParameters:
             Lorentz gamma factor.
         beta_kin : np.ndarray
             Lorentz beta factor.
-        replace_nan_by_0 : bool, optional
-            To avoid raising of errors and allow the code to reach the creation
-            of a :class:`.SimulationOutput`. Useful for debugging.
 
         Returns
         -------
@@ -438,24 +435,21 @@ class PhaseSpaceBeamParameters:
         assert self.phase_space in allowed, \
             f"Phase-space {self.phase_space} not in {allowed}."
 
-        eps_no_normalisation = np.array(
-            [np.sqrt(np.linalg.det(sigma[i])) for i in range(sigma.shape[0])])
+        dets = np.linalg.det(sigma)
+        invalid_idx = np.where(dets < 0.)
+        dets[invalid_idx] = np.NaN
+        eps_no_normalisation = np.sqrt(dets)
 
         if self.phase_space in ('zdelta'):
             eps_no_normalisation *= 1e5
         elif self.phase_space in ('x', 'y', 'x99', 'y99'):
             eps_no_normalisation *= 1e6
 
-        if replace_nan_by_0 and np.isnan(eps_no_normalisation).any():
-            logging.error("Replacing NaN by 0. in emittance array.")
-            eps_no_normalisation[np.where(np.isnan(eps_no_normalisation))] = 0.
-
-        assert ~np.isnan(eps_no_normalisation).any()
         eps_normalized = converters.emittance(eps_no_normalisation,
                                               f"normalize {self.phase_space}",
                                               gamma_kin=gamma_kin,
                                               beta_kin=beta_kin)
-        assert ~np.isnan(eps_normalized).any()
+        assert isinstance(eps_normalized, np.ndarray)
         return eps_no_normalisation, eps_normalized
 
     def _compute_eps_from_other_plane(self,
@@ -502,7 +496,8 @@ class PhaseSpaceBeamParameters:
 
     def _compute_twiss_from_sigma(self,
                                   sigma: np.ndarray,
-                                  eps_no_normalisation: np.ndarray
+                                  eps_no_normalisation: np.ndarray,
+                                  tol: float = 1e-8,
                                   ) -> None:
         r"""Compute the Twiss parameters using the :math:`\sigma` matrix.
 
@@ -525,17 +520,25 @@ class PhaseSpaceBeamParameters:
             (n, 2, 2) array holding :math:`\sigma` beam matrix.
         eps_no_normalisation : np.ndarray
             Unnormalized emittance.
+        tol : float, optional
+            ``eps_no_normalisation`` is set to np.NaN where it is under ``tol``
+            to avoid ``RuntimeWarning``. The default is ``1e-8``.
 
         """
         assert self.phase_space in ('zdelta', 'x', 'y', 'x99', 'y99')
-        assert self.is_set('eps')
+        if not self.is_set('eps'):
+            logging.warning("Invalid values detected in emittance array.")
         n_points = sigma.shape[0]
         twiss = np.full((n_points, 3), np.NaN)
 
         for i in range(n_points):
+            divisor = eps_no_normalisation[i]
+            if np.abs(divisor) < tol:
+                divisor = np.NaN
+
             twiss[i, :] = np.array(
                 [-sigma[i][1, 0], sigma[i][0, 0], sigma[i][1, 1]]
-            ) / eps_no_normalisation[i] * 1e6
+            ) / divisor * 1e6
 
         if self.phase_space == 'zdelta':
             twiss[:, 0] *= 1e-1

@@ -26,6 +26,7 @@ def sigma_beam_matrices(tm_cumul: np.ndarray,
 def reconstruct_sigma(sigma_00: np.ndarray,
                       sigma_01: np.ndarray,
                       eps: np.ndarray,
+                      tol: float = 1e-8,
                       ) -> np.ndarray:
     r"""Compute sigma matrix from the two top components and emittance.
 
@@ -38,6 +39,9 @@ def reconstruct_sigma(sigma_00: np.ndarray,
     eps : np.ndarray
         Un-normalized emittance in units consistent with ``sigma_00`` and
         ``sigma_01``.
+    tol : float, optional
+        ``sigma_00`` is set to np.NaN where it is under ``tol`` to avoid
+        ``RuntimeWarning``. The default is ``1e-8``.
 
     Returns
     -------
@@ -47,6 +51,7 @@ def reconstruct_sigma(sigma_00: np.ndarray,
 
     """
     sigma = np.zeros((sigma_00.shape[0], 2, 2))
+    sigma_00[np.where(np.abs(sigma_00) < tol)] = np.NaN
     sigma[:, 0, 0] = sigma_00
     sigma[:, 0, 1] = sigma_01
     sigma[:, 1, 0] = sigma_01

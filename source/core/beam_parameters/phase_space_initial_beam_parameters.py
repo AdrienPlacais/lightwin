@@ -297,7 +297,8 @@ class PhaseSpaceInitialBeamParameters:
         assert self.phase_space in allowed, \
             f"Phase-space {self.phase_space} not in {allowed}."
 
-        eps_no_normalisation = np.sqrt(np.linalg.det(sigma))
+        dets = np.linalg.det(sigma)
+        eps_no_normalisation = np.sqrt(dets)
 
         if self.phase_space in ('zdelta'):
             eps_no_normalisation *= 1e5
