@@ -185,6 +185,11 @@ PRESETS = {
                          Defined as average of two transverse mismatch
                          factors."""
     },
+    "optimisation time": {
+        'value_getter': lambda s: s.get('optimisation_time'),
+        'markdown': markdown['optimisation_time'],
+        'descriptor': """Time took by the optimisation algorithm."""
+    },
 }
 
 

@@ -17,23 +17,24 @@ We define a class to store outputs from different :class:`.BeamCalculator`.
     :data:`.BeamParameters.zdelta`.
 
 """
+from dataclasses import dataclass
+import datetime
 import logging
 import os.path
 from pathlib import Path
-from dataclasses import dataclass
 from typing import Any, Callable
+
 import numpy as np
 import pandas as pd
 
-from core.particle import ParticleFullTrajectory
-from core.elements.element import Element
-from core.list_of_elements.list_of_elements import ListOfElements
 from core.beam_parameters.beam_parameters import (
     BeamParameters,
     mismatch_from_objects,
 )
+from core.elements.element import Element
+from core.list_of_elements.list_of_elements import ListOfElements
+from core.particle import ParticleFullTrajectory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
-
 from util.helper import recursive_items, recursive_getter, range_vals
 
 
@@ -112,6 +113,9 @@ class SimulationOutput:
                 i for i, _ in enumerate(self.cav_params['v_cav_mv'], start=1)
             ]
         self.out_path: str | None = None
+
+        # test. set at the end of FaultScenario.fix_all
+        self.optimisation_time = datetime.timedelta()
 
     def __str__(self) -> str:
         """Give a resume of the data that is stored."""

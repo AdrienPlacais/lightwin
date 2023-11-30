@@ -12,6 +12,7 @@ import logging
 import configparser
 
 evaluators = (
+        "optimisation time",
         "no power loss",
         "transverse eps_x shall not grow too much",
         "transverse eps_y shall not grow too much",

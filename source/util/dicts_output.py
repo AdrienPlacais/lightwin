@@ -65,6 +65,7 @@ markdown = {
     'eps_x99': r"Norm. 99% $\epsilon_{xx'}$ [$\pi$mm mrad]",
     'eps_y99': r"Norm. 99% $\epsilon_{yy'}$ [$\pi$mm mrad]",
 
+    'optimisation_time': "Optimisation time",
 }
 
 plot_kwargs = {
