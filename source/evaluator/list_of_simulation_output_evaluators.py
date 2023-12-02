@@ -6,8 +6,10 @@ Define an object to regroup several :class:`.SimulationOutputEvaluator``s.
 We also define some factory functions to facilitate their creation.
 
 """
+import datetime
 import logging
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -32,18 +34,17 @@ class ListOfSimulationOutputEvaluators(list):
         """Create the objects (factory)."""
         super().__init__(evaluators)
 
-    def run(self, *simulation_outputs: SimulationOutput,
+    def run(self,
+            *simulation_outputs: SimulationOutput,
+            other_evals: dict[str, list[Any]] | None = None,
             project_folder: Path | None = None,
-            **kwargs
+            **files_kw,
             ) -> pd.DataFrame:
         """Run all the evaluations."""
-        index = [simulation_output.beam_calculator_information
-                 for simulation_output in simulation_outputs]
-        columns = [evaluator.descriptor for evaluator in self]
-
-        data = [[evaluator.run(simulation_output)
-                for evaluator in self]
-                for simulation_output in simulation_outputs]
+        index = self._set_indexes(*simulation_outputs)
+        other_columns, other_data = self._unpack_other_evals(other_evals)
+        columns = self._set_columns(other_columns)
+        data = self._get_evaluations(other_data, *simulation_outputs)
 
         evaluations = pd.DataFrame(data=data,
                                    columns=columns,
@@ -54,6 +55,53 @@ class ListOfSimulationOutputEvaluators(list):
             evaluations.to_csv(csv_path)
             logging.info(f"Saved all evaluations in {str(csv_path)}.")
         return evaluations
+
+    def _unpack_other_evals(
+            self,
+            other_evals: dict[str, list[Any]] | None,
+    ) -> tuple[list[str], list[list[Any]]]:
+        """Extract column names and data."""
+        if other_evals is None:
+            return [], [[]]
+        other_columns = list(other_evals.keys())
+
+        for other_column in other_columns:
+            if other_column in markdown:
+                other_column = markdown[other_column]
+
+        other_data = [[dat for dat in other_dat]
+                      for other_dat in other_evals.values()]
+
+        # Transpose array
+        other_data = list(zip(*other_data))
+        other_data = [list(data) for data in other_data]
+        return other_columns, other_data
+
+    def _set_indexes(self,
+                     *simulation_outputs: SimulationOutput,
+                     ) -> list[str]:
+        """Set the indexes of the pandas dataframe."""
+        index = [simulation_output.beam_calculator_information
+                 for simulation_output in simulation_outputs]
+        return index
+
+    def _set_columns(self,
+                     other_columns: list[str],
+                     ) -> list[str]:
+        """Set the columns of the pandas dataframe."""
+        columns = [evaluator.descriptor for evaluator in self]
+        columns += other_columns
+        return columns
+
+    def _get_evaluations(self,
+                         other_data: list[list[Any]],
+                         *simulation_outputs: SimulationOutput,
+                         ) -> list[list[float | bool | datetime.timedelta]]:
+        data = [[evaluator.run(simulation_output) for evaluator in self]
+                + other_dat
+                for simulation_output, other_dat
+                in zip(simulation_outputs, other_data)]
+        return data
 
 
 def factory_simulation_output_evaluators_from_presets(

@@ -12,19 +12,20 @@ import logging
 import configparser
 
 evaluators = (
-        "optimisation time",
-        "no power loss",
-        "transverse eps_x shall not grow too much",
-        "transverse eps_y shall not grow too much",
-        "longitudinal eps shall not grow too much",
-        "max of 99percent transverse eps_x shall not be too high",
-        "max of 99percent transverse eps_y shall not be too high",
-        "max of 99percent longitudinal eps shall not be too high",
-        "longitudinal eps at end",
-        "transverse eps at end",
-        "mismatch factor at end",
-        "transverse mismatch factor at end",
-        )  #:
+    "no power loss",
+    "transverse eps_x shall not grow too much",
+    "transverse eps_y shall not grow too much",
+    "longitudinal eps shall not grow too much",
+    "max of 99percent transverse eps_x shall not be too high",
+    "max of 99percent transverse eps_y shall not be too high",
+    "max of 99percent longitudinal eps shall not be too high",
+    "transverse eps at end",
+    "mismatch factor at end",
+    "transverse mismatch factor at end",
+    "x eps at end",
+    "y eps at end",
+    "longitudinal eps at end",
+)  #:
 
 
 def test(c_evaluators: configparser.SectionProxy) -> None:

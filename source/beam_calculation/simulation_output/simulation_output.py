@@ -114,9 +114,6 @@ class SimulationOutput:
             ]
         self.out_path: str | None = None
 
-        # test. set at the end of FaultScenario.fix_all
-        self.optimisation_time = datetime.timedelta()
-
     def __str__(self) -> str:
         """Give a resume of the data that is stored."""
         out = "SimulationOutput:\n"

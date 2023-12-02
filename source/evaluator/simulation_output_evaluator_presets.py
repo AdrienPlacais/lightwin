@@ -148,16 +148,6 @@ PRESETS = {
 
     },
     # Legacy "Bruce tests"
-    "longitudinal eps at end": {
-        'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
-        'ref_value_getter': lambda ref_s, _: ref_s.get('eps_zdelta',
-                                                       elt='last',
-                                                       pos='out'),
-        'post_treaters': (post_treaters.relative_difference,),
-        'markdown': markdown['eps_zdelta'],
-        'descriptor': """Relative difference of emittance in [z-delta] plane
-                         between fixed and reference linacs."""
-    },
     "transverse eps at end": {
         'value_getter': lambda s: s.get('eps_t', elt='last', pos='out'),
         'ref_value_getter': lambda ref_s, _: ref_s.get('eps_t',
@@ -185,10 +175,45 @@ PRESETS = {
                          Defined as average of two transverse mismatch
                          factors."""
     },
-    "optimisation time": {
-        'value_getter': lambda s: s.get('optimisation_time'),
-        'markdown': markdown['optimisation_time'],
-        'descriptor': """Time took by the optimisation algorithm."""
+    # MINERVA
+    "x eps at end": {
+        'value_getter': lambda s: s.get('eps_x'),
+        'ref_value_getter': lambda ref_s, _: ref_s.get('eps_x'),
+        'post_treaters': (
+            post_treaters.relative_difference,
+            partial(post_treaters.scale_by, scale=100., to_plot=True),
+            post_treaters.take_last,
+        ),
+        'markdown': r"$\Delta\epsilon_{xx'}/\epsilon_{xx'}$ [%]",
+        'plt_kwargs': {'fignum': 200, 'savefig': True},
+        'descriptor': """Relative difference of norm. RMS emittance in [xx']
+                         plane between fixed and reference linacs."""
+    },
+    "y eps at end": {
+        'value_getter': lambda s: s.get('eps_y'),
+        'ref_value_getter': lambda ref_s, _: ref_s.get('eps_y'),
+        'post_treaters': (
+            post_treaters.relative_difference,
+            partial(post_treaters.scale_by, scale=100., to_plot=True),
+            post_treaters.take_last,
+        ),
+        'markdown': r"$\Delta\epsilon_{yy'}/\epsilon_{yy'}$ [%]",
+        'plt_kwargs': {'fignum': 201, 'savefig': True},
+        'descriptor': """Relative difference of norm. RMS emittance in [yy']
+                         plane between fixed and reference linacs."""
+    },
+    "longitudinal eps at end": {
+        'value_getter': lambda s: s.get('eps_zdelta'),
+        'ref_value_getter': lambda ref_s, _: ref_s.get('eps_zdelta'),
+        'post_treaters': (
+            post_treaters.relative_difference,
+            partial(post_treaters.scale_by, scale=100., to_plot=True),
+            post_treaters.take_last,
+        ),
+        'markdown': r"$\Delta\epsilon_{z\delta}/\epsilon_{z\delta}$ [%]",
+        'plt_kwargs': {'fignum': 202, 'savefig': True},
+        'descriptor': """Relative difference of emittance in [z-delta] plane
+                         between fixed and reference linacs, in %."""
     },
 }
 

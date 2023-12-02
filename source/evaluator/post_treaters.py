@@ -93,3 +93,9 @@ def minimum(*args: np.ndarray,
             **kwargs: bool) -> float:
     """Return the minimum of ``value``."""
     return np.min(args[0])
+
+
+def take_last(*args: np.ndarray,
+              **kwargs: bool) -> float:
+    """Return the last element of ``value``."""
+    return args[0][-1]

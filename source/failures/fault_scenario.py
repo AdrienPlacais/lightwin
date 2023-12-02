@@ -84,6 +84,7 @@ class FaultScenario(list):
         self.wtf = wtf
         self.info_other_sol = info_other_sol
         self.info = {}
+        self.optimisation_time: datetime.timedelta
 
         solv1 = list(self.ref_acc.simulation_outputs.keys())[0]
         reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
@@ -208,8 +209,8 @@ class FaultScenario(list):
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
         logging.info(f"Elapsed time in optimisation: {delta_t}")
-        self.fix_acc.simulation_outputs[self.beam_calculator.id].\
-            optimisation_time = delta_t
+
+        self.optimisation_time = delta_t
         # Legacy, does not work anymore with the new implementation
         # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
 
