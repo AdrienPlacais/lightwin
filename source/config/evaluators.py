@@ -25,6 +25,8 @@ evaluators = (
     "x eps at end",
     "y eps at end",
     "longitudinal eps at end",
+    "delta w_kin at end",
+    "delta phi_abs at end",
 )  #:
 
 

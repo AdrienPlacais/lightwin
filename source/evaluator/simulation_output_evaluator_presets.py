@@ -187,7 +187,8 @@ PRESETS = {
         'markdown': r"$\Delta\epsilon_{xx'}/\epsilon_{xx'}$ [%]",
         'plt_kwargs': {'fignum': 200, 'savefig': True},
         'descriptor': """Relative difference of norm. RMS emittance in [xx']
-                         plane between fixed and reference linacs."""
+                         plane between fixed and reference linacs.
+                         @ end linac."""
     },
     "y eps at end": {
         'value_getter': lambda s: s.get('eps_y'),
@@ -200,7 +201,8 @@ PRESETS = {
         'markdown': r"$\Delta\epsilon_{yy'}/\epsilon_{yy'}$ [%]",
         'plt_kwargs': {'fignum': 201, 'savefig': True},
         'descriptor': """Relative difference of norm. RMS emittance in [yy']
-                         plane between fixed and reference linacs."""
+                         plane between fixed and reference linacs.
+                         @ end linac."""
     },
     "longitudinal eps at end": {
         'value_getter': lambda s: s.get('eps_zdelta'),
@@ -213,7 +215,36 @@ PRESETS = {
         'markdown': r"$\Delta\epsilon_{z\delta}/\epsilon_{z\delta}$ [%]",
         'plt_kwargs': {'fignum': 202, 'savefig': True},
         'descriptor': """Relative difference of emittance in [z-delta] plane
-                         between fixed and reference linacs, in %."""
+                         between fixed and reference linacs, in %.
+                         @ end linac."""
+    },
+    # do not plot with evaluators, plot already produced by default
+    "delta w_kin at end": {
+        'value_getter': lambda s: s.get('w_kin', elt='last', pos='out'),
+        'ref_value_getter': lambda ref_s, _: ref_s.get('w_kin',
+                                                       elt='last',
+                                                       pos='out'),
+        'post_treaters': (
+            post_treaters.difference,
+        ),
+        'markdown': r"$\Delta W_{kin}$ [MeV]",
+        'descriptor': """Absolute difference of kinetic energy @ end linac."""
+    },
+    "delta phi_abs at end": {
+        'value_getter': lambda s: s.get('phi_abs',
+                                        elt='last',
+                                        pos='out',
+                                        to_deg=True,),
+        'ref_value_getter': lambda ref_s, _: ref_s.get('phi_abs',
+                                                       elt='last',
+                                                       pos='out',
+                                                       to_deg=True),
+        'post_treaters': (
+            post_treaters.difference,
+        ),
+        'markdown': r"$\Delta \phi_{abs}$ [deg]",
+        'descriptor': """Absolute difference of abs phase @ end linac in deg.
+        """
     },
 }
 
