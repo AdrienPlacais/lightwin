@@ -69,11 +69,13 @@ class LeastSquares(OptimisationAlgorithm):
         # TODO: output some info could be much more clear by using the __str__
         # methods of the various objects.
 
-        self._output_some_info()
+        objectives_values = self._get_objective_values()
+        self._output_some_info(objectives_values)
 
         success = self.solution.success
         info = {'X': self.solution.x.tolist(),
                 'F': self.solution.fun.tolist(),
+                'objectives_values': objectives_values,
                 }
         return success, optimized_cavity_settings, info
 
@@ -101,12 +103,13 @@ class LeastSquares(OptimisationAlgorithm):
         bounds = Bounds(_bounds[:, 0], _bounds[:, 1])
         return x_0, bounds
 
-    def _output_some_info(self) -> None:
+    def _output_some_info(self, objectives_values: dict[str, float]) -> None:
         """Show the most useful data from :func:`least_squares`."""
         sol = self.solution
         info_string = "Objective functions results:\n"
-        for i, fun in enumerate(sol.fun):
+        for i, fun in enumerate(objectives_values.values()):
             info_string += f"{i}: {' ':>35} | {fun}\n"
+        info_string += f"Norm: {sol.fun}"
         logging.info(info_string)
         info_string = "least_squares algorithm output:"
         info_string += f"\nmessage: {sol.message}\n"

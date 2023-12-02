@@ -200,3 +200,15 @@ class OptimisationAlgorithm(ABC):
 
         logging.critical("Error in the _create_set_of_cavity_settings")
         return None
+
+    def _get_objective_values(self) -> dict[str, float]:
+        """Save the full array of objective values."""
+        sol = self.solution
+        objectives_values = self._wrapper_residuals(sol.x)
+        objectives_values = {
+            objective.name: objective_value
+            for objective, objective_value
+            in zip(self.objectives, objectives_values)
+        }
+        return objectives_values
+
