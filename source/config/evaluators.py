@@ -22,11 +22,6 @@ evaluators = (
     "transverse eps at end",
     "mismatch factor at end",
     "transverse mismatch factor at end",
-    "x eps at end",
-    "y eps at end",
-    "longitudinal eps at end",
-    "delta w_kin at end",
-    "delta phi_abs at end",
 )  #:
 
 

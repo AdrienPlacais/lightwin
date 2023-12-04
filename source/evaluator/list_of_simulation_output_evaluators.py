@@ -106,10 +106,14 @@ class ListOfSimulationOutputEvaluators(list):
 
 def factory_simulation_output_evaluators_from_presets(
     *evaluator_names: str,
+    other_presets: dict[str, dict[str, Any]] | None = None,
     ref_simulation_output: SimulationOutput | None = None
 ) -> ListOfSimulationOutputEvaluators:
     """Create the `ListOfSimulationOutputEvaluators` using `PRESETS`."""
     all_kwargs = [PRESETS[name] for name in evaluator_names]
+
+    if other_presets is not None:
+        all_kwargs += list(other_presets.values())
 
     assert ref_simulation_output is not None
     evaluators = [SimulationOutputEvaluator(
