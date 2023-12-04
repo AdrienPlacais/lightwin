@@ -99,3 +99,8 @@ def take_last(*args: np.ndarray,
               **kwargs: bool) -> float:
     """Return the last element of ``value``."""
     return args[0][-1]
+
+
+def sum(*args: np.ndarray, **kwargs: bool) -> float:
+    """Sum array over linac."""
+    return np.sum(args[0])
