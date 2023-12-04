@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 """Define a factory for the :class:`.BeamParameters`."""
 from abc import ABC, abstractmethod
-from typing import Callable, Sequence
 import logging
+from typing import Sequence
 
-import numpy as np
-
-from core.elements.element import Element
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
+from core.elements.element import Element
+import numpy as np
 from util import converters
 
 

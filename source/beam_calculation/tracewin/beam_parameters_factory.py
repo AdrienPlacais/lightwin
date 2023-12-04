@@ -28,11 +28,8 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
         beam_parameters = BeamParameters(z_abs,
                                          gamma_kin,
                                          beta_kin,
-                                         element_to_index)
-
-        # todo: this should be in the BeamParameters.__init__
-        beam_parameters.create_phase_spaces(*self.phase_spaces)
-        # warning, this method mey also require some kwargs
+                                         element_to_index,
+                                         phase_spaces_names=self.phase_spaces)
 
         for phase_space_name in ('x', 'y', 'zdelta'):
             self._set_everything_from_sigma(beam_parameters,

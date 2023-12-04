@@ -5,9 +5,9 @@ from typing import Callable
 
 import numpy as np
 
-from core.elements.element import Element
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.factory import BeamParametersFactory
+from core.elements.element import Element
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 
@@ -32,11 +32,8 @@ class BeamParametersFactoryEnvelope3D(BeamParametersFactory):
                                          gamma_kin,
                                          beta_kin,
                                          element_to_index,
+                                         phase_spaces_names=self.phase_spaces,
                                          sigma_in=sigma_in)
-
-        # todo: this should be in the BeamParameters.__init__
-        beam_parameters.create_phase_spaces(*self.phase_spaces)
-        # warning, this method mey also require some kwargs
 
         phase_space_names = ('zdelta', 'x', 'y')
         sub_transf_mat_names = ('r_zdelta', 'r_xx', 'r_yy')
@@ -56,5 +53,4 @@ class BeamParametersFactoryEnvelope3D(BeamParametersFactory):
                                       phase_space_name,
                                       gamma_kin,
                                       beta_kin)
-
         return beam_parameters

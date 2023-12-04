@@ -63,6 +63,7 @@ class BeamParameters:
     gamma_kin: np.ndarray
     beta_kin: np.ndarray
     element_to_index: Callable[[str | Element, str | None], int | slice]
+    phase_spaces_names: tuple[str, ...]
     sigma_in: np.ndarray | None = None
 
     def __post_init__(self) -> None:
@@ -78,6 +79,7 @@ class BeamParameters:
         self.phiw99: PhaseSpaceBeamParameters
         self.x99: PhaseSpaceBeamParameters
         self.y99: PhaseSpaceBeamParameters
+        self._create_phase_spaces(*self.phase_spaces_names)
 
     def __str__(self) -> str:
         """Give compact information on the data that is stored."""
@@ -271,15 +273,12 @@ class BeamParameters:
             args.extend((eps, alpha, beta))
         return beam_parameters_to_command(*args)
 
-    def create_phase_spaces(self,
-                            *args: str,
-                            **kwargs: np.ndarray | float | None
-                            ) -> None:
+    def _create_phase_spaces(self,
+                             *args: str,
+                             **kwargs: np.ndarray | float | None
+                             ) -> None:
         """
         Recursively create the phase spaces with their initial values.
-
-        .. todo::
-            Move this in the __init__ method.
 
         .. todo::
             Avoid type checking in the self.sigma_in. sigma_in is always None

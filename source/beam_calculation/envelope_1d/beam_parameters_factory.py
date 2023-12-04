@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """Define a function to generate a :class:`.BeamParameters` for Envelope1D."""
 from typing import Callable
+
 import numpy as np
 
-from core.elements.element import Element
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.factory import BeamParametersFactory
+from core.elements.element import Element
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 
 
@@ -31,11 +32,8 @@ class BeamParametersFactoryEnvelope1D(BeamParametersFactory):
                                          gamma_kin,
                                          beta_kin,
                                          element_to_index,
+                                         phase_spaces_names=self.phase_spaces,
                                          sigma_in=sigma_in)
-
-        # todo: this should be in the BeamParameters.__init__
-        beam_parameters.create_phase_spaces(*self.phase_spaces)
-        # warning, this method mey also require some kwargs
 
         phase_space_names = ('zdelta',)
         sub_transf_mat_names = ('r_zdelta',)
