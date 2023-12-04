@@ -7,26 +7,20 @@ For a list of the units associated with every parameter, see
 :ref:`units-label`.
 
 """
-from typing import Any, Callable
 from dataclasses import dataclass
 import logging
+from typing import Any, Callable
 
 import numpy as np
 
-import config_manager as con
-
 from core.beam_parameters.phase_space_beam_parameters import (
+    IMPLEMENTED_PHASE_SPACES,
     PhaseSpaceBeamParameters,
     mismatch_single_phase_space,
-    IMPLEMENTED_PHASE_SPACES,
 )
 from core.elements.element import Element
-
 from tracewin_utils.interface import beam_parameters_to_command
-
-from util.helper import (recursive_items,
-                         range_vals,
-                         )
+from util.helper import range_vals, recursive_items
 
 
 @dataclass
