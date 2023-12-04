@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-We define predefined arguments to generate :class:`SimulationOutputEvaluator`.
+Define keyword arguments to generate :class:`.SimulationOutputEvaluator`.
 
-We defining your presets, do not forget to add them to
+This presets showcase the how evaluators can be created. It is however best
+practices to create your own presets in a dedicated module in your project
+folder.
+
+If you want to add your preset to this file, you must also add it's key in the
 :mod:`config.evaluators`.
 
 """
@@ -23,7 +27,7 @@ from util.dicts_output import markdown
 # =============================================================================
 # "static" presets
 # =============================================================================
-PRESETS = {
+SIMULATION_OUTPUT_EVALUATOR_PRESETS = {
     # Legacy "Fred tests"
     "no power loss": {
         'value_getter': lambda s: s.get('pow_lost'),

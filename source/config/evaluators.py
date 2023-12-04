@@ -4,7 +4,7 @@
 Tools to perform post-treatments/evaluations of the settings found by LightWin.
 
 The presets that are listed here are defined and documented in
-:mod:`evaluator.simulation_output_evaluator_presets`. This is where you should
+:mod:`evaluator.simulation_output/preset`. This is where you should
 add you own presets.
 
 """

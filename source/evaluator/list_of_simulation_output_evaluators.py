@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Define an object to regroup several :class:`.SimulationOutputEvaluator``s.
+Define an object to regroup several :class:`.SimulationOutputEvaluator`.
 
 We also define some factory functions to facilitate their creation.
 
@@ -16,9 +16,10 @@ import pandas as pd
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput)
 from core.elements.element import Element
-from evaluator.simulation_output_evaluator import SimulationOutputEvaluator
-from evaluator.simulation_output_evaluator_presets import (
-    PRESETS,
+from evaluator.simulation_output.simulation_output_evaluator import (
+    SimulationOutputEvaluator,
+)
+from evaluator.simulation_output.presets import (
     presets_for_fault_scenario_rel_diff_at_some_element,
     presets_for_fault_scenario_rms_over_full_linac,
 )
@@ -28,7 +29,7 @@ from util.helper import chunks, pd_output
 
 
 class ListOfSimulationOutputEvaluators(list):
-    """A simple list of :class:`.SimulationOutputEvaluator``s."""
+    """A simple list of :class:`.SimulationOutputEvaluator`."""
 
     def __init__(self, evaluators: list[SimulationOutputEvaluator]) -> None:
         """Create the objects (factory)."""
@@ -102,26 +103,6 @@ class ListOfSimulationOutputEvaluators(list):
                 for simulation_output, other_dat
                 in zip(simulation_outputs, other_data)]
         return data
-
-
-def factory_simulation_output_evaluators_from_presets(
-    *evaluator_names: str,
-    other_presets: dict[str, dict[str, Any]] | None = None,
-    ref_simulation_output: SimulationOutput | None = None
-) -> ListOfSimulationOutputEvaluators:
-    """Create the `ListOfSimulationOutputEvaluators` using `PRESETS`."""
-    all_kwargs = [PRESETS[name] for name in evaluator_names]
-
-    if other_presets is not None:
-        all_kwargs += list(other_presets.values())
-
-    assert ref_simulation_output is not None
-    evaluators = [SimulationOutputEvaluator(
-        ref_simulation_output=ref_simulation_output,
-        **kwargs)
-        for kwargs in all_kwargs]
-    list_of_evaluators = ListOfSimulationOutputEvaluators(evaluators)
-    return list_of_evaluators
 
 
 class FaultScenarioSimulationOutputEvaluators:

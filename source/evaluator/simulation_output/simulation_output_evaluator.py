@@ -99,33 +99,41 @@ class SimulationOutputEvaluator(ABC):
     value_getter : Callable[[SimulationOutput], Any]
         A function that takes the simulation output under study as argument,
         and returns the value to be studied.
-    ref_value_getter : Callable[[SimulationOutput, SimulationOutput],
+    ref_simulation_output : SimulationOutput
+        The simulation output of a nominal :class:`.Accelerator`. It is up to
+        the user to verify that the :class:`.BeamCalculator` is the same
+        between the reference and the fixed :class:`.SimulationOutput`.
+    ref_value_getter : Callable[[SimulationOutput, SimulationOutput],\
                                  Any] | None, optional
         A function that takes the reference simulation ouput and the simulation
         output under study as arguments, and returns the reference value. In
-        general, only one of the arguments will be used. The default is None.
-    ref_simulation_output : SimulationOutput | None, optional
-        The SimulationOutput of a nominal :class:`.Accelerator`. It is up to
-        the user to verify that the :class:`.BeamCalculator` is the same
-        between the reference and the fixed :class:`.SimulationOutput`. The
-        default is None.
-    post_treaters: tuple[Callable[[np.ndarray | float, np.ndarray | float],
-                                  np.ndarray | float]], optional
-        A tuple of functions called one after each other. They take ``value``
-        as first argument, ``ref_value`` as second argument. They return an
-        updated ``value``, which is given to the next function in the tuple.
-        The default is ``(:fun:`_do_nothing`,)``.
-    tester : Callable[[np.ndarray | float], bool | float | None] | None, optional
-        A function that takes ``value`` after post treatment and test is. The
-        default is None.
+        general, only the first argument will be used. The second argument can
+        be used in specific cases, eg for the mismatch factor.  The default is
+        None.
+    post_treaters: tuple[Callable[[np.ndarray | float, np.ndarray | float],\
+                                   np.ndarray | float], ...], optional
+        A tuple of functions that will be called one after each other and
+        applied on ``value``, which is returned by ``value_getter``. First
+        argument must be ``value``, second argument ``ref_value``. They return
+        an update ``value``, which is passed to the next function in
+        ``post_treaters``. The default is a tuple containing only
+        :func:`._do_nothing`.
+    tester : Callable[[np.ndarray | float], bool | float | None] | None, \
+            optional
+        A function that takes post-treated ``value`` and test it. It can return
+        a boolean or a float. The default is None.
     fignum : int | None, optional
         The Figure number. The default is None, in which case no plot is
         produced.
     descriptor : str, optional
         A sentence or two to describe what the test is about. The default is an
         empty string.
-    markdown : str | None, optional
-        A markdown name for this quantity, used in plots. The default is None.
+    markdown : str, optional
+        A markdown name for this quantity, used in plots y label. The default
+        is an empty string.
+    plt_kwargs : dict[str, Any] | None = None
+        A dictionary with keyword arguments passed to the ``plt.Figure``. The
+        default is None.
 
     """
 
@@ -141,7 +149,7 @@ class SimulationOutputEvaluator(ABC):
     tester: Callable[[np.ndarray | float], bool | float | None] | None = None
 
     descriptor: str = ''
-    markdown: str = 'test'
+    markdown: str = ''
 
     plt_kwargs: dict[str, Any] | None = None
 
@@ -378,8 +386,8 @@ class SimulationOutputEvaluator(ABC):
             return
 
         if out_path is None:
-            logging.error("The attribute `out_path` from `SimuationOutput` is "
-                          "not defined, hence I cannot save the Figure. Did "
+            logging.error("The attribute `out_path` from `SimulationOutput` is"
+                          " not defined, hence I cannot save the Figure. Did "
                           "you call the method "
                           "`Accelerator.keep_simulation_output`?")
             return

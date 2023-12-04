@@ -27,11 +27,6 @@ from beam_calculation.factory import BeamCalculatorsFactory
 
 from visualization import plot
 
-from evaluator.list_of_simulation_output_evaluators import (
-    ListOfSimulationOutputEvaluators,
-    factory_simulation_output_evaluators_from_presets
-)
-
 
 # =============================================================================
 # Main function
