@@ -10,8 +10,6 @@ import logging
 
 import numpy as np
 
-import config_manager as con
-
 from core.beam_parameters.helper import (sigma_beam_matrices,
                                          reconstruct_sigma,
                                          mismatch_from_arrays,
@@ -20,7 +18,7 @@ from core.beam_parameters.helper import (sigma_beam_matrices,
 from core.elements.element import Element
 
 from util import converters
-from util.helper import range_vals_object
+from util.helper import range_vals_object, range_vals
 
 
 IMPLEMENTED_PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
@@ -199,11 +197,15 @@ class PhaseSpaceBeamParameters:
 
     def __str__(self) -> str:
         """Show amplitude of some of the attributes."""
-        out = f"\tPhaseSpaceBeamParameters {self.phase_space}:\n"
+        out = f"\t\tPhaseSpaceBeamParameters {self.phase_space}:\n"
         for key in ('alpha', 'beta', 'eps', 'envelope_pos', 'envelope_energy',
                     'mismatch_factor'):
-            out += "\t\t" + range_vals_object(self, key)
+            out += "\t\t\t" + range_vals_object(self, key)
         return out
+
+    def __repr__(self) -> str:
+        """Give same information as str."""
+        return self.__str__()
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""

@@ -84,10 +84,16 @@ class BeamParameters:
     def __str__(self) -> str:
         """Give compact information on the data that is stored."""
         out = "\tBeamParameters:\n"
-        out += "\t\t" + range_vals("zdelta.eps", self.zdelta.eps)
-        out += "\t\t" + range_vals("zdelta.beta", self.zdelta.beta)
-        out += "\t\t" + range_vals("zdelta.mismatch",
-                                   self.zdelta.mismatch_factor)
+        for phase_space_name in IMPLEMENTED_PHASE_SPACES:
+            if not hasattr(self, phase_space_name):
+                continue
+
+            phase_space = getattr(self, phase_space_name)
+            out += f"{phase_space}"
+        # out += "\t\t" + range_vals("zdelta.eps", self.zdelta.eps)
+        # out += "\t\t" + range_vals("zdelta.beta", self.zdelta.beta)
+        # out += "\t\t" + range_vals("zdelta.mismatch",
+        #                            self.zdelta.mismatch_factor)
         return out
 
     def has(self, key: str) -> bool:
