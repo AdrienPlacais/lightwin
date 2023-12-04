@@ -122,6 +122,10 @@ class SimulationOutput:
         out += self.beam_parameters.__str__()
         return out
 
+    def __repr__(self) -> str:
+        """Return str, in order have more concise info."""
+        return self.__str__()
+
     @property
     def beam_calculator_information(self) -> str:
         """Use ``out_path`` to retrieve info on :class:`BeamCalculator`."""
