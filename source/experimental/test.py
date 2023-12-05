@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define simple tests for functionality under implementation."""
-from abc import ABC, ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Sequence, Self
+
+import numpy as np
+
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
 
@@ -37,32 +39,62 @@ def assert_are_field_maps(elements: Sequence[Element], detail: str) -> None:
 
 
 @dataclass
-class Master(ABC):
+class Generic:
+    """A generic class."""
 
     preset: str
-    reference_elements: list[int] | None = None
+    property_1: np.ndarray
 
     def __post_init__(self):
-        print(f"initialized {self}")
+        """Write a doc."""
+        print(f"initialized generic {self} of type {type(self)}")
 
     @property
-    @abstractmethod
-    def variable_names(self) -> tuple[str, ...]:
-        pass
+    def property_1_pos(self) -> np.ndarray:
+        """Write a doc."""
+        return self.property_1[:, 0]
 
-    @property
-    def constraint_names(self) -> tuple[str, ...]:
-        return ()
+    @classmethod
+    def from_truc(cls, truc: str, property_2: np.ndarray) -> Self:
+        """Make the doc."""
+        preset = truc[::-1]
+        property_1 = np.sqrt(property_2)
+        return cls(preset, property_1)
 
 
 @dataclass
-class MichelPreset(Master):
+class Initial(Generic):
+    """Write a doc."""
 
-    variable_names = ('phi_0', 'k_e')
-    contraint_names = ('phi_s', )
+    property_1: tuple[float, float]
+
+    def __post_init__(self):
+        """Write a doc."""
+        print(f"initialized initial {self} of type {type(self)}")
+        super().__post_init__()
+
+    @property
+    def property_1_pos(self) -> float:
+        """Write a doc."""
+        return self.property_1[0]
+
+    # @classmethod
+    # def from_truc(cls, truc: str, property_2: np.ndarray) -> Self:
+    #     """Make a doc."""
+    #     return super().from_truc(truc, property_2)
 
 
 if __name__ == '__main__':
-    new_michel = MichelPreset(preset='oui',
-                              reference_elements=[1, 2, 3])
-    print(new_michel.variable_names)
+
+    property_1 = np.linspace(0, 10, 11)
+    property_1 = np.vstack((
+        property_1,
+        property_1**2
+    ))
+
+    # gene = Generic('linac', property_1)
+    # print(gene.property_1_pos)
+    # init = Initial('lonac', (2., 4.))
+    # print(init.property_1_pos)
+    # gene = Generic.from_truc('canil', property_1**2)
+    init = Initial.from_truc('calon', property_1**2)

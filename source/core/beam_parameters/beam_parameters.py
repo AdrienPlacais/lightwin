@@ -12,19 +12,21 @@ import logging
 from typing import Any, Callable
 
 import numpy as np
-
-from core.beam_parameters.phase_space_beam_parameters import (
-    IMPLEMENTED_PHASE_SPACES,
+from core.beam_parameters.initial_beam_parameters import (
+    InitialBeamParameters,
+    phase_space_name_hidden_in_key,
+    separate_var_from_phase_space,
+)
+from core.beam_parameters.phase_space.phase_space_beam_parameters import (
     PhaseSpaceBeamParameters,
     mismatch_single_phase_space,
 )
 from core.elements.element import Element
 from tracewin_utils.interface import beam_parameters_to_command
-from util.helper import range_vals, recursive_items
 
 
 @dataclass
-class BeamParameters:
+class BeamParameters(InitialBeamParameters):
     r"""
     Hold all emittances, envelopes, etc in various planes.
 
@@ -36,18 +38,9 @@ class BeamParameters:
         Lorentz gamma factor.
     beta_kin : np.ndarray
         Lorentz gamma factor.
-    element_to_index : Callable[[str | Element, str | None], int | slice]
-        Takes an :class:`.Element`, its name, ``'first'`` or ``'last'`` as
-        argument, and returns corresponding index. Index should be the same in
-        all the arrays attributes of this class: ``z_abs``, ``beam_parameters``
-        attributes, etc. Used to easily ``get`` the desired properties at the
-        proper position.
     sigma_in : np.ndarray | None, optional
         Holds the (6, 6) :math:`\sigma` beam matrix at the entrance of the
         linac/portion of linac. The default is None.
-    n_points : int | None, optional
-        Holds the number of points along the linac (1 if the object defines a
-        beam at the entry of the linac/a linac portion). The default is None.
     zdelta, z, phiw, x, y, t : PhaseSpaceBeamParameters
         Holds beam parameters respectively in the :math:`[z-z\delta]`,
         :math:`[z-z']`, :math:`[\phi-W]`, :math:`[x-x']`, :math:`[y-y']` and
@@ -56,20 +49,29 @@ class BeamParameters:
         Holds 99% beam parameters respectively in the :math:`[\phi-W]`,
         :math:`[x-x']` and :math:`[y-y']` planes. Only used with multiparticle
         simulations.
+    element_to_index : Callable[[str | Element, str | None], int | slice]
+        Takes an :class:`.Element`, its name, ``'first'`` or ``'last'`` as
+        argument, and returns corresponding index. Index should be the same in
+        all the arrays attributes of this class: ``z_abs``, ``beam_parameters``
+        attributes, etc. Used to easily ``get`` the desired properties at the
+        proper position.
 
     """
 
+    # Override type from mother class
     z_abs: np.ndarray
     gamma_kin: np.ndarray
     beta_kin: np.ndarray
-    element_to_index: Callable[[str | Element, str | None], int | slice]
-    phase_spaces_names: tuple[str, ...]
     sigma_in: np.ndarray | None = None
 
+    element_to_index: Callable[[str | Element, str | None], int | slice] \
+        = lambda _elt, _pos: slice(0, -1)
+
     def __post_init__(self) -> None:
-        """Define the attributes that may be used."""
+        """Declare the phase spaces."""
         self.n_points = np.atleast_1d(self.z_abs).shape[0]
 
+        # Override types from mother class
         self.zdelta: PhaseSpaceBeamParameters
         self.z: PhaseSpaceBeamParameters
         self.phiw: PhaseSpaceBeamParameters
@@ -79,48 +81,6 @@ class BeamParameters:
         self.phiw99: PhaseSpaceBeamParameters
         self.x99: PhaseSpaceBeamParameters
         self.y99: PhaseSpaceBeamParameters
-        self._create_phase_spaces(*self.phase_spaces_names)
-
-    def __str__(self) -> str:
-        """Give compact information on the data that is stored."""
-        out = "\tBeamParameters:\n"
-        for phase_space_name in IMPLEMENTED_PHASE_SPACES:
-            if not hasattr(self, phase_space_name):
-                continue
-
-            phase_space = getattr(self, phase_space_name)
-            out += f"{phase_space}"
-        # out += "\t\t" + range_vals("zdelta.eps", self.zdelta.eps)
-        # out += "\t\t" + range_vals("zdelta.beta", self.zdelta.beta)
-        # out += "\t\t" + range_vals("zdelta.mismatch",
-        #                            self.zdelta.mismatch_factor)
-        return out
-
-    def has(self, key: str) -> bool:
-        """
-        Tell if the required attribute is in this class.
-
-        Notes
-        -----
-        ``key = 'property_phasespace'`` will return True if ``'property'``
-        exists in ``phasespace``. Hence, the following two commands will have
-        the same return values:
-
-            .. code-block:: python
-
-                self.has('twiss_zdelta')
-                self.zdelta.has('twiss')
-
-        See Also
-        --------
-        get
-
-        """
-        if _phase_space_name_hidden_in_key(key):
-            key, phase_space_name = _separate_var_from_phase_space(key)
-            phase_space = getattr(self, phase_space_name)
-            return hasattr(phase_space, key)
-        return key in recursive_items(vars(self))
 
     def get(self,
             *keys: str,
@@ -128,7 +88,7 @@ class BeamParameters:
             none_to_nan: bool = False,
             elt: Element | None = None,
             pos: str | None = None,
-            phase_space: str | None = None,
+            phase_space_name: str | None = None,
             **kwargs: Any) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -136,9 +96,9 @@ class BeamParameters:
         Notes
         -----
         What is particular in this getter is that all
-        :class:`PhaseSpaceBeamParameters` attributes have attributes with
+        :class:`.PhaseSpaceBeamParameters` attributes have attributes with
         the same name: ``twiss``, ``alpha``, ``beta``, ``gamma``, ``eps``,
-        ``envelopes_pos`` and ``envelopes_energy``.
+        ``envelope_pos`` and ``envelope_energy``.
 
         Hence, you must provide either a ``phase_space`` argument which shall
         be in :data:`IMPLEMENTED_PHASE_SPACES`, either you must append the
@@ -147,7 +107,7 @@ class BeamParameters:
 
         See Also
         --------
-        has
+        :meth:`has`
 
         Parameters
         ----------
@@ -163,9 +123,9 @@ class BeamParameters:
         pos : 'in' | 'out' | None
             If you want the attribute at the entry, exit, or in the whole
             Element.
-        phase_space : ['z', 'zdelta', 'phi_w', 'x', 'y'] | None, optional
+        phase_space_name : str | None, optional
             Phase space in which you want the key. The default is None. In this
-            case, the quantities from the zdelta phase space are taken.
+            case, the quantities from the ``zdelta`` phase space are taken.
             Otherwise, it must be in :data:`IMPLEMENTED_PHASE_SPACES`.
         **kwargs: Any
             Other arguments passed to recursive getter.
@@ -176,34 +136,39 @@ class BeamParameters:
             Attribute(s) value(s).
 
         """
+        assert 'phase_space' not in kwargs
         val = {key: [] for key in keys}
-        # Explicitely look into a specific PhaseSpaceBeamParameters
-        if phase_space is not None:
-            single_phase_space_beam_param = getattr(self, phase_space)
-            return single_phase_space_beam_param.get(*keys,
-                                                     elt=elt,
-                                                     pos=pos,
-                                                     **kwargs)
-        for key in keys:
-            # Look for key in PhaseSpaceBeamParameters
-            if _phase_space_name_hidden_in_key(key):
-                short_key, phase_space = _separate_var_from_phase_space(key)
-                assert hasattr(self, phase_space), f"{phase_space = } not set"\
-                    + " for current BeamParameters object."
-                single_phase_space_beam_param = getattr(self, phase_space)
-                val[key] = single_phase_space_beam_param.get(short_key)
-                continue
 
-            # Look for key in BeamParameters
-            if not self.has(key):
+        # Explicitely look into a specific PhaseSpaceBeamParameters
+        if phase_space_name is not None:
+            phase_space = getattr(self, phase_space_name)
+            val = {key: getattr(phase_space, key) for key in keys}
+
+        else:
+            for key in keys:
+                if phase_space_name_hidden_in_key(key):
+                    short_key, phase_space_name = \
+                        separate_var_from_phase_space(key)
+                    assert hasattr(self, phase_space_name), \
+                        f"{phase_space_name = } not set for current "\
+                        + "BeamParameters object."
+                    phase_space = getattr(self, phase_space_name)
+                    val[key] = getattr(phase_space, short_key)
+                    continue
+
+                # Look for key in BeamParameters
+                if self.has(key):
+                    val[key] = getattr(self, key)
+                    continue
+
                 val[key] = None
-                continue
-            val[key] = getattr(self, key)
 
         if elt is not None:
-            assert self.element_to_index is not None
             idx = self.element_to_index(elt=elt, pos=pos)
-            val = {_key: _value[idx] for _key, _value in val.items()}
+            val = {_key: _value[idx]
+                   if _value is not None else None
+                   for _key, _value in val.items()
+                   }
 
         out = [val[key] for key in keys]
         if to_numpy:
@@ -216,12 +181,7 @@ class BeamParameters:
             return out[0]
         return tuple(out)
 
-    @property
-    def tracewin_command(self) -> list[str]:
-        """Return the proper input beam parameters command."""
-        _tracewin_command = self._create_tracewin_command()
-        return _tracewin_command
-
+    # still used?
     @property
     def sigma(self) -> np.ndarray:
         """Give value of sigma.
@@ -246,6 +206,41 @@ class BeamParameters:
         sigma[:, 2:4, 2:4] = sigma_y
         sigma[:, 4:, 4:] = sigma_zdelta
         return sigma
+
+    # still used?
+    def sub_sigma_in(self,
+                     phase_space_name: str,
+                     ) -> np.ndarray:
+        r"""Give the entry :math:`\sigma` beam matrix in a single phase space.
+
+        Parameters
+        ----------
+        phase_space_name : {'x', 'y', 'zdelta'}
+            Name of the phase space from which you want the :math:`\sigma` beam
+            matrix.
+
+        Returns
+        -------
+        sigma : np.ndarray
+            ``(2, 2)`` :math:`\sigma` beam matrix at the linac entrance, in a
+            single phase space.
+
+        """
+        assert self.sigma_in is not None
+        if phase_space_name == 'x':
+            return self.sigma_in[:2, :2]
+        if phase_space_name == 'y':
+            return self.sigma_in[2:4, 2:4]
+        if phase_space_name == 'zdelta':
+            return self.sigma_in[4:, 4:]
+        raise IOError(f"{phase_space_name = } is not allowed.")
+
+    @property
+    def tracewin_command(self) -> list[str]:
+        """Return the proper input beam parameters command."""
+        logging.critical("is this method still used??")
+        _tracewin_command = self._create_tracewin_command()
+        return _tracewin_command
 
     def _create_tracewin_command(self, warn_missing_phase_space: bool = True
                                  ) -> list[str]:
@@ -279,54 +274,6 @@ class BeamParameters:
             args.extend((eps, alpha, beta))
         return beam_parameters_to_command(*args)
 
-    def _create_phase_spaces(self,
-                             *args: str,
-                             **kwargs: np.ndarray | float | None
-                             ) -> None:
-        """
-        Recursively create the phase spaces with their initial values.
-
-        .. todo::
-            Avoid type checking in the self.sigma_in. sigma_in is always None
-            with TraceWin, and is always set with EnvelopeiD. So this
-            anti-pattern could easily be avoided.
-
-        Parameters
-        ----------
-        *args : str
-            Name of the phase spaces to be created.
-        **kwargs : np.ndarray | float | None
-            Keyword arguments to directly initialize properties in some phase
-            spaces. Name of the keyword argument must correspond to a phase
-            space. Argument must be a dictionary, which keys must be
-            understandable by :meth:`PhaseSpaceBeamParameters.__init__`:
-            ``'alpha'``, ``'beta'``, ``'gamma'``, ``'eps'``, ``'twiss'``,
-            ``'envelope_pos'`` and ``'envelope_energy'`` are allowed values.
-
-        """
-        phase_space_to_proper_sigma_in = {}
-
-        if self.sigma_in is not None:
-            phase_space_to_proper_sigma_in = {
-                    'x': self.sigma_in[:2, :2],
-                    'y': self.sigma_in[2:4, 2:4],
-                    'zdelta': self.sigma_in[4:, 4:],
-                    }
-
-        for phase_space_name in args:
-            this_phase_space_kw = kwargs.get(phase_space_name, {})
-            proper_sigma_in = phase_space_to_proper_sigma_in.get(
-                phase_space_name,
-                None)
-            phase_space_beam_param = PhaseSpaceBeamParameters(
-                phase_space_name,
-                element_to_index=self.element_to_index,
-                sigma_in=proper_sigma_in,
-                n_points=self.n_points,
-                **this_phase_space_kw,
-            )
-            setattr(self, phase_space_name, phase_space_beam_param)
-
 
 # =============================================================================
 # Public
@@ -356,25 +303,6 @@ def mismatch_from_objects(ref: BeamParameters,
 # =============================================================================
 # Private
 # =============================================================================
-def _phase_space_name_hidden_in_key(key: str) -> bool:
-    """Look for the name of a phase-space in a key name."""
-    if '_' not in key:
-        return False
-
-    to_test = key.split('_')
-    if to_test[-1] in IMPLEMENTED_PHASE_SPACES:
-        return True
-    return False
-
-
-def _separate_var_from_phase_space(key: str) -> tuple[str, str]:
-    """Separate variable name from phase space name."""
-    splitted = key.split('_')
-    key = '_'.join(splitted[:-1])
-    phase_space = splitted[-1]
-    return key, phase_space
-
-
 def _to_float_if_necessary(eps: float | np.ndarray,
                            alpha: float | np.ndarray,
                            beta: float | np.ndarray

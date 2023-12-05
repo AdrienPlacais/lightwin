@@ -94,7 +94,7 @@ class SimulationOutputFactoryEnvelope3D(SimulationOutputFactory):
 
         z_abs = elts.get('abs_mesh', remove_first=True)
         beam_parameters = self.beam_parameters_factory.factory_method(
-                elts.input_beam.sigma_in,
+                elts.input_beam.sigma,
                 z_abs,
                 gamma_kin,
                 transfer_matrix,

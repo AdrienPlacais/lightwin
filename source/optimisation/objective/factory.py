@@ -234,7 +234,7 @@ class SimpleADS(ObjectiveFactory):
             weight=1.,
             get_key='twiss',
             get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': True,
-                        'phase_space': 'zdelta'},
+                        'phase_space_name': 'zdelta'},
             reference=self.reference_simulation_output,
             descriptor="""Minimize mismatch factor in the [z-delta] plane."""
         )
@@ -332,7 +332,7 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
             weight=1.,
             get_key='twiss',
             get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': True,
-                        'phase_space': 'zdelta'},
+                        'phase_space_name': 'zdelta'},
             reference=self.reference_simulation_output,
             descriptor="""Minimize mismatch factor in the [z-delta] plane."""
         )

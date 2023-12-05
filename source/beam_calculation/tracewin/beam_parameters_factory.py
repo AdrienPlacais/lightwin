@@ -7,6 +7,7 @@ import numpy as np
 
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.beam_parameters.factory import BeamParametersFactory
+from core.beam_parameters.helper import reconstruct_sigma
 from core.elements.element import Element
 
 
@@ -28,84 +29,121 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
         beam_parameters = BeamParameters(z_abs,
                                          gamma_kin,
                                          beta_kin,
-                                         element_to_index,
-                                         phase_spaces_names=self.phase_spaces)
+                                         sigma_in=None,
+                                         element_to_index=element_to_index,
+                                         )
 
-        for phase_space_name in ('x', 'y', 'zdelta'):
-            self._set_everything_from_sigma(beam_parameters,
-                                            phase_space_name,
-                                            results,
-                                            gamma_kin,
-                                            beta_kin)
+        phase_space_names = ('x', 'y', 'zdelta')
+        data_to_retrieve_sigmas = (
+            self._extract_phase_space_data_for_sigma(phase_space_name,
+                                                     results)
+            for phase_space_name in phase_space_names
+        )
+        sigmas = (
+            reconstruct_sigma(phase_space_name,
+                              *data_to_retrieve_sigma,
+                              eps_is_normalized=True,
+                              gamma_kin=gamma_kin,
+                              beta_kin=beta_kin,
+                              )
+            for phase_space_name, data_to_retrieve_sigma
+            in zip(phase_space_names, data_to_retrieve_sigmas)
+        )
+        self._set_from_sigma(beam_parameters,
+                             phase_space_names,
+                             sigmas,
+                             gamma_kin,
+                             beta_kin,
+                             )
 
-        beam_parameters.t.init_from_averaging_x_and_y(beam_parameters.x,
-                                                      beam_parameters.y)
+        other_phase_space_names = ('x', 'y')
+        phase_space_name = 't'
+        self._set_transverse_from_x_and_y(beam_parameters,
+                                          other_phase_space_names,
+                                          phase_space_name)
 
-        for phase_space_name in ('z', 'phiw'):
-            self._convert_phase_space(beam_parameters,
-                                      'zdelta',
-                                      phase_space_name,
-                                      gamma_kin,
-                                      beta_kin)
+        other_phase_space_name = 'zdelta'
+        phase_space_names = ('z', 'phiw')
+        self._set_from_other_phase_space(beam_parameters,
+                                         other_phase_space_name,
+                                         phase_space_names,
+                                         gamma_kin,
+                                         beta_kin)
 
         if self.is_multipart:
             phase_space_names = ('x99', 'y99', 'phiw99')
-            self._set_99percent_emittances(beam_parameters,
-                                           results,
-                                           *phase_space_names)
+            emittances = (
+                self._extract_emittance_for_99percent(phase_space_name,
+                                                      results)
+                for phase_space_name in phase_space_names
+            )
+            self._set_only_emittance(beam_parameters,
+                                     phase_space_names,
+                                     emittances)
         return beam_parameters
-
-    def _set_everything_from_sigma(self,
-                                   beam_parameters: BeamParameters,
-                                   phase_space_name: str,
-                                   results: dict[str, np.ndarray],
-                                   gamma_kin: np.ndarray,
-                                   beta_kin: np.ndarray,
-                                   ) -> None:
-        args = self._extract_phase_space_data_for_sigma(phase_space_name,
-                                                        results)
-        phase_space = beam_parameters.get(phase_space_name)
-        phase_space.reconstruct_full_sigma_matrix(*args,
-                                                  eps_is_normalized=True,
-                                                  gamma_kin=gamma_kin,
-                                                  beta_kin=beta_kin)
-        phase_space.init_from_sigma(phase_space.sigma,
-                                    gamma_kin,
-                                    beta_kin)
 
     def _extract_phase_space_data_for_sigma(
             self,
             phase_space_name: str,
             results: dict[str, np.ndarray],
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        r"""
+        Retrieve the data necessary to reconstruct :math:`\sigma` beam matrix.
 
+        Parameters
+        ----------
+        phase_space_name : {'x', 'y', 'zdelta'}
+            Name of a single phase space.
+        results : dict[str, np.ndarray]
+            Results dictionary, which keys are ``tracewin.out`` or
+            ``partran1.out`` headers and which values are corresponding data.
+
+        Returns
+        -------
+        sigma_00 : np.ndarray
+            ``(n, )`` array containing top-left component of the :math:`\sigma`
+            beam matrix.
+        sigma_01 : np.ndarray
+            ``(n, )`` array containing top-right component of the
+            :math:`\sigma` beam matrix.
+        eps_normalized : np.ndarray
+            ``(n, )`` array of normalized emittance.
+
+        """
         phase_space_to_keys = {
             'x': ('SizeX', "sxx'", 'ex'),
             'y': ('SizeY', "syy'", 'ey'),
             'zdelta': ('SizeZ', "szdp", 'ezdp'),
         }
+        assert phase_space_name in phase_space_to_keys
         keys = phase_space_to_keys[phase_space_name]
         sigma_00 = results[keys[0]]**2
         sigma_01 = results[keys[1]]
         eps_normalized = results[keys[2]]
         return sigma_00, sigma_01, eps_normalized
 
-    def _set_99percent_emittances(self,
-                                  beam_parameters: BeamParameters,
-                                  results: dict[str, np.ndarray],
-                                  *phase_space_names: str
-                                  ) -> None:
-        """Save the 99% emittances.
+    def _extract_emittance_for_99percent(self,
+                                         phase_space_name: str,
+                                         results: dict[str, np.ndarray],
+                                         ) -> np.ndarray:
+        r"""
+        Retrieve the 99% emittances.
+
+        .. todo::
+            normalized or not???
 
         Parameters
         ----------
-        beam_parameters : BeamParameters
-            Objects in which emittances should be stored.
+        phase_space_name : {'x99', 'y99', 'phiw99'}
+            Name of a single phase space.
         results : dict[str, np.ndarray]
-            Results dictionary, holding the values of the ``partran1.out``
-            file.
-        phase_space_names : {'x99', 'y99', 'phiw99'}
-            Name of the phase spaces to save.
+            Results dictionary, which keys are ``tracewin.out`` or
+            ``partran1.out`` headers and which values are corresponding data.
+
+        Returns
+        -------
+        eps : np.ndarray
+            99% emittance in the desired phase space.
 
         """
         getters = {
@@ -113,8 +151,5 @@ class BeamParametersFactoryTraceWin(BeamParametersFactory):
             'y99': results['ey99'],
             'phiw99': results['ep99']
         }
-        for phase_space_name in phase_space_names:
-            assert phase_space_name in getters
-            self._set_only_emittance(beam_parameters,
-                                     phase_space_name,
-                                     getters[phase_space_name])
+        assert phase_space_name in getters
+        return getters[phase_space_name]

@@ -10,13 +10,12 @@ import logging
 
 import numpy as np
 
-from optimisation.objective.objective import Objective
-
-from core.elements.element import Element
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.beam_parameters.helper import mismatch_from_arrays
-
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
+from core.elements.element import Element
+from optimisation.objective.objective import Objective
 
 
 class MinimizeMismatch(Objective):
@@ -41,8 +40,8 @@ class MinimizeMismatch(Objective):
         get_kwargs : dict[str, Element | str | bool]
             Keyword arguments for the :func:`get` method. We do not check its
             validity, but in general you will want to define the keys ``elt``
-            and ``pos``. You should also define the ``phase_space`` key if it
-            is not defined in the ``get_key``.
+            and ``pos``. You should also define the ``phase_space_name`` key if
+            it is not defined in the ``get_key``.
         reference : SimulationOutput
             The reference simulation output from which the Twiss parameters
             will be taken.
@@ -52,7 +51,7 @@ class MinimizeMismatch(Objective):
             logging.warning("The get_key should contain 'twiss'. Taking "
                             "'twiss' and setting phase space to zdelta.")
             get_key = 'twiss'
-            get_kwargs['phase_space'] = 'zdelta'
+            get_kwargs['phase_space_name'] = 'zdelta'
         self.get_key = get_key
         self.get_kwargs = get_kwargs
         super().__init__(name,
@@ -77,6 +76,7 @@ class MinimizeMismatch(Objective):
         return self._base_str() + f"{self.ideal_value:>10}"
 
     def current_value(self, simulation_output: SimulationOutput) -> str:
+        raise IOError('wtf? wrong call of _compute_residues')
         res = self._compute_residues(simulation_output)
         message = self._base_str() + f"{'NA':>10} | {res:>10}"
         return message
@@ -84,7 +84,9 @@ class MinimizeMismatch(Objective):
     def _twiss_getter(self, simulation_output: SimulationOutput
                       ) -> np.ndarray:
         """Get desired value using :func:`SimulationOutput.get` method."""
-        return simulation_output.get(self.get_key, **self.get_kwargs)
+        return simulation_output.beam_parameters.get(
+            self.get_key,
+            **self.get_kwargs)
 
     def evaluate(self, simulation_output: SimulationOutput) -> float:
         twiss_fix = self._twiss_getter(simulation_output)

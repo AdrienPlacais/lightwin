@@ -31,25 +31,24 @@ class BeamParametersFactoryEnvelope1D(BeamParametersFactory):
         beam_parameters = BeamParameters(z_abs,
                                          gamma_kin,
                                          beta_kin,
-                                         element_to_index,
-                                         phase_spaces_names=self.phase_spaces,
-                                         sigma_in=sigma_in)
+                                         sigma_in=sigma_in,
+                                         element_to_index=element_to_index,
+                                         )
 
         phase_space_names = ('zdelta',)
         sub_transf_mat_names = ('r_zdelta',)
-        transfer_matrices = transfer_matrix.get(*sub_transf_mat_names)
-        transfer_matrices = transfer_matrices,  # followig func expects a tuple
+        transfer_matrices = transfer_matrix.get(*sub_transf_mat_names),
         self._set_from_transfer_matrix(beam_parameters,
                                        phase_space_names,
                                        transfer_matrices,
                                        gamma_kin,
                                        beta_kin)
 
-        for phase_space_name in ('z', 'phiw'):
-            self._convert_phase_space(beam_parameters,
-                                      'zdelta',
-                                      phase_space_name,
-                                      gamma_kin,
-                                      beta_kin)
-
+        other_phase_space_name = 'zdelta'
+        phase_space_names = ('z', 'phiw')
+        self._set_from_other_phase_space(beam_parameters,
+                                         other_phase_space_name,
+                                         phase_space_names,
+                                         gamma_kin,
+                                         beta_kin)
         return beam_parameters

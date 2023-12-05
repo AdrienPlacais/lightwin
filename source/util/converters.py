@@ -70,7 +70,8 @@ def longitudinal(long_in: float | np.ndarray, ene: float | np.ndarray,
 
 
 # TODO may be possible to save some operations by using lambda func?
-def emittance(eps_orig: float | np.ndarray, key: str,
+def emittance(eps_orig: float | np.ndarray,
+              key: str,
               gamma_kin: float | np.ndarray | None = None,
               beta_kin: float | np.ndarray | None = None,
               lam: float | np.ndarray | None = None,

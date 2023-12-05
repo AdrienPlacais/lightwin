@@ -22,7 +22,7 @@ class BeamParametersFactoryEnvelope3D(BeamParametersFactory):
             transfer_matrix: TransferMatrix,
             element_to_index: Callable[[str | Element, str | None],
                                        int | slice]
-            ) -> BeamParameters:
+    ) -> BeamParameters:
         """Create the :class:`.BeamParameters` object."""
         z_abs, gamma_kin, beta_kin = self._check_and_set_arrays(z_abs,
                                                                 gamma_kin)
@@ -31,9 +31,9 @@ class BeamParametersFactoryEnvelope3D(BeamParametersFactory):
         beam_parameters = BeamParameters(z_abs,
                                          gamma_kin,
                                          beta_kin,
-                                         element_to_index,
-                                         phase_spaces_names=self.phase_spaces,
-                                         sigma_in=sigma_in)
+                                         sigma_in=sigma_in,
+                                         element_to_index=element_to_index,
+                                         )
 
         phase_space_names = ('zdelta', 'x', 'y')
         sub_transf_mat_names = ('r_zdelta', 'r_xx', 'r_yy')
@@ -44,13 +44,17 @@ class BeamParametersFactoryEnvelope3D(BeamParametersFactory):
                                        gamma_kin,
                                        beta_kin)
 
-        beam_parameters.t.init_from_averaging_x_and_y(beam_parameters.x,
-                                                      beam_parameters.y)
+        other_phase_space_names = ('x', 'y')
+        phase_space_name = 't'
+        self._set_transverse_from_x_and_y(beam_parameters,
+                                          other_phase_space_names,
+                                          phase_space_name)
 
-        for phase_space_name in ('z', 'phiw'):
-            self._convert_phase_space(beam_parameters,
-                                      'zdelta',
-                                      phase_space_name,
-                                      gamma_kin,
-                                      beta_kin)
+        other_phase_space_name = 'zdelta'
+        phase_space_names = ('z', 'phiw')
+        self._set_from_other_phase_space(beam_parameters,
+                                         other_phase_space_name,
+                                         phase_space_names,
+                                         gamma_kin,
+                                         beta_kin)
         return beam_parameters

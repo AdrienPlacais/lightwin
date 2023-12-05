@@ -7,28 +7,27 @@ For a list of the units associated with every parameter, see
 :ref:`units-label`.
 
 """
-from typing import Any
 from dataclasses import dataclass
 import logging
+from typing import Any
 
 import numpy as np
 
-from core.beam_parameters.phase_space_initial_beam_parameters import (
-    PhaseSpaceInitialBeamParameters,
+from tracewin_utils.interface import beam_parameters_to_command
+from util.helper import recursive_items
+
+from .phase_space.base_phase_space_beam_parameters import (
     IMPLEMENTED_PHASE_SPACES,
 )
-from core.elements.element import Element
-
-from tracewin_utils.interface import beam_parameters_to_command
-
-from util.helper import recursive_items
-from util.dicts_output import markdown
+from .phase_space.initial_phase_space_beam_parameters import (
+    InitialPhaseSpaceBeamParameters,
+)
 
 
 @dataclass
 class InitialBeamParameters:
     r"""
-    Hold all emittances, envelopes, etc in various planes.
+    Hold all emittances, envelopes, etc in various planes @ single position.
 
     Attributes
     ----------
@@ -38,113 +37,42 @@ class InitialBeamParameters:
         Lorentz gamma factor.
     beta_kin : float
         Lorentz gamma factor.
-    zdelta, z, phiw, x, y, t : PhaseSpaceInitialBeamParameters
+    zdelta, z, phiw, x, y, t : InitialPhaseSpaceBeamParameters
         Holds beam parameters respectively in the :math:`[z-z\delta]`,
         :math:`[z-z']`, :math:`[\phi-W]`, :math:`[x-x']`, :math:`[y-y']` and
         :math:`[t-t']` planes.
-    phiw99, x99, y99 : PhaseSpaceInitialBeamParameters
+    phiw99, x99, y99 : InitialPhaseSpaceBeamParameters
         Holds 99% beam parameters respectively in the :math:`[\phi-W]`,
         :math:`[x-x']` and :math:`[y-y']` planes. Only used with multiparticle
         simulations.
-    sigma : np.ndarray | None, optional
-        Holds the (6, 6) in 1D simulation) :math:`\sigma` beam matrix at the
-        entrance of the linac/portion of linac. The default is None.
 
     """
 
-    phase_spaces: tuple[str, ...]
     z_abs: float
     gamma_kin: float
     beta_kin: float
 
     def __post_init__(self) -> None:
-        """Define the attributes that may be used."""
-        self.zdelta: PhaseSpaceInitialBeamParameters
-        self.z: PhaseSpaceInitialBeamParameters
-        self.phiw: PhaseSpaceInitialBeamParameters
-        self.x: PhaseSpaceInitialBeamParameters
-        self.y: PhaseSpaceInitialBeamParameters
-        self.t: PhaseSpaceInitialBeamParameters
-        self.phiw99: PhaseSpaceInitialBeamParameters
-        self.x99: PhaseSpaceInitialBeamParameters
-        self.y99: PhaseSpaceInitialBeamParameters
-
-    def init_phase_spaces_from_sigma(self,
-                                     sub_sigmas: dict[str, np.ndarray],
-                                     ) -> None:
-        r"""Init phase space from a sigma matrix.
-
-        Parameters
-        ----------
-        sub_sigmas : dict[str, np.ndarray]
-            Dict where keys are name of phase space, values are :math:`\sigma`
-            beam matrix in corresponding plane. Shape is (2, 2).
-
-        """
-        for phase_space_name, sub_sigma in sub_sigmas.items():
-            phase_space = PhaseSpaceInitialBeamParameters(phase_space_name,
-                                                          sigma=sub_sigma)
-            phase_space.init_from_sigma(self.gamma_kin, self.beta_kin)
-            phase_space.init_eye_tm_cumul()
-            setattr(self, phase_space_name, phase_space)
-
-    def init_phase_spaces_from_kwargs(self, initial_beam_kwargs) -> None:
-        """Init phase spaces from a dictionary.
-
-        Parameters
-        ----------
-        initial_beam_kwargs : dict[str, dict[str, float | np.ndarray]]
-            Keys should be the name of a phase space.
-            The values should be other dictionaries, which keys-values are
-            :class:`.PhaseSpaceInitialBeamParameters` attributes.
-
-        """
-        for key, value in initial_beam_kwargs.items():
-            assert key in IMPLEMENTED_PHASE_SPACES, f"{key = } should be the "\
-                "name of a phase space."
-            setattr(self, key, PhaseSpaceInitialBeamParameters(key, **value))
-
-    def init_phase_space_from_another_one(self,
-                                          phase_space_name_in: str,
-                                          phase_space_name_out: str,
-                                          gamma_kin: float,
-                                          beta_kin: float) -> None:
-        """Initialize a phase space from another one that is known.
-
-        Parameters
-        ----------
-        phase_space_name_in : {'zdelta'}
-            Name of the known phase space.
-        phase_space_name_out : {'phiw', 'z'}
-            Name of the unknown phase space.
-        gamma_kin, beta_kin : float
-            Lorentz factors.
-
-        """
-        implemented_in = ('zdelta', )
-        implemented_out = ('phiw', 'z')
-        assert phase_space_name_in in implemented_in, \
-            f"{phase_space_name_in = } not in {implemented_in = }"
-        assert phase_space_name_out in implemented_out, \
-            f"{phase_space_name_out = } not in {implemented_out = }"
-
-        phase_space_in = self.get(phase_space_name_in)
-        phase_space_out = PhaseSpaceInitialBeamParameters(phase_space_name_out)
-        conversion_name = f"{phase_space_name_in} to {phase_space_name_out}"
-        phase_space_out.init_from_another_plane(phase_space_in.eps,
-                                                phase_space_in.twiss,
-                                                gamma_kin,
-                                                beta_kin,
-                                                conversion_name)
-        setattr(self, phase_space_name_out, phase_space_out)
+        """Declare the phase spaces."""
+        self.zdelta: InitialPhaseSpaceBeamParameters
+        self.z: InitialPhaseSpaceBeamParameters
+        self.phiw: InitialPhaseSpaceBeamParameters
+        self.x: InitialPhaseSpaceBeamParameters
+        self.y: InitialPhaseSpaceBeamParameters
+        self.t: InitialPhaseSpaceBeamParameters
+        self.phiw99: InitialPhaseSpaceBeamParameters
+        self.x99: InitialPhaseSpaceBeamParameters
+        self.y99: InitialPhaseSpaceBeamParameters
 
     def __str__(self) -> str:
         """Give compact information on the data that is stored."""
         out = "\tBeamParameters:\n"
-        out += "\t\t" + markdown["eps_zdelta"] + str(self.zdelta.eps)
-        out += "\t\t" + markdown["beta_zdelta"] + str(self.zdelta.beta)
-        out += "\t\t" + markdown["mismatch_zdelta"] + \
-            str(self.zdelta.mismatch_factor)
+        for phase_space_name in IMPLEMENTED_PHASE_SPACES:
+            if not hasattr(self, phase_space_name):
+                continue
+
+            phase_space = getattr(self, phase_space_name)
+            out += f"{phase_space}"
         return out
 
     def has(self, key: str) -> bool:
@@ -167,24 +95,27 @@ class InitialBeamParameters:
         get
 
         """
-        if _phase_space_name_hidden_in_key(key):
-            key, phase_space_name = _separate_var_from_phase_space(key)
+        if phase_space_name_hidden_in_key(key):
+            key, phase_space_name = separate_var_from_phase_space(key)
             phase_space = getattr(self, phase_space_name)
             return hasattr(phase_space, key)
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: str, to_numpy: bool = True, none_to_nan: bool = False,
-            elt: Element | None = None, pos: str | None = None,
-            phase_space: str | None = None, **kwargs: Any) -> Any:
+    def get(self,
+            *keys: str,
+            to_numpy: bool = True,
+            none_to_nan: bool = False,
+            phase_space_name: str | None = None,
+            **kwargs: Any) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
         Notes
         -----
         What is particular in this getter is that all
-        :class:`.PhaseSpaceInitialBeamParameters` attributes have attributes
+        :class:`.InitialPhaseSpaceBeamParameters` attributes have attributes
         with the same name: ``twiss``, ``alpha``, ``beta``, ``gamma``, ``eps``,
-        ``envelopes_pos`` and ``envelopes_energy``.
+        ``envelope_pos`` and ``envelope_energy``.
 
         Hence, you must provide either a ``phase_space`` argument which shall
         be in :data:`IMPLEMENTED_PHASE_SPACES`, either you must append the
@@ -193,7 +124,7 @@ class InitialBeamParameters:
 
         See Also
         --------
-        has
+        :meth:`has`
 
         Parameters
         ----------
@@ -204,14 +135,9 @@ class InitialBeamParameters:
             default is True.
         none_to_nan : bool, optional
             To convert None to np.NaN. The default is True.
-        elt : Element | None, optional
-            If provided, return the attributes only at the considered Element.
-        pos : 'in' | 'out' | None
-            If you want the attribute at the entry, exit, or in the whole
-            Element.
-        phase_space : ['z', 'zdelta', 'phi_w', 'x', 'y'] | None, optional
+        phase_space_name : str | None, optional
             Phase space in which you want the key. The default is None. In this
-            case, the quantities from the zdelta phase space are taken.
+            case, the quantities from the ``zdelta`` phase space are taken.
             Otherwise, it must be in :data:`IMPLEMENTED_PHASE_SPACES`.
         **kwargs: Any
             Other arguments passed to recursive getter.
@@ -223,33 +149,30 @@ class InitialBeamParameters:
 
         """
         val = {key: [] for key in keys}
-        # Explicitely look into a specific PhaseSpaceInitialBeamParameters
-        if phase_space is not None:
-            single_phase_space_beam_param = getattr(self, phase_space)
-            return single_phase_space_beam_param.get(*keys,
-                                                     elt=elt,
-                                                     pos=pos,
-                                                     **kwargs)
-        for key in keys:
-            # Look for key in PhaseSpaceInitialBeamParameters
-            if _phase_space_name_hidden_in_key(key):
-                short_key, phase_space = _separate_var_from_phase_space(key)
-                assert hasattr(self, phase_space), f"{phase_space = } not set"\
-                    + " for current BeamParameters object."
-                single_phase_space_beam_param = getattr(self, phase_space)
-                val[key] = single_phase_space_beam_param.get(short_key)
-                continue
 
-            # Look for key in BeamParameters
-            if not self.has(key):
+        # Explicitely look into a specific (Initial)PhaseSpaceBeamParameters
+        if phase_space_name is not None:
+            phase_space = getattr(self, phase_space_name)
+            val = {key: getattr(phase_space, key) for key in keys}
+
+        else:
+            for key in keys:
+                if phase_space_name_hidden_in_key(key):
+                    short_key, phase_space_name = \
+                        separate_var_from_phase_space(key)
+                    assert hasattr(self, phase_space_name), \
+                        f"{phase_space_name = } not set for current "\
+                        + "InitialBeamParameters object."
+                    phase_space = getattr(self, phase_space_name)
+                    val[key] = getattr(phase_space, short_key)
+                    continue
+
+                # Look for key in BeamParameters
+                if self.has(key):
+                    val[key] = getattr(self, key)
+                    continue
+
                 val[key] = None
-                continue
-            val[key] = getattr(self, key)
-
-        if elt is not None:
-            assert self.element_to_index is not None
-            idx = self.element_to_index(elt=elt, pos=pos)
-            val = {_key: _value[idx] for _key, _value in val.items()}
 
         out = [val[key] for key in keys]
         if to_numpy:
@@ -293,11 +216,6 @@ class InitialBeamParameters:
         sigma[4:, 4:] = sigma_zdelta
         return sigma
 
-    @property
-    def sigma_in(self) -> np.ndarray:
-        """Define an alias for ``sigma``."""
-        return self.sigma
-
     def _create_tracewin_command(self, warn_missing_phase_space: bool = True
                                  ) -> list[str]:
         """
@@ -318,7 +236,9 @@ class InitialBeamParameters:
                                     "`.ini.`.")
             else:
                 phase_space = getattr(self, phase_space_name)
-                eps, alpha, beta = phase_space.get('eps', 'alpha', 'beta')
+                eps = phase_space.eps
+                alpha = phase_space.alpha
+                beta = phase_space.beta
 
             args.extend((eps, alpha, beta))
         return beam_parameters_to_command(*args)
@@ -327,7 +247,7 @@ class InitialBeamParameters:
 # =============================================================================
 # Private
 # =============================================================================
-def _phase_space_name_hidden_in_key(key: str) -> bool:
+def phase_space_name_hidden_in_key(key: str) -> bool:
     """Look for the name of a phase-space in a key name."""
     if '_' not in key:
         return False
@@ -338,7 +258,7 @@ def _phase_space_name_hidden_in_key(key: str) -> bool:
     return False
 
 
-def _separate_var_from_phase_space(key: str) -> tuple[str, str]:
+def separate_var_from_phase_space(key: str) -> tuple[str, str]:
     """Separate variable name from phase space name."""
     splitted = key.split('_')
     key = '_'.join(splitted[:-1])
