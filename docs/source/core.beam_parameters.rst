@@ -6,6 +6,14 @@ core.beam\_parameters package
    :undoc-members:
    :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   core.beam_parameters.phase_space
+
 Submodules
 ----------
 
@@ -16,5 +24,3 @@ Submodules
    core.beam_parameters.factory
    core.beam_parameters.helper
    core.beam_parameters.initial_beam_parameters
-   core.beam_parameters.phase_space_beam_parameters
-   core.beam_parameters.phase_space_initial_beam_parameters

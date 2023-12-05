@@ -3,7 +3,7 @@
 Define functions useful for beam parameters calculations.
 
 For more information on the units that are used in this module, see
-:ref:`units-labels`.
+:ref:`units-label`.
 
 """
 import logging
@@ -244,9 +244,9 @@ def envelopes_from_sigma(phase_space_name: str,
     r"""
     Compute the envelopes.
 
-    Units are :math:`mm` for the position envelope in :math:`[z\delta]`,
-    :math:`[x-x']`, :math`[y-y']`.
-    Units are :math:`%` for the energy envelope in :math:`[z\delta]`, and
+    Units are :math:`mm` for the position envelope in :math:`[z-\delta]`,
+    :math:`[x-x']`, :math:`[y-y']`.
+    Units are :math:`%` for the energy envelope in :math:`[z-\delta]`, and
     :math:`mrad` for  :math:`[x-x']` and :math:`[y-y']`.
 
     Parameters
