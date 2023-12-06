@@ -503,14 +503,3 @@ def resample_twiss_on_fix(z_ref: np.ndarray,
     for axis in range(out.shape[1]):
         out[:, axis] = np.interp(z_fix, z_ref, twiss_ref[:, axis])
     return out
-
-
-def is_not_set(array: np.ndarray) -> bool:
-    """Tells if there is a ``np.NaN`` in the array."""
-    assert isinstance(array, np.ndarray)
-    return np.isnan(array).any()
-
-
-def is_set(array) -> bool:
-    """Tells if there is no ``np.NaN`` in the array."""
-    return ~is_not_set(array)
