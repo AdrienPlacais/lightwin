@@ -12,6 +12,6 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   core.beam_parameters.phase_space.base_phase_space_beam_parameters
+   core.beam_parameters.phase_space.i_phase_space_beam_parameters
    core.beam_parameters.phase_space.initial_phase_space_beam_parameters
    core.beam_parameters.phase_space.phase_space_beam_parameters
