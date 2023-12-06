@@ -46,7 +46,10 @@ class ListOfSimulationOutputEvaluators(list):
         other_columns, other_data = self._unpack_other_evals(other_evals)
         columns = self._set_columns(other_columns)
         data = self._get_evaluations(other_data, *simulation_outputs)
-        evaluations = pd.DataFrame(data=data, columns=columns, index=index)
+
+        evaluations = pd.DataFrame(data=data,
+                                   columns=columns,
+                                   index=index)
 
         if project_folder is not None:
             csv_path = Path(project_folder, "evaluations.csv")
@@ -58,11 +61,10 @@ class ListOfSimulationOutputEvaluators(list):
             self,
             other_evals: dict[str, list[Any]] | None,
     ) -> tuple[list[str] | None,
-               list[list[Any]] | None]:
+               list[list[Any]]] | None:
         """Extract column names and data."""
         if other_evals is None:
             return None, None
-
         other_columns = list(other_evals.keys())
 
         for other_column in other_columns:
@@ -86,23 +88,27 @@ class ListOfSimulationOutputEvaluators(list):
         return index
 
     def _set_columns(self,
-                     other_columns: list[str] | None,
+                     other_columns: list[str],
                      ) -> list[str]:
         """Set the columns of the pandas dataframe."""
         columns = [evaluator.descriptor for evaluator in self]
-        if other_columns is not None:
-            columns += other_columns
+        columns += other_columns
         return columns
 
     def _get_evaluations(self,
-                         other_data: list[list[Any]] | None,
+                         other_data: list[list[Any]],
                          *simulation_outputs: SimulationOutput,
                          ) -> list[list[float | bool | datetime.timedelta]]:
         data = [[evaluator.run(simulation_output) for evaluator in self]
                 for simulation_output in simulation_outputs]
-        if other_data is not None:
-            data = [row + other_row
-                    for row, other_row in zip(data, other_data)]
+        # if len(other_data) > 0:
+        #     data = [line + other_dat
+        #             for line, other_dat in zip(data, other_data)]
+
+        data = [[evaluator.run(simulation_output) for evaluator in self]
+                + other_dat
+                for simulation_output, other_dat
+                in zip(simulation_outputs, other_data)]
         return data
 
 
