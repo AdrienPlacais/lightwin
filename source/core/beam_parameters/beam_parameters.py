@@ -10,6 +10,7 @@ For a list of the units associated with every parameter, see
 from dataclasses import dataclass
 import logging
 from typing import Any, Callable
+import warnings
 
 import numpy as np
 from core.beam_parameters.initial_beam_parameters import (
@@ -181,15 +182,11 @@ class BeamParameters(InitialBeamParameters):
             return out[0]
         return tuple(out)
 
-    # still used?
     @property
     def sigma(self) -> np.ndarray:
-        """Give value of sigma.
-
-        .. todo::
-            Could be cleaner.
-
-        """
+        """Give value of sigma."""
+        warnings.warn("Will be deprecated, unless there is a need for this",
+                      FutureWarning)
         sigma = np.zeros((self.n_points, 6, 6))
 
         sigma_x = np.zeros((self.n_points, 2, 2))
@@ -207,7 +204,6 @@ class BeamParameters(InitialBeamParameters):
         sigma[:, 4:, 4:] = sigma_zdelta
         return sigma
 
-    # still used?
     def sub_sigma_in(self,
                      phase_space_name: str,
                      ) -> np.ndarray:
