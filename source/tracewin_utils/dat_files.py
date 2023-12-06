@@ -37,60 +37,32 @@ import logging
 from typing import TypeVar
 
 import numpy as np
-import config_manager as con
-
-from core.instruction import Instruction, Dummy
-
-from core.elements.element import Element
 
 from core.commands.command import Command
+from core.elements.element import Element
+from core.instruction import Dummy, Instruction
 from core.instructions_factory import InstructionsFactory
-
-try:
-    import beam_calculation.envelope_1d.transfer_matrices_c as tm_c
-except ModuleNotFoundError:
-    MESSAGE = 'Cython module not compilated. Check elements.py and setup.py'\
-        + ' for more information.'
-    if con.FLAG_CYTHON:
-        raise ModuleNotFoundError(MESSAGE)
-    logging.warning(MESSAGE)
-    # Load Python version as Cython to allow the execution of the code.
-    import beam_calculation.envelope_1d.transfer_matrices_p as tm_c
 
 ListOfElements = TypeVar('ListOfElements')
 
 
-def create_structure(dat_content: list[list[str]],
-                     dat_filepath: str,
-                     **kwargs: str | float) -> list[Instruction]:
-    """
-    Create structure using the loaded ``.dat`` file.
+def create_structure(dat_content: list[list[str]], dat_filepath: str, **kwargs:
+                     str | float) -> list[Instruction]: """ Create structure
+using the loaded ``.dat`` file.
 
-    Parameters
-    ----------
-    dat_content : list[list[str]]
-        List containing all the lines of ``dat_filepath``.
-    dat_filepath : str
-        Absolute path to the ``.dat``.
-    load_electromagnetic_files : bool
-        Load the files for the FIELD_MAPs.
-    check_consistency : bool
-        Check the structure of the accelerator, in particular lattices and
-        sections.
-    **kwargs : float
-        Dict transmitted to commands. Must contain the bunch frequency in MHz.
+    Parameters ---------- dat_content : list[list[str]] List containing all the
+    lines of ``dat_filepath``.  dat_filepath : str Absolute path to the
+    ``.dat``.  load_electromagnetic_files : bool Load the files for the
+    FIELD_MAPs.  check_consistency : bool Check the structure of the
+    accelerator, in particular lattices and sections.  **kwargs : float Dict
+    transmitted to commands. Must contain the bunch frequency in MHz.
 
-    Returns
-    -------
-    elts : list[Element]
-        List containing all the :class:`Element` objects.
+    Returns ------- elts : list[Element] List containing all the
+    :class:`Element` objects.
 
-    """
-    instructions_factory = InstructionsFactory(
-        default_field_map_folder=dat_filepath,
-        **kwargs)
-    instructions = instructions_factory.run(dat_content)
-    return instructions
+    """ instructions_factory = InstructionsFactory(
+            default_field_map_folder=dat_filepath, **kwargs) instructions =
+            instructions_factory.run(dat_content) return instructions
 
 
 def update_field_maps_in_dat(
