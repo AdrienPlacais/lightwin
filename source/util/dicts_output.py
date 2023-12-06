@@ -32,8 +32,10 @@ markdown = {
     'envelope_energy_phiw': r"Norm. $\sigma_\phi$ @ $1\sigma$ [MeV]",
 
     'mismatch_factor': r"$M$",
-    'mismatch_factor_zdelta': r"$M$",
+    'mismatch_factor_x': r"$M_{xx'}$",
+    'mismatch_factor_y': r"$M_{yy'}$",
     'mismatch_factor_t': r"$M_t$",
+    'mismatch_factor_zdelta': r"$M_{z\delta}$",
 
     # Element
     'elt_idx': "Element index",
