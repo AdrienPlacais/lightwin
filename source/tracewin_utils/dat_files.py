@@ -34,43 +34,19 @@ Non-exhaustive list of non implemented commands:
 
 """
 import logging
-from typing import TypeVar
 
-import numpy as np
+import math
 
 from core.commands.command import Command
 from core.elements.element import Element
 from core.instruction import Dummy, Instruction
-from core.instructions_factory import InstructionsFactory
-
-ListOfElements = TypeVar('ListOfElements')
 
 
-def create_structure(dat_content: list[list[str]], dat_filepath: str, **kwargs:
-                     str | float) -> list[Instruction]: """ Create structure
-using the loaded ``.dat`` file.
-
-    Parameters ---------- dat_content : list[list[str]] List containing all the
-    lines of ``dat_filepath``.  dat_filepath : str Absolute path to the
-    ``.dat``.  load_electromagnetic_files : bool Load the files for the
-    FIELD_MAPs.  check_consistency : bool Check the structure of the
-    accelerator, in particular lattices and sections.  **kwargs : float Dict
-    transmitted to commands. Must contain the bunch frequency in MHz.
-
-    Returns ------- elts : list[Element] List containing all the
-    :class:`Element` objects.
-
-    """ instructions_factory = InstructionsFactory(
-            default_field_map_folder=dat_filepath, **kwargs) instructions =
-            instructions_factory.run(dat_content) return instructions
-
-
-def update_field_maps_in_dat(
-    elts: ListOfElements,
-    new_phases: dict[Element, float],
-    new_k_e: dict[Element, float],
-    new_abs_phase_flag: dict[Element, float]
-) -> None:
+def update_field_maps_in_dat(elts: object,
+                             new_phases: dict[Element, float],
+                             new_k_e: dict[Element, float],
+                             new_abs_phase_flag: dict[Element, float]
+                             ) -> None:
     """
     Create a new dat with given elements and settings.
 
@@ -83,7 +59,7 @@ def update_field_maps_in_dat(
         line = instruction.line
 
         if instruction in new_phases:
-            line[3] = str(np.rad2deg(new_phases[instruction]))
+            line[3] = str(math.radians(new_phases[instruction]))
         if instruction in new_k_e:
             line[6] = str(new_k_e[instruction])
         if instruction in new_abs_phase_flag:
