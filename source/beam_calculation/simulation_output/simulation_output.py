@@ -214,7 +214,8 @@ class SimulationOutput:
             return out[0]
         return tuple(out)
 
-    def compute_complementary_data(self, elts: ListOfElements,
+    def compute_complementary_data(self,
+                                   elts: ListOfElements,
                                    ref_simulation_output: Self | None = None,
                                    **kwargs: Self
                                    ) -> None:
@@ -243,9 +244,9 @@ class SimulationOutput:
             phase_space_names = ('zdelta', )
             if self.is_3d:
                 phase_space_names = ('zdelta', 'x', 'y', 't')
-            if self.is_multiparticle:
-                phase_space_names = ('zdelta', 'x', 'y', 't',
-                                     'x99', 'y99', 'phiw99')
+            # if self.is_multiparticle:
+            #     phase_space_names = ('zdelta', 'x', 'y', 't',
+            #                          'x99', 'y99', 'phiw99')
 
             beam_parameters = self.beam_parameters
             reference_beam_parameters = ref_simulation_output.beam_parameters

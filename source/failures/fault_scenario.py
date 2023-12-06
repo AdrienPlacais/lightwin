@@ -181,7 +181,8 @@ class FaultScenario(list):
                     self.fix_acc.elts,
                 )
             simulation_output.compute_complementary_data(
-                self.fix_acc.elts, ref_simulation_output=ref_simulation_output)
+                self.fix_acc.elts,
+                ref_simulation_output=ref_simulation_output)
 
             self.fix_acc.keep_settings(simulation_output)
             self.fix_acc.simulation_outputs[self.beam_calculator.id] \

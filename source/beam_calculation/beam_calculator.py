@@ -159,7 +159,7 @@ class BeamCalculator(ABC):
                 keep_settings: bool = True,
                 recompute_reference: bool = True,
                 output_time: bool = True,
-                **kwargs: SimulationOutput,
+                **kwargs: SimulationOutput | None,
                 ) -> None:
         """Wrap full process to compute propagation of beam in accelerator.
 

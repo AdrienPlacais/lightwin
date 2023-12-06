@@ -280,6 +280,7 @@ class BeamParameters(InitialBeamParameters):
         for phase_space_name in phase_space_names:
             if phase_space_name == 't':
                 self._set_mismatch_for_transverse(**mismatch_kw)
+                continue
             phase_space, reference_phase_space = self._get_phase_spaces(
                 reference_beam_parameters,
                 phase_space_name,
@@ -322,35 +323,35 @@ class BeamParameters(InitialBeamParameters):
             self,
             raise_missing_phase_space_error: bool = True,
             raise_missing_mismatch_error: bool = True,
-            **mismatch_kw: bool,
-    ) -> None:
+            **mismatch_kw: bool) -> None:
         """Set ``t`` mismatch as average of ``x`` and ``y``."""
         if not hasattr(self, 'x'):
             if raise_missing_phase_space_error:
-                raise IOError(f"Phase space x not defined in fixed linac. "
+                raise IOError("Phase space x not defined in fixed linac. "
                               "Cannot compute transverse mismatch.")
             return None
 
         if not hasattr(self, 'y'):
             if raise_missing_phase_space_error:
-                raise IOError(f"Phase space y not defined in fixed linac. "
+                raise IOError("Phase space y not defined in fixed linac. "
                               "Cannot compute transverse mismatch.")
             return None
 
         if not hasattr(self.x, "mismatch_factor"):
             if raise_missing_mismatch_error:
-                raise IOError(f"Phase space x has no calculated mismatch. "
+                raise IOError("Phase space x has no calculated mismatch. "
                               "Cannot compute transverse mismatch.")
             return None
 
         if not hasattr(self.y, "mismatch_factor"):
             if raise_missing_mismatch_error:
-                raise IOError(f"Phase space y has no calculated mismatch. "
+                raise IOError("Phase space y has no calculated mismatch. "
                               "Cannot compute transverse mismatch.")
             return None
 
         self.t.mismatch_factor = .5 * (self.x.mismatch_factor
                                        + self.y.mismatch_factor)
+
 
 # =============================================================================
 # Private
