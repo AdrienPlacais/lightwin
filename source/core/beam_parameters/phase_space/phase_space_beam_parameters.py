@@ -191,17 +191,38 @@ class PhaseSpaceBeamParameters(IPhaseSpaceBeamParameters):
         assert self.sigma is not None
         return self.sigma[0]
 
+    def set_mismatch(self,
+                     reference_phase_space: Self,
+                     reference_z_abs: np.ndarray,
+                     z_abs: np.ndarray,
+                     raise_missing_twiss_error: bool = True,
+                     **mismatch_kw: bool,
+                     ) -> None:
+        """Compute and set the mismatch with ``reference_phase_space``."""
+        assert self.phase_space_name == reference_phase_space.phase_space_name
 
-def mismatch_single_phase_space(ref: PhaseSpaceBeamParameters,
-                                fix: PhaseSpaceBeamParameters,
-                                z_ref: np.ndarray,
-                                z_fix: np.ndarray
-                                ) -> np.ndarray | None:
-    """Compute mismatch between two :class:`PhaseSpaceBeamParameters`."""
-    twiss_ref, twiss_fix = ref.twiss, fix.twiss
-    assert twiss_ref is not None and twiss_fix is not None
-    if twiss_ref.shape != twiss_fix.shape:
-        twiss_ref = resample_twiss_on_fix(z_ref, twiss_ref, z_fix)
+        if self.twiss is None:
+            if raise_missing_twiss_error:
+                raise IOError("Fixed linac Twiss not calculated in phase space"
+                              f" {self.phase_space_name}. Cannot compute "
+                              "mismatch.")
+            return None
 
-    mism = mismatch_from_arrays(twiss_ref, twiss_fix, transp=True)
-    return mism
+        reference_twiss = reference_phase_space.twiss
+        if reference_twiss is None:
+            if raise_missing_twiss_error:
+                raise IOError("Reference Twiss not calculated in phase space "
+                              f"{self.phase_space_name}. Cannot compute "
+                              "mismatch.")
+            return None
+
+        assert reference_twiss is not None and self.twiss is not None
+
+        if reference_twiss.shape != self.twiss.shape:
+            reference_twiss = resample_twiss_on_fix(reference_z_abs,
+                                                    reference_twiss,
+                                                    z_abs)
+
+        self.mismatch_factor = mismatch_from_arrays(reference_twiss,
+                                                    self.twiss,
+                                                    transp=True)

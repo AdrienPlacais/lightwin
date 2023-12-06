@@ -7,21 +7,19 @@ For a list of the units associated with every parameter, see
 :ref:`units-label`.
 
 """
-from dataclasses import dataclass
 import logging
-from typing import Any, Callable
 import warnings
+from dataclasses import dataclass
+from typing import Any, Callable, Self
 
 import numpy as np
+
 from core.beam_parameters.initial_beam_parameters import (
     InitialBeamParameters,
     phase_space_name_hidden_in_key,
-    separate_var_from_phase_space,
-)
+    separate_var_from_phase_space)
 from core.beam_parameters.phase_space.phase_space_beam_parameters import (
-    PhaseSpaceBeamParameters,
-    mismatch_single_phase_space,
-)
+    PhaseSpaceBeamParameters)
 from core.elements.element import Element
 from tracewin_utils.interface import beam_parameters_to_command
 
@@ -270,31 +268,89 @@ class BeamParameters(InitialBeamParameters):
             args.extend((eps, alpha, beta))
         return beam_parameters_to_command(*args)
 
+    def set_mismatches(self,
+                       reference_beam_parameters: Self,
+                       *phase_space_names: str,
+                       **mismatch_kw: bool) -> None:
+        """Compute and set mismatch in every possible phase space."""
+        z_abs = self.z_abs
+        reference_z_abs = reference_beam_parameters.z_abs
 
-# =============================================================================
-# Public
-# =============================================================================
-def mismatch_from_objects(ref: BeamParameters,
-                          fix: BeamParameters,
-                          *phase_spaces: str,
-                          set_transverse_as_average: bool = True) -> None:
-    """Compute the mismatchs in the desired phase_spaces."""
-    z_ref, z_fix = ref.z_abs, fix.z_abs
-    for phase_space in phase_spaces:
-        bp_ref, bp_fix = getattr(ref, phase_space), getattr(fix, phase_space)
-        bp_fix.mismatch_factor = mismatch_single_phase_space(bp_ref, bp_fix,
-                                                             z_ref, z_fix)
+        phase_space, reference_phase_space = None, None
+        for phase_space_name in phase_space_names:
+            if phase_space_name == 't':
+                self._set_mismatch_for_transverse(**mismatch_kw)
+            phase_space, reference_phase_space = self._get_phase_spaces(
+                reference_beam_parameters,
+                phase_space_name,
+                **mismatch_kw)
+            if reference_phase_space is None or phase_space is None:
+                continue
+            phase_space.set_mismatch(reference_phase_space,
+                                     z_abs,
+                                     reference_z_abs,
+                                     **mismatch_kw)
 
-    if not set_transverse_as_average:
-        return
+    def _get_phase_spaces(self,
+                          reference_beam_parameters: Self,
+                          phase_space_name: str,
+                          raise_missing_phase_space_error: bool,
+                          **mismatch_kw: bool,
+                          ) -> tuple[PhaseSpaceBeamParameters | None,
+                                     PhaseSpaceBeamParameters | None]:
+        """Get the two phase spaces between which mismatch will be computed."""
+        if not hasattr(self, phase_space_name):
+            if raise_missing_phase_space_error:
+                raise IOError(f"Phase space {phase_space_name} not "
+                              "defined in fixed linac. Cannot compute "
+                              "mismatch.")
+            return None, None
 
-    if 'x' not in phase_spaces or 'y' not in phase_spaces:
-        logging.warning("Transverse planes were not updated. Transverse "
-                        "mismatch may be meaningless.")
+        if not hasattr(reference_beam_parameters, phase_space_name):
+            if raise_missing_phase_space_error:
+                raise IOError(f"Phase space {phase_space_name} not "
+                              "defined in reference linac. Cannot compute "
+                              "mismatch.")
+            return None, None
 
-    fix.t.mismatch_factor = .5 * (fix.x.mismatch_factor
-                                  + fix.y.mismatch_factor)
+        phase_space = getattr(self, phase_space_name)
+        reference_phase_space = getattr(reference_beam_parameters,
+                                        phase_space_name)
+        return phase_space, reference_phase_space
 
+    def _set_mismatch_for_transverse(
+            self,
+            raise_missing_phase_space_error: bool = True,
+            raise_missing_mismatch_error: bool = True,
+            **mismatch_kw: bool,
+    ) -> None:
+        """Set ``t`` mismatch as average of ``x`` and ``y``."""
+        if not hasattr(self, 'x'):
+            if raise_missing_phase_space_error:
+                raise IOError(f"Phase space x not defined in fixed linac. "
+                              "Cannot compute transverse mismatch.")
+            return None
+
+        if not hasattr(self, 'y'):
+            if raise_missing_phase_space_error:
+                raise IOError(f"Phase space y not defined in fixed linac. "
+                              "Cannot compute transverse mismatch.")
+            return None
+
+        if not hasattr(self.x, "mismatch_factor"):
+            if raise_missing_mismatch_error:
+                raise IOError(f"Phase space x has no calculated mismatch. "
+                              "Cannot compute transverse mismatch.")
+            return None
+
+        if not hasattr(self.y, "mismatch_factor"):
+            if raise_missing_mismatch_error:
+                raise IOError(f"Phase space y has no calculated mismatch. "
+                              "Cannot compute transverse mismatch.")
+            return None
+
+        self.t.mismatch_factor = .5 * (self.x.mismatch_factor
+                                       + self.y.mismatch_factor)
 
 # =============================================================================
 # Private

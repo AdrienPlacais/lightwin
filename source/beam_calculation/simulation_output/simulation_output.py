@@ -18,19 +18,15 @@ We define a class to store outputs from different :class:`.BeamCalculator`.
 
 """
 from dataclasses import dataclass
-import datetime
 import logging
 import os.path
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Self
 
 import numpy as np
 import pandas as pd
 
-from core.beam_parameters.beam_parameters import (
-    BeamParameters,
-    mismatch_from_objects,
-)
+from core.beam_parameters.beam_parameters import BeamParameters
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.particle import ParticleFullTrajectory
@@ -87,12 +83,12 @@ class SimulationOutput:
     is_multiparticle: bool
     is_3d: bool
 
-    synch_trajectory: ParticleFullTrajectory | None
+    synch_trajectory: ParticleFullTrajectory
 
     cav_params: dict[str, float | None] | None
     rf_fields: list[dict] | None
 
-    beam_parameters: BeamParameters | None
+    beam_parameters: BeamParameters
 
     element_to_index: Callable[[str | Element, str | None], int | slice] \
         | None
@@ -218,10 +214,9 @@ class SimulationOutput:
             return out[0]
         return tuple(out)
 
-    # in reality, kwargs can be of SimulationOutput type
     def compute_complementary_data(self, elts: ListOfElements,
-                                   ref_simulation_output: Any = None,
-                                   **kwargs: Any
+                                   ref_simulation_output: Self | None = None,
+                                   **kwargs: Self
                                    ) -> None:
         """
         Compute some other indirect quantities.
@@ -240,18 +235,23 @@ class SimulationOutput:
             self.z_abs = elts.get('abs_mesh', remove_first=True)
         self.synch_trajectory.compute_complementary_data()
 
-        # self.beam_parameters.compute_full(self.synch_trajectory.gamma)
-        if ref_simulation_output is not None:
-            phase_spaces, set_transverse_as_average = ('zdelta',), False
-            if 't' in self.beam_parameters.__dir__():
-                phase_spaces = ('zdelta', 'x', 'y')
-                set_transverse_as_average = True
+        mismatch_kw = {'raise_missing_phase_space_error': True,
+                       'raise_missing_mismatch_error': True,
+                       'raise_missing_twiss_error': True}
 
-            mismatch_from_objects(
-                ref_simulation_output.beam_parameters,
-                self.beam_parameters,
-                *phase_spaces,
-                set_transverse_as_average=set_transverse_as_average)
+        if ref_simulation_output is not None:
+            phase_space_names = ('zdelta', )
+            if self.is_3d:
+                phase_space_names = ('zdelta', 'x', 'y', 't')
+            if self.is_multiparticle:
+                phase_space_names = ('zdelta', 'x', 'y', 't',
+                                     'x99', 'y99', 'phiw99')
+
+            beam_parameters = self.beam_parameters
+            reference_beam_parameters = ref_simulation_output.beam_parameters
+            beam_parameters.set_mismatches(reference_beam_parameters,
+                                           *phase_space_names,
+                                           **mismatch_kw)
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
         # FIXME
