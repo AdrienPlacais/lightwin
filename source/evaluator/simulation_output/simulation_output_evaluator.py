@@ -152,6 +152,7 @@ class SimulationOutputEvaluator(ABC):
     markdown: str = ''
 
     plt_kwargs: dict[str, Any] | None = None
+    raise_error_if_value_getter_returns_none: bool = True
 
     def __post_init__(self):
         """Check inputs, create plot if a ``fignum`` was provided."""
@@ -204,7 +205,8 @@ class SimulationOutputEvaluator(ABC):
         plt_kw = {}
         x_data, y_data = self._get_data(simulation_output)
         if y_data is None:
-            logging.error(f"A value misses in test: {self}. Skipping...")
+            if self.raise_error_if_value_getter_returns_none:
+                logging.error(f"A value misses in test: {self}. Skipping...")
             return None
 
         y_ref_data = self._get_ref_data(simulation_output)
