@@ -132,23 +132,23 @@ def resample(x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
 
 
 def range_vals(name: str, data: np.ndarray | None) -> str:
-    """Return formatted first and last value of the `data` array."""
-    out = f"{name:15s}"
+    """Return formatted first and last value of the ``data`` array."""
+    out = f"{name:17s}"
     if data is None:
         return out + " (not set)\n"
-    out += f"{data[0]:7.5e} -> {data[-1]:7.5e} | {data.shape}\n"
+    out += f"{data[0]:+9.5e} -> {data[-1]:+9.5e} | {data.shape}\n"
     return out
 
 
 def range_vals_object(obj: object, name: str) -> str:
-    """Return formatted first and last value of the `name` attr from `obj`."""
+    """Return first and last value of the ``name`` attr from ``obj``."""
     val = getattr(obj, name)
-    out = f"{name:15s}"
+    out = f"{name:17s}"
     if val is None:
         return out + " (not set)\n"
     if isinstance(val, float):
         return out + f"{val} (single value)\n"
-    out += f"{val[0]:7.5e} -> {val[-1]:7.5e} | {val.shape}\n"
+    out += f"{val[0]:+9.5e} -> {val[-1]:+9.5e} | {val.shape}\n"
     return out
 
 # =============================================================================
