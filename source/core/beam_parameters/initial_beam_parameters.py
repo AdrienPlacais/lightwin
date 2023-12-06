@@ -16,7 +16,7 @@ import numpy as np
 from tracewin_utils.interface import beam_parameters_to_command
 from util.helper import recursive_items
 
-from .phase_space.base_phase_space_beam_parameters import (
+from .phase_space.i_phase_space_beam_parameters import (
     IMPLEMENTED_PHASE_SPACES,
 )
 from .phase_space.initial_phase_space_beam_parameters import (

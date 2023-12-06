@@ -7,20 +7,16 @@ from typing import Iterable, Sequence
 
 import numpy as np
 
-from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput,
-)
-from core.beam_parameters.beam_parameters import BeamParameters
-from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
-from core.beam_parameters.phase_space.initial_phase_space_beam_parameters \
-    import (
-        InitialPhaseSpaceBeamParameters,
-    )
-from core.beam_parameters.phase_space.phase_space_beam_parameters import (
-    PhaseSpaceBeamParameters,
-)
+from beam_calculation.simulation_output.simulation_output import SimulationOutput
 from core.elements.element import Element
 from util import converters
+
+from .beam_parameters import BeamParameters
+from .initial_beam_parameters import InitialBeamParameters
+from .phase_space.initial_phase_space_beam_parameters import (
+    InitialPhaseSpaceBeamParameters,
+)
+from .phase_space.phase_space_beam_parameters import PhaseSpaceBeamParameters
 
 
 # Subclassed for every BeamCalculator

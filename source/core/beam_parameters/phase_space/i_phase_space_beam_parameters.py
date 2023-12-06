@@ -36,7 +36,7 @@ BEAM_PARAMETERS = ('eps_normalized', 'eps_no_normalisation',
 
 
 @dataclass
-class BasePhaseSpaceBeamParameters(ABC):
+class IPhaseSpaceBeamParameters(ABC):
     """Hold Twiss, emittance, envelopes of single phase-space @ single pos."""
 
     phase_space_name: str

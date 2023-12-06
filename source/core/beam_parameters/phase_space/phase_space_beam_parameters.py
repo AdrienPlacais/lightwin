@@ -16,13 +16,13 @@ from core.beam_parameters.helper import (
     resample_twiss_on_fix,
     sigma_from_transfer_matrices,
 )
-from core.beam_parameters.phase_space.base_phase_space_beam_parameters import (
-    BasePhaseSpaceBeamParameters,
+from core.beam_parameters.phase_space.i_phase_space_beam_parameters import (
+    IPhaseSpaceBeamParameters,
 )
 
 
 @dataclass
-class PhaseSpaceBeamParameters(BasePhaseSpaceBeamParameters):
+class PhaseSpaceBeamParameters(IPhaseSpaceBeamParameters):
     """Hold Twiss, emittance, envelopes of a single phase-space."""
 
     # Override some types from mother class

@@ -11,13 +11,13 @@ from typing import Self
 
 import numpy as np
 
-from core.beam_parameters.phase_space.base_phase_space_beam_parameters import (
-    BasePhaseSpaceBeamParameters,
+from core.beam_parameters.phase_space.i_phase_space_beam_parameters import (
+    IPhaseSpaceBeamParameters,
 )
 
 
 @dataclass
-class InitialPhaseSpaceBeamParameters(BasePhaseSpaceBeamParameters):
+class InitialPhaseSpaceBeamParameters(IPhaseSpaceBeamParameters):
     """Hold Twiss, emittance, envelopes of single phase-space @ single pos."""
 
     # Override some types from mother class
