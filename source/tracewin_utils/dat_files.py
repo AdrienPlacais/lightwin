@@ -34,6 +34,7 @@ Non-exhaustive list of non implemented commands:
 
 """
 import logging
+from pathlib import Path
 
 import math
 
@@ -104,7 +105,7 @@ def dat_filecontent_from_smaller_list_of_elements(
 
 
 def save_dat_filecontent_to_dat(dat_content: list[list[str]],
-                                dat_path: str) -> None:
+                                dat_path: Path) -> None:
     """Save the content of the updated dat to a `.dat`."""
     with open(dat_path, 'w', encoding='utf-8') as file:
         for line in dat_content:
