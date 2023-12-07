@@ -51,13 +51,20 @@ def update_field_maps_in_dat(elts: object,
     """
     Create a new dat with given elements and settings.
 
-    In constrary to `dat_filecontent_from_smaller_list_of_elements`, does not
-    modify the number of `Element`s in the .dat.
+    In constrary to ``dat_filecontent_from_smaller_list_of_elements``, does not
+    modify the number of :class:`.Element` in the ``.dat``.
+
+    .. todo::
+        handle personalized name of elements better
 
     """
     dat_content: list[list[str]] = []
     for instruction in elts.files['elts_n_cmds']:
         line = instruction.line
+
+        # remove personalized name to always have same arg position
+        if len(line) > 1 and ':' in line[0]:
+            del line[0]
 
         if instruction in new_phases:
             line[3] = str(math.degrees(new_phases[instruction]))
@@ -65,6 +72,11 @@ def update_field_maps_in_dat(elts: object,
             line[6] = str(new_k_e[instruction])
         if instruction in new_abs_phase_flag:
             line[10] = str(new_abs_phase_flag[instruction])
+
+        # read personalized name
+        if hasattr(instruction, '_personalized_name') \
+                and instruction._personalized_name is not None:
+            line.insert(0, f"{instruction._personalized_name} :")
 
         dat_content.append(line)
 

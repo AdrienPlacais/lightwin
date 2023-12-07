@@ -23,11 +23,15 @@ class Instruction(ABC):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
-                 is_implemented: bool) -> None:
+                 is_implemented: bool,
+                 name: str | None = None) -> None:
         """Instantiate corresponding line and line number in ``.dat`` file."""
         self.line = line
         self.idx = {'dat_idx': dat_idx}
         self.is_implemented = is_implemented
+
+        self._personalized_name = name
+        self._default_name: str
 
     def __str__(self) -> str:
         """Give information on current command."""
@@ -36,6 +40,16 @@ class Instruction(ABC):
     def __repr__(self) -> str:
         """Say same thing as ``__str__``."""
         return self.__str__()
+
+    @property
+    def name(self) -> str:
+        """Give personal. name of instruction if exists, default otherwise."""
+        if self._personalized_name is None:
+            if hasattr(self, '_default_name'):
+                return self._default_name
+            return str(self.line)
+        return self._personalized_name
+
 
 
 class Dummy(Instruction):

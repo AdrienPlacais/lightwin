@@ -53,8 +53,6 @@ class Element(Instruction):
         """
         super().__init__(line, dat_idx, is_implemented=True)
 
-        self._personalized_name = name
-        self._default_name: str
         self.elt_info = {
             'nature': line[0],
             'status': 'none',    # Only make sense for cavities
@@ -82,15 +80,6 @@ class Element(Instruction):
     def __repr__(self) -> str:
         """Give the same name as TraceWin would."""
         return str(self)
-
-    @property
-    def name(self) -> str:
-        """Give personalized name of element if exists, default otherwise."""
-        if self._personalized_name is None:
-            if hasattr(self, '_default_name'):
-                return self._default_name
-            return str(self.line)
-        return self._personalized_name
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""

@@ -41,15 +41,12 @@ class Command(Instruction):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
-                 is_implemented: bool) -> None:
+                 is_implemented: bool,
+                 **kwargs) -> None:
         """Instantiate mandatory attributes."""
-        super().__init__(line, dat_idx, is_implemented)
+        super().__init__(line, dat_idx, is_implemented, **kwargs)
         self.idx['influenced'] = slice(0, 1)
         self.is_implemented = is_implemented
-        # self.idx = {'dat_idx': dat_idx,
-        #             'influenced': slice}
-        # self.is_implemented = is_implemented
-        # self.line = line
 
     @abstractmethod
     def set_influenced_elements(self,

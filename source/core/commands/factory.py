@@ -16,6 +16,7 @@ from core.commands.end import End
 from core.commands.field_map_path import FieldMapPath
 from core.commands.freq import Freq
 from core.commands.lattice import Lattice, LatticeEnd
+from core.commands.marker import Marker
 from core.commands.shift import Shift
 from core.commands.steerer import Steerer
 from core.commands.superpose_map import SuperposeMap
@@ -40,7 +41,7 @@ IMPLEMENTED_COMMANDS = {
     'FREQ': Freq,
     'LATTICE': Lattice,
     'LATTICE_END': LatticeEnd,
-    'MARKER': DummyCommand,
+    'MARKER': Marker,
     'SHIFT': Shift,
     'STEERER': Steerer,
     'SUPERPOSE_MAP': SuperposeMap,
@@ -68,12 +69,13 @@ class CommandFactory:
             dat_idx: int,
             **command_kw) -> Command:
         """Call proper constructor."""
-        cmd_name, line = self._personalized_name(line)
+        name, line = self._personalized_name(line)
         command_creator = IMPLEMENTED_COMMANDS[line[0].upper()]
         command = command_creator(
             line,
             dat_idx,
             default_field_map_folder=self.default_field_map_folder,
+            name=name,
             **command_kw)
         return command
 
@@ -90,8 +92,8 @@ class CommandFactory:
         line_delimited_with_name = original_line.split(':', maxsplit=1)
 
         if len(line_delimited_with_name) == 2:
-            cmd_name = line_delimited_with_name[0]
+            name = line_delimited_with_name[0].strip()
             cleaned_line = line_delimited_with_name[1].split()
-            return cmd_name, cleaned_line
+            return name, cleaned_line
 
         return None, line
