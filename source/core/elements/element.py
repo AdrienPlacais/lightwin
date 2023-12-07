@@ -56,7 +56,6 @@ class Element(Instruction):
         self._personalized_name = name
         self._default_name: str
         self.elt_info = {
-            'name': name,
             'nature': line[0],
             'status': 'none',    # Only make sense for cavities
         }
