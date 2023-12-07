@@ -9,9 +9,6 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
     implemented elements/commands (ex Envelope3D, not everything is set).
 
 .. todo::
-    to fix!!! does not recognize lower case commands such as ``end``
-
-.. todo::
     maybe ElementFactory and CommandFactory should be instantiated from this?
     Or from another class, but they do have a lot in common
 
@@ -19,26 +16,21 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
     for now, forcing loading of cython field maps
 
 """
+import logging
 from pathlib import Path
 from typing import Any
-import logging
 
 import config_manager as con
-
-from core.instruction import Instruction, Dummy
-
-from core.elements.element import Element
-from core.elements.dummy import DummyElement
-from core.elements.field_maps.field_map import FieldMap
-from core.elements.factory import ElementFactory, IMPLEMENTED_ELEMENTS
-from core.elements.helper import (give_name_to_elements,
-                                  force_a_lattice_for_every_element,
-                                  force_a_section_for_every_element,
-                                  )
-
-from core.commands.factory import CommandFactory, IMPLEMENTED_COMMANDS
+from core.commands.factory import IMPLEMENTED_COMMANDS, CommandFactory
 from core.commands.helper import apply_commands
-
+from core.elements.dummy import DummyElement
+from core.elements.element import Element
+from core.elements.factory import IMPLEMENTED_ELEMENTS, ElementFactory
+from core.elements.field_maps.field_map import FieldMap
+from core.elements.helper import (force_a_lattice_for_every_element,
+                                  force_a_section_for_every_element,
+                                  give_name_to_elements)
+from core.instruction import Comment, Dummy, Instruction
 from tracewin_utils.electromagnetic_fields import load_electromagnetic_fields
 
 
@@ -111,21 +103,19 @@ class InstructionsFactory:
         .. todo::
             Check if the return value from ``apply_commands`` is necessary.
 
-        .. todo::
-            remove ``cython`` from here.
-
         Parameters
         ----------
         dat_content : list[list[str]]
             List containing all the lines of ``dat_filepath``.
-        cython : bool
-            If the field maps should be loaded for Cython.
 
         """
         instructions = [self._call_proper_factory(line, dat_idx)
                         for dat_idx, line in enumerate(dat_content)]
 
         new = apply_commands(instructions, self._freq_bunch)
+        # Remove lines after 'end'
+        n_instructions = len(new)
+        instructions = instructions[:n_instructions]
         assert new == instructions
 
         elts = [elt for elt in instructions if isinstance(elt, Element)]
@@ -135,9 +125,7 @@ class InstructionsFactory:
 
         if self._load_field_maps:
             field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
-            load_electromagnetic_fields(field_maps,
-                                        True)
-                                        # self._load_cython_field_maps)
+            load_electromagnetic_fields(field_maps, True)
 
         return instructions
 
@@ -167,9 +155,13 @@ class InstructionsFactory:
         Returns
         -------
         Instruction
-            Proper :class:`.Command` or :class:`.Element`, or :class:`.Dummy`.
+            Proper :class:`.Command` or :class:`.Element`, or :class:`.Dummy`,
+            or :class:`.Comment`.
 
         """
+        if line == ['']:
+            return Comment(line, dat_idx)
+
         for word in line:
             word = word.upper()
             if word in IMPLEMENTED_COMMANDS:
@@ -180,6 +172,9 @@ class InstructionsFactory:
                 return self._element_factory.run(line,
                                                  dat_idx,
                                                  **instruction_kw)
+            if ';' in word:
+                return Comment(line, dat_idx)
+
         return Dummy(line, dat_idx, warning=True)
 
     def _handle_lattice_and_section(self, elts: list[Element]) -> None:

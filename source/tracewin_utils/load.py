@@ -67,6 +67,39 @@ def dat_file(dat_path: Path) -> list[list[str]]:
     return dat_filecontent
 
 
+def complete_dat_file(dat_path: Path) -> list[list[str]]:
+    """
+    Load the dat file and convert it into a list of lines.
+
+    Parameters
+    ----------
+    dat_path : Path
+        Filepath to the ``.dat`` file, as understood by TraceWin.
+
+    Returns
+    -------
+    dat_filecontent : list[list[str]]
+        List containing all the lines of ``dat_path``.
+
+    """
+    dat_filecontent = []
+
+    with open(dat_path, 'r', encoding='utf-8') as file:
+        for line in file:
+            line = line.strip()
+
+            if len(line) == 0 or line[0] == ';':
+                dat_filecontent.append([line])
+                continue
+
+            line = line.split(';')[0]
+            # Remove everything between parenthesis
+            # https://stackoverflow.com/questions/14596884/remove-text-between-and
+            line = re.sub("([\(\[]).*?([\)\]])", "", line)
+
+            dat_filecontent.append(line.split())
+    return dat_filecontent
+
 def table_structure_file(path: Path,
                          ) -> list[list[str]]:
     """Load the file produced by ``Data`` ``Save table to file``."""

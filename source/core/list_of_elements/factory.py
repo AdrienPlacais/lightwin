@@ -27,31 +27,27 @@ a full :class:`.ListOfElements` from scratch.
     The ``elements_to_remove`` key should be in the configuration file
 
 """
-from abc import ABCMeta
-import os
 import logging
-from typing import Any, Sequence
+import os
+from abc import ABCMeta
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
-from core.instructions_factory import InstructionsFactory
-from core.beam_parameters.factory import InitialBeamParametersFactory
-
-from core.instruction import Instruction
-from core.elements.element import Element
-from core.commands.command import Command
-from core.particle import ParticleInitialState
-
-from core.list_of_elements.list_of_elements import ListOfElements
 import tracewin_utils.load
-from tracewin_utils.dat_files import (
-    dat_filecontent_from_smaller_list_of_elements,
-)
-from tracewin_utils.dat_files import save_dat_filecontent_to_dat
-
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
+from core.beam_parameters.factory import InitialBeamParametersFactory
+from core.commands.command import Command
+from core.elements.element import Element
+from core.instruction import Instruction
+from core.instructions_factory import InstructionsFactory
+from core.list_of_elements.list_of_elements import ListOfElements
+from core.particle import ParticleInitialState
+from tracewin_utils.dat_files import (
+    dat_filecontent_from_smaller_list_of_elements,
+    save_dat_filecontent_to_dat)
 
 
 class ListOfElementsFactory:
@@ -104,7 +100,7 @@ class ListOfElementsFactory:
         """
         Create a new :class:`.ListOfElements`, encompassing a full linac.
 
-        Factory function called from the :class:`.Accelerator` object.
+        Factory function called from within the :class:`.Accelerator` object.
 
         Parameters
         ----------
@@ -116,22 +112,22 @@ class ListOfElementsFactory:
         Returns
         -------
         list_of_elements : ListOfElements
-            Contains all the :class:`.Elements` of the linac, as well as the proper
-            particle and beam properties at its entry.
+            Contains all the :class:`.Elements` of the linac, as well as the
+            proper particle and beam properties at its entry.
 
         """
         dat_filepath = dat_filepath.absolute()
         logging.info("First initialisation of ListOfElements, ecompassing all "
                      f"linac. Created with {dat_filepath = }")
 
+        dat_filecontent = tracewin_utils.load.complete_dat_file(dat_filepath)
         files = {
             'dat_filepath': dat_filepath,
-            'dat_content': tracewin_utils.load.dat_file(dat_filepath),
+            'dat_content': dat_filecontent,
             'out_path': accelerator_path,
             'elts_n_cmds': list[Instruction],
         }
 
-        dat_filecontent = files['dat_content']
         instructions = self.instructions_factory.run(dat_filecontent)
         elts = self._filter_out_commands_and_elements_to_remove(instructions)
 
@@ -158,7 +154,7 @@ class ListOfElementsFactory:
         elts = [
             elt for elt in instructions if isinstance(elt, Element)
             and not isinstance(elt, self.elements_to_remove)
-            ]
+        ]
         removed_elts = [elt for elt in instructions
                         if isinstance(elt, self.elements_to_remove)]
         n_removed = len(removed_elts)
@@ -220,8 +216,8 @@ class ListOfElementsFactory:
             entry.
 
         """
-        logging.info(f"Initalisation of ListOfElements from already "
-                     f"initialized elements: {elts[0]} to {elts[-1]}.")
+        logging.info("Initalisation of ListOfElements from already initialized"
+                     f" elements: {elts[0]} to {elts[-1]}.")
 
         input_elt, input_pos = self._get_initial_element(elts,
                                                          simulation_output)
@@ -229,20 +225,20 @@ class ListOfElementsFactory:
                   'pos': input_pos,
                   'to_numpy': False,
                   }
-        input_particle = self._subset_input_particle(
-            simulation_output, **get_kw)
+        input_particle = self._subset_input_particle(simulation_output,
+                                                     **get_kw)
         input_beam = self.initial_beam_factory.factory_subset(
-            simulation_output, get_kw)
+            simulation_output,
+            get_kw)
 
         logging.warning("The phase_info dict, which handles how and if "
                         "cavities are rephased in the .dat file, is hard-"
                         "coded. It should take config_manager.PHI_ABS_FLAG as "
                         "input.")
 
-        files = self._subset_files_dictionary(
-            elts,
-            files_from_full_list_of_elements,
-        )
+        files = self._subset_files_dictionary(elts,
+                                              files_from_full_list_of_elements,
+                                              )
 
         transfer_matrix = simulation_output.transfer_matrix
         assert transfer_matrix is not None
@@ -272,8 +268,8 @@ class ListOfElementsFactory:
 
         original_instructions = files_from_full_list_of_elements['elts_n_cmds']
         assert isinstance(original_instructions, list)
-        assert all(isinstance(elt, (Element, Command))
-                   for elt in original_instructions)
+        # assert all(isinstance(elt, (Element, Command))
+        #            for elt in original_instructions)
         dat_content, instructions = \
             dat_filecontent_from_smaller_list_of_elements(
                 files_from_full_list_of_elements['elts_n_cmds'],

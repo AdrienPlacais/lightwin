@@ -18,11 +18,11 @@ class Instruction(ABC):
     """An object corresponding to a line in a ``.dat`` file."""
 
     line: list[str]
-    idx: dict[str, str | slice]
+    idx: dict[str, int | bool | None]
 
     def __init__(self,
                  line: list[str],
-                 dat_idx: dict[str, str | slice],
+                 dat_idx: int,
                  is_implemented: bool) -> None:
         """Instantiate corresponding line and line number in ``.dat`` file."""
         self.line = line
@@ -31,7 +31,11 @@ class Instruction(ABC):
 
     def __str__(self) -> str:
         """Give information on current command."""
-        return str(self.line)
+        return f"{self.__class__.__name__:15s} {self.line}"
+
+    def __repr__(self) -> str:
+        """Say same thing as ``__str__``."""
+        return self.__str__()
 
 
 class Dummy(Instruction):
@@ -39,7 +43,7 @@ class Dummy(Instruction):
 
     def __init__(self,
                  line: list[str],
-                 dat_idx: dict[str, str | slice],
+                 dat_idx: int,
                  warning: bool = False,
                  ) -> None:
         """Create the dummy object, raise a warning if necessary.
@@ -48,8 +52,8 @@ class Dummy(Instruction):
         ----------
         line : list[str]
             Arguments of the line in the ``.dat`` file.
-        dat_idx : dict[str, str | slice]
-            dat_idx
+        dat_idx : int
+            Line number in the ``.dat`` file.
         warning : bool, optional
             To raise a warning when the element is not implemented. The default
             is False.
@@ -65,3 +69,20 @@ class Dummy(Instruction):
                             "this warning in tracewin_utils.dat_files._create"
                             "_element_n_command_objects. Line with a problem:"
                             f"\n{line}")
+
+
+class Comment(Dummy):
+    """An object corresponding to a comment."""
+
+    def __init__(self, line: list[str], dat_idx: int) -> None:
+        """Create the object, but never raise a warning.
+
+        Parameters
+        ----------
+        line : list[str]
+            Arguments of the line in the ``.dat`` file.
+        dat_idx : int
+            Line number in the ``.dat`` file.
+
+        """
+        super().__init__(line, dat_idx, warning=False)
