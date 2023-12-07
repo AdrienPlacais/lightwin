@@ -58,7 +58,7 @@ class FieldMapFactory:
     def run(self,
             line: list[str],
             dat_idx: int,
-            elt_name: str | None = None,
+            name: str | None = None,
             **kwargs) -> FieldMap:
         """Call proper constructor."""
         if len(line) == 10:
@@ -69,7 +69,7 @@ class FieldMapFactory:
         field_map = field_map_class(
             line,
             dat_idx,
-            elt_name=elt_name,
+            name=name,
             default_field_map_folder=self.default_field_map_folder
         )
         return field_map

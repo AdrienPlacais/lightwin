@@ -21,14 +21,14 @@ def give_name_to_elements(elts: list[Element]) -> None:
     for key, value in CIVIL_REGISTER.items():
         sub_list = list(filter(lambda elt: isinstance(elt, key), elts))
         for i, elt in enumerate(sub_list, start=1):
-            if elt.elt_info['elt_name'] is None:
-                elt.elt_info['elt_name'] = value + str(i)
+            if elt._personalized_name is None:
+                elt._default_name = value + str(i)
 
     other_elements = list(filter(lambda elt: type(elt) not in CIVIL_REGISTER,
                           elts))
     for i, elt in enumerate(other_elements, start=1):
-        if elt.elt_info['elt_name'] is None:
-            elt.elt_info['elt_name'] = 'ELT' + str(i)
+        if elt._personalized_name is None:
+            elt._default_name = 'ELT' + str(i)
 
 
 def force_a_section_for_every_element(elts_without_dummies: list[Element]

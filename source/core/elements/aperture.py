@@ -17,8 +17,8 @@ class Aperture(Element):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
-                 elt_name: str | None = None,
+                 name: str | None = None,
                  **kwargs: str) -> None:
         """Force an element with null-length."""
-        super().__init__(line, dat_idx, elt_name)
+        super().__init__(line, dat_idx, name)
         self.length_m = 0.

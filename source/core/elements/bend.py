@@ -28,10 +28,10 @@ class Bend(Element):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
-                 elt_name: str | None = None,
+                 name: str | None = None,
                  **kwargs: str) -> None:
         """Precompute the parameters used to compute transfer matrix."""
-        super().__init__(line, dat_idx, elt_name)
+        super().__init__(line, dat_idx, name)
 
         self.bend_angle = float(np.deg2rad(float(line[1])))
         self.curvature_radius = float(line[2]) * 1e-3

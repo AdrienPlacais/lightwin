@@ -45,12 +45,12 @@ class ElementFactory:
             dat_idx: int,
             **kwargs) -> Element:
         """Call proper constructor."""
-        elt_name, line = self._personalized_name(line)
+        name, line = self._personalized_name(line)
         element_creator = IMPLEMENTED_ELEMENTS[line[0].upper()]
         element = element_creator(
             line,
             dat_idx,
-            elt_name,
+            name,
             **kwargs)
         return element
 
@@ -67,8 +67,8 @@ class ElementFactory:
         line_delimited_with_name = original_line.split(':', maxsplit=1)
 
         if len(line_delimited_with_name) == 2:
-            elt_name = line_delimited_with_name[0].strip()
+            name = line_delimited_with_name[0].strip()
             cleaned_line = line_delimited_with_name[1].split()
-            return elt_name, cleaned_line
+            return name, cleaned_line
 
         return None, line

@@ -20,8 +20,8 @@ class SuperposedFieldMap(Element):
                  line: list[str],
                  dat_idx: int,
                  total_length: float | None = None,
-                 elt_name: str | None = None,
+                 name: str | None = None,
                  **kwargs: str) -> None:
         """Save length of the superposed field maps."""
-        super().__init__(line, dat_idx, elt_name)
+        super().__init__(line, dat_idx, name)
         self.length_m = total_length

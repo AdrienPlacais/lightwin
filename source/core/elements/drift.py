@@ -11,9 +11,9 @@ class Drift(Element):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
-                 elt_name: str | None = None,
+                 name: str | None = None,
                  **kwargs: str) -> None:
         """Check that number of attributes is valid."""
-        super().__init__(line, dat_idx, elt_name)
+        super().__init__(line, dat_idx, name)
         n_attributes = len(line) - 1
         assert n_attributes in [2, 3, 5]

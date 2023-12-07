@@ -11,7 +11,8 @@ This module holds :class:`Element`, declined in Drift, FieldMap, etc.
     particles.
 
 .. todo::
-    __repr__ won't work with retuned elements
+    clean the patch for the 'name'. my has and get methods do not work with
+    @property
 
 """
 from typing import Any
@@ -31,7 +32,7 @@ class Element(Instruction):
     def __init__(self,
                  line: list[str],
                  dat_idx: int,
-                 elt_name: str | None = None,
+                 name: str | None = None,
                  **kwargs: str) -> None:
         """
         Init parameters common to all elements.
@@ -40,11 +41,11 @@ class Element(Instruction):
         ----------
         line : list[str]
             A line of the ``.dat`` file. If the element was given a name, it
-            must not appear in ``line`` but rather in ``elt_name``. First
+            must not appear in ``line`` but rather in ``name``. First
             element of the list must be in :data:`.IMPLEMENTED_ELEMENTS`.
         dat_idx : int
             Position in the ``.dat`` file.
-        elt_name : str | None, optional
+        name : str | None, optional
             Non-default name of the element, as given in the ``.dat`` file. The
             default is None, in which case an automatic name will be given
             later.
@@ -52,8 +53,10 @@ class Element(Instruction):
         """
         super().__init__(line, dat_idx, is_implemented=True)
 
+        self._personalized_name = name
+        self._default_name: str
         self.elt_info = {
-            'elt_name': elt_name,
+            'name': name,
             'nature': line[0],
             'status': 'none',    # Only make sense for cavities
         }
@@ -75,14 +78,20 @@ class Element(Instruction):
 
     def __str__(self) -> str:
         """Give the same name as TraceWin would."""
-        out = self.elt_info['elt_name']
-        if out is None:
-            out = str(self.line)
-        return out
+        return self.name
 
     def __repr__(self) -> str:
         """Give the same name as TraceWin would."""
         return str(self)
+
+    @property
+    def name(self) -> str:
+        """Give personalized name of element if exists, default otherwise."""
+        if self._personalized_name is None:
+            if hasattr(self, '_default_name'):
+                return self._default_name
+            return str(self.line)
+        return self._personalized_name
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
@@ -112,6 +121,9 @@ class Element(Instruction):
         val = {key: [] for key in keys}
 
         for key in keys:
+            if key == 'name':
+                val[key] = self.name
+                continue
             if not self.has(key):
                 val[key] = None
                 continue

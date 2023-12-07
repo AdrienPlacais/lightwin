@@ -64,10 +64,10 @@ class FieldMap(Element):
                  line: list[str],
                  dat_idx: int,
                  default_field_map_folder: Path,
-                 elt_name: str | None = None,
+                 name: str | None = None,
                  **kwargs) -> None:
         """Set most of attributes defined in ``TraceWin``."""
-        super().__init__(line, dat_idx, elt_name)
+        super().__init__(line, dat_idx, name)
         n_attributes = len(line) - 1
         assert n_attributes == 10
 

@@ -109,7 +109,7 @@ def load_phase_space(accelerator: Accelerator) -> list[np.ndarray]:
 
 def output_cavities(linac: Accelerator, out: bool = False) -> pd.DataFrame:
     """Output relatable parameters of cavities in list_of_cav."""
-    columns = ('elt_name', 'status', 'k_e', 'phi_0_abs', 'phi_0_rel',
+    columns = ('name', 'status', 'k_e', 'phi_0_abs', 'phi_0_rel',
                'v_cav_mv', 'phi_s')
     df_cav = pd.DataFrame(columns=columns)
 
@@ -186,7 +186,7 @@ def output_fit(fault_scenario, out_detail=False, out_compact=True):
                     var = 100. * (new - old) / old
 
                 val.loc[i + shift_i + 1] = \
-                    [cav.get('elt_name'), cav.get('status'), x_lim[0],
+                    [cav.get('name'), cav.get('status'), x_lim[0],
                      x_lim[1], new, old, var]
         shift_i += i + 2
 

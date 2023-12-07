@@ -143,10 +143,10 @@ def equivalent_elt_idx(elts: ListOfElements | list[Element],
 
     """
     if not isinstance(elt, str):
-        elt = elt.get("elt_name")
+        elt = elt.name
 
     magic_keywords = {"first": 0, "last": -1}
-    names = [x.elt_info["elt_name"] for x in elts]
+    names = [x.name for x in elts]
 
     if elt in names:
         return names.index(elt)

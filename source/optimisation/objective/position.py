@@ -18,7 +18,7 @@ In this module, we define helper functions to determine this zone.
     be fixed together).
 
 .. todo::
-    end_section, elt_name
+    end_section, elt.name
 
 """
 import logging

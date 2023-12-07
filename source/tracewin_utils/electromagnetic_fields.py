@@ -343,7 +343,7 @@ def output_data_in_tw_fashion(linac) -> pd.DataFrame:
     """Mimick TW's Data tab."""
     larousse = {
         '#': lambda lin, elt: elt.get('elt_idx', to_numpy=False),
-        'Name': lambda lin, elt: elt.get('elt_name', to_numpy=False),
+        'Name': lambda lin, elt: elt.name,
         'Type': lambda lin, elt: elt.get('nature', to_numpy=False),
         'Length (mm)': lambda lin, elt: elt.length_m * 1e3,
         'Grad/Field/Amp': lambda lin, elt:
