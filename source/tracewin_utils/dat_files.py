@@ -60,7 +60,7 @@ def update_field_maps_in_dat(elts: object,
         line = instruction.line
 
         if instruction in new_phases:
-            line[3] = str(math.radians(new_phases[instruction]))
+            line[3] = str(math.degrees(new_phases[instruction]))
         if instruction in new_k_e:
             line[6] = str(new_k_e[instruction])
         if instruction in new_abs_phase_flag:
