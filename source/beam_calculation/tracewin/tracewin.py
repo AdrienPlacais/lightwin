@@ -331,7 +331,7 @@ class TraceWin(BeamCalculator):
             return
         assert self.cal_file.is_file()
         shutil.copy(self.cal_file, self.path_cal)
-        logging.warning(f"copied cal in {self.path_cal}")
+        logging.debug(f"Copied {self.cal_file = } in {self.path_cal = }.")
 
     @property
     def is_a_multiparticle_simulation(self) -> bool:
