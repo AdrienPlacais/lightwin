@@ -47,6 +47,7 @@ def config_to_dict(c_files: configparser.SectionProxy) -> dict:
     getter = {
         "dat_file": c_files.getpath,
         "project_folder": c_files.getpath,
+        "cal_file": c_files.getpath,
     }
     for key in c_files.keys():
         if key in getter:

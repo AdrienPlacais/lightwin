@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Define helper functions applying on elements."""
 from core.elements.element import Element
+from core.elements.diagnostic import Diagnostic
 from core.elements.drift import Drift
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad
@@ -9,6 +10,7 @@ from core.elements.solenoid import Solenoid
 
 CIVIL_REGISTER = {
     Quad: 'QP',
+    Diagnostic: 'D',
     Drift: 'DR',
     FieldMap: 'FM',
     Solenoid: 'SOL',

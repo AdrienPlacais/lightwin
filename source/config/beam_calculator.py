@@ -150,6 +150,11 @@ def _test_beam_calculator_tracewin(
         return False
     c_beam_calculator["executable"] = str(tw_exe)
 
+    if 'cal_file' in c_beam_calculator.keys():
+        if not c_beam_calculator.getpath('cal_file').is_file():
+            logging.error("You provided a .cal file that does not exists.")
+            return False
+
     for key in c_beam_calculator.keys():
         if "Ele" in key:
             logging.error("Are you trying to use the Ele[n][v] key? Please "
@@ -230,6 +235,7 @@ def _config_to_dict_tracewin(c_tw: configparser.SectionProxy) -> dict:
     getter_arg_for_lightwin = {
         'executable': c_tw.getpath,
         'ini_path': c_tw.getpath,
+        'cal_file': c_tw.getpath,
     }
 
     getter_arg_for_tracewin = {

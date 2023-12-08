@@ -28,6 +28,7 @@ the particles in envelope or multipart, in 3D. In contrary to
 from dataclasses import dataclass
 import logging
 from pathlib import Path
+import shutil
 import subprocess
 
 from beam_calculation.beam_calculator import BeamCalculator
@@ -83,6 +84,7 @@ class TraceWin(BeamCalculator):
     executable: Path
     ini_path: Path
     base_kwargs: dict[str, str | int | float | bool | None]
+    cal_file: Path | None = None
 
     def __post_init__(self) -> None:
         """Define some other useful methods, init variables."""
@@ -324,6 +326,12 @@ class TraceWin(BeamCalculator):
         assert self.path_cal.is_dir()
 
         self._tracewin_command = None
+
+        if self.cal_file is None:
+            return
+        assert self.cal_file.is_file()
+        shutil.copy(self.cal_file, self.path_cal)
+        logging.warning(f"copied cal in {self.path_cal}")
 
     @property
     def is_a_multiparticle_simulation(self) -> bool:
