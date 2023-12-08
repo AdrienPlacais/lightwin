@@ -51,7 +51,7 @@ class Element(Instruction):
             later.
 
         """
-        super().__init__(line, dat_idx, is_implemented=True)
+        super().__init__(line, dat_idx, is_implemented=True, name=name)
 
         self.elt_info = {
             'nature': line[0],

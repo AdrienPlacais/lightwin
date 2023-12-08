@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define helper functions applying on elements."""
-from core.instruction import Instruction
 from core.elements.element import Element
 from core.elements.drift import Drift
 from core.elements.field_maps.field_map import FieldMap
@@ -29,10 +28,11 @@ def give_name_to_elements(elts: list[Element]) -> None:
     for i, elt in enumerate(other_elements, start=1):
         if elt._personalized_name is None:
             elt._default_name = 'ELT' + str(i)
+    return
 
 
 def force_a_section_for_every_element(elts_without_dummies: list[Element]
-                                       ) -> None:
+                                      ) -> None:
     """Give a section index to every element."""
     idx_section = 0
     for elt in elts_without_dummies:
@@ -41,10 +41,11 @@ def force_a_section_for_every_element(elts_without_dummies: list[Element]
             elt.idx['section'] = idx_section
             continue
         idx_section = idx
+    return
 
 
 def force_a_lattice_for_every_element(elts_without_dummies: list[Element]
-                                       ) -> None:
+                                      ) -> None:
     """
     Give a lattice index to every element.
 
