@@ -14,23 +14,7 @@ Non-exhaustive list of non implemented commands:
     'ADJUST_STEERER',
     'ADJUST_STEERER_BX',
     'ADJUST_STEERER_BY',
-    'DIAG_SIZE',
-    'DIAG_DSIZE',
-    'DIAG_DSIZE2',
-    'DIAG_DSIZE3',
-    'DIAG_DSIZE4',
-    'DIAG_DENERGY',
-    'DIAG_ENERGY',
-    'DIAG_TWISS',
-    'DIAG_WAIST',
-    'DIAG_POSITION',
-    'DIAG_DPHASE',
-    'ERROR_CAV_NCPL_STAT',
-    'ERROR_CAV_NCPL_DYN',
     'SET_ADV',
-    'SHIFT',
-    'THIN_STEERING',
-    'APERTURE',
 
 """
 import logging
