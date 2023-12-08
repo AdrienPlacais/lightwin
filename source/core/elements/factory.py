@@ -3,6 +3,7 @@
 """Define a class to easily create :class:`.Element` objects."""
 from typing import Any
 from pathlib import Path
+from core.elements.diagnostic import Diagnostic
 
 from core.elements.element import Element
 from core.elements.aperture import Aperture
@@ -20,6 +21,13 @@ IMPLEMENTED_ELEMENTS = {
     'APERTURE': Aperture,
     'BEND': Bend,
     'DRIFT': Drift,
+    'DIAG_ACHROMAT': Diagnostic,
+    'DIAG_POSITION': Diagnostic,
+    'DIAG_SIZE': Diagnostic,
+    'DIAG_DSIZE': Diagnostic,
+    'DIAG_DSIZE2': Diagnostic,
+    'DIAG_DSIZE3': Diagnostic,
+    'DIAG_WAIST': Diagnostic,
     'DUMMY_ELEMENT': DummyElement,
     'EDGE': Edge,
     'FIELD_MAP': FieldMap,  # replaced in ElementFactory initialisation

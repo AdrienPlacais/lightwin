@@ -15,6 +15,7 @@ from beam_calculation.envelope_1d.\
     )
 from core.elements.aperture import Aperture
 from core.elements.bend import Bend
+from core.elements.diagnostic import Diagnostic
 from core.elements.drift import Drift
 from core.elements.edge import Edge
 from core.elements.element import Element
@@ -29,6 +30,7 @@ IMPLEMENTED_ELEMENTS = {
     Aperture: DriftEnvelope1DParameters,
     Bend: BendEnvelope1DParameters,
     Edge: DriftEnvelope1DParameters,
+    Diagnostic: DriftEnvelope1DParameters,
     Drift: DriftEnvelope1DParameters,
     FieldMap100: FieldMapEnvelope1DParameters,
     FieldMap7700: FieldMapEnvelope1DParameters,

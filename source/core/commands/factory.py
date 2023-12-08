@@ -24,13 +24,6 @@ from core.commands.superpose_map import SuperposeMap
 IMPLEMENTED_COMMANDS = {
     'ADJUST': DummyCommand,
     'ADJUST_STEERER': DummyCommand,
-    'DIAG_ACHROMAT': DummyCommand,
-    'DIAG_POSITION': DummyCommand,
-    'DIAG_SIZE': DummyCommand,
-    'DIAG_DSIZE': DummyCommand,
-    'DIAG_DSIZE2': DummyCommand,
-    'DIAG_DSIZE3': DummyCommand,
-    'DIAG_WAIST': DummyCommand,
     'DUMMY_COMMAND': DummyCommand,
     'END': End,
     'ERROR_BEAM_STAT': DummyCommand,
