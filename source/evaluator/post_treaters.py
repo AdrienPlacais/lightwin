@@ -8,8 +8,17 @@ as arguments and return the treated value (ref is unchanged).
 
 """
 import logging
+from typing import overload
 
 import numpy as np
+
+
+@overload
+def do_nothing(*args: float, **kwargs: bool) -> float: ...
+
+
+@overload
+def do_nothing(*args: np.ndarray, **kwargs: bool) -> np.ndarray: ...
 
 
 def do_nothing(*args: np.ndarray | float | None, **kwargs: bool
@@ -26,19 +35,40 @@ def do_nothing(*args: np.ndarray | float | None, **kwargs: bool
     return args[0]
 
 
-def set_first_value_to(*args: np.ndarray,
-                       value: float,
-                       **kwargs: bool) -> np.ndarray:
+def set_first_value_to(*args: np.ndarray, value: float, **kwargs: bool
+                       ) -> np.ndarray:
     """Set first element of array to ``value``, sometimes bugs in TW output."""
     args[0][0] = value
     return args[0]
 
 
-def difference(value: np.ndarray | float, reference_value: np.ndarray | float,
+@overload
+def difference(value: float, reference_value: float, **kwargs: bool
+               ) -> float: ...
+
+
+@overload
+def difference(value: np.ndarray, reference_value: np.ndarray, **kwargs: bool
+               ) -> np.ndarray: ...
+
+
+def difference(value: np.ndarray | float,
+               reference_value: np.ndarray | float,
                **kwargs: bool) -> np.ndarray | float:
     """Compute the difference."""
     delta = value - reference_value
     return delta
+
+
+@overload
+def relative_difference(value: float, reference_value: float, **kwargs: bool
+                        ) -> float: ...
+
+
+@overload
+def relative_difference(value: np.ndarray,
+                        reference_value: np.ndarray,
+                        **kwargs: bool) -> np.ndarray: ...
 
 
 def relative_difference(value: np.ndarray | float,
@@ -70,10 +100,28 @@ def rms_error(value: np.ndarray,
     return rms
 
 
-def absolute(*args: np.ndarray | float,
-             **kwargs: bool) -> np.ndarray | float:
+@overload
+def absolute(*args: float, **kwargs: bool) -> float: ...
+
+
+@overload
+def absolute(*args: np.ndarray, **kwargs: bool) -> np.ndarray: ...
+
+
+def absolute(*args: np.ndarray | float, **kwargs: bool) -> np.ndarray | float:
     """Return the absolute ``value``."""
-    return np.abs(args[0])
+    if isinstance(args[0], np.ndarray):
+        return np.abs(args[0])
+    return abs(args[0])
+
+
+@overload
+def scale_by(*args: float, scale: float = 1., **kwargs) -> float: ...
+
+
+@overload
+def scale_by(*args: np.ndarray, scale: np.ndarray | float = 1., **kwargs
+             ) -> np.ndarray: ...
 
 
 def scale_by(*args: np.ndarray | float,
