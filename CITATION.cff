@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Plaçais
+    given-names: Adrien
+    orcid: https://orcid.org/0000-0001-6840-1685 
+  - family-names: Bouly
+    given-names: Frédéric
+    orcid: https://orcid.org/0000-0002-4030-7694
+  - family-names: Yee-Rendon
+    given-names: Bruce
+    orcid: https://orcid.org/0000-0002-4589-818X
+title: "LightWin"
+version: 3.2.4
+identifiers:
+  - type: doi
+    value: 00.0000/nan.0000
+date-released: 2024-02-01
