@@ -16,7 +16,6 @@ Everything related to the ``beam_calculator`` key.
 """
 import logging
 from pathlib import Path
-import os
 import configparser
 
 tools = ('Envelope1D', 'TraceWin', 'Envelope3D')  #:
