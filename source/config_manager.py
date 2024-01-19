@@ -24,7 +24,6 @@ In particular:
 from typing import Any
 from pathlib import Path
 import logging
-import os
 import configparser
 
 import numpy as np
@@ -48,6 +47,23 @@ SIGMA = np.full((6, 6), np.NaN)
 def process_config(config_path: Path,
                    config_keys: dict[str, str],
                    ) -> dict[str, dict[str, Any]]:
+    """Load and test the configuration file."""
+    if config_path.suffix == '.ini':
+        logging.warning("ini configuration format will soon be deprecated. "
+                        "Please switch to .toml, it will be easier for "
+                        "everyone.")
+        return _process_config_ini(config_path, config_keys)
+
+    if config_path.suffix == '.toml':
+        logging.warning(".toml not implemented yet. Now who's the fool?")
+        return _process_config_ini(config_path, config_keys)
+
+    raise IOError(f"{config_path.suffix = } while it should be .ini or .toml")
+
+
+def _process_config_ini(config_path: Path,
+                        config_keys: dict[str, str],
+                        ) -> dict[str, dict[str, Any]]:
     """
     Frontend for config: load ``.ini``, test it, return its content as dicts.
 
