@@ -28,11 +28,21 @@ def test(tool: str,
     Ensure that selected :class:`.BeamCalculator` will be properly initialized.
     """
     assert tool in IMPLEMENTED_BEAM_CALCULATORS
-    specific_testers = {'Envelope1D': _test_envelope1d,
-                        'TraceWin': _test_tracewin,
-                        'Envelope3D': _test_envelope3d,
-                        }
-    specific_testers[tool](**beam_calculator_kw)
+    specific_tester = {'Envelope1D': _test_envelope1d,
+                       'TraceWin': _test_tracewin,
+                       'Envelope3D': _test_envelope3d,
+                       }
+    specific_tester[tool](**beam_calculator_kw)
+
+
+def add_some_values(tool: str,
+                    beam_calculator_kw: dict) -> None:
+    """Precompute some useful values, transform some ``str`` into ``Path``."""
+    specific_add_some_valueser = {'Envelope1D': _add_some_values_envelope1d,
+                                  'TraceWin': _add_some_values_tracewin,
+                                  'Envelope3D': _add_some_values_envelope3d,
+                                  }
+    specific_add_some_valueser[tool](**beam_calculator_kw)
 
 
 # Comment with recommended values: leapfrog 40 and RK 20
@@ -46,6 +56,11 @@ def _test_envelope1d(method: str,
     assert method in IMPLEMENTED_ENVELOPE1D_METHODS
     check_type(bool, "beam_calculator", flag_cython, flag_phi_abs)
     check_type(int, "beam_calculator", n_steps_per_cell)
+
+
+def _add_some_values_envelope1d(beam_calculator_kw: dict) -> None:
+    """Modify the kw dict inplace."""
+    pass
 
 
 def _test_tracewin(simulation_type: str,
@@ -102,3 +117,8 @@ def _test_envelope3d(method: str,
 
     if flag_cython is not None:
         logging.warning("Cython not implemented yet for Envelope3D.")
+
+
+def _add_some_values_envelope3d(beam_calculator_kw: dict) -> None:
+    """Modify the kw dict inplace."""
+    pass
