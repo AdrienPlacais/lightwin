@@ -28,8 +28,8 @@ import configparser
 
 import numpy as np
 
-from config import files, plots, beam_calculator, beam, wtf, evaluators
-from config.optimisation import design_space
+from config.ini import files, plots, beam_calculator, beam, wtf, evaluators
+from config.ini.optimisation import design_space
 
 
 # Values that will be available everywhere
