@@ -4,7 +4,7 @@
 import logging
 from pathlib import Path
 
-from config.new.helper import check_type
+from config.toml.helper import check_type
 
 
 IMPLEMENTED_BEAM_CALCULATORS = ('Envelope1D', 'TraceWin', 'Envelope3D')  #:

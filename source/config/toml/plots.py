@@ -16,7 +16,7 @@ presets.
 """
 import logging
 
-from config.new.helper import check_type
+from config.toml.helper import check_type
 
 IMPLEMENTED_PLOTS = ('energy', 'phase', 'cav', 'emittance', 'twiss',
                      'envelopes', 'transfer matrices')  #:

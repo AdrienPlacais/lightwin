@@ -5,8 +5,8 @@ import logging
 
 import numpy as np
 
+from config.toml.helper import check_type
 from constants import c
-from config.new.helper import check_type
 
 
 def test(e_rest_mev: float,

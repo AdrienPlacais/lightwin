@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """The functions to test the ``wtf`` (what to fit) key of the config file."""
-import logging
 import configparser
+import logging
 
-from config.failures.failed_cavities import test_failed_cavities
-from config.failures.strategy import test_strategy
-
-from config.optimisation.objective import test_objective_preset
-from config.optimisation.algorithm import test_optimisation_algorithm
+from config.ini.failures.failed_cavities import test_failed_cavities
+from config.ini.failures.strategy import test_strategy
+from config.ini.optimisation.algorithm import test_optimisation_algorithm
+from config.ini.optimisation.objective import test_objective_preset
 
 
 # =============================================================================
