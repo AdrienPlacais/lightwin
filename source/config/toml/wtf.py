@@ -28,7 +28,6 @@ IMPLEMENTED_STRATEGIES = ('k out of n',
                           'global',
                           'global downstream',
                           )  #:
-
 IMPLEMENTED_OBJECTIVE_PRESETS = ('simple_ADS',
                                  'sync_phase_as_objective_ADS',
                                  'experimental'

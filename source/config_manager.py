@@ -97,6 +97,7 @@ def _process_config_toml(config_path: Path,
                          beam_calculator: str,
                          beam: str,
                          wtf: str,
+                         design_space: str,
                          beam_calculator_post: str | None = None,
                          evaluators: str | None = None,
                          **config_keys: str,
@@ -107,7 +108,13 @@ def _process_config_toml(config_path: Path,
     with open(config_path, 'rb') as f:
         all_configuration_entries = tomllib.load(f)
 
-    keys = (files, plots, beam_calculator, beam, wtf, beam_calculator_post,
+    keys = (files,
+            plots,
+            beam_calculator,
+            beam,
+            wtf,
+            design_space,
+            beam_calculator_post,
             evaluators)
     desired_configuration_entries = {key: all_configuration_entries[key]
                                      for key in keys
@@ -117,6 +124,7 @@ def _process_config_toml(config_path: Path,
                           config.toml.beam_calculator,
                           config.toml.beam,
                           config.toml.wtf,
+                          config.toml.design_space,
                           config.toml.beam_calculator,
                           config.toml.evaluators)
 
