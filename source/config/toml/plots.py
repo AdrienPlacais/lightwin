@@ -37,8 +37,3 @@ def test(energy: bool = False,
     if len(plots_kw) > 0:
         logging.warning(f"Some plots were not recognized: {plots_kw = }."
                         "They probably will not do anything.")
-
-
-def add_some_values(plots_kw: dict[str, str]) -> None:
-    """Just pass."""
-    pass

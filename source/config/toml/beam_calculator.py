@@ -35,14 +35,15 @@ def test(tool: str,
     specific_tester[tool](**beam_calculator_kw)
 
 
-def add_some_values(tool: str,
-                    beam_calculator_kw: dict) -> None:
+def edit_configuration_dict_in_place(tool: str,
+                                     beam_calculator_kw: dict) -> None:
     """Precompute some useful values, transform some ``str`` into ``Path``."""
-    specific_add_some_valueser = {'Envelope1D': _add_some_values_envelope1d,
-                                  'TraceWin': _add_some_values_tracewin,
-                                  'Envelope3D': _add_some_values_envelope3d,
-                                  }
-    specific_add_some_valueser[tool](**beam_calculator_kw)
+    specific_editer_configuration_dict_in_place = {
+        'Envelope1D': _edit_configuration_dict_in_place_envelope1d,
+        'TraceWin': _edit_configuration_dict_in_place_tracewin,
+        'Envelope3D': _edit_configuration_dict_in_place_envelope3d,
+    }
+    specific_editer_configuration_dict_in_place[tool](**beam_calculator_kw)
 
 
 # Comment with recommended values: leapfrog 40 and RK 20
@@ -58,7 +59,8 @@ def _test_envelope1d(method: str,
     check_type(int, "beam_calculator", n_steps_per_cell)
 
 
-def _add_some_values_envelope1d(beam_calculator_kw: dict) -> None:
+def _edit_configuration_dict_in_place_envelope1d(beam_calculator_kw: dict
+                                                 ) -> None:
     """Modify the kw dict inplace."""
     pass
 
@@ -92,7 +94,8 @@ def _test_tracewin(simulation_type: str,
                           "LightWin.")
 
 
-def _add_some_values_tracewin(beam_calculator_kw: dict) -> None:
+def _edit_configuration_dict_in_place_tracewin(beam_calculator_kw: dict
+                                               ) -> None:
     """Transform some values."""
     beam_calculator_kw['tw_exe'] = TRACEWIN_EXECUTABLES[
         beam_calculator_kw['simulation_type']]
@@ -119,6 +122,7 @@ def _test_envelope3d(method: str,
         logging.warning("Cython not implemented yet for Envelope3D.")
 
 
-def _add_some_values_envelope3d(beam_calculator_kw: dict) -> None:
+def _edit_configuration_dict_in_place_envelope3d(beam_calculator_kw: dict
+                                                 ) -> None:
     """Modify the kw dict inplace."""
     pass

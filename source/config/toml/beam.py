@@ -32,8 +32,8 @@ def test(e_rest_mev: float,
         assert len(col) == 6
 
 
-def add_some_values(beam_kw: dict[str,
-                                  float | list[list[float]]]) -> None:
+def edit_configuration_dict_in_place(
+        beam_kw: dict[str, float | list[list[float]]]) -> None:
     """Add useful values to the configuration ``beam`` dict."""
     beam_kw['sigma'] = np.ndarray(beam_kw['sigma'])
     beam_kw["inv_e_rest_mev"] = 1. / beam_kw["e_rest_mev"]

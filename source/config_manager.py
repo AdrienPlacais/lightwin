@@ -24,12 +24,24 @@ In particular:
 from typing import Any
 from pathlib import Path
 import logging
+import tomllib
 import configparser
 
 import numpy as np
 
-from config.ini import files, plots, beam_calculator, beam, wtf, evaluators
-from config.ini.optimisation import design_space
+import config.ini.beam
+import config.ini.beam_calculator
+import config.ini.evaluators
+import config.ini.files
+import config.ini.optimisation.design_space
+import config.ini.plots
+import config.ini.wtf
+import config.toml.beam
+import config.toml.beam_calculator
+import config.toml.evaluators
+import config.toml.files
+import config.toml.plots
+import config.toml.wtf
 
 
 # Values that will be available everywhere
@@ -47,7 +59,25 @@ SIGMA = np.full((6, 6), np.NaN)
 def process_config(config_path: Path,
                    config_keys: dict[str, str],
                    ) -> dict[str, dict[str, Any]]:
-    """Load and test the configuration file."""
+    """Load and test the configuration file.
+
+    Parameters
+    ----------
+    config_path : Path
+        Path to the configuration file. It must be a ``.ini`` or a ``.toml``
+        file. ``.toml`` is prefered, as ``.ini`` will soon be deprecated.
+    config_keys : dict[str, str]
+        Associate the name of LightWin's group of parameters to the entry in
+        the configuration file.
+
+    Returns
+    -------
+    configuration : dict[str, dict[str, Any]]
+        A dictonary holding all the keyword arguments that will be passed to
+        LightWin objects, eg ``beam_calculator`` will be passed to
+        :class:`.BeamCalculator`.
+
+    """
     if config_path.suffix == '.ini':
         logging.warning("ini configuration format will soon be deprecated. "
                         "Please switch to .toml, it will be easier for "
@@ -56,9 +86,53 @@ def process_config(config_path: Path,
 
     if config_path.suffix == '.toml':
         logging.warning(".toml not implemented yet. Now who's the fool?")
-        return _process_config_ini(config_path, config_keys)
+        return _process_config_toml(config_path, **config_keys)
 
     raise IOError(f"{config_path.suffix = } while it should be .ini or .toml")
+
+
+def _process_config_toml(config_path: Path,
+                         files: str,
+                         plots: str,
+                         beam_calculator: str,
+                         beam: str,
+                         wtf: str,
+                         beam_calculator_post: str | None = None,
+                         evaluators: str | None = None,
+                         **config_keys: str,
+                         ) -> dict[str, dict[str, Any]]:
+    """Test all the given configuration keys."""
+    all_configuration_entries: dict[str,
+                                    dict[str, str | int | float | bool | list]]
+    with open(config_path, 'rb') as f:
+        all_configuration_entries = tomllib.load(f)
+
+    keys = (files, plots, beam_calculator, beam, wtf, beam_calculator_post,
+            evaluators)
+    desired_configuration_entries = {key: all_configuration_entries[key]
+                                     for key in keys
+                                     if key is not None
+                                     }
+    associated_modules = (config.toml.files,
+                          config.toml.beam_calculator,
+                          config.toml.beam,
+                          config.toml.wtf,
+                          config.toml.beam_calculator,
+                          config.toml.evaluators)
+
+    for key, associated_module in zip(keys, associated_modules):
+        if key is None:
+            continue
+
+        single_object_kw: dict[str, str | int | float | bool | list]
+        single_object_kw = desired_configuration_entries[key]
+
+        associated_module.test(**single_object_kw)
+        if hasattr(associated_module, 'edit_configuration_dict_in_place'):
+            associated_module.edit_configuration_dict_in_place(
+                single_object_kw)
+
+    return desired_configuration_entries
 
 
 def _process_config_ini(config_path: Path,
@@ -207,23 +281,23 @@ def _make_global(beam: dict,
 # Dictionaries
 # =============================================================================
 TESTERS = {
-    'files': files.test,
-    'plots': plots.test,
-    'beam_calculator': beam_calculator.test,
-    'beam': beam.test,
-    'wtf': wtf.test,
-    'design_space': design_space.test,
-    'beam_calculator_post': beam_calculator.test,
-    'evaluators': evaluators.test,
+    'files': config.ini.files.test,
+    'plots': config.ini.plots.test,
+    'beam_calculator': config.ini.beam_calculator.test,
+    'beam': config.ini.beam.test,
+    'wtf': config.ini.wtf.test,
+    'design_space': config.ini.optimisation.design_space.test,
+    'beam_calculator_post': config.ini.beam_calculator.test,
+    'evaluators': config.ini.evaluators.test,
 }
 
 DICTIONARIZERS = {
-    'files': files.config_to_dict,
-    'plots': plots.config_to_dict,
-    'beam_calculator': beam_calculator.config_to_dict,
-    'beam': beam.config_to_dict,
-    'wtf': wtf.config_to_dict,
-    'design_space': design_space.config_to_dict,
-    'beam_calculator_post': beam_calculator.config_to_dict,
-    'evaluators': evaluators.config_to_dict,
+    'files': config.ini.files.config_to_dict,
+    'plots': config.ini.plots.config_to_dict,
+    'beam_calculator': config.ini.beam_calculator.config_to_dict,
+    'beam': config.ini.beam.config_to_dict,
+    'wtf': config.ini.wtf.config_to_dict,
+    'design_space': config.ini.optimisation.design_space.config_to_dict,
+    'beam_calculator_post': config.ini.beam_calculator.config_to_dict,
+    'evaluators': config.ini.evaluators.config_to_dict,
 }

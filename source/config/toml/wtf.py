@@ -118,8 +118,3 @@ def _test_global(**wtf_kw) -> None:
 def _test_global_downstream(**wtf_kw) -> None:
     """Test if global compensation with only downstream cavities will work."""
     logging.error("Not really implemented in fact.")
-
-
-def add_some_values(wtf_kw: dict) -> None:
-    """Pass."""
-    pass

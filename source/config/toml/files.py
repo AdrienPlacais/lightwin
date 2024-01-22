@@ -18,7 +18,7 @@ def test(dat_file: str,
     logging.info(f"Setting {project_folder = }\nSetting {log_file = }")
 
 
-def add_some_values(files_kw: dict[str, str | Path]) -> None:
+def edit_configuration_dict_in_place(files_kw: dict[str, str | Path]) -> None:
     """Set some useful paths."""
     dat_file, project_folder = _create_project_folders(files_kw['dat_file'])
     files_kw['dat_file'] = dat_file

@@ -21,8 +21,3 @@ def test(beam_calc_post: list[str], **evaluators_kw: str) -> None:
     """Check that desired evaluators are implemented."""
     for evaluator_name in beam_calc_post:
         assert evaluator_name in IMPLEMENTED_EVALUATORS
-
-
-def add_some_values(evaluators_kw: dict) -> None:
-    """Do nothing."""
-    pass
