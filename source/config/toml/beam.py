@@ -35,9 +35,10 @@ def test(e_rest_mev: float,
 def edit_configuration_dict_in_place(
         beam_kw: dict[str, float | list[list[float]]]) -> None:
     """Add useful values to the configuration ``beam`` dict."""
-    beam_kw['sigma'] = np.ndarray(beam_kw['sigma'])
+    beam_kw['sigma'] = np.array(beam_kw['sigma'])
     beam_kw["inv_e_rest_mev"] = 1. / beam_kw["e_rest_mev"]
     beam_kw["gamma_init"] = 1. + beam_kw["e_mev"] / beam_kw["e_rest_mev"]
     beam_kw["omega_0_bunch"] = 2e6 * np.pi * beam_kw["f_bunch_mhz"]
     beam_kw["lambda_bunch"] = c / beam_kw["f_bunch_mhz"]
     beam_kw["q_over_m"] = beam_kw["q_adim"] * beam_kw["inv_e_rest_mev"]
+    beam_kw["m_over_q"] = 1. / beam_kw["q_over_m"]
