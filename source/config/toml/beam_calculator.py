@@ -35,15 +35,15 @@ def test(tool: str,
     specific_tester[tool](**beam_calculator_kw)
 
 
-def edit_configuration_dict_in_place(tool: str,
-                                     beam_calculator_kw: dict) -> None:
+def edit_configuration_dict_in_place(beam_calculator_kw: dict) -> None:
     """Precompute some useful values, transform some ``str`` into ``Path``."""
+    tool = beam_calculator_kw['tool']
     specific_editer_configuration_dict_in_place = {
         'Envelope1D': _edit_configuration_dict_in_place_envelope1d,
         'TraceWin': _edit_configuration_dict_in_place_tracewin,
         'Envelope3D': _edit_configuration_dict_in_place_envelope3d,
     }
-    specific_editer_configuration_dict_in_place[tool](**beam_calculator_kw)
+    specific_editer_configuration_dict_in_place[tool](beam_calculator_kw)
 
 
 # Comment with recommended values: leapfrog 40 and RK 20
