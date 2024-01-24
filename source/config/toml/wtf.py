@@ -43,7 +43,7 @@ IMPLEMENTED_OPTIMISATION_ALGORITHMS = ('least_squares',
 
 
 def test(idx: str,
-         failed: list[list[int]] | list[list[list[int]]],
+         # failed: list[list[int]] | list[list[list[int]]],
          strategy: str,
          objective_preset: str,
          optimisation_algorithm: str,
@@ -52,9 +52,9 @@ def test(idx: str,
          ) -> None:
     """Test the ``wtf`` ``.toml`` entries."""
     assert idx in ('cavity', 'element')
-    check_type(list, 'wtf', failed)
-    if len(failed) == 0:
-        logging.warning("No fault was given.")
+    # check_type(list, 'wtf', failed)
+    # if len(failed) == 0:
+    #     logging.warning("No fault was given.")
 
     assert strategy in IMPLEMENTED_STRATEGIES
     strategy_testers = {'k out of n': _test_k_out_of_n,
@@ -63,7 +63,7 @@ def test(idx: str,
                         'global': _test_global,
                         'global downstream': _test_global_downstream,
                         }
-    strategy_testers[strategy](failed, **wtf_kw)
+    strategy_testers[strategy](**wtf_kw)
 
     assert objective_preset in IMPLEMENTED_OBJECTIVE_PRESETS
     assert optimisation_algorithm in IMPLEMENTED_OPTIMISATION_ALGORITHMS
