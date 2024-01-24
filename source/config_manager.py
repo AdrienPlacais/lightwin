@@ -38,10 +38,12 @@ import config.ini.plots
 import config.ini.wtf
 import config.toml.beam
 import config.toml.beam_calculator
+import config.toml.design_space
 import config.toml.evaluators
 import config.toml.files
 import config.toml.plots
 import config.toml.wtf
+from config.toml.helper import dict_for_pretty_output
 
 
 # Values that will be available everywhere
@@ -54,6 +56,11 @@ GAMMA_INIT = float()
 F_BUNCH_MHZ, OMEGA_0_BUNCH, LAMBDA_BUNCH = float(), float(), float()
 Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
 SIGMA = np.full((6, 6), np.NaN)
+
+
+MANDATORY_CONFIG_ENTRIES = ('files', 'plots', 'beam_calculator', 'beam',
+                            'wtf', 'design_space')  #:
+OPTIONAL_CONFIG_ENTRIES = ('beam_calculator_post', 'evaluators')  #:
 
 
 def process_config(config_path: Path,
@@ -86,61 +93,53 @@ def process_config(config_path: Path,
 
     if config_path.suffix == '.toml':
         logging.warning(".toml not implemented yet. Now who's the fool?")
-        return _process_config_toml(config_path, **config_keys)
+        configuration = _load_correct_toml_entries(config_path, config_keys)
+        _process_config_toml(configuration)
+        return configuration
 
     raise IOError(f"{config_path.suffix = } while it should be .ini or .toml")
 
 
-def _process_config_toml(config_path: Path,
-                         files: str,
-                         plots: str,
-                         beam_calculator: str,
-                         beam: str,
-                         wtf: str,
-                         design_space: str,
-                         beam_calculator_post: str | None = None,
-                         evaluators: str | None = None,
-                         **config_keys: str,
-                         ) -> dict[str, dict[str, Any]]:
-    """Test all the given configuration keys."""
-    all_configuration_entries: dict[str,
-                                    dict[str, str | int | float | bool | list]]
+def _load_correct_toml_entries(config_path: Path,
+                               config_keys: dict[str, str],
+                               ) -> dict[str, dict[str, Any]]:
+    """Load the ``.toml`` and extract the dicts asked by user."""
+    toml_as_dict: dict[str, dict[str, str | int | float | bool | list]]
     with open(config_path, 'rb') as f:
-        all_configuration_entries = tomllib.load(f)
+        toml_as_dict = tomllib.load(f)
+    toml_entries = {key: toml_as_dict[value]
+                    for key, value in config_keys.items()}
+    for key in MANDATORY_CONFIG_ENTRIES:
+        assert key in toml_entries
+    return toml_entries
 
-    keys = (files,
-            plots,
-            beam_calculator,
-            beam,
-            wtf,
-            design_space,
-            beam_calculator_post,
-            evaluators)
-    desired_configuration_entries = {key: all_configuration_entries[key]
-                                     for key in keys
-                                     if key is not None
-                                     }
-    associated_modules = (config.toml.files,
-                          config.toml.beam_calculator,
-                          config.toml.beam,
-                          config.toml.wtf,
-                          config.toml.design_space,
-                          config.toml.beam_calculator,
-                          config.toml.evaluators)
 
-    for key, associated_module in zip(keys, associated_modules):
-        if key is None:
+def _process_config_toml(toml_entries: dict[str, dict[str, Any]]) -> None:
+    """Test all the given configuration keys."""
+    associated_modules = {
+        'files': config.toml.files,
+        'plots': config.toml.plots,
+        'beam_calculator': config.toml.beam_calculator,
+        'beam': config.toml.beam,
+        'wtf': config.toml.wtf,
+        'design_space': config.toml.design_space,
+        'beam_calculator_post': config.toml.beam_calculator,
+        'evaluators': config.toml.evaluators
+    }
+
+    for key, config_dict in toml_entries.items():
+        if config_dict is None or config_dict == {}:
             continue
 
-        single_object_kw: dict[str, str | int | float | bool | list]
-        single_object_kw = desired_configuration_entries[key]
-
-        associated_module.test(**single_object_kw)
+        associated_module = associated_modules[key]
+        associated_module.test(**config_dict)
         if hasattr(associated_module, 'edit_configuration_dict_in_place'):
-            associated_module.edit_configuration_dict_in_place(
-                single_object_kw)
+            associated_module.edit_configuration_dict_in_place(config_dict)
 
-    return desired_configuration_entries
+        logging.info(f"Config dict {key} successfully tested. After potential,"
+                     " modifications, it looks like:\n"
+                     f"{dict_for_pretty_output(config_dict)}")
+    _make_global(**toml_entries)
 
 
 def _process_config_ini(config_path: Path,
