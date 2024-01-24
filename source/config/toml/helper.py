@@ -19,3 +19,9 @@ def check_type(instance: type | tuple[type],
     for arg in args:
         if not isinstance(arg, instance):
             logging.warning(f"{name} testing: {arg} should be a {instance}")
+
+
+def dict_for_pretty_output(some_kw: dict) -> str:
+    """Transform a dict in strings for nice output."""
+    nice = [f"{key:>52s} = {value}" for key, value in some_kw.items()]
+    return '\n'.join(nice)
