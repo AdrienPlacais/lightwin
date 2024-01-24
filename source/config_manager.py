@@ -135,7 +135,7 @@ def _process_config_toml(toml_entries: dict[str, dict[str, Any]]) -> None:
         if hasattr(associated_module, 'edit_configuration_dict_in_place'):
             associated_module.edit_configuration_dict_in_place(config_dict)
 
-        logging.info(f"Config dict {key} successfully tested. After potential,"
+        logging.info(f"Config dict {key} successfully tested. After potential "
                      " modifications, it looks like:\n"
                      f"{dict_for_pretty_output(config_dict)}")
     _make_global(**toml_entries)
