@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Define the functions to test the :class:`.BeamCalculator` arguments."""
+"""Define the functions to test the :class:`.BeamCalculator` arguments.
+
+.. todo::
+    Handling of arguments for TW could be cleaner
+
+"""
 import logging
 from pathlib import Path
 
@@ -20,6 +25,67 @@ TRACEWIN_EXECUTABLES = {  # Should match with your installation
     "no run": None
 }
 simulation_types = tuple(TRACEWIN_EXECUTABLES.keys())  #:
+
+IMPLEMENTED_TRACEWIN_ARGUMENTS = (
+    'hide',
+    'tab_file',
+    'nbr_thread',
+    'dst_file1',
+    'dst_file2',
+    'current1',
+    'current2',
+    'nbr_part1',
+    'nbr_part2',
+    'energy1',
+    'energy2',
+    'etnx1',
+    'etnx2',
+    'etny1',
+    'etny2',
+    'eln1',
+    'eln2',
+    'freq1',
+    'freq2',
+    'duty1',
+    'duty2',
+    'mass1',
+    'mass2',
+    'charge1',
+    'charge2',
+    'alpx1',
+    'alpx2',
+    'alpy1',
+    'alpy2',
+    'alpz1',
+    'alpz2',
+    'betx1',
+    'betx2',
+    'bety1',
+    'bety2',
+    'betz1',
+    'betz2',
+    'x1',
+    'x2',
+    'y1',
+    'y2',
+    'z1',
+    'z2',
+    'xp1',
+    'xp2',
+    'yp1',
+    'yp2',
+    'zp1',
+    'zp2',
+    'dw1',
+    'dw2',
+    'spreadw1',
+    'spreadw2',
+    'part_step',
+    'vfac',
+    'random_seed',
+    'partran',
+    'toutatis',
+)
 
 
 def test(tool: str,
@@ -96,16 +162,42 @@ def _test_tracewin(simulation_type: str,
 
 def _edit_configuration_dict_in_place_tracewin(beam_calculator_kw: dict
                                                ) -> None:
-    """Transform some values."""
-    beam_calculator_kw['tw_exe'] = TRACEWIN_EXECUTABLES[
+    """Transform some values.
+
+    The arguments that will be passed to the TraceWin executable are removed
+    from ``beam_calculator_kw`` and stored in ``args_for_tracewin``, which is
+    an entry of ``beam_calculator_kw``.
+
+    """
+    beam_calculator_kw['executable'] = TRACEWIN_EXECUTABLES[
         beam_calculator_kw['simulation_type']]
 
-    paths = ('executable', 'ini_path', 'cal_file', 'tab_file',
-             'dst_file1', 'dst_file2')
+    paths = ('executable', 'ini_path', 'cal_file',
+             'tab_file', 'dst_file1', 'dst_file2')
     for path in paths:
         if path not in beam_calculator_kw:
             continue
         beam_calculator_kw[path] = Path(beam_calculator_kw[path])
+
+    args_for_tracewin = {}
+    args_for_lightwin = {}
+    entries_to_remove = ('simulation_type', )
+
+    for key, value in beam_calculator_kw.items():
+        if key in entries_to_remove:
+            continue
+
+        if key not in IMPLEMENTED_TRACEWIN_ARGUMENTS:
+            args_for_lightwin[key] = value
+            continue
+
+        args_for_tracewin[key] = value
+
+    args_for_lightwin['base_kwargs'] = args_for_tracewin
+
+    beam_calculator_kw.clear()
+    for key, value in args_for_lightwin.items():
+        beam_calculator_kw[key] = value
 
 
 def _test_envelope3d(method: str,
