@@ -91,7 +91,7 @@ def _edit_configuration_dict_in_place_not_from_file(
         'min_absolute_sync_phase_in_deg': -90.,
         'maximum_k_e_is_calculated_wrt_maximum_k_e_of_section': False,
     }
-    for key, value in default_values:
+    for key, value in default_values.items():
         if key in design_space_kw:
             continue
         design_space_kw[key] = value
