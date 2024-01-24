@@ -92,7 +92,6 @@ def process_config(config_path: Path,
         return _process_config_ini(config_path, config_keys)
 
     if config_path.suffix == '.toml':
-        logging.warning(".toml not implemented yet. Now who's the fool?")
         configuration = _load_correct_toml_entries(config_path, config_keys)
         _process_config_toml(configuration)
         return configuration
