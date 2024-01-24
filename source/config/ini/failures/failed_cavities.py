@@ -33,7 +33,7 @@ def _test_idx(c_wtf: configparser.SectionProxy) -> bool:
 
     """
     val = c_wtf.get('idx')
-    if val not in ('cavity', 'element')
+    if val not in ('cavity', 'element'):
         logging.error(f"idx key is {val}, while it must be 'cavity' or "
                       "'element'.")
         return False
