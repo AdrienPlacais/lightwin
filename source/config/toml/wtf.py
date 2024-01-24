@@ -3,17 +3,6 @@
 """Test the ``wtf`` (what to fit) key of the config file.
 
 .. todo::
-    Reimplement manual compensation, with the pipes thingy
-    maybe the simplest thing to do will be to add a level of list rather than
-    this pipes
-    [ lvl1 declare list
-        [ lvl2 declare FaultScenario
-            [lvl3 declare group of Faults
-            ]
-        ]
-    ]
-
-.. todo::
     Specific test for every optimisation method? For now, just trust the user.
 
 """

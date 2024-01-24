@@ -12,18 +12,5 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   config.failures
-   config.optimisation
-
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 4
-
-   config.beam
-   config.beam_calculator
-   config.evaluators
-   config.files
-   config.plots
-   config.wtf
+   config.ini
+   config.toml

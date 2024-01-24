@@ -1,7 +1,7 @@
-config.optimisation.design\_space module
+config.ini.optimisation.algorithm module
 ========================================
 
-.. automodule:: config.optimisation.design_space
+.. automodule:: config.ini.optimisation.algorithm
    :members:
    :undoc-members:
    :show-inheritance:

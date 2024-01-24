@@ -19,17 +19,18 @@ You can type the index of failed cavities on several lines if you want to study 
 
 .. rubric:: Example
 
-.. code-block:: ini
+.. code-block:: toml
 
-   ; Indexes are cavity indexes
+   # Indexes are cavity indexes
    idx = cavity
-   failed =
-      0, 1,       ; First simulation first cryomodule is down
-      0,          ; Second simulation only first cavity is down
-      1, 45       ; Third simulation second and 46th cavity are down
+   failed = [
+      [0, 1],       # First simulation first cryomodule is down
+      [0],          # Second simulation only first cavity is down
+      [1, 45]       # Third simulation second and 46th cavity are down
+   ]
 
 
 .. warning::
-   ``phi_s fit`` key will be removed in future updates. For now, keep it consistent with what you ask in ``objective_preset`` and ``design_space_preset``.
+   ``phi_s_fit`` key will be removed in future updates. For now, keep it consistent with what you ask in ``objective_preset`` and ``design_space_preset``.
 
 

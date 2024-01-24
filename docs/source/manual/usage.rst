@@ -19,6 +19,7 @@ It's main purpose is to store a :class:`.ListOfElements`, which is a ``list`` co
 The propagation of the beam through the accelerator is performed thanks to a :class:`.BeamCalculator`.
 As for now, two different :class:`.BeamCalculator`\s are implemented:
    - :class:`.Envelope1D`, which computes the propagation of the beam in envelope and in 1D (longitudinal).
+   - :class:`.Envelope3D`, which computes the propagation of the beam in envelope and in 3D.
    - :class:`.TraceWin`, which simply calls TraceWin from the command-line interface.
 
 All :class:`.BeamCalculator`\s have a :meth:`.BeamCalculator.run` method, which perform the beam dynamics calculation along the linac; it takes in a :class:`.ListOfElements` and returns a :class:`.SimulationOutput`.

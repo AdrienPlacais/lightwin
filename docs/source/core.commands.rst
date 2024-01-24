@@ -20,6 +20,7 @@ Submodules
    core.commands.freq
    core.commands.helper
    core.commands.lattice
+   core.commands.marker
    core.commands.shift
    core.commands.steerer
    core.commands.superpose_map

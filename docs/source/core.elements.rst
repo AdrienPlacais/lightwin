@@ -22,6 +22,7 @@ Submodules
 
    core.elements.aperture
    core.elements.bend
+   core.elements.diagnostic
    core.elements.drift
    core.elements.dummy
    core.elements.edge

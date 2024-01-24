@@ -1,7 +1,7 @@
-config.failures.strategy module
+core.elements.diagnostic module
 ===============================
 
-.. automodule:: config.failures.strategy
+.. automodule:: core.elements.diagnostic
    :members:
    :undoc-members:
    :show-inheritance:

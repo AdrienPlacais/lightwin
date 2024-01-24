@@ -4,4 +4,4 @@ Entry,Type,Description,Allowed values,Mandatory?
 ``e_mev``,float,Energy of particle at entrance in :math:`\mathrm{MeV}`,,✅
 ``f_bunch_mev``,float,Beam bunch frequency in :math:`\mathrm{MHz}`,,✅
 ``i_milli_a``,float,Beam current in :math:`\mathrm{mA}`,,❌
-``sigma``,matrix,Input :math:`\sigma` beam matrix in :math:`\mathrm{m}`; :math:`\mathrm{rad}`,,✅
+``sigma``,list of list of float,Input :math:`\sigma` beam matrix in :math:`\mathrm{m}`; :math:`\mathrm{rad}`,,✅
