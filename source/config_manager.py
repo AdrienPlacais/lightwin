@@ -58,9 +58,9 @@ Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
 SIGMA = np.full((6, 6), np.NaN)
 
 
-MANDATORY_CONFIG_ENTRIES = ('files', 'plots', 'beam_calculator', 'beam',
-                            'wtf', 'design_space')  #:
-OPTIONAL_CONFIG_ENTRIES = ('beam_calculator_post', 'evaluators')  #:
+MANDATORY_CONFIG_ENTRIES = ('files', 'beam_calculator', 'beam')  #:
+OPTIONAL_CONFIG_ENTRIES = ('beam_calculator_post', 'evaluators', 'plots',
+                           'wtf', 'design_space')  #:
 
 
 def process_config(config_path: Path,
@@ -109,7 +109,7 @@ def _load_correct_toml_entries(config_path: Path,
     toml_entries = {key: toml_as_dict[value]
                     for key, value in config_keys.items()}
     for key in MANDATORY_CONFIG_ENTRIES:
-        assert key in toml_entries
+        assert key in toml_entries, f"{key = } is mandatory and missing."
     return toml_entries
 
 

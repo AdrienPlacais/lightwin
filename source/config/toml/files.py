@@ -12,7 +12,7 @@ def test(dat_file: str,
          **files_kw: str) -> None:
     """Check that given ``dat_file`` exists, set up logging."""
     dat_file_as_path, project_folder = _create_project_folders(dat_file)
-    assert dat_file_as_path.is_file()
+    assert dat_file_as_path.is_file(), f"{dat_file_as_path} does not exist."
     log_file = Path(project_folder, 'lightwin.log')
     set_up_logging(logfile_file=log_file)
     logging.info(f"Setting {project_folder = }\nSetting {log_file = }")
