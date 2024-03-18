@@ -24,7 +24,9 @@ class AcceleratorFactory(ABC):
         dat_file : Path
             The original ``.dat`` file, as understood by TraceWin.
         project_folder : Path
-            Base folder where ``.dat`` should be found.
+            Base folder where results will be saved. If the ``project_folder``
+            key is not given in the configuration file, it is a folder in the
+            same base folder as ``dat_file``.
         files_kw :
             Other arguments from the ``file`` entry of the ``.ini``.
 

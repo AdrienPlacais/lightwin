@@ -60,9 +60,10 @@ def config_to_dict(c_files: configparser.SectionProxy) -> dict:
 # =============================================================================
 # Handle project folders to save logs
 # =============================================================================
-def _create_project_folders(dat_file: Path) -> tuple[str, str]:
+def _create_project_folders(dat_path: Path) -> tuple[str, str]:
     """Create a folder to store outputs and log messages."""
-    dat_file = dat_file.absolute()
+    dat_file = dat_path.resolve().absolute()
+
     project_folder = Path(
         dat_file.parent,
         datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms'))
