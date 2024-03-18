@@ -181,7 +181,8 @@ class SimulationOutput:
                 continue
 
             if 'r_' in key:
-                val[key] = self.transfer_matrix.get(key, to_numpy=False,
+                val[key] = self.transfer_matrix.get(key, elt=elt, pos=pos,
+                                                    to_numpy=False,
                                                     **kwargs)
                 continue
 
