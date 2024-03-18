@@ -1,0 +1,34 @@
+[files]
+dat_file = "../../data/example/example.dat"
+project_folder = "results_tests/"
+
+[beam_calculator_envelope_generic]
+tool = "Envelope1D"
+flag_phi_abs = true
+flag_cython = true
+n_steps_per_cell = 30
+method = "RK"
+
+[beam]
+e_rest_mev = 938.27203
+q_adim = 1.0
+e_mev = 20.0
+f_bunch_mhz = 100.0
+i_milli_a = 0.0
+sigma = [
+   [+8.409896e-06, +3.548736e-06, +0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00],
+   [+3.548736e-06, +1.607857e-06, +0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00],
+   [+0.000000e+00, +0.000000e+00, +2.941564e-06, +6.094860e-07, +0.000000e+00, +0.000000e+00],
+   [+0.000000e+00, +0.000000e+00, +6.094860e-07, +4.418911e-07, +0.000000e+00, +0.000000e+00],
+   [+0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, +3.593136e-06, -2.552518e-07],
+   [+0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, -2.552518e-07, +5.994771e-07]
+]
+
+[wtf]
+optimisation_algorithm = "downhill_simplex"
+strategy = "k out of n"
+k = 1
+idx = "cavity"
+failed = [[40]]
+objective_preset = "simple_ADS"
+phi_s_fit = false
