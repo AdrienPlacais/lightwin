@@ -34,7 +34,7 @@ def solver() -> Envelope1D:
         "flag_cython": False,
         "n_steps_per_cell": 40,
         "method": 'RK',
-        "out_folder": Path('test_results/'),
+        "out_folder": Path('results_tests/'),
         "default_field_map_folder": Path(
             '..', '..', 'data', 'example', 'field_maps_1D'),
     }

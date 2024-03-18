@@ -165,7 +165,7 @@ archives/
 data/
 images/
 source/build/
-source/tests/test_results/*
+source/tests/results_tests/*
 source/untitled*.py
 # *.ini_******
 # *.dat_******
