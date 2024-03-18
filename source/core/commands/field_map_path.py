@@ -19,10 +19,21 @@ class FieldMapPath(Command):
         """Save the given path as attribute."""
         super().__init__(line, dat_idx, is_implemented=True)
         path = Path(line[1])
-        if not path.is_dir():
-            path = Path(default_field_map_folder, path)
-        assert path.is_dir(), "The path given in FIELD_MAP_PATH was not found"
+
         self.path = path
+        if self.path.is_dir():
+            return
+
+        self.path = (default_field_map_folder / path)
+        if self.path.is_dir():
+            return
+
+        self.path = default_field_map_folder
+        if self.path.is_dir():
+            return
+
+        logging.critical(f"The {path = } given in FIELD_MAP_PATH was not "
+                         "found")
 
     def set_influenced_elements(self,
                                 instructions: list[Instruction],
