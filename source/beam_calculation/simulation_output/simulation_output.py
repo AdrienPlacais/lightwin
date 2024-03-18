@@ -138,10 +138,11 @@ class SimulationOutput:
 
         """
         return key in recursive_items(vars(self)) \
-            or self.beam_parameters.has(key)
+            or self.beam_parameters.has(key) \
+            or self.transfer_matrix.has(key)
 
     def get(self, *keys: str, to_numpy: bool = True, to_deg: bool = False,
-            elt: Element | None = None, pos: str | None = None,
+            elt: Element | str | None = None, pos: str | None = None,
             none_to_nan: bool = False, **kwargs: str | bool | None) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
@@ -156,7 +157,7 @@ class SimulationOutput:
         to_deg : bool, optional
             To apply np.rad2deg function over every ``key`` containing the
             string.
-        elt : Element | None, optional
+        elt : Element | str | None, optional
             If provided, return the attributes only at the considered element.
         pos : 'in' | 'out' | None
             If you want the attribute at the entry, exit, or in the whole
@@ -177,6 +178,11 @@ class SimulationOutput:
         for key in keys:
             if not self.has(key):
                 val[key] = None
+                continue
+
+            if 'r_' in key:
+                val[key] = self.transfer_matrix.get(key, to_numpy=False,
+                                                    **kwargs)
                 continue
 
             val[key] = recursive_getter(key, vars(self), to_numpy=False,
