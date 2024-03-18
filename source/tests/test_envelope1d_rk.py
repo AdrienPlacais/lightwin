@@ -35,8 +35,7 @@ def solver() -> Envelope1D:
         "n_steps_per_cell": 40,
         "method": 'RK',
         "out_folder": Path('results_tests/'),
-        "default_field_map_folder": Path(
-            '..', '..', 'data', 'example', 'field_maps_1D'),
+        "default_field_map_folder": Path('..', '..', 'data', 'example'),
     }
     return Envelope1D(**kwargs)
 
