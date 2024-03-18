@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """Define a factory to easily create :class:`.Accelerator`."""
 from abc import ABC, abstractmethod
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Sequence
 
-from core.accelerator.accelerator import Accelerator
 from beam_calculation.beam_calculator import BeamCalculator
+from core.accelerator.accelerator import Accelerator
 
 
 @dataclass
@@ -40,7 +41,7 @@ class AcceleratorFactory(ABC):
         return Accelerator(*args, **kwargs)
 
     def _generate_folders_tree_structure(self,
-                                         out_folders: tuple[Path, ...],
+                                         out_folders: Sequence[Path],
                                          n_simulations: int,
                                          ) -> list[Path]:
         """
@@ -51,13 +52,13 @@ class AcceleratorFactory(ABC):
         where_original_dat_is/
             YYYY.MM.DD_HHhMM_SSs_MILLIms/              <- project_folder
                 000000_ref/                            <- accelerator_path
-                    beam_calculation_0_toolname/         <- beam_calc
-                    (beam_calculation_1_toolname)/  <- beam_calc_post
+                    beam_calculation_0_toolname/       <- beam_calc
+                    (beam_calculation_1_toolname)/     <- beam_calc_post
                 000001/
                     beam_calculation_0_toolname/
                     (beam_calculation_1_toolname)/
                 000002/
-                    beam_calculation__0_toolname/
+                    beam_calculation_0_toolname/
                     (beam_calculation_1_toolname)/
                 etc
 
@@ -68,13 +69,13 @@ class AcceleratorFactory(ABC):
             f"{accelerator_paths[0].name}_ref"
         )
 
-        _ = [Path(fault_scenar, out_folder).mkdir(parents=True)
+        _ = [Path(fault_scenar, out_folder).mkdir(parents=True, exist_ok=True)
              for fault_scenar in accelerator_paths
              for out_folder in out_folders]
         return accelerator_paths
 
 
-class StudyWithoutFaultsAcceleratorFactory(AcceleratorFactory):
+class NoFault(AcceleratorFactory):
     """Factory used to generate a single accelerator, no faults."""
 
     def __init__(self,
@@ -84,12 +85,10 @@ class StudyWithoutFaultsAcceleratorFactory(AcceleratorFactory):
                  **files_kw,
                  ) -> None:
         """Initialize."""
-        super().__init__(dat_file,
-                         project_folder,
-                         **files_kw)
+        super().__init__(dat_file, project_folder, **files_kw)
         self.beam_calculator = beam_calculator
 
-    def run(self) -> Accelerator:
+    def run(self, *args, **kwargs) -> Accelerator:
         """Create a single accelerator."""
         out_folder = self.beam_calculator.out_folder
         accelerator_path = self._generate_folders_tree_structure(
@@ -110,7 +109,11 @@ class StudyWithoutFaultsAcceleratorFactory(AcceleratorFactory):
         return accelerator
 
 
-class FullStudyAcceleratorFactory(AcceleratorFactory):
+class StudyWithoutFaultsAcceleratorFactory(NoFault):
+    """Alias for :class:`.NoFault`."""
+
+
+class WithFaults(AcceleratorFactory):
     """Factory used to generate several accelerators for a fault study."""
 
     def __init__(self,
@@ -176,3 +179,7 @@ class FullStudyAcceleratorFactory(AcceleratorFactory):
             list_of_elements_factory=list_of_elements_factory,
         ) for name, accelerator_path in zip(names, accelerator_paths)]
         return accelerators
+
+
+class FullStudyAcceleratorFactory(WithFaults):
+    """Alias for :class:`WithFaults`."""
