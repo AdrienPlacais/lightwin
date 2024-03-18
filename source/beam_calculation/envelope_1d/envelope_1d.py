@@ -6,15 +6,15 @@ Define :class:`Envelope1D`, a longitudinal envelope solver.
 It is fast, but should not be used at low energies.
 
 """
-from dataclasses import dataclass
+from pathlib import Path
 
 from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.envelope_1d.element_envelope1d_parameters_factory import\
+    ElementEnvelope1DParametersFactory
 from beam_calculation.envelope_1d.simulation_output_factory import \
     SimulationOutputFactoryEnvelope1D
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
-from beam_calculation.envelope_1d.element_envelope1d_parameters_factory import\
-    ElementEnvelope1DParametersFactory
 from core.accelerator.accelerator import Accelerator
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -22,19 +22,25 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
 
 
-@dataclass
 class Envelope1D(BeamCalculator):
     """The fastest beam calculator, adapted to high energies."""
 
-    flag_phi_abs: bool
-    flag_cython: bool
-    n_steps_per_cell: int
-    method: str
-
-    def __post_init__(self):
+    def __init__(self,
+                 flag_phi_abs: bool,
+                 flag_cython: bool,
+                 n_steps_per_cell: int,
+                 method: str,
+                 out_folder: Path | str,
+                 default_field_map_folder: Path | str,
+                 ):
         """Set the proper motion integration function, according to inputs."""
+        self.flag_phi_abs = flag_phi_abs
+        self.flag_cython = flag_cython
+        self.n_steps_per_cell = n_steps_per_cell
+        self.method = method
+
         solver_name = "Envelope1D"
-        super().__post_init__(solver_name)
+        super().__init__(out_folder, default_field_map_folder, solver_name)
 
     def _set_up_specific_factories(self) -> None:
         """Set up the factories specific to the :class:`.BeamCalculator`.

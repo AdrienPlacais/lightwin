@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Define :class:`Envelope3D`, an envelope solver."""
 from dataclasses import dataclass
+from pathlib import Path
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.envelope_3d.beam_parameters_factory import \
@@ -21,17 +22,21 @@ from failures.set_of_cavity_settings import (SetOfCavitySettings,
                                              SingleCavitySettings)
 
 
-@dataclass
 class Envelope3D(BeamCalculator):
     """A 3D envelope solver."""
 
-    flag_phi_abs: bool
-    n_steps_per_cell: int
-
-    def __post_init__(self):
+    def __init__(self,
+                 flag_phi_abs: bool,
+                 n_steps_per_cell: int,
+                 out_folder: Path | str,
+                 default_field_map_folder: Path | str,
+                 ):
         """Set the proper motion integration function, according to inputs."""
+        self.flag_phi_abs = flag_phi_abs
+        self.n_steps_per_cell = n_steps_per_cell
+
         solver_name = "Envelope3D"
-        super().__post_init__(solver_name)
+        super().__init__(out_folder, default_field_map_folder, solver_name)
 
         self.beam_parameters_factory = BeamParametersFactoryEnvelope3D(
             self.is_a_3d_simulation,

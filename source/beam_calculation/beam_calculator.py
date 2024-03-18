@@ -12,38 +12,47 @@ of the beam in a :class:`.ListOfElements`, possibly with a specific
     Precise that BeamParametersFactory and TransferMatrixFactory are mandatory.
 
 """
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import datetime
 import logging
-from pathlib import Path
 import time
+from abc import ABC, abstractmethod
+from itertools import count
+from pathlib import Path
 
 import config_manager as con
-from core.accelerator.accelerator import Accelerator
-from beam_calculation.parameters.factory import (
-    ElementBeamCalculatorParametersFactory)
+from beam_calculation.parameters.factory import \
+    ElementBeamCalculatorParametersFactory
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
-from core.elements.aperture import Aperture
-from core.elements.edge import Edge
+from core.accelerator.accelerator import Accelerator
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
-@dataclass
 class BeamCalculator(ABC):
-    """A generic class to store a beam dynamics solver and its results."""
+    """Store a beam dynamics solver and its results."""
 
-    out_folder: Path
-    default_field_map_folder: Path
+    _ids = count(0)
 
-    def __post_init__(self, solver_name: str | None = None):
+    def __init__(self,
+                 out_folder: Path | str,
+                 default_field_map_folder: Path | str,
+                 solver_name: str = '',
+                 ):
         """Set ``id`` and factories."""
-        self.id: str = self.__repr__()
-        if solver_name is not None:
+        self.id: str = f"{self.__class__.__name__}_{next(self._ids)}"
+
+        if isinstance(out_folder, str):
+            out_folder = Path(out_folder)
+        self.out_folder = out_folder.resolve().absolute()
+        if isinstance(default_field_map_folder, str):
+            default_field_map_folder = Path(default_field_map_folder)
+        self.default_field_map_folder = \
+            default_field_map_folder.resolve().absolute()
+
+        if not solver_name:
             self.out_folder = self.out_folder.parent \
                 / f"{self.out_folder.name}_{solver_name}"
         self.simulation_output_factory: SimulationOutputFactory
@@ -160,7 +169,7 @@ class BeamCalculator(ABC):
                 recompute_reference: bool = True,
                 output_time: bool = True,
                 **kwargs: SimulationOutput | None,
-                ) -> None:
+                ) -> SimulationOutput:
         """Wrap full process to compute propagation of beam in accelerator.
 
         Parameters
@@ -175,7 +184,12 @@ class BeamCalculator(ABC):
         output_time : bool, optional
             To print in log the time the calculation took. The default is True.
         kwargs : SimulationOutput
-            For calculation of mismatch factors..
+            For calculation of miNonesmatch factors..
+
+        Returns
+        -------
+        simulation_output : SimulationOutput
+            Object holding simulation results.
 
         """
         start_time = time.monotonic()
@@ -199,3 +213,4 @@ class BeamCalculator(ABC):
             raise NotImplementedError("idea is to take results from file if "
                                       "simulations are too long. will be easy "
                                       "for tracewin.")
+        return simulation_output

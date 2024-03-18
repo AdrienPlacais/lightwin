@@ -47,7 +47,6 @@ from failures.set_of_cavity_settings import SetOfCavitySettings
 from tracewin_utils.interface import beam_calculator_to_command
 
 
-@dataclass
 class TraceWin(BeamCalculator):
     """
     A class to hold a TW simulation and its results.
@@ -81,26 +80,32 @@ class TraceWin(BeamCalculator):
 
     """
 
-    executable: Path
-    ini_path: Path
-    base_kwargs: dict[str, str | int | float | bool | None]
-    cal_file: Path | None = None
-
-    def __post_init__(self) -> None:
+    def __init__(self,
+                 executable: Path,
+                 ini_path: Path,
+                 base_kwargs: dict[str, str | int | float | bool | None],
+                 out_folder: Path | str,
+                 default_field_map_folder: Path | str,
+                 cal_file: Path | None = None,
+                 ) -> None:
         """Define some other useful methods, init variables."""
-        solver_name = "TraceWin"
+        self.executable = executable
+        self.ini_path = ini_path.resolve().absolute()
+        self.base_kwargs = base_kwargs
+        self.cal_file = cal_file
+
 
         filename = Path('tracewin.out')
         if self.is_a_multiparticle_simulation:
             filename = Path('partran1.out')
         self._filename = filename
 
-        super().__post_init__(solver_name)
+        solver_name = "TraceWin"
+        super().__init__(out_folder, default_field_map_folder, solver_name)
 
         logging.warning("TraceWin solver currently cannot work with relative "
                         "phases (last arg of FIELD_MAP should be 1). You "
                         "should check this, because I will not.")
-        self.ini_path = self.ini_path.absolute()
         self.path_cal: Path
         self.dat_file: Path
         self._tracewin_command: list[str] | None = None
