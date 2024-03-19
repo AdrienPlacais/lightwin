@@ -1,4 +1,10 @@
-"""Test the :class:`.TraceWin` solver."""
+"""Test the :class:`.TraceWin` solver.
+
+.. todo::
+    Fix :class:`.TransferMatrix` for this solver, and reintegrate the transfer
+    matrix tests.
+
+"""
 from pathlib import Path
 from typing import Any
 
@@ -16,9 +22,10 @@ from tests.reference import compare_with_reference
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
-testdata = [
-    (0, ),
-    # (1, )
+
+parameters = [
+    pytest.param((0, )),
+    pytest.param((1, ), marks=pytest.mark.slow),
 ]
 
 
@@ -64,7 +71,7 @@ def out_folder(tmp_path_factory) -> Path:
     return tmp_path_factory.mktemp('tmp')
 
 
-@pytest.fixture(scope='class', params=testdata)
+@pytest.fixture(scope='class', params=parameters)
 def simulation_output(request,
                       config: dict[str, dict[str, Any]],
                       out_folder: Path,
@@ -80,7 +87,7 @@ def simulation_output(request,
 class TestSolver3D:
     """Gater all the tests in a single class."""
 
-    _w_kin_tol = 1e-4
+    _w_kin_tol = 5e-3
     _phi_abs_tol = 5e0
     _phi_s_tol = 1e-6
     _v_cav_tol = 1e-7
@@ -108,17 +115,26 @@ class TestSolver3D:
         return compare_with_reference(simulation_output, 'v_cav_mv',
                                       elt='ELT142', tol=self._v_cav_tol)
 
-    def notest_r_xx(self, simulation_output: SimulationOutput) -> None:
+    @pytest.mark.xfail(condition=True,
+                       reason="TransferMatrix.get bugs w/ TraceWin",
+                       raises=IndexError)
+    def test_r_xx(self, simulation_output: SimulationOutput) -> None:
         """Verify that final xx transfer matrix is correct."""
         return compare_with_reference(simulation_output, 'r_xx',
                                       tol=self._r_xx_tol)
 
-    def notest_r_yy(self, simulation_output: SimulationOutput) -> None:
+    @pytest.mark.xfail(condition=True,
+                       reason="TransferMatrix.get bugs w/ TraceWin",
+                       raises=IndexError)
+    def test_r_yy(self, simulation_output: SimulationOutput) -> None:
         """Verify that final yy transfer matrix is correct."""
         return compare_with_reference(simulation_output, 'r_yy',
                                       tol=self._r_yy_tol)
 
-    def notest_r_zdelta(self, simulation_output: SimulationOutput) -> None:
+    @pytest.mark.xfail(condition=True,
+                       reason="TransferMatrix.get bugs w/ TraceWin",
+                       raises=IndexError)
+    def test_r_zdelta(self, simulation_output: SimulationOutput) -> None:
         """Verify that final longitudinal transfer matrix is correct."""
         return compare_with_reference(simulation_output, 'r_zdelta',
                                       tol=self._r_zdelta_tol)

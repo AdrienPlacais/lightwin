@@ -16,11 +16,15 @@ from tests.reference import compare_with_reference
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
-testdata = [
-    ('RK', False, 40),
-    # ('RK', True, 40),
-    # ('leapfrog', False, 60),
-    # ('leapfrog', True, 60),
+leapfrog_marker = pytest.mark.xfail(
+    condition=True,
+    reason="leapfrog method has not been updated since 0.0.0.0.01 or so")
+
+parameters = [
+    pytest.param(('RK', False, 40)),
+    pytest.param(('RK', True, 40)),
+    pytest.param(('leapfrog', False, 60), marks=leapfrog_marker),
+    pytest.param(('leapfrog', True, 60), marks=leapfrog_marker),
 ]
 
 
@@ -68,7 +72,7 @@ def out_folder(tmp_path_factory) -> Path:
     return tmp_path_factory.mktemp('tmp')
 
 
-@pytest.fixture(scope='class', params=testdata)
+@pytest.fixture(scope='class', params=parameters)
 def simulation_output(request,
                       config: dict[str, dict[str, Any]],
                       out_folder: Path,

@@ -16,7 +16,7 @@ from tests.reference import compare_with_reference
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
-testdata = [
+parameters = [
     (40, ),
 ]
 
@@ -60,7 +60,7 @@ def out_folder(tmp_path_factory) -> Path:
     return tmp_path_factory.mktemp('tmp')
 
 
-@pytest.fixture(scope='class', params=testdata)
+@pytest.fixture(scope='class', params=parameters)
 def simulation_output(request,
                       config: dict[str, dict[str, Any]],
                       out_folder: Path,
