@@ -102,6 +102,7 @@ def test(tool: str,
 
 
 def edit_configuration_dict_in_place(beam_calculator_kw: dict,
+                                     config_folder: Path,
                                      **kwargs) -> None:
     """Precompute some useful values, transform some ``str`` into ``Path``."""
     tool = beam_calculator_kw['tool']
@@ -110,7 +111,8 @@ def edit_configuration_dict_in_place(beam_calculator_kw: dict,
         'TraceWin': _edit_configuration_dict_in_place_tracewin,
         'Envelope3D': _edit_configuration_dict_in_place_envelope3d,
     }
-    specific_editer_configuration_dict_in_place[tool](beam_calculator_kw)
+    specific_editer_configuration_dict_in_place[tool](beam_calculator_kw,
+                                                      config_folder)
 
 
 # Comment with recommended values: leapfrog 40 and RK 20
@@ -126,13 +128,14 @@ def _test_envelope1d(method: str,
     check_type(int, "beam_calculator", n_steps_per_cell)
 
 
-def _edit_configuration_dict_in_place_envelope1d(beam_calculator_kw: dict
-                                                 ) -> None:
+def _edit_configuration_dict_in_place_envelope1d(beam_calculator_kw: dict,
+                                                 config_folder: Path) -> None:
     """Modify the kw dict inplace."""
     pass
 
 
-def _test_tracewin(simulation_type: str,
+def _test_tracewin(config_folder: Path,
+                   simulation_type: str,
                    ini_path: str,
                    cal_file: str | None = None,
                    synoptic_file: str | None = None,
@@ -141,11 +144,11 @@ def _test_tracewin(simulation_type: str,
                    **beam_calculator_kw) -> None:
     """Test consistency for :class:`.TraceWin` beam calculator."""
     check_type(str, "beam_calculator", simulation_type, ini_path)
-    assert Path(ini_path).is_file()
+    _ = _find_file(config_folder, ini_path)
     assert simulation_type in TRACEWIN_EXECUTABLES
 
     if cal_file is not None:
-        assert Path(cal_file).is_file()
+        _ = _find_file(config_folder, cal_file)
 
     if synoptic_file is not None:
         logging.error("Synoptic file not implemented as I am not sure how this"
@@ -161,8 +164,8 @@ def _test_tracewin(simulation_type: str,
                           "LightWin.")
 
 
-def _edit_configuration_dict_in_place_tracewin(beam_calculator_kw: dict
-                                               ) -> None:
+def _edit_configuration_dict_in_place_tracewin(beam_calculator_kw: dict,
+                                               config_folder: Path) -> None:
     """Transform some values.
 
     The arguments that will be passed to the TraceWin executable are removed
@@ -178,7 +181,8 @@ def _edit_configuration_dict_in_place_tracewin(beam_calculator_kw: dict
     for path in paths:
         if path not in beam_calculator_kw:
             continue
-        beam_calculator_kw[path] = Path(beam_calculator_kw[path])
+        beam_calculator_kw[path] = _find_file(config_folder,
+                                              beam_calculator_kw[path])
 
     args_for_tracewin = {}
     args_for_lightwin = {}
@@ -201,6 +205,23 @@ def _edit_configuration_dict_in_place_tracewin(beam_calculator_kw: dict
         beam_calculator_kw[key] = value
 
 
+def _find_file(config_folder: Path, file: str) -> Path:
+    """Look for ``file`` as absolute and in ``config_folder``."""
+    path = (config_folder / file).resolve().absolute()
+    if path.is_file():
+        return path
+
+    path = Path(file).resolve().absolute()
+    if path.is_file():
+        return path
+
+    msg = f"{file = } was not found. It can be defined relative to the " \
+        ".toml (recommended), absolute, or relative to the execution dir" \
+        "of the script (not recommended)."
+    logging.critical(msg)
+    raise FileNotFoundError(msg)
+
+
 def _test_envelope3d(method: str,
                      flag_phi_abs: bool,
                      n_steps_per_cell: int,
@@ -215,7 +236,7 @@ def _test_envelope3d(method: str,
         logging.warning("Cython not implemented yet for Envelope3D.")
 
 
-def _edit_configuration_dict_in_place_envelope3d(beam_calculator_kw: dict
-                                                 ) -> None:
+def _edit_configuration_dict_in_place_envelope3d(beam_calculator_kw: dict,
+                                                 config_folder: Path) -> None:
     """Modify the kw dict inplace."""
     pass

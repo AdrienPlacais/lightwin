@@ -15,6 +15,13 @@ flag_phi_abs = true
 n_steps_per_cell = 40
 method = "RK"
 
+[generic_tracewin]
+tool = "TraceWin"
+simulation_type = "noX11 full"
+ini_path = "example.ini"
+hide = true
+partran = 0
+
 [beam]
 e_rest_mev = 938.27203
 q_adim = 1.0
