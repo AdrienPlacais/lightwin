@@ -1,7 +1,6 @@
 """Test the :class:`.Envelope3D` solver."""
 from pathlib import Path
 from typing import Any
-from core.accelerator.accelerator import Accelerator
 
 import pytest
 
@@ -9,8 +8,11 @@ import config_manager
 from beam_calculation.envelope_3d.envelope_3d import Envelope3D
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
+from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import NoFault
+
 from tests.reference import compare_with_reference
+# from tests.test_envelope1d import TestSolver1D
 
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
@@ -72,35 +74,48 @@ def simulation_output(request,
     return my_simulation_output
 
 
-class Tests:
+class TestSolver3D:
     """Gater all the tests in a single class."""
+
+    _w_kin_tol = 1e-3
+    _phi_abs_tol = 1e-2
+    _phi_s_tol = 1e-2
+    _v_cav_tol = 1e-3
+    _r_xx_tol = 5e-1
+    _r_yy_tol = 5e-1
+    _r_zdelta_tol = 5e-3
 
     def test_w_kin(self, simulation_output: SimulationOutput) -> None:
         """Verify that final energy is correct."""
-        return compare_with_reference(simulation_output, 'w_kin', tol=1e-3)
+        return compare_with_reference(simulation_output, 'w_kin',
+                                      tol=self._w_kin_tol)
 
     def test_phi_abs(self, simulation_output: SimulationOutput) -> None:
         """Verify that final absolute phase is correct."""
-        return compare_with_reference(simulation_output, 'phi_abs', tol=1e-2)
+        return compare_with_reference(simulation_output, 'phi_abs',
+                                      tol=self._phi_abs_tol)
 
     def test_phi_s(self, simulation_output: SimulationOutput) -> None:
         """Verify that synchronous phase in last cavity is correct."""
         return compare_with_reference(simulation_output, 'phi_s', elt='ELT142',
-                                      tol=1e-2)
+                                      tol=self._phi_s_tol)
 
     def test_v_cav(self, simulation_output: SimulationOutput) -> None:
         """Verify that accelerating voltage in last cavity is correct."""
         return compare_with_reference(simulation_output, 'v_cav_mv',
-                                      elt='ELT142', tol=1e-3)
+                                      elt='ELT142', tol=self._v_cav_tol)
 
     def test_r_xx(self, simulation_output: SimulationOutput) -> None:
         """Verify that final xx transfer matrix is correct."""
-        return compare_with_reference(simulation_output, 'r_xx', tol=5e-1)
+        return compare_with_reference(simulation_output, 'r_xx',
+                                      tol=self._r_xx_tol)
 
     def test_r_yy(self, simulation_output: SimulationOutput) -> None:
         """Verify that final yy transfer matrix is correct."""
-        return compare_with_reference(simulation_output, 'r_yy', tol=5e-1)
+        return compare_with_reference(simulation_output, 'r_yy',
+                                      tol=self._r_yy_tol)
 
     def test_r_zdelta(self, simulation_output: SimulationOutput) -> None:
         """Verify that final longitudinal transfer matrix is correct."""
-        return compare_with_reference(simulation_output, 'r_zdelta', tol=5e-3)
+        return compare_with_reference(simulation_output, 'r_zdelta',
+                                      tol=self._r_zdelta_tol)
