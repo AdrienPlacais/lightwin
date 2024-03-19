@@ -25,7 +25,6 @@ the particles in envelope or multipart, in 3D. In contrary to
     too.
 
 """
-from dataclasses import dataclass
 import logging
 from pathlib import Path
 import shutil
@@ -93,7 +92,6 @@ class TraceWin(BeamCalculator):
         self.ini_path = ini_path.resolve().absolute()
         self.base_kwargs = base_kwargs
         self.cal_file = cal_file
-
 
         filename = Path('tracewin.out')
         if self.is_a_multiparticle_simulation:
@@ -361,16 +359,19 @@ def _run_in_bash(command: list[str],
     output = "\n\t".join(command)
     if output_command:
         logging.info(f"Running command:\n\t{output}")
-    process = subprocess.Popen(command, stdout=subprocess.PIPE)
-    process.wait()
 
-    exception = False
-    for line in process.stdout:
-        if output_error:
-            print(line)
-        exception = True
+    process = subprocess.Popen(command, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    exception = process.wait()
 
-    if exception and output_error:
+    # exception = False
+    # for line in process.stdout:
+        # if output_error:
+            # print(line)
+        # exception = True
+
+    if exception != 0 and output_error:
         logging.warning("A message was returned when executing following "
-                        f"command:\n\t{output}")
-    return exception
+                        f"command:\n\t{stderr}")
+    return exception != 0
