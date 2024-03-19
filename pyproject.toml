@@ -20,7 +20,10 @@ Homepage = "https://gitlab.in2p3.fr/adrien.placais/lightwin"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q"
+addopts = [
+   "-ra -q",
+   "--import-mode=importlib"
+]
 testpaths = [
     "tests",
 ]
