@@ -1,6 +1,26 @@
+[project]
+name = "LightWin"
+version = "0.6.9"
+authors = [
+   {name="Adrien Plaçais", email="placais@lpsc.in2p3.fr"},
+   {name="Frédéric Bouly", email="bouly@lpsc.in2p3.fr"},
+   {name="Bruce Yee-Rendon", email="byee@post.j-parc.jp"},
+]
+description="Automatically compensate cavity failures in linacs"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://gitlab.in2p3.fr/adrien.placais/lightwin"
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q"
 testpaths = [
-    "source/tests",
+    "tests",
 ]

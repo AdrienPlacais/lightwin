@@ -14,7 +14,7 @@ from tests.reference import compare_with_reference
 
 LW_DIR = Path("/home", "placais", "LightWin")
 DATA_DIR = LW_DIR / "data" / "example"
-TEST_DIR = LW_DIR / "source" / "tests"
+TEST_DIR = LW_DIR / "tests"
 
 testdata = [
     ('RK', False, 40),
