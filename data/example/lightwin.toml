@@ -1,5 +1,5 @@
 [files]
-dat_file = "../../data/example/example.dat"
+dat_file = "example.dat"
 project_folder = "results_tests/"
 
 [beam_calculator_envelope_generic]

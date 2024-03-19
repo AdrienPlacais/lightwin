@@ -15,6 +15,7 @@ def test(e_rest_mev: float,
          f_bunch_mhz: float,
          i_milli_a: float,
          sigma: list[list[float]],
+         **kwargs
          ) -> None:
     """Ensure that ``beam`` has the proper arguments with proper types."""
     check_type(float, 'beam',
@@ -33,7 +34,8 @@ def test(e_rest_mev: float,
 
 
 def edit_configuration_dict_in_place(
-        beam_kw: dict[str, float | list[list[float]]]) -> None:
+        beam_kw: dict[str, float | list[list[float]]],
+        **kwargs) -> None:
     """Add useful values to the configuration ``beam`` dict."""
     beam_kw['sigma'] = np.array(beam_kw['sigma'])
     beam_kw["inv_e_rest_mev"] = 1. / beam_kw["e_rest_mev"]

@@ -66,7 +66,8 @@ def _test_not_from_file(
                maximum_k_e_is_calculated_wrt_maximum_k_e_of_section)
 
 
-def edit_configuration_dict_in_place(design_space_kw: dict[str, Any]) -> None:
+def edit_configuration_dict_in_place(design_space_kw: dict[str, Any],
+                                     **kwargs) -> None:
     """Edit some keys for later."""
     if design_space_kw['from_file']:
         return _edit_configuration_dict_in_place_from_file(design_space_kw)

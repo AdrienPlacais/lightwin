@@ -93,7 +93,8 @@ def process_config(config_path: Path,
 
     if config_path.suffix == '.toml':
         configuration = _load_correct_toml_entries(config_path, config_keys)
-        _process_config_toml(configuration)
+        config_folder = config_path.parent
+        _process_config_toml(configuration, config_folder)
         return configuration
 
     raise IOError(f"{config_path.suffix = } while it should be .ini or .toml")
@@ -106,14 +107,18 @@ def _load_correct_toml_entries(config_path: Path,
     toml_as_dict: dict[str, dict[str, str | int | float | bool | list]]
     with open(config_path, 'rb') as f:
         toml_as_dict = tomllib.load(f)
+
     toml_entries = {key: toml_as_dict[value]
                     for key, value in config_keys.items()}
+
     for key in MANDATORY_CONFIG_ENTRIES:
         assert key in toml_entries, f"{key = } is mandatory and missing."
+
     return toml_entries
 
 
-def _process_config_toml(toml_entries: dict[str, dict[str, Any]]) -> None:
+def _process_config_toml(toml_entries: dict[str, dict[str, Any]],
+                         config_folder: Path) -> None:
     """Test all the given configuration keys."""
     associated_modules = {
         'files': config.toml.files,
@@ -131,9 +136,12 @@ def _process_config_toml(toml_entries: dict[str, dict[str, Any]]) -> None:
             continue
 
         associated_module = associated_modules[key]
-        associated_module.test(**config_dict)
+        associated_module.test(config_folder=config_folder, **config_dict)
+
         if hasattr(associated_module, 'edit_configuration_dict_in_place'):
-            associated_module.edit_configuration_dict_in_place(config_dict)
+            associated_module.edit_configuration_dict_in_place(
+                config_dict,
+                config_folder=config_folder)
 
         logging.info(f"Config dict {key} successfully tested. After potential "
                      " modifications, it looks like:\n"

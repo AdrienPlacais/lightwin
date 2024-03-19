@@ -101,7 +101,8 @@ def test(tool: str,
     specific_tester[tool](**beam_calculator_kw)
 
 
-def edit_configuration_dict_in_place(beam_calculator_kw: dict) -> None:
+def edit_configuration_dict_in_place(beam_calculator_kw: dict,
+                                     **kwargs) -> None:
     """Precompute some useful values, transform some ``str`` into ``Path``."""
     tool = beam_calculator_kw['tool']
     specific_editer_configuration_dict_in_place = {
