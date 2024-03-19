@@ -2,11 +2,17 @@
 dat_file = "example.dat"
 project_folder = "results_tests/"
 
-[beam_calculator_envelope_generic]
+[generic_envelope1d]
 tool = "Envelope1D"
 flag_phi_abs = true
 flag_cython = true
-n_steps_per_cell = 30
+n_steps_per_cell = 40
+method = "RK"
+
+[generic_envelope3d]
+tool = "Envelope3D"
+flag_phi_abs = true
+n_steps_per_cell = 40
 method = "RK"
 
 [beam]

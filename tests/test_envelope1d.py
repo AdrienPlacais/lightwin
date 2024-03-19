@@ -1,4 +1,4 @@
-"""Test the 1D solvers.."""
+"""Test the :class:`.Envelope1D` solver."""
 from pathlib import Path
 from typing import Any
 from core.accelerator.accelerator import Accelerator
@@ -29,7 +29,7 @@ def config() -> dict[str, dict[str, Any]]:
     config_path = DATA_DIR / "lightwin.toml"
     config_keys = {
         'files': 'files',
-        'beam_calculator': 'beam_calculator_envelope_generic',
+        'beam_calculator': 'generic_envelope1d',
         'beam': 'beam',
     }
     my_config = config_manager.process_config(config_path, config_keys)
@@ -88,19 +88,19 @@ class Tests:
         return compare_with_reference(simulation_output, 'w_kin', tol=1e-3)
 
     def test_phi_abs(self, simulation_output: SimulationOutput) -> None:
-        """Verify that final energy is correct."""
+        """Verify that final absolute phase is correct."""
         return compare_with_reference(simulation_output, 'phi_abs', tol=1e-2)
 
     def test_phi_s(self, simulation_output: SimulationOutput) -> None:
-        """Verify that final energy is correct."""
+        """Verify that synchronous phase in last cavity is correct."""
         return compare_with_reference(simulation_output, 'phi_s', elt='ELT142',
                                       tol=1e-2)
 
     def test_v_cav(self, simulation_output: SimulationOutput) -> None:
-        """Verify that final energy is correct."""
+        """Verify that accelerating voltage in last cavity is correct."""
         return compare_with_reference(simulation_output, 'v_cav_mv',
                                       elt='ELT142', tol=1e-3)
 
     def test_r_zdelta(self, simulation_output: SimulationOutput) -> None:
-        """Verify that final energy is correct."""
+        """Verify that final longitudinal transfer matrix is correct."""
         return compare_with_reference(simulation_output, 'r_zdelta', tol=5e-3)
