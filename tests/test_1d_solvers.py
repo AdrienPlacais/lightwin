@@ -12,9 +12,8 @@ from beam_calculation.simulation_output.simulation_output import \
 from core.accelerator.factory import NoFault
 from tests.reference import compare_with_reference
 
-LW_DIR = Path("/home", "placais", "LightWin")
-DATA_DIR = LW_DIR / "data" / "example"
-TEST_DIR = LW_DIR / "tests"
+DATA_DIR = Path("data", "example")
+TEST_DIR = Path("tests")
 
 testdata = [
     ('RK', False, 40),
@@ -39,14 +38,15 @@ def config() -> dict[str, dict[str, Any]]:
 
 def _create_solver(method: str,
                    flag_cython: bool,
-                   n_steps_per_cell: int) -> Envelope1D:
+                   n_steps_per_cell: int,
+                   out_folder: Path) -> Envelope1D:
     """Instantiate the solver with the proper parameters."""
     kwargs = {
         "flag_phi_abs": True,
         "flag_cython": flag_cython,
         "n_steps_per_cell": n_steps_per_cell,
         "method": method,
-        "out_folder": TEST_DIR / "results_tests",
+        "out_folder": out_folder,
         "default_field_map_folder": DATA_DIR,
     }
     return Envelope1D(**kwargs)
@@ -61,13 +61,20 @@ def _create_example_accelerator(solver: Envelope1D,
     return accelerator
 
 
+@pytest.fixture(scope='class', autouse=True)
+def out_folder(tmp_path_factory) -> Path:
+    """Create a class-scoped temporary dir for results."""
+    return tmp_path_factory.mktemp('tmp')
+
+
 @pytest.fixture(scope='class', params=testdata)
 def simulation_output(request,
-                      config: dict[str, dict[str, Any]]
+                      config: dict[str, dict[str, Any]],
+                      out_folder: Path,
                       ) -> SimulationOutput:
     """Init and use a solver to propagate beam in an example accelerator."""
     method, flag_cython, n_steps_per_cell = request.param
-    solver = _create_solver(method, flag_cython, n_steps_per_cell)
+    solver = _create_solver(method, flag_cython, n_steps_per_cell, out_folder)
     accelerator = _create_example_accelerator(solver, config)
     my_simulation_output = solver.compute(accelerator)
     return my_simulation_output
