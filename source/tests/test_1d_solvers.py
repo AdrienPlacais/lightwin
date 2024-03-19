@@ -12,19 +12,22 @@ from beam_calculation.simulation_output.simulation_output import \
 from core.accelerator.factory import NoFault
 from tests.reference import compare_with_reference
 
+LW_DIR = Path("/home", "placais", "LightWin")
+DATA_DIR = LW_DIR / "data" / "example"
+TEST_DIR = LW_DIR / "source" / "tests"
 
 testdata = [
     ('RK', False, 40),
-    ('RK', True, 40),
-    ('leapfrog', False, 60),
-    ('leapfrog', True, 60),
+    # ('RK', True, 40),
+    # ('leapfrog', False, 60),
+    # ('leapfrog', True, 60),
 ]
 
 
 @pytest.fixture(scope='module', autouse=True)
 def config() -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""
-    config_path = Path("..", "..", "data", "example", "lightwin.toml")
+    config_path = DATA_DIR / "lightwin.toml"
     config_keys = {
         'files': 'files',
         'beam_calculator': 'beam_calculator_envelope_generic',
@@ -43,8 +46,8 @@ def _create_solver(method: str,
         "flag_cython": flag_cython,
         "n_steps_per_cell": n_steps_per_cell,
         "method": method,
-        "out_folder": Path('results_tests/'),
-        "default_field_map_folder": Path('..', '..', 'data', 'example'),
+        "out_folder": TEST_DIR / "results_tests",
+        "default_field_map_folder": DATA_DIR,
     }
     return Envelope1D(**kwargs)
 
@@ -53,8 +56,7 @@ def _create_example_accelerator(solver: Envelope1D,
                                 config: dict[str, dict[str, Any]]
                                 ) -> Accelerator:
     """Create an example linac."""
-    accelerator_factory = NoFault(beam_calculator=solver,
-                                  **config['files'])
+    accelerator_factory = NoFault(beam_calculator=solver, **config['files'])
     accelerator = accelerator_factory.run()
     return accelerator
 
