@@ -68,8 +68,7 @@ class Envelope3D(BeamCalculator):
         )
 
     def run(self, elts: ListOfElements) -> SimulationOutput:
-        """
-        Compute beam propagation in 3D, envelope calculation.
+        """Compute beam propagation in 3D, envelope calculation.
 
         Parameters
         ----------
@@ -88,7 +87,7 @@ class Envelope3D(BeamCalculator):
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
                       elts: ListOfElements) -> SimulationOutput:
         """
-        Envelope 3D calculation of beam in `elts`, with non-nominal settings.
+        Envelope 3D calculation of beam in ``elts``, with non-nominal settings.
 
         Parameters
         ----------
@@ -125,9 +124,9 @@ class Envelope3D(BeamCalculator):
             elt_results = \
                 elt.beam_calc_param[self.id].transf_mat_function_wrapper(
                     w_kin,
-                    elt.is_accelerating,
-                    elt.get('status'),
-                    gradient=gradient,
+                    # elt.is_accelerating,
+                    # elt.get('status'),
+                    # gradient=gradient,
                     **rf_field_kwargs)
 
             single_elts_results.append(elt_results)

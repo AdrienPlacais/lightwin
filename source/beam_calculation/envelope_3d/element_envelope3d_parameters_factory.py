@@ -44,7 +44,7 @@ class ElementEnvelope3DParametersFactory(
                  n_steps_per_cell: int,
                  flag_cython: bool = False):
         """Prepare import of proper functions."""
-        assert method in ('leapfrog', 'RK')
+        assert method in ('RK', )
         self.method = method
         self.n_steps_per_cell = n_steps_per_cell
 
@@ -75,13 +75,13 @@ class ElementEnvelope3DParametersFactory(
         }
         subclass = self._parameters_subclass(elt)
 
-        single_element_envelope_1d_parameters = subclass(
+        single_element_envelope_3d_parameters = subclass(
             self.transf_mat_module,
             elt,
             n_steps=1,
             **kwargs)
 
-        return single_element_envelope_1d_parameters
+        return single_element_envelope_3d_parameters
 
     def _parameters_subclass(self, elt: Element) -> ABCMeta:
         """Select the parameters adapted to ``elt``.
@@ -122,4 +122,4 @@ class ElementEnvelope3DParametersFactory(
                           "implemented. Implement it, or use the "
                           "elements_to_remove key in the "
                           "BeamCalculator.ListOfElementFactory class.")
-            raise IOError
+            raise NotImplementedError

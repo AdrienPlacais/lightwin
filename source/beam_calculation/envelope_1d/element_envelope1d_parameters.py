@@ -31,6 +31,7 @@ import util.converters as convert
 
 FIELD_MAP_INTEGRATION_METHOD_TO_FUNC = {
     "RK": lambda module: module.z_field_map_rk4,
+    "RK4": lambda module: module.z_field_map_rk4,
     "leapfrog": lambda module: module.z_field_map_leapfrog,
 }
 

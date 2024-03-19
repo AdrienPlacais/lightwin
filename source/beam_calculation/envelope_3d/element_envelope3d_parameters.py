@@ -32,12 +32,13 @@ import util.converters as convert
 
 
 FIELD_MAP_INTEGRATION_METHOD_TO_FUNC = {
+    'RK': lambda transf_mat_module: transf_mat_module.field_map_rk4,
     'RK4': lambda transf_mat_module: transf_mat_module.field_map_rk4,
-    }  #:
+}
+
 
 class ElementEnvelope3DParameters(ElementEnvelope1DParameters):
-    """
-    Holds the parameters to compute beam propagation in an Element.
+    """Hold the parameters to compute beam propagation in an :class:`.Element`.
 
     has and get method inherited from ElementCalculatorParameters parent
     class.
@@ -87,7 +88,7 @@ class ElementEnvelope3DParameters(ElementEnvelope1DParameters):
             transfer_matrix: np.ndarray,
             gamma_phi: np.ndarray,
             itg_field: float | None,
-            ) -> dict:
+    ) -> dict:
         """Convert the results given by the transf_mat function to dict.
 
         This method should override the default
@@ -119,7 +120,7 @@ class DriftEnvelope3DParameters(ElementEnvelope3DParameters):
                  **kwargs: str,
                  ) -> None:
         """Create the specific parameters for a drift."""
-        transf_mat_function = transf_mat_module.z_drift
+        transf_mat_function = transf_mat_module.drift
         super().__init__(
             transf_mat_function,
             elt.length_m,
