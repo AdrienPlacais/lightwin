@@ -33,8 +33,9 @@ def compare_with_reference(simulation_output: SimulationOutput,
 
     if isinstance(value, float) and isinstance(reference_value, float):
         delta = abs(value - reference_value)
-        assert delta < tol, (f"Final {key} is {value} instead of "
-                             f"{reference_value} ie {delta = :.3e} > {tol = }")
+        assert delta < tol, (f"Final {key} is {value:.3e} instead of "
+                             f"{reference_value:.3e} ie {delta = :.3e} > "
+                             f"{tol = :.1e}")
 
     if isinstance(value, np.ndarray) and isinstance(reference_value,
                                                     np.ndarray):
