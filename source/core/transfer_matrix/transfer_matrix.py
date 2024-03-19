@@ -12,6 +12,10 @@ Hold the transfer matrix along the linac.
 .. todo::
     ``_init_from`` methods in factory???
 
+.. todo::
+    The SimulationOutput.get method with transfer matrix components fails with
+    :class:`.TraceWin` solver.
+
 """
 import logging
 from typing import Any, Callable
