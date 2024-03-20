@@ -76,7 +76,7 @@ def _create_project_folders(config_folder: Path, project_folder: str = ''
                             ) -> Path:
     """Create a folder to store outputs and log messages."""
     if project_folder:
-        project_path = (config_folder / project_folder).resolve().absolute()
+        project_path = (config_folder / project_folder).resolve()
         exist_ok = True
 
     else:
