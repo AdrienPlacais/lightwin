@@ -10,8 +10,7 @@ from util.log_manager import set_up_logging
 
 def test(config_folder: Path,
          dat_file: str,
-         project_folder: str = '',
-         **files_kw: str) -> None:
+         **files_kw: str | Path) -> None:
     """Check that given path exists, modify if necessary. Set up logging.
 
     Parameters
@@ -28,28 +27,24 @@ def test(config_folder: Path,
 
     """
     _ = _find_dat_file(config_folder, dat_file)
-    project_path = _create_project_folders(config_folder, project_folder)
-
-    log_file = Path(project_path, 'lightwin.log')
-    set_up_logging(logfile_file=log_file)
-
-    logging.info(f"Setting {project_path = }\nSetting {log_file = }")
 
 
 def edit_configuration_dict_in_place(files_kw: dict[str, str | Path],
                                      config_folder: Path,
-                                     **kwargs) -> None:
+                                     ) -> None:
     """Set some useful paths."""
     dat_file = files_kw['dat_file']
     assert isinstance(dat_file, str)
-    dat_path = _find_dat_file(config_folder, dat_file)
+    files_kw['dat_file'] = _find_dat_file(config_folder, dat_file)
 
     project_folder = files_kw.get('project_folder', '')
     assert isinstance(project_folder, str)
     project_path = _create_project_folders(config_folder, project_folder)
-
-    files_kw['dat_file'] = dat_path
     files_kw['project_folder'] = project_path
+
+    log_file = Path(project_path, 'lightwin.log')
+    set_up_logging(logfile_file=log_file)
+    logging.info(f"Setting {project_path = }\nSetting {log_file = }")
 
     if 'cal_file' in files_kw:
         files_kw['cal_file'] = Path(files_kw['cal_file']).resolve().absolute()
