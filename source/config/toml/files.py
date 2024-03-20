@@ -16,7 +16,7 @@ def test(config_folder: Path,
 
     Parameters
     ----------
-    config_path : Path
+    config_folder : Path
         Where the ``.toml`` is stored. Used to resolve relative paths.
     dat_file : str
         Path to the ``.dat`` file.
@@ -85,4 +85,4 @@ def _create_project_folders(config_folder: Path, project_folder: str = ''
         exist_ok = False
 
     project_path.mkdir(exist_ok=exist_ok)
-    return project_path
+    return project_path.absolute()
