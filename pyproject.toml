@@ -23,12 +23,14 @@ minversion = "6.0"
 addopts = [
    "--import-mode=importlib",
    "--strict-markers",
+   "-m slow",
 ]
 testpaths = [
     "tests",
 ]
 markers = [
    "cython: mark tests that require a Cython compilation (deselect with '-m \"not cython\"')",
+   "implementation: mark tests currently under implementation",
    "tracewin: mark tests requiring a working installation of TraceWin (deselect with '-m \"not tracewin\"')",
    "slow: mark a test as slow (deselect with '-m \"not slow\"')",
    "smoke: mark quick and critical tests (select with '-m smoke')"
