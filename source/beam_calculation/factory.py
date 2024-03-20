@@ -35,7 +35,8 @@ class BeamCalculatorsFactory:
                                            beam_calculator_post)
 
         self.out_folders = self._set_out_folders(self.all_beam_calculator_kw,
-                                                 out_folder)
+                                                 out_folder,
+                                                 **files)
 
         self.beam_calculators_id: list[str] = []
         self._patch_to_remove_misunderstood_key()
@@ -43,7 +44,9 @@ class BeamCalculatorsFactory:
 
     def _set_out_folders(self,
                          all_beam_calculator_kw: Sequence[dict[str, Any]],
-                         out_folder: Path | Sequence[Path] | None = None,
+                         out_folder: Path | Sequence[Path] | None,
+                         project_folder: Path,
+                         **files
                          ) -> list[Path]:
         """Set in which subfolder the results will be saved."""
         if isinstance(out_folder, Path):
@@ -64,7 +67,7 @@ class BeamCalculatorsFactory:
                 f"{n_beam_calculators = }")
             return list(out_folders)
 
-        out_folders = [Path(f"{i}_{kw['tool']}")
+        out_folders = [project_folder / f"{i}_{kw['tool']}"
                        for i, kw in enumerate(all_beam_calculator_kw)]
         return out_folders
 

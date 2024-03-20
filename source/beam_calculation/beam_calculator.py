@@ -47,14 +47,15 @@ class BeamCalculator(ABC):
         if isinstance(out_folder, str):
             out_folder = Path(out_folder)
         self.out_folder = out_folder.resolve().absolute()
+        if not solver_name:
+            self.out_folder = self.out_folder.parent \
+                / f"{self.out_folder.name}_{solver_name}"
+
         if isinstance(default_field_map_folder, str):
             default_field_map_folder = Path(default_field_map_folder)
         self.default_field_map_folder = \
             default_field_map_folder.resolve().absolute()
 
-        if not solver_name:
-            self.out_folder = self.out_folder.parent \
-                / f"{self.out_folder.name}_{solver_name}"
         self.simulation_output_factory: SimulationOutputFactory
         self.list_of_elements_factory: ListOfElementsFactory
         self.beam_calc_parameters_factory: \
