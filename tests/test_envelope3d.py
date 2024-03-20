@@ -17,7 +17,7 @@ DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
 parameters = [
-    (40, ),
+    pytest.param((40, ), marks=pytest.mark.smoke),
 ]
 
 

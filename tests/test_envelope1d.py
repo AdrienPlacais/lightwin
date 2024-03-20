@@ -21,10 +21,11 @@ leapfrog_marker = pytest.mark.xfail(
     reason="leapfrog method has not been updated since 0.0.0.0.01 or so")
 
 parameters = [
-    pytest.param(('RK', False, 40)),
-    pytest.param(('RK', True, 40)),
+    pytest.param(('RK', False, 40), marks=pytest.mark.smoke),
+    pytest.param(('RK', True, 40), marks=pytest.mark.cython),
     pytest.param(('leapfrog', False, 60), marks=leapfrog_marker),
-    pytest.param(('leapfrog', True, 60), marks=leapfrog_marker),
+    pytest.param(('leapfrog', True, 60), marks=(leapfrog_marker,
+                                                pytest.mark.cython)),
 ]
 
 

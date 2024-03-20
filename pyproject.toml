@@ -28,5 +28,8 @@ testpaths = [
     "tests",
 ]
 markers = [
+   "cython: mark tests that require a Cython compilation (deselect with '-m \"not cython\"')",
+   "tracewin: mark tests requiring a working installation of TraceWin (deselect with '-m \"not tracewin\"')",
    "slow: mark a test as slow (deselect with '-m \"not slow\"')",
+   "smoke: mark quick and critical tests (select with '-m smoke')"
 ]

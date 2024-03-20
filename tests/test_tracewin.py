@@ -84,6 +84,7 @@ def simulation_output(request,
     return my_simulation_output
 
 
+@pytest.mark.tracewin
 class TestSolver3D:
     """Gater all the tests in a single class."""
 
