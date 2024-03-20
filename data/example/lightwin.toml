@@ -37,11 +37,22 @@ sigma = [
    [+0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, -2.552518e-07, +5.994771e-07]
 ]
 
-[wtf]
+[generic_wtf]
 optimisation_algorithm = "downhill_simplex"
 strategy = "k out of n"
-k = 1
+k = 5
 idx = "cavity"
 failed = [[40]]
 objective_preset = "simple_ADS"
 phi_s_fit = false
+
+[generic_design_space]
+from_file = false
+design_space_preset = "unconstrained"
+max_increase_sync_phase_in_percent = 40.0
+max_absolute_sync_phase_in_deg = 0.0
+min_absolute_sync_phase_in_deg = -90.0
+max_decrease_k_e_in_percent = 20.0
+max_increase_k_e_in_percent = 30.0
+maximum_k_e_is_calculated_wrt_maximum_k_e_of_section = true
+
