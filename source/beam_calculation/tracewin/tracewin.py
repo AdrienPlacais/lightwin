@@ -125,11 +125,10 @@ class TraceWin(BeamCalculator):
         )
 
     def _tracewin_base_command(self,
-                               base_path_cal: Path,
+                               accelerator_path: Path,
                                **kwargs
-                               ) -> tuple[list[str], str]:
-        """
-        Define the 'base' command for TraceWin.
+                               ) -> tuple[list[str], Path]:
+        """Define the 'base' command for TraceWin.
 
         This part of the command is the same for every :class:`ListOfElements`
         and every :class:`Fault`. It sets the TraceWin executable, the ``.ini``
@@ -147,7 +146,7 @@ class TraceWin(BeamCalculator):
             if key not in kwargs:
                 kwargs[key] = val
 
-        path_cal = Path(base_path_cal, self.out_folder)
+        path_cal = accelerator_path / self.out_folder
         if not path_cal.is_dir():
             path_cal.mkdir()
 
@@ -164,9 +163,8 @@ class TraceWin(BeamCalculator):
         elts: ListOfElements,
         set_of_cavity_settings: SetOfCavitySettings | None,
         **kwargs,
-    ) -> tuple[list[str], str]:
-        """
-        Set the full TraceWin command.
+    ) -> tuple[list[str], Path]:
+        """Set the full TraceWin command.
 
         It contains the 'base' command, which includes every argument that is
         common to every calculation with this :class:`BeamCalculator`: path to
@@ -179,8 +177,10 @@ class TraceWin(BeamCalculator):
         arguments to modify some cavities tuning.
 
         """
-        out_path = elts.get('out_path', to_numpy=False)
-        command, path_cal = self._tracewin_base_command(out_path, **kwargs)
+        accelerator_path = elts.files['accelerator_path']
+        assert isinstance(accelerator_path, Path)
+        command, path_cal = self._tracewin_base_command(accelerator_path,
+                                                        **kwargs)
         command.extend(elts.tracewin_command)
 
         if set_of_cavity_settings is not None:
