@@ -36,3 +36,6 @@ markers = [
    "smoke: mark quick and critical tests (select with '-m smoke')",
    "tmp: mark to select specific tests for debug"
 ]
+filterwarnings = [
+   "ignore:.*cKDTree.*:DeprecationWarning"
+]
