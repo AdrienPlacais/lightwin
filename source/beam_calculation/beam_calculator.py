@@ -46,7 +46,8 @@ class BeamCalculator(ABC):
         ----------
         out_folder : Path | str
             Name of the folder where results should be stored, for each
-            :class:`.Accelerator` under study. This is a relative path.
+            :class:`.Accelerator` under study. This is the name of a folder,
+            not a full path.
         default_field_map_folder : Path | str
             Where to look for field map files by default.
 

@@ -3,6 +3,7 @@
 """Define a factory to easily create :class:`.Accelerator`."""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import logging
 from pathlib import Path
 from typing import Sequence
 
@@ -49,10 +50,10 @@ class AcceleratorFactory(ABC):
         The default structure is:
 
         where_original_dat_is/
-            YYYY.MM.DD_HHhMM_SSs_MILLIms/              <- project_folder (abs)
-                000000_ref/                            <- accelerator_path abs
-                    0_FirstBeamCalculatorName/         <- out_folder (rel)
-                    (1_SecondBeamCalculatorName/)      <- out_folder (rel)
+            YYYY.MM.DD_HHhMM_SSs_MILLIms/         <- project_folder (abs)
+                000000_ref/                       <- accelerator_path (abs)
+                    0_FirstBeamCalculatorName/    <- out_folder (rel)
+                    (1_SecondBeamCalculatorName/) <- out_folder (rel)
                 000001/
                     0_FirstBeamCalculatorName/
                     (1_SecondBeamCalculatorName/)
@@ -61,7 +62,15 @@ class AcceleratorFactory(ABC):
                     (1_SecondBeamCalculatorName/)
                 etc
 
+        Parameters
+        ----------
+        out_folders : Sequence[Path]
+            Name of the folders that will store outputs. By default, it is the
+            name of the solver, preceeded by its position in the list of
+            :class:`.BeamCalculator`.
+
         """
+        logging.critical(f"{self.project_folder = } and {out_folders = }")
         accelerator_paths = [self.project_folder / f"{i:06d}"
                              for i in range(n_simulations)]
         accelerator_paths[0] = accelerator_paths[0].with_name(

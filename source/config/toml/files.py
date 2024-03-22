@@ -19,9 +19,6 @@ def test(config_folder: Path,
         Where the ``.toml`` is stored. Used to resolve relative paths.
     dat_file : str
         Path to the ``.dat`` file.
-    project_folder : str, optional
-        Where the results will be saved. The default is an empty string, in
-        which case we create a sub-folder where the ``.dat`` is.
     files_kw : str
         Other ``files`` keyword arguments.
 

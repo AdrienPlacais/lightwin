@@ -50,8 +50,10 @@ class FaultScenario(list):
                  fault_idx: list[int] | list[list[int]],
                  comp_idx: list[list[int]] | None = None,
                  info_other_sol: list[dict] | None = None) -> None:
-        """
-        Create the FaultScenario and the Faults.
+        """Create the :class:`FaultScenario` and the :class:`.Fault` objects.
+
+        .. todo::
+            Could be cleaner.
 
         Parameters
         ----------
@@ -86,7 +88,11 @@ class FaultScenario(list):
         self.info = {}
         self.optimisation_time: datetime.timedelta
 
-        solv1 = list(self.ref_acc.simulation_outputs.keys())[0]
+        solvers_already_used = list(self.ref_acc.simulation_outputs.keys())
+        assert len(solvers_already_used) > 0, (
+            "You must compute propagation of the beam in the reference linac "
+            "prior to create a FaultScenario")
+        solv1 = solvers_already_used[0]
         reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
 
         gathered_fault_idx, gathered_comp_idx = \
