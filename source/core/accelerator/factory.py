@@ -44,34 +44,33 @@ class AcceleratorFactory(ABC):
                                          out_folders: Sequence[Path],
                                          n_simulations: int,
                                          ) -> list[Path]:
-        """
-        Create the proper folders for every :class:`.Accelerator`.
+        """Create the proper folders for every :class:`.Accelerator`.
 
         The default structure is:
 
         where_original_dat_is/
-            YYYY.MM.DD_HHhMM_SSs_MILLIms/              <- project_folder
-                000000_ref/                            <- accelerator_path
-                    beam_calculation_0_toolname/       <- beam_calc
-                    (beam_calculation_1_toolname)/     <- beam_calc_post
+            YYYY.MM.DD_HHhMM_SSs_MILLIms/              <- project_folder (abs)
+                000000_ref/                            <- accelerator_path abs
+                    0_FirstBeamCalculatorName/         <- out_folder (rel)
+                    (1_SecondBeamCalculatorName/)      <- out_folder (rel)
                 000001/
-                    beam_calculation_0_toolname/
-                    (beam_calculation_1_toolname)/
+                    0_FirstBeamCalculatorName/
+                    (1_SecondBeamCalculatorName/)
                 000002/
-                    beam_calculation_0_toolname/
-                    (beam_calculation_1_toolname)/
+                    0_FirstBeamCalculatorName/
+                    (1_SecondBeamCalculatorName/)
                 etc
 
         """
-        accelerator_paths = [Path(self.project_folder, f"{i:06d}")
+        accelerator_paths = [self.project_folder / f"{i:06d}"
                              for i in range(n_simulations)]
         accelerator_paths[0] = accelerator_paths[0].with_name(
             f"{accelerator_paths[0].name}_ref"
         )
-
-        _ = [Path(fault_scenar, out_folder).mkdir(parents=True, exist_ok=True)
-             for fault_scenar in accelerator_paths
-             for out_folder in out_folders]
+        for accel_path in accelerator_paths:
+            for out_folder in out_folders:
+                path = accel_path / out_folder
+                path.mkdir(parents=True, exist_ok=True)
         return accelerator_paths
 
 
@@ -90,10 +89,9 @@ class NoFault(AcceleratorFactory):
 
     def run(self, *args, **kwargs) -> Accelerator:
         """Create a single accelerator."""
-        out_folder = self.beam_calculator.out_folder
+        out_folders = self.beam_calculator.out_folder,
         accelerator_path = self._generate_folders_tree_structure(
-            out_folders=(out_folder, ),
-            n_simulations=1,
+            out_folders, n_simulations=1,
         )[0]
         list_of_elements_factory = \
             self.beam_calculator.list_of_elements_factory
@@ -102,7 +100,6 @@ class NoFault(AcceleratorFactory):
         accelerator = super().run(
             name=name,
             dat_file=self.dat_file,
-            project_folder=self.project_folder,
             accelerator_path=accelerator_path,
             list_of_elements_factory=list_of_elements_factory,
         )
@@ -155,13 +152,12 @@ class WithFaults(AcceleratorFactory):
                 **kwargs
                 ) -> list[Accelerator]:
         """Create the required Accelerators as well as their output folders."""
-        out_folders = tuple([beam_calculator.out_folder
-                            for beam_calculator in self.beam_calculators
-                            if beam_calculator is not None
-                             ])
+        out_folders = [beam_calculator.out_folder
+                       for beam_calculator in self.beam_calculators
+                       if beam_calculator is not None]
 
         accelerator_paths = self._generate_folders_tree_structure(
-            out_folders=out_folders,
+            out_folders,
             n_simulations=self.n_simulations
         )
 
@@ -174,7 +170,6 @@ class WithFaults(AcceleratorFactory):
         accelerators = [self.run(
             name=name,
             dat_file=self.dat_file,
-            project_folder=self.project_folder,
             accelerator_path=accelerator_path,
             list_of_elements_factory=list_of_elements_factory,
         ) for name, accelerator_path in zip(names, accelerator_paths)]

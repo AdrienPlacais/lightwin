@@ -42,8 +42,8 @@ class ListOfElements(list):
                  input_particle: ParticleInitialState,
                  input_beam: InitialBeamParameters,
                  tm_cumul_in: np.ndarray,
+                 files: dict[str, Path | str | list[list[str]]],
                  first_init: bool = True,
-                 files: dict[str, Path | str | list[list[str]]] | None = None
                  ) -> None:
         """
         Create the object, encompassing all the linac or only a fraction.
@@ -66,12 +66,13 @@ class ListOfElements(list):
         first_init : bool, optional
             To indicate if this a full linac or only a portion (fit process).
             The default is True.
-        files : dict[str, str | list[list[str]]], optional
+        files : dict[str, str | list[list[str]] | Path]
             A dictionary to hold information on the source and output
             files/folders of the object. The keys are:
-                - ``dat_filepath``: path to the ``.dat`` file
+                - ``dat_file``: absolute path to the ``.dat`` file
                 - ``elts_n_cmds``: list of objects representing dat content
-                - ``out_folder``: where calculation results should be stored
+                - ``accelerator_path``: where calculation results for each
+                :class:`.BeamCalculator` will be stored.
                 - ``dat_content``: list of list of str, holding content of the
                 ``.dat``.
 
@@ -158,10 +159,11 @@ class ListOfElements(list):
     @property
     def tracewin_command(self) -> list[str]:
         """Create the command to give proper initial parameters to TraceWin."""
-        dat_filepath = self.get('dat_filepath', to_numpy=False)
+        dat_file = self.files['dat_file']
+        assert isinstance(dat_file, Path)
         _tracewin_command = [
             command_bit
-            for command in [list_of_elements_to_command(dat_filepath),
+            for command in [list_of_elements_to_command(dat_file),
                             self.input_particle.tracewin_command,
                             self.input_beam.tracewin_command]
             for command_bit in command]
@@ -255,7 +257,7 @@ class ListOfElements(list):
             elt.idx['elt_idx'] = i
 
     def store_settings_in_dat(self,
-                              dat_filepath: Path,
+                              dat_file: Path,
                               save: bool = True
                               ) -> None:
         """
@@ -279,10 +281,10 @@ class ListOfElements(list):
         if not save:
             return
 
-        self.files['dat_filepath'] = dat_filepath
+        self.files['dat_file'] = dat_file
         dat_content = [elt_or_cmd.line
                        for elt_or_cmd in self.files['elts_n_cmds']]
-        save_dat_filecontent_to_dat(dat_content, dat_filepath)
+        save_dat_filecontent_to_dat(dat_content, dat_file)
 
 
 def _group_elements_by_section(elts: list[Element],

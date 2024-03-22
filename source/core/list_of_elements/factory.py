@@ -91,23 +91,22 @@ class ListOfElementsFactory:
         )
         self.elements_to_remove = elements_to_remove
 
-    def whole_list_run(
-            self,
-            dat_filepath: Path,
-            accelerator_path: Path,
-            **kwargs: Any,
-    ) -> ListOfElements:
-        """
-        Create a new :class:`.ListOfElements`, encompassing a full linac.
+    def whole_list_run(self,
+                       dat_file: Path,
+                       accelerator_path: Path,
+                       **kwargs: Any,
+                       ) -> ListOfElements:
+        """Create a new :class:`.ListOfElements`, encompassing a full linac.
 
         Factory function called from within the :class:`.Accelerator` object.
 
         Parameters
         ----------
-        dat_filepath : str
-            Path to the ``.dat`` file (TraceWin).
-        accelerator_path : str
-            Where results should be stored.
+        dat_file : Path
+            Absolute path to the ``.dat`` file.
+        accelerator_path : Path
+            Absolute path where results for each :class:`.BeamCalculator` will
+            be stored.
 
         Returns
         -------
@@ -116,15 +115,14 @@ class ListOfElementsFactory:
             proper particle and beam properties at its entry.
 
         """
-        dat_filepath = dat_filepath.absolute()
         logging.info("First initialisation of ListOfElements, ecompassing all "
-                     f"linac. Created with {dat_filepath = }")
+                     f"linac. Created with {dat_file = }")
 
-        dat_filecontent = tracewin_utils.load.complete_dat_file(dat_filepath)
+        dat_filecontent = tracewin_utils.load.complete_dat_file(dat_file)
         files = {
-            'dat_filepath': dat_filepath,
+            'dat_file': dat_file,
             'dat_content': dat_filecontent,
-            'out_path': accelerator_path,
+            'accelerator_path': accelerator_path,
             'elts_n_cmds': list[Instruction],
         }
 
@@ -172,7 +170,8 @@ class ListOfElementsFactory:
                                    w_kin: float,
                                    phi_abs: float,
                                    z_in: float,
-                                   **kwargs: np.ndarray) -> ParticleInitialState:
+                                   **kwargs: np.ndarray
+                                   ) -> ParticleInitialState:
         """Create a :class:`.ParticleInitialState` for full list of elts."""
         input_particle = ParticleInitialState(w_kin=w_kin,
                                               phi_abs=phi_abs,
@@ -191,14 +190,15 @@ class ListOfElementsFactory:
         Create a :class:`.ListOfElements` which is a subset of a previous one.
 
         Factory function used during the fitting process, called by a
-        :class:`.Fault` object. During this optimisation process, we compute the
-        propagation of the beam only on the smallest possible subset of the linac.
+        :class:`.Fault` object. During this optimisation process, we compute
+        the propagation of the beam only on the smallest possible subset of the
+        linac.
 
         It creates the proper :class:`.ParticleInitialState` and
         :class:`.BeamParameters` objects. In contrary to
         :func:`new_list_of_elements`, the :class:`.BeamParameters` must contain
-        information on the transverse plane if beam propagation is performed with
-        :class:`.TraceWin`.
+        information on the transverse plane if beam propagation is performed
+        with :class:`.TraceWin`.
 
         Parameters
         ----------
@@ -207,13 +207,16 @@ class ListOfElementsFactory:
             contain.
         simulation_output : SimulationOutput
             Holds the results of the pre-existing list of elements.
+        files_from_full_list_of_elements : dict
+            The :attr:`.ListOfElements.files` from the full
+            :class:`.ListOfElements`.
 
         Returns
         -------
         list_of_elements : ListOfElements
             Contains all the elements that will be recomputed during the
-            optimisation, as well as the proper particle and beam properties at its
-            entry.
+            optimisation, as well as the proper particle and beam properties at
+            its entry.
 
         """
         logging.info("Initalisation of ListOfElements from already initialized"
@@ -258,31 +261,28 @@ class ListOfElementsFactory:
         self,
         elts: list[Element],
         files_from_full_list_of_elements: dict[str, Any],
-        tmp_folder: Path = Path('tmp'),
-        tmp_dat: Path = Path('tmp.dat'),
-    ) -> dict[str, str | list[list[str]]]:
+        tmp_folder: Path | str = Path('tmp'),
+        tmp_dat: Path | str = Path('tmp.dat'),
+    ) -> dict[str, Path | list[list[str]]]:
         """Set the new ``.dat`` file containing only elements of ``elts``."""
-        dirname = files_from_full_list_of_elements['out_path']
-        assert isinstance(dirname, Path)
-        dat_filepath = Path(dirname, tmp_folder, tmp_dat)
+        accelerator_path = files_from_full_list_of_elements['accelerator_path']
+        os.mkdir(accelerator_path / tmp_folder)
+        dat_file = accelerator_path / tmp_folder / tmp_dat
 
         original_instructions = files_from_full_list_of_elements['elts_n_cmds']
         assert isinstance(original_instructions, list)
-        # assert all(isinstance(elt, (Element, Command))
-        #            for elt in original_instructions)
         dat_content, instructions = \
             dat_filecontent_from_smaller_list_of_elements(
                 files_from_full_list_of_elements['elts_n_cmds'],
                 elts,
             )
 
-        files = {'dat_filepath': dat_filepath,
+        files = {'dat_file': dat_file,
                  'dat_content': dat_content,
                  'elts_n_cmds': instructions,
-                 'out_path': dat_filepath.parent}
+                 'accelerator_path': accelerator_path / tmp_folder}
 
-        os.mkdir(Path(dirname, tmp_folder))
-        save_dat_filecontent_to_dat(dat_content, dat_filepath)
+        save_dat_filecontent_to_dat(dat_content, dat_file)
         return files
 
     def _delta_phi_for_tracewin(self,

@@ -38,9 +38,7 @@ class Envelope1D(BeamCalculator):
         self.flag_cython = flag_cython
         self.n_steps_per_cell = n_steps_per_cell
         self.method = method
-
-        solver_name = "Envelope1D"
-        super().__init__(out_folder, default_field_map_folder, solver_name)
+        super().__init__(out_folder, default_field_map_folder)
 
     def _set_up_specific_factories(self) -> None:
         """Set up the factories specific to the :class:`.BeamCalculator`.

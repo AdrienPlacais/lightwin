@@ -41,14 +41,13 @@ from core.list_of_elements.helper import (elt_at_this_s_idx,
 from util.helper import recursive_items, recursive_getter
 
 
-class Accelerator():
+class Accelerator:
     """Class holding a :class:`.ListOfElements`."""
 
     def __init__(self,
                  name: str,
-                 dat_file: str,
-                 project_folder: str,
-                 accelerator_path: str,
+                 dat_file: Path,
+                 accelerator_path: Path,
                  list_of_elements_factory: ListOfElementsFactory,
                  ) -> None:
         """Create object.
@@ -57,14 +56,11 @@ class Accelerator():
         ----------
         name : str
             Name of the accelerator, used in plots.
-        dat_file : str
-            Path to the linac ``.dat`` file.
-        project_folder : str
-            Path where all data will be saved.
-        accelerator_path : str
-            Folder where all data will be saved.
-        out_folders : tuple[str]
-            Not used anymore.
+        dat_file : Path
+            Absolute path to the linac ``.dat`` file.
+        accelerator_path : Path
+            Absolute path where results for each :class:`.BeamCalculator` will
+            be stored.
         list_of_elements_factory : ListOfElementsFactory
             A factory to create the list of elements.
 
@@ -72,19 +68,16 @@ class Accelerator():
         self.name = name
         self.simulation_outputs: dict[str, SimulationOutput] = {}
         self.data_in_tw_fashion: pd.DataFrame
-
-        self.files = {'project_folder': project_folder,
-                      'accelerator_path': accelerator_path}
+        self._accelerator_path = accelerator_path
 
         kwargs = {'w_kin': con.E_MEV,
                   'phi_abs': 0.,
                   'z_in': 0.,
                   'sigma_in': con.SIGMA}
         self.elts: ListOfElements
-        self.elts = list_of_elements_factory.whole_list_run(
-            dat_file,
-            accelerator_path,
-            **kwargs)
+        self.elts = list_of_elements_factory.whole_list_run(dat_file,
+                                                            accelerator_path,
+                                                            **kwargs)
 
         self._special_getters = self._create_special_getters()
         self._check_consistency_phases()
@@ -208,12 +201,13 @@ class Accelerator():
             phi_s = simulation_output.cav_params['phi_s'][i]
             elt.keep_rf_field(rf_field, v_cav_mv, phi_s)
 
-        dat_filepath = Path(
-            self.files['accelerator_path'],
-            simulation_output.out_folder,
-            self.elts.files['dat_filepath'].name,
-        )
-        self.elts.store_settings_in_dat(dat_filepath, save=True)
+        original_dat_file = self.elts.files['dat_file']
+        assert isinstance(original_dat_file, Path)
+        filename = original_dat_file.name
+        dat_file = self._accelerator_path / simulation_output.out_folder \
+            / filename
+
+        self.elts.store_settings_in_dat(dat_file, save=True)
 
     def keep_simulation_output(self, simulation_output: SimulationOutput,
                                beam_calculator_id: str) -> None:
@@ -224,8 +218,8 @@ class Accelerator():
         so we can study it and save Figures/study results in the proper folder.
 
         """
-        simulation_output.out_path = Path(self.get('accelerator_path'),
-                                          simulation_output.out_folder)
+        simulation_output.out_path = self._accelerator_path \
+            / simulation_output.out_folder
         self.simulation_outputs[beam_calculator_id] = simulation_output
 
     def elt_at_this_s_idx(self, s_idx: int, show_info: bool = False

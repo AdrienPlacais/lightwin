@@ -180,7 +180,7 @@ class SimulationOutput:
                 val[key] = None
                 continue
 
-            if 'r_' in key:
+            if 'r_' in key and 'mismatch_factor_' not in key:
                 val[key] = self.transfer_matrix.get(key, elt=elt, pos=pos,
                                                     to_numpy=False,
                                                     **kwargs)

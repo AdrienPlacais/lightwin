@@ -39,17 +39,23 @@ class BeamCalculator(ABC):
     def __init__(self,
                  out_folder: Path | str,
                  default_field_map_folder: Path | str,
-                 solver_name: str = '',
-                 ):
-        """Set ``id`` and factories."""
+                 ) -> None:
+        """Set ``id`` and factories.
+
+        Parameters
+        ----------
+        out_folder : Path | str
+            Name of the folder where results should be stored, for each
+            :class:`.Accelerator` under study. This is a relative path.
+        default_field_map_folder : Path | str
+            Where to look for field map files by default.
+
+        """
         self.id: str = f"{self.__class__.__name__}_{next(self._ids)}"
 
         if isinstance(out_folder, str):
             out_folder = Path(out_folder)
-        self.out_folder = out_folder.resolve().absolute()
-        if not solver_name:
-            self.out_folder = self.out_folder.parent \
-                / f"{self.out_folder.name}_{solver_name}"
+        self.out_folder = out_folder
 
         if isinstance(default_field_map_folder, str):
             default_field_map_folder = Path(default_field_map_folder)

@@ -35,8 +35,7 @@ from optimisation.objective.objective import Objective
 
 
 class Fault:
-    """
-    To handle and fix a single failure.
+    """Handle and fix a single failure.
 
     Attributes
     ----------
@@ -191,7 +190,7 @@ class Fault:
 
         for cav, stat in zip(elements, status):
             cav.update_status(stat)
-        self.elts.store_settings_in_dat(self.elts.files['dat_filepath'],
+        self.elts.store_settings_in_dat(self.elts.files['dat_file'],
                                         save=True)
 
     def get_x_sol_in_real_phase(self) -> None:

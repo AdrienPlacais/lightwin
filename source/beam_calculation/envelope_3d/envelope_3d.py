@@ -34,9 +34,7 @@ class Envelope3D(BeamCalculator):
         """Set the proper motion integration function, according to inputs."""
         self.flag_phi_abs = flag_phi_abs
         self.n_steps_per_cell = n_steps_per_cell
-
-        solver_name = "Envelope3D"
-        super().__init__(out_folder, default_field_map_folder, solver_name)
+        super().__init__(out_folder, default_field_map_folder)
 
         self.beam_parameters_factory = BeamParametersFactoryEnvelope3D(
             self.is_a_3d_simulation,

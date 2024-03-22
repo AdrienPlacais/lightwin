@@ -97,9 +97,7 @@ class TraceWin(BeamCalculator):
         if self.is_a_multiparticle_simulation:
             filename = Path('partran1.out')
         self._filename = filename
-
-        solver_name = "TraceWin"
-        super().__init__(out_folder, default_field_map_folder, solver_name)
+        super().__init__(out_folder, default_field_map_folder)
 
         logging.warning("TraceWin solver currently cannot work with relative "
                         "phases (last arg of FIELD_MAP should be 1). You "
