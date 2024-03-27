@@ -45,6 +45,29 @@ def compare_with_reference(simulation_output: SimulationOutput,
             f" ie {delta = } > {tol = }")
 
 
+def compare_with_other(ref_so: SimulationOutput,
+                       fix_so: SimulationOutput,
+                       key: str,
+                       tol: float = 1e-6,
+                       **get_kwargs) -> None:
+    """Compare ``key`` from ``simulation_output`` and ``REFERENCE_RESULTS``."""
+    value = _get_value(fix_so, key, **get_kwargs)
+    reference_value = _get_value(ref_so, key, **get_kwargs)
+
+    if isinstance(value, float) and isinstance(reference_value, float):
+        delta = abs(value - reference_value)
+        assert delta < tol, (f"Final {key} is {value:.3e} instead of "
+                             f"{reference_value:.3e} ie {delta = :.3e} > "
+                             f"{tol = :.1e}")
+
+    if isinstance(value, np.ndarray) and isinstance(reference_value,
+                                                    np.ndarray):
+        delta = np.abs(value - reference_value)
+        assert np.all(delta < tol), (
+            f"Final {key} is {value} instead of {reference_value}"
+            f" ie {delta = } > {tol = }")
+
+
 def _get_value(simulation_output: SimulationOutput,
                key: str,
                to_numpy: bool = False,
