@@ -1,5 +1,4 @@
 """Tests the various :class:`.OptimisationAlgorithm`."""
-import logging
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +13,7 @@ from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import WithFaults
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 
-from tests.reference import compare_with_other, compare_with_reference
+from tests.reference import compare_with_other
 
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
@@ -26,7 +25,7 @@ params = [
 
 
 @pytest.fixture(scope='class', params=params)
-def config(request,
+def config(request: pytest.FixtureRequest,
            tmp_path_factory: pytest.TempPathFactory,
            ) -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""

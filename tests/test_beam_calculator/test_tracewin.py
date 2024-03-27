@@ -9,7 +9,6 @@
     definitions.
 
 """
-import logging
 from pathlib import Path
 from typing import Any
 from beam_calculation.beam_calculator import BeamCalculator
@@ -36,11 +35,10 @@ params = [
 
 
 @pytest.fixture(scope='class', params=params)
-def config(request,
+def config(request: pytest.FixtureRequest,
            tmp_path_factory: pytest.TempPathFactory,
            ) -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""
-    logging.critical(type(request))
     out_folder = tmp_path_factory.mktemp('tmp')
     partran, = request.param
 
