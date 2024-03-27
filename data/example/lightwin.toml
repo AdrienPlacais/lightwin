@@ -13,7 +13,6 @@ method = "RK"
 tool = "Envelope3D"
 flag_phi_abs = true
 n_steps_per_cell = 40
-method = "RK"
 
 [generic_tracewin]
 tool = "TraceWin"

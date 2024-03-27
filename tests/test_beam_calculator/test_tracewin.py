@@ -9,15 +9,17 @@
     definitions.
 
 """
+import logging
 from pathlib import Path
 from typing import Any
+from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.factory import BeamCalculatorsFactory
 
 import pytest
 
 import config_manager
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
-from beam_calculation.tracewin.tracewin import TraceWin
 from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import NoFault
 
@@ -27,65 +29,72 @@ DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
 
-parameters = [
+params = [
     pytest.param((0, )),
     pytest.param((1, ), marks=pytest.mark.slow),
 ]
 
 
-@pytest.fixture(scope='module', autouse=True)
-def config() -> dict[str, dict[str, Any]]:
+@pytest.fixture(scope='class', params=params)
+def config(request,
+           tmp_path_factory: pytest.TempPathFactory,
+           ) -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""
+    logging.critical(type(request))
+    out_folder = tmp_path_factory.mktemp('tmp')
+    partran, = request.param
+
     config_path = DATA_DIR / "lightwin.toml"
     config_keys = {
         'files': 'files',
         'beam_calculator': 'generic_tracewin',
         'beam': 'beam',
     }
-    my_config = config_manager.process_config(config_path, config_keys)
+    override = {
+        'files': {
+            'project_folder': out_folder,
+        },
+        'beam_calculator': {
+            'partran': partran,
+        }
+    }
+    my_config = config_manager.process_config(config_path, config_keys,
+                                              warn_mismatch=True,
+                                              override=override)
     return my_config
 
 
-def _create_solver(partran: int, out_folder: Path) -> TraceWin:
+@pytest.fixture(scope="class")
+def solver(config: dict[str, dict[str, Any]]) -> BeamCalculator:
     """Instantiate the solver with the proper parameters."""
-    base_kwargs = {"partran": partran}
-    kwargs = {
-        "executable": Path("/", "usr", "local", "bin", "TraceWin",
-                           "./TraceWin_noX11"),
-        "ini_path": DATA_DIR / "example.ini",
-        "base_kwargs": base_kwargs,
-        "out_folder": out_folder,
-        "default_field_map_folder": DATA_DIR,
-    }
-    return TraceWin(**kwargs)
+    factory = BeamCalculatorsFactory(beam_calculator=config['beam_calculator'],
+                                     files=config['files'],
+                                     )
+    my_solver = factory.run_all()[0]
+    return my_solver
 
 
-def _create_example_accelerator(solver: TraceWin,
-                                config: dict[str, dict[str, Any]]
-                                ) -> Accelerator:
+@pytest.fixture(scope="class")
+def accelerator(solver: BeamCalculator,
+                config: dict[str, dict[str, Any]],
+                ) -> Accelerator:
     """Create an example linac."""
     accelerator_factory = NoFault(beam_calculator=solver, **config['files'])
     accelerator = accelerator_factory.run()
     return accelerator
 
 
-@pytest.fixture(scope='class', autouse=True)
-def out_folder(tmp_path_factory) -> Path:
-    """Create a class-scoped temporary dir for results."""
-    return tmp_path_factory.mktemp('tmp')
-
-
-@pytest.fixture(scope='class', params=parameters)
-def simulation_output(request,
-                      config: dict[str, dict[str, Any]],
-                      out_folder: Path,
+@pytest.fixture(scope='class')
+def simulation_output(solver: BeamCalculator,
+                      accelerator: Accelerator,
                       ) -> SimulationOutput:
     """Init and use a solver to propagate beam in an example accelerator."""
-    partran, = request.param
-    solver = _create_solver(partran, out_folder)
-    accelerator = _create_example_accelerator(solver, config)
     my_simulation_output = solver.compute(accelerator)
     return my_simulation_output
+
+
+
+
 
 
 @pytest.mark.tracewin

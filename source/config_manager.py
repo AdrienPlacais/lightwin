@@ -20,6 +20,12 @@ In particular:
     variable:
         - maybe add this? Unnecessary at this point
 
+.. todo::
+    Remove global variables.
+
+.. todo::
+    Find a way to override the entries in the ``.toml`` before testing.
+
 """
 from typing import Any
 from pathlib import Path
@@ -63,9 +69,13 @@ OPTIONAL_CONFIG_ENTRIES = ('beam_calculator_post', 'evaluators', 'plots',
                            'wtf', 'design_space')  #:
 
 
-def process_config(config_path: Path,
-                   config_keys: dict[str, str],
-                   ) -> dict[str, dict[str, Any]]:
+def process_config(
+       config_path: Path,
+       config_keys: dict[str, str],
+       warn_mismatch: bool = False,
+       override: dict[str, dict[str, dict[str, str | int | float | bool |
+                                          list]]] | None = None,
+       ) -> dict[str, dict[str, Any]]:
     """Load and test the configuration file.
 
     Parameters
@@ -76,6 +86,11 @@ def process_config(config_path: Path,
     config_keys : dict[str, str]
         Associate the name of LightWin's group of parameters to the entry in
         the configuration file.
+    warn_mismatch : bool, optional
+        Raise a warning if a key in a ``override`` sub-dict is not found.
+    override : dict[str, dict[str, dict[str, str | int | float | bool | list]]]
+        To override entries in the ``.toml``. If not provided, we keep
+        defaults.
 
     Returns
     -------
@@ -93,6 +108,9 @@ def process_config(config_path: Path,
 
     if config_path.suffix == '.toml':
         configuration = _load_correct_toml_entries(config_path, config_keys)
+        if override is None:
+            override = {}
+        _override_some_toml_entries(configuration, warn_mismatch, **override)
         config_folder = config_path.parent
         _process_config_toml(configuration, config_folder)
         return configuration
@@ -100,21 +118,38 @@ def process_config(config_path: Path,
     raise IOError(f"{config_path.suffix = } while it should be .ini or .toml")
 
 
-def _load_correct_toml_entries(config_path: Path,
-                               config_keys: dict[str, str],
-                               ) -> dict[str, dict[str, Any]]:
+def _load_correct_toml_entries(
+    config_path: Path,
+    config_keys: dict[str, str],
+) -> dict[str, dict[str, str | int | float | bool | list]]:
     """Load the ``.toml`` and extract the dicts asked by user."""
-    toml_as_dict: dict[str, dict[str, str | int | float | bool | list]]
+    all_toml: dict[str, dict[str, str | int | float | bool | list]]
     with open(config_path, 'rb') as f:
-        toml_as_dict = tomllib.load(f)
+        all_toml = tomllib.load(f)
 
-    toml_entries = {key: toml_as_dict[value]
-                    for key, value in config_keys.items()}
-
+    desired_toml = {key: all_toml[value] for key, value in config_keys.items()}
     for key in MANDATORY_CONFIG_ENTRIES:
-        assert key in toml_entries, f"{key = } is mandatory and missing."
+        assert key in desired_toml, f"{key = } is mandatory and missing."
 
-    return toml_entries
+    return desired_toml
+
+
+def _override_some_toml_entries(
+        configuration: dict[str, dict[str, str | int | float | bool | list]],
+        warn_mismatch: bool = False,
+        **override: dict[str, str | int | float | bool | list]) -> None:
+    """Override some entries before testing."""
+    for over_key, over_subdict in override.items():
+        assert over_key in configuration, (
+            f"You want to override entries in {over_key = }, which was not "
+            f"found in {configuration.keys() = }")
+        conf_subdict = configuration[over_key]
+
+        for key, val in over_subdict.items():
+            if warn_mismatch and key not in conf_subdict:
+                logging.warning(f"You want to override {key = }, which was "
+                                f"not found in {conf_subdict.keys() = }")
+            conf_subdict[key] = val
 
 
 def _process_config_toml(toml_entries: dict[str, dict[str, Any]],

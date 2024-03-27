@@ -222,9 +222,9 @@ def _find_file(config_folder: Path, file: str) -> Path:
     raise FileNotFoundError(msg)
 
 
-def _test_envelope3d(method: str,
-                     flag_phi_abs: bool,
+def _test_envelope3d(flag_phi_abs: bool,
                      n_steps_per_cell: int,
+                     method: str = 'RK',
                      flag_cython: bool | None = None,
                      **beam_calculator_kw: bool | str | int) -> None:
     """Check validity of arguments for :class:`.Envelope3D`."""

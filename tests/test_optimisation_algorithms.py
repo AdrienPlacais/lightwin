@@ -19,33 +19,38 @@ from tests.reference import compare_with_other, compare_with_reference
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
-parameters = [
+params = [
     pytest.param(('downhill_simplex', ), marks=pytest.mark.smoke),
     pytest.param(('least_squares', ), ),
 ]
 
 
-@pytest.fixture(scope='class', params=parameters)
+@pytest.fixture(scope='class', params=params)
 def config(request,
            tmp_path_factory: pytest.TempPathFactory,
            ) -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""
-    out_folder = tmp_path_factory.mktemp('tmp', numbered=True)
+    out_folder = tmp_path_factory.mktemp('tmp')
     optimisation_algorithm, = request.param
 
     config_path = DATA_DIR / "lightwin.toml"
-    config_keys = {
-        'files': 'files',
-        'beam_calculator': 'generic_envelope1d',
-        'beam': 'beam',
-        'wtf': 'generic_wtf',
-        'design_space': 'generic_design_space',
+    config_keys = {'files': 'files',
+                   'beam_calculator': 'generic_envelope1d',
+                   'beam': 'beam',
+                   'wtf': 'generic_wtf',
+                   'design_space': 'generic_design_space',
+                   }
+    override = {
+        'files': {
+            'project_folder': out_folder,
+        },
+        'wtf': {
+            'optimisation_algorithm': optimisation_algorithm,
+        },
     }
-    my_config = config_manager.process_config(config_path, config_keys)
-
-    my_config['files']['project_folder'] = out_folder
-    my_config['wtf']['optimisation_algorithm'] = optimisation_algorithm
-
+    my_config = config_manager.process_config(config_path, config_keys,
+                                              warn_mismatch=True,
+                                              override=override)
     return my_config
 
 
@@ -98,7 +103,6 @@ def simulation_outputs(solver: BeamCalculator,
     return ref_simulation_output, fix_simulation_output
 
 
-@pytest.mark.implementation
 class TestOptimisationAlgorithms:
 
     _w_kin_tol = 1e-3

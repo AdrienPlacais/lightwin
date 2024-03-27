@@ -31,11 +31,9 @@ def edit_configuration_dict_in_place(files_kw: dict[str, str | Path],
                                      ) -> None:
     """Set some useful paths."""
     dat_file = files_kw['dat_file']
-    assert isinstance(dat_file, str)
     files_kw['dat_file'] = _find_dat_file(config_folder, dat_file)
 
     project_folder = files_kw.get('project_folder', '')
-    assert isinstance(project_folder, str)
     project_path = _create_project_folders(config_folder, project_folder)
     files_kw['project_folder'] = project_path
 
@@ -47,8 +45,13 @@ def edit_configuration_dict_in_place(files_kw: dict[str, str | Path],
         files_kw['cal_file'] = Path(files_kw['cal_file']).resolve().absolute()
 
 
-def _find_dat_file(config_folder: Path, dat_file: str) -> Path:
+def _find_dat_file(config_folder: Path, dat_file: str | Path) -> Path:
     """Make the ``dat_file`` absolute."""
+    if isinstance(dat_file, Path):
+        dat_path = dat_file.resolve().absolute()
+        if dat_path.is_file():
+            return dat_path
+
     dat_path = (config_folder / dat_file).resolve().absolute()
     if dat_path.is_file():
         return dat_path
@@ -64,17 +67,23 @@ def _find_dat_file(config_folder: Path, dat_file: str) -> Path:
     raise FileNotFoundError(msg)
 
 
-def _create_project_folders(config_folder: Path, project_folder: str = ''
+def _create_project_folders(config_folder: Path,
+                            project_folder: str | Path = ''
                             ) -> Path:
     """Create a folder to store outputs and log messages."""
-    if project_folder:
-        project_path = (config_folder / project_folder).resolve()
+    if isinstance(project_folder, Path):
+        project_path = project_folder.resolve().absolute()
         exist_ok = True
 
     else:
-        time = datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms')
-        project_path = config_folder / time
-        exist_ok = False
+        if project_folder:
+            project_path = (config_folder / project_folder).resolve()
+            exist_ok = True
+
+        else:
+            time = datetime.datetime.now().strftime('%Y.%m.%d_%Hh%M_%Ss_%fms')
+            project_path = config_folder / time
+            exist_ok = False
 
     project_path.mkdir(exist_ok=exist_ok)
     return project_path.absolute()
