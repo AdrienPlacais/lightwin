@@ -12,6 +12,8 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   core.elements.field_maps.cavity_settings
+   core.elements.field_maps.cavity_settings_factory
    core.elements.field_maps.factory
    core.elements.field_maps.field_map
    core.elements.field_maps.field_map_100

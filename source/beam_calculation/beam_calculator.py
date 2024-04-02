@@ -117,8 +117,8 @@ class BeamCalculator(ABC):
         """
         Perform a simulation with new cavity settings.
 
-        Calling it with `set_of_cavity_settings = None` should be the same as
-        calling the plain `run` method.
+        Calling it with ``set_of_cavity_settings = None`` should be the same as
+        calling the plain ``run`` method.
 
         Parameters
         ----------
@@ -144,10 +144,10 @@ class BeamCalculator(ABC):
         """
         Run a simulation a simulation after optimisation is over.
 
-        With `Envelope1D`, it just calls the classic `run_with_this`. But with
-        TraceWin, we need to update the `optimized_cavity_settings` as running
-        an optimisation run on a fraction of the linac is pretty different from
-        running a simulation on the whole linac.
+        With ``Envelope1D``, it just calls the classic ``run_with_this``. But
+        with TraceWin, we need to update the ``optimized_cavity_settings`` as
+        running an optimisation run on a fraction of the linac is pretty
+        different from running a simulation on the whole linac.
 
         """
 
@@ -192,7 +192,7 @@ class BeamCalculator(ABC):
         output_time : bool, optional
             To print in log the time the calculation took. The default is True.
         kwargs : SimulationOutput
-            For calculation of miNonesmatch factors..
+            For calculation of mismatch factors.
 
         Returns
         -------

@@ -60,15 +60,19 @@ class DownhillSimplex(OptimisationAlgorithm):
                             **kwargs)
 
         self.solution = solution
+        success = self.solution.success
+        status = 'compensate (ok)'
+        if not success:
+            status = 'compensate (not ok)'
         optimized_cavity_settings = self._create_set_of_cavity_settings(
-            solution.x)
+            solution.x,
+            status=status)
         # TODO: output some info could be much more clear by using the __str__
         # methods of the various objects.
 
         objectives_values = self._get_objective_values()
         self._output_some_info(objectives_values)
 
-        success = self.solution.success
         info = {'X': self.solution.x.tolist(),
                 'F': self.solution.fun.tolist(),
                 'objectives_values': objectives_values,

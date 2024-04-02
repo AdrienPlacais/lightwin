@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-We define a base class to hold the parameters for the :class:`.BeamCalculator`.
+"""Define a base class for :class:`ElementBeamCalculatorParameters`.
 
-:class:`ElementBeamCalculatorParameters` is attribute of an :class:`.Element`
-and holds parameters that depend both on the :class:`.Element` under study and
-on the :class:`.BeamCalculator` solver that is used.
+It is an attribute of an :class:`Element`, and holds parameters that depend on
+both the :class:`Element` under study and the BeamCalculator solver that is
+used.
+
+Currently, it is used by :class:`Envelope1D` only, as :class:`TraceWin` handles
+it itself.
 
 """
 from typing import Any
@@ -17,8 +19,7 @@ from util.helper import recursive_items, recursive_getter
 
 
 class ElementBeamCalculatorParameters(ABC):
-    """
-    Parent class to hold solving parameters. Attribute of :class:`.Element`.
+    """Parent class to hold solving parameters. Attribute of :class:`.Element`.
 
     Used by :class:`.Envelope1D` and :class:`.Envelope3D`.
 

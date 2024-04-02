@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""We define a factory method to create :class:`.OptimisationAlgorithm`."""
+"""Define a factory function to create :class:`.OptimisationAlgorithm`.
+
+.. todo::
+    Docstrings
+
+"""
 from typing import Any, Callable
 from abc import ABCMeta
 import logging
 from functools import partial
+from beam_calculation.beam_calculator import BeamCalculator
+from core.elements.field_maps.cavity_settings_factory import ICavitySettingsFactory
 
 from failures.fault import Fault
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
@@ -29,16 +36,15 @@ ALGORITHM_SELECTOR: dict[str, ABCMeta] = {
     'differential_evolution': DifferentialEvolution,
     'explorator': Explorator,
     'experimental': Explorator,
-    }
+}
 algorithms = tuple(ALGORITHM_SELECTOR.keys())  #:
 
 
-def optimisation_algorithm_factory(
-        opti_method: str,
-        fault: Fault,
-        beam_calculator_run_with_this: Callable,
-        **kwargs: Any
-        ) -> OptimisationAlgorithm:
+def optimisation_algorithm_factory(opti_method: str,
+                                   fault: Fault,
+                                   beam_calculator: BeamCalculator,
+                                   **kwargs: Any
+                                   ) -> OptimisationAlgorithm:
     """
     Create the proper :class:`.OptimisationAlgorithm` instance.
 
@@ -59,8 +65,11 @@ def optimisation_algorithm_factory(
         Proper optimisation algorithm.
 
     """
+    run_with_this = beam_calculator.run_with_this
+    cavity_settings_factory = _get_cavity_settings_factory(beam_calculator)
     new_kwargs = _optimisation_algorithm_kwargs(fault,
-                                                beam_calculator_run_with_this)
+                                                run_with_this,
+                                                cavity_settings_factory)
     _check_common_keys(kwargs, new_kwargs)
     kwargs = new_kwargs | kwargs
 
@@ -69,10 +78,23 @@ def optimisation_algorithm_factory(
     return algorithm
 
 
+def _get_cavity_settings_factory(
+        beam_calculator: BeamCalculator
+) -> ICavitySettingsFactory:
+    """Explore all the nested factory to find the cavity settings factory."""
+    _list_elts_factory = beam_calculator.list_of_elements_factory
+    _instruc_factory = _list_elts_factory.instructions_factory
+    _element_factory = _instruc_factory.element_factory
+    _field_map_factory = _element_factory.field_map_factory
+    cavity_settings_factory = _field_map_factory.cavity_settings_factory
+    return cavity_settings_factory
+
+
 def _optimisation_algorithm_kwargs(
-        fault: Fault,
-        beam_calculator_run_with_this: Callable,
-        ) -> dict[str, Any]:
+    fault: Fault,
+    run_with_this: Callable,
+    cavity_settings_factory: ICavitySettingsFactory,
+) -> dict[str, Any]:
     """Set default arguments to instantiate the optimisation algorithm.
 
     The kwargs for :class:`.OptimisationAlgorithm` that are defined in
@@ -95,18 +117,19 @@ def _optimisation_algorithm_kwargs(
         :class:`.OptimisationAlgorithm`.
 
     """
-    compute_beam_propagation = partial(beam_calculator_run_with_this,
+    compute_beam_propagation = partial(run_with_this,
                                        elts=fault.elts)
     new_kwargs: dict[str, Any] = {
-        "compute_beam_propagation": compute_beam_propagation,
-        "objectives": fault.objectives,
-        "compute_residuals": fault.compute_residuals,
         "compensating_elements": fault.compensating_elements,
         "elts": fault.elts,
+        "objectives": fault.objectives,
         "variables": fault.variables,
+        "compute_beam_propagation": compute_beam_propagation,
+        "compute_residuals": fault.compute_residuals,
         "constraints": fault.constraints,
         "compute_constraints": fault.compute_constraints,
-        }
+        "cavity_settings_factory": cavity_settings_factory,
+    }
     return new_kwargs
 
 

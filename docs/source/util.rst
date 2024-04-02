@@ -17,4 +17,6 @@ Submodules
    util.dicts_output
    util.helper
    util.log_manager
+   util.phases
    util.setup
+   util.synchronous_phases

@@ -38,7 +38,7 @@ class InstructionsFactory:
     """Define a factory class to easily create commands and elements."""
 
     def __init__(self,
-                 freq_bunch: float,
+                 freq_bunch_mhz: float,
                  default_field_map_folder: Path,
                  load_field_maps: bool,
                  field_maps_in_3d: bool,
@@ -48,7 +48,7 @@ class InstructionsFactory:
 
         Parameters
         ----------
-        freq_bunch : float
+        freq_bunch_mhz : float
             Beam bunch frequency in MHz.
         default_field_map_folder : Path
             Where to look for field maps when no ``FIELD_MAP_PATH`` is
@@ -63,13 +63,18 @@ class InstructionsFactory:
         load_cython_field_maps : bool
             To load or not the field maps for Cython (useful only with
             :class:`.Envelope1D` and :class:`.Envelope3D` used with Cython).
+        phi_s_definition : str, optional
+            Definition for the synchronous phases that will be used. Allowed
+            values are in
+            :var:`util.synchronous_phases.SYNCHRONOUS_PHASE_FUNCTIONS`. The
+            default is ``'historical'``.
         factory_kw : Any
             Other parameters passed to the :class:`.CommandFactory` and
             :class:`.ElementFactory`.
 
         """
         # arguments for commands
-        self._freq_bunch = freq_bunch
+        self._freq_bunch_mhz = freq_bunch_mhz
 
         if load_field_maps:
             assert default_field_map_folder.is_dir()
@@ -78,8 +83,9 @@ class InstructionsFactory:
         self._command_factory = CommandFactory(
             default_field_map_folder=default_field_map_folder,
             **factory_kw)
-        self._element_factory = ElementFactory(
+        self.element_factory = ElementFactory(
             default_field_map_folder=default_field_map_folder,
+            freq_bunch_mhz=freq_bunch_mhz,
             **factory_kw)
 
         self._load_field_maps = load_field_maps
@@ -112,7 +118,7 @@ class InstructionsFactory:
         instructions = [self._call_proper_factory(line, dat_idx)
                         for dat_idx, line in enumerate(dat_content)]
 
-        new = apply_commands(instructions, self._freq_bunch)
+        new = apply_commands(instructions, self._freq_bunch_mhz)
         # Remove lines after 'end'
         n_instructions = len(new)
         instructions = instructions[:n_instructions]
@@ -169,7 +175,7 @@ class InstructionsFactory:
                                                  dat_idx,
                                                  **instruction_kw)
             if word in IMPLEMENTED_ELEMENTS:
-                return self._element_factory.run(line,
+                return self.element_factory.run(line,
                                                  dat_idx,
                                                  **instruction_kw)
             if ';' in word:

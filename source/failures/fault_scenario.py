@@ -131,8 +131,7 @@ class FaultScenario(list):
 
         self._transfer_phi0_from_ref_to_broken()
 
-    def _set_optimisation_algorithms(self,
-                                     ) -> list[OptimisationAlgorithm]:
+    def _set_optimisation_algorithms(self) -> list[OptimisationAlgorithm]:
         """Set each fault's optimisation algorithm.
 
         Returns
@@ -150,10 +149,11 @@ class FaultScenario(list):
         assert isinstance(opti_method, str)
 
         optimisation_algorithms = [
-            optimisation_algorithm_factory(opti_method,
-                                           fault,
-                                           self.beam_calculator.run_with_this,
-                                           **kwargs)
+            optimisation_algorithm_factory(
+                opti_method,
+                fault,
+                self.beam_calculator,
+                **kwargs)
             for fault in self]
         return optimisation_algorithms
 
@@ -281,8 +281,8 @@ class FaultScenario(list):
         fix_cavities = self.fix_acc.l_cav
 
         for ref_cavity, fix_cavity in zip(ref_cavities, fix_cavities):
-            ref_a_f = ref_cavity.acc_field
-            fix_a_f = fix_cavity.acc_field
+            ref_a_f = ref_cavity.rf_field
+            fix_a_f = fix_cavity.rf_field
 
             fix_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']

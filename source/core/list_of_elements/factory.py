@@ -56,7 +56,7 @@ class ListOfElementsFactory:
     def __init__(self,
                  is_3d: bool,
                  is_multipart: bool,
-                 freq_bunch: float,
+                 freq_bunch_mhz: float,
                  default_field_map_folder: Path,
                  load_field_maps: bool = True,
                  field_maps_in_3d: bool = False,
@@ -75,6 +75,14 @@ class ListOfElementsFactory:
             all the :class:`.BeamCalculator` objects -- some phase-spaces may
             be created but never used though.
 
+        Parameters
+        ----------
+        phi_s_definition : str, optional
+            Definition for the synchronous phases that will be used. Allowed
+            values are in
+            :var:`util.synchronous_phases.SYNCHRONOUS_PHASE_FUNCTIONS`. The
+            default is ``'historical'``.
+
         """
         self.initial_beam_factory = InitialBeamParametersFactory(
             # Useless with Envelope1D
@@ -83,11 +91,11 @@ class ListOfElementsFactory:
             is_multipart=True)
 
         self.instructions_factory = InstructionsFactory(
-            freq_bunch,
+            freq_bunch_mhz,
             default_field_map_folder,
-            load_field_maps=load_field_maps,
-            field_maps_in_3d=field_maps_in_3d,
-            load_cython_field_maps=load_cython_field_maps,
+            load_field_maps,
+            field_maps_in_3d,
+            load_cython_field_maps,
         )
         self.elements_to_remove = elements_to_remove
 
@@ -159,8 +167,8 @@ class ListOfElementsFactory:
         if n_removed > 0:
             types = set([elt.__class__.__name__ for elt in removed_elts])
             logging.warning(f"Removed {n_removed} elements, according to the "
-                            "ListOfElementFactory.elements_to_remove key. The "
-                            f"removed elements have types: {types}."
+                            "ListOfElementsFactory.elements_to_remove key. The"
+                            f" removed elements have types: {types}."
                             "\nNote that with TraceWin, every Command and "
                             "Element is kept.\nNote that this will likely"
                             "lead to problems when visualising structure.")

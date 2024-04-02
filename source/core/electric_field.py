@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds :class:`RfField`, which is a simple electric field.
+"""Define :class:`RfField`, which is a simple electric field.
 
 .. todo::
     Untouched for many time... Should modernize this module, maybe move it
     to beam_calculation/?
 
 """
-import itertools
 import logging
 from typing import Callable
 

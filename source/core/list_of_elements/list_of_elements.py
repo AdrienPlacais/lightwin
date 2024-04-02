@@ -137,14 +137,14 @@ class ListOfElements(list):
 
         Necessary for :class:`.TraceWin` and used in ``.dat`` files.
         Would mess with :class:`.Envelope1D`. Do not use it to update
-        ``acc_field`` from :class:`.FieldMap`.
+        ``rf_field`` from :class:`.FieldMap`.
 
         """
         delta_phi_bunch = self.input_particle.phi_abs
         phi_0_abs_rephased = {
             cavity: phi_0_abs_with_new_phase_reference(
                 phi_0_abs,
-                delta_phi_bunch * cavity.acc_field.bunch_to_rf
+                delta_phi_bunch * cavity.rf_field.bunch_to_rf
             )
             for cavity, phi_0_abs in self._stored_phi_0_abs.items()
         }

@@ -49,5 +49,8 @@ class Freq(Command):
 
         for instruction in instructions[self.idx['influenced']]:
             if isinstance(instruction, FieldMap):
-                instruction.acc_field.set_rf_freq(self.f_rf_mhz)
+                instruction.rf_field.set_rf_freq(self.f_rf_mhz)
+                instruction.cavity_settings.set_bunch_to_rf_freq_func(
+                    self.f_rf_mhz
+                )
         return instructions

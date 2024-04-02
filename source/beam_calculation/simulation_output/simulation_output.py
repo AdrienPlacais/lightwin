@@ -16,6 +16,9 @@ We define a class to store outputs from different :class:`.BeamCalculator`.
     Transfer matrices are stored in :class:`.TransferMatrix`, but also in
     :data:`.BeamParameters.zdelta`.
 
+.. todo::
+    Maybe the synchronous phase model should appear somewhere in here?
+
 """
 from dataclasses import dataclass
 import logging

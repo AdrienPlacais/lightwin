@@ -42,11 +42,15 @@ class ElementEnvelope3DParametersFactory(
     def __init__(self,
                  method: str,
                  n_steps_per_cell: int,
-                 flag_cython: bool = False):
+                 solver_id: str,
+                 flag_cython: bool = False,
+                 phi_s_definition: str = 'historical') -> None:
         """Prepare import of proper functions."""
-        assert method in ('RK', )
+        assert method in ('RK', 'RK4')
         self.method = method
         self.n_steps_per_cell = n_steps_per_cell
+        self.solver_id = solver_id
+        self.phi_s_definition = phi_s_definition
 
         if flag_cython:
             raise NotImplementedError
@@ -71,7 +75,9 @@ class ElementEnvelope3DParametersFactory(
         """
         kwargs = {
             'method': self.method,
-            'n_steps_per_cell': self.n_steps_per_cell
+            'n_steps_per_cell': self.n_steps_per_cell,
+            'solver_id': self.solver_id,
+            'phi_s_definition': self.phi_s_definition,
         }
         subclass = self._parameters_subclass(elt)
 
@@ -123,3 +129,14 @@ class ElementEnvelope3DParametersFactory(
                           "elements_to_remove key in the "
                           "BeamCalculator.ListOfElementFactory class.")
             raise NotImplementedError
+
+    def reset_for_broken_cavity(self, elt: FieldMap,
+                                ) -> DriftEnvelope3DParameters:
+        """Give new solver parameters for a broken cavity."""
+        solver_parameters = DriftEnvelope3DParameters(self.transf_mat_module,
+                                                      elt)
+
+        solver_parameters._transfer_matrix_results_to_dict = \
+            solver_parameters._transfer_matrix_results_to_dict_broken_field_map
+
+        return solver_parameters

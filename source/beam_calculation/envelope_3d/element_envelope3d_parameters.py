@@ -29,6 +29,7 @@ from core.elements.field_maps.field_map import FieldMap
 from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
 import util.converters as convert
+from util.synchronous_phases import SYNCHRONOUS_PHASE_FUNCTIONS
 
 
 FIELD_MAP_INTEGRATION_METHOD_TO_FUNC = {
@@ -178,12 +179,17 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
                  n_steps: int,
                  method: str,
                  n_steps_per_cell: int,
+                 solver_id: str,
+                 phi_s_model: str = 'historical',
                  **kwargs: str,
                  ) -> None:
         """Create the specific parameters for a drift."""
         transf_mat_function = FIELD_MAP_INTEGRATION_METHOD_TO_FUNC[method](
             transf_mat_module)
+        self.compute_cavity_parameters = \
+            SYNCHRONOUS_PHASE_FUNCTIONS[phi_s_model]
 
+        self.solver_id = solver_id
         self.n_cell = elt.get('n_cell')
         self.bunch_to_rf = elt.get('bunch_to_rf')
         n_steps = self.n_cell * n_steps_per_cell
@@ -192,6 +198,10 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
                          n_steps,
                          )
         self._transf_mat_module = transf_mat_module
+        elt.cavity_settings.set_beam_calculator(
+            self.solver_id,
+            self.transf_mat_function_wrapper
+        )
 
     def transfer_matrix_arguments(self) -> tuple[float, int]:
         """Give the element parameters necessary to compute transfer matrix."""

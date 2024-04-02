@@ -212,6 +212,6 @@ class Fault:
             key = 'phi_0_abs'
 
         for i, cav in enumerate(self.compensating_elements):
-            x_in_real_phase[i] = cav.acc_field.phi_0[key]
+            x_in_real_phase[i] = cav.rf_field.phi_0[key]
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase

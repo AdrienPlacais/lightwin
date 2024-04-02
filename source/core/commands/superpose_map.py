@@ -128,7 +128,7 @@ class SuperposeMap(Command):
             if superposed_field_map_is_already_inserted:
                 instructions_to_merge[i] = DummyElement(*args)
                 instructions_to_merge[i].nature = 'SUPERPOSED_FIELD_MAP'
-                instructions_to_merge[i].acc_field = RfField()
+                instructions_to_merge[i].rf_field = RfField()
                 number_of_superposed += 1
                 continue
 
@@ -136,7 +136,7 @@ class SuperposeMap(Command):
                 *args,
                 total_length=total_length)
             instructions_to_merge[i].nature = 'SUPERPOSED_FIELD_MAP'
-            instructions_to_merge[i].acc_field = RfField()
+            instructions_to_merge[i].rf_field = RfField()
             superposed_field_map_is_already_inserted = True
         return instructions_to_merge, number_of_superposed
 

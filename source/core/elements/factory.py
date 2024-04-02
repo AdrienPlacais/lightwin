@@ -47,10 +47,13 @@ class ElementFactory:
 
     def __init__(self,
                  default_field_map_folder: Path,
+                 freq_bunch_mhz: float,
                  **factory_kw: Any) -> None:
         """Create a factory for the field maps."""
         field_map_factory = FieldMapFactory(default_field_map_folder,
+                                            freq_bunch_mhz,
                                             **factory_kw)
+        self.field_map_factory = field_map_factory
         IMPLEMENTED_ELEMENTS['FIELD_MAP'] = field_map_factory.run
 
     def run(self,

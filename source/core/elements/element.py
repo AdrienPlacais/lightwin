@@ -22,7 +22,6 @@ from beam_calculation.parameters.element_parameters import (
     ElementBeamCalculatorParameters)
 from core.electric_field import RfField
 from core.instruction import Instruction
-from failures.set_of_cavity_settings import SingleCavitySettings
 from util.helper import recursive_items, recursive_getter
 
 
@@ -61,7 +60,7 @@ class Element(Instruction):
 
         # By default, an element is non accelerating and has a dummy
         # accelerating field.
-        self.acc_field = RfField()
+        self.rf_field = RfField()
 
         new_idx = {'elt_idx': None,
                    'increment_elt_idx': True,
@@ -128,42 +127,23 @@ class Element(Instruction):
             return out[0]
         return tuple(out)
 
-    def keep_rf_field(self, rf_field: dict, v_cav_mv: float, phi_s: float,
+    def keep_rf_field(self,
+                      rf_field: dict,
+                      v_cav_mv: float,
+                      phi_s: float,
                       ) -> None:
         """Save data calculated by :func:`BeamCalculator.run_with_this`."""
         if rf_field != {}:
-            self.acc_field.v_cav_mv = v_cav_mv
-            self.acc_field.phi_s = phi_s
-            self.acc_field.phi_0['phi_0_abs'] = rf_field['phi_0_abs']
-            self.acc_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
-            self.acc_field.k_e = rf_field['k_e']
+            self.rf_field.v_cav_mv = v_cav_mv
+            self.rf_field.phi_s = phi_s
 
-    def rf_param(self, solver_id: str, phi_bunch_abs: float, w_kin_in: float,
-                 cavity_settings: SingleCavitySettings | None = None,
-                 ) -> dict:
-        """
-        Set the properties of the rf field; in the default case, returns None.
+            self.rf_field.phi_0['phi_0_abs'] = rf_field['phi_0_abs']
+            self.rf_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
+            self.rf_field.k_e = rf_field['k_e']
 
-        Parameters
-        ----------
-        solver_id : str
-        Identificator of the :class:`BeamCalculator`.
-        phi_bunch_abs : float
-            Absolute phase of the particle (bunch frequency).
-        w_kin_in : float
-            Kinetic energy at the Element entrance in MeV.
-        cavity_settings : SingleCavitySettings | None, optional
-            Cavity settings. Should be None in a non-accelerating element such
-            as a Drift or a broken FieldMap, and in accelerating elements
-            outside the fit process. The default is None.
-
-        Returns
-        -------
-        rf_parameters : dict
-            Always {} by default.
-
-        """
-        return {}
+            self.cavity_settings.phi_0_abs = rf_field['phi_0_abs']
+            self.cavity_settings.phi_0_rel = rf_field['phi_0_rel']
+            self.cavity_settings.k_e = rf_field['k_e']
 
     @property
     def is_accelerating(self) -> bool:

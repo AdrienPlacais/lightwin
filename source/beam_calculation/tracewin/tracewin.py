@@ -249,9 +249,9 @@ class TraceWin(BeamCalculator):
 
             if isinstance(elt, FieldMap):
                 rf_fields.append(
-                    {'k_e': elt.acc_field.k_e,
-                     'phi_0_abs': elt.acc_field.phi_0['phi_0_abs'],
-                     'phi_0_rel': elt.acc_field.phi_0['phi_0_rel']})
+                    {'k_e': elt.rf_field.k_e,
+                     'phi_0_abs': elt.rf_field.phi_0['phi_0_abs'],
+                     'phi_0_rel': elt.rf_field.phi_0['phi_0_rel']})
                 continue
             rf_fields.append({})
 

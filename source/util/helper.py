@@ -202,12 +202,3 @@ def save_vcav_and_phis(lin: object) -> None:
     np.savetxt(filepath, data, header=header)
     logging.info("Cavities accelerating field and synch. phase saved in "
                  + f"{filepath}")
-
-
-def diff_angle(phi_1: float, phi_2: float) -> float:
-    """Compute smallest difference between two angles."""
-    delta_phi = np.arctan2(
-        np.sin(phi_2 - phi_1),
-        np.cos(phi_2 - phi_1)
-    )
-    return delta_phi

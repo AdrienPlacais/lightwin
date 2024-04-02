@@ -70,7 +70,6 @@ class AcceleratorFactory(ABC):
             :class:`.BeamCalculator`.
 
         """
-        logging.critical(f"{self.project_folder = } and {out_folders = }")
         accelerator_paths = [self.project_folder / f"{i:06d}"
                              for i in range(n_simulations)]
         accelerator_paths[0] = accelerator_paths[0].with_name(

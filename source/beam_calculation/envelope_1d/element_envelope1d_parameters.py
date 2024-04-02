@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Define a class to hold solver parameters for :class:`.Envelope1D`.
+"""Define a class to hold solver parameters for :class:`.Envelope1D`.
 
 This module holds :class:`ElementEnvelope1DParameters`, that inherits
 from the Abstract Base Class :class:`.ElementBeamCalculatorParameters`.
@@ -24,9 +23,9 @@ from beam_calculation.parameters.element_parameters import (
     ElementBeamCalculatorParameters)
 from core.elements.bend import Bend
 from core.elements.element import Element
-from core.electric_field import compute_param_cav
 from core.elements.field_maps.field_map import FieldMap
 import util.converters as convert
+from util.synchronous_phases import SYNCHRONOUS_PHASE_FUNCTIONS
 
 
 FIELD_MAP_INTEGRATION_METHOD_TO_FUNC = {
@@ -37,11 +36,10 @@ FIELD_MAP_INTEGRATION_METHOD_TO_FUNC = {
 
 
 class ElementEnvelope1DParameters(ElementBeamCalculatorParameters):
-    """
-    Holds the parameters to compute beam propagation in an Element.
+    """Hold the parameters to compute beam propagation in an Element.
 
-    has and get method inherited from ElementBeamCalculatorParameters parent
-    class.
+    ``has`` and ``get`` method inherited from
+    :class:`.ElementBeamCalculatorParameters` parent class.
 
     """
 
@@ -154,7 +152,7 @@ class DriftEnvelope1DParameters(ElementEnvelope1DParameters):
         transf_mat_function = transf_mat_module.z_drift
         super().__init__(
             transf_mat_function,
-            elt.length_m,
+            length_m=elt.length_m,
         )
 
     def transfer_matrix_arguments(self) -> tuple[float, int]:
@@ -176,12 +174,17 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
                  n_steps: int,
                  method: str,
                  n_steps_per_cell: int,
+                 solver_id: str,
+                 phi_s_model: str = 'historical',
                  **kwargs: str,
                  ) -> None:
         """Create the specific parameters for a drift."""
         transf_mat_function = FIELD_MAP_INTEGRATION_METHOD_TO_FUNC[method](
             transf_mat_module)
+        self.compute_cavity_parameters = \
+            SYNCHRONOUS_PHASE_FUNCTIONS[phi_s_model]
 
+        self.solver_id = solver_id
         self.n_cell = elt.get('n_cell')
         self.bunch_to_rf = elt.get('bunch_to_rf')
         n_steps = self.n_cell * n_steps_per_cell
@@ -191,6 +194,10 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
                          )
         self._transf_mat_module = transf_mat_module
         self.field_map_file_name = str(elt.field_map_file_name)
+        elt.cavity_settings.set_beam_calculator(
+            self.solver_id,
+            self.transf_mat_function_wrapper
+        )
 
     def transfer_matrix_arguments(self
                                   ) -> tuple[float, int]:
@@ -215,7 +222,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         assert itg_field is not None
         w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
         gamma_phi[:, 1] /= self.bunch_to_rf
-        cav_params = compute_param_cav(itg_field)
+        cav_params = self.compute_cavity_parameters(itg_field)
         results = {'r_zz': r_zz,
                    'cav_params': cav_params,
                    'w_kin': w_kin,
@@ -240,7 +247,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
             """
             assert itg_field is None
             w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
-            cav_params = compute_param_cav(np.NaN)
+            cav_params = self.compute_cavity_parameters(np.NaN)
             results = {'r_zz': r_zz,
                        'cav_params': cav_params,
                        'w_kin': w_kin,

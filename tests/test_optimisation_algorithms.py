@@ -1,4 +1,6 @@
 """Tests the various :class:`.OptimisationAlgorithm`."""
+import logging
+import math
 from pathlib import Path
 from typing import Any
 

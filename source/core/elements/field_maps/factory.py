@@ -22,6 +22,9 @@ from typing import Any
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.field_map_100 import FieldMap100
 from core.elements.field_maps.field_map_7700 import FieldMap7700
+from core.elements.field_maps.cavity_settings_factory import (
+    ICavitySettingsFactory
+)
 
 
 IMPLEMENTED_FIELD_MAPS = {
@@ -49,11 +52,14 @@ class FieldMapFactory:
 
     def __init__(self,
                  default_field_map_folder: Path,
+                 freq_bunch_mhz: float,
                  default_absolute_phase_flag: str = '0',
                  **factory_kw: Any) -> None:
         """Save the default folder for field maps."""
         self.default_field_map_folder = default_field_map_folder
         self.default_absolute_phase_flag = default_absolute_phase_flag
+
+        self.cavity_settings_factory = ICavitySettingsFactory(freq_bunch_mhz)
 
     def run(self,
             line: list[str],
@@ -66,11 +72,18 @@ class FieldMapFactory:
 
         field_map_class = self._get_proper_field_map_subclass(int(line[1]))
 
+        cavity_settings = \
+            self.cavity_settings_factory.from_line_in_dat_file(
+                line,
+                set_sync_phase=False,
+            )
+
         field_map = field_map_class(
             line,
             dat_idx,
             name=name,
-            default_field_map_folder=self.default_field_map_folder
+            default_field_map_folder=self.default_field_map_folder,
+            cavity_settings=cavity_settings,
         )
         return field_map
 
