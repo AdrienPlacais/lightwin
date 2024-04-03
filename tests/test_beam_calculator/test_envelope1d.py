@@ -28,11 +28,12 @@ leapfrog_marker = pytest.mark.xfail(
     reason="leapfrog method has not been updated since 0.0.0.0.1 or so")
 
 params = [
-    pytest.param(('RK', False, 40), marks=pytest.mark.smoke),
-    pytest.param(('RK', True, 40), marks=pytest.mark.cython),
-    pytest.param(('leapfrog', False, 60), marks=leapfrog_marker),
-    pytest.param(('leapfrog', True, 60), marks=(leapfrog_marker,
-                                                pytest.mark.cython)),
+    pytest.param(('RK',       False, False, 40), marks=pytest.mark.smoke),
+    pytest.param(('RK',       False, True, 40), marks=pytest.mark.smoke),
+    pytest.param(('RK',       True,  False, 40), marks=pytest.mark.cython),
+    pytest.param(('leapfrog', False, False, 60), marks=leapfrog_marker),
+    pytest.param(('leapfrog', True,  False, 60), marks=(leapfrog_marker,
+                                                        pytest.mark.cython)),
 ]
 
 
@@ -42,7 +43,7 @@ def config(request: pytest.FixtureRequest,
            ) -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""
     out_folder = tmp_path_factory.mktemp('tmp')
-    method, flag_cython, n_steps_per_cell = request.param
+    method, flag_cython, flag_phi_abs, n_steps_per_cell = request.param
 
     config_path = DATA_DIR / "lightwin.toml"
     config_keys = {
@@ -58,7 +59,7 @@ def config(request: pytest.FixtureRequest,
             'tool': 'Envelope1D',
             'method': method,
             'flag_cython': flag_cython,
-            'flag_phi_abs': True,
+            'flag_phi_abs': flag_phi_abs,
             'n_steps_per_cell': n_steps_per_cell,
         }
     }

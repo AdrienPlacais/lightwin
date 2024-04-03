@@ -24,7 +24,8 @@ DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
 params = [
-    pytest.param((40, ), marks=pytest.mark.smoke),
+    pytest.param((False, 40), marks=pytest.mark.smoke),
+    pytest.param((True,  40), marks=pytest.mark.smoke),
 ]
 
 
@@ -34,7 +35,7 @@ def config(request: pytest.FixtureRequest,
            ) -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""
     out_folder = tmp_path_factory.mktemp('tmp')
-    n_steps_per_cell, = request.param
+    flag_phi_abs, n_steps_per_cell = request.param
 
     config_path = DATA_DIR / "lightwin.toml"
     config_keys = {
@@ -48,7 +49,7 @@ def config(request: pytest.FixtureRequest,
         },
         'beam_calculator': {
             'tool': 'Envelope3D',
-            'flag_phi_abs': True,
+            'flag_phi_abs': flag_phi_abs,
             'n_steps_per_cell': n_steps_per_cell,
         }
     }
