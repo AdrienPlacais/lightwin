@@ -10,9 +10,6 @@ It holds, well... an accelerator. This accelerator has a
 at the entry of its :class:`.ListOfElements`.
 
 .. todo::
-    Check if _check_consistency_phases message still relatable
-
-.. todo::
     Compute_transfer_matrices: simplify, add a calculation of missing phi_0
     at the end
 
@@ -80,7 +77,6 @@ class Accelerator:
                                                             **kwargs)
 
         self._special_getters = self._create_special_getters()
-        self._check_consistency_phases()
 
         self._l_cav = self.elts.l_cav
         self._tracewin_command: list[str] | None = None
@@ -173,25 +169,6 @@ class Accelerator:
             'element number': lambda self: self.get('elt_idx') + 1,
         }
         return _special_getters
-
-    def _check_consistency_phases(self) -> None:
-        """Check that both TW and LW use absolute or relative phases."""
-        flags_absolute = []
-        for cav in self.l_cav:
-            flags_absolute.append(cav.get('abs_phase_flag'))
-
-        if con.FLAG_PHI_ABS and False in flags_absolute:
-            logging.warning(
-                "You asked LW a simulation in absolute phase, while there "
-                "is at least one cavity in relative phase in the .dat file "
-                "used by TW. Results won't match if there are faulty "
-                "cavities.")
-        elif not con.FLAG_PHI_ABS and True in flags_absolute:
-            logging.warning(
-                "You asked LW a simulation in relative phase, while there "
-                "is at least one cavity in absolute phase in the .dat file "
-                "used by TW. Results won't match if there are faulty "
-                "cavities.")
 
     def keep_settings(self, simulation_output: SimulationOutput) -> None:
         """Save cavity parameters in Elements and new .dat file."""

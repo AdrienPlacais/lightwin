@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define a factory to easily create :class:`.Accelerator`."""
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 import logging
 from pathlib import Path
@@ -9,16 +9,19 @@ from typing import Sequence
 
 from beam_calculation.beam_calculator import BeamCalculator
 from core.accelerator.accelerator import Accelerator
+from core.elements.field_maps.field_map import FieldMap
 
 
 @dataclass
 class AcceleratorFactory(ABC):
     """A class to create accelerators."""
 
-    def __init__(self,
-                 dat_file: Path,
-                 project_folder: Path,
-                 **files_kw: str | Path) -> None:
+    def __init__(
+            self,
+            dat_file: Path,
+            project_folder: Path,
+            beam_calculators: BeamCalculator | Sequence[BeamCalculator | None],
+            **files_kw: str | Path) -> None:
         """Create the object from the ``project_folder``.
 
         Parameters
@@ -35,11 +38,17 @@ class AcceleratorFactory(ABC):
         """
         self.dat_file = dat_file
         self.project_folder = project_folder
+        if isinstance(beam_calculators, BeamCalculator):
+            beam_calculators = beam_calculators,
+        assert beam_calculators[0] is not None, "Need at least one working "\
+            "BeamCalculator."
+        self.beam_calculators = beam_calculators
 
-    @abstractmethod
     def run(self, *args, **kwargs) -> Accelerator:
         """Create the object."""
-        return Accelerator(*args, **kwargs)
+        accelerator = Accelerator(*args, **kwargs)
+        self._check_consistency_absolute_phases(accelerator.l_cav)
+        return accelerator
 
     def _generate_folders_tree_structure(self,
                                          out_folders: Sequence[Path],
@@ -81,6 +90,50 @@ class AcceleratorFactory(ABC):
                 path.mkdir(parents=True, exist_ok=True)
         return accelerator_paths
 
+    def _check_consistency_absolute_phases(
+            self,
+            cavities: Sequence[FieldMap]) -> None:
+        """Check that solvers phases are consistent with ``.dat`` file."""
+        beam_calculators = [x for x in self.beam_calculators if x is not None]
+        beam_calculators_flags = set([beam_calculator.flag_phi_abs
+                                      for beam_calculator in beam_calculators])
+
+        if len(beam_calculators_flags) > 1:
+            logging.debug("BeamCalculator objects have different flag_phi_abs "
+                          "values. Warning already raised in "
+                          "BeamCalculatorsFactory")
+            return
+
+        cavities_references = [x.cavity_settings.reference for x in cavities]
+        if len(set(cavities_references)) > 1:
+            logging.warning("The cavities do not all have the same reference "
+                            "phase. This may lead to inconsistencies.")
+            return
+
+        if cavities_references[0] == 'phi_0_abs' and \
+                not beam_calculators[0].flag_phi_abs:
+            logging.warning(
+                "You asked LW a simulation in relative phase, while there "
+                "is at least one cavity in absolute phase in the .dat file "
+                "used by TW. You can expect a phase difference between "
+                "LightWin results and TraceWin results for the same input "
+                ".dat, after the first failed cavity. No difference should "
+                "appear with the output .dat, or when using TraceWin solver "
+                "within LightWin.")
+            return
+
+        if cavities_references[0] == 'phi_0_rel' and \
+                beam_calculators[0].flag_phi_abs:
+            logging.warning(
+                "You asked LW a simulation in absolute phase, while there "
+                "is at least one cavity in relative phase in the .dat file "
+                "used by TW. You can expect a phase difference between "
+                "LightWin results and TraceWin results for the same input "
+                ".dat, after the first failed cavity. No difference should "
+                "appear with the output .dat, or when using TraceWin solver "
+                "within LightWin.")
+            return
+
 
 class NoFault(AcceleratorFactory):
     """Factory used to generate a single accelerator, no faults."""
@@ -92,8 +145,15 @@ class NoFault(AcceleratorFactory):
                  **files_kw,
                  ) -> None:
         """Initialize."""
-        super().__init__(dat_file, project_folder, **files_kw)
-        self.beam_calculator = beam_calculator
+        super().__init__(dat_file,
+                         project_folder,
+                         beam_calculators=beam_calculator,
+                         **files_kw)
+
+    @property
+    def beam_calculator(self) -> BeamCalculator:
+        """Shortcut to get the only existing :class:`.BeamCalculator`."""
+        return self.beam_calculators[0]
 
     def run(self, *args, **kwargs) -> Accelerator:
         """Create a single accelerator."""
@@ -130,13 +190,7 @@ class WithFaults(AcceleratorFactory):
         **kwargs: Path | str | float | list[int],
     ) -> None:
         """Initialize."""
-        super().__init__(dat_file,
-                         project_folder,
-                         **kwargs)
-        if isinstance(beam_calculators, BeamCalculator):
-            beam_calculators = beam_calculators,
-        assert beam_calculators[0] is not None, "Need at least one working "\
-            "BeamCalculator."
+        super().__init__(dat_file, project_folder, beam_calculators, **kwargs)
         self.beam_calculators = beam_calculators
         self.failed = failed
 
@@ -157,7 +211,7 @@ class WithFaults(AcceleratorFactory):
 
     def run(self, *args, **kwargs) -> Accelerator:
         """Return a single accelerator."""
-        return Accelerator(*args, **kwargs)
+        return super().run(*args, **kwargs)
 
     def run_all(self,
                 **kwargs

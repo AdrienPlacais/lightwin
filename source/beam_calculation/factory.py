@@ -102,4 +102,18 @@ class BeamCalculatorsFactory:
         beam_calculators = [
             self.run(**beam_calculator_kw)
             for beam_calculator_kw in self.all_beam_calculator_kw]
+        self._check_consistency_absolute_phases(beam_calculators)
         return tuple(beam_calculators)
+
+    def _check_consistency_absolute_phases(
+            self, beam_calculators: Sequence[BeamCalculator]) -> None:
+        """Check that ``flag_phi_abs`` is the same for all solvers."""
+        flag_phi_abs = {beam_calculator: beam_calculator.flag_phi_abs
+                        for beam_calculator in beam_calculators}
+        n_unique_values = len(set(flag_phi_abs.values()))
+
+        if n_unique_values > 1:
+            logging.warning("The different BeamCalculator objects have "
+                            "different values for flag_phi_abs. This may lead "
+                            "to inconstencies when cavities fail.\n"
+                            f"{flag_phi_abs = }")
