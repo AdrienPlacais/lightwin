@@ -15,6 +15,7 @@ This module holds :class:`Element`, declined in Drift, FieldMap, etc.
     @property
 
 """
+import logging
 from typing import Any
 import numpy as np
 
@@ -162,3 +163,15 @@ class Element(Instruction):
 
         """
         return False
+
+    def update_status(self, new_status: str) -> None:
+        """Change the status of the element. To override."""
+        if not self.can_be_retuned:
+            logging.error(f"You want to give {new_status = } to the element "
+                          f"{self.name}, which can't be retuned. Status of "
+                          "elements has meaning only if they can be retuned.")
+            return
+
+        logging.error(f"You want to give {new_status = } to the element "
+                      f"{self.name}, which update_status method is not "
+                      "defined.")
