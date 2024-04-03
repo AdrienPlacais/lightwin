@@ -139,8 +139,7 @@ class Fault:
 
     def fix(self, optimisation_algorithm: OptimisationAlgorithm
             ) -> tuple[bool, SetOfCavitySettings, dict]:
-        """
-        Fix the Fault.
+        """Fix the :class:`Fault`.
 
         Parameters
         ----------
@@ -171,11 +170,14 @@ class Fault:
 
         if optimisation == 'not started':
             elements = self.failed_elements + self.compensating_elements
-            status = ['failed' for cav in self.failed_elements]
+            status = ['failed' for _ in self.failed_elements]
             status += ['compensate (in progress)'
-                       for cav in self.compensating_elements]
+                       for _ in self.compensating_elements]
 
-            if {cav.get('status') for cav in elements} != {'nominal'}:
+            allowed = ('nominal', 'rephased (in progress)', 'rephased (ok)')
+            status_is_invalid = [cav.get('status') not in allowed
+                                 for cav in elements]
+            if any(status_is_invalid):
                 logging.error("At least one compensating or failed element is "
                               "already compensating or faulty, probably in"
                               "another Fault object. Updating its status "
