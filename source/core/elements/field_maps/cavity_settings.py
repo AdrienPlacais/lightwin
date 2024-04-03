@@ -103,13 +103,13 @@ class CavitySettings:
         self.k_e = k_e
         self._reference: str
         self.reference = reference
+        self.phi_ref = phi
 
         self._phi_0_abs: float | None
         self._phi_0_rel: float | None
         self._phi_s: float | None
         self._v_cav_mv: float | None
         self._phi_rf: float
-        self._set_reference_phase(phi)
 
         self.status = status
 
@@ -149,32 +149,6 @@ class CavitySettings:
         if attr_val is None:
             return f"{attr_name}: {'None':>7}"
         return f"{attr_name}: {attr_val:3.5f}"
-
-    def _set_reference_phase(self, phi: float) -> None:
-        """Update the reference phase.
-
-        Also delete the other ones that are now outdated to avoid any
-        confusion.
-
-        """
-        self._delete_non_reference_phases()
-        setattr(self, self.reference, phi)
-
-    def _delete_non_reference_phases(self) -> None:
-        """Reset the phases that are not the reference to None."""
-        if self.reference == 'phi_0_abs':
-            self._phi_0_rel = None
-            self._phi_s = None
-            return
-        if self.reference == 'phi_0_rel':
-            self._phi_0_abs = None
-            self._phi_s = None
-            return
-        if self.reference == 'phi_s':
-            self._phi_0_abs = None
-            self._phi_0_rel = None
-            return
-        raise ValueError(f"{self.reference = } not implemented.")
 
     def _check_consistency_of_status_and_reference(self) -> None:
         """Perform some tests on ``status`` and ``reference``.
@@ -232,6 +206,44 @@ class CavitySettings:
         """Set the value of reference, check that it is valid."""
         assert value in ALLOWED_REFERENCES
         self._reference = value
+
+    @property
+    def phi_ref(self) -> None:
+        """Declare a shortcut to the reference entry phase."""
+
+    @phi_ref.setter
+    def phi_ref(self, value: float) -> None:
+        """Update the value of the reference entry phase.
+
+        Also delete the other ones that are now outdated to avoid any
+        confusion.
+
+        """
+        self._delete_non_reference_phases()
+        setattr(self, self.reference, value)
+
+    @phi_ref.getter
+    def phi_ref(self) -> float:
+        """Give the reference phase."""
+        phi = getattr(self, self.reference)
+        assert isinstance(phi, float)
+        return phi
+
+    def _delete_non_reference_phases(self) -> None:
+        """Reset the phases that are not the reference to None."""
+        if self.reference == 'phi_0_abs':
+            self._phi_0_rel = None
+            self._phi_s = None
+            return
+        if self.reference == 'phi_0_rel':
+            self._phi_0_abs = None
+            self._phi_s = None
+            return
+        if self.reference == 'phi_s':
+            self._phi_0_abs = None
+            self._phi_0_rel = None
+            return
+        raise ValueError(f"{self.reference = } not implemented.")
 
 # =============================================================================
 # Status
