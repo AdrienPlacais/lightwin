@@ -56,6 +56,23 @@ class ICavitySettingsFactory(ABC):
             for k_e, phi, freq_cavity_mhz, wrapper in variables]
         return several_cavity_settings
 
+    def from_other_cavity_settings(self,
+                                   cavity_settings: Sequence[CavitySettings],
+                                   reference: str,
+                                   ) -> list[CavitySettings]:
+        """Create a copy of ``cavity_settings``, reference can be updated."""
+        new_cavity_settings: list[CavitySettings] = []
+        for old in cavity_settings:
+            settings = CavitySettings(old.k_e,
+                                      getattr(old, reference),
+                                      reference,
+                                      old.status,
+                                      self.freq_bunch_mhz,
+                                      old.freq_cavity_mhz,
+                                      old.transf_mat_func_wrappers)
+            new_cavity_settings.append(settings)
+        return new_cavity_settings
+
     def _reference(self,
                    absolute_phase_flag: bool,
                    set_sync_phase: bool,
