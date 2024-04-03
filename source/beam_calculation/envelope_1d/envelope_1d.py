@@ -37,12 +37,12 @@ class Envelope1D(BeamCalculator):
                  phi_s_definition: str = 'historical',
                  ) -> None:
         """Set the proper motion integration function, according to inputs."""
-        self.flag_phi_abs = flag_phi_abs
         self.flag_cython = flag_cython
         self.n_steps_per_cell = n_steps_per_cell
         self.method = method
-        super().__init__(out_folder=out_folder,
-                         default_field_map_folder=default_field_map_folder,
+        super().__init__(flag_phi_abs,
+                         out_folder,
+                         default_field_map_folder,
                          )
         self._phi_s_definition = phi_s_definition
         self._phi_s_func = SYNCHRONOUS_PHASE_FUNCTIONS[self._phi_s_definition]

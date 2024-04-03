@@ -85,6 +85,7 @@ class TraceWin(BeamCalculator):
                  base_kwargs: dict[str, str | int | float | bool | None],
                  out_folder: Path | str,
                  default_field_map_folder: Path | str,
+                 flag_phi_abs: bool = True,
                  cal_file: Path | None = None,
                  ) -> None:
         """Define some other useful methods, init variables."""
@@ -97,11 +98,12 @@ class TraceWin(BeamCalculator):
         if self.is_a_multiparticle_simulation:
             filename = Path('partran1.out')
         self._filename = filename
-        super().__init__(out_folder, default_field_map_folder)
+        super().__init__(flag_phi_abs, out_folder, default_field_map_folder)
 
-        logging.warning("TraceWin solver currently cannot work with relative "
-                        "phases (last arg of FIELD_MAP should be 1). You "
-                        "should check this, because I will not.")
+        if not flag_phi_abs:
+            logging.warning("TraceWin solver currently cannot work with "
+                            "relative phases (last arg of FIELD_MAP should "
+                            "be 1).")
         self.path_cal: Path
         self.dat_file: Path
         self._tracewin_command: list[str] | None = None

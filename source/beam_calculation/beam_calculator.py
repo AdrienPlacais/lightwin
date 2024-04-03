@@ -37,13 +37,17 @@ class BeamCalculator(ABC):
     _ids = count(0)
 
     def __init__(self,
+                 flag_phi_abs: bool,
                  out_folder: Path | str,
                  default_field_map_folder: Path | str,
                  ) -> None:
-        """Set ``id`` and factories.
+        r"""Set ``id``, some generic parameters such as results folders.
 
         Parameters
         ----------
+        flag_phi_abs : bool
+            If the entry phase of the cavities :math:`\phi_0` are absolute or
+            relative. See the examples for an illustration of what it implies.
         out_folder : Path | str
             Name of the folder where results should be stored, for each
             :class:`.Accelerator` under study. This is the name of a folder,
@@ -52,6 +56,7 @@ class BeamCalculator(ABC):
             Where to look for field map files by default.
 
         """
+        self.flag_phi_abs = flag_phi_abs
         self.id: str = f"{self.__class__.__name__}_{next(self._ids)}"
 
         if isinstance(out_folder, str):
