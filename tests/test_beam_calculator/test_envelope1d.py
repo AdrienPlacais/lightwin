@@ -7,12 +7,12 @@
 """
 from pathlib import Path
 from typing import Any
-from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.factory import BeamCalculatorsFactory
 
 import pytest
 
 import config_manager
+from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.factory import BeamCalculatorsFactory
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
 from core.accelerator.accelerator import Accelerator
@@ -29,7 +29,7 @@ leapfrog_marker = pytest.mark.xfail(
 
 params = [
     pytest.param(('RK',       False, False, 40), marks=pytest.mark.smoke),
-    pytest.param(('RK',       False, True, 40), marks=pytest.mark.smoke),
+    pytest.param(('RK',       False, True,  40), marks=pytest.mark.smoke),
     pytest.param(('RK',       True,  False, 40), marks=pytest.mark.cython),
     pytest.param(('leapfrog', False, False, 60), marks=leapfrog_marker),
     pytest.param(('leapfrog', True,  False, 60), marks=(leapfrog_marker,
