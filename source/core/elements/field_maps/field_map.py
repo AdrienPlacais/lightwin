@@ -119,8 +119,7 @@ class FieldMap(Element):
                                 phi_0=phi_0)
 
     def update_status(self, new_status: str) -> None:
-        """
-        Change the status of a cavity.
+        """Change the status of the cavity.
 
         We also ensure that the value new_status is correct. If the new value
         is 'failed', we also set the norm of the electric field to 0.
@@ -132,6 +131,7 @@ class FieldMap(Element):
         self.elt_info['status'] = new_status
         if new_status == 'failed':
             self.rf_field.k_e = 0.
+            # self.cavity_settings.k_e = 0.
             for solver_id, beam_calc_param in self.beam_calc_param.items():
                 beam_calc_param.re_set_for_broken_cavity()
                 self.cavity_settings.set_beam_calculator(
