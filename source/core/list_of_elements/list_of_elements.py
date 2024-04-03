@@ -112,51 +112,6 @@ class ListOfElements(list):
         return self._l_cav
 
     @property
-    def _stored_k_e(self) -> dict[FieldMap, float]:
-        """Get the ``k_e`` properties from elements in self."""
-        k_e = {cavity: cavity.get('k_e') for cavity in self.l_cav}
-        return k_e
-
-    @property
-    def _stored_abs_phase_flag(self) -> dict[FieldMap, int]:
-        """Get the ``abs_phase`` flags from elements in self."""
-        abs_phase_flag = {cavity: int(config_manager.FLAG_PHI_ABS)
-                          for cavity in self.l_cav}
-        return abs_phase_flag
-
-    @property
-    def _stored_phi_0_abs(self):
-        """Return the ``phi_0_abs`` properties from elements in self."""
-        phi_0_abs = {cavity: cavity.get('phi_0_abs') for cavity in self.l_cav}
-        return phi_0_abs
-
-    @property
-    def _stored_phi_0_abs_rephased(self):
-        """
-        Return the ``phi_0_abs`` from ``self``, rephased w.r.t ``phi_in``.
-
-        Necessary for :class:`.TraceWin` and used in ``.dat`` files.
-        Would mess with :class:`.Envelope1D`. Do not use it to update
-        ``rf_field`` from :class:`.FieldMap`.
-
-        """
-        delta_phi_bunch = self.input_particle.phi_abs
-        phi_0_abs_rephased = {
-            cavity: phi_0_abs_with_new_phase_reference(
-                phi_0_abs,
-                delta_phi_bunch * cavity.rf_field.bunch_to_rf
-            )
-            for cavity, phi_0_abs in self._stored_phi_0_abs.items()
-        }
-        return phi_0_abs_rephased
-
-    @property
-    def _stored_phi_0_rel(self):
-        """Return the `phi_0_rel` properties from `self`."""
-        phi_0_abs = {cavity: cavity.get('phi_0_rel') for cavity in self.l_cav}
-        return phi_0_abs
-
-    @property
     def tracewin_command(self) -> list[str]:
         """Create the command to give proper initial parameters to TraceWin."""
         dat_file = self.files['dat_file']
@@ -260,8 +215,7 @@ class ListOfElements(list):
                               dat_file: Path,
                               save: bool = True
                               ) -> None:
-        """
-        Update the dat file, save it if asked.
+        """Update the dat file, save it if asked.
 
         Important notice
         ----------------
@@ -270,16 +224,18 @@ class ListOfElements(list):
         cavity with the intended phase in :class:`.TraceWin`.
 
         """
-        new_phases = self._stored_phi_0_rel
-        if config_manager.FLAG_PHI_ABS:
-            new_phases = self._stored_phi_0_abs_rephased
+        new_phases = {cavity: cavity.cavity_settings.phi_ref
+                      for cavity in self.l_cav}
+        new_k_e = {cavity: cavity.cavity_settings.k_e for cavity in self.l_cav}
+        new_abs_phase_flag = {
+            cavity: int(cavity.cavity_settings.reference == 'phi_0_abs')
+            for cavity in self.l_cav}
+
         update_field_maps_in_dat(
             self,
             new_phases=new_phases,
-            new_k_e=self._stored_k_e,
-            new_abs_phase_flag=self._stored_abs_phase_flag)
-        if not save:
-            return
+            new_k_e=new_k_e,
+            new_abs_phase_flag=new_abs_phase_flag)
 
         self.files['dat_file'] = dat_file
         dat_content = [elt_or_cmd.line
