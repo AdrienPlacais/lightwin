@@ -78,7 +78,7 @@ def _test_beam_calculator_envelope1d(
     """
     Test consistency of the Envelope1D beam_calculator.
 
-    FLAG_PHI_ABS: to determine if the phases in the cavities are absolute or
+    flag_phi_abs: to determine if the phases in the cavities are absolute or
     relative.
     If True, cavities keep their absolute phi_0 (!! relative phi_0 may be
     changed though !!).

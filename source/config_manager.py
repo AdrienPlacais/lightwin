@@ -53,7 +53,7 @@ from config.toml.helper import dict_for_pretty_output
 
 
 # Values that will be available everywhere
-FLAG_CYTHON, FLAG_PHI_ABS = bool, bool
+FLAG_CYTHON = bool
 METHOD = str
 N_STEPS_PER_CELL = int()
 
@@ -318,9 +318,8 @@ def _make_global(beam: dict,
     if beam_calculator is None:
         return
 
-    global FLAG_CYTHON, FLAG_PHI_ABS, N_STEPS_PER_CELL, METHOD
+    global FLAG_CYTHON, N_STEPS_PER_CELL, METHOD
     FLAG_CYTHON = beam_calculator.get("flag_cython", None)
-    FLAG_PHI_ABS = beam_calculator.get("flag_phi_abs", True)
     N_STEPS_PER_CELL = beam_calculator.get("n_steps_per_cell", None)
     METHOD = beam_calculator.get("method", None)
     logging.warning('default flags for tracewin')
