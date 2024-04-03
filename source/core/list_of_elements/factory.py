@@ -28,7 +28,6 @@ a full :class:`.ListOfElements` from scratch.
 
 """
 import logging
-import os
 from abc import ABCMeta
 from pathlib import Path
 from typing import Any
@@ -39,7 +38,6 @@ import tracewin_utils.load
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
 from core.beam_parameters.factory import InitialBeamParametersFactory
-from core.commands.command import Command
 from core.elements.element import Element
 from core.instruction import Instruction
 from core.instructions_factory import InstructionsFactory
@@ -63,8 +61,7 @@ class ListOfElementsFactory:
                  load_cython_field_maps: bool = False,
                  elements_to_remove: tuple[ABCMeta, ...] = (),
                  ):
-        """
-        Declare and create some mandatory factories.
+        """Declare and create some mandatory factories.
 
         .. note::
             For now, we have only one ``input_beam`` parameters, we create only
@@ -274,8 +271,9 @@ class ListOfElementsFactory:
     ) -> dict[str, Path | list[list[str]]]:
         """Set the new ``.dat`` file containing only elements of ``elts``."""
         accelerator_path = files_from_full_list_of_elements['accelerator_path']
-        os.mkdir(accelerator_path / tmp_folder)
-        dat_file = accelerator_path / tmp_folder / tmp_dat
+        out = accelerator_path / tmp_folder
+        out.mkdir(exist_ok=True)
+        dat_file = out / tmp_dat
 
         original_instructions = files_from_full_list_of_elements['elts_n_cmds']
         assert isinstance(original_instructions, list)
