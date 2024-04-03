@@ -130,6 +130,7 @@ class FaultScenario(list):
             self._update_status_of_cavities_to_rephase()
 
         self._transfer_phi0_from_ref_to_broken()
+        self._break_all()
 
     def _set_optimisation_algorithms(self) -> list[OptimisationAlgorithm]:
         """Set each fault's optimisation algorithm.
@@ -157,6 +158,11 @@ class FaultScenario(list):
             for fault in self]
         return optimisation_algorithms
 
+    def _break_all(self) -> None:
+        """Break the cavities."""
+        for fault in self:
+            fault.update_elements_status(optimisation='not started')
+
     def fix_all(self) -> None:
         """
         Fix all the :class:`Fault` objects in self.
@@ -174,7 +180,6 @@ class FaultScenario(list):
 
         for fault, optimisation_algorithm in zip(self,
                                                  optimisation_algorithms):
-            fault.update_elements_status(optimisation='not started')
             _succ, optimized_cavity_settings, _info = fault.fix(
                 optimisation_algorithm)
 
