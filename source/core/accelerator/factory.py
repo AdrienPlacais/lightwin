@@ -38,6 +38,7 @@ class AcceleratorFactory(ABC):
         """
         self.dat_file = dat_file
         self.project_folder = project_folder
+
         if isinstance(beam_calculators, BeamCalculator):
             beam_calculators = beam_calculators,
         assert beam_calculators[0] is not None, "Need at least one working "\
@@ -191,7 +192,6 @@ class WithFaults(AcceleratorFactory):
     ) -> None:
         """Initialize."""
         super().__init__(dat_file, project_folder, beam_calculators, **kwargs)
-        self.beam_calculators = beam_calculators
         self.failed = failed
 
         self._n_simulations = 0
