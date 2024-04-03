@@ -20,6 +20,7 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput)
 import config_manager as con
 from core.elements.element import Element
+from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.helper import equivalent_elt
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -192,13 +193,11 @@ class Fault:
             cav.update_status(stat)
         self.elts.store_settings_in_dat(self.elts.files['dat_file'], save=True)
 
-    def get_x_sol_in_real_phase(self) -> None:
-        """
-        Get least-square solutions in rel/abs phases instead of synchronous.
+    def get_x_sol_in_real_phase(self, reference_phase: str) -> None:
+        """Get least-square solutions in rel/abs phases instead of synchronous.
 
-        Least-squares fits the synchronous phase, while PSO fits the relative
-        or absolute entry phase. We get all in relative/absolute to ease
-        comparison between solutions.
+        .. todo::
+            Still useful?
 
         """
         # First half of X array: phase of elements (relative or synchronous
@@ -206,11 +205,13 @@ class Fault:
         # Second half is the norms of elements
         x_in_real_phase = self.info["X"].copy()
 
-        key = 'phi_0_rel'
-        if con.FLAG_PHI_ABS:
-            key = 'phi_0_abs'
+        # key = 'phi_0_rel'
+        # if con.FLAG_PHI_ABS:
+            # key = 'phi_0_abs'
 
         for i, cav in enumerate(self.compensating_elements):
-            x_in_real_phase[i] = cav.rf_field.phi_0[key]
+            assert isinstance(cav, FieldMap)
+            # x_in_real_phase[i] = cav.rf_field.phi_0[key]
+            x_in_real_phase[i] = getattr(cav.cavity_settings, reference_phase)
             # second half of the array remains untouched
         self.info['X_in_real_phase'] = x_in_real_phase
