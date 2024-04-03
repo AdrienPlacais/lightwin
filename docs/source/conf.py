@@ -13,8 +13,8 @@ import re
 sys.path.insert(0, os.path.abspath("/home/placais/LightWin/source/"))
 
 project = 'LightWin'
-copyright = '2023, A. Plaçais, F. Bouly'
-author = 'A. Plaçais, F. Bouly'
+copyright = '2023, A. Plaçais, F. Bouly, B. Yee-Rendon'
+author = 'A. Plaçais, F. Bouly, B. Yee-Rendond'
 
 # See https://protips.readthedocs.io/git-tag-version.html
 # The full version, including alpha/beta/rc tags.
@@ -32,6 +32,7 @@ extensions = [
     "myst_parser",              # still useful?
     "sphinx.ext.todo",          # allow use of TODO
     # "sphinx.ext.viewcode",
+    "nbsphinx",
 ]
 
 autodoc_default_options = {
