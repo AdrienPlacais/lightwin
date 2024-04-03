@@ -163,7 +163,7 @@ class Fault:
     def update_elements_status(self, optimisation: str,
                                success: bool | None = None) -> None:
         """Update status of compensating and failed elements."""
-        if optimisation not in ['not started', 'finished']:
+        if optimisation not in ('not started', 'finished'):
             logging.error("{optimisation =} not understood. Not changing any "
                           "status...")
             return
@@ -190,8 +190,7 @@ class Fault:
 
         for cav, stat in zip(elements, status):
             cav.update_status(stat)
-        self.elts.store_settings_in_dat(self.elts.files['dat_file'],
-                                        save=True)
+        self.elts.store_settings_in_dat(self.elts.files['dat_file'], save=True)
 
     def get_x_sol_in_real_phase(self) -> None:
         """
