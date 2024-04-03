@@ -17,6 +17,7 @@ import config_manager as con
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
+from core.list_of_elements.factory import ListOfElementsFactory
 
 from failures.fault import Fault
 from failures import strategy
@@ -88,26 +89,59 @@ class FaultScenario(list):
         self.info = {}
         self.optimisation_time: datetime.timedelta
 
-        solvers_already_used = list(self.ref_acc.simulation_outputs.keys())
-        assert len(solvers_already_used) > 0, (
-            "You must compute propagation of the beam in the reference linac "
-            "prior to create a FaultScenario")
-        solv1 = solvers_already_used[0]
-        reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
+        indexes = strategy.sort_and_gather_faults(fix=fix_acc,
+                                                  fault_idx=fault_idx,
+                                                  comp_idx=comp_idx,
+                                                  **wtf)
+        faults = self._set_faults(indexes,
+                                  self._get_reference(),
+                                  beam_calculator.list_of_elements_factory,
+                                  design_space_factory)
+        super().__init__(faults)
+        self._set_optimisation_algorithms()
 
-        gathered_fault_idx, gathered_comp_idx = \
-            strategy.sort_and_gather_faults(fix=fix_acc,
-                                            fault_idx=fault_idx,
-                                            comp_idx=comp_idx,
-                                            **wtf)
+        # Change status of cavities after the first one that is down. Idea
+        # is to keep relative phi_0 between ref and fix linacs (linac
+        # rephasing)
+        if not beam_calculator.flag_phi_abs:
+            self._update_status_of_cavities_to_rephase()
 
+        self._transfer_phi0_from_ref_to_broken()
+        self._break_all()
+
+    def _set_faults(self,
+                    indexes: tuple[list[list[int]], list[list[int]]],
+                    reference_simulation_output: SimulationOutput,
+                    list_of_elements_factory: ListOfElementsFactory,
+                    design_space_factory: DesignSpaceFactory,
+                    ) -> list[Fault]:
+        """Create the :class:`.Fault` objects.
+
+        Parameters
+        ----------
+        indexes : tuple[list[list[int]], list[list[int]]]
+            The indexes of faults, the indexes of corresponding compensating
+            cavities. As returned by :func:`.strategy.sort_and_gather_faults`.
+        reference_simulation_output : SimulationOutput
+            The simulation of the nominal linac we'll try to match.
+        list_of_elements_factory : ListOfElementsFactory
+            An object that can create :class:`.ListOfElements`.
+        design_space_factory : DesignSpaceFactory
+            An object that can create :class:`.DesignSpace`.
+
+        Returns
+        -------
+        list[Fault]
+
+        """
+        gathered_fault_idx, gathered_comp_idx = indexes
         faults = []
-        files_from_full_list_of_elements = fix_acc.elts.files
-        for fault, comp in zip(gathered_fault_idx, gathered_comp_idx):
-            faulty_cavities = [fix_acc.l_cav[i] for i in fault]
-            compensating_cavities = [fix_acc.l_cav[i] for i in comp]
+        files_from_full_list_of_elements = self.fix_acc.elts.files
 
-            list_of_elements_factory = beam_calculator.list_of_elements_factory
+        for fault, comp in zip(gathered_fault_idx, gathered_comp_idx):
+            faulty_cavities = [self.fix_acc.l_cav[i] for i in fault]
+            compensating_cavities = [self.fix_acc.l_cav[i] for i in comp]
+
             fault = Fault(
                 reference_elts=self.ref_acc.elts,
                 reference_simulation_output=reference_simulation_output,
@@ -120,17 +154,17 @@ class FaultScenario(list):
                 list_of_elements_factory=list_of_elements_factory,
             )
             faults.append(fault)
-        super().__init__(faults)
-        self._set_optimisation_algorithms()
+        return faults
 
-        if not con.FLAG_PHI_ABS:
-            # Change status of cavities after the first one that is down. Idea
-            # is to keep relative phi_0 between ref and fix linacs (linac
-            # rephasing)
-            self._update_status_of_cavities_to_rephase()
-
-        self._transfer_phi0_from_ref_to_broken()
-        self._break_all()
+    def _get_reference(self) -> SimulationOutput:
+        """Determine wich :class:`.SimulationOutput` is the reference."""
+        solvers_already_used = list(self.ref_acc.simulation_outputs.keys())
+        assert len(solvers_already_used) > 0, (
+            "You must compute propagation of the beam in the reference linac "
+            "prior to create a FaultScenario")
+        solv1 = solvers_already_used[0]
+        reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
+        return reference_simulation_output
 
     def _set_optimisation_algorithms(self) -> list[OptimisationAlgorithm]:
         """Set each fault's optimisation algorithm.
@@ -199,10 +233,10 @@ class FaultScenario(list):
             self.fix_acc.simulation_outputs[self.beam_calculator.id] \
                 = simulation_output
 
-            fault.get_x_sol_in_real_phase()
+            fault.get_x_sol_in_real_phase(self._reference_phase)
             fault.update_elements_status(optimisation='finished', success=True)
 
-            if not con.FLAG_PHI_ABS:
+            if not self.beam_calculator.flag_phi_abs:
                 # Tell LW to keep the new phase of the rephased cavities
                 # between the two compensation zones
                 self._reupdate_status_of_rephased_cavities(fault)
@@ -227,8 +261,7 @@ class FaultScenario(list):
         # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
 
     def _update_status_of_cavities_to_rephase(self) -> None:
-        """
-        Change the status of some cavities to 'rephased'.
+        """Change the status of cavities after failure to 'rephased'.
 
         If the calculation is in relative phase, all cavities that are after
         the first failed one are rephased.
@@ -239,7 +272,7 @@ class FaultScenario(list):
             "relatable to use absolute phases, as it would avoid the rephasing"
             " of the linac at each cavity.")
         cavities = self.fix_acc.l_cav
-        first_failed_cavity = self[0].failed_cav[0]
+        first_failed_cavity = self[0].failed_elements[0]
         first_failed_index = cavities.index(first_failed_cavity)
 
         cavities_to_rephase = [cav for cav in cavities[first_failed_index:]
@@ -249,8 +282,7 @@ class FaultScenario(list):
             cav.update_status('rephased (in progress)')
 
     def _reupdate_status_of_rephased_cavities(self, fault: Fault) -> None:
-        """
-        Modify the status of the cavities that were already rephased.
+        """Modify the status of the cavities that were already rephased.
 
         Change the cavities with status "rephased (in progress)" to
         "rephased (ok)" between the fault in argument and the next one.
@@ -274,12 +306,11 @@ class FaultScenario(list):
             cav.update_status('rephased (ok)')
 
     def _transfer_phi0_from_ref_to_broken(self) -> None:
-        """
-        Transfer the entry phases from reference linac to broken.
+        """Transfer the entry phases from reference linac to broken.
 
         If the absolute initial phases are not kept between reference and
         broken linac, it comes down to rephasing the linac. This is what we
-        want to avoid when ``con.FLAG_PHI_ABS == True``.
+        want to avoid when ``beam_calculator.flag_phi_abs == True``.
 
         """
         ref_cavities = self.ref_acc.l_cav
@@ -292,6 +323,18 @@ class FaultScenario(list):
             fix_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
             fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
             fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
+
+        for ref, fix in zip(ref_cavities, fix_cavities):
+            phi_0 = getattr(ref.cavity_settings, self._reference_phase)
+            assert phi_0 is not None
+            setattr(fix.cavity_settings, self._reference_phase, phi_0)
+
+    @property
+    def _reference_phase(self) -> str:
+        """Give the reference phase: `phi_0_rel` or 'phi_0_abs'."""
+        if self.beam_calculator.flag_phi_abs:
+            return 'phi_0_abs'
+        return 'phi_0_rel'
 
     def _evaluate_fit_quality(self, save: bool = True,
                               id_solver_ref: str | None = None,
