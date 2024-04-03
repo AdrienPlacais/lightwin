@@ -55,3 +55,11 @@ max_decrease_k_e_in_percent = 20.0
 max_increase_k_e_in_percent = 180.0
 maximum_k_e_is_calculated_wrt_maximum_k_e_of_section = true
 
+[plots_minimal]
+energy = true
+phase = true
+cav = false
+emittance = false
+twiss = false
+envelopes = false
+transfer_matrices = false
