@@ -12,8 +12,6 @@ import logging
 import time
 import datetime
 
-import config_manager as con
-
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.simulation_output.simulation_output import \
     SimulationOutput
@@ -84,6 +82,8 @@ class FaultScenario(list):
         """
         self.ref_acc, self.fix_acc = ref_acc, fix_acc
         self.beam_calculator = beam_calculator
+        self._transfer_phi0_from_ref_to_broken()
+
         self.wtf = wtf
         self.info_other_sol = info_other_sol
         self.info = {}
@@ -104,10 +104,9 @@ class FaultScenario(list):
         # is to keep relative phi_0 between ref and fix linacs (linac
         # rephasing)
         if not beam_calculator.flag_phi_abs:
-            self._update_status_of_cavities_to_rephase()
+            self._set_cavities_to_rephase()
 
-        self._transfer_phi0_from_ref_to_broken()
-        self._break_all()
+        self._break_cavities()
 
     def _set_faults(self,
                     indexes: tuple[list[list[int]], list[list[int]]],
@@ -166,6 +165,27 @@ class FaultScenario(list):
         reference_simulation_output = self.ref_acc.simulation_outputs[solv1]
         return reference_simulation_output
 
+    def _set_cavities_to_rephase(self) -> None:
+        """Change the status of cavities after first failure."""
+        logging.warning(
+            "The phases in the broken linac are relative. It may be more "
+            "relatable to use absolute phases, as it would avoid the rephasing"
+            " of the linac at each cavity.")
+        cavities = self.fix_acc.l_cav
+        first_failed_cavity = self[0].failed_elements[0]
+        first_failed_index = cavities.index(first_failed_cavity)
+
+        # old:
+        # cavities_to_rephase = [cav for cav in cavities[first_failed_index:]
+                               # if cav.get('status') == 'nominal']
+        # may remove this if proven unneccessary
+        for cav in cavities:
+            assert cav.status == 'nominal'
+        # new:
+        cavities_to_rephase = cavities[first_failed_index:]
+        for cav in cavities_to_rephase:
+            cav.update_status('rephased (in progress)')
+
     def _set_optimisation_algorithms(self) -> list[OptimisationAlgorithm]:
         """Set each fault's optimisation algorithm.
 
@@ -192,7 +212,7 @@ class FaultScenario(list):
             for fault in self]
         return optimisation_algorithms
 
-    def _break_all(self) -> None:
+    def _break_cavities(self) -> None:
         """Break the cavities."""
         for fault in self:
             fault.update_elements_status(optimisation='not started')
@@ -260,27 +280,6 @@ class FaultScenario(list):
         # Legacy, does not work anymore with the new implementation
         # self.info['fit'] = debug.output_fit(self, FIT_COMPLETE, FIT_COMPACT)
 
-    def _update_status_of_cavities_to_rephase(self) -> None:
-        """Change the status of cavities after failure to 'rephased'.
-
-        If the calculation is in relative phase, all cavities that are after
-        the first failed one are rephased.
-
-        """
-        logging.warning(
-            "The phases in the broken linac are relative. It may be more "
-            "relatable to use absolute phases, as it would avoid the rephasing"
-            " of the linac at each cavity.")
-        cavities = self.fix_acc.l_cav
-        first_failed_cavity = self[0].failed_elements[0]
-        first_failed_index = cavities.index(first_failed_cavity)
-
-        cavities_to_rephase = [cav for cav in cavities[first_failed_index:]
-                               if cav.get('status') == 'nominal']
-
-        for cav in cavities_to_rephase:
-            cav.update_status('rephased (in progress)')
-
     def _reupdate_status_of_rephased_cavities(self, fault: Fault) -> None:
         """Modify the status of the cavities that were already rephased.
 
@@ -313,28 +312,18 @@ class FaultScenario(list):
         want to avoid when ``beam_calculator.flag_phi_abs == True``.
 
         """
-        ref_cavities = self.ref_acc.l_cav
-        fix_cavities = self.fix_acc.l_cav
+        ref_settings = [x.cavity_settings for x in self.ref_acc.l_cav]
+        fix_settings = [x.cavity_settings for x in self.fix_acc.l_cav]
 
-        # for ref_cavity, fix_cavity in zip(ref_cavities, fix_cavities):
-            # ref_a_f = ref_cavity.rf_field
-            # fix_a_f = fix_cavity.rf_field
-
-            # fix_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
-            # fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
-            # fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
-
-        for ref, fix in zip(ref_cavities, fix_cavities):
-            phi_0 = getattr(ref.cavity_settings, self._reference_phase)
-            assert phi_0 is not None
-            setattr(fix.cavity_settings, self._reference_phase, phi_0)
+        for ref, fix in zip(ref_settings, fix_settings):
+            phi_0_ref = getattr(ref, self._reference_phase)
+            fix.reference = self._reference_phase
+            fix.phi_ref = phi_0_ref
 
     @property
     def _reference_phase(self) -> str:
         """Give the reference phase: `phi_0_rel` or 'phi_0_abs'."""
-        if self.beam_calculator.flag_phi_abs:
-            return 'phi_0_abs'
-        return 'phi_0_rel'
+        return self.beam_calculator.reference_phase
 
     def _evaluate_fit_quality(self, save: bool = True,
                               id_solver_ref: str | None = None,

@@ -193,21 +193,33 @@ class TraceWin(BeamCalculator):
 
     # TODO what is specific_kwargs for? I should just have a function
     # set_of_cavity_settings_to_kwargs
-    def run(self, elts: ListOfElements, **specific_kwargs) -> None:
-        """
-        Run TraceWin.
+    def run(self,
+            elts: ListOfElements,
+            update_reference_phase: bool = False,
+            **specific_kwargs) -> SimulationOutput:
+        """Run TraceWin.
 
         Parameters
         ----------
         elts : ListOfElements
-        List of :class:`Element` s in which you want the beam propagated.
-        **specific_kwargs : dict
+            List of elements in which the beam must be propagated.
+        update_reference_phase : bool, optional
+            To change the reference phase of cavities when it is different from
+            the one asked in the ``.toml``. To use after the first calculation,
+            if ``BeamCalculator.flag_phi_abs`` does not correspond to
+            ``CavitySettings.reference``. The default is False.
+        specific_kwargs : dict
             ``TraceWin`` optional arguments. Overrides what is defined in
             ``base_kwargs`` and ``.ini``.
 
+        Returns
+        -------
+        simulation_output : SimulationOutput
+            Holds energy, phase, transfer matrices (among others) packed into a
+            single object.
+
         """
-        return self.run_with_this(set_of_cavity_settings=None, elts=elts,
-                                  **specific_kwargs)
+        return super().run(elts, update_reference_phase, **specific_kwargs)
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
                       elts: ListOfElements,

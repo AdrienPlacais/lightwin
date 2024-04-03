@@ -68,14 +68,21 @@ class Envelope1D(BeamCalculator):
                 self.flag_cython,
             )
 
-    def run(self, elts: ListOfElements) -> SimulationOutput:
-        """
-        Compute beam propagation in 1D, envelope calculation.
+    def run(self,
+            elts: ListOfElements,
+            update_reference_phase: bool = False,
+            **kwargs) -> SimulationOutput:
+        """Compute beam propagation in 1D, envelope calculation.
 
         Parameters
         ----------
         elts : ListOfElements
             List of elements in which the beam must be propagated.
+        update_reference_phase : bool, optional
+            To change the reference phase of cavities when it is different from
+            the one asked in the ``.toml``. To use after the first calculation,
+            if ``BeamCalculator.flag_phi_abs`` does not correspond to
+            ``CavitySettings.reference``. The default is False.
 
         Returns
         -------
@@ -84,7 +91,7 @@ class Envelope1D(BeamCalculator):
             single object.
 
         """
-        return self.run_with_this(set_of_cavity_settings=None, elts=elts)
+        return super().run(elts, update_reference_phase, **kwargs)
 
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
                       elts: ListOfElements) -> SimulationOutput:

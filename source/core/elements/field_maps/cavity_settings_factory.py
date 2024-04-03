@@ -60,7 +60,11 @@ class ICavitySettingsFactory(ABC):
                                    cavity_settings: Sequence[CavitySettings],
                                    reference: str,
                                    ) -> list[CavitySettings]:
-        """Create a copy of ``cavity_settings``, reference can be updated."""
+        """Create a copy of ``cavity_settings``, reference can be updated.
+
+        Not used for the moment.
+
+        """
         new_cavity_settings: list[CavitySettings] = []
         for old in cavity_settings:
             settings = CavitySettings(old.k_e,

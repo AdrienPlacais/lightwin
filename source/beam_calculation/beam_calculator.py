@@ -102,10 +102,32 @@ class BeamCalculator(ABC):
     def _set_up_specific_factories(self) -> None:
         """Set up the factories specific to the :class:`.BeamCalculator`."""
 
-    @abstractmethod
-    def run(self, elts: ListOfElements) -> SimulationOutput:
-        """
-        Perform a simulation with default settings.
+    def run(self,
+            elts: ListOfElements,
+            update_reference_phase: bool = False,
+            **kwargs
+            ) -> SimulationOutput:
+        """Perform a simulation with default settings.
+
+        .. todo::
+            ``update_reference_phase`` is currently unused, because it is not
+            useful once the propagation has been calculated. So... should I
+            keep it? Maybe it can be useful in post_optimisation_run_with_this,
+            or in scripts to convert the phase between the different
+            references, or when I want to save the .dat?
+
+        Parameters
+        ----------
+        elts : ListOfElements
+            List of elements in which the beam must be propagated.
+        update_reference_phase : bool, optional
+            To change the reference phase of cavities when it is different from
+            the one asked in the ``.toml``. To use after the first calculation,
+            if ``BeamCalculator.flag_phi_abs`` does not correspond to
+            ``CavitySettings.reference``. The default is False.
+        kwargs
+            Other keyword arguments passed to :meth:`run_with_this`. As for
+            now, only used by :class:`.TraceWin`.
 
         Returns
         -------
@@ -114,7 +136,10 @@ class BeamCalculator(ABC):
             single object.
 
         """
-        return self.run_with_this(None, elts)
+        simulation_output = self.run_with_this(None, elts, **kwargs)
+        if update_reference_phase:
+            elts.force_reference_phases_to(self.reference_phase)
+        return simulation_output
 
     @abstractmethod
     def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
@@ -163,6 +188,13 @@ class BeamCalculator(ABC):
     def _generate_simulation_output(self, *args, **kwargs) -> SimulationOutput:
         """Transform the output of ``run`` to a :class:`.SimulationOutput`."""
         return self.simulation_output_factory.run(*args, **kwargs)
+
+    @property
+    def reference_phase(self) -> str:
+        """Give the reference phase."""
+        if self.flag_phi_abs:
+            return 'phi_0_abs'
+        return 'phi_0_rel'
 
     @property
     @abstractmethod
