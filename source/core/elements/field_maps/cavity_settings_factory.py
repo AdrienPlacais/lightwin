@@ -28,13 +28,12 @@ class ICavitySettingsFactory(ABC):
         reference = self._reference(bool(int(line[10])), set_sync_phase)
         status = 'nominal'
 
-        cavity_settings = CavitySettings(
-            k_e,
-            phi_0,
-            reference,
-            status,
-            self.freq_bunch_mhz,
-        )
+        cavity_settings = CavitySettings(k_e,
+                                         phi_0,
+                                         reference,
+                                         status,
+                                         self.freq_bunch_mhz,
+                                         )
         return cavity_settings
 
     def from_optimisation_algorithm(

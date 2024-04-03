@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds a :class:`FieldMap`.
+"""Hold a ``FIELD_MAP``.
 
 .. todo::
     Handle the different kind of field_maps...
@@ -22,12 +21,14 @@ This module holds a :class:`FieldMap`.
 
 """
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
-from core.electric_field import RfField
+from core.electric_field import NewRfField
 from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
+from util.helper import recursive_getter
 
 
 # warning: doublon with cavity_settings.ALLOWED_STATUS
@@ -68,55 +69,27 @@ class FieldMap(Element):
         self.aperture_flag = int(line[8])               # K_a
         self.cavity_settings = cavity_settings
 
-        # handled by TW
-        # if self.aperture_flag > 0:
-        #     logging.warning("Space charge compensation maps not handled.")
-        # FIXME according to doc, may also be float
-
         self.field_map_folder = default_field_map_folder
-        self.field_map_file_name: Path | list[Path]
+        self.field_map_file_name = Path(line[9])
 
-        # wont be necessary anymore
-        self._prepare_field_map(line)
-        self.rf_field: RfField
-        self.update_status('nominal')
+        self.new_rf_field: NewRfField
 
-        # will have to set this at instantiation I guess
+    @property
+    def status(self) -> str:
+        """Give the status from the :class:`.CavitySettings`."""
+        return self.cavity_settings.status
 
-    # maybe I should get this from CavitySettings instead
     @property
     def is_accelerating(self) -> bool:
         """Tell if the cavity is working."""
-        if self.elt_info['status'] == 'failed':
+        if self.status == 'failed':
             return False
-        # if self.rf_field.k_e < 1e-8:
-        #     return False
         return True
 
     @property
     def can_be_retuned(self) -> bool:
         """Tell if we can modify the element's tuning."""
         return True
-
-    def _prepare_field_map(self, line: list[str]) -> None:
-        """Set field map related parameters.
-
-        Field map file(s) are not loaded at initialization, but rather once all
-        :class:`.Command` and in particular :class:`.FieldMapPath` have been
-        dealt with.
-
-        Parameters
-        ----------
-        line : list[str]
-            Full line corresponding to current field map.
-
-        """
-        phi_0 = np.deg2rad(float(line[3]))
-        self.field_map_file_name = Path(line[9])
-        absolute_phase_flag = bool(int(line[10]))
-        self.rf_field = RfField(k_e=float(line[6]),
-                                absolute_phase_flag=absolute_phase_flag,
-                                phi_0=phi_0)
 
     def update_status(self, new_status: str) -> None:
         """Change the status of the cavity.
@@ -128,19 +101,17 @@ class FieldMap(Element):
         assert new_status in IMPLEMENTED_STATUS
 
         self.cavity_settings.status = new_status
-        self.elt_info['status'] = new_status
-        if new_status == 'failed':
-            self.rf_field.k_e = 0.
-            # self.cavity_settings.k_e = 0.
-            for solver_id, beam_calc_param in self.beam_calc_param.items():
-                beam_calc_param.re_set_for_broken_cavity()
-                self.cavity_settings.set_beam_calculator(
-                    solver_id,
-                    beam_calc_param.transf_mat_function_wrapper)
+        if new_status != 'failed':
+            return
+
+        for solver_id, beam_calc_param in self.beam_calc_param.items():
+            beam_calc_param.re_set_for_broken_cavity()
+            self.cavity_settings.set_beam_calculator(
+                solver_id,
+                beam_calc_param.transf_mat_function_wrapper)
 
     def set_full_path(self, extensions: dict[str, list[str]]) -> None:
-        """
-        Set absolute paths with extensions of electromagnetic files.
+        """Set absolute paths with extensions of electromagnetic files.
 
         Parameters
         ----------
@@ -159,3 +130,79 @@ class FieldMap(Element):
             for extension in extensions.values()
             for ext in extension
         ]
+
+    def keep_cavity_settings(self,
+                             rf_field: dict | None = None,
+                             v_cav_mv: float | None = None,
+                             phi_s: float | None = None,
+                             cavity_settings: CavitySettings | None = None
+                             ) -> None:
+        """Keep the cavity settings that were found."""
+        if cavity_settings is not None:
+            self.cavity_settings = cavity_settings
+            return
+
+        assert rf_field is not None
+        if rf_field == {}:
+            return
+
+        self.cavity_settings.phi_0_abs = rf_field['phi_0_abs']
+        self.cavity_settings.phi_0_rel = rf_field['phi_0_rel']
+        self.cavity_settings.k_e = rf_field['k_e']
+        assert phi_s is not None
+        self.cavity_settings.phi_s = phi_s
+        assert v_cav_mv is not None
+        self.cavity_settings.v_cav_mv = v_cav_mv
+
+    def get(self,
+            *keys: str,
+            to_numpy: bool = True,
+            none_to_nan: bool = False,
+            **kwargs: bool | str | None) -> Any:
+        """
+        Shorthand to get attributes from this class or its attributes.
+
+        Parameters
+        ----------
+        *keys: str
+            Name of the desired attributes.
+        to_numpy : bool, optional
+            If you want the list output to be converted to a np.ndarray. The
+            default is True.
+        **kwargs : bool | str | None
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : Any
+            Attribute(s) value(s).
+
+        """
+        val = {key: [] for key in keys}
+
+        for key in keys:
+            if key == 'name':
+                val[key] = self.name
+                continue
+
+            if self.cavity_settings.has(key):
+                val[key] = self.cavity_settings.get(key)
+                continue
+
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            val[key] = recursive_getter(key, vars(self), **kwargs)
+            if not to_numpy and isinstance(val[key], np.ndarray):
+                val[key] = val[key].tolist()
+
+        out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
+               else val[key]
+               for key in keys]
+        if none_to_nan:
+            out = [x if x is not None else np.NaN for x in out]
+
+        if len(out) == 1:
+            return out[0]
+        return tuple(out)

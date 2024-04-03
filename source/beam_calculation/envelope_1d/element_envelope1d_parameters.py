@@ -185,8 +185,8 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
             SYNCHRONOUS_PHASE_FUNCTIONS[phi_s_model]
 
         self.solver_id = solver_id
-        self.n_cell = elt.get('n_cell')
-        self.bunch_to_rf = elt.get('bunch_to_rf')
+        self.n_cell = elt.new_rf_field.n_cell
+        self._rf_to_bunch = elt.cavity_settings.rf_phase_to_bunch_phase
         n_steps = self.n_cell * n_steps_per_cell
         super().__init__(transf_mat_function,
                          elt.length_m,
@@ -221,7 +221,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         """
         assert itg_field is not None
         w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
-        gamma_phi[:, 1] /= self.bunch_to_rf
+        gamma_phi[:, 1] = self._rf_to_bunch(gamma_phi[:, 1])
         cav_params = self.compute_cavity_parameters(itg_field)
         results = {'r_zz': r_zz,
                    'cav_params': cav_params,

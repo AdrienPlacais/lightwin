@@ -9,13 +9,17 @@
 .. todo::
     Check behavior with rephased
 
+See Also
+--------
+NewRfField
+
 """
 import cmath
 from collections.abc import Callable
 from functools import partial
 import logging
 import math
-from typing import TypeVar
+from typing import Any, Self, TypeVar
 
 from scipy.optimize import NonlinearConstraint, minimize_scalar
 
@@ -120,8 +124,10 @@ class CavitySettings:
         self._phi_s_to_phi_0_rel: Callable
 
         self._freq_bunch_mhz = freq_bunch_mhz
-        self._bunch_phase_to_rf_phase: Callable[[float], float]
+        self.bunch_phase_to_rf_phase: Callable[[float], float]
+        self.rf_phase_to_bunch_phase: Callable[[float], float]
         self.freq_cavity_mhz: float
+        self.omega0_rf: float
         if freq_cavity_mhz is not None:
             self.set_bunch_to_rf_freq_func(freq_cavity_mhz)
 
@@ -150,6 +156,46 @@ class CavitySettings:
             return f"{attr_name}: {'None':>7}"
         return f"{attr_name}: {attr_val:3.5f}"
 
+    def has(self, key: str) -> bool:
+        """Tell if the required attribute is in this class."""
+        return hasattr(self, key)
+
+    def get(self,
+            *keys: str,
+            to_deg: bool = False,
+            **kwargs: bool | str | None
+            ) -> Any:
+        """Shorthand to get attributes from this class or its attributes.
+
+        Parameters
+        ----------
+        *keys : str
+            Name of the desired attributes.
+        **kwargs : bool | str | None
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : Any
+            Attribute(s) value(s).
+
+        """
+        val: dict[str, Any] = {key: [] for key in keys}
+
+        for key in keys:
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            val[key] = getattr(self, key)
+            if to_deg and 'phi' in key:
+                val[key] = math.degrees(val[key])
+
+        out = [val[key] for key in keys]
+        if len(keys) == 1:
+            return out[0]
+        return tuple(out)
+
     def _check_consistency_of_status_and_reference(self) -> None:
         """Perform some tests on ``status`` and ``reference``.
 
@@ -175,7 +221,14 @@ class CavitySettings:
         bunch_phase_to_rf_phase = partial(
             phi_bunch_to_phi_rf,
             freq_cavity_mhz / self._freq_bunch_mhz)
-        self._bunch_phase_to_rf_phase = bunch_phase_to_rf_phase
+        self.bunch_phase_to_rf_phase = bunch_phase_to_rf_phase
+
+        rf_phase_to_bunch_phase = partial(
+            phi_bunch_to_phi_rf,
+            self._freq_bunch_mhz / freq_cavity_mhz)
+        self.rf_phase_to_bunch_phase = rf_phase_to_bunch_phase
+
+        self.omega0_rf = 2e6 * math.pi * freq_cavity_mhz
 
 # =============================================================================
 # Reference
@@ -261,8 +314,12 @@ class CavitySettings:
         value of the :attr:`.reference`.
 
         .. todo::
-            logging.warning("Check that beam_calc_param is still updated."
-                        "As in FieldMap.update_status")
+            Check that beam_calc_param is still updated. As in
+            FieldMap.update_status
+
+        .. todo::
+            As for now: do not update the status directly, prefer calling the
+            :meth:`.FieldMap.update_status`
 
         """
         assert value in ALLOWED_STATUS
@@ -346,7 +403,7 @@ class CavitySettings:
         return self._phi_0_rel
 
 # =============================================================================
-# Synchronous phase
+# Synchronous phase, accelerating voltage
 # =============================================================================
     @property
     def phi_s(self) -> None:
@@ -456,6 +513,51 @@ class CavitySettings:
         """
         self.transf_mat_func_wrappers[solver_id] = transf_mat_function_wrapper
 
+    @property
+    def v_cav_mv(self) -> None:
+        """Get accelerating voltage, compute it if necessary."""
+
+    @v_cav_mv.setter
+    def v_cav_mv(self, value: float) -> None:
+        """Set accelerating voltage to desired value."""
+        self._v_cav_mv = value
+
+    @v_cav_mv.getter
+    def v_cav_mv(self) -> float | None:
+        """Get the accelerating voltage, and compute it if necessary.
+
+        .. note::
+            It is mandatory for the calculation of this quantity to compute
+            propagation of the particle in the cavity.
+
+        See Also
+        --------
+        set_phi_s_calculators
+
+        """
+        if self._v_cav_mv is not None:
+            return self._v_cav_mv
+
+        if not hasattr(self, '_phi_rf'):
+            return None
+
+        # We omit the _ in front of phi_0_rel to compute it if necessary
+        if self.phi_0_rel is None:
+            logging.error("You must declare the particle entry phase in the "
+                          "cavity to compute phi_0_rel and then v_cav_mv.")
+            return None
+
+        v_cav_mv_calc = getattr(self, '_phi_0_rel_to_v_cav_mv', None)
+        if v_cav_mv_calc is None:
+            logging.error("You must set a function to compute v_cav_mv from "
+                          "phi_0_rel with CavitySettings.set_v_cav_mv_calculators"
+                          " method.")
+            return None
+
+        raise NotImplementedError()
+        self._v_cav_mv = v_cav_mv_calc(self.phi_0_rel)
+        return self._v_cav_mv
+
 # =============================================================================
 # Phase of synchronous particle
 # =============================================================================
@@ -510,7 +612,7 @@ class CavitySettings:
     @phi_bunch.setter
     def phi_bunch(self, value: float) -> None:
         """Convert bunch to rf frequency."""
-        self.phi_rf = self._bunch_phase_to_rf_phase(value)
+        self.phi_rf = self.bunch_phase_to_rf_phase(value)
 
     @phi_bunch.getter
     def phi_bunch(self) -> None:
@@ -541,112 +643,3 @@ class CavitySettings:
     #     * - ``'compensate (not ok)'``
     #       - new ``k_e`` and ``phi_0`` were found, optimisation algorithm is
     #         not happy with it
-
-
-# @dataclass
-# class OldCavitySettings:
-    # """Settings of a single cavity."""
-
-    # cavity: FieldMap
-    # index: int
-    # k_e: float | None = None
-    # phi_0_abs: float | None = None
-    # phi_0_rel: float | None = None
-    # phi_s: float | None = None
-
-    # def __post_init__(self):
-        # """Test that only one phase was given."""
-        # if not self._is_valid_phase_input:
-            # logging.error("You gave CavitySettings several phases... "
-                          # "Which one should it take? Ignoring phases.")
-            # self.phi_0_abs = None
-            # self.phi_0_rel = None
-            # self.phi_s = None
-
-    # def tracewin_command(self, delta_phi_bunch: float = 0.) -> list[str]:
-        # """Call the function from ``tracewin_utils`` to modify TW call."""
-        # phi_0_abs = self._tracewin_phi_0_abs(delta_phi_bunch)
-        # tracewin_command = single_cavity_settings_to_command(self.index,
-                                                             # phi_0_abs,
-                                                             # self.k_e)
-        # return tracewin_command
-
-    # def has(self, key: str) -> bool:
-        # """Tell if the required attribute is in this class."""
-        # return key in recursive_items(vars(self))
-
-    # def get(self, *keys: str, to_deg: bool = False, **kwargs: dict
-            # ) -> tuple[Any]:
-        # """Shorthand to get attributes."""
-        # val: dict[str, Any] = {}
-        # for key in keys:
-            # val[key] = []
-
-        # for key in keys:
-            # if not self.has(key):
-                # val[key] = None
-                # continue
-
-            # val[key] = recursive_getter(key, vars(self), **kwargs)
-
-            # if val[key] is not None and to_deg and 'phi' in key:
-                # val[key] = np.rad2deg(val[key])
-
-        # out = [val[key] for key in keys]
-        # if len(out) == 1:
-            # return out[0]
-
-        # return tuple(out)
-
-    # @property
-    # def _is_valid_phase_input(self) -> bool:
-        # """Assert that no more than one phase was given as input."""
-        # phases = [self.phi_0_abs, self.phi_0_rel, self.phi_s]
-        # number_of_given_phases = sum(1 for phase in phases
-                                     # if phase is not None)
-        # if number_of_given_phases > 1:
-            # return False
-        # return True
-
-    # def _tracewin_phi_0_abs(self, delta_phi_bunch: float) -> float:
-        # """
-        # Return the proper absolute entry phase of the cavity.
-
-        # The attribute `self.phi_0_abs` is only valid if the beam has a null
-        # absolute phase at the entry of the linac. When working with `TraceWin`,
-        # the beam has an absolute phase at the entry of the compensation zone.
-        # Hence we compute the new `phi_0_abs` that will be properly taken into
-        # account.
-
-        # Three figure cases, according to the nature of the input:
-            # - phi_0_rel
-            # - phi_0_abs (phi_abs = 0. at entry of `ListOfElements`)
-            # - phi_s
-
-        # Parameters
-        # ----------
-        # delta_phi_bunch : float
-            # Difference between the absolute entry phase of the `ListOfElements`
-            # under study and the entry phase of the `ListOfElements` for which
-            # given phi_0_abs is valid.
-
-        # Returns
-        # -------
-        # phi_0 : float
-            # New absolute phase.
-
-        # """
-        # if not self._is_valid_phase_input:
-            # logging.error("More than one phase was given.")
-
-        # if self.phi_0_abs is not None:
-            # phi_0_abs = phi_0_abs_with_new_phase_reference(
-                # self.phi_0_abs,
-                # delta_phi_bunch * self.cavity.rf_field.n_cell)
-            # return phi_0_abs
-
-        # if self.phi_0_rel is not None:
-            # raise NotImplementedError("TraceWin switch abs/rel not supported.")
-
-        # if self.phi_s is not None:
-            # raise NotImplementedError("TraceWin fit on phi_s not supported.")

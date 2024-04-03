@@ -19,14 +19,11 @@ from pathlib import Path
 from typing import Any
 import numpy as np
 
-import config_manager
-
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
 
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.particle import ParticleInitialState
-from core.electric_field import phi_0_abs_with_new_phase_reference
 
 from tracewin_utils.dat_files import (update_field_maps_in_dat,
                                       save_dat_filecontent_to_dat)

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Define :class:`RfField`, which is a simple electric field.
+"""Hold parameters that are shared by all cavities of same type.
 
-.. todo::
-    Untouched for many time... Should modernize this module, maybe move it
-    to beam_calculation/?
+See Also
+--------
+CavitySettings
 
 """
 import logging
-from typing import Callable
+from typing import Any, Callable
 
 import cmath
 import numpy as np
@@ -26,16 +26,19 @@ def compute_param_cav(integrated_field: complex) -> dict[str, float]:
 
 
 class RfField():
-    r"""
-    Cos-like RF field.
+    r"""Cos-like RF field.
+
+    .. deprecated:: 0.6.16
+        Will be separated into :class:`NewRfField` for parameters specific to
+        cavity design and :class:`.CavitySettings` for parameters specific to
+        the cavity under study.
 
     Warning, all phases are defined as:
 
     .. math::
         \phi = \omega_0^{rf} t
 
-    While in the rest of the code and in particular in Particle, it is defined
-    as:
+    While in the rest of the code it is defined as:
 
     .. math::
         \phi = \omega_0_^{bunch} t
@@ -203,38 +206,81 @@ class RfField():
         return new_phi_0_abs
 
 
-# =============================================================================
-# Helper functions dedicated to electric fields
-# =============================================================================
-def phi_0_rel_corresponding_to(phi_0_abs: float, phi_rf_abs: float) -> float:
-    """Calculate a cavity relative entrance phase from the absolute."""
-    return np.mod(phi_0_abs + phi_rf_abs, 2. * np.pi)
+class NewRfField():
+    r"""Cos-like RF field.
 
+    Warning, all phases are defined as:
 
-def phi_0_abs_corresponding_to(phi_0_rel: float, phi_rf_abs: float) -> float:
-    """Calculate a cavity absolute entrance phase from the relative."""
-    return np.mod(phi_0_rel - phi_rf_abs, 2. * np.pi)
+    .. math::
+        \phi = \omega_0^{rf} t
 
+    While in the rest of the code it is defined as:
 
-def phi_0_abs_with_new_phase_reference(phi_0_abs: float, delta_phi_rf: float,
-                                       ) -> float:
-    """
-    Calculate a new absolute entrance phase, when the ref phase changed.
+    .. math::
+        \phi = \omega_0_^{bunch} t
 
-    Parameters
+    All phases are stored in radian.
+
+    Attributes
     ----------
-    phi_0_abs : float
-        Absolute entry phase of the cavity.
-    delta_phi_rf : float
-        Change in rf phase (not bunch!). Usually defined as `new_phi - old_phi`
-        where `old_phi` is the entry phase for which `phi_0_abs` is valid.
-
-    Returns
-    -------
-    phi_0_abs : float
-        A new absolute cavity entry phase. The reference phase is now `new_phi`
-        so that calculations will be valid if a different `ListOfElements` is
-        calculated.
+    e_spat : Callable[[float], float]
+        Spatial component of the electric field. Needs to be multiplied by the
+        cos(omega t) to have the full electric field. Initialized to null
+        function.
+    n_cell : int
+        Number of cells in the cavity.
+    n_z : int | None
+        Number of points in the file that gives `e_spat`, the spatial component
+        of the electric field.
 
     """
-    return np.mod(delta_phi_rf + phi_0_abs, 2. * np.pi)
+
+    def __init__(self) -> None:
+        """Instantiate object."""
+        self.e_spat: Callable[[float], float]
+        self.n_cell: int
+        self.n_z: int
+
+    def has(self, key: str) -> bool:
+        """Tell if the required attribute is in this class."""
+        return hasattr(self, key)
+
+    def get(self,
+            *keys: str,
+            **kwargs: bool | str | None
+            ) -> Any:
+        """Shorthand to get attributes from this class or its attributes.
+
+        Parameters
+        ----------
+        *keys : str
+            Name of the desired attributes.
+        **kwargs : bool | str | None
+            Other arguments passed to recursive getter.
+
+        Returns
+        -------
+        out : Any
+            Attribute(s) value(s).
+
+        """
+        val: dict[str, Any] = {key: [] for key in keys}
+
+        for key in keys:
+            if not self.has(key):
+                val[key] = None
+                continue
+
+            val[key] = getattr(self, key)
+
+        out = [val[key] for key in keys]
+        if len(keys) == 1:
+            return out[0]
+        return tuple(out)
+
+    def set_e_spat(self,
+                   e_spat: Callable[[float], float],
+                   n_cell: int) -> None:
+        """Set the pos. component of electric field, set number of cells."""
+        self.e_spat = e_spat
+        self.n_cell = n_cell

@@ -316,13 +316,13 @@ class FaultScenario(list):
         ref_cavities = self.ref_acc.l_cav
         fix_cavities = self.fix_acc.l_cav
 
-        for ref_cavity, fix_cavity in zip(ref_cavities, fix_cavities):
-            ref_a_f = ref_cavity.rf_field
-            fix_a_f = fix_cavity.rf_field
+        # for ref_cavity, fix_cavity in zip(ref_cavities, fix_cavities):
+            # ref_a_f = ref_cavity.rf_field
+            # fix_a_f = fix_cavity.rf_field
 
-            fix_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
-            fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
-            fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
+            # fix_a_f.phi_0['phi_0_abs'] = ref_a_f.phi_0['phi_0_abs']
+            # fix_a_f.phi_0['phi_0_rel'] = ref_a_f.phi_0['phi_0_rel']
+            # fix_a_f.phi_0['nominal_rel'] = ref_a_f.phi_0['phi_0_rel']
 
         for ref, fix in zip(ref_cavities, fix_cavities):
             phi_0 = getattr(ref.cavity_settings, self._reference_phase)

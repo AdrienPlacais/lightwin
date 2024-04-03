@@ -199,7 +199,7 @@ class Accelerator:
                                                 simulation_output.rf_fields)):
             v_cav_mv = simulation_output.cav_params['v_cav_mv'][i]
             phi_s = simulation_output.cav_params['phi_s'][i]
-            elt.keep_rf_field(rf_field, v_cav_mv, phi_s)
+            elt.keep_cavity_settings(rf_field, v_cav_mv, phi_s)
 
         original_dat_file = self.elts.files['dat_file']
         assert isinstance(original_dat_file, Path)

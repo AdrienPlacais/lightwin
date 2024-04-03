@@ -116,14 +116,15 @@ def output_cavities(linac: Accelerator, out: bool = False) -> pd.DataFrame:
     # full_list_of_cav = linac.get_elts('nature', 'FIELD_MAP')
 
     for i, cav in enumerate(linac.l_cav):
-        df_cav.loc[i] = cav.get(*columns, to_deg=True, to_numpy=False)
+        line = cav.get(*columns, to_deg=True, to_numpy=False, none_to_nan=True)
+        df_cav.loc[i] = line
 
     # Output only the cavities that have changed
     if 'Fixed' in linac.name:
         df_out = pd.DataFrame(columns=columns)
         i = 0
         for cav in linac.l_cav:
-            if 'compensate' in cav.get('status'):
+            if 'compensate' in cav.status:
                 i += 1
                 df_out.loc[i] = df_cav.loc[linac.l_cav.index(cav)]
         if out:

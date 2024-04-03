@@ -21,7 +21,8 @@ import numpy as np
 
 from beam_calculation.parameters.element_parameters import (
     ElementBeamCalculatorParameters)
-from core.electric_field import RfField
+from core.electric_field import NewRfField, RfField
+from core.elements.field_maps.cavity_settings import CavitySettings
 from core.instruction import Instruction
 from util.helper import recursive_items, recursive_getter
 
@@ -55,13 +56,12 @@ class Element(Instruction):
 
         self.elt_info = {
             'nature': line[0],
-            'status': 'none',    # Only make sense for cavities
         }
         self.length_m = 1e-3 * float(line[1])
 
         # By default, an element is non accelerating and has a dummy
         # accelerating field.
-        self.rf_field = RfField()
+        self.new_rf_field = NewRfField()
 
         new_idx = {'elt_idx': None,
                    'increment_elt_idx': True,
@@ -112,6 +112,7 @@ class Element(Instruction):
             if key == 'name':
                 val[key] = self.name
                 continue
+
             if not self.has(key):
                 val[key] = None
                 continue
@@ -128,23 +129,33 @@ class Element(Instruction):
             return out[0]
         return tuple(out)
 
-    def keep_rf_field(self,
-                      rf_field: dict,
-                      v_cav_mv: float,
-                      phi_s: float,
-                      ) -> None:
+    def keep_rf_field(self, *args, **kwargs) -> None:
+        """Save data calculated by :func:`BeamCalculator.run_with_this`.
+
+        .. deprecated:: 0.6.16
+            Prefer :meth:`keep_cavity_settings`
+
+        """
+        logging.warning("prefer keep_cavity_settings")
+        return self.keep_cavity_settings(*args, **kwargs)
+
+    def keep_cavity_settings(self,
+                             rf_field: dict | None = None,
+                             v_cav_mv: float | None = None,
+                             phi_s: float | None = None,
+                             cavity_settings: CavitySettings | None = None
+                             ) -> None:
         """Save data calculated by :func:`BeamCalculator.run_with_this`."""
-        if rf_field != {}:
-            self.rf_field.v_cav_mv = v_cav_mv
-            self.rf_field.phi_s = phi_s
-
-            self.rf_field.phi_0['phi_0_abs'] = rf_field['phi_0_abs']
-            self.rf_field.phi_0['phi_0_rel'] = rf_field['phi_0_rel']
-            self.rf_field.k_e = rf_field['k_e']
-
-            self.cavity_settings.phi_0_abs = rf_field['phi_0_abs']
-            self.cavity_settings.phi_0_rel = rf_field['phi_0_rel']
-            self.cavity_settings.k_e = rf_field['k_e']
+        if rf_field is not None and rf_field != {}:
+            raise ValueError(f"You tried to give {self.name} a {rf_field = }, "
+                             "but this element default keep_cavity_settings "
+                             "was not overriden. Are you sure it can have a "
+                             "rf_field?")
+        if cavity_settings is not None:
+            raise ValueError(f"You tried to give {self.name} a "
+                             f"{cavity_settings = }, but this element default "
+                             "keep_cavity_settings was not overriden. Are you "
+                             "sure it can have a rf_field?")
 
     @property
     def is_accelerating(self) -> bool:

@@ -291,7 +291,7 @@ def _avoid_similar_labels(plt_kwargs: list[dict]) -> list[dict]:
         while kwargs['label'] in my_labels:
             try:
                 i = int(label[-1])
-                kwargs['label'][-1] = str(i + 1)
+                kwargs['label'] += str(i + 1)
             except ValueError:
                 kwargs['label'] += '_0'
 

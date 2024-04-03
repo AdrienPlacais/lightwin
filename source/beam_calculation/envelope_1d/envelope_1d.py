@@ -194,7 +194,7 @@ class Envelope1D(BeamCalculator):
         """Take proper :class:`.CavitySettings`, format it for solver."""
         if not isinstance(element, FieldMap):
             return {}
-        if element.elt_info['status'] == 'failed':
+        if element.status == 'failed':
             return {}
 
         cavity_settings = element.cavity_settings
@@ -231,14 +231,11 @@ class Envelope1D(BeamCalculator):
         cavity_settings.phi_bunch = phi_bunch_abs
 
         rf_parameters_as_dict = {
-            'omega0_rf': field_map.get('omega0_rf'),
-            'e_spat': field_map.rf_field.e_spat,
+            'omega0_rf': field_map.cavity_settings.omega0_rf,
+            'e_spat': field_map.new_rf_field.e_spat,
             'section_idx': field_map.idx['section'],
-            'n_cell': field_map.get('n_cell'),
-            # old implementation
-            'bunch_to_rf': field_map.get('bunch_to_rf'),
-            # future implementation
-            # 'bunch_to_rf_func': cavity_settings._bunch_phase_to_rf_phase,
+            'n_cell': field_map.new_rf_field.n_cell,
+            'bunch_to_rf': field_map.cavity_settings.bunch_phase_to_rf_phase,
             'phi_0_rel': cavity_settings.phi_0_rel,
             'phi_0_abs': cavity_settings.phi_0_abs,
             'k_e': cavity_settings.k_e,
