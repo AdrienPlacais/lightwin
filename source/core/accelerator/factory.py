@@ -121,17 +121,20 @@ class StudyWithoutFaultsAcceleratorFactory(NoFault):
 class WithFaults(AcceleratorFactory):
     """Factory used to generate several accelerators for a fault study."""
 
-    def __init__(self,
-                 dat_file: Path,
-                 project_folder: Path,
-                 beam_calculators: tuple[BeamCalculator | None, ...],
-                 failed: list[list[int]] | None = None,
-                 **kwargs: Path | str | float | list[int],
-                 ) -> None:
+    def __init__(
+        self,
+        dat_file: Path,
+        project_folder: Path,
+        beam_calculators: BeamCalculator | Sequence[BeamCalculator | None],
+        failed: list[list[int]] | None = None,
+        **kwargs: Path | str | float | list[int],
+    ) -> None:
         """Initialize."""
         super().__init__(dat_file,
                          project_folder,
                          **kwargs)
+        if isinstance(beam_calculators, BeamCalculator):
+            beam_calculators = beam_calculators,
         assert beam_calculators[0] is not None, "Need at least one working "\
             "BeamCalculator."
         self.beam_calculators = beam_calculators
