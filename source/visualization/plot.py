@@ -571,10 +571,10 @@ def _plot_field_map(field_map: FieldMap,
     y_0 = 0.
     colors = {
         'nominal': 'green',
-        'rephased (in progress)': 'yellow',
+        'rephased (in progress)': 'green',
         'rephased (ok)': 'yellow',
         'failed': 'red',
-        'compensate (in progress)': 'orange',
+        'compensate (in progress)': 'green',
         'compensate (ok)': 'orange',
         'compensate (not ok)': 'orange',
     }
