@@ -23,7 +23,6 @@ def same_value_as_nominal(variable: str,
 
     """
     reference_value = reference_element.get(variable, to_numpy=False)
-    assert isinstance(reference_value, float)
     return reference_value
 
 
