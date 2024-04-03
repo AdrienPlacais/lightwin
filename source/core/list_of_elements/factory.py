@@ -239,11 +239,6 @@ class ListOfElementsFactory:
             simulation_output,
             get_kw)
 
-        logging.warning("The phase_info dict, which handles how and if "
-                        "cavities are rephased in the .dat file, is hard-"
-                        "coded. It should take config_manager.PHI_ABS_FLAG as "
-                        "input.")
-
         files = self._subset_files_dictionary(elts,
                                               files_from_full_list_of_elements,
                                               )
