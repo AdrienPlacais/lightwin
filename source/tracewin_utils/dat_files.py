@@ -24,16 +24,16 @@ import math
 
 from core.commands.command import Command
 from core.elements.element import Element
+from core.elements.field_maps.field_map import FieldMap
 from core.instruction import Dummy, Instruction
 
 
 def update_field_maps_in_dat(elts: object,
-                             new_phases: dict[Element, float],
-                             new_k_e: dict[Element, float],
-                             new_abs_phase_flag: dict[Element, float]
+                             new_phases: dict[FieldMap, float],
+                             new_k_e: dict[FieldMap, float],
+                             new_abs_phase_flag: dict[FieldMap, int]
                              ) -> None:
-    """
-    Create a new dat with given elements and settings.
+    """Create a new dat with given elements and settings.
 
     In constrary to ``dat_filecontent_from_smaller_list_of_elements``, does not
     modify the number of :class:`.Element` in the ``.dat``.
