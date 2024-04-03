@@ -1,8 +1,9 @@
+.. _examples:
+
 Examples
 ========
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
-.. todo::
-   One ore several examples. Maybe with a Jupyter Notebook.
+   notebooks/absolute_vs_relative_phases.ipynb
