@@ -208,6 +208,21 @@ class ListOfElements(list):
         for i, elt in enumerate(elts_with_a_number):
             elt.idx['elt_idx'] = i
 
+    def force_reference_phases_to(self, new_reference_phase: str) -> None:
+        """Change the reference phase of the cavities in ``self``.
+
+        This method is called by the :class:`.BeamCalculator`. It is used after
+        the first propagation of the beam in the full :class:`ListOfElements`,
+        to force every :class:`.CavitySettings` to use the reference phase
+        specified by the ``beam_calculator`` entry of the ``.toml``.
+
+        """
+        for cavity in self.l_cav:
+            settings = cavity.cavity_settings
+            if settings.reference == new_reference_phase:
+                continue
+            settings.reference = new_reference_phase
+
     def store_settings_in_dat(self,
                               dat_file: Path,
                               save: bool = True
