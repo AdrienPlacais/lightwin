@@ -109,6 +109,7 @@ class FieldMap(Element):
             self.cavity_settings.set_beam_calculator(
                 solver_id,
                 beam_calc_param.transf_mat_function_wrapper)
+        return
 
     def set_full_path(self, extensions: dict[str, list[str]]) -> None:
         """Set absolute paths with extensions of electromagnetic files.
