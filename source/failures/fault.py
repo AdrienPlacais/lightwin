@@ -136,6 +136,7 @@ class Fault:
             reference_simulation_output,
             files_from_full_list_of_elements,
         )
+        return
 
     def fix(self, optimisation_algorithm: OptimisationAlgorithm
             ) -> tuple[bool, SetOfCavitySettings, dict]:
