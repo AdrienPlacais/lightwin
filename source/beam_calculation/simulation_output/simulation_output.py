@@ -40,7 +40,7 @@ from util.helper import recursive_items, recursive_getter, range_vals
 @dataclass
 class SimulationOutput:
     """
-    Stores the information produced by a `BeamCalculator`.
+    Stores the information produced by a :class:`.BeamCalculator`.
 
     Used for fitting, post-processing, plotting.
 
@@ -63,7 +63,8 @@ class SimulationOutput:
     beam_parameters : BeamParameters | None
         Holds emittance, Twiss parameters, envelopes in the various phase
         spaces.
-    element_to_index : Callable[[str | Element, str | None], int | slice] | None
+    element_to_index : Callable[[str | Element, str | None], int | slice] |\
+    None
         Takes an :class:`.Element`, its name, 'first' or 'last' as argument,
         and returns corresponding index. Index should be the same in all the
         arrays attributes of this class: ``z_abs``, ``beam_parameters``
