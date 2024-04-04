@@ -50,26 +50,3 @@ class ElementTraceWinParametersFactory(ElementBeamCalculatorParametersFactory):
     def _parameters_subclass(self, elt: Element) -> ABCMeta:
         """Return the same class for every element."""
         return ElementTraceWinParameters
-
-    def reset_for_broken_cavity(self, elt: FieldMap
-                                ) -> ElementTraceWinParameters:
-        """
-        Return the same solver parameters as ``elt`` already has.
-
-        .. todo::
-            Allow for several TraceWin solvers. Factory class just need to be
-            instantiated with the solver_id in question to discriminate them.
-
-        """
-        element_beam_calculator_parameters = elt.beam_calc_param
-        element_tracewin_parameters = [
-            value for value in element_beam_calculator_parameters.values()
-            if isinstance(value, ElementTraceWinParameters)
-        ]
-        if len(element_tracewin_parameters) > 1:
-            logging.error("Several TraceWin solvers currently not handled."
-                          "Returning first solver...")
-        element_tracewin_parameters = \
-            element_tracewin_parameters[0]
-
-        return element_tracewin_parameters

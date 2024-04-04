@@ -164,31 +164,30 @@ class Envelope3D(BeamCalculator):
         return simulation_output
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
-        """
-        Create the number of steps, meshing, transfer functions for elts.
+        """Create the number of steps, meshing, transfer functions for elts.
 
-        The solver parameters are stored in self.parameters. As for now, for
-        memory purposes, only one set of solver parameters is stored. In other
-        words, if you compute the transfer matrices of several ListOfElements
-        back and forth, the solver paramters will be re-initialized each time.
+        The solver parameters are stored in :attr:`.Element.beam_calc_param`.
 
         Parameters
         ----------
         accelerator : Accelerator
-            Accelerator object which ListOfElements must be initialized.
+            Object which :class:`.ListOfElements` must be initialized.
 
         """
         elts = accelerator.elts
-        for elt in elts:
-            elt.beam_calc_param[self.id] = \
-                self.beam_calc_parameters_factory.run(elt)
-
         position = 0.
         index = 0
         for elt in elts:
-            position, index = \
-                elt.beam_calc_param[self.id].set_absolute_meshes(position,
-                                                                 index)
+            if self.id in elt.beam_calc_param:
+                logging.debug(f"Solver already initialized for {elt = }."
+                              "I will skip solver param initialisation for"
+                              f" {elts[0]} to {elts[-1]}")
+                return
+            solver_param = self.beam_calc_parameters_factory.run(elt)
+            elt.beam_calc_param[self.id] = solver_param
+            position, index = solver_param.set_absolute_meshes(position, index)
+        logging.debug(f"Initialized solver param for {elts[0]} to {elts[-1]}")
+        return
 
     @property
     def is_a_multiparticle_simulation(self) -> bool:

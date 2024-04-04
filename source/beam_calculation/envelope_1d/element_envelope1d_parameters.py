@@ -46,11 +46,10 @@ class ElementEnvelope1DParameters(ElementBeamCalculatorParameters):
     def __init__(self,
                  transf_mat_function: Callable,
                  length_m: float,
-                 n_steps: int = 1,
-                 ) -> None:
+                 n_steps: int,
+                 **kwargs: str | int) -> None:
         """Set the actually useful parameters."""
         self.transf_mat_function = transf_mat_function
-
         self.n_steps = n_steps
         self.d_z = length_m / self.n_steps
         self.rel_mesh = np.linspace(0., length_m, self.n_steps + 1)
@@ -69,7 +68,7 @@ class ElementEnvelope1DParameters(ElementBeamCalculatorParameters):
 
         return self.abs_mesh[-1], self.s_out
 
-    def re_set_for_broken_cavity(self):
+    def re_set_for_broken_cavity(self) -> None:
         """Change solver parameters for efficiency purposes."""
         raise IOError("Calling this method for a non-field map is incorrect.")
 
@@ -146,13 +145,15 @@ class DriftEnvelope1DParameters(ElementEnvelope1DParameters):
     def __init__(self,
                  transf_mat_module: ModuleType,
                  elt: Element,
-                 **kwargs: str,
-                 ) -> None:
+                 n_steps: int = 1,
+                 **kwargs: str | int) -> None:
         """Create the specific parameters for a drift."""
         transf_mat_function = transf_mat_module.z_drift
-        super().__init__(
+        return super().__init__(
             transf_mat_function,
             length_m=elt.length_m,
+            n_steps=n_steps,
+            **kwargs
         )
 
     def transfer_matrix_arguments(self) -> tuple[float, int]:
@@ -171,14 +172,13 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
     def __init__(self,
                  transf_mat_module: ModuleType,
                  elt: FieldMap,
-                 n_steps: int,
                  method: str,
                  n_steps_per_cell: int,
                  solver_id: str,
                  phi_s_model: str = 'historical',
-                 **kwargs: str,
+                 **kwargs: str | int,
                  ) -> None:
-        """Create the specific parameters for a drift."""
+        """Create the specific parameters for a field map."""
         transf_mat_function = FIELD_MAP_INTEGRATION_METHOD_TO_FUNC[method](
             transf_mat_module)
         self.compute_cavity_parameters = \
@@ -191,6 +191,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         super().__init__(transf_mat_function,
                          elt.length_m,
                          n_steps,
+                         **kwargs
                          )
         self._transf_mat_module = transf_mat_module
         self.field_map_file_name = str(elt.field_map_file_name)
@@ -239,8 +240,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
                                                  gamma_phi: np.ndarray,
                                                  itg_field: float | None,
                                                  ) -> dict:
-            """
-            Convert the results given by the transf_mat function to dict.
+            """Convert the results given by the transf_mat function to dict.
 
             Overrides the default method defined in the ABC.
 
@@ -257,6 +257,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
 
         self._transfer_matrix_results_to_dict = \
             _new_transfer_matrix_results_to_dict
+        return
 
 
 class BendEnvelope1DParameters(ElementEnvelope1DParameters):
@@ -270,7 +271,9 @@ class BendEnvelope1DParameters(ElementEnvelope1DParameters):
     def __init__(self,
                  transf_mat_module: ModuleType,
                  elt: Bend,
-                 **kwargs: str):
+                 n_steps: int = 1,
+                 **kwargs: str | int
+                 ) -> None:
         """Instantiate object and pre-compute some parameters for speed.
 
         Parameters
@@ -279,16 +282,16 @@ class BendEnvelope1DParameters(ElementEnvelope1DParameters):
             Module where the transfer matrix function is defined.
         elt : Bend
             ``BEND`` element.
-        kwargs :
-            kwargs
+        n_steps : int, optional
+            Number of integration steps. The default is 1.
 
         """
         transf_mat_function = transf_mat_module.z_bend
 
         super().__init__(transf_mat_function,
                          elt.length_m,
-                         n_steps=1,
-                         )
+                         n_steps=n_steps,
+                         **kwargs)
 
         factors = self._pre_compute_factors_for_transfer_matrix(
             elt.length_m,

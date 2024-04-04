@@ -49,7 +49,8 @@ class ElementEnvelope3DParameters(ElementEnvelope1DParameters):
     def __init__(self,
                  transf_mat_function: Callable,
                  length_m: float,
-                 n_steps: int = 1) -> None:
+                 n_steps: int,
+                 **kwargs) -> None:
         """Save useful parameters as attribute.
 
         Parameters
@@ -118,14 +119,15 @@ class DriftEnvelope3DParameters(ElementEnvelope3DParameters):
     def __init__(self,
                  transf_mat_module: ModuleType,
                  elt: Drift | FieldMap,
+                 n_steps: int = 1,
                  **kwargs: str,
                  ) -> None:
         """Create the specific parameters for a drift."""
         transf_mat_function = transf_mat_module.drift
-        super().__init__(
-            transf_mat_function,
-            elt.length_m,
-        )
+        super().__init__(transf_mat_function,
+                         elt.length_m,
+                         n_steps=n_steps,
+                         **kwargs)
 
     def transfer_matrix_arguments(self) -> tuple[float, int]:
         """Give the element parameters necessary to compute transfer matrix."""
@@ -138,14 +140,15 @@ class QuadEnvelope3DParameters(ElementEnvelope3DParameters):
     def __init__(self,
                  transf_mat_module: ModuleType,
                  elt: Quad,
+                 n_steps: int = 1,
                  **kwargs: str,
                  ) -> None:
         """Create the specific parameters for a drift."""
         transf_mat_function = transf_mat_module.quad
-        super().__init__(
-            transf_mat_function,
-            elt.length_m,
-        )
+        super().__init__(transf_mat_function,
+                         elt.length_m,
+                         n_steps=n_steps,
+                         **kwargs)
         self.gradient = elt.grad
 
     def transfer_matrix_arguments(self) -> tuple[float, float]:
@@ -159,6 +162,7 @@ class SolenoidEnvelope3DParameters(ElementEnvelope3DParameters):
     def __init__(self,
                  transf_mat_module: ModuleType,
                  elt: Solenoid,
+                 n_steps: int = 1,
                  **kwargs: str,
                  ) -> None:
         """Create the specific parameters for a drift."""
@@ -176,7 +180,6 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
     def __init__(self,
                  transf_mat_module: ModuleType,
                  elt: FieldMap,
-                 n_steps: int,
                  method: str,
                  n_steps_per_cell: int,
                  solver_id: str,
@@ -196,6 +199,7 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
         super().__init__(transf_mat_function,
                          elt.length_m,
                          n_steps,
+                         **kwargs
                          )
         self._transf_mat_module = transf_mat_module
         elt.cavity_settings.set_beam_calculator(
@@ -265,6 +269,7 @@ class BendEnvelope3DParameters(ElementEnvelope3DParameters):
     def __init__(self,
                  transf_mat_module: ModuleType,
                  elt: Bend,
+                 n_steps: int = 1,
                  **kwargs: str):
         """Instantiate object and pre-compute some parameters for speed.
 

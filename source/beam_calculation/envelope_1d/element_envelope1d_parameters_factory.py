@@ -95,7 +95,6 @@ class ElementEnvelope1DParametersFactory(
         single_element_envelope_1d_parameters = subclass(
             self.transf_mat_module,
             elt=elt,
-            n_steps=1,
             **kwargs)
 
         return single_element_envelope_1d_parameters
@@ -140,14 +139,3 @@ class ElementEnvelope1DParametersFactory(
                           "elements_to_remove key in the "
                           "BeamCalculator.ListOfElementFactory class.")
             raise IOError
-
-    def reset_for_broken_cavity(self, elt: FieldMap,
-                                ) -> DriftEnvelope1DParameters:
-        """Give new solver parameters for a broken cavity."""
-        solver_parameters = DriftEnvelope1DParameters(self.transf_mat_module,
-                                                      elt)
-
-        solver_parameters._transfer_matrix_results_to_dict = \
-            solver_parameters._transfer_matrix_results_to_dict_broken_field_map
-
-        return solver_parameters

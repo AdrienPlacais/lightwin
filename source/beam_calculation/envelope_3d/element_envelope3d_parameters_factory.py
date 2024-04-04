@@ -84,7 +84,6 @@ class ElementEnvelope3DParametersFactory(
         single_element_envelope_3d_parameters = subclass(
             self.transf_mat_module,
             elt,
-            n_steps=1,
             **kwargs)
 
         return single_element_envelope_3d_parameters
@@ -129,14 +128,3 @@ class ElementEnvelope3DParametersFactory(
                           "elements_to_remove key in the "
                           "BeamCalculator.ListOfElementFactory class.")
             raise NotImplementedError
-
-    def reset_for_broken_cavity(self, elt: FieldMap,
-                                ) -> DriftEnvelope3DParameters:
-        """Give new solver parameters for a broken cavity."""
-        solver_parameters = DriftEnvelope3DParameters(self.transf_mat_module,
-                                                      elt)
-
-        solver_parameters._transfer_matrix_results_to_dict = \
-            solver_parameters._transfer_matrix_results_to_dict_broken_field_map
-
-        return solver_parameters
