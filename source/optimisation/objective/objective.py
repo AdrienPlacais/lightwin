@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""This module holds an base class from which every objective will inherit."""
+"""Define a class to hold optimisation objective with its ideal value."""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -10,8 +10,7 @@ from beam_calculation.simulation_output.simulation_output import \
 
 @dataclass
 class Objective(ABC):
-    """
-    Holds an objective and methods to evaluate it.
+    """Hold an objective and methods to evaluate it.
 
     Parameters
     ----------

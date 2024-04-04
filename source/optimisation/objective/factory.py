@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds the factory as well as the presets to handle objectives.
+"""Define a factory to create :class:`.Objective` objects.
 
 When you implement a new objective preset, also add it to the list of
 implemented presets in :mod:`config.optimisation.objective`.
@@ -51,7 +50,7 @@ class ObjectiveFactory(ABC):
     A base class to create :class:`Objective`.
 
     It is intended to be sub-classed to make presets. Look at
-    :class:`SimpleADS` or :class:`SyncPhaseAsObjectiveADS` for examples.
+    :class:`EnergyPhaseMismatch` or :class:`EnergySyncPhaseMismatch` for examples.
 
     Attributes
     ----------
@@ -158,15 +157,85 @@ class ObjectiveFactory(ABC):
         logging.info('\n'.join(info))
 
 
-class SimpleADS(ObjectiveFactory):
+class EnergyMismatch(ObjectiveFactory):
+    """A set of two objectives: energy and mismatch.
+
+    We try to match the kinetic energy and the mismatch factor at the end of
+    the last altered lattice (the last lattice with a compensating or broken
+    cavity).
+
+    This set of objectives is adapted when you do not need to retrieve the
+    absolute beam phase at the exit of the compensation zone, ie when rephasing
+    all downstream cavities is not an issue.
+
     """
-    A rapid and relatively robust method for ADS.
+
+    @property
+    def objective_position_preset(self) -> list[str]:
+        """Set objective evaluation at end of last altered lattice."""
+        objective_position_preset = ['end of last altered lattice']
+        return objective_position_preset
+
+    @property
+    def compensation_zone_override_settings(self) -> dict[str, bool]:
+        """Set no particular overridings."""
+        compensation_zone_override_settings = {
+            'full_lattices': False,
+            'full_linac': False,
+            'start_at_beginning_of_linac': False,
+        }
+        return compensation_zone_override_settings
+
+    def _elements_where_objective_are_evaluated(self) -> list[Element]:
+        """Give element at end of compensation zone."""
+        return [self.elts_of_compensation_zone[-1]]
+
+    def get_objectives(self) -> list[Objective]:
+        """Give objects to match kinetic energy, phase and mismatch factor."""
+        last_element = self._elements_where_objective_are_evaluated()[0]
+        objectives = [self._get_w_kin(elt=last_element),
+                      self._get_mismatch(elt=last_element)]
+        self._output_objectives(objectives)
+        return objectives
+
+    def _get_w_kin(self, elt: Element) -> Objective:
+        """Return object to match energy."""
+        objective = MinimizeDifferenceWithRef(
+            name=markdown['w_kin'],
+            weight=1.,
+            get_key='w_kin',
+            get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': False},
+            reference=self.reference_simulation_output,
+            descriptor="""Minimize diff. of w_kin between ref and fix at the
+            end of the compensation zone.
+            """
+        )
+        return objective
+
+    def _get_mismatch(self, elt: Element) -> Objective:
+        """Return object to keep mismatch as low as possible."""
+        objective = MinimizeMismatch(
+            name=r"$M_{z\delta}$",
+            weight=1.,
+            get_key='twiss',
+            get_kwargs={'elt': elt, 'pos': 'out', 'to_numpy': True,
+                        'phase_space_name': 'zdelta'},
+            reference=self.reference_simulation_output,
+            descriptor="""Minimize mismatch factor in the [z-delta] plane."""
+        )
+        return objective
+
+
+class EnergyPhaseMismatch(ObjectiveFactory):
+    """A set of three objectives: energy, absolute phase, mismatch.
 
     We try to match the kinetic energy, the absolute phase and the mismatch
     factor at the end of the last altered lattice (the last lattice with a
     compensating or broken cavity).
     With this preset, it is recommended to set constraints on the synchrous
     phase to help the optimisation algorithm to converge.
+
+    This set of objectives is robust and rapid for ADS.
 
     """
 
@@ -241,16 +310,18 @@ class SimpleADS(ObjectiveFactory):
         return objective
 
 
-class SyncPhaseAsObjectiveADS(ObjectiveFactory):
-    """
-    Factory to handle synchronous phases as objectives.
+class EnergySyncPhaseMismatch(ObjectiveFactory):
+    """Match the synchronous phase, the energy and the mismatch factor.
 
-    It is very similar to :class:`SimpleADS`, except that synchronous phases
-    are declared as objectives.
+    It is very similar to :class:`EnergyPhaseMismatch`, except that synchronous
+    phases are declared as objectives.
     Objective will be 0 when synchronous phase is within the imposed limits.
 
     .. note::
         Do not set synchronous phases as constraints when using this preset.
+
+    This set of objectives is slower than :class:`.EnergyPhaseMismatch`.
+    However, it can help keeping the acceptance as high as possible.
 
     """
 
@@ -365,18 +436,19 @@ class SyncPhaseAsObjectiveADS(ObjectiveFactory):
         return objective
 
 
-def _read_objective(objective_preset: str) -> ABCMeta:
-    """Return proper factory."""
-    factories = {
-        'simple_ADS': SimpleADS,
-        'sync_phase_as_objective_ADS': SyncPhaseAsObjectiveADS,
-    }
-    return factories[objective_preset]
-
-
 # =============================================================================
 # Interface with LightWin
 # =============================================================================
+OBJECTIVE_PRESETS = {
+    'EnergyPhaseMismatch': EnergyPhaseMismatch,
+    'simple_ADS': EnergyPhaseMismatch,
+    'EnergyMismatch': EnergyMismatch,
+    'rephased_ADS': EnergyMismatch,
+    'EnergySyncPhaseMismatch': EnergySyncPhaseMismatch,
+    'sync_phase_as_objective_ADS': EnergySyncPhaseMismatch,
+}
+
+
 def get_objectives_and_residuals_function(
     objective_preset: str,
     reference_elts: ListOfElements,
@@ -386,8 +458,7 @@ def get_objectives_and_residuals_function(
     compensating_elements: list[Element],
     design_space_kw: dict[str, float | bool | str | Path],
 ) -> tuple[list[Element], list[Objective], Callable[[SimulationOutput], np.ndarray]]:
-    """
-    Instantiate objective factory and create objectives.
+    """Instantiate objective factory and create objectives.
 
     Parameters
     ----------
@@ -418,7 +489,7 @@ def get_objectives_and_residuals_function(
 
     """
     assert isinstance(objective_preset, str)
-    objective_factory_class = _read_objective(objective_preset)
+    objective_factory_class = OBJECTIVE_PRESETS[objective_preset]
 
     objective_factory = objective_factory_class(
         reference_elts=reference_elts,
