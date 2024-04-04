@@ -163,22 +163,13 @@ cython_debug/
 # LightWin
 archives/
 data/
+docs/source/manual/notebooks/*.py
 images/
 source/build/
 source/untitled*.py
-tests/results_tests/*
-# *.ini_******
-# *.dat_******
 *.c
-# *.cal
-# *.gif
-# *.html
 *.json
-# *.log
 *.old
-# *.old.ini
 *.pdf
-# *.png
-# *.prof
 *.swp
 *.swo
