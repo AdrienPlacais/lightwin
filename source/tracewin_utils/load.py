@@ -100,6 +100,7 @@ def complete_dat_file(dat_path: Path) -> list[list[str]]:
             dat_filecontent.append(line.split())
     return dat_filecontent
 
+
 def table_structure_file(path: Path,
                          ) -> list[list[str]]:
     """Load the file produced by ``Data`` ``Save table to file``."""
