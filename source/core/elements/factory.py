@@ -31,6 +31,7 @@ IMPLEMENTED_ELEMENTS = {
     'DIAG_ENERGY': Diagnostic,
     'DIAG_POSITION': Diagnostic,
     'DIAG_SIZE': Diagnostic,
+    'DIAG_SIZE_MAX': Diagnostic,
     'DIAG_TWISS': Diagnostic,
     'DIAG_WAIST': Diagnostic,
     'DUMMY_ELEMENT': DummyElement,
