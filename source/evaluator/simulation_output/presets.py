@@ -152,6 +152,16 @@ SIMULATION_OUTPUT_EVALUATOR_PRESETS = {
 
     },
     # Legacy "Bruce tests"
+    "longitudinal eps at end": {
+        'value_getter': lambda s: s.get('eps_zdelta', elt='last', pos='out'),
+        'ref_value_getter': lambda ref_s, _: ref_s.get('eps_zdelta',
+                                                       elt='last',
+                                                       pos='out'),
+        'post_treaters': (post_treaters.relative_difference,),
+        'markdown': markdown['eps_zdelta'],
+        'descriptor': """Relative difference of emittance in longitudinal plane
+                         between fixed and reference linacs."""
+    },
     "transverse eps at end": {
         'value_getter': lambda s: s.get('eps_t', elt='last', pos='out'),
         'ref_value_getter': lambda ref_s, _: ref_s.get('eps_t',
