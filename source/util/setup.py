@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module simply holds the function to build the Cython module(s).
+"""Define function to build the Cython module(s).
 
 To compile, go to ``LightWin/source/`` and enter:
 ``python3 util/setup.py build_ext --inplace``
@@ -16,7 +15,6 @@ matrices_c.cpython-blabla.so`` to ``beam_calculation/envelope1d/``
     of the software. Hence, you must restart the kernel after each compilation.
 
 """
-
 from setuptools import setup
 from Cython.Build import cythonize
 import os.path
