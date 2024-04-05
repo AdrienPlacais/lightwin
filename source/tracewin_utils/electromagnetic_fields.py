@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds functions to handle TraceWin electromagnetic fields.
+"""Define functions to handle TraceWin electromagnetic fields.
 
 .. note::
     Last compatibility check: TraceWin v2.22.1.0
@@ -15,13 +14,14 @@ This module holds functions to handle TraceWin electromagnetic fields.
 """
 import logging
 import os.path
-from typing import Callable
+from collections.abc import Callable, Sequence
 
 import numpy as np
 import pandas as pd
 
-from core.elements.field_maps.field_map import FieldMap
 import tracewin_utils.load
+from core.elements.field_maps.field_map import FieldMap
+from util import helper
 
 try:
     import beam_calculation.envelope_1d.transfer_matrices_c as tm_c
@@ -48,10 +48,12 @@ FIELD_TYPES = ('static electric field',
                'RF magnetic field',
                '3D aperture map',
                )  #:
+LOADABLE = ('.edz',)  #:
 
 
 def load_electromagnetic_fields(field_maps: list[FieldMap],
-                                cython: bool) -> None:
+                                cython: bool,
+                                loadable: Sequence[str] = LOADABLE) -> None:
     """Load field map files into the :class:`.FieldMap` objects.
 
     As for now, only 1D RF electric field are handled by :class:`.Envelope1D`.
@@ -74,26 +76,23 @@ def load_electromagnetic_fields(field_maps: list[FieldMap],
             field_map.new_rf_field.n_z = args[1]
 
     if cython:
-        _load_electromagnetic_fields_for_cython(field_maps)
+        _load_electromagnetic_fields_for_cython(field_maps, loadable)
 
 
-def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap]
-                                            ) -> None:
+def _load_electromagnetic_fields_for_cython(field_maps: list[FieldMap],
+                                            loadable: Sequence[str]) -> None:
     """Load one electric field per section."""
-    valid_files = [field_map.field_map_file_name
-                   for field_map in field_maps
-                   if hasattr(field_map.new_rf_field, 'e_spat')
-                   and hasattr(field_map.new_rf_field, 'n_z')
-                   ]
-    # Trick to remove duplicates and keep order
-    valid_files = list(dict.fromkeys(valid_files))
+    files = [field_map.field_map_file_name
+             for field_map in field_maps
+             if hasattr(field_map.new_rf_field, 'e_spat')
+             and hasattr(field_map.new_rf_field, 'n_z')
+             ]
+    flattened_files = helper.flatten(files)
+    unique_files = helper.remove_duplicates(flattened_files)
+    loadable_files = list(filter(lambda file: file.suffix in loadable,
+                                 unique_files))
 
-    for valid_file in valid_files:
-        if isinstance(valid_file, list):
-            logging.error("A least one FieldMap still has several file maps, "
-                          "which Cython will not support. Skipping...")
-            valid_files.remove(valid_file)
-    tm_c.init_arrays(valid_files)
+    tm_c.init_arrays(loadable_files)
 
 
 def _geom_to_field_map_type(geom: int) -> dict[str, str]:
