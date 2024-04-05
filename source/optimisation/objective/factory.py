@@ -13,7 +13,7 @@ implemented presets in :mod:`config.optimisation.objective`.
     :mod:`failures.position`.
 
 """
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import partial
 import logging
@@ -50,7 +50,8 @@ class ObjectiveFactory(ABC):
     A base class to create :class:`Objective`.
 
     It is intended to be sub-classed to make presets. Look at
-    :class:`EnergyPhaseMismatch` or :class:`EnergySyncPhaseMismatch` for examples.
+    :class:`EnergyPhaseMismatch` or :class:`EnergySyncPhaseMismatch` for
+    examples.
 
     Attributes
     ----------
