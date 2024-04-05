@@ -176,8 +176,8 @@ class InstructionsFactory:
                                                  **instruction_kw)
             if word in IMPLEMENTED_ELEMENTS:
                 return self.element_factory.run(line,
-                                                 dat_idx,
-                                                 **instruction_kw)
+                                                dat_idx,
+                                                **instruction_kw)
             if ';' in word:
                 return Comment(line, dat_idx)
 
