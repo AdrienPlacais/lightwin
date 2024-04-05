@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Create a factory to create the :class:`.SimulationOutputEvaluator`
+"""Set an object that can create :class:`.SimulationOutputEvaluator`.
 
 .. todo::
     maybe create a mother class more generic, also for FaultScenarioEvaluator?
@@ -26,7 +25,7 @@ from evaluator.simulation_output.simulation_output_evaluator import (
 class SimulationOutputEvaluatorFactory:
     """Hold methods to create and run :class:`.SimulationOutputEvaluator`."""
 
-    def __init__(self, ref_simulation_output: SimulationOutput):
+    def __init__(self, ref_simulation_output: SimulationOutput) -> None:
         """Instantiate the factory."""
         self.ref_simulation_output = ref_simulation_output
         return
