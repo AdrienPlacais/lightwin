@@ -51,7 +51,7 @@ import util.dicts_output as dic
 figure_type = matplotlib.figure.Figure
 ax_type = matplotlib.axes._axes.Axes
 
-font = {'family': 'serif'}#, 'size': 25}
+font = {'family': 'serif'}  # , 'size': 25}
 plt.rc('font', **font)
 plt.rcParams['axes.prop_cycle'] = cycler(color=Dark2_8.mpl_colors)
 # plt.rcParams["figure.figsize"] = (13.64, 25.6)
@@ -100,7 +100,7 @@ ERROR_REFERENCE = "ref accelerator (1st solv w/ 1st solv, 2nd w/ 2nd)"
 # =============================================================================
 # Front end
 # =============================================================================
-def factory(accelerators: list[Accelerator],
+def factory(accelerators: Sequence[Accelerator],
             plots: dict[str, bool],
             **kwargs: bool) -> list[figure_type]:
     """Create all the desired plots."""
@@ -113,7 +113,7 @@ def factory(accelerators: list[Accelerator],
     ref_acc = accelerators[0]
     # Dirty patch to force plot even when only one accelerator
     if len(accelerators) == 1:
-        accelerators = [ref_acc, ref_acc]
+        accelerators = (ref_acc, ref_acc)
     figs = [_plot_preset(preset, *(ref_acc, fix_acc),
                          **_proper_kwargs(preset, kwargs))
             for fix_acc in accelerators[1:]
