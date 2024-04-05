@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Another module with different misc functions.
+"""Define misc helper functions.
 
 .. todo::
     Clean this, check what is still used.
@@ -54,7 +54,7 @@ def recursive_getter(wanted_key: str, dictionary: dict,
 # =============================================================================
 # For lists manipulations
 # =============================================================================
-def flatten(nest: list[int | float]) -> Iterator[int | float]:
+def flatten(nest: Iterable) -> Iterator:
     """Flatten nested list of lists of..."""
     for _in in nest:
         if isinstance(_in, Iterable) and not isinstance(_in, (str, bytes)):
@@ -71,6 +71,21 @@ def chunks(lst: list[Any], n_size: int) -> Generator[list[Any], int, None]:
     """
     for i in range(0, len(lst), n_size):
         yield lst[i:i + n_size]
+
+
+def remove_duplicates(iterable: Iterable) -> Iterator:
+    """Create an iterator without duplicates.
+
+    Taken from:
+    https://stackoverflow.com/questions/32012878/iterator-object-for-removing-duplicates-in-python
+
+    """
+    seen = set()
+    for item in iterable:
+        if item in seen:
+            continue
+        seen.add(item)
+        yield item
 
 
 # =============================================================================
@@ -150,6 +165,7 @@ def range_vals_object(obj: object, name: str) -> str:
         return out + f"{val} (single value)\n"
     out += f"{val[0]:+9.5e} -> {val[-1]:+9.5e} | {val.shape}\n"
     return out
+
 
 # =============================================================================
 # Files functions
