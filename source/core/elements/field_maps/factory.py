@@ -21,6 +21,7 @@ from typing import Any
 
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.field_map_100 import FieldMap100
+from core.elements.field_maps.field_map_1100 import FieldMap1100
 from core.elements.field_maps.field_map_7700 import FieldMap7700
 from core.elements.field_maps.cavity_settings_factory import (
     ICavitySettingsFactory
@@ -29,6 +30,7 @@ from core.elements.field_maps.cavity_settings_factory import (
 
 IMPLEMENTED_FIELD_MAPS = {
     100: FieldMap100,
+    1100: FieldMap1100,
     7700: FieldMap7700,
 }  #:
 
