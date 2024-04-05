@@ -36,6 +36,7 @@ IMPLEMENTED_COMMANDS = {
     'LATTICE': Lattice,
     'LATTICE_END': LatticeEnd,
     'MARKER': Marker,
+    'PLOT_DST': DummyCommand,
     'SHIFT': Shift,
     'STEERER': Steerer,
     'SUPERPOSE_MAP': SuperposeMap,
