@@ -42,6 +42,7 @@ from core.elements.drift import Drift
 from core.elements.edge import Edge
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.field_map_100 import FieldMap100
+from core.elements.field_maps.field_map_1100 import FieldMap1100
 from core.elements.field_maps.field_map_7700 import FieldMap7700
 from core.elements.quad import Quad
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -506,7 +507,9 @@ def _plot_structure(elts: ListOfElements,
         Bend: _plot_bend,
         Drift: _plot_drift,
         Edge: _plot_edge,
+        FieldMap: _plot_field_map,
         FieldMap100: _plot_field_map,
+        FieldMap1100: _plot_field_map,
         FieldMap7700: _plot_field_map,
         Quad: _plot_quad,
     }
