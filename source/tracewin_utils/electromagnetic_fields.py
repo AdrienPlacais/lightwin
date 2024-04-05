@@ -15,6 +15,7 @@
 import logging
 import os.path
 from collections.abc import Callable, Sequence
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -70,7 +71,7 @@ def load_electromagnetic_fields(field_maps: list[FieldMap],
 
         field_map.set_full_path(extensions)
 
-        args = _load_field_map_file(field_map)
+        args = _load_field_map_file(field_map, loadable)
         if args is not None:
             field_map.new_rf_field.set_e_spat(args[0], args[2])
             field_map.new_rf_field.n_z = args[1]
@@ -265,22 +266,26 @@ def _get_field_components(first_words_field_geometry: str) -> list[str]:
 
 
 def _load_field_map_file(
-    field_map: FieldMap) -> tuple[Callable[[float | np.ndarray],
-                                           float | np.ndarray] | None,
-                                  int | None,
-                                  int | None]:
-    """
-    Go across the field map file names and load the first recognized.
+        field_map: FieldMap,
+        loadable: Sequence[str]) -> tuple[
+            Callable[[float | np.ndarray], float | np.ndarray] | None,
+            int | None,
+            int | None]:
+    """Go across the field map file names and load the first recognized.
 
     For now, only ``.edz`` files (1D electric RF) are implemented. This will be
     a problem with :class:`Envelope1D`, but :class:`TraceWin` does not care.
 
     """
-    if len(field_map.field_map_file_name) > 1:
-        logging.debug("Loading of several field_maps not handled")
+    files = field_map.field_map_file_name
+    if isinstance(files, Path):
+        files = files,
+    loadable_files = list(filter(lambda x: x.suffix in loadable, files))
+    if len(loadable_files) > 1:
+        logging.info("Loading of several field_maps not handled")
         return None, None, None
 
-    for file_name in field_map.field_map_file_name:
+    for file_name in loadable_files:
         _, extension = os.path.splitext(file_name)
 
         if extension not in tracewin_utils.load.FIELD_MAP_LOADERS:
@@ -293,14 +298,11 @@ def _load_field_map_file(
         # extensions
         n_z, zmax, norm, f_z, n_cell = import_function(file_name)
 
-        assert _is_a_valid_electric_field(n_z,
-                                          zmax,
-                                          norm,
-                                          f_z,
-                                          field_map.length_m), \
+        assert _is_a_valid_electric_field(n_z, zmax, f_z, field_map.length_m
+                                          ), \
             f"Error loading {field_map}'s field map."
-
-        z_cavity_array = np.linspace(0., zmax, n_z + 1) / norm
+        f_z = _rescale(f_z, norm)
+        z_cavity_array = np.linspace(0., zmax, n_z + 1)
 
         def e_spat(pos: float | np.ndarray) -> float | np.ndarray:
             return np.interp(x=pos, xp=z_cavity_array, fp=f_z,
@@ -313,25 +315,28 @@ def _load_field_map_file(
         return e_spat, n_z, n_cell
 
 
-def _is_a_valid_electric_field(n_z: int, zmax: float, norm: float,
-                               f_z: np.ndarray, cavity_length: float) -> bool:
+def _is_a_valid_electric_field(n_z: int, zmax: float,
+                               f_z: np.ndarray, cavity_length: float,
+                               tol: float = 1e-6) -> bool:
     """Assert that the electric field that we loaded is valid."""
     if f_z.shape[0] != n_z + 1:
         logging.error(f"The electric field file should have {n_z + 1} "
-                      + f"lines, but it is {f_z.shape[0]} lines long. ")
+                      f"lines, but it is {f_z.shape[0]} lines long. ")
         return False
 
-    tolerance = 1e-6
-    if abs(zmax - cavity_length) > tolerance:
+    if abs(zmax - cavity_length) > tol:
         logging.error(f"Mismatch between the length of the field map {zmax = }"
-                      + f" and {cavity_length = }.")
+                      f" and {cavity_length = }.")
         return False
 
-    if abs(norm - 1.) > tolerance:
-        logging.warning("Field map scaling factor (second line of the file) "
-                        " is different from unity. It may enter in conflict "
-                        + "with k_e (6th argument of FIELD_MAP in the .dat).")
     return True
+
+
+def _rescale(f_z: np.ndarray, norm: float, tol: float = 1e-6) -> np.ndarray:
+    """Rescale the array if it was given scaled."""
+    if abs(norm - 1.) < tol:
+        return f_z
+    return f_z / norm
 
 # FIXME Cannot import Accelerator type (circular import)
 # Maybe this routine would be better in Accelerator?

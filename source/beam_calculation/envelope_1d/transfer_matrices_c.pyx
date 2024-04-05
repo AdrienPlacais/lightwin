@@ -42,6 +42,7 @@ cpdef init_arrays(list filepaths):
     """Initialize electric fields for efficiency."""
     cdef int n_points = 0
     cdef Py_ssize_t i
+    cdef DTYPE_t norm = 1.
     cdef DTYPE_t inv_dz = 0.
     cdef DTYPE_t[:] e_z
     global electric_fields
@@ -54,8 +55,11 @@ cpdef init_arrays(list filepaths):
                     n_points = int(line.split()[0]) + 1
                     inv_dz = float(n_points - 1) / float(line.split()[1])
                     e_z = np.empty([n_points], dtype=DTYPE)
-                elif i > 1:
-                    e_z[i - 2] = float(line)
+                    continue
+                if i == 1:
+                    norm = float(line)
+                    continue
+                e_z[i - 2] = float(line) / norm
         electric_fields[str(filepath)] = {"e_z": e_z,
                                           "n_points": n_points,
                                           "inv_dz": inv_dz}
