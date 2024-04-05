@@ -51,7 +51,6 @@ class Instruction(ABC):
         return self._personalized_name
 
 
-
 class Dummy(Instruction):
     """An object corresponding to a non-implemented element or command."""
 
