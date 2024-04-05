@@ -120,7 +120,7 @@ class FieldMap(Element):
             Keys are nature of the field, values are a list of extensions
             corresponding to it without a period.
 
-        See also
+        See Also
         --------
         :func:`tracewin_utils.electromagnetic_fields.file_map_extensions`
 
