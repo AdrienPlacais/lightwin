@@ -1,41 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds the function to load and preprocess the TraceWin files.
-
-.. todo::
-    Handle when there is no space between an element's name and the colon ":".
-
-.. todo::
-    Handle non-absolute field map paths in the FIELD_MAP_PATH
-
-"""
+"""Define functions to load and preprocess the TraceWin files."""
 import itertools
 import logging
-from pathlib import Path
-import os.path
 import re
+from pathlib import Path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import numpy as np
 
+import numpy as np
 
 # Dict of data that can be imported from TW's "Data" table.
 # More info in results
 TRACEWIN_IMPORT_DATA_TABLE = {
-    'v_cav_mv': 6,
-    'phi_0_rel': 7,
-    'phi_s': 8,
-    'w_kin': 9,
-    'beta': 10,
-    'z_abs': 11,
-    'phi_abs_array': 12,
+    "v_cav_mv": 6,
+    "phi_0_rel": 7,
+    "phi_s": 8,
+    "w_kin": 9,
+    "beta": 10,
+    "z_abs": 11,
+    "phi_abs_array": 12,
 }
 
 
 def dat_file(dat_path: Path) -> list[list[str]]:
-    """
-    Load the dat file and convert it into a list of lines.
+    """Load the dat file and convert it into a list of lines.
 
     Parameters
     ----------
@@ -50,26 +39,25 @@ def dat_file(dat_path: Path) -> list[list[str]]:
     """
     dat_filecontent = []
 
-    with open(dat_path, 'r', encoding='utf-8') as file:
+    with open(dat_path, "r", encoding="utf-8") as file:
         for line in file:
             line = line.strip()
 
-            if len(line) == 0 or line[0] == ';':
+            if len(line) == 0 or line[0] == ";":
                 continue
 
-            line = line.split(';')[0]
+            line = line.split(";")[0]
             # line = line.split(':')[-1]
             # Remove everything between parenthesis
             # https://stackoverflow.com/questions/14596884/remove-text-between-and
-            line = re.sub("([\(\[]).*?([\)\]])", "", line)
+            line = re.sub(r"([\(\[]).*?([\)\]])", "", line)
 
             dat_filecontent.append(line.split())
     return dat_filecontent
 
 
 def complete_dat_file(dat_path: Path) -> list[list[str]]:
-    """
-    Load the dat file and convert it into a list of lines.
+    """Load the dat file and convert it into a list of lines.
 
     Parameters
     ----------
@@ -84,28 +72,29 @@ def complete_dat_file(dat_path: Path) -> list[list[str]]:
     """
     dat_filecontent = []
 
-    with open(dat_path, 'r', encoding='utf-8') as file:
+    with open(dat_path, "r", encoding="utf-8") as file:
         for line in file:
             line = line.strip()
 
-            if len(line) == 0 or line[0] == ';':
+            if len(line) == 0 or line[0] == ";":
                 dat_filecontent.append([line])
                 continue
 
-            line = line.split(';')[0]
+            line = line.split(";")[0]
             # Remove everything between parenthesis
             # https://stackoverflow.com/questions/14596884/remove-text-between-and
-            line = re.sub("([\(\[]).*?([\)\]])", "", line)
+            line = re.sub(r"([\(\[]).*?([\)\]])", "", line)
 
             dat_filecontent.append(line.split())
     return dat_filecontent
 
 
-def table_structure_file(path: Path,
-                         ) -> list[list[str]]:
+def table_structure_file(
+    path: Path,
+) -> list[list[str]]:
     """Load the file produced by ``Data`` ``Save table to file``."""
     file_content = []
-    with open(path, 'r', encoding='utf-8') as file:
+    with open(path, "r", encoding="utf-8") as file:
         for line in file:
             line_content = line.split()
 
@@ -118,8 +107,7 @@ def table_structure_file(path: Path,
 
 
 def results(path: Path, prop: str) -> np.ndarray:
-    """
-    Load a property from TraceWin's "Data" table.
+    """Load a property from TraceWin's "Data" table.
 
     Parameters
     ----------
@@ -136,25 +124,26 @@ def results(path: Path, prop: str) -> np.ndarray:
 
     """
     if not path.is_file():
-        logging.warning("Filepath to results is incorrect. Provide another "
-                        "one.")
+        logging.warning(
+            "Filepath to results is incorrect. Provide another one."
+        )
         Tk().withdraw()
-        path = askopenfilename(
-            filetypes=[("TraceWin energies file", ".txt")])
-        path = Path(path)
+        path = Path(
+            askopenfilename(filetypes=[("TraceWin energies file", ".txt")])
+        )
 
     idx = TRACEWIN_IMPORT_DATA_TABLE[prop]
 
     data_ref = []
-    with open(path, encoding='utf-8') as file:
+    with open(path, encoding="utf-8") as file:
         for line in file:
             try:
-                int(line.split('\t')[0])
+                int(line.split("\t")[0])
             except ValueError:
                 continue
-            splitted_line = line.split('\t')
+            splitted_line = line.split("\t")
             new_data = splitted_line[idx]
-            if new_data == '-':
+            if new_data == "-":
                 new_data = np.NaN
             data_ref.append(new_data)
     data_ref = np.array(data_ref).astype(float)
@@ -162,8 +151,7 @@ def results(path: Path, prop: str) -> np.ndarray:
 
 
 def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray, int]:
-    """
-    Load a 1D electric field (.edz extension).
+    """Load a 1D electric field (``.edz`` extension).
 
     Parameters
     ----------
@@ -192,14 +180,14 @@ def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray, int]:
 
     f_z = []
     try:
-        with open(path, 'r', encoding='utf-8') as file:
+        with open(path, "r", encoding="utf-8") as file:
             for i, line in enumerate(file):
                 if i == 0:
-                    line_splitted = line.split(' ')
+                    line_splitted = line.split(" ")
 
                     # Sometimes the separator is a tab and not a space:
                     if len(line_splitted) < 2:
-                        line_splitted = line.split('\t')
+                        line_splitted = line.split("\t")
 
                     n_z = int(line_splitted[0])
                     # Sometimes there are several spaces or tabs between
@@ -213,8 +201,10 @@ def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray, int]:
 
                 f_z.append(float(line))
     except UnicodeDecodeError:
-        logging.error("File could not be loaded. Check that it is non-binary."
-                      "Returning nothing and trying to continue without it.")
+        logging.error(
+            "File could not be loaded. Check that it is non-binary."
+            "Returning nothing and trying to continue without it."
+        )
         raise IOError()
 
     assert n_z is not None
@@ -225,15 +215,14 @@ def electric_field_1d(path: Path) -> tuple[int, float, float, np.ndarray, int]:
 
 
 def _get_number_of_cells(f_z: list[float]) -> int:
-    """
-    Count number of times the array of z-electric field changes sign.
+    """Count number of times the array of z-electric field changes sign.
 
     See `SO`_.
 
     .. _SO: https://stackoverflow.com/a/2936859/12188681
 
     """
-    n_cell = len(list(itertools.groupby(f_z, lambda z: z > 0.)))
+    n_cell = len(list(itertools.groupby(f_z, lambda z: z > 0.0)))
     return n_cell
 
 
@@ -243,7 +232,7 @@ def transfer_matrices(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     position_in_m = []
     elements_numbers = []
 
-    with open(path, 'r', encoding='utf-8') as file:
+    with open(path, "r", encoding="utf-8") as file:
         lines = []
         for i, line in enumerate(file):
             lines.append(line)
@@ -266,6 +255,4 @@ def _transfer_matrix(lines: list[str]) -> np.ndarray:
     return transfer_matrix
 
 
-FIELD_MAP_LOADERS = {
-    ".edz": electric_field_1d
-}  #:
+FIELD_MAP_LOADERS = {".edz": electric_field_1d}  #:
