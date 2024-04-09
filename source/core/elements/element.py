@@ -17,24 +17,27 @@ This module holds :class:`Element`, declined in Drift, FieldMap, etc.
 """
 import logging
 from typing import Any
-import numpy as np
 
+import numpy as np
 from beam_calculation.parameters.element_parameters import (
-    ElementBeamCalculatorParameters)
-from core.electric_field import NewRfField, RfField
+    ElementBeamCalculatorParameters,
+)
+from core.electric_field import NewRfField
 from core.elements.field_maps.cavity_settings import CavitySettings
 from core.instruction import Instruction
-from util.helper import recursive_items, recursive_getter
+from util.helper import recursive_getter, recursive_items
 
 
 class Element(Instruction):
     """Generic element."""
 
-    def __init__(self,
-                 line: list[str],
-                 dat_idx: int,
-                 name: str | None = None,
-                 **kwargs: str) -> None:
+    def __init__(
+        self,
+        line: list[str],
+        dat_idx: int,
+        name: str | None = None,
+        **kwargs: str,
+    ) -> None:
         """
         Init parameters common to all elements.
 
@@ -55,7 +58,7 @@ class Element(Instruction):
         super().__init__(line, dat_idx, is_implemented=True, name=name)
 
         self.elt_info = {
-            'nature': line[0],
+            "nature": line[0],
         }
         self.length_m = 1e-3 * float(line[1])
 
@@ -63,13 +66,14 @@ class Element(Instruction):
         # accelerating field.
         self.new_rf_field = NewRfField()
 
-        new_idx = {'elt_idx': None,
-                   'increment_elt_idx': True,
-                   'lattice': None,
-                   'idx_in_lattice': None,
-                   'increment_lattice_idx': True,
-                   'section': None,
-                   }
+        new_idx = {
+            "elt_idx": None,
+            "increment_elt_idx": True,
+            "lattice": None,
+            "idx_in_lattice": None,
+            "increment_lattice_idx": True,
+            "section": None,
+        }
         self.idx = self.idx | new_idx
         self.beam_calc_param: dict[str, ElementBeamCalculatorParameters] = {}
 
@@ -85,8 +89,9 @@ class Element(Instruction):
         """Tell if the required attribute is in this class."""
         return key in recursive_items(vars(self))
 
-    def get(self, *keys: str, to_numpy: bool = True,
-            **kwargs: bool | str | None) -> Any:
+    def get(
+        self, *keys: str, to_numpy: bool = True, **kwargs: bool | str | None
+    ) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
@@ -109,7 +114,7 @@ class Element(Instruction):
         val = {key: [] for key in keys}
 
         for key in keys:
-            if key == 'name':
+            if key == "name":
                 val[key] = self.name
                 continue
 
@@ -121,9 +126,14 @@ class Element(Instruction):
             if not to_numpy and isinstance(val[key], np.ndarray):
                 val[key] = val[key].tolist()
 
-        out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
-               else val[key]
-               for key in keys]
+        out = [
+            (
+                np.array(val[key])
+                if to_numpy and not isinstance(val[key], str)
+                else val[key]
+            )
+            for key in keys
+        ]
 
         if len(out) == 1:
             return out[0]
@@ -139,23 +149,28 @@ class Element(Instruction):
         logging.warning("prefer keep_cavity_settings")
         return self.keep_cavity_settings(*args, **kwargs)
 
-    def keep_cavity_settings(self,
-                             rf_field: dict | None = None,
-                             v_cav_mv: float | None = None,
-                             phi_s: float | None = None,
-                             cavity_settings: CavitySettings | None = None
-                             ) -> None:
+    def keep_cavity_settings(
+        self,
+        rf_field: dict | None = None,
+        v_cav_mv: float | None = None,
+        phi_s: float | None = None,
+        cavity_settings: CavitySettings | None = None,
+    ) -> None:
         """Save data calculated by :func:`BeamCalculator.run_with_this`."""
         if rf_field is not None and rf_field != {}:
-            raise ValueError(f"You tried to give {self.name} a {rf_field = }, "
-                             "but this element default keep_cavity_settings "
-                             "was not overriden. Are you sure it can have a "
-                             "rf_field?")
+            raise ValueError(
+                f"You tried to give {self.name} a {rf_field = }, "
+                "but this element default keep_cavity_settings "
+                "was not overriden. Are you sure it can have a "
+                "rf_field?"
+            )
         if cavity_settings is not None:
-            raise ValueError(f"You tried to give {self.name} a "
-                             f"{cavity_settings = }, but this element default "
-                             "keep_cavity_settings was not overriden. Are you "
-                             "sure it can have a rf_field?")
+            raise ValueError(
+                f"You tried to give {self.name} a "
+                f"{cavity_settings = }, but this element default "
+                "keep_cavity_settings was not overriden. Are you "
+                "sure it can have a rf_field?"
+            )
 
     @property
     def is_accelerating(self) -> bool:
@@ -178,11 +193,15 @@ class Element(Instruction):
     def update_status(self, new_status: str) -> None:
         """Change the status of the element. To override."""
         if not self.can_be_retuned:
-            logging.error(f"You want to give {new_status = } to the element "
-                          f"{self.name}, which can't be retuned. Status of "
-                          "elements has meaning only if they can be retuned.")
+            logging.error(
+                f"You want to give {new_status = } to the element "
+                f"{self.name}, which can't be retuned. Status of "
+                "elements has meaning only if they can be retuned."
+            )
             return
 
-        logging.error(f"You want to give {new_status = } to the element "
-                      f"{self.name}, which update_status method is not "
-                      "defined.")
+        logging.error(
+            f"You want to give {new_status = } to the element "
+            f"{self.name}, which update_status method is not "
+            "defined."
+        )
