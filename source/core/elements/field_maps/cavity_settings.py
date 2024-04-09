@@ -15,14 +15,13 @@ NewRfField
 
 """
 import cmath
-from collections.abc import Callable
-from functools import partial
 import logging
 import math
-from typing import Any, Self, TypeVar
+from collections.abc import Callable
+from functools import partial
+from typing import Any
 
-from scipy.optimize import NonlinearConstraint, minimize_scalar
-
+from scipy.optimize import minimize_scalar
 from util.phases import (
     diff_angle,
     phi_0_abs_to_rel,
@@ -30,21 +29,20 @@ from util.phases import (
     phi_bunch_to_phi_rf,
 )
 
-
-ALLOWED_REFERENCES = ('phi_0_abs', 'phi_0_rel', 'phi_s')  #:
+ALLOWED_REFERENCES = ("phi_0_abs", "phi_0_rel", "phi_s")  #:
 # warning: doublon with field_map.IMPLEMENTED_STATUS
-ALLOWED_STATUS = ('nominal',
-                  'rephased (in progress)',
-                  'rephased (ok)',
-                  'failed',
-                  'compensate (in progress)',
-                  'compensate (ok)',
-                  'compensate (not ok)'
-                  )  #:
+ALLOWED_STATUS = (
+    "nominal",
+    "rephased (in progress)",
+    "rephased (ok)",
+    "failed",
+    "compensate (in progress)",
+    "compensate (ok)",
+    "compensate (not ok)",
+)  #:
 
 
-def compute_cavity_parameters(integrated_field: complex
-                              ) -> tuple[float, float]:
+def compute_cavity_parameters(integrated_field: complex) -> tuple[float, float]:
     """Compute the synchronous phase and accelerating voltage."""
     polar = cmath.polar(integrated_field)
     v_cav, phi_s = polar[0], polar[1]
@@ -73,15 +71,16 @@ class CavitySettings:
 
     """
 
-    def __init__(self,
-                 k_e: float,
-                 phi: float,
-                 reference: str,
-                 status: str,
-                 freq_bunch_mhz: float,
-                 freq_cavity_mhz: float | None = None,
-                 transf_mat_func_wrappers: dict[str, Callable] | None = None,
-                 ) -> None:
+    def __init__(
+        self,
+        k_e: float,
+        phi: float,
+        reference: str,
+        status: str,
+        freq_bunch_mhz: float,
+        freq_cavity_mhz: float | None = None,
+        transf_mat_func_wrappers: dict[str, Callable] | None = None,
+    ) -> None:
         """Instantiate the object.
 
         Parameters
@@ -142,8 +141,9 @@ class CavitySettings:
         out += f"Reference: {self.reference:>10} | "
         phases_as_string = [
             self._attr_to_str(phase_name)
-            for phase_name in ('_phi_0_abs', '_phi_0_rel', '_phi_s', 'k_e')]
-        return out + ' | '.join(phases_as_string)
+            for phase_name in ("_phi_0_abs", "_phi_0_rel", "_phi_s", "k_e")
+        ]
+        return out + " | ".join(phases_as_string)
 
     def __repr__(self) -> str:
         """Return the same thing as str."""
@@ -160,11 +160,9 @@ class CavitySettings:
         """Tell if the required attribute is in this class."""
         return hasattr(self, key)
 
-    def get(self,
-            *keys: str,
-            to_deg: bool = False,
-            **kwargs: bool | str | None
-            ) -> Any:
+    def get(
+        self, *keys: str, to_deg: bool = False, **kwargs: bool | str | None
+    ) -> Any:
         """Shorthand to get attributes from this class or its attributes.
 
         Parameters
@@ -188,7 +186,7 @@ class CavitySettings:
                 continue
 
             val[key] = getattr(self, key)
-            if to_deg and 'phi' in key:
+            if to_deg and "phi" in key:
                 val[key] = math.degrees(val[key])
 
         out = [val[key] for key in keys]
@@ -203,8 +201,8 @@ class CavitySettings:
             Maybe not necessary to raise an error when there is a mismatch.
 
         """
-        if 'rephased' in self.status:
-            assert self.reference == 'phi_0_rel'
+        if "rephased" in self.status:
+            assert self.reference == "phi_0_rel"
 
     def set_bunch_to_rf_freq_func(self, freq_cavity_mhz: float) -> None:
         """Use cavity frequency to set a bunch -> rf freq function.
@@ -219,20 +217,20 @@ class CavitySettings:
         """
         self.freq_cavity_mhz = freq_cavity_mhz
         bunch_phase_to_rf_phase = partial(
-            phi_bunch_to_phi_rf,
-            freq_cavity_mhz / self._freq_bunch_mhz)
+            phi_bunch_to_phi_rf, freq_cavity_mhz / self._freq_bunch_mhz
+        )
         self.bunch_phase_to_rf_phase = bunch_phase_to_rf_phase
 
         rf_phase_to_bunch_phase = partial(
-            phi_bunch_to_phi_rf,
-            self._freq_bunch_mhz / freq_cavity_mhz)
+            phi_bunch_to_phi_rf, self._freq_bunch_mhz / freq_cavity_mhz
+        )
         self.rf_phase_to_bunch_phase = rf_phase_to_bunch_phase
 
         self.omega0_rf = 2e6 * math.pi * freq_cavity_mhz
 
-# =============================================================================
-# Reference
-# =============================================================================
+    # =============================================================================
+    # Reference
+    # =============================================================================
     @property
     def reference(self) -> str:
         """Say what is the reference phase.
@@ -284,23 +282,23 @@ class CavitySettings:
 
     def _delete_non_reference_phases(self) -> None:
         """Reset the phases that are not the reference to None."""
-        if self.reference == 'phi_0_abs':
+        if self.reference == "phi_0_abs":
             self._phi_0_rel = None
             self._phi_s = None
             return
-        if self.reference == 'phi_0_rel':
+        if self.reference == "phi_0_rel":
             self._phi_0_abs = None
             self._phi_s = None
             return
-        if self.reference == 'phi_s':
+        if self.reference == "phi_s":
             self._phi_0_abs = None
             self._phi_0_rel = None
             return
         raise ValueError(f"{self.reference = } not implemented.")
 
-# =============================================================================
-# Status
-# =============================================================================
+    # =============================================================================
+    # Status
+    # =============================================================================
     @property
     def status(self) -> str:
         """Give the status of the cavity under study."""
@@ -324,20 +322,20 @@ class CavitySettings:
         """
         assert value in ALLOWED_STATUS
         self._status = value
-        if value == 'failed':
-            self.k_e = 0.
+        if value == "failed":
+            self.k_e = 0.0
 
         # logging.warning("Check that beam_calc_param is still updated."
-            # "As in FieldMap.update_status")
+        # "As in FieldMap.update_status")
         # this function changes the transfer matrix function, and the function
         # that converts results to a dictionary for EnvelopeiD. Does nothing
         # with TraceWin.
 
         self._check_consistency_of_status_and_reference()
 
-# =============================================================================
-# Absolute phi_0
-# =============================================================================
+    # =============================================================================
+    # Absolute phi_0
+    # =============================================================================
     @property
     def phi_0_abs(self) -> None:
         """Declare the absolute entry phase property."""
@@ -353,7 +351,7 @@ class CavitySettings:
         if self._phi_0_abs is not None:
             return self._phi_0_abs
 
-        if not hasattr(self, '_phi_rf'):
+        if not hasattr(self, "_phi_rf"):
             return None
 
         if self._phi_0_rel is not None:
@@ -363,9 +361,9 @@ class CavitySettings:
         logging.error("The phase was not initialized. Returning None...")
         return None
 
-# =============================================================================
-# Relative phi_0
-# =============================================================================
+    # =============================================================================
+    # Relative phi_0
+    # =============================================================================
     @property
     def phi_0_rel(self) -> None:
         """Get relative entry phase, compute it if necessary."""
@@ -381,7 +379,7 @@ class CavitySettings:
         if self._phi_0_rel is not None:
             return self._phi_0_rel
 
-        if not hasattr(self, '_phi_rf'):
+        if not hasattr(self, "_phi_rf"):
             return None
 
         if self._phi_0_abs is not None:
@@ -392,19 +390,21 @@ class CavitySettings:
             logging.error("No phase was initialized. Returning None...")
             return None
 
-        phi_0_from_phi_s_calc = getattr(self, '_phi_s_to_phi_0_rel', None)
+        phi_0_from_phi_s_calc = getattr(self, "_phi_s_to_phi_0_rel", None)
         if phi_0_from_phi_s_calc is None:
-            logging.error("You must set a function to compute phi_0_rel from "
-                          "phi_s with CavitySettings.set_phi_s_calculators"
-                          " method.")
+            logging.error(
+                "You must set a function to compute phi_0_rel from "
+                "phi_s with CavitySettings.set_phi_s_calculators"
+                " method."
+            )
             return None
 
         self.phi_0_rel = phi_0_from_phi_s_calc(self._phi_s)
         return self._phi_0_rel
 
-# =============================================================================
-# Synchronous phase, accelerating voltage
-# =============================================================================
+    # =============================================================================
+    # Synchronous phase, accelerating voltage
+    # =============================================================================
     @property
     def phi_s(self) -> None:
         """Get synchronous phase, compute it if necessary."""
@@ -430,29 +430,32 @@ class CavitySettings:
         if self._phi_s is not None:
             return self._phi_s
 
-        if not hasattr(self, '_phi_rf'):
+        if not hasattr(self, "_phi_rf"):
             return None
 
         # We omit the _ in front of phi_0_rel to compute it if necessary
         if self.phi_0_rel is None:
-            logging.error("You must declare the particle entry phase in the "
-                          "cavity to compute phi_0_rel and then phi_s.")
+            logging.error(
+                "You must declare the particle entry phase in the "
+                "cavity to compute phi_0_rel and then phi_s."
+            )
             return None
 
-        phi_s_calc = getattr(self, '_phi_0_rel_to_phi_s', None)
+        phi_s_calc = getattr(self, "_phi_0_rel_to_phi_s", None)
         if phi_s_calc is None:
-            logging.error("You must set a function to compute phi_s from "
-                          "phi_0_rel with CavitySettings.set_phi_s_calculators"
-                          " method.")
+            logging.error(
+                "You must set a function to compute phi_s from "
+                "phi_0_rel with CavitySettings.set_phi_s_calculators"
+                " method."
+            )
             return None
 
         self._phi_s = phi_s_calc(self.phi_0_rel)
         return self._phi_s
 
-    def set_phi_s_calculators(self,
-                              solver_id: str,
-                              w_kin: float,
-                              **kwargs) -> None:
+    def set_phi_s_calculators(
+        self, solver_id: str, w_kin: float, **kwargs
+    ) -> None:
         """Set the functions that compute synchronous phase.
 
         This function must be called every time the kinetic energy at the
@@ -465,22 +468,25 @@ class CavitySettings:
         set_beam_calculator
 
         """
-        if 'phi_0_rel' in kwargs:
-            del kwargs['phi_0_rel']
+        if "phi_0_rel" in kwargs:
+            del kwargs["phi_0_rel"]
         transf_mat_function_wrapper = self.transf_mat_func_wrappers.get(
-            solver_id, None)
+            solver_id, None
+        )
         if transf_mat_function_wrapper is None:
-            logging.error(f"No function to compute beam propagation matching "
-                          f"{solver_id = } was found. You must set it with "
-                          "CavitySettings.set_beam_calculator.")
+            logging.error(
+                f"No function to compute beam propagation matching "
+                f"{solver_id = } was found. You must set it with "
+                "CavitySettings.set_beam_calculator."
+            )
             return None
 
         def phi_0_rel_to_phi_s(phi_0_rel: float) -> float:
             """Compute propagation of the beam, deduce synchronous phase."""
-            results = transf_mat_function_wrapper(phi_0_rel=phi_0_rel,
-                                                  w_kin_in=w_kin,
-                                                  **kwargs)
-            phi_s = results['cav_params']['phi_s']
+            results = transf_mat_function_wrapper(
+                phi_0_rel=phi_0_rel, w_kin_in=w_kin, **kwargs
+            )
+            phi_s = results["cav_params"]["phi_s"]
             return phi_s
 
         def _residue_func(phi_0_rel: float, phi_s: float) -> float:
@@ -491,19 +497,19 @@ class CavitySettings:
 
         def phi_s_to_phi_0_rel(phi_s: float) -> float:
             """Call recursively ``phi_0_rel_to_phi_s`` to find ``phi_s``."""
-            out = minimize_scalar(_residue_func,
-                                  bounds=(0., 2. * math.pi),
-                                  args=(phi_s, ))
+            out = minimize_scalar(
+                _residue_func, bounds=(0.0, 2.0 * math.pi), args=(phi_s,)
+            )
             if not out.success:
-                logging.error('Synch phase not found')
+                logging.error("Synch phase not found")
             return out.x
 
         self._phi_0_rel_to_phi_s = phi_0_rel_to_phi_s
         self._phi_s_to_phi_0_rel = phi_s_to_phi_0_rel
 
-    def set_beam_calculator(self,
-                            solver_id: str,
-                            transf_mat_function_wrapper: Callable) -> None:
+    def set_beam_calculator(
+        self, solver_id: str, transf_mat_function_wrapper: Callable
+    ) -> None:
         """Add or modify a function to compute beam propagation.
 
         Must be called at the creation of the corresponding
@@ -538,29 +544,33 @@ class CavitySettings:
         if self._v_cav_mv is not None:
             return self._v_cav_mv
 
-        if not hasattr(self, '_phi_rf'):
+        if not hasattr(self, "_phi_rf"):
             return None
 
         # We omit the _ in front of phi_0_rel to compute it if necessary
         if self.phi_0_rel is None:
-            logging.error("You must declare the particle entry phase in the "
-                          "cavity to compute phi_0_rel and then v_cav_mv.")
+            logging.error(
+                "You must declare the particle entry phase in the "
+                "cavity to compute phi_0_rel and then v_cav_mv."
+            )
             return None
 
-        v_cav_mv_calc = getattr(self, '_phi_0_rel_to_v_cav_mv', None)
+        v_cav_mv_calc = getattr(self, "_phi_0_rel_to_v_cav_mv", None)
         if v_cav_mv_calc is None:
-            logging.error("You must set a function to compute v_cav_mv from "
-                          "phi_0_rel with CavitySettings.set_v_cav_mv_calculators"
-                          " method.")
+            logging.error(
+                "You must set a function to compute v_cav_mv from "
+                "phi_0_rel with CavitySettings.set_v_cav_mv_calculators"
+                " method."
+            )
             return None
 
         raise NotImplementedError()
         self._v_cav_mv = v_cav_mv_calc(self.phi_0_rel)
         return self._v_cav_mv
 
-# =============================================================================
-# Phase of synchronous particle
-# =============================================================================
+    # =============================================================================
+    # Phase of synchronous particle
+    # =============================================================================
     @property
     def phi_rf(self) -> None:
         """Declare the synchronous particle entry phase."""
