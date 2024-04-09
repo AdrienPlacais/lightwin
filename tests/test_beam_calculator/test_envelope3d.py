@@ -1,20 +1,20 @@
 """Test the :class:`.Envelope3D` solver.
 
 .. todo::
-    Test emittance, envelopes, basic compensation, different cavity phase
-    definitions.
+    Test emittance, envelopes, cavity phase definitions.
 
 """
+
 from pathlib import Path
 from typing import Any
-from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.factory import BeamCalculatorsFactory
-
-import pytest
 
 import config_manager
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
+import pytest
+from beam_calculation.beam_calculator import BeamCalculator
+from beam_calculation.factory import BeamCalculatorsFactory
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import NoFault
 
@@ -25,64 +25,68 @@ TEST_DIR = Path("tests")
 
 params = [
     pytest.param((False, 40), marks=pytest.mark.smoke),
-    pytest.param((True,  40), marks=pytest.mark.smoke),
+    pytest.param((True, 40), marks=pytest.mark.smoke),
 ]
 
 
-@pytest.fixture(scope='class', params=params)
-def config(request: pytest.FixtureRequest,
-           tmp_path_factory: pytest.TempPathFactory,
-           ) -> dict[str, dict[str, Any]]:
+@pytest.fixture(scope="class", params=params)
+def config(
+    request: pytest.FixtureRequest,
+    tmp_path_factory: pytest.TempPathFactory,
+) -> dict[str, dict[str, Any]]:
     """Set the configuration, common to all solvers."""
-    out_folder = tmp_path_factory.mktemp('tmp')
+    out_folder = tmp_path_factory.mktemp("tmp")
     flag_phi_abs, n_steps_per_cell = request.param
 
     config_path = DATA_DIR / "lightwin.toml"
     config_keys = {
-        'files': 'files',
-        'beam_calculator': 'generic_envelope3d',
-        'beam': 'beam',
+        "files": "files",
+        "beam_calculator": "generic_envelope3d",
+        "beam": "beam",
     }
     override = {
-        'files': {
-            'project_folder': out_folder,
+        "files": {
+            "project_folder": out_folder,
         },
-        'beam_calculator': {
-            'tool': 'Envelope3D',
-            'flag_phi_abs': flag_phi_abs,
-            'n_steps_per_cell': n_steps_per_cell,
-        }
+        "beam_calculator": {
+            "tool": "Envelope3D",
+            "flag_phi_abs": flag_phi_abs,
+            "n_steps_per_cell": n_steps_per_cell,
+        },
     }
-    my_config = config_manager.process_config(config_path, config_keys,
-                                              warn_mismatch=True,
-                                              override=override)
+    my_config = config_manager.process_config(
+        config_path, config_keys, warn_mismatch=True, override=override
+    )
     return my_config
 
 
 @pytest.fixture(scope="class")
 def solver(config: dict[str, dict[str, Any]]) -> BeamCalculator:
     """Instantiate the solver with the proper parameters."""
-    factory = BeamCalculatorsFactory(beam_calculator=config['beam_calculator'],
-                                     files=config['files'],
-                                     )
+    factory = BeamCalculatorsFactory(
+        beam_calculator=config["beam_calculator"],
+        files=config["files"],
+    )
     my_solver = factory.run_all()[0]
     return my_solver
 
 
 @pytest.fixture(scope="class")
-def accelerator(solver: BeamCalculator,
-                config: dict[str, dict[str, Any]],
-                ) -> Accelerator:
+def accelerator(
+    solver: BeamCalculator,
+    config: dict[str, dict[str, Any]],
+) -> Accelerator:
     """Create an example linac."""
-    accelerator_factory = NoFault(beam_calculator=solver, **config['files'])
+    accelerator_factory = NoFault(beam_calculator=solver, **config["files"])
     accelerator = accelerator_factory.run()
     return accelerator
 
 
-@pytest.fixture(scope='class')
-def simulation_output(solver: BeamCalculator,
-                      accelerator: Accelerator,
-                      ) -> SimulationOutput:
+@pytest.fixture(scope="class")
+def simulation_output(
+    solver: BeamCalculator,
+    accelerator: Accelerator,
+) -> SimulationOutput:
     """Init and use a solver to propagate beam in an example accelerator."""
     my_simulation_output = solver.compute(accelerator)
     return my_simulation_output
@@ -101,35 +105,42 @@ class TestSolver3D:
 
     def test_w_kin(self, simulation_output: SimulationOutput) -> None:
         """Verify that final energy is correct."""
-        return compare_with_reference(simulation_output, 'w_kin',
-                                      tol=self._w_kin_tol)
+        return compare_with_reference(
+            simulation_output, "w_kin", tol=self._w_kin_tol
+        )
 
     def test_phi_abs(self, simulation_output: SimulationOutput) -> None:
         """Verify that final absolute phase is correct."""
-        return compare_with_reference(simulation_output, 'phi_abs',
-                                      tol=self._phi_abs_tol)
+        return compare_with_reference(
+            simulation_output, "phi_abs", tol=self._phi_abs_tol
+        )
 
     def test_phi_s(self, simulation_output: SimulationOutput) -> None:
         """Verify that synchronous phase in last cavity is correct."""
-        return compare_with_reference(simulation_output, 'phi_s', elt='ELT142',
-                                      tol=self._phi_s_tol)
+        return compare_with_reference(
+            simulation_output, "phi_s", elt="ELT142", tol=self._phi_s_tol
+        )
 
     def test_v_cav(self, simulation_output: SimulationOutput) -> None:
         """Verify that accelerating voltage in last cavity is correct."""
-        return compare_with_reference(simulation_output, 'v_cav_mv',
-                                      elt='ELT142', tol=self._v_cav_tol)
+        return compare_with_reference(
+            simulation_output, "v_cav_mv", elt="ELT142", tol=self._v_cav_tol
+        )
 
     def test_r_xx(self, simulation_output: SimulationOutput) -> None:
         """Verify that final xx transfer matrix is correct."""
-        return compare_with_reference(simulation_output, 'r_xx',
-                                      tol=self._r_xx_tol)
+        return compare_with_reference(
+            simulation_output, "r_xx", tol=self._r_xx_tol
+        )
 
     def test_r_yy(self, simulation_output: SimulationOutput) -> None:
         """Verify that final yy transfer matrix is correct."""
-        return compare_with_reference(simulation_output, 'r_yy',
-                                      tol=self._r_yy_tol)
+        return compare_with_reference(
+            simulation_output, "r_yy", tol=self._r_yy_tol
+        )
 
     def test_r_zdelta(self, simulation_output: SimulationOutput) -> None:
         """Verify that final longitudinal transfer matrix is correct."""
-        return compare_with_reference(simulation_output, 'r_zdelta',
-                                      tol=self._r_zdelta_tol)
+        return compare_with_reference(
+            simulation_output, "r_zdelta", tol=self._r_zdelta_tol
+        )
