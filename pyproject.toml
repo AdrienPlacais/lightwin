@@ -42,5 +42,6 @@ filterwarnings = [
 [tool.isort]
 profile = "black"
 src_paths = ["./source"]
-# to test:
-# balanced_wrapping = True
+
+[tool.black]
+line-length = 79
