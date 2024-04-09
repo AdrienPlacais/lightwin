@@ -1,4 +1,4 @@
-"""Tests the various :class:`.OptimisationAlgorithm`."""
+"""Test that all :class:`.BeamCalculator` can be used for compensation."""
 
 from pathlib import Path
 from typing import Any
@@ -20,11 +20,9 @@ DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
 params = [
-    # already tested in the test_beam_calculator
-    # pytest.param(("downhill_simplex",), marks=pytest.mark.smoke),
-    pytest.param(
-        ("least_squares",),
-    ),
+    pytest.param(("generic_envelope1d",), marks=pytest.mark.smoke),
+    pytest.param(("generic_envelope3d",), marks=pytest.mark.smoke),
+    pytest.param(("generic_tracewin",), marks=pytest.mark.smoke),
 ]
 
 
@@ -33,14 +31,14 @@ def config(
     request: pytest.FixtureRequest,
     tmp_path_factory: pytest.TempPathFactory,
 ) -> dict[str, dict[str, Any]]:
-    """Set the configuration, common to all solvers."""
+    """Set the configuration."""
     out_folder = tmp_path_factory.mktemp("tmp")
-    (optimisation_algorithm,) = request.param
+    (solver_key,) = request.param
 
     config_path = DATA_DIR / "lightwin.toml"
     config_keys = {
         "files": "files",
-        "beam_calculator": "generic_envelope1d",
+        "beam_calculator": solver_key,
         "beam": "beam",
         "wtf": "generic_wtf",
         "design_space": "generic_design_space",
@@ -49,12 +47,12 @@ def config(
         "files": {
             "project_folder": out_folder,
         },
-        "wtf": {
-            "optimisation_algorithm": optimisation_algorithm,
-        },
     }
     my_config = config_manager.process_config(
-        config_path, config_keys, warn_mismatch=True, override=override
+        config_path,
+        config_keys,
+        warn_mismatch=True,
+        override=override,
     )
     return my_config
 
@@ -106,15 +104,14 @@ def simulation_outputs(
     fault_scenario: FaultScenario,
 ) -> tuple[SimulationOutput, SimulationOutput]:
     """Get ref simulation output, fix fault, compute fix simulation output."""
-    ref_simulation_output = list(accelerators[0].simulation_outputs.values())[
-        0
-    ]
+    ref_simulation_output = list(accelerators[0].simulation_outputs.values())[0]
     fault_scenario.fix_all()
     fix_simulation_output = solver.compute(accelerators[1])
     return ref_simulation_output, fix_simulation_output
 
 
-class TestOptimisationAlgorithms:
+@pytest.mark.implementation
+class TestAllBeamCalculatorCanCompensate:
 
     _w_kin_tol = 1e-3
     _phi_abs_tol = 1e-2
