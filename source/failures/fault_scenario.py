@@ -15,6 +15,7 @@ from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
+from beam_calculation.tracewin.tracewin import TraceWin
 from core.accelerator.accelerator import Accelerator
 from core.elements.element import Element
 from core.list_of_elements.factory import ListOfElementsFactory
@@ -422,8 +423,7 @@ def fault_scenario_factory(
     wtf: dict[str, Any],
     design_space_kw: dict[str, str | bool | float],
 ) -> list[FaultScenario]:
-    """
-    Create the :class:`FaultScenario` objects (factory template).
+    """Create the :class:`FaultScenario` objects (factory template).
 
     Parameters
     ----------
@@ -444,6 +444,11 @@ def fault_scenario_factory(
         already initialied :class:`Fault` objects.
 
     """
+    need_to_force_element_to_index_creation = (TraceWin,)
+    if isinstance(beam_calculator, *need_to_force_element_to_index_creation):
+        _force_element_to_index_method_creation(
+            accelerators[1], beam_calculator
+        )
     scenarios_fault_idx = wtf.pop("failed")
 
     scenarios_comp_idx = [None for _ in accelerators[1:]]
@@ -474,3 +479,20 @@ def fault_scenario_factory(
     ]
 
     return fault_scenarios
+
+
+def _force_element_to_index_method_creation(
+    accelerator: Accelerator,
+    beam_calculator: BeamCalculator,
+) -> None:
+    """Run a first simulation to link :class:`.Element` with their index.
+
+    .. note::
+        To initalize a :class:`.Fault`, you need a sub:class:`.ListOfElements`.
+        To create the latter, you need a ``_element_to_index`` method. It can
+        only be created if you know the number of steps in every
+        :class:`.Element`. So, for :class:`.TraceWin`, we run a first
+        simulation.
+
+    """
+    beam_calculator.compute(accelerator)
