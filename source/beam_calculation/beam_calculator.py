@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Define a base class for beam propagation computing tools.
+"""Define a base class for beam propagation computing tools.
 
 Define the base class :class:`BeamCalculator`, which computes the propagation
 of the beam in a :class:`.ListOfElements`, possibly with a specific
@@ -20,11 +19,13 @@ from itertools import count
 from pathlib import Path
 
 import config_manager as con
-from beam_calculation.parameters.factory import \
-    ElementBeamCalculatorParametersFactory
+from beam_calculation.parameters.factory import (
+    ElementBeamCalculatorParametersFactory,
+)
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.accelerator.accelerator import Accelerator
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -36,11 +37,12 @@ class BeamCalculator(ABC):
 
     _ids = count(0)
 
-    def __init__(self,
-                 flag_phi_abs: bool,
-                 out_folder: Path | str,
-                 default_field_map_folder: Path | str,
-                 ) -> None:
+    def __init__(
+        self,
+        flag_phi_abs: bool,
+        out_folder: Path | str,
+        default_field_map_folder: Path | str,
+    ) -> None:
         r"""Set ``id``, some generic parameters such as results folders.
 
         Parameters
@@ -65,13 +67,15 @@ class BeamCalculator(ABC):
 
         if isinstance(default_field_map_folder, str):
             default_field_map_folder = Path(default_field_map_folder)
-        self.default_field_map_folder = \
+        self.default_field_map_folder = (
             default_field_map_folder.resolve().absolute()
+        )
 
         self.simulation_output_factory: SimulationOutputFactory
         self.list_of_elements_factory: ListOfElementsFactory
-        self.beam_calc_parameters_factory: \
+        self.beam_calc_parameters_factory: (
             ElementBeamCalculatorParametersFactory
+        )
         self._set_up_common_factories()
         self._set_up_specific_factories()
 
@@ -102,11 +106,12 @@ class BeamCalculator(ABC):
     def _set_up_specific_factories(self) -> None:
         """Set up the factories specific to the :class:`.BeamCalculator`."""
 
-    def run(self,
-            elts: ListOfElements,
-            update_reference_phase: bool = False,
-            **kwargs
-            ) -> SimulationOutput:
+    def run(
+        self,
+        elts: ListOfElements,
+        update_reference_phase: bool = False,
+        **kwargs,
+    ) -> SimulationOutput:
         """Perform a simulation with default settings.
 
         .. todo::
@@ -142,12 +147,14 @@ class BeamCalculator(ABC):
         return simulation_output
 
     @abstractmethod
-    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
-                      elts: ListOfElements) -> SimulationOutput:
-        """
-        Perform a simulation with new cavity settings.
+    def run_with_this(
+        self,
+        set_of_cavity_settings: SetOfCavitySettings | None,
+        elts: ListOfElements,
+    ) -> SimulationOutput:
+        """Perform a simulation with new cavity settings.
 
-        Calling it with ``set_of_cavity_settings = None`` should be the same as
+        Calling it with ``set_of_cavity_settings = None`` shall be the same as
         calling the plain ``run`` method.
 
         Parameters
@@ -169,15 +176,15 @@ class BeamCalculator(ABC):
     def post_optimisation_run_with_this(
         self,
         optimized_cavity_settings: SetOfCavitySettings | None,
-        full_elts: ListOfElements
+        full_elts: ListOfElements,
     ) -> SimulationOutput:
-        """
-        Run a simulation a simulation after optimisation is over.
+        """Run a simulation a simulation after optimisation is over.
 
-        With ``Envelope1D``, it just calls the classic ``run_with_this``. But
-        with TraceWin, we need to update the ``optimized_cavity_settings`` as
-        running an optimisation run on a fraction of the linac is pretty
-        different from running a simulation on the whole linac.
+        With :class:`.Envelope1D`, it just calls the classic
+        :meth:`run_with_this`. But with :class:`.TraceWin`, we need to update
+        the ``optimized_cavity_settings`` as running an optimisation run on a
+        fraction of the linac is pretty different from running a simulation on
+        the whole linac.
 
         """
 
@@ -191,10 +198,15 @@ class BeamCalculator(ABC):
 
     @property
     def reference_phase(self) -> str:
-        """Give the reference phase."""
+        """Give the reference phase.
+
+        .. todo::
+            Handle reference synchronous phase.
+
+        """
         if self.flag_phi_abs:
-            return 'phi_0_abs'
-        return 'phi_0_rel'
+            return "phi_0_abs"
+        return "phi_0_rel"
 
     @property
     @abstractmethod
@@ -208,13 +220,14 @@ class BeamCalculator(ABC):
         """Tell if the simulation is in 3D."""
         pass
 
-    def compute(self,
-                accelerator: Accelerator,
-                keep_settings: bool = True,
-                recompute_reference: bool = True,
-                output_time: bool = True,
-                **kwargs: SimulationOutput | None,
-                ) -> SimulationOutput:
+    def compute(
+        self,
+        accelerator: Accelerator,
+        keep_settings: bool = True,
+        recompute_reference: bool = True,
+        output_time: bool = True,
+        ref_simulation_output: SimulationOutput | None = None,
+    ) -> SimulationOutput:
         """Wrap full process to compute propagation of beam in accelerator.
 
         Parameters
@@ -228,8 +241,9 @@ class BeamCalculator(ABC):
             everything each time. The default is True.
         output_time : bool, optional
             To print in log the time the calculation took. The default is True.
-        kwargs : SimulationOutput
-            For calculation of mismatch factors.
+        ref_simulation_output : SimulationOutput | None, optional
+            For calculation of mismatch factors. The default is None, in which
+            case the calculation is simply skipped.
 
         Returns
         -------
@@ -242,12 +256,12 @@ class BeamCalculator(ABC):
         self.init_solver_parameters(accelerator)
 
         simulation_output = self.run(accelerator.elts)
-        simulation_output.compute_complementary_data(accelerator.elts,
-                                                     **kwargs)
+        simulation_output.compute_complementary_data(
+            accelerator.elts, ref_simulation_output
+        )
         if keep_settings:
             accelerator.keep_settings(simulation_output)
-            accelerator.keep_simulation_output(simulation_output,
-                                               self.id)
+            accelerator.keep_simulation_output(simulation_output, self.id)
 
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)
@@ -255,7 +269,9 @@ class BeamCalculator(ABC):
             logging.info(f"Elapsed time in beam calculation: {delta_t}")
 
         if not recompute_reference:
-            raise NotImplementedError("idea is to take results from file if "
-                                      "simulations are too long. will be easy "
-                                      "for tracewin.")
+            raise NotImplementedError(
+                "idea is to take results from file if "
+                "simulations are too long. will be easy "
+                "for tracewin."
+            )
         return simulation_output

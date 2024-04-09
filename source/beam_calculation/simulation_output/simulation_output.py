@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-We define a class to store outputs from different :class:`.BeamCalculator`.
+"""Define a class to store outputs from different :class:`.BeamCalculator`.
 
 .. todo::
     Clarify difference cav_params vs rf_fields
@@ -20,27 +19,25 @@ We define a class to store outputs from different :class:`.BeamCalculator`.
     Maybe the synchronous phase model should appear somewhere in here?
 
 """
-from dataclasses import dataclass
 import logging
 import os.path
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Self
 
 import numpy as np
 import pandas as pd
-
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.particle import ParticleFullTrajectory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
-from util.helper import recursive_items, recursive_getter, range_vals
+from util.helper import range_vals, recursive_getter, recursive_items
 
 
 @dataclass
 class SimulationOutput:
-    """
-    Stores the information produced by a :class:`.BeamCalculator`.
+    """Stores the information produced by a :class:`.BeamCalculator`.
 
     Used for fitting, post-processing, plotting.
 
@@ -94,8 +91,7 @@ class SimulationOutput:
 
     beam_parameters: BeamParameters
 
-    element_to_index: Callable[[str | Element, str | None], int | slice] \
-        | None
+    element_to_index: Callable[[str | Element, str | None], int | slice] | None
 
     transfer_matrix: TransferMatrix | None = None
     z_abs: np.ndarray | None = None
@@ -106,11 +102,13 @@ class SimulationOutput:
         """Save complementary data, such as `Element` indexes."""
         self.elt_idx: list[int]
         if self.cav_params is None:
-            logging.error("Failed to init SimulationOutput.elt_idx as "
-                          ".cav_params was not provided.")
+            logging.error(
+                "Failed to init SimulationOutput.elt_idx as "
+                ".cav_params was not provided."
+            )
         else:
             self.elt_idx = [
-                i for i, _ in enumerate(self.cav_params['v_cav_mv'], start=1)
+                i for i, _ in enumerate(self.cav_params["v_cav_mv"], start=1)
             ]
         self.out_path: str | None = None
 
@@ -141,13 +139,22 @@ class SimulationOutput:
         handle the alias (such as ``twiss_zdelta`` <=> ``zdelta.twiss``).
 
         """
-        return key in recursive_items(vars(self)) \
-            or self.beam_parameters.has(key) \
+        return (
+            key in recursive_items(vars(self))
+            or self.beam_parameters.has(key)
             or self.transfer_matrix.has(key)
+        )
 
-    def get(self, *keys: str, to_numpy: bool = True, to_deg: bool = False,
-            elt: Element | str | None = None, pos: str | None = None,
-            none_to_nan: bool = False, **kwargs: str | bool | None) -> Any:
+    def get(
+        self,
+        *keys: str,
+        to_numpy: bool = True,
+        to_deg: bool = False,
+        elt: Element | str | None = None,
+        pos: str | None = None,
+        none_to_nan: bool = False,
+        **kwargs: str | bool | None,
+    ) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
@@ -184,19 +191,20 @@ class SimulationOutput:
                 val[key] = None
                 continue
 
-            if 'r_' in key and 'mismatch_factor_' not in key:
-                val[key] = self.transfer_matrix.get(key, elt=elt, pos=pos,
-                                                    to_numpy=False,
-                                                    **kwargs)
+            if "r_" in key and "mismatch_factor_" not in key:
+                val[key] = self.transfer_matrix.get(
+                    key, elt=elt, pos=pos, to_numpy=False, **kwargs
+                )
                 continue
 
-            val[key] = recursive_getter(key, vars(self), to_numpy=False,
-                                        **kwargs)
+            val[key] = recursive_getter(
+                key, vars(self), to_numpy=False, **kwargs
+            )
 
             if val[key] is None:
                 continue
 
-            if to_deg and 'phi' in key:
+            if to_deg and "phi" in key:
                 val[key] = _to_deg(val[key])
 
             if not to_numpy and isinstance(val[key], np.ndarray):
@@ -204,80 +212,91 @@ class SimulationOutput:
 
             if None not in (self.element_to_index, elt):
                 return_elt_idx = False
-                if key in ('v_cav_mv', 'phi_s'):
+                if key in ("v_cav_mv", "phi_s"):
                     return_elt_idx = True
-                idx = self.element_to_index(elt=elt, pos=pos,
-                                            return_elt_idx=return_elt_idx)
+                idx = self.element_to_index(
+                    elt=elt, pos=pos, return_elt_idx=return_elt_idx
+                )
                 val[key] = val[key][idx]
 
-        out = [np.array(val[key])
-               if to_numpy and not isinstance(val[key], str)
-               else val[key]
-               for key in keys]
+        out = [
+            (
+                np.array(val[key])
+                if to_numpy and not isinstance(val[key], str)
+                else val[key]
+            )
+            for key in keys
+        ]
 
         if none_to_nan:
             if not to_numpy:
-                logging.error(f"{none_to_nan = } while {to_numpy = }, which "
-                              "is not supported.")
+                logging.error(
+                    f"{none_to_nan = } while {to_numpy = }, which "
+                    "is not supported."
+                )
             out = [val.astype(float) for val in out]
 
         if len(out) == 1:
             return out[0]
         return tuple(out)
 
-    def compute_complementary_data(self,
-                                   elts: ListOfElements,
-                                   ref_simulation_output: Self | None = None,
-                                   **kwargs: Self
-                                   ) -> None:
-        """
-        Compute some other indirect quantities.
+    def compute_complementary_data(
+        self,
+        elts: ListOfElements,
+        ref_simulation_output: Self | None = None,
+    ) -> None:
+        """Compute some other indirect quantities.
 
         Parameters
         ----------
         elts : ListOfElements
             Must be a full :class:`.ListOfElements`, containing all the
             elements of the linac.
-        ref_twiss_zdelta : np.ndarray | None, optional
-            A reference array of Twiss parameters. If provided, it allows the
-            calculation of the mismatch factor. The default is None.
+        ref_simulation_output : SimulationOutput | None, optional
+            For calculation of mismatch factors. The default is None, in which
+            case the calculation is simply skipped.
 
         """
         if self.z_abs is None:
-            self.z_abs = elts.get('abs_mesh', remove_first=True)
+            self.z_abs = elts.get("abs_mesh", remove_first=True)
         self.synch_trajectory.compute_complementary_data()
-
-        mismatch_kw = {'raise_missing_phase_space_error': True,
-                       'raise_missing_mismatch_error': True,
-                       'raise_missing_twiss_error': True}
-
-        if ref_simulation_output is not None:
-            phase_space_names = ('zdelta', )
-            if self.is_3d:
-                phase_space_names = ('zdelta', 'x', 'y', 't')
-            # if self.is_multiparticle:
-            #     phase_space_names = ('zdelta', 'x', 'y', 't',
-            #                          'x99', 'y99', 'phiw99')
-
-            beam_parameters = self.beam_parameters
-            reference_beam_parameters = ref_simulation_output.beam_parameters
-            beam_parameters.set_mismatches(reference_beam_parameters,
-                                           *phase_space_names,
-                                           **mismatch_kw)
 
         # self.in_tw_fashion = tracewin.interface.output_data_in_tw_fashion()
         # FIXME
         logging.warning("data_in_tw_fashion is bugged")
+        if ref_simulation_output is None:
+            return
+
+        mismatch_kw = {
+            "raise_missing_phase_space_error": True,
+            "raise_missing_mismatch_error": True,
+            "raise_missing_twiss_error": True,
+        }
+
+        phase_space_names = ("zdelta",)
+        if self.is_3d:
+            phase_space_names = ("zdelta", "x", "y", "t")
+        # if self.is_multiparticle:
+        #     phase_space_names = ('zdelta', 'x', 'y', 't',
+        #                          'x99', 'y99', 'phiw99')
+
+        beam_parameters = self.beam_parameters
+        reference_beam_parameters = ref_simulation_output.beam_parameters
+        beam_parameters.set_mismatches(
+            reference_beam_parameters, *phase_space_names, **mismatch_kw
+        )
 
 
-def _to_deg(val: np.ndarray | list | float | None
-            ) -> np.ndarray | list | float | None:
+def _to_deg(
+    val: np.ndarray | list | float | None,
+) -> np.ndarray | list | float | None:
     """Convert the ``val[key]`` into deg if it is not None."""
     if val is None:
         return None
     if isinstance(val, list):
-        return [np.rad2deg(angle) if angle is not None else None
-                for angle in val]
+        return [
+            np.rad2deg(angle) if angle is not None else None for angle in val
+        ]
     return np.rad2deg(val)
 
 
