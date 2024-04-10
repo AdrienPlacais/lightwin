@@ -3,63 +3,68 @@ dat_file = "example.dat"
 project_folder = "results_tests/"
 
 [generic_envelope1d]
-tool = "Envelope1D"
-flag_phi_abs = true
 flag_cython = true
-n_steps_per_cell = 40
+flag_phi_abs = true
 method = "RK"
+n_steps_per_cell = 40
+tool = "Envelope1D"
 
 [generic_envelope3d]
-tool = "Envelope3D"
 flag_phi_abs = true
 n_steps_per_cell = 40
+tool = "Envelope3D"
 
 [generic_tracewin]
-tool = "TraceWin"
-simulation_type = "noX11 full"
-ini_path = "example.ini"
 hide = true
+ini_path = "example.ini"
 partran = 0
+simulation_type = "noX11 full"
+tool = "TraceWin"
 
 [beam]
-e_rest_mev = 938.27203
-q_adim = 1.0
 e_mev = 20.0
+e_rest_mev = 938.27203
 f_bunch_mhz = 100.0
 i_milli_a = 0.0
+q_adim = 1.0
 sigma = [
    [+8.409896e-06, +3.548736e-06, +0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00],
    [+3.548736e-06, +1.607857e-06, +0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00],
    [+0.000000e+00, +0.000000e+00, +2.941564e-06, +6.094860e-07, +0.000000e+00, +0.000000e+00],
    [+0.000000e+00, +0.000000e+00, +6.094860e-07, +4.418911e-07, +0.000000e+00, +0.000000e+00],
    [+0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, +3.593136e-06, -2.552518e-07],
-   [+0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, -2.552518e-07, +5.994771e-07]
+   [+0.000000e+00, +0.000000e+00, +0.000000e+00, +0.000000e+00, -2.552518e-07, +5.994771e-07],
 ]
 
 [generic_wtf]
-optimisation_algorithm = "downhill_simplex"
-strategy = "k out of n"
-k = 3
-idx = "cavity"
 failed = [[10]]
+idx = "cavity"
+k = 3
 objective_preset = "simple_ADS"
+optimisation_algorithm = "downhill_simplex"
 phi_s_fit = false
+strategy = "k out of n"
 
 [generic_design_space]
-from_file = false
 design_space_preset = "unconstrained"
-max_increase_sync_phase_in_percent = 40.0
+from_file = false
 max_absolute_sync_phase_in_deg = 0.0
-min_absolute_sync_phase_in_deg = -90.0
 max_decrease_k_e_in_percent = 20.0
 max_increase_k_e_in_percent = 180.0
+max_increase_sync_phase_in_percent = 40.0
 maximum_k_e_is_calculated_wrt_maximum_k_e_of_section = true
+min_absolute_sync_phase_in_deg = -90.0
+
+[tiny_design_space]
+design_space_preset = "unconstrained"
+from_file = true
+variables_filepath = "variables.csv"
 
 [plots_minimal]
-energy = true
-phase = true
 cav = false
 emittance = false
-twiss = false
+energy = true
 envelopes = false
+phase = true
 transfer_matrices = false
+twiss = false

@@ -1,43 +1,36 @@
 [project]
-name = "LightWin"
-version = "0.6.9"
 authors = [
-   {name="Adrien Plaçais", email="placais@lpsc.in2p3.fr"},
-   {name="Frédéric Bouly", email="bouly@lpsc.in2p3.fr"},
-   {name="Bruce Yee-Rendon", email="byee@post.j-parc.jp"},
+   { name = "Adrien Plaçais", email = "placais@lpsc.in2p3.fr" },
+   { name = "Bruce Yee-Rendon", email = "byee@post.j-parc.jp" },
+   { name = "Frédéric Bouly", email = "bouly@lpsc.in2p3.fr" },
 ]
-description="Automatically compensate cavity failures in linacs"
+classifiers = [
+   "License :: OSI Approved :: MIT License",
+   "Operating System :: OS Independent",
+   "Programming Language :: Python :: 3",
+]
+description = "Automatically compensate cavity failures in linacs"
+name = "LightWin"
 readme = "README.md"
 requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+version = "0.6.9"
 
 [project.urls]
 Homepage = "https://gitlab.in2p3.fr/adrien.placais/lightwin"
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-addopts = [
-   "--import-mode=importlib",
-   "--strict-markers",
-]
-testpaths = [
-    "tests",
-]
+addopts = ["--import-mode=importlib", "--strict-markers"]
+filterwarnings = ["ignore:.*cKDTree.*:DeprecationWarning"]
 markers = [
    "cython: mark tests that require a Cython compilation (deselect with '-m \"not cython\"')",
    "implementation: mark tests currently under implementation",
-   "tracewin: mark tests requiring a working installation of TraceWin (deselect with '-m \"not tracewin\"')",
    "slow: mark a test as slow (deselect with '-m \"not slow\"')",
    "smoke: mark quick and critical tests (select with '-m smoke')",
-   "tmp: mark to select specific tests for debug"
+   "tmp: mark to select specific tests for debug",
+   "tracewin: mark tests requiring a working installation of TraceWin (deselect with '-m \"not tracewin\"')",
 ]
-filterwarnings = [
-   "ignore:.*cKDTree.*:DeprecationWarning"
-]
+minversion = "6.0"
+testpaths = ["tests"]
 
 [tool.isort]
 profile = "black"
