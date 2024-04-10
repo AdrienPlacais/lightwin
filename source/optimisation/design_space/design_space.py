@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 """Define an object to hold variables and constraints."""
 import logging
-from abc import ABCMeta
 from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, Self, overload
 
 import numpy as np
 import pandas as pd
@@ -24,7 +23,7 @@ from optimisation.design_space.variable import Variable
 
 @dataclass
 class DesignSpace:
-    """This class hold variables and constraints of an optimisation problem."""
+    """Hold variables and constraints of an optimisation problem."""
 
     variables: list[Variable]
     constraints: list[Constraint]
@@ -49,12 +48,14 @@ class DesignSpace:
             Path to the ``variables.csv`` file.
         variables_names : Sequence[str]
             Name of the variables to create.
-        filepath_constraints : Path
-            Path to the ``constraints.csv`` file.
-        constraints_names : Sequence[str]
-            Name of the constraints to create.
-        delimiter : str
-            Delimiter in the files.
+        filepath_constraints : Path | None, optional
+            Path to the ``constraints.csv`` file. The default is None, in which
+            case no constraint is created.
+        constraints_names : Sequence[str] | None, optional
+            Name of the constraints to create. The default is None, in which
+            case no constraint is created.
+        delimiter : str, optional
+            Delimiter in the files. The default is a commma.
 
         Returns
         -------
@@ -69,6 +70,8 @@ class DesignSpace:
             delimiter=delimiter,
         )
         if filepath_constraints is None:
+            return cls(variables, [])
+        if constraints_names is None:
             return cls(variables, [])
 
         constraints = _from_file(
@@ -307,13 +310,33 @@ def _merge(dicts: list[dict]) -> dict:
     return {key: value for dic in dicts for key, value in dic.items()}
 
 
+@overload
 def _from_file(
-    parameter_class: ABCMeta,
+    parameter_class: type[Variable],
     filepath: Path,
     elements_names: Sequence[str],
     parameters_names: Sequence[str],
     delimiter: str = ",",
-) -> list[DesignSpaceParameter]:
+) -> list[Variable]: ...
+
+
+@overload
+def _from_file(
+    parameter_class: type[Constraint],
+    filepath: Path,
+    elements_names: Sequence[str],
+    parameters_names: Sequence[str],
+    delimiter: str = ",",
+) -> list[Constraint]: ...
+
+
+def _from_file(
+    parameter_class: type[Constraint] | type[Variable],
+    filepath: Path,
+    elements_names: Sequence[str],
+    parameters_names: Sequence[str],
+    delimiter: str = ",",
+) -> list[Variable] | list[Constraint]:
     """Generate list of variables or constraints from a given ``.csv``.
 
     .. todo::
@@ -322,7 +345,7 @@ def _from_file(
 
     Parameters
     ----------
-    parameter_class : {Variable, Constraint}
+    parameter_class : {type[Variable], type[Constraint]}
         Object which ``from_pd_series`` method will be called.
     filepath : Path
         Path to the ``.csv``.
@@ -345,7 +368,7 @@ def _from_file(
         parameter_class.from_pd_series(
             parameter_name, element_name, as_df.loc[element_name]
         )
-        for element_name in elements_names
         for parameter_name in parameters_names
+        for element_name in elements_names
     ]
     return parameters
