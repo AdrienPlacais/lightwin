@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Handle simulation parameters.
+"""Handle simulation parameters.
 
 In particular:
     - what are the initial properties of the beam?
@@ -27,11 +26,11 @@ In particular:
     Find a way to override the entries in the ``.toml`` before testing.
 
 """
-from typing import Any
-from pathlib import Path
+import configparser
 import logging
 import tomllib
-import configparser
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -51,7 +50,6 @@ import config.toml.plots
 import config.toml.wtf
 from config.toml.helper import dict_for_pretty_output
 
-
 # Values that will be available everywhere
 FLAG_CYTHON = bool
 METHOD = str
@@ -64,18 +62,24 @@ Q_ADIM, Q_OVER_M, M_OVER_Q = float(), float(), float()
 SIGMA = np.full((6, 6), np.NaN)
 
 
-MANDATORY_CONFIG_ENTRIES = ('files', 'beam_calculator', 'beam')  #:
-OPTIONAL_CONFIG_ENTRIES = ('beam_calculator_post', 'evaluators', 'plots',
-                           'wtf', 'design_space')  #:
+MANDATORY_CONFIG_ENTRIES = ("files", "beam_calculator", "beam")  #:
+OPTIONAL_CONFIG_ENTRIES = (
+    "beam_calculator_post",
+    "evaluators",
+    "plots",
+    "wtf",
+    "design_space",
+)  #:
 
 
 def process_config(
-       config_path: Path,
-       config_keys: dict[str, str],
-       warn_mismatch: bool = False,
-       override: dict[str, dict[str, dict[str, str | int | float | bool |
-                                          list]]] | None = None,
-       ) -> dict[str, dict[str, Any]]:
+    config_path: Path,
+    config_keys: dict[str, str],
+    warn_mismatch: bool = False,
+    override: (
+        dict[str, dict[str, dict[str, str | int | float | bool | list]]] | None
+    ) = None,
+) -> dict[str, dict[str, Any]]:
     """Load and test the configuration file.
 
     Parameters
@@ -100,13 +104,15 @@ def process_config(
         :class:`.BeamCalculator`.
 
     """
-    if config_path.suffix == '.ini':
-        logging.warning("ini configuration format will soon be deprecated. "
-                        "Please switch to .toml, it will be easier for "
-                        "everyone.")
+    if config_path.suffix == ".ini":
+        logging.warning(
+            "ini configuration format will soon be deprecated. "
+            "Please switch to .toml, it will be easier for "
+            "everyone."
+        )
         return _process_config_ini(config_path, config_keys)
 
-    if config_path.suffix == '.toml':
+    if config_path.suffix == ".toml":
         configuration = _load_correct_toml_entries(config_path, config_keys)
         if override is None:
             override = {}
@@ -124,7 +130,7 @@ def _load_correct_toml_entries(
 ) -> dict[str, dict[str, str | int | float | bool | list]]:
     """Load the ``.toml`` and extract the dicts asked by user."""
     all_toml: dict[str, dict[str, str | int | float | bool | list]]
-    with open(config_path, 'rb') as f:
+    with open(config_path, "rb") as f:
         all_toml = tomllib.load(f)
 
     desired_toml = {key: all_toml[value] for key, value in config_keys.items()}
@@ -135,35 +141,40 @@ def _load_correct_toml_entries(
 
 
 def _override_some_toml_entries(
-        configuration: dict[str, dict[str, str | int | float | bool | list]],
-        warn_mismatch: bool = False,
-        **override: dict[str, str | int | float | bool | list]) -> None:
+    configuration: dict[str, dict[str, str | int | float | bool | list]],
+    warn_mismatch: bool = False,
+    **override: dict[str, str | int | float | bool | list],
+) -> None:
     """Override some entries before testing."""
     for over_key, over_subdict in override.items():
         assert over_key in configuration, (
             f"You want to override entries in {over_key = }, which was not "
-            f"found in {configuration.keys() = }")
+            f"found in {configuration.keys() = }"
+        )
         conf_subdict = configuration[over_key]
 
         for key, val in over_subdict.items():
             if warn_mismatch and key not in conf_subdict:
-                logging.warning(f"You want to override {key = }, which was "
-                                f"not found in {conf_subdict.keys() = }")
+                logging.warning(
+                    f"You want to override {key = }, which was "
+                    f"not found in {conf_subdict.keys() = }"
+                )
             conf_subdict[key] = val
 
 
-def _process_config_toml(toml_entries: dict[str, dict[str, Any]],
-                         config_folder: Path) -> None:
+def _process_config_toml(
+    toml_entries: dict[str, dict[str, Any]], config_folder: Path
+) -> None:
     """Test all the given configuration keys."""
     associated_modules = {
-        'files': config.toml.files,
-        'plots': config.toml.plots,
-        'beam_calculator': config.toml.beam_calculator,
-        'beam': config.toml.beam,
-        'wtf': config.toml.wtf,
-        'design_space': config.toml.design_space,
-        'beam_calculator_post': config.toml.beam_calculator,
-        'evaluators': config.toml.evaluators
+        "files": config.toml.files,
+        "plots": config.toml.plots,
+        "beam_calculator": config.toml.beam_calculator,
+        "beam": config.toml.beam,
+        "wtf": config.toml.wtf,
+        "design_space": config.toml.design_space,
+        "beam_calculator_post": config.toml.beam_calculator,
+        "evaluators": config.toml.evaluators,
     }
 
     for key, config_dict in toml_entries.items():
@@ -173,20 +184,23 @@ def _process_config_toml(toml_entries: dict[str, dict[str, Any]],
         associated_module = associated_modules[key]
         associated_module.test(config_folder=config_folder, **config_dict)
 
-        if hasattr(associated_module, 'edit_configuration_dict_in_place'):
+        if hasattr(associated_module, "edit_configuration_dict_in_place"):
             associated_module.edit_configuration_dict_in_place(
-                config_dict,
-                config_folder=config_folder)
+                config_dict, config_folder=config_folder
+            )
 
-        logging.info(f"Config dict {key} successfully tested. After potential "
-                     " modifications, it looks like:\n"
-                     f"{dict_for_pretty_output(config_dict)}")
+        logging.info(
+            f"Config dict {key} successfully tested. After potential "
+            " modifications, it looks like:\n"
+            f"{dict_for_pretty_output(config_dict)}"
+        )
     _make_global(**toml_entries)
 
 
-def _process_config_ini(config_path: Path,
-                        config_keys: dict[str, str],
-                        ) -> dict[str, dict[str, Any]]:
+def _process_config_ini(
+    config_path: Path,
+    config_keys: dict[str, str],
+) -> dict[str, dict[str, Any]]:
     """
     Frontend for config: load ``.ini``, test it, return its content as dicts.
 
@@ -239,19 +253,24 @@ def _process_config_ini(config_path: Path,
     # in the .ini to the proper type
     config = configparser.ConfigParser(
         converters={
-            'liststr': lambda x: [i.strip() for i in x.split(',')],
-            'tuplestr': lambda x: tuple([i.strip() for i in x.split(',')]),
-            'listint': lambda x: [int(i.strip()) for i in x.split(',')],
-            'listfloat': lambda x: [float(i.strip()) for i in x.split(',')],
-            'faults': lambda x: [[int(i.strip()) for i in y.split(',')]
-                                 for y in x.split(',\n')],
-            'groupedfaults': lambda x: [[[int(i.strip()) for i in z.split(',')]
-                                         for z in y.split('|')]
-                                        for y in x.split(',\n')],
-            'matrixfloat': lambda x: np.array(
-                [[float(i.strip()) for i in y.split(',')]
-                 for y in x.split(',\n')]),
-            'path': lambda x: Path(x),
+            "liststr": lambda x: [i.strip() for i in x.split(",")],
+            "tuplestr": lambda x: tuple([i.strip() for i in x.split(",")]),
+            "listint": lambda x: [int(i.strip()) for i in x.split(",")],
+            "listfloat": lambda x: [float(i.strip()) for i in x.split(",")],
+            "faults": lambda x: [
+                [int(i.strip()) for i in y.split(",")] for y in x.split(",\n")
+            ],
+            "groupedfaults": lambda x: [
+                [[int(i.strip()) for i in z.split(",")] for z in y.split("|")]
+                for y in x.split(",\n")
+            ],
+            "matrixfloat": lambda x: np.array(
+                [
+                    [float(i.strip()) for i in y.split(",")]
+                    for y in x.split(",\n")
+                ]
+            ),
+            "path": lambda x: Path(x),
         },
         allow_no_value=True,
     )
@@ -263,19 +282,26 @@ def _process_config_ini(config_path: Path,
     output_dict = _config_to_dict(config, config_keys)
 
     # Remove unused Sections, save resulting file
-    _ = [config.remove_section(key) for key in list(config.keys())
-         if key not in config_keys.keys()]
+    _ = [
+        config.remove_section(key)
+        for key in list(config.keys())
+        if key not in config_keys.keys()
+    ]
 
-    with open(Path(output_dict['files']['project_folder'], 'lighwin.ini'),
-              'w', encoding='utf-8') as file:
+    with open(
+        Path(output_dict["files"]["project_folder"], "lighwin.ini"),
+        "w",
+        encoding="utf-8",
+    ) as file:
         config.write(file)
 
     _make_global(**output_dict)
     return output_dict
 
 
-def _test_config(config: configparser.ConfigParser, config_keys: dict[str, str]
-                 ) -> None:
+def _test_config(
+    config: configparser.ConfigParser, config_keys: dict[str, str]
+) -> None:
     """Run all the configuration tests, and save the config if ok."""
     for key, val in config_keys.items():
         if val is None:
@@ -284,8 +310,9 @@ def _test_config(config: configparser.ConfigParser, config_keys: dict[str, str]
         tester(config[val])
 
 
-def _config_to_dict(config: configparser.ConfigParser,
-                    config_keys: dict[str, str]) -> dict:
+def _config_to_dict(
+    config: configparser.ConfigParser, config_keys: dict[str, str]
+) -> dict:
     """To convert the configparser into the formats required by LightWin."""
     output_dict = {}
     for key, val in config_keys.items():
@@ -296,13 +323,11 @@ def _config_to_dict(config: configparser.ConfigParser,
     return output_dict
 
 
-def _make_global(beam: dict,
-                 beam_calculator: dict | None = None,
-                 **kwargs) -> None:
+def _make_global(
+    beam: dict, beam_calculator: dict | None = None, **kwargs
+) -> None:
     """Update the values of some variables so they can be used everywhere."""
-    global Q_ADIM, E_REST_MEV, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT, \
-        LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, F_BUNCH_MHZ, E_MEV, \
-        SIGMA, LINAC
+    global Q_ADIM, E_REST_MEV, INV_E_REST_MEV, OMEGA_0_BUNCH, GAMMA_INIT, LAMBDA_BUNCH, Q_OVER_M, M_OVER_Q, F_BUNCH_MHZ, E_MEV, SIGMA, LINAC
     Q_ADIM = beam["q_adim"]
     E_REST_MEV = beam["e_rest_mev"]
     INV_E_REST_MEV = beam["inv_e_rest_mev"]
@@ -322,30 +347,30 @@ def _make_global(beam: dict,
     FLAG_CYTHON = beam_calculator.get("flag_cython", None)
     N_STEPS_PER_CELL = beam_calculator.get("n_steps_per_cell", None)
     METHOD = beam_calculator.get("method", None)
-    logging.warning('default flags for tracewin')
+    logging.warning("default flags for tracewin")
 
 
 # =============================================================================
 # Dictionaries
 # =============================================================================
 TESTERS = {
-    'files': config.ini.files.test,
-    'plots': config.ini.plots.test,
-    'beam_calculator': config.ini.beam_calculator.test,
-    'beam': config.ini.beam.test,
-    'wtf': config.ini.wtf.test,
-    'design_space': config.ini.optimisation.design_space.test,
-    'beam_calculator_post': config.ini.beam_calculator.test,
-    'evaluators': config.ini.evaluators.test,
+    "files": config.ini.files.test,
+    "plots": config.ini.plots.test,
+    "beam_calculator": config.ini.beam_calculator.test,
+    "beam": config.ini.beam.test,
+    "wtf": config.ini.wtf.test,
+    "design_space": config.ini.optimisation.design_space.test,
+    "beam_calculator_post": config.ini.beam_calculator.test,
+    "evaluators": config.ini.evaluators.test,
 }
 
 DICTIONARIZERS = {
-    'files': config.ini.files.config_to_dict,
-    'plots': config.ini.plots.config_to_dict,
-    'beam_calculator': config.ini.beam_calculator.config_to_dict,
-    'beam': config.ini.beam.config_to_dict,
-    'wtf': config.ini.wtf.config_to_dict,
-    'design_space': config.ini.optimisation.design_space.config_to_dict,
-    'beam_calculator_post': config.ini.beam_calculator.config_to_dict,
-    'evaluators': config.ini.evaluators.config_to_dict,
+    "files": config.ini.files.config_to_dict,
+    "plots": config.ini.plots.config_to_dict,
+    "beam_calculator": config.ini.beam_calculator.config_to_dict,
+    "beam": config.ini.beam.config_to_dict,
+    "wtf": config.ini.wtf.config_to_dict,
+    "design_space": config.ini.optimisation.design_space.config_to_dict,
+    "beam_calculator_post": config.ini.beam_calculator.config_to_dict,
+    "evaluators": config.ini.evaluators.config_to_dict,
 }
