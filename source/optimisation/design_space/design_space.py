@@ -3,19 +3,21 @@
 """Define an object to hold variables and constraints."""
 import logging
 from abc import ABCMeta
-from pathlib import Path
-from typing import Any, Self
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Self
+
 import numpy as np
 import pandas as pd
 
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from optimisation.design_space.constraint import Constraint
-from optimisation.design_space.design_space_parameter \
-    import DesignSpaceParameter
-
+from optimisation.design_space.design_space_parameter import (
+    DesignSpaceParameter,
+)
 from optimisation.design_space.variable import Variable
 
 
@@ -27,14 +29,15 @@ class DesignSpace:
     constraints: list[Constraint]
 
     @classmethod
-    def from_files(cls,
-                   elements_names: tuple[str, ...],
-                   filepath_variables: Path,
-                   variables_names: tuple[str, ...],
-                   filepath_constraints: Path | None = None,
-                   constraints_names: tuple[str, ...] | None = None,
-                   delimiter: str = ',',
-                   ) -> Self:
+    def from_files(
+        cls,
+        elements_names: tuple[str, ...],
+        filepath_variables: Path,
+        variables_names: tuple[str, ...],
+        filepath_constraints: Path | None = None,
+        constraints_names: tuple[str, ...] | None = None,
+        delimiter: str = ",",
+    ) -> Self:
         """Generate design space from files.
 
         Parameters
@@ -57,26 +60,33 @@ class DesignSpace:
         cls
 
         """
-        variables = _from_file(Variable,
-                               filepath_variables,
-                               elements_names,
-                               variables_names,
-                               delimiter=delimiter)
+        variables = _from_file(
+            Variable,
+            filepath_variables,
+            elements_names,
+            variables_names,
+            delimiter=delimiter,
+        )
         if filepath_constraints is None:
             return cls(variables, [])
 
-        constraints = _from_file(Constraint,
-                                 filepath_constraints,
-                                 elements_names,
-                                 constraints_names,
-                                 delimiter=delimiter)
+        constraints = _from_file(
+            Constraint,
+            filepath_constraints,
+            elements_names,
+            constraints_names,
+            delimiter=delimiter,
+        )
         return cls(variables, constraints)
 
-    def compute_constraints(self, simulation_output: SimulationOutput
-                            ) -> np.ndarray:
+    def compute_constraints(
+        self, simulation_output: SimulationOutput
+    ) -> np.ndarray:
         """Compute constraint violation for ``simulation_output``."""
-        constraints_with_tuples = [constraint.evaluate(simulation_output)
-                                   for constraint in self.constraints]
+        constraints_with_tuples = [
+            constraint.evaluate(simulation_output)
+            for constraint in self.constraints
+        ]
         constraint_violation = [
             single_constraint
             for constraint_with_tuples in constraints_with_tuples
@@ -87,7 +97,7 @@ class DesignSpace:
 
     def __str__(self) -> str:
         """Give nice output of the variables and constraints."""
-        return '\n'.join(self._str_variables() + self._str_constraints())
+        return "\n".join(self._str_variables() + self._str_constraints())
 
     def _str_variables(self) -> list[str]:
         """Generate information on the variables that were created."""
@@ -111,16 +121,18 @@ class DesignSpace:
 
     def to_pandas_dataframe(self) -> pd.DataFrame:
         """Convert list of variables to a pandas dataframe."""
-        to_get = ('element_name', 'x_min', 'x_max', 'x_0')
+        to_get = ("element_name", "x_min", "x_max", "x_0")
         dicts = [var.to_dict(*to_get) for var in self.variables]
         return pd.DataFrame(dicts, columns=to_get)
 
-    def to_files(self,
-                 basepath: Path,
-                 variables_filename: Path = Path('variables'),
-                 constraints_filename: Path = Path('constraints'),
-                 overwrite: bool = False,
-                 **to_csv_kw: Any) -> None:
+    def to_files(
+        self,
+        basepath: Path,
+        variables_filename: Path = Path("variables"),
+        constraints_filename: Path = Path("constraints"),
+        overwrite: bool = False,
+        **to_csv_kw: Any,
+    ) -> None:
         """Save variables and constraints in files.
 
         Parameters
@@ -136,10 +148,12 @@ class DesignSpace:
             Keyword arguments given to the pandas ``to_csv`` method.
 
         """
-        zipper = zip(('variables', 'constraints'),
-                     (variables_filename, constraints_filename))
+        zipper = zip(
+            ("variables", "constraints"),
+            (variables_filename, constraints_filename),
+        )
         for parameter_name, filename in zipper:
-            filepath = Path(basepath, filename.with_suffix('.csv'))
+            filepath = Path(basepath, filename.with_suffix(".csv"))
 
             if filepath.is_file() and not overwrite:
                 logging.warning(f"{filepath = } already exists. Skipping...")
@@ -147,19 +161,22 @@ class DesignSpace:
 
             parameter = getattr(self, parameter_name)
             if len(parameter) == 0:
-                logging.info(f"{parameter_name} not defined for this "
-                             "DesignSpace. Skipping... ")
+                logging.info(
+                    f"{parameter_name} not defined for this "
+                    "DesignSpace. Skipping... "
+                )
                 continue
 
             self._to_file(parameter, filepath, **to_csv_kw)
             logging.info(f"{parameter_name} saved in {filepath}")
 
-    def _to_file(self,
-                 parameters: list[DesignSpaceParameter],
-                 filepath: Path,
-                 delimiter: str = ',',
-                 **to_csv_kw: Any,
-                 ) -> None:
+    def _to_file(
+        self,
+        parameters: list[DesignSpaceParameter],
+        filepath: Path,
+        delimiter: str = ",",
+        **to_csv_kw: Any,
+    ) -> None:
         """Save all the design space parameters in a compact file.
 
         Parameters
@@ -174,20 +191,18 @@ class DesignSpace:
             Keyword arguments given to the pandas ``to_csv`` method.
 
         """
-        elements_and_parameters = _gather_dicts_by_key(parameters,
-                                                       'element_name')
-        lines = [self._parameters_to_single_file_line(name, param)
-                 for name, param in elements_and_parameters.items()]
+        elements_and_parameters = _gather_dicts_by_key(
+            parameters, "element_name"
+        )
+        lines = [
+            self._parameters_to_single_file_line(name, param)
+            for name, param in elements_and_parameters.items()
+        ]
         as_df = pd.DataFrame(lines, columns=list(lines[0].keys()))
-        as_df.to_csv(filepath,
-                     sep=delimiter,
-                     index=False,
-                     **to_csv_kw)
+        as_df.to_csv(filepath, sep=delimiter, index=False, **to_csv_kw)
 
     def _parameters_to_single_file_line(
-            self,
-            element_name: str,
-            parameters: list[DesignSpaceParameter]
+        self, element_name: str, parameters: list[DesignSpaceParameter]
     ) -> dict[str, float | None | tuple[float, float]]:
         """Prepare a dict containing all info of a single element.
 
@@ -206,23 +221,25 @@ class DesignSpace:
             of the element.
 
         """
-        line_as_list_of_dicts = _parameters_to_dict(parameters,
-                                                    ('x_min', 'x_max', 'x_0'))
-        line_as_list_of_dicts.insert(0, {'element_name': element_name})
+        line_as_list_of_dicts = _parameters_to_dict(
+            parameters, ("x_min", "x_max", "x_0")
+        )
+        line_as_list_of_dicts.insert(0, {"element_name": element_name})
         line_as_dict = _merge(line_as_list_of_dicts)
         return line_as_dict
 
-
-    def _check_dimensions(self,
-                          parameters: list[Variable] | list[Constraint]
-                          ) -> int:
+    def _check_dimensions(
+        self, parameters: list[Variable] | list[Constraint]
+    ) -> int:
         """Ensure that all elements have the same number of var or const."""
         n_parameters = len(parameters)
         n_elements = len(self.compensating_elements)
         if n_parameters % n_elements != 0:
-            raise NotImplementedError("As for now, all elements must have the "
-                                      "same number of Variables "
-                                      "(or Constraints).")
+            raise NotImplementedError(
+                "As for now, all elements must have the "
+                "same number of Variables "
+                "(or Constraints)."
+            )
         n_different_parameters = n_parameters // n_elements
         return n_different_parameters
 
@@ -230,8 +247,9 @@ class DesignSpace:
 # =============================================================================
 # Private helpers
 # =============================================================================
-def _gather_dicts_by_key(parameters: list[DesignSpaceParameter],
-                         key: str) -> dict[str, list[DesignSpaceParameter]]:
+def _gather_dicts_by_key(
+    parameters: list[DesignSpaceParameter], key: str
+) -> dict[str, list[DesignSpaceParameter]]:
     """Gather parameters with the same ``key`` attribute value in lists.
 
     Parameters
@@ -255,8 +273,9 @@ def _gather_dicts_by_key(parameters: list[DesignSpaceParameter],
     return dict_by_key
 
 
-def _parameters_to_dict(parameters: list[DesignSpaceParameter],
-                        to_get: tuple[str, ...]) -> list[dict]:
+def _parameters_to_dict(
+    parameters: list[DesignSpaceParameter], to_get: tuple[str, ...]
+) -> list[dict]:
     """Convert several design space parameters to dict.
 
     We use the ``prepend_parameter_name`` argument to prepend the name of each
@@ -276,8 +295,10 @@ def _parameters_to_dict(parameters: list[DesignSpaceParameter],
         Contains ``to_get`` values in dictionaries for every parameter.
 
     """
-    return [parameter.to_dict(*to_get, prepend_parameter_name=True)
-            for parameter in parameters]
+    return [
+        parameter.to_dict(*to_get, prepend_parameter_name=True)
+        for parameter in parameters
+    ]
 
 
 def _merge(dicts: list[dict]) -> dict:
@@ -285,12 +306,13 @@ def _merge(dicts: list[dict]) -> dict:
     return {key: value for dic in dicts for key, value in dic.items()}
 
 
-def _from_file(parameter_class: ABCMeta,
-               filepath: Path,
-               elements_names: tuple[str, ...],
-               parameters_names: tuple[str, ...],
-               delimiter: str = ',',
-               ) -> list[DesignSpaceParameter]:
+def _from_file(
+    parameter_class: ABCMeta,
+    filepath: Path,
+    elements_names: tuple[str, ...],
+    parameters_names: tuple[str, ...],
+    delimiter: str = ",",
+) -> list[DesignSpaceParameter]:
     """Generate list of variables or constraints from a given ``.csv``.
 
     .. todo::
@@ -316,12 +338,13 @@ def _from_file(parameter_class: ABCMeta,
         List of variables or constraints.
 
     """
-    assert hasattr(parameter_class, 'from_pd_series')
-    as_df = pd.read_csv(filepath, index_col='element_name', sep=delimiter)
-    parameters = [parameter_class.from_pd_series(parameter_name,
-                                                 element_name,
-                                                 as_df.loc[element_name])
-                  for element_name in elements_names
-                  for parameter_name in parameters_names
-                  ]
+    assert hasattr(parameter_class, "from_pd_series")
+    as_df = pd.read_csv(filepath, index_col="element_name", sep=delimiter)
+    parameters = [
+        parameter_class.from_pd_series(
+            parameter_name, element_name, as_df.loc[element_name]
+        )
+        for element_name in elements_names
+        for parameter_name in parameters_names
+    ]
     return parameters
