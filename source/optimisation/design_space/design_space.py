@@ -4,6 +4,7 @@
 import logging
 from abc import ABCMeta
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Self
@@ -31,26 +32,26 @@ class DesignSpace:
     @classmethod
     def from_files(
         cls,
-        elements_names: tuple[str, ...],
+        elements_names: Sequence[str],
         filepath_variables: Path,
-        variables_names: tuple[str, ...],
+        variables_names: Sequence[str],
         filepath_constraints: Path | None = None,
-        constraints_names: tuple[str, ...] | None = None,
+        constraints_names: Sequence[str] | None = None,
         delimiter: str = ",",
     ) -> Self:
         """Generate design space from files.
 
         Parameters
         ----------
-        elements_names : tuple[str, ...]
+        elements_names : Sequence[str]
             Name of the elements with variables and constraints.
         filepath_variables : Path
             Path to the ``variables.csv`` file.
-        variables_names : tuple[str, ...]
+        variables_names : Sequence[str]
             Name of the variables to create.
         filepath_constraints : Path
             Path to the ``constraints.csv`` file.
-        constraints_names : tuple[str, ...]
+        constraints_names : Sequence[str]
             Name of the constraints to create.
         delimiter : str
             Delimiter in the files.
@@ -274,7 +275,7 @@ def _gather_dicts_by_key(
 
 
 def _parameters_to_dict(
-    parameters: list[DesignSpaceParameter], to_get: tuple[str, ...]
+    parameters: list[DesignSpaceParameter], to_get: Sequence[str]
 ) -> list[dict]:
     """Convert several design space parameters to dict.
 
@@ -286,7 +287,7 @@ def _parameters_to_dict(
     ----------
     parameters : list[DesignSpaceParameter]
         Where ``to_get`` will be looked for.
-    to_get : tuple[str, ...]
+    to_get : Sequence[str]
         Values to get.
 
     Returns
@@ -309,8 +310,8 @@ def _merge(dicts: list[dict]) -> dict:
 def _from_file(
     parameter_class: ABCMeta,
     filepath: Path,
-    elements_names: tuple[str, ...],
-    parameters_names: tuple[str, ...],
+    elements_names: Sequence[str],
+    parameters_names: Sequence[str],
     delimiter: str = ",",
 ) -> list[DesignSpaceParameter]:
     """Generate list of variables or constraints from a given ``.csv``.
@@ -325,9 +326,9 @@ def _from_file(
         Object which ``from_pd_series`` method will be called.
     filepath : Path
         Path to the ``.csv``.
-    elements_names : tuple[str, ...]
+    elements_names : Sequence[str]
         Name of the elements.
-    parameters_names : tuple[str, ...]
+    parameters_names : Sequence[str]
         Name of the parameters.
     delimiter : str
         Delimiter in the ``.csv``.
