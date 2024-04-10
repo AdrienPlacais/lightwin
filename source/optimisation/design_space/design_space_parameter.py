@@ -3,10 +3,10 @@
 """Create a base class for :class:`.Variable` and :class:`.Constraint`."""
 from abc import ABC
 from dataclasses import dataclass
-from typing import Sequence, Self
+from typing import Self
+
 import numpy as np
 import pandas as pd
-from ast import literal_eval
 
 from util.dicts_output import markdown
 
@@ -34,11 +34,9 @@ class DesignSpaceParameter(ABC):
     limits: tuple[float, float]
 
     @classmethod
-    def from_floats(cls,
-                    name: str,
-                    element_name: str,
-                    x_min: float,
-                    x_max: float) -> Self:
+    def from_floats(
+        cls, name: str, element_name: str, x_min: float, x_max: float
+    ) -> Self:
         """Initialize object with ``x_min``, ``x_max`` instead of ``limits``.
 
         Parameters
@@ -63,10 +61,9 @@ class DesignSpaceParameter(ABC):
         return cls(name, element_name, (x_min, x_max))
 
     @classmethod
-    def from_pd_series(cls,
-                       name: str,
-                       element_name: str,
-                       pd_series: pd.Series) -> Self:
+    def from_pd_series(
+        cls, name: str, element_name: str, pd_series: pd.Series
+    ) -> Self:
         """Init object from a pd series (file import)."""
         x_min = pd_series.loc[f"{name}: x_min"]
         x_max = pd_series.loc[f"{name}: x_max"]
@@ -90,31 +87,33 @@ class DesignSpaceParameter(ABC):
     @property
     def _fmt_x_min(self) -> float:
         """Lower limit in deg if it is has ``'phi'`` in it's name."""
-        if 'phi' in self.name:
+        if "phi" in self.name:
             return np.rad2deg(self.x_min)
         return self.x_min
 
     @property
     def _fmt_x_max(self) -> float:
         """Lower limit in deg if it is has ``'phi'`` in it's name."""
-        if 'phi' in self.name:
+        if "phi" in self.name:
             return np.rad2deg(self.x_max)
         return self.x_max
 
     @property
     def _fmt_x_0(self) -> float:
         """Initial value but with a better output."""
-        assert hasattr(self, 'x_0'), "This design space parameter has no " \
+        assert hasattr(self, "x_0"), (
+            "This design space parameter has no "
             "attribute x_0. Maybe you took a Contraint for a Variable?"
-        x_0 = getattr(self, 'x_0')
-        if 'phi' in self.name:
+        )
+        x_0 = getattr(self, "x_0")
+        if "phi" in self.name:
             return np.rad2deg(x_0)
         return x_0
 
     def __str__(self) -> str:
         """Output parameter name and limits."""
         out = f"{markdown[self.name]:25} | {self.element_name:15} | "
-        if hasattr(self, 'x_0'):
+        if hasattr(self, "x_0"):
             out += f"{self._fmt_x_0:>8.3f} | "
         else:
             out += "         | "
@@ -129,14 +128,17 @@ class DesignSpaceParameter(ABC):
         header += f"{'Lower lim':<9} | {'Upper lim':<9}"
         return header
 
-    def to_dict(self,
-                *to_get: str,
-                missing_value: float | None = None,
-                prepend_parameter_name: bool = False
-                ) -> dict[str, float | None | tuple[float, float] | str]:
+    def to_dict(
+        self,
+        *to_get: str,
+        missing_value: float | None = None,
+        prepend_parameter_name: bool = False,
+    ) -> dict[str, float | None | tuple[float, float] | str]:
         """Convert important data to dict to convert it later in pandas df."""
-        out = {attribute: getattr(self, attribute, missing_value)
-               for attribute in to_get}
+        out = {
+            attribute: getattr(self, attribute, missing_value)
+            for attribute in to_get
+        }
         if not prepend_parameter_name:
             return out
         return {f"{self.name}: {key}": value for key, value in out.items()}
