@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Create a base class for :class:`.Variable` and :class:`.Constraint`."""
+import math
 from abc import ABC
 from dataclasses import dataclass
 from typing import Self
 
-import numpy as np
 import pandas as pd
 
 from util.dicts_output import markdown
@@ -88,14 +88,14 @@ class DesignSpaceParameter(ABC):
     def _fmt_x_min(self) -> float:
         """Lower limit in deg if it is has ``'phi'`` in it's name."""
         if "phi" in self.name:
-            return np.rad2deg(self.x_min)
+            return math.degrees(self.x_min)
         return self.x_min
 
     @property
     def _fmt_x_max(self) -> float:
         """Lower limit in deg if it is has ``'phi'`` in it's name."""
         if "phi" in self.name:
-            return np.rad2deg(self.x_max)
+            return math.degrees(self.x_max)
         return self.x_max
 
     @property
@@ -107,7 +107,7 @@ class DesignSpaceParameter(ABC):
         )
         x_0 = getattr(self, "x_0")
         if "phi" in self.name:
-            return np.rad2deg(x_0)
+            return math.degrees(x_0)
         return x_0
 
     def __str__(self) -> str:
