@@ -13,7 +13,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from config.toml.helper import check_type
+from config.toml.helper import check_type, find_file
 
 IMPLEMENTED_DESIGN_SPACE_PRESETS = (
     "unconstrained",
@@ -28,6 +28,7 @@ IMPLEMENTED_DESIGN_SPACE_PRESETS = (
 def test(
     from_file: bool,
     design_space_preset: str,
+    config_folder: Path,
     **design_space_kw: str | float | bool | int | list,
 ) -> None:
     """Ensure that optimisation algorithm will initalize properly."""
@@ -40,24 +41,20 @@ def test(
         return
 
     if from_file:
-        return _test_from_file(**design_space_kw)
+        return _test_from_file(config_folder, **design_space_kw)
     return _test_not_from_file(**design_space_kw)
 
 
 def _test_from_file(
+    config_folder: Path,
     variables_filepath: Path | str,
     constraints_filepath: Path | str | None = None,
     **design_space_kw: str | float | bool | int | list,
 ) -> None:
     """Test the entries to initialize the design space from files."""
-    variables_filepath = Path(variables_filepath).resolve().absolute()
-    assert variables_filepath.is_file(), f"{variables_filepath = } not found."
+    variables_filepath = find_file(config_folder, variables_filepath)
     if constraints_filepath is not None:
-        constraints_filepath = Path(constraints_filepath).resolve().absolute()
-        assert constraints_filepath.is_file(), (
-            f"{constraints_filepath = } not found. Note that this arg is not "
-            "mandatory if you do not plan on using constraints."
-        )
+        constraints_filepath = find_file(config_folder, variables_filepath)
 
 
 def _test_not_from_file(
@@ -87,24 +84,25 @@ def _test_not_from_file(
 
 
 def edit_configuration_dict_in_place(
-    design_space_kw: dict[str, Any], **kwargs
+    design_space_kw: dict[str, Any], config_folder: Path, **kwargs
 ) -> None:
     """Edit some keys for later."""
     if design_space_kw["from_file"]:
-        return _edit_configuration_dict_in_place_from_file(design_space_kw)
+        return _edit_configuration_dict_in_place_from_file(
+            config_folder, design_space_kw
+        )
     return _edit_configuration_dict_in_place_not_from_file(design_space_kw)
 
 
 def _edit_configuration_dict_in_place_from_file(
-    design_space_kw: dict[str, Any]
+    config_folder: Path, design_space_kw: dict[str, Any]
 ) -> None:
     """Edit some keys for later."""
     key_files = ("variables_filepath", "constraints_filepath")
     for key_file in key_files:
         if key_file in design_space_kw:
-            design_space_kw[key_file] = Path(
-                design_space_kw[key_file]
-            ).absolute()
+            file = design_space_kw[key_file]
+            design_space_kw[key_file] = find_file(config_folder, file)
 
 
 def _edit_configuration_dict_in_place_not_from_file(
