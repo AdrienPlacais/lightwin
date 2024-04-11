@@ -23,9 +23,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput,
-)
+from beam_calculation.simulation_output.simulation_output import SimulationOutput
 from beam_calculation.tracewin.element_tracewin_parameters_factory import (
     ElementTraceWinParametersFactory,
 )
@@ -39,7 +37,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
 from tracewin_utils.interface import (
     beam_calculator_to_command,
-    cavity_settings_to_command,
+    set_of_cavity_settings_to_command,
 )
 
 
@@ -181,17 +179,14 @@ class TraceWin(BeamCalculator):
             accelerator_path, **kwargs
         )
         command.extend(elts.tracewin_command)
-
-        if set_of_cavity_settings is not None:
-            for field_map, cavity_settings in set_of_cavity_settings.items():
-                command.extend(
-                    self._adapt_cavity_settings(
-                        field_map,
-                        cavity_settings,
-                        delta_phi_bunch=elts.input_particle.phi_abs,
-                        delta_index=elts[0].idx["elt_idx"],
-                    )
-                )
+        if set_of_cavity_settings is None:
+            return command, path_cal
+        
+        command.extend(
+            set_of_cavity_settings_to_command(
+                set_of_cavity_settings,
+                phi_bunch_first_element=elts.input_particle.phi_abs,
+                idx_first_element=elts[0].idx["elt_idx"]))
         return command, path_cal
 
     # TODO what is specific_kwargs for? I should just have a function
@@ -416,7 +411,7 @@ class TraceWin(BeamCalculator):
         phi_0 = cavity_settings.phi_ref
         elt_idx = field_map.idx["elt_idx"]
         assert isinstance(elt_idx, int)
-        tracewin_command = cavity_settings_to_command(
+        tracewin_command = _cavity_settings_to_command(
             elt_idx - delta_index, phi_0, cavity_settings.k_e
         )
         return tracewin_command

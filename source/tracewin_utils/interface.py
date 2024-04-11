@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""This module holds dicts to import TraceWin results with correct type."""
+"""Define functions for TraceWin CLI."""
 import logging
 import math
+from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
+
+from core.elements.field_maps.cavity_settings import CavitySettings
+from core.elements.field_maps.field_map import FieldMap
+from failures.set_of_cavity_settings import SetOfCavitySettings
+from util.helper import flatten
 
 TYPES = {
     "hide": None,
@@ -74,9 +80,8 @@ TYPES = {
 
 def variables_to_command(
     warn_skipped: bool = False, **kwargs: str | float | int
-) -> list[str]:
-    """
-    Generate a TraceWin command from the input dictionary.
+) -> Sequence[str]:
+    """Generate a TraceWin command from the input dictionary.
 
     If the `value` of the `dict` is None, only corresponding `key` is added
     (behavior for `hide` command).
@@ -93,7 +98,7 @@ def variables_to_command(
         if isinstance(val, float) and np.isnan(val):
             if warn_skipped:
                 logging.warning(
-                    f"For {key=}, I had a np.NaN value. I ignore " "this key."
+                    f"For {key=}, I had a np.NaN value. I ignore this key."
                 )
             continue
 
@@ -175,47 +180,118 @@ def particle_initial_state_to_command(w_kin: float) -> list[str]:
     return variables_to_command(**kwargs)
 
 
-def set_of_cavity_settings_to_command(*args) -> list[str]:
-    """Return the `ele` commands that match the given `SetOfCavitySettings`."""
-    raise NotImplementedError
-
-
-def cavity_settings_to_command(
-    index: int, phi_0: float | None = None, k_e: float | None = None
-) -> list[str]:
-    """Set TraceWin command to modify a bash call according to new settings.
-
-    .. todo::
-        Check if ``phi_0`` could be a synchronous phase. I do not know it
-        TraceWin would allow it.
+def set_of_cavity_settings_to_command(
+    set_of_cavity_settings: SetOfCavitySettings,
+    phi_bunch_first_element: float,
+    idx_first_element: int,
+) -> Sequence[str]:
+    """Return the ``ele`` commands for :class:`SetOfCavitySettings`.
 
     Parameters
     ----------
-    index : int
-        Position of the element in the ``.dat`` under study. Note that it must
-        be updated when studying a subset ``.dat`` (optimisation process).
-    phi_0 : float | None, optional
-        Entry phase in the cavity. It can be a relative or absolute entry
-        phase, but its nature must correspond to the one declared in the
-        ``.dat``. The default is None, in which case the phase from the
-        ``.dat`` will be used.
-    k_e : float | None, optional
-        Amplitude of the field in the cavity. The default is None, in which
-        case the amplitude from the ``.dat`` will be used.
+    set_of_cavity_settings
+        All the new cavity settings.
+    phi_bunch_first_element
+        Phase of synchronous particle at entry of first element of
+        :class:`.ListOfElements` under study.
+    idx_first_element
+        Index of first element of :class:`.ListOfElements` under study.
 
     Returns
     -------
-    command : list[str]
-        The command that will modify the TraceWin call according to the
-        provided cavity settings.
+    Sequence[str]
+        Full command that will alter the TraceWin exection to match the
+        desired ``set_of_cavity_settings``.
 
     """
-    kwargs = {
-        f"ele[{index + 1}][3]": (
-            math.degrees(phi_0) if phi_0 is not None else np.NaN
-        ),
-        f"ele[{index + 1}][6]": k_e if k_e is not None else np.NaN,
-    }
+    command = [
+        _cavity_settings_to_command(
+            field_map,
+            cavity_settings,
+            delta_phi_bunch=phi_bunch_first_element,
+            delta_index=idx_first_element,
+        )
+        for field_map, cavity_settings in set_of_cavity_settings.items()
+    ]
+    return [x for x in flatten(command)]
+
+
+def _cavity_settings_to_command(
+    field_map: FieldMap,
+    cavity_settings: CavitySettings,
+    delta_phi_bunch: float = 0.0,
+    delta_index: int = 0,
+) -> Sequence[str]:
+    """Convert ``cavity_settings`` into TraceWin CLI arguments.
+
+    Parameters
+    ----------
+    field_map : FieldMap
+        Cavity under study.
+    cavity_settings : CavitySettings
+        Settings to try.
+    delta_phi_bunch : float, optional
+        Phase at entry of first element of :class:`.ListOfElements` under study. The default is 0.
+    delta_index : int, optional
+        Index of the first element of :class:`.ListOfElements` under study. The default is 0.
+
+    Returns
+    -------
+    command : Sequence[str]
+        Piece of command to alter ``field_map`` with ``cavity_settings``.
+
+    """
+    if not hasattr(cavity_settings, "phi_bunch"):
+        nominal_phi_bunch = field_map.cavity_settings.phi_bunch
+        cavity_settings.phi_bunch = nominal_phi_bunch
+    cavity_settings.shift_phi_bunch(delta_phi_bunch, check_positive=True)
+
+    phi_0 = cavity_settings.phi_ref
+    if phi_0 is None:
+        phi_0 = np.NaN
+    if ~np.isnan(phi_0):
+        phi_0 = math.degrees(phi_0)
+
+    elt_idx = field_map.idx["elt_idx"]
+    assert isinstance(elt_idx, int)
+
+    alter_kwargs = {
+        'k_e': cavity_settings.k_e,
+        'phi_0': phi_0
+        }
+    tracewin_command = _alter_element(elt_idx - delta_index, alter_kwargs)
+    return tracewin_command
+
+
+ARGS_POSITIONS = {'phi_0': 3,
+                  'k_e': 6,
+                  }  #:
+
+
+def _alter_element(index: int,
+                   alter_kwargs: dict[str, float | int]) -> Sequence[str]:
+    """Create the command piece to modify the element at ``index``.
+
+    Parameters
+    ----------
+    index
+        Position of the element to modify in LightWin referential (first
+        element has index 0).
+    alter_kwargs
+        Key-pair values, where key is the LightWin name of the parameter to
+        update, and value the new value to set. Key-pair value is skipped if
+        value is np.NaN. Key must be in :var:`ARGS_POSITIONS`.
+
+    Returns
+    -------
+    Sequence[str]
+        The ``ele[i][j]=val`` command altering the given element.
+
+    """
+    for val in alter_kwargs:
+        assert val is not None, "Prefer np.NaN for values to skip."
+    kwargs = {f"ele[{index + 1}][{ARGS_POSITIONS[arg]}]": value
+              for arg, value in alter_kwargs.items()}
     return variables_to_command(warn_skipped=False, **kwargs)
 
 
