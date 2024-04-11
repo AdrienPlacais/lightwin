@@ -17,15 +17,16 @@ import time
 from abc import ABC, abstractmethod
 from itertools import count
 from pathlib import Path
-from typing import Any
 
 import config_manager as con
-from beam_calculation.parameters.factory import ElementBeamCalculatorParametersFactory
+from beam_calculation.parameters.factory import (
+    ElementBeamCalculatorParametersFactory,
+)
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
-from beam_calculation.simulation_output.simulation_output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.accelerator.accelerator import Accelerator
-from core.elements.field_maps.cavity_settings import CavitySettings
-from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
