@@ -56,7 +56,7 @@ maximum_k_e_is_calculated_wrt_maximum_k_e_of_section = true
 min_absolute_sync_phase_in_deg = -90.0
 
 [tiny_design_space]
-design_space_preset = "unconstrained"
+design_space_preset = "unconstrained_rel"
 from_file = true
 variables_filepath = "variables.csv"
 

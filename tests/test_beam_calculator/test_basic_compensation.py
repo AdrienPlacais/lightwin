@@ -14,9 +14,7 @@ from tests.reference import compare_with_other
 import config_manager
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import BeamCalculatorsFactory
-from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput,
-)
+from beam_calculation.simulation_output.simulation_output import SimulationOutput
 from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import WithFaults
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
@@ -24,20 +22,12 @@ from failures.fault_scenario import FaultScenario, fault_scenario_factory
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
-tw_opti = pytest.mark.xfail(
-    condition=True,
-    reason="we do not know the entry phase in the cavities with TraceWin "
-    "(except for the first cavity). Shifting all entry phases by a constant "
-    "is not enough (?). Maybe it would help doing the optimisation on the "
-    "relative phi_0.",
-)
-
 params = [
     pytest.param(("generic_envelope1d", True), marks=pytest.mark.smoke),
     pytest.param(("generic_envelope3d", True), marks=pytest.mark.smoke),
     pytest.param(
         ("generic_tracewin", False),
-        marks=(pytest.mark.smoke, tw_opti),
+        marks=(pytest.mark.smoke, pytest.mark.slow),
     ),
 ]
 
@@ -131,7 +121,6 @@ def simulation_outputs(
     return ref_simulation_output, fix_simulation_output
 
 
-@pytest.mark.implementation
 class TestAllBeamCalculatorCanCompensate:
 
     _w_kin_tol = 1e-3
