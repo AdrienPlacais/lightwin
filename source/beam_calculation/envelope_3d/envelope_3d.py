@@ -2,19 +2,25 @@
 # -*- coding: utf-8 -*-
 """Define :class:`Envelope3D`, an envelope solver."""
 import logging
+from collections.abc import Callable
 from pathlib import Path
 
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.envelope_3d.beam_parameters_factory import \
-    BeamParametersFactoryEnvelope3D
-from beam_calculation.envelope_3d.element_envelope3d_parameters_factory import\
-    ElementEnvelope3DParametersFactory
-from beam_calculation.envelope_3d.simulation_output_factory import \
-    SimulationOutputFactoryEnvelope3D
-from beam_calculation.envelope_3d.transfer_matrix_factory import \
-    TransferMatrixFactoryEnvelope3D
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
+from beam_calculation.envelope_3d.beam_parameters_factory import (
+    BeamParametersFactoryEnvelope3D,
+)
+from beam_calculation.envelope_3d.element_envelope3d_parameters_factory import (
+    ElementEnvelope3DParametersFactory,
+)
+from beam_calculation.envelope_3d.simulation_output_factory import (
+    SimulationOutputFactoryEnvelope3D,
+)
+from beam_calculation.envelope_3d.transfer_matrix_factory import (
+    TransferMatrixFactoryEnvelope3D,
+)
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.accelerator.accelerator import Accelerator
 from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
@@ -27,15 +33,16 @@ from util.synchronous_phases import SYNCHRONOUS_PHASE_FUNCTIONS
 class Envelope3D(BeamCalculator):
     """A 3D envelope solver."""
 
-    def __init__(self,
-                 flag_phi_abs: bool,
-                 n_steps_per_cell: int,
-                 out_folder: Path | str,
-                 default_field_map_folder: Path | str,
-                 flag_cython: bool = False,
-                 method: str = 'RK',
-                 phi_s_definition: str = 'historical',
-                 ) -> None:
+    def __init__(
+        self,
+        flag_phi_abs: bool,
+        n_steps_per_cell: int,
+        out_folder: Path | str,
+        default_field_map_folder: Path | str,
+        flag_cython: bool = False,
+        method: str = "RK",
+        phi_s_definition: str = "historical",
+    ) -> None:
         """Set the proper motion integration function, according to inputs."""
         self.flag_cython = flag_cython
         self.n_steps_per_cell = n_steps_per_cell
@@ -46,13 +53,14 @@ class Envelope3D(BeamCalculator):
         self._phi_s_func = SYNCHRONOUS_PHASE_FUNCTIONS[self._phi_s_definition]
 
         self.beam_parameters_factory = BeamParametersFactoryEnvelope3D(
-            self.is_a_3d_simulation,
-            self.is_a_multiparticle_simulation
+            self.is_a_3d_simulation, self.is_a_multiparticle_simulation
         )
         self.transfer_matrix_factory = TransferMatrixFactoryEnvelope3D(
-            self.is_a_3d_simulation)
+            self.is_a_3d_simulation
+        )
 
         import beam_calculation.envelope_3d.transfer_matrices_p as transf_mat
+
         self.transf_mat_module = transf_mat
 
     def _set_up_specific_factories(self) -> None:
@@ -75,10 +83,12 @@ class Envelope3D(BeamCalculator):
             self.flag_cython,
         )
 
-    def run(self,
-            elts: ListOfElements,
-            update_reference_phase: bool = False,
-            **kwargs) -> SimulationOutput:
+    def run(
+        self,
+        elts: ListOfElements,
+        update_reference_phase: bool = False,
+        **kwargs,
+    ) -> SimulationOutput:
         """Compute beam propagation in 3D, envelope calculation.
 
         Parameters
@@ -100,8 +110,11 @@ class Envelope3D(BeamCalculator):
         """
         return super().run(elts, update_reference_phase, **kwargs)
 
-    def run_with_this(self, set_of_cavity_settings: SetOfCavitySettings | None,
-                      elts: ListOfElements) -> SimulationOutput:
+    def run_with_this(
+        self,
+        set_of_cavity_settings: SetOfCavitySettings | None,
+        elts: ListOfElements,
+    ) -> SimulationOutput:
         """
         Envelope 3D calculation of beam in ``elts``, with non-nominal settings.
 
@@ -128,12 +141,12 @@ class Envelope3D(BeamCalculator):
 
         for elt in elts:
             rf_field_kwargs = self._proper_cavity_settings(
-                elt, set_of_cavity_settings, phi_abs, w_kin)
+                elt, set_of_cavity_settings, phi_abs, w_kin
+            )
 
-            elt_results = \
-                elt.beam_calc_param[self.id].transf_mat_function_wrapper(
-                    w_kin,
-                    **rf_field_kwargs)
+            elt_results = elt.beam_calc_param[
+                self.id
+            ].transf_mat_function_wrapper(w_kin, **rf_field_kwargs)
 
             single_elts_results.append(elt_results)
             rf_fields.append(rf_field_kwargs)
@@ -142,14 +155,15 @@ class Envelope3D(BeamCalculator):
             w_kin = elt_results["w_kin"][-1]
 
         simulation_output = self._generate_simulation_output(
-            elts, single_elts_results, rf_fields)
+            elts, single_elts_results, rf_fields
+        )
         return simulation_output
 
     def post_optimisation_run_with_this(
         self,
         optimized_cavity_settings: SetOfCavitySettings,
         full_elts: ListOfElements,
-        **specific_kwargs
+        **specific_kwargs,
     ) -> SimulationOutput:
         """
         Run Envelope3D with optimized cavity settings.
@@ -158,9 +172,9 @@ class Envelope3D(BeamCalculator):
         the regular `run_with_this` method.
 
         """
-        simulation_output = self.run_with_this(optimized_cavity_settings,
-                                               full_elts,
-                                               **specific_kwargs)
+        simulation_output = self.run_with_this(
+            optimized_cavity_settings, full_elts, **specific_kwargs
+        )
         return simulation_output
 
     def init_solver_parameters(self, accelerator: Accelerator) -> None:
@@ -175,13 +189,15 @@ class Envelope3D(BeamCalculator):
 
         """
         elts = accelerator.elts
-        position = 0.
+        position = 0.0
         index = 0
         for elt in elts:
             if self.id in elt.beam_calc_param:
-                logging.debug(f"Solver already initialized for {elt = }."
-                              "I will skip solver param initialisation for"
-                              f" {elts[0]} to {elts[-1]}")
+                logging.debug(
+                    f"Solver already initialized for {elt = }."
+                    "I will skip solver param initialisation for"
+                    f" {elts[0]} to {elts[-1]}"
+                )
                 return
             solver_param = self.beam_calc_parameters_factory.run(elt)
             elt.beam_calc_param[self.id] = solver_param
@@ -200,60 +216,65 @@ class Envelope3D(BeamCalculator):
         return True
 
     def _proper_cavity_settings(
-            self,
-            element: Element,
-            set_of_cavity_settings: SetOfCavitySettings | None,
-            *args,
-            **kwargs) -> dict:
+        self,
+        element: Element,
+        set_of_cavity_settings: SetOfCavitySettings | None,
+        *args,
+        **kwargs,
+    ) -> dict:
         """Take proper :class:`.CavitySettings`, format it for solver."""
         if not isinstance(element, FieldMap):
             return {}
-        if element.status == 'failed':
+        if element.status == "failed":
             return {}
 
         cavity_settings = element.cavity_settings
-        if (set_of_cavity_settings is not None
-                and element in set_of_cavity_settings):
+        if (
+            set_of_cavity_settings is not None
+            and element in set_of_cavity_settings
+        ):
             cavity_settings = set_of_cavity_settings.get(element)
-        assert isinstance(cavity_settings, CavitySettings), (
-            f"{type(cavity_settings) = }")
+        assert isinstance(
+            cavity_settings, CavitySettings
+        ), f"{type(cavity_settings) = }"
 
-        return self._adapt_cavity_settings(element,
-                                           cavity_settings,
-                                           *args,
-                                           **kwargs)
+        return self._adapt_cavity_settings(
+            element, cavity_settings, *args, **kwargs
+        )
 
-    def _adapt_cavity_settings(self,
-                               field_map: FieldMap,
-                               cavity_settings: CavitySettings,
-                               phi_bunch_abs: float,
-                               w_kin_in: float,
-                               *args,
-                               **kwargs) -> dict:
+    def _adapt_cavity_settings(
+        self,
+        field_map: FieldMap,
+        cavity_settings: CavitySettings,
+        phi_bunch_abs: float,
+        w_kin_in: float,
+        **kwargs: float,
+    ) -> dict[str, Callable | int | float]:
         """Format the given :class:`.CavitySettings` for current solver.
 
-        For the transfer matrix function of :class:`Envelope1D`, we need a
+        For the transfer matrix function of :class:`Envelope3D`, we need a
         dictionary.
 
         """
-        if cavity_settings.status == 'none':
+        if cavity_settings.status == "none":
             logging.critical("Does 'none' status exists?")
             return {}
-        if cavity_settings.status == 'failed':
+        if cavity_settings.status == "failed":
             return {}
 
         cavity_settings.phi_bunch = phi_bunch_abs
 
         rf_parameters_as_dict = {
-            'omega0_rf': field_map.cavity_settings.omega0_rf,
-            'e_spat': field_map.new_rf_field.e_spat,
-            'section_idx': field_map.idx['section'],
-            'n_cell': field_map.new_rf_field.n_cell,
-            'bunch_to_rf': field_map.cavity_settings.bunch_phase_to_rf_phase,
-            'phi_0_rel': cavity_settings.phi_0_rel,
-            'phi_0_abs': cavity_settings.phi_0_abs,
-            'k_e': cavity_settings.k_e,
+            "omega0_rf": field_map.cavity_settings.omega0_rf,
+            "e_spat": field_map.new_rf_field.e_spat,
+            "section_idx": field_map.idx["section"],
+            "n_cell": field_map.new_rf_field.n_cell,
+            "bunch_to_rf": field_map.cavity_settings.bunch_phase_to_rf_phase,
+            "phi_0_rel": cavity_settings.phi_0_rel,
+            "phi_0_abs": cavity_settings.phi_0_abs,
+            "k_e": cavity_settings.k_e,
         }
-        cavity_settings.set_phi_s_calculators(self.id, w_kin_in,
-                                              **rf_parameters_as_dict)
+        cavity_settings.set_phi_s_calculators(
+            self.id, w_kin_in, **rf_parameters_as_dict
+        )
         return rf_parameters_as_dict

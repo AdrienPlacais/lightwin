@@ -444,6 +444,7 @@ def fault_scenario_factory(
         already initialied :class:`Fault` objects.
 
     """
+    # TODO may be better to move this to beam_calculator.init_solver_parameters
     need_to_force_element_to_index_creation = (TraceWin,)
     if isinstance(beam_calculator, *need_to_force_element_to_index_creation):
         _force_element_to_index_method_creation(

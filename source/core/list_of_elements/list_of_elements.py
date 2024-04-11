@@ -17,33 +17,34 @@ Two objects can have a :class:`ListOfElements` as attribute:
 import logging
 from pathlib import Path
 from typing import Any
+
 import numpy as np
 
+from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
-
-from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.particle import ParticleInitialState
-
-from tracewin_utils.dat_files import (update_field_maps_in_dat,
-                                      save_dat_filecontent_to_dat)
+from tracewin_utils.dat_files import (
+    save_dat_filecontent_to_dat,
+    update_field_maps_in_dat,
+)
 from tracewin_utils.interface import list_of_elements_to_command
-
-from util.helper import recursive_items, recursive_getter
+from util.helper import recursive_getter, recursive_items
 
 
 class ListOfElements(list):
     """Class holding the elements of a fraction or of the whole linac."""
 
-    def __init__(self, elts: list[Element],
-                 input_particle: ParticleInitialState,
-                 input_beam: InitialBeamParameters,
-                 tm_cumul_in: np.ndarray,
-                 files: dict[str, Path | str | list[list[str]]],
-                 first_init: bool = True,
-                 ) -> None:
-        """
-        Create the object, encompassing all the linac or only a fraction.
+    def __init__(
+        self,
+        elts: list[Element],
+        input_particle: ParticleInitialState,
+        input_beam: InitialBeamParameters,
+        tm_cumul_in: np.ndarray,
+        files: dict[str, Path | str | list[list[str]]],
+        first_init: bool = True,
+    ) -> None:
+        """Create the object, encompassing all the linac or only a fraction.
 
         The first case is when you initialize an Accelerator and compute the
         baseline energy, phase, etc values.
@@ -87,11 +88,13 @@ class ListOfElements(list):
         if first_init:
             self._first_init()
 
-        self._l_cav: list[FieldMap] = list(filter(
-            lambda cav: isinstance(cav, FieldMap), self
-            ))
-        logging.info("Successfully created a ListOfElements with "
-                     f"{self.w_kin_in = } MeV and {self.phi_abs_in = } rad.")
+        self._l_cav: list[FieldMap] = list(
+            filter(lambda cav: isinstance(cav, FieldMap), self)
+        )
+        logging.info(
+            "Successfully created a ListOfElements with "
+            f"{self.w_kin_in = } MeV and {self.phi_abs_in = } rad."
+        )
 
     @property
     def w_kin_in(self):
@@ -111,28 +114,33 @@ class ListOfElements(list):
     @property
     def tracewin_command(self) -> list[str]:
         """Create the command to give proper initial parameters to TraceWin."""
-        dat_file = self.files['dat_file']
+        dat_file = self.files["dat_file"]
         assert isinstance(dat_file, Path)
         _tracewin_command = [
             command_bit
-            for command in [list_of_elements_to_command(dat_file),
-                            self.input_particle.tracewin_command,
-                            self.input_beam.tracewin_command]
-            for command_bit in command]
+            for command in [
+                list_of_elements_to_command(dat_file),
+                self.input_particle.tracewin_command,
+                self.input_beam.tracewin_command,
+            ]
+            for command_bit in command
+        ]
 
         return _tracewin_command
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class."""
-        return key in recursive_items(vars(self)) or \
-            key in recursive_items(vars(self[0]))
+        return key in recursive_items(vars(self)) or key in recursive_items(
+            vars(self[0])
+        )
 
-    def get(self,
-            *keys: str,
-            to_numpy: bool = True,
-            remove_first: bool = False,
-            **kwargs: bool | str | Element | None
-            ) -> Any:
+    def get(
+        self,
+        *keys: str,
+        to_numpy: bool = True,
+        remove_first: bool = False,
+        **kwargs: bool | str | Element | None,
+    ) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
@@ -197,16 +205,18 @@ class ListOfElements(list):
         by_section = _group_elements_by_section(self)
         self.by_lattice = _group_elements_by_lattice(self)
         self.by_section_and_lattice = _group_elements_by_section_and_lattice(
-            by_section)
+            by_section
+        )
         self._set_element_indexes()
 
     def _set_element_indexes(self) -> None:
         """Set the element index."""
-        elts_with_a_number = list(filter(
-            lambda elt: elt.idx['increment_elt_idx'], self))
+        elts_with_a_number = list(
+            filter(lambda elt: elt.idx["increment_elt_idx"], self)
+        )
 
         for i, elt in enumerate(elts_with_a_number):
-            elt.idx['elt_idx'] = i
+            elt.idx["elt_idx"] = i
 
     def force_reference_phases_to(self, new_reference_phase: str) -> None:
         """Change the reference phase of the cavities in ``self``.
@@ -223,10 +233,7 @@ class ListOfElements(list):
                 continue
             settings.reference = new_reference_phase
 
-    def store_settings_in_dat(self,
-                              dat_file: Path,
-                              save: bool = True
-                              ) -> None:
+    def store_settings_in_dat(self, dat_file: Path, save: bool = True) -> None:
         """Update the dat file, save it if asked.
 
         Important notice
@@ -236,56 +243,67 @@ class ListOfElements(list):
         cavity with the intended phase in :class:`.TraceWin`.
 
         """
-        new_phases = {cavity: cavity.cavity_settings.phi_ref
-                      for cavity in self.l_cav}
+        new_phases = {
+            cavity: cavity.cavity_settings.phi_ref for cavity in self.l_cav
+        }
         new_k_e = {cavity: cavity.cavity_settings.k_e for cavity in self.l_cav}
         new_abs_phase_flag = {
-            cavity: int(cavity.cavity_settings.reference == 'phi_0_abs')
-            for cavity in self.l_cav}
+            cavity: int(cavity.cavity_settings.reference == "phi_0_abs")
+            for cavity in self.l_cav
+        }
 
         update_field_maps_in_dat(
             self,
             new_phases=new_phases,
             new_k_e=new_k_e,
-            new_abs_phase_flag=new_abs_phase_flag)
+            new_abs_phase_flag=new_abs_phase_flag,
+        )
 
-        self.files['dat_file'] = dat_file
-        dat_content = [elt_or_cmd.line
-                       for elt_or_cmd in self.files['elts_n_cmds']]
+        self.files["dat_file"] = dat_file
+        dat_content = [
+            elt_or_cmd.line for elt_or_cmd in self.files["elts_n_cmds"]
+        ]
         save_dat_filecontent_to_dat(dat_content, dat_file)
 
 
-def _group_elements_by_section(elts: list[Element],
-                               ) -> list[list[Element]]:
+def _group_elements_by_section(
+    elts: list[Element],
+) -> list[list[Element]]:
     """Group elements by section."""
-    n_sections = elts[-1].idx['section'] + 1
+    n_sections = elts[-1].idx["section"] + 1
     by_section = [
-        list(filter(lambda elt: elt.idx['section'] == current_section, elts))
+        list(filter(lambda elt: elt.idx["section"] == current_section, elts))
         for current_section in range(n_sections)
     ]
     return by_section
 
 
 def _group_elements_by_section_and_lattice(
-        by_section: list[list[Element]],
+    by_section: list[list[Element]],
 ) -> list[list[list[Element]]]:
     """Regroup Elements by Section and then by Lattice."""
     by_section_and_lattice = [
-        _group_elements_by_lattice(section)
-        for section in by_section
+        _group_elements_by_lattice(section) for section in by_section
     ]
     return by_section_and_lattice
 
 
-def _group_elements_by_lattice(elts: list[Element],
-                               ) -> list[list[Element]]:
+def _group_elements_by_lattice(
+    elts: list[Element],
+) -> list[list[Element]]:
     """Regroup the Element belonging to the same Lattice."""
-    idx_first_lattice = elts[0].idx['lattice']
-    n_lattices = elts[-1].idx['lattice'] + 1
+    idx_first_lattice = elts[0].idx["lattice"]
+    n_lattices = elts[-1].idx["lattice"] + 1
     by_lattice = [
-        list(filter(lambda elt: (elt.idx['lattice'] is not None
-                                 and elt.idx['lattice'] == current_lattice),
-                    elts))
+        list(
+            filter(
+                lambda elt: (
+                    elt.idx["lattice"] is not None
+                    and elt.idx["lattice"] == current_lattice
+                ),
+                elts,
+            )
+        )
         for current_lattice in range(idx_first_lattice, n_lattices)
     ]
     return by_lattice

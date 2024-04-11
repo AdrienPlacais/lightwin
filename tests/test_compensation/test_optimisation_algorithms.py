@@ -3,8 +3,10 @@
 from pathlib import Path
 from typing import Any
 
-import config_manager
 import pytest
+from tests.reference import compare_with_other
+
+import config_manager
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import BeamCalculatorsFactory
 from beam_calculation.simulation_output.simulation_output import (
@@ -14,14 +16,11 @@ from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import WithFaults
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
 
-from tests.reference import compare_with_other
-
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
 params = [
-    # already tested in the test_beam_calculator
-    # pytest.param(("downhill_simplex",), marks=pytest.mark.smoke),
+    pytest.param(("downhill_simplex",), marks=pytest.mark.smoke),
     pytest.param(
         ("least_squares",),
     ),

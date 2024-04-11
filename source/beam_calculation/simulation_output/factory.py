@@ -6,19 +6,18 @@ This class should be subclassed by every :class:`.BeamCalculator` to match its
 own specific outputs.
 
 """
-from abc import ABC, abstractmethod, ABCMeta
+import logging
+from abc import ABC, ABCMeta, abstractmethod
 from dataclasses import dataclass
 from functools import partial
-import logging
 from typing import Callable
 
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.elements.element import Element
 from core.list_of_elements.helper import equivalent_elt
 from core.list_of_elements.list_of_elements import ListOfElements
-from core.transfer_matrix.factory import TransferMatrixFactory
-from core.beam_parameters.factory import BeamParametersFactory
 
 
 @dataclass
@@ -39,10 +38,11 @@ class SimulationOutputFactory(ABC):
 
         """
         self.transfer_matrix_factory = self._transfer_matrix_factory_class(
-            self._is_3d)
+            self._is_3d
+        )
         self.beam_parameters_factory = self._beam_parameters_factory_class(
-            self._is_3d,
-            self._is_multipart)
+            self._is_3d, self._is_multipart
+        )
 
     @property
     @abstractmethod
@@ -59,28 +59,29 @@ class SimulationOutputFactory(ABC):
         """Create the :class:`.SimulationOutput`."""
         return SimulationOutput(*args, **kwargs)
 
-    def _generate_element_to_index_func(self, elts: ListOfElements
-                                        ) -> Callable[[Element, str | None],
-                                                      int | slice]:
+    def _generate_element_to_index_func(
+        self, elts: ListOfElements
+    ) -> Callable[[Element, str | None], int | slice]:
         """Create the func to easily get data at proper mesh index."""
         shift = elts[0].beam_calc_param[self._solver_id].s_in
-        element_to_index = partial(_element_to_index,
-                                   _elts=elts,
-                                   _shift=shift,
-                                   _solver_id=self._solver_id
-                                   )
+        element_to_index = partial(
+            _element_to_index,
+            _elts=elts,
+            _shift=shift,
+            _solver_id=self._solver_id,
+        )
         return element_to_index
 
 
-def _element_to_index(_elts: ListOfElements,
-                      _shift: int,
-                      _solver_id: str,
-                      elt: Element | str,
-                      pos: str | None = None,
-                      return_elt_idx: bool = False,
-                      ) -> int | slice:
-    """
-    Convert ``elt`` and ``pos`` into a mesh index.
+def _element_to_index(
+    _elts: ListOfElements,
+    _shift: int,
+    _solver_id: str,
+    elt: Element | str,
+    pos: str | None = None,
+    return_elt_idx: bool = False,
+) -> int | slice:
+    """Convert ``elt`` and ``pos`` into a mesh index.
 
     This way, you can call ``get('w_kin', elt='FM5', pos='out')`` and
     systematically get the energy at the exit of FM5, whatever the
@@ -126,11 +127,12 @@ def _element_to_index(_elts: ListOfElements,
         return _elts.index(elt)
 
     if pos is None:
-        return slice(beam_calc_param.s_in - _shift,
-                     beam_calc_param.s_out - _shift + 1)
-    if pos == 'in':
+        return slice(
+            beam_calc_param.s_in - _shift, beam_calc_param.s_out - _shift + 1
+        )
+    if pos == "in":
         return beam_calc_param.s_in - _shift
-    if pos == 'out':
+    if pos == "out":
         return beam_calc_param.s_out - _shift
 
     logging.error(f"{pos = }, while it must be 'in', 'out' or None")

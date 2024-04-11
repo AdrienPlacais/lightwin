@@ -32,6 +32,7 @@ from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.particle import ParticleFullTrajectory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
+from failures.set_of_cavity_settings import SetOfCavitySettings
 from util.helper import range_vals, recursive_getter, recursive_items
 
 
@@ -93,6 +94,7 @@ class SimulationOutput:
 
     element_to_index: Callable[[str | Element, str | None], int | slice] | None
 
+    set_of_cavity_settings: SetOfCavitySettings | None = None
     transfer_matrix: TransferMatrix | None = None
     z_abs: np.ndarray | None = None
     in_tw_fashion: pd.DataFrame | None = None

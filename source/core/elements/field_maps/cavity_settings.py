@@ -22,6 +22,7 @@ from functools import partial
 from typing import Any
 
 from scipy.optimize import minimize_scalar
+
 from util.phases import (
     diff_angle,
     phi_0_abs_to_rel,
@@ -42,7 +43,9 @@ ALLOWED_STATUS = (
 )  #:
 
 
-def compute_cavity_parameters(integrated_field: complex) -> tuple[float, float]:
+def compute_cavity_parameters(
+    integrated_field: complex,
+) -> tuple[float, float]:
     """Compute the synchronous phase and accelerating voltage."""
     polar = cmath.polar(integrated_field)
     v_cav, phi_s = polar[0], polar[1]
@@ -113,6 +116,7 @@ class CavitySettings:
         self._phi_s: float | None
         self._v_cav_mv: float | None
         self._phi_rf: float
+        self._phi_bunch: float
 
         self.status = status
 
@@ -594,6 +598,7 @@ class CavitySettings:
 
         """
         self._phi_rf = value
+        self._phi_bunch = self.rf_phase_to_bunch_phase(value)
         self._delete_non_reference_phases()
 
         # if self.status == 'rephased (in progress)':
@@ -610,24 +615,46 @@ class CavitySettings:
 
     @property
     def phi_bunch(self) -> None:
-        """Declare the synchronous particle entry phase in bunch.
-
-        .. note::
-            Cannot access this property, as I think it is not useful. It is
-            only used to set the rf phase. Will be changed in the future if
-            necessary.
-
-        """
+        """Declare the synchronous particle entry phase in bunch."""
 
     @phi_bunch.setter
     def phi_bunch(self, value: float) -> None:
         """Convert bunch to rf frequency."""
-        self.phi_rf = self.bunch_phase_to_rf_phase(value)
+        self._phi_bunch = value
+        self._phi_rf = self.bunch_phase_to_rf_phase(value)
+        self._delete_non_reference_phases()
 
     @phi_bunch.getter
-    def phi_bunch(self) -> None:
+    def phi_bunch(self) -> float:
         """Raise an error, as accessing this property should not be needed."""
-        raise IOError("Why do you need to access phi_bunch??")
+        return self._phi_bunch
+
+    def shift_phi_bunch(self, delta_phi_bunch: float) -> None:
+        """Shift the synchronous particle entry phase by ``delta_phi_bunch``.
+
+        This is mandatory when the reference phase is changed. In particular,
+        it is the case when studying a sub-list of elements with
+        :class:`.TraceWin`. With this solver, the entry phase in the first
+        element of the sub-:class:`.ListOfElements` is always 0.0, even if is
+        not the first element of the linac.
+
+        Parameters
+        ----------
+        delta_phi_bunch : float
+            Phase difference between the new first element of the linac and the
+            previous first element of the linac.
+
+        Examples
+        --------
+        >>> phi_in_1st_element = 0.
+        >>> phi_in_20th_element = 55.
+        >>> 25th_element: FieldMap
+        >>> 25th_element.cavity_settings.shift_phi_bunch(
+        >>> ... phi_in_20th_element - phi_in_1st_element
+        >>> )  # now phi_0_abs and phi_0_rel are properly understood
+
+        """
+        self.phi_bunch = self.phi_bunch - delta_phi_bunch
 
     # .. list-table:: Meaning of status
     #     :widths: 40, 60
