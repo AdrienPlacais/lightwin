@@ -19,7 +19,7 @@ import logging
 import math
 from collections.abc import Callable
 from functools import partial
-from typing import Any
+from typing import Any, Self
 
 from scipy.optimize import minimize_scalar
 
@@ -152,6 +152,15 @@ class CavitySettings:
     def __repr__(self) -> str:
         """Return the same thing as str."""
         return str(self)
+
+    def __eq__(self, other: Self) -> bool:  # type: ignore
+        """Check if two cavity settings are identical."""
+        check = (self.k_e == other.k_e
+                 and self.phi_ref == other.phi_ref
+                 and self.reference == other.reference)
+        # also check for phi_bunch?
+        return check
+
 
     def _attr_to_str(self, attr_name: str) -> str:
         """Give the attribute as string."""

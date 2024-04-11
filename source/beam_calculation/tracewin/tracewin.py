@@ -37,6 +37,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
 from tracewin_utils.interface import (
     beam_calculator_to_command,
+    cavity_settings_to_command,
     set_of_cavity_settings_to_command,
 )
 
@@ -181,12 +182,14 @@ class TraceWin(BeamCalculator):
         command.extend(elts.tracewin_command)
         if set_of_cavity_settings is None:
             return command, path_cal
-        
+
         command.extend(
             set_of_cavity_settings_to_command(
                 set_of_cavity_settings,
                 phi_bunch_first_element=elts.input_particle.phi_abs,
-                idx_first_element=elts[0].idx["elt_idx"]))
+                idx_first_element=elts[0].idx["elt_idx"],
+            )
+        )
         return command, path_cal
 
     # TODO what is specific_kwargs for? I should just have a function
@@ -370,51 +373,6 @@ class TraceWin(BeamCalculator):
     def is_a_3d_simulation(self) -> bool:
         """Tell if the simulation is in 3D."""
         return True
-
-    def _adapt_cavity_settings(
-        self,
-        field_map: FieldMap,
-        cavity_settings: CavitySettings,
-        delta_phi_bunch: float = 0.0,
-        delta_index: int = 0,
-        **kwargs: float,
-    ) -> Sequence[str]:
-        """Format the given :class:`.CavitySettings` for current solver.
-
-        For this class, we transform the given object into command-line
-        arguments.
-
-        Parameters
-        ----------
-        field_map : FieldMap
-            The cavity which settings will be updated.
-        cavity_settings : CavitySettings
-            The settings to try for this TraceWin call.
-        delta_phi_bunch : float, optional
-            The absolute bunch phase at the entry of the first element of the
-            ``.dat`` under study. The default is 0.0, which corresponds to the
-            case where the ``.dat`` under study is/starts at the same element
-            than the original ``.dat.``.
-        delta_index : int, optional
-            The index of the first element of the ``.dat`` under study. The
-            default is 0, which corresponds to the case where the ``.dat``
-            under study is/starts at the same element than the original
-            ``.dat``.
-
-        """
-        if not hasattr(cavity_settings, "phi_bunch"):
-            nominal_phi_bunch = field_map.cavity_settings.phi_bunch
-            cavity_settings.phi_bunch = nominal_phi_bunch
-
-        cavity_settings.shift_phi_bunch(delta_phi_bunch, check_positive=True)
-
-        phi_0 = cavity_settings.phi_ref
-        elt_idx = field_map.idx["elt_idx"]
-        assert isinstance(elt_idx, int)
-        tracewin_command = _cavity_settings_to_command(
-            elt_idx - delta_index, phi_0, cavity_settings.k_e
-        )
-        return tracewin_command
 
     def _save_cavities_entry_phases(
         self,

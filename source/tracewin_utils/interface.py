@@ -205,7 +205,7 @@ def set_of_cavity_settings_to_command(
 
     """
     command = [
-        _cavity_settings_to_command(
+        cavity_settings_to_command(
             field_map,
             cavity_settings,
             delta_phi_bunch=phi_bunch_first_element,
@@ -216,7 +216,7 @@ def set_of_cavity_settings_to_command(
     return [x for x in flatten(command)]
 
 
-def _cavity_settings_to_command(
+def cavity_settings_to_command(
     field_map: FieldMap,
     cavity_settings: CavitySettings,
     delta_phi_bunch: float = 0.0,
@@ -241,6 +241,8 @@ def _cavity_settings_to_command(
         Piece of command to alter ``field_map`` with ``cavity_settings``.
 
     """
+    if cavity_settings == field_map.cavity_settings:
+        return ()
     if not hasattr(cavity_settings, "phi_bunch"):
         nominal_phi_bunch = field_map.cavity_settings.phi_bunch
         cavity_settings.phi_bunch = nominal_phi_bunch
