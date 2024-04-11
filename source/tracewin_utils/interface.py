@@ -205,7 +205,7 @@ def set_of_cavity_settings_to_command(
 
     """
     command = [
-        cavity_settings_to_command(
+        _cavity_settings_to_command(
             field_map,
             cavity_settings,
             delta_phi_bunch=phi_bunch_first_element,
@@ -216,7 +216,7 @@ def set_of_cavity_settings_to_command(
     return [x for x in flatten(command)]
 
 
-def cavity_settings_to_command(
+def _cavity_settings_to_command(
     field_map: FieldMap,
     cavity_settings: CavitySettings,
     delta_phi_bunch: float = 0.0,
