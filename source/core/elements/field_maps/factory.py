@@ -13,20 +13,19 @@ become very complex in the future: 3D, superposed fields...
     etc
 
 """
+import logging
 from abc import ABCMeta
 from functools import lru_cache
-import logging
 from pathlib import Path
 from typing import Any
 
+from core.elements.field_maps.cavity_settings_factory import (
+    CavitySettingsFactory,
+)
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.field_maps.field_map_100 import FieldMap100
 from core.elements.field_maps.field_map_1100 import FieldMap1100
 from core.elements.field_maps.field_map_7700 import FieldMap7700
-from core.elements.field_maps.cavity_settings_factory import (
-    ICavitySettingsFactory
-)
-
 
 IMPLEMENTED_FIELD_MAPS = {
     100: FieldMap100,
@@ -46,39 +45,39 @@ def warn_once(geometry: int):
         f"3D field maps ({geometry = }) not implemented "
         "yet. If solver is Envelope1D or Envelope3D, "
         "only the longitudinal rf electric field will be "
-        "used (equivalent of 'FIELD_MAP 100').")
+        "used (equivalent of 'FIELD_MAP 100')."
+    )
 
 
 class FieldMapFactory:
     """An object to create :class:`.FieldMap` objects."""
 
-    def __init__(self,
-                 default_field_map_folder: Path,
-                 freq_bunch_mhz: float,
-                 default_absolute_phase_flag: str = '0',
-                 **factory_kw: Any) -> None:
+    def __init__(
+        self,
+        default_field_map_folder: Path,
+        freq_bunch_mhz: float,
+        default_absolute_phase_flag: str = "0",
+        **factory_kw: Any,
+    ) -> None:
         """Save the default folder for field maps."""
         self.default_field_map_folder = default_field_map_folder
         self.default_absolute_phase_flag = default_absolute_phase_flag
 
-        self.cavity_settings_factory = ICavitySettingsFactory(freq_bunch_mhz)
+        self.cavity_settings_factory = CavitySettingsFactory(freq_bunch_mhz)
 
-    def run(self,
-            line: list[str],
-            dat_idx: int,
-            name: str | None = None,
-            **kwargs) -> FieldMap:
+    def run(
+        self, line: list[str], dat_idx: int, name: str | None = None, **kwargs
+    ) -> FieldMap:
         """Call proper constructor."""
         if len(line) == 10:
             self._append_absolute_phase_flag(line)
 
         field_map_class = self._get_proper_field_map_subclass(int(line[1]))
 
-        cavity_settings = \
-            self.cavity_settings_factory.from_line_in_dat_file(
-                line,
-                set_sync_phase=False,
-            )
+        cavity_settings = self.cavity_settings_factory.from_line_in_dat_file(
+            line,
+            set_sync_phase=False,
+        )
 
         field_map = field_map_class(
             line,

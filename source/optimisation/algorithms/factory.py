@@ -13,7 +13,7 @@ from typing import Any, Callable
 
 from beam_calculation.beam_calculator import BeamCalculator
 from core.elements.field_maps.cavity_settings_factory import (
-    ICavitySettingsFactory,
+    CavitySettingsFactory,
 )
 from failures.fault import Fault
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
@@ -85,7 +85,7 @@ def optimisation_algorithm_factory(
 def _optimisation_algorithm_kwargs(
     fault: Fault,
     run_with_this: Callable,
-    cavity_settings_factory: ICavitySettingsFactory,
+    cavity_settings_factory: CavitySettingsFactory,
 ) -> dict[str, Any]:
     """Set default arguments to instantiate the optimisation algorithm.
 

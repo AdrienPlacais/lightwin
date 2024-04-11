@@ -28,7 +28,7 @@ from beam_calculation.simulation_output.simulation_output import (
 )
 from core.accelerator.accelerator import Accelerator
 from core.elements.field_maps.cavity_settings_factory import (
-    ICavitySettingsFactory,
+    CavitySettingsFactory,
 )
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -280,7 +280,7 @@ class BeamCalculator(ABC):
         return simulation_output
 
     @property
-    def cavity_settings_factory(self) -> ICavitySettingsFactory:
+    def cavity_settings_factory(self) -> CavitySettingsFactory:
         """Return the factory with a concise call."""
         _list_elts_factory = self.list_of_elements_factory
         _instruc_factory = _list_elts_factory.instructions_factory

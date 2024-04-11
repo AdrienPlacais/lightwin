@@ -28,16 +28,20 @@ from typing import Any, Callable
 
 import numpy as np
 
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
-from core.elements.field_maps.cavity_settings_factory import ICavitySettingsFactory
+from core.elements.field_maps.cavity_settings_factory import (
+    CavitySettingsFactory,
+)
 from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
 from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.variable import Variable
 from optimisation.objective.objective import Objective
+
 
 @dataclass
 class OptimisationAlgorithm(ABC):
@@ -91,7 +95,7 @@ optional
 
     folder: str | None = None
 
-    cavity_settings_factory: ICavitySettingsFactory | None = None
+    cavity_settings_factory: CavitySettingsFactory | None = None
 
     def __post_init__(self) -> None:
         """Set the output object."""
@@ -117,13 +121,14 @@ optional
     @property
     def n_constr(self) -> int:
         """Return number of (inequality) constraints."""
-        return sum([constraint.n_constraints
-                    for constraint in self.constraints])
+        return sum(
+            [constraint.n_constraints for constraint in self.constraints]
+        )
 
     @abstractmethod
-    def optimise(self) -> tuple[bool,
-                                SetOfCavitySettings,
-                                dict[str, list[float]] | None]:
+    def optimise(
+        self,
+    ) -> tuple[bool, SetOfCavitySettings, dict[str, list[float]] | None]:
         """
         Set up optimisation parameters and solve the problem.
 
@@ -140,19 +145,13 @@ optional
         """
 
     def _format_variables(self) -> Any:
-        """Transform all :class:`Variable`s for this optimisation algorithm.
-
-        """
+        """Transform all :class:`Variable`s for this optimisation algorithm."""
 
     def _format_objectives(self) -> Any:
-        """Transform all :class:`Objective`s for this optimisation algorithm.
-
-        """
+        """Transform all :class:`Objective`s for this optimisation algorithm."""
 
     def _format_constraints(self) -> Any:
-        """Transform all :class:`Constraint`s for this optimisation algorithm.
-
-        """
+        """Transform all :class:`Constraint`s for this optimisation algorithm."""
 
     def _wrapper_residuals(self, var: np.ndarray) -> np.ndarray:
         """Compute residuals from an array of variable values."""
@@ -165,30 +164,36 @@ optional
         """Compute norm of residues vector from an array of variable values."""
         return np.linalg.norm(self._wrapper_residuals(var))
 
-    def _create_set_of_cavity_settings(self,
-                                       var: np.ndarray,
-                                       status='compensate (in progress)',
-                                       ) -> SetOfCavitySettings | None:
+    def _create_set_of_cavity_settings(
+        self,
+        var: np.ndarray,
+        status="compensate (in progress)",
+    ) -> SetOfCavitySettings | None:
         """Transform ``var`` into generic :class:`SetOfCavitySettings`."""
-        reference = [x for x in self.variable_names if 'phi' in x][0]
-        original_settings = [cavity.cavity_settings
-                             for cavity in self.compensating_elements]
-        freq_cavities_mhz = [settings.freq_cavity_mhz
-                             for settings in original_settings]
-        transf_mat_func_wrappers = [settings.transf_mat_func_wrappers
-                                    for settings in original_settings]
+        reference = [x for x in self.variable_names if "phi" in x][0]
+        original_settings = [
+            cavity.cavity_settings for cavity in self.compensating_elements
+        ]
+        freq_cavities_mhz = [
+            settings.freq_cavity_mhz for settings in original_settings
+        ]
+        transf_mat_func_wrappers = [
+            settings.transf_mat_func_wrappers for settings in original_settings
+        ]
 
         assert self.cavity_settings_factory is not None
-        several_cavity_settings = self.cavity_settings_factory.\
-            from_optimisation_algorithm(
+        several_cavity_settings = (
+            self.cavity_settings_factory.from_optimisation_algorithm(
                 var,
                 reference,
                 freq_cavities_mhz,
                 status=status,
                 transf_mat_func_wrappers=transf_mat_func_wrappers,
             )
-        return SetOfCavitySettings.for_new(several_cavity_settings,
-                                           self.compensating_elements)
+        )
+        return SetOfCavitySettings.for_new(
+            several_cavity_settings, self.compensating_elements
+        )
 
     def _get_objective_values(self) -> dict[str, float]:
         """Save the full array of objective values."""
@@ -196,7 +201,8 @@ optional
         objectives_values = self._wrapper_residuals(sol.x)
         objectives_values = {
             objective.name: objective_value
-            for objective, objective_value
-            in zip(self.objectives, objectives_values)
+            for objective, objective_value in zip(
+                self.objectives, objectives_values
+            )
         }
         return objectives_values
