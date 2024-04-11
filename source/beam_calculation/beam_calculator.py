@@ -27,6 +27,9 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.accelerator.accelerator import Accelerator
+from core.elements.field_maps.cavity_settings_factory import (
+    ICavitySettingsFactory,
+)
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
@@ -275,3 +278,13 @@ class BeamCalculator(ABC):
                 "for tracewin."
             )
         return simulation_output
+
+    @property
+    def cavity_settings_factory(self) -> ICavitySettingsFactory:
+        """Return the factory with a concise call."""
+        _list_elts_factory = self.list_of_elements_factory
+        _instruc_factory = _list_elts_factory.instructions_factory
+        _element_factory = _instruc_factory.element_factory
+        _field_map_factory = _element_factory.field_map_factory
+        cavity_settings_factory = _field_map_factory.cavity_settings_factory
+        return cavity_settings_factory
