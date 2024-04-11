@@ -16,9 +16,7 @@ from beam_calculation.envelope_1d.element_envelope1d_parameters_factory import (
 from beam_calculation.envelope_1d.simulation_output_factory import (
     SimulationOutputFactoryEnvelope1D,
 )
-from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput,
-)
+from beam_calculation.simulation_output.simulation_output import SimulationOutput
 from core.accelerator.accelerator import Accelerator
 from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
@@ -236,7 +234,6 @@ class Envelope1D(BeamCalculator):
         cavity_settings: CavitySettings,
         phi_bunch_abs: float,
         w_kin_in: float,
-        **kwargs: float,
     ) -> dict[str, Callable | int | float]:
         """Format the given :class:`.CavitySettings` for current solver.
 

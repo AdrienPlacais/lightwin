@@ -20,13 +20,9 @@ from pathlib import Path
 from typing import Any
 
 import config_manager as con
-from beam_calculation.parameters.factory import (
-    ElementBeamCalculatorParametersFactory,
-)
+from beam_calculation.parameters.factory import ElementBeamCalculatorParametersFactory
 from beam_calculation.simulation_output.factory import SimulationOutputFactory
-from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput,
-)
+from beam_calculation.simulation_output.simulation_output import SimulationOutput
 from core.accelerator.accelerator import Accelerator
 from core.elements.field_maps.cavity_settings import CavitySettings
 from core.elements.field_maps.field_map import FieldMap
@@ -278,15 +274,3 @@ class BeamCalculator(ABC):
                 "for tracewin."
             )
         return simulation_output
-
-    @abstractmethod
-    def _adapt_cavity_settings(
-        self,
-        field_map: FieldMap,
-        cavity_settings: CavitySettings,
-        phi_bunch_abs: float,
-        w_kin_in: float,
-        delta_phi_bunch: float = 0.0,
-    ) -> Any:
-        """Format the given :class:`.CavitySettings` for current solver."""
-        pass
