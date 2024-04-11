@@ -20,6 +20,7 @@
 
 """
 import logging
+import math
 import os.path
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +28,7 @@ from typing import Any, Callable, Self
 
 import numpy as np
 import pandas as pd
+
 from core.beam_parameters.beam_parameters import BeamParameters
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -297,7 +299,7 @@ def _to_deg(
         return None
     if isinstance(val, list):
         return [
-            np.rad2deg(angle) if angle is not None else None for angle in val
+            math.degrees(angle) if angle is not None else None for angle in val
         ]
     return np.rad2deg(val)
 
