@@ -16,7 +16,9 @@ from beam_calculation.envelope_1d.element_envelope1d_parameters_factory import (
 from beam_calculation.envelope_1d.simulation_output_factory import (
     SimulationOutputFactoryEnvelope1D,
 )
-from beam_calculation.simulation_output.simulation_output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.accelerator.accelerator import Accelerator
 from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
@@ -103,14 +105,13 @@ class Envelope1D(BeamCalculator):
         set_of_cavity_settings: SetOfCavitySettings | None,
         elts: ListOfElements,
     ) -> SimulationOutput:
-        """
-        Envelope 1D calculation of beam in ``elts``, with non-nominal settings.
+        """Use solver on ``elts``, including the ``set_of_cavity_settings``.
 
         Parameters
         ----------
         set_of_cavity_settings : SetOfCavitySettings | None
             The new cavity settings to try. If it is None, then the cavity
-            settings are taken from the FieldMap objects.
+            settings are taken from the :class:`.FieldMap` objects.
         elts : ListOfElements
             List of elements in which the beam must be propagated.
 
