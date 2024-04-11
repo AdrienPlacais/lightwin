@@ -626,7 +626,7 @@ class CavitySettings:
 
     @phi_bunch.getter
     def phi_bunch(self) -> float:
-        """Raise an error, as accessing this property should not be needed."""
+        """Return the entry phase of the synchronous particle (bunch ref)."""
         return self._phi_bunch
 
     def shift_phi_bunch(self, delta_phi_bunch: float) -> None:
@@ -637,6 +637,9 @@ class CavitySettings:
         :class:`.TraceWin`. With this solver, the entry phase in the first
         element of the sub-:class:`.ListOfElements` is always 0.0, even if is
         not the first element of the linac.
+
+        .. note::
+            Currently unused.
 
         Parameters
         ----------
