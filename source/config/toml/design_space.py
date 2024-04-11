@@ -17,6 +17,7 @@ from config.toml.helper import check_type, find_file
 
 IMPLEMENTED_DESIGN_SPACE_PRESETS = (
     "unconstrained",
+    "unconstrained_rel",
     "constrained_sync_phase",
     "sync_phase_as_variable",
     "FM4_MYRRHA",
