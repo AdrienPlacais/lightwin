@@ -629,7 +629,9 @@ class CavitySettings:
         """Return the entry phase of the synchronous particle (bunch ref)."""
         return self._phi_bunch
 
-    def shift_phi_bunch(self, delta_phi_bunch: float) -> None:
+    def shift_phi_bunch(
+        self, delta_phi_bunch: float, check_positive: bool = False
+    ) -> None:
         """Shift the synchronous particle entry phase by ``delta_phi_bunch``.
 
         This is mandatory when the reference phase is changed. In particular,
@@ -637,9 +639,6 @@ class CavitySettings:
         :class:`.TraceWin`. With this solver, the entry phase in the first
         element of the sub-:class:`.ListOfElements` is always 0.0, even if is
         not the first element of the linac.
-
-        .. note::
-            Currently unused.
 
         Parameters
         ----------
@@ -657,7 +656,12 @@ class CavitySettings:
         >>> )  # now phi_0_abs and phi_0_rel are properly understood
 
         """
-        self.phi_bunch = self.phi_bunch - delta_phi_bunch
+        self.phi_bunch = self._phi_bunch - delta_phi_bunch
+        if not check_positive:
+            return
+        assert (
+            self.phi_bunch >= 0.0
+        ), "The phase of the synchronous particle should never be negative."
 
     # .. list-table:: Meaning of status
     #     :widths: 40, 60

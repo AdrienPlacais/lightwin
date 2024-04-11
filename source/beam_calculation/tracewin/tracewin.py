@@ -411,12 +411,7 @@ class TraceWin(BeamCalculator):
             nominal_phi_bunch = field_map.cavity_settings.phi_bunch
             cavity_settings.phi_bunch = nominal_phi_bunch
 
-        cavity_settings.phi_bunch -= delta_phi_bunch
-        assert cavity_settings.phi_bunch >= 0.0, (
-            "The entry phase in the cavity is negative. I guess its "
-            "cavity.phi_bunch is not the entry phase from the nominal linac, "
-            "but the one from the previous iteration."
-        )
+        cavity_settings.shift_phi_bunch(delta_phi_bunch, check_positive=True)
 
         phi_0 = cavity_settings.phi_ref
         elt_idx = field_map.idx["elt_idx"]
