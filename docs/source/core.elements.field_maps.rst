@@ -17,4 +17,5 @@ Submodules
    core.elements.field_maps.factory
    core.elements.field_maps.field_map
    core.elements.field_maps.field_map_100
+   core.elements.field_maps.field_map_1100
    core.elements.field_maps.field_map_7700
