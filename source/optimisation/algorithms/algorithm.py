@@ -32,7 +32,6 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.elements.element import Element
-from core.elements.field_maps.cavity_settings import CavitySettings
 from core.elements.field_maps.cavity_settings_factory import (
     CavitySettingsFactory,
 )
@@ -191,7 +190,7 @@ optional
                 transf_mat_func_wrappers=transf_mat_func_wrappers,
             )
         )
-        return SetOfCavitySettings.for_new(
+        return SetOfCavitySettings.from_cavity_settings(
             several_cavity_settings, self.compensating_elements
         )
 

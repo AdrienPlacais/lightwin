@@ -104,6 +104,7 @@ class Envelope1D(BeamCalculator):
         self,
         set_of_cavity_settings: SetOfCavitySettings | None,
         elts: ListOfElements,
+        use_a_copy_for_nominal_settings: bool = True,
     ) -> SimulationOutput:
         """Use solver on ``elts``, including the ``set_of_cavity_settings``.
 
@@ -114,6 +115,11 @@ class Envelope1D(BeamCalculator):
             settings are taken from the :class:`.FieldMap` objects.
         elts : ListOfElements
             List of elements in which the beam must be propagated.
+        use_a_copy_for_nominal_settings : bool, optional
+            To copy the nominal :class:`.CavitySettings` and avoid altering
+            their nominal counterpart. Set it to True during optimisation, to
+            False when you want to keep the current settings. The default is
+            True.
 
         Returns
         -------
@@ -126,6 +132,12 @@ class Envelope1D(BeamCalculator):
         rf_fields = []
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
+
+        set_of_cavity_settings = SetOfCavitySettings.from_incomplete_set(
+            set_of_cavity_settings,
+            elts.l_cav,
+            use_a_copy_for_nominal_settings=use_a_copy_for_nominal_settings,
+        )
 
         for elt in elts:
             rf_field_kwargs = self._proper_cavity_settings(
@@ -143,7 +155,10 @@ class Envelope1D(BeamCalculator):
             w_kin = elt_results["w_kin"][-1]
 
         simulation_output = self._generate_simulation_output(
-            elts, single_elts_results, rf_fields
+            elts,
+            single_elts_results,
+            rf_fields,
+            set_of_cavity_settings,
         )
         return simulation_output
 
@@ -160,7 +175,10 @@ class Envelope1D(BeamCalculator):
 
         """
         simulation_output = self.run_with_this(
-            optimized_cavity_settings, full_elts, **specific_kwargs
+            optimized_cavity_settings,
+            full_elts,
+            use_a_copy_for_nominal_settings=False,
+            **specific_kwargs,
         )
         return simulation_output
 

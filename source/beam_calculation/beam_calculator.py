@@ -144,7 +144,9 @@ class BeamCalculator(ABC):
             single object.
 
         """
-        simulation_output = self.run_with_this(None, elts, **kwargs)
+        simulation_output = self.run_with_this(
+            None, elts, use_a_copy_for_nominal_settings=False, **kwargs
+        )
         if update_reference_phase:
             elts.force_reference_phases_to(self.reference_phase)
         return simulation_output
@@ -154,6 +156,7 @@ class BeamCalculator(ABC):
         self,
         set_of_cavity_settings: SetOfCavitySettings | None,
         elts: ListOfElements,
+        use_a_copy_for_nominal_settings: bool = True,
     ) -> SimulationOutput:
         """Perform a simulation with new cavity settings.
 
@@ -166,6 +169,11 @@ class BeamCalculator(ABC):
             Holds the norms and phases of the compensating cavities.
         elts: ListOfElements
             List of elements in which the beam should be propagated.
+        use_a_copy_for_nominal_settings : bool, optional
+            To copy the nominal :class:`.CavitySettings` and avoid altering
+            their nominal counterpart. Set it to True during optimisation, to
+            False when you want to keep the current settings. The default is
+            True.
 
         Returns
         -------
@@ -178,8 +186,9 @@ class BeamCalculator(ABC):
     @abstractmethod
     def post_optimisation_run_with_this(
         self,
-        optimized_cavity_settings: SetOfCavitySettings | None,
+        optimized_cavity_settings: SetOfCavitySettings,
         full_elts: ListOfElements,
+        **kwargs,
     ) -> SimulationOutput:
         """Run a simulation a simulation after optimisation is over.
 

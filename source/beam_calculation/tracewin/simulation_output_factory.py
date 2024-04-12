@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define a class to easily generate the :class:`.SimulationOutput`."""
+import logging
 from abc import ABCMeta
 from dataclasses import dataclass
 from functools import partial
-import logging
 from pathlib import Path
-from beam_calculation.tracewin.element_tracewin_parameters_factory import ElementTraceWinParametersFactory
 
 import numpy as np
 
-from beam_calculation.simulation_output.factory import (
-    SimulationOutputFactory,
-)
+import util.converters as convert
+from beam_calculation.simulation_output.factory import SimulationOutputFactory
 from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput)
+    SimulationOutput,
+)
 from beam_calculation.tracewin.beam_parameters_factory import (
     BeamParametersFactoryTraceWin,
 )
 from beam_calculation.tracewin.element_tracewin_parameters import (
     ElementTraceWinParameters,
+)
+from beam_calculation.tracewin.element_tracewin_parameters_factory import (
+    ElementTraceWinParametersFactory,
 )
 from beam_calculation.tracewin.transfer_matrix_factory import (
     TransferMatrixFactoryTraceWin,
@@ -27,7 +29,7 @@ from beam_calculation.tracewin.transfer_matrix_factory import (
 from constants import c
 from core.list_of_elements.list_of_elements import ListOfElements
 from core.particle import ParticleFullTrajectory, ParticleInitialState
-import util.converters as convert
+from failures.set_of_cavity_settings import SetOfCavitySettings
 
 
 @dataclass
@@ -47,8 +49,9 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
         :meth:`._beam_parameters_factory_class`.
 
         """
-        self.load_results = partial(_load_results_generic,
-                                    filename=self._filename)
+        self.load_results = partial(
+            _load_results_generic, filename=self._filename
+        )
         # Factories created in ABC's __post_init__
         return super().__post_init__()
 
@@ -62,12 +65,14 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
         """Give the **class** of the beam parameters factory."""
         return BeamParametersFactoryTraceWin
 
-    def run(self,
-            elts: ListOfElements,
-            path_cal: Path,
-            rf_fields: list[dict[str, float | None]],
-            exception: bool
-            ) -> SimulationOutput:
+    def run(
+        self,
+        elts: ListOfElements,
+        path_cal: Path,
+        rf_fields: list[dict[str, float | None]],
+        exception: bool,
+        set_of_cavity_settings: SetOfCavitySettings,
+    ) -> SimulationOutput:
         """
         Create an object holding all relatable simulation results.
 
@@ -96,76 +101,75 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
             _remove_incomplete_line(filepath)
             _add_dummy_data(filepath, elts)
 
-        results = self._create_main_results_dictionary(path_cal,
-                                                       elts.input_particle)
+        results = self._create_main_results_dictionary(
+            path_cal, elts.input_particle
+        )
 
         if exception:
             results = _remove_invalid_values(results)
 
-        self._save_tracewin_meshing_in_elements(elts,
-                                                results['##'],
-                                                results['z(m)'])
+        self._save_tracewin_meshing_in_elements(
+            elts, results["##"], results["z(m)"]
+        )
 
-        synch_trajectory = ParticleFullTrajectory(w_kin=results['w_kin'],
-                                                  phi_abs=results['phi_abs'],
-                                                  synchronous=True)
+        synch_trajectory = ParticleFullTrajectory(
+            w_kin=results["w_kin"],
+            phi_abs=results["phi_abs"],
+            synchronous=True,
+        )
 
-        cavity_parameters = self._create_cavity_parameters(path_cal,
-                                                           len(elts))
-        rf_fields = self._complete_list_of_rf_fields(rf_fields,
-                                                     cavity_parameters)
+        cavity_parameters = self._create_cavity_parameters(path_cal, len(elts))
+        rf_fields = self._complete_list_of_rf_fields(
+            rf_fields, cavity_parameters
+        )
 
         element_to_index = self._generate_element_to_index_func(elts)
 
-        transfer_matrix = self.transfer_matrix_factory.run(elts.tm_cumul_in,
-                                                           path_cal,
-                                                           element_to_index
-                                                           )
+        transfer_matrix = self.transfer_matrix_factory.run(
+            elts.tm_cumul_in, path_cal, element_to_index
+        )
 
-        z_abs = results['z(m)']
-        gamma_kin = synch_trajectory.get('gamma')
+        z_abs = results["z(m)"]
+        gamma_kin = synch_trajectory.get("gamma")
         beam_parameters = self.beam_parameters_factory.factory_method(
-            z_abs,
-            gamma_kin,
-            results,
-            element_to_index)
+            z_abs, gamma_kin, results, element_to_index
+        )
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
             is_multiparticle=True,  # FIXME
             is_3d=True,
-            z_abs=results['z(m)'],
+            z_abs=results["z(m)"],
             synch_trajectory=synch_trajectory,
             cav_params=cavity_parameters,
             rf_fields=rf_fields,
             beam_parameters=beam_parameters,
             element_to_index=element_to_index,
             transfer_matrix=transfer_matrix,
+            set_of_cavity_settings=set_of_cavity_settings,
         )
-        simulation_output.z_abs = results['z(m)']
+        simulation_output.z_abs = results["z(m)"]
 
         # FIXME attribute was not declared
-        simulation_output.pow_lost = results['Powlost']
+        simulation_output.pow_lost = results["Powlost"]
 
         return simulation_output
 
-    def _create_main_results_dictionary(self,
-                                        path_cal: Path,
-                                        input_particle: ParticleInitialState
-                                        ) -> dict[str, np.ndarray]:
+    def _create_main_results_dictionary(
+        self, path_cal: Path, input_particle: ParticleInitialState
+    ) -> dict[str, np.ndarray]:
         """Load the TraceWin results, compute common interest quantities."""
         results = self.load_results(path_cal=path_cal)
         results = _set_energy_related_results(results)
-        results = _set_phase_related_results(results,
-                                             z_in=input_particle.z_in,
-                                             phi_in=input_particle.phi_abs)
+        results = _set_phase_related_results(
+            results, z_in=input_particle.z_in, phi_in=input_particle.phi_abs
+        )
         return results
 
     # TODO FIXME
-    def _save_tracewin_meshing_in_elements(self,
-                                           elts: ListOfElements,
-                                           elt_numbers: np.ndarray,
-                                           z_abs: np.ndarray) -> None:
+    def _save_tracewin_meshing_in_elements(
+        self, elts: ListOfElements, elt_numbers: np.ndarray, z_abs: np.ndarray
+    ) -> None:
         """Take output files to determine where are evaluated ``w_kin``..."""
         elt_numbers = elt_numbers.astype(int)
 
@@ -173,19 +177,19 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
             elt_mesh_indexes = np.where(elt_numbers == elt_number)[0]
             s_in = elt_mesh_indexes[0] - 1
             s_out = elt_mesh_indexes[-1]
-            z_element = z_abs[s_in:s_out + 1]
+            z_element = z_abs[s_in : s_out + 1]
 
-            elt.beam_calc_param[self._solver_id] = \
-                self.beam_calc_parameters_factory.run(elt,
-                                                      z_element,
-                                                      s_in,
-                                                      s_out)
+            elt.beam_calc_param[self._solver_id] = (
+                self.beam_calc_parameters_factory.run(
+                    elt, z_element, s_in, s_out
+                )
+            )
 
     def _create_cavity_parameters(
         self,
-            path_cal: Path,
-            n_elts: int,
-            filename: Path = Path('Cav_set_point_res.dat'),
+        path_cal: Path,
+        n_elts: int,
+        filename: Path = Path("Cav_set_point_res.dat"),
     ) -> dict[str, list[float | None]]:
         """
         Load and format a dict containing v_cav and phi_s.
@@ -211,36 +215,38 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
         """
         cavity_parameters = _load_cavity_parameters(path_cal, filename)
         cavity_parameters = _cavity_parameters_uniform_with_envelope1d(
-            cavity_parameters,
-            n_elts
+            cavity_parameters, n_elts
         )
         return cavity_parameters
 
     def _complete_list_of_rf_fields(
         self,
         rf_fields: list[dict[str, float | None]],
-        cavity_parameters: dict[str, list[float | None]]
+        cavity_parameters: dict[str, list[float | None]],
     ) -> list[dict[float | None]]:
         """Create a list with rf field properties, as :class:`Envelope1D`."""
         for i, (v_cav_mv, phi_s, phi_0) in enumerate(
-                zip(cavity_parameters['v_cav_mv'],
-                    cavity_parameters['phi_s'],
-                    cavity_parameters['phi_0'])):
+            zip(
+                cavity_parameters["v_cav_mv"],
+                cavity_parameters["phi_s"],
+                cavity_parameters["phi_0"],
+            )
+        ):
             if v_cav_mv is None:
                 continue
 
             # patch for superpose_map
-            if 'k_e' not in rf_fields[i]:
-                cavity_parameters['v_cav_mv'][i] = None
-                cavity_parameters['phi_s'][i] = None
-                cavity_parameters['phi_0'][i] = None
+            if "k_e" not in rf_fields[i]:
+                cavity_parameters["v_cav_mv"][i] = None
+                cavity_parameters["phi_s"][i] = None
+                cavity_parameters["phi_0"][i] = None
                 continue
 
-            if rf_fields[i]['k_e'] < 1e-10:
+            if rf_fields[i]["k_e"] < 1e-10:
                 continue
-            rf_fields[i]['v_cav_mv'] = v_cav_mv
-            rf_fields[i]['phi_s'] = phi_s
-            rf_fields[i]['phi_0_abs'] = phi_0
+            rf_fields[i]["v_cav_mv"] = v_cav_mv
+            rf_fields[i]["phi_s"] = phi_s
+            rf_fields[i]["phi_0_abs"] = phi_0
 
         return rf_fields
 
@@ -250,21 +256,23 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
 # =============================================================================
 def _0_to_NaN(data: np.ndarray) -> np.ndarray:
     """Replace 0 by np.NaN in given array."""
-    data[np.where(data == 0.)] = np.NaN
+    data[np.where(data == 0.0)] = np.NaN
     return data
 
 
-def _remove_invalid_values(results: dict[str, np.ndarray]
-                           ) -> dict[str, np.ndarray]:
+def _remove_invalid_values(
+    results: dict[str, np.ndarray]
+) -> dict[str, np.ndarray]:
     """Remove invalid values that appear when ``exception`` is True."""
-    results['SizeX'] = _0_to_NaN(results['SizeX'])
-    results['SizeY'] = _0_to_NaN(results['SizeY'])
-    results['SizeZ'] = _0_to_NaN(results['SizeZ'])
+    results["SizeX"] = _0_to_NaN(results["SizeX"])
+    results["SizeY"] = _0_to_NaN(results["SizeY"])
+    results["SizeZ"] = _0_to_NaN(results["SizeZ"])
     return results
 
 
-def _load_results_generic(filename: Path,
-                          path_cal: Path) -> dict[str, np.ndarray]:
+def _load_results_generic(
+    filename: Path, path_cal: Path
+) -> dict[str, np.ndarray]:
     """
     Load the TraceWin results.
 
@@ -292,14 +300,14 @@ def _load_results_generic(filename: Path,
     n_lines_header = 9
     results = {}
 
-    with open(f_p, 'r', encoding='utf-8') as file:
+    with open(f_p, "r", encoding="utf-8") as file:
         for i, line in enumerate(file):
             if i == 1:
                 __mc2, freq, __z, __i, __npart = line.strip().split()
             if i == n_lines_header:
                 headers = line.strip().split()
                 break
-    results['freq'] = float(freq)
+    results["freq"] = float(freq)
 
     out = np.loadtxt(f_p, skiprows=n_lines_header)
     for i, key in enumerate(headers):
@@ -308,8 +316,9 @@ def _load_results_generic(filename: Path,
     return results
 
 
-def _set_energy_related_results(results: dict[str, np.ndarray]
-                                ) -> dict[str, np.ndarray]:
+def _set_energy_related_results(
+    results: dict[str, np.ndarray]
+) -> dict[str, np.ndarray]:
     """
     Compute the energy from ``gama-1`` column.
 
@@ -324,16 +333,17 @@ def _set_energy_related_results(results: dict[str, np.ndarray]
         Same as input, but with ``gamma``, ``w_kin``, ``beta`` keys defined.
 
     """
-    results['gamma'] = 1. + results['gama-1']
-    results['w_kin'] = convert.energy(results['gamma'], "gamma to kin")
-    results['beta'] = convert.energy(results['w_kin'], "kin to beta")
+    results["gamma"] = 1.0 + results["gama-1"]
+    results["w_kin"] = convert.energy(results["gamma"], "gamma to kin")
+    results["beta"] = convert.energy(results["w_kin"], "kin to beta")
     return results
 
 
-def _set_phase_related_results(results: dict[str, np.ndarray],
-                               z_in: float,
-                               phi_in: float,
-                               ) -> dict[str, np.ndarray]:
+def _set_phase_related_results(
+    results: dict[str, np.ndarray],
+    z_in: float,
+    phi_in: float,
+) -> dict[str, np.ndarray]:
     """
     Compute the phases, pos, frequencies.
 
@@ -364,19 +374,19 @@ def _set_phase_related_results(results: dict[str, np.ndarray],
         study.
 
     """
-    results['z(m)'] += z_in
-    results['lambda'] = c / results['freq'] * 1e-6
+    results["z(m)"] += z_in
+    results["lambda"] = c / results["freq"] * 1e-6
 
-    omega = 2. * np. pi * results['freq'] * 1e6
-    delta_z = np.diff(results['z(m)'])
-    beta = .5 * (results['beta'][1:] + results['beta'][:-1])
+    omega = 2.0 * np.pi * results["freq"] * 1e6
+    delta_z = np.diff(results["z(m)"])
+    beta = 0.5 * (results["beta"][1:] + results["beta"][:-1])
     delta_phi = omega * delta_z / (beta * c)
 
-    num = results['beta'].shape[0]
+    num = results["beta"].shape[0]
     phi_abs = np.full((num), phi_in)
     for i in range(num - 1):
         phi_abs[i + 1] = phi_abs[i] + delta_phi[i]
-    results['phi_abs'] = phi_abs
+    results["phi_abs"] = phi_abs
 
     return results
 
@@ -394,7 +404,7 @@ def _remove_incomplete_line(filepath: Path) -> None:
     """
     n_lines_header = 9
     i_last_valid = -1
-    with open(filepath, 'r', encoding='utf-8') as file:
+    with open(filepath, "r", encoding="utf-8") as file:
         lines = file.readlines()
     for i, line in enumerate(lines):
         if i < n_lines_header:
@@ -409,9 +419,11 @@ def _remove_incomplete_line(filepath: Path) -> None:
 
     if i_last_valid == -1:
         return
-    logging.warning(f"Not enough columns in `.out` after line {i_last_valid}. "
-                    "Removing all lines after this one...")
-    with open(filepath, 'w', encoding='utf-8') as file:
+    logging.warning(
+        f"Not enough columns in `.out` after line {i_last_valid}. "
+        "Removing all lines after this one..."
+    )
+    with open(filepath, "w", encoding="utf-8") as file:
         for i, line in enumerate(lines):
             if i >= i_last_valid:
                 break
@@ -429,31 +441,34 @@ def _add_dummy_data(filepath: Path, elts: ListOfElements) -> None:
         another possibly unbound error to handle
 
     """
-    with open(filepath, 'r+', encoding='utf-8') as file:
+    with open(filepath, "r+", encoding="utf-8") as file:
         for line in file:
             pass
         last_idx_in_file = int(line.split()[0])
         last_element_in_file = elts[last_idx_in_file - 1]
 
         if last_element_in_file is not elts[-1]:
-            logging.warning("Incomplete `.out` file. Trying to complete with "
-                            "dummy data...")
+            logging.warning(
+                "Incomplete `.out` file. Trying to complete with "
+                "dummy data..."
+            )
             elts_to_add = elts[last_idx_in_file:]
             last_pos = np.round(float(line.split()[1]), 4)
             for i, elt in enumerate(elts_to_add, start=last_idx_in_file + 1):
-                last_pos += elt.get('length_m', to_numpy=False)
+                last_pos += elt.get("length_m", to_numpy=False)
                 new_line = line.split()
                 new_line[0] = str(i)
                 new_line[1] = str(last_pos)
-                new_line = ' '.join(new_line) + '\n'
+                new_line = " ".join(new_line) + "\n"
                 file.write(new_line)
 
 
 # =============================================================================
 # Cavity parameters
 # =============================================================================
-def _load_cavity_parameters(path_cal: Path,
-                            filename: Path) -> dict[str, np.ndarray]:
+def _load_cavity_parameters(
+    path_cal: Path, filename: Path
+) -> dict[str, np.ndarray]:
     """
     Get the cavity parameters calculated by TraceWin.
 
@@ -473,7 +488,7 @@ def _load_cavity_parameters(path_cal: Path,
     f_p = Path(path_cal, filename)
     n_lines_header = 1
 
-    with open(f_p, 'r', encoding='utf-8') as file:
+    with open(f_p, "r", encoding="utf-8") as file:
         for i, line in enumerate(file):
             if i == n_lines_header - 1:
                 headers = line.strip().split()
@@ -486,11 +501,10 @@ def _load_cavity_parameters(path_cal: Path,
 
 
 def _cavity_parameters_uniform_with_envelope1d(
-    cavity_parameters: dict[str, np.ndarray],
-    n_elts: int
+    cavity_parameters: dict[str, np.ndarray], n_elts: int
 ) -> list[None | dict[str, float]]:
     """Transform the dict so we have the same format as Envelope1D."""
-    cavity_numbers = cavity_parameters['Cav#'].astype(int)
+    cavity_numbers = cavity_parameters["Cav#"].astype(int)
     v_cav, phi_s, phi_0 = [], [], []
     cavity_idx = 0
     for elt_idx in range(1, n_elts + 1):
@@ -498,12 +512,15 @@ def _cavity_parameters_uniform_with_envelope1d(
             v_cav.append(None), phi_s.append(None), phi_0.append(None)
             continue
 
-        v_cav.append(cavity_parameters['Voltage[MV]'][cavity_idx])
-        phi_s.append(np.deg2rad(cavity_parameters['SyncPhase[°]'][cavity_idx]))
-        phi_0.append(np.deg2rad(cavity_parameters['RF_phase[°]'][cavity_idx]))
+        v_cav.append(cavity_parameters["Voltage[MV]"][cavity_idx])
+        phi_s.append(np.deg2rad(cavity_parameters["SyncPhase[°]"][cavity_idx]))
+        phi_0.append(np.deg2rad(cavity_parameters["RF_phase[°]"][cavity_idx]))
 
         cavity_idx += 1
 
-    compliant_cavity_parameters = {'v_cav_mv': v_cav, 'phi_s': phi_s,
-                                   'phi_0': phi_0}
+    compliant_cavity_parameters = {
+        "v_cav_mv": v_cav,
+        "phi_s": phi_s,
+        "phi_0": phi_0,
+    }
     return compliant_cavity_parameters

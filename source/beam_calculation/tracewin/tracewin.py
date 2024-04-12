@@ -23,7 +23,9 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from beam_calculation.beam_calculator import BeamCalculator
-from beam_calculation.simulation_output.simulation_output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from beam_calculation.tracewin.element_tracewin_parameters_factory import (
     ElementTraceWinParametersFactory,
 )
@@ -226,6 +228,7 @@ class TraceWin(BeamCalculator):
         self,
         set_of_cavity_settings: SetOfCavitySettings | None,
         elts: ListOfElements,
+        use_a_copy_for_nominal_settings: bool = True,
         **specific_kwargs,
     ) -> SimulationOutput:
         """Perform a simulation with new cavity settings.
@@ -236,9 +239,15 @@ class TraceWin(BeamCalculator):
         Parameters
         ----------
         set_of_cavity_settings : SetOfCavitySettings | None
-            Holds the norms and phases of the compensating cavities.
+            The new cavity settings to try. If it is None, then the cavity
+            settings are taken from the FieldMap objects.
         elts : ListOfElements
             List of elements in which the beam should be propagated.
+        use_a_copy_for_nominal_settings : bool, optional
+            To copy the nominal :class:`.CavitySettings` and avoid altering
+            their nominal counterpart. Set it to True during optimisation, to
+            False when you want to keep the current settings. The default is
+            True.
 
         Returns
         -------
@@ -252,6 +261,12 @@ class TraceWin(BeamCalculator):
 
         if specific_kwargs is None:
             specific_kwargs = {}
+
+        set_of_cavity_settings = SetOfCavitySettings.from_incomplete_set(
+            set_of_cavity_settings,
+            elts.l_cav,
+            use_a_copy_for_nominal_settings=use_a_copy_for_nominal_settings,
+        )
 
         rf_fields = []
         for elt in elts:
@@ -284,11 +299,16 @@ class TraceWin(BeamCalculator):
         is_a_fit = set_of_cavity_settings is not None
         exception = _run_in_bash(command, output_command=not is_a_fit)
 
+        # check in which order those two methods should be called
         simulation_output = self._generate_simulation_output(
             elts, path_cal, rf_fields, exception
         )
         self._save_cavities_entry_phases(
             set_of_cavity_settings, elts.l_cav, simulation_output
+        )
+        logging.critical(
+            "implement the saving of set of cavity settings in "
+            "the SimulationOutput"
         )
         return simulation_output
 

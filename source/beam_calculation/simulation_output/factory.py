@@ -55,9 +55,9 @@ class SimulationOutputFactory(ABC):
         """Declare the **class** of the beam parameters factory."""
 
     @abstractmethod
-    def run(self, *args, **kwargs) -> SimulationOutput:
+    def run(self, elts: ListOfElements, *args, **kwargs) -> SimulationOutput:
         """Create the :class:`.SimulationOutput`."""
-        return SimulationOutput(*args, **kwargs)
+        pass
 
     def _generate_element_to_index_func(
         self, elts: ListOfElements

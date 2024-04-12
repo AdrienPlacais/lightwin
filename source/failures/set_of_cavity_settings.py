@@ -26,7 +26,7 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
         super().__init__(several_cavity_settings)
 
     @classmethod
-    def for_new(
+    def from_cavity_settings(
         cls,
         several_cavity_settings: Sequence[CavitySettings],
         compensating_cavities: Sequence[FieldMap],
@@ -41,11 +41,11 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
         return cls(settings)
 
     @classmethod
-    def take_missing_settings_from_original_elements(
+    def from_incomplete_set(
         cls,
-        set_of_cavity_settings: Self,
+        set_of_cavity_settings: Self | None,
         cavities: Sequence[FieldMap],
-        instantiate_new: bool = True,
+        use_a_copy_for_nominal_settings: bool = True,
     ) -> Self:
         """Create an object with settings for all the field maps.
 
@@ -65,12 +65,14 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
         set_of_cavity_settings
             Object holding the settings of some cavities (typically, the
             settings of compensating cavities as given by an
-            :class:`.OptimisationAlgorithm`).
+            :class:`.OptimisationAlgorithm`). When it is None, every
+            :class:`.CavitySettings` is taken from the :class:`.FieldMap`
+            object (corresponds to run without optimisation).
         cavities
             All the cavities that should have :class:`.CavitySettings`
             (typically, all the cavities in a sub-:class:`.ListOfElements`
             studied during an optimisation process).
-        instantiate_new
+        use_a_copy_for_nominal_settings
             To create new :class:`.CavitySettings` for the cavities not already
             in ``set_of_cavity_settings``. Allows to compute quantities such as
             synchronous phase without altering the original one.
@@ -83,9 +85,13 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
             ``set_of_cavity_settings``.
 
         """
+        if set_of_cavity_settings is None:
+            empty: dict[FieldMap, CavitySettings] = {}
+            set_of_cavity_settings = SetOfCavitySettings(empty)
+
         complete_set_of_settings = {
             cavity: _settings_getter(
-                cavity, set_of_cavity_settings, instantiate_new
+                cavity, set_of_cavity_settings, use_a_copy_for_nominal_settings
             )
             for cavity in cavities
         }
@@ -122,7 +128,7 @@ def _settings_getter(
         Cavity for which you want settings.
     set_of_cavity_settings
         Different cavity settings (a priori given by an
-        :class:`OptimisationAlgorithm`).
+        :class:`OptimisationAlgorithm`), or an empty dict.
     instantiate_new
         To force the creation of a new object; will allow to keep the original
         :class:`.CavitySettings` unaltered.

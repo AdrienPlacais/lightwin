@@ -18,7 +18,9 @@ from beam_calculation.envelope_3d.simulation_output_factory import (
 from beam_calculation.envelope_3d.transfer_matrix_factory import (
     TransferMatrixFactoryEnvelope3D,
 )
-from beam_calculation.simulation_output.simulation_output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.accelerator.accelerator import Accelerator
 from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
@@ -112,6 +114,7 @@ class Envelope3D(BeamCalculator):
         self,
         set_of_cavity_settings: SetOfCavitySettings | None,
         elts: ListOfElements,
+        use_a_copy_for_nominal_settings: bool = True,
     ) -> SimulationOutput:
         """
         Envelope 3D calculation of beam in ``elts``, with non-nominal settings.
@@ -123,6 +126,11 @@ class Envelope3D(BeamCalculator):
             settings are taken from the FieldMap objects.
         elts : ListOfElements
             List of elements in which the beam must be propagated.
+        use_a_copy_for_nominal_settings : bool, optional
+            To copy the nominal :class:`.CavitySettings` and avoid altering
+            their nominal counterpart. Set it to True during optimisation, to
+            False when you want to keep the current settings. The default is
+            True.
 
         Returns
         -------
@@ -136,6 +144,12 @@ class Envelope3D(BeamCalculator):
 
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
+
+        set_of_cavity_settings = SetOfCavitySettings.from_incomplete_set(
+            set_of_cavity_settings,
+            elts.l_cav,
+            use_a_copy_for_nominal_settings=use_a_copy_for_nominal_settings,
+        )
 
         for elt in elts:
             rf_field_kwargs = self._proper_cavity_settings(
@@ -153,7 +167,7 @@ class Envelope3D(BeamCalculator):
             w_kin = elt_results["w_kin"][-1]
 
         simulation_output = self._generate_simulation_output(
-            elts, single_elts_results, rf_fields
+            elts, single_elts_results, rf_fields, set_of_cavity_settings
         )
         return simulation_output
 
