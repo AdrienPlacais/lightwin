@@ -73,25 +73,17 @@ class CavitySettingsFactory:
     def from_other_cavity_settings(
         self,
         cavity_settings: Sequence[CavitySettings],
-        reference: str,
+        reference: str = "",
     ) -> list[CavitySettings]:
         """Create a copy of ``cavity_settings``, reference can be updated.
 
         Not used for the moment.
 
         """
-        new_cavity_settings: list[CavitySettings] = []
-        for old in cavity_settings:
-            settings = CavitySettings(
-                old.k_e,
-                getattr(old, reference),
-                reference,
-                old.status,
-                self.freq_bunch_mhz,
-                old.freq_cavity_mhz,
-                old.transf_mat_func_wrappers,
-            )
-            new_cavity_settings.append(settings)
+        new_cavity_settings = [
+            CavitySettings.from_other_cavity_setttings(other, reference)
+            for other in cavity_settings
+        ]
         return new_cavity_settings
 
     def _reference(

@@ -155,12 +155,31 @@ class CavitySettings:
 
     def __eq__(self, other: Self) -> bool:  # type: ignore
         """Check if two cavity settings are identical."""
-        check = (self.k_e == other.k_e
-                 and self.phi_ref == other.phi_ref
-                 and self.reference == other.reference)
+        check = (
+            self.k_e == other.k_e
+            and self.phi_ref == other.phi_ref
+            and self.reference == other.reference
+        )
         # also check for phi_bunch?
         return check
 
+    @classmethod
+    def from_other_cavity_setttings(
+        cls, other: Self, reference: str = ""
+    ) -> Self:
+        """Create settings with same settings as provided."""
+        if not reference:
+            reference = other.reference
+        settings = cls(
+            other.k_e,
+            getattr(other, reference),
+            reference,
+            other.status,
+            other._freq_bunch_mhz,
+            other.freq_cavity_mhz,
+            other.transf_mat_func_wrappers,
+        )
+        return settings
 
     def _attr_to_str(self, attr_name: str) -> str:
         """Give the attribute as string."""
