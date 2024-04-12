@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds :class:`DownhillSimplex`.
-
-It is also called Nelder-Mead algorithm.
-
-"""
-from dataclasses import dataclass
+"""Define the Downhill simplex (or Nelder-Mead) algorihm."""
 import logging
+from dataclasses import dataclass
 
-from scipy.optimize import minimize, Bounds
 import numpy as np
+from scipy.optimize import Bounds, minimize
 
-from optimisation.algorithms.algorithm import OptimisationAlgorithm
 from failures.set_of_cavity_settings import SetOfCavitySettings
+from optimisation.algorithms.algorithm import OptimisationAlgorithm
 
 
 @dataclass
@@ -32,11 +27,12 @@ class DownhillSimplex(OptimisationAlgorithm):
 
     def __post_init__(self) -> None:
         """Set additional information."""
+        super().__post_init__()
         self.supports_constraints = False
 
-    def optimise(self) -> tuple[bool,
-                                SetOfCavitySettings,
-                                dict[str, list[float]]]:
+    def optimise(
+        self,
+    ) -> tuple[bool, SetOfCavitySettings, dict[str, list[float]]]:
         """
         Set up the optimisation and solve the problem.
 
@@ -54,39 +50,40 @@ class DownhillSimplex(OptimisationAlgorithm):
         kwargs = self._algorithm_parameters()
         x_0, bounds = self._format_variables()
 
-        solution = minimize(fun=self._norm_wrapper_residuals,
-                            x0=x_0,
-                            bounds=bounds,
-                            **kwargs)
+        solution = minimize(
+            fun=self._norm_wrapper_residuals, x0=x_0, bounds=bounds, **kwargs
+        )
 
         self.solution = solution
         success = self.solution.success
-        status = 'compensate (ok)'
+        status = "compensate (ok)"
         if not success:
-            status = 'compensate (not ok)'
+            status = "compensate (not ok)"
         optimized_cavity_settings = self._create_set_of_cavity_settings(
-            solution.x,
-            status=status)
+            solution.x, status=status
+        )
         # TODO: output some info could be much more clear by using the __str__
         # methods of the various objects.
 
         objectives_values = self._get_objective_values()
         self._output_some_info(objectives_values)
 
-        info = {'X': self.solution.x.tolist(),
-                'F': self.solution.fun.tolist(),
-                'objectives_values': objectives_values,
-                }
+        info = {
+            "X": self.solution.x.tolist(),
+            "F": self.solution.fun.tolist(),
+            "objectives_values": objectives_values,
+        }
         return success, optimized_cavity_settings, info
 
     def _algorithm_parameters(self) -> dict:
         """Create the ``kwargs`` for the optimisation."""
-        kwargs = {'method': 'Nelder-Mead',
-                  'options': {
-                      'adaptive': True,
-                      'disp': True,
-                  },
-                  }
+        kwargs = {
+            "method": "Nelder-Mead",
+            "options": {
+                "adaptive": True,
+                "disp": True,
+            },
+        }
         return kwargs
 
     def _format_variables(self) -> tuple[np.ndarray, Bounds]:

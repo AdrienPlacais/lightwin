@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Template class for the optimisation algorithms.
+"""Define the Abstract Base Class of optimisation algorithms.
 
 Abstract methods are mandatory and a ``TypeError`` will be raised if you try to
 create your own algorithm and omit them.
@@ -22,6 +21,7 @@ list of implemented algorithms in the :mod:`config.optimisation.algorithm`.
     should be set at the ``OptimisationAlgorithm`` instanciation.
 
 """
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -44,8 +44,7 @@ from optimisation.objective.objective import Objective
 
 @dataclass
 class OptimisationAlgorithm(ABC):
-    """
-    Holds the optimisation parameters, the methods to optimize.
+    """Holds the optimisation parameters, the methods to optimize.
 
     Parameters
     ----------
@@ -168,7 +167,21 @@ optional
         var: np.ndarray,
         status="compensate (in progress)",
     ) -> SetOfCavitySettings | None:
-        """Transform ``var`` into generic :class:`SetOfCavitySettings`."""
+        """Transform ``var`` into generic :class:`.SetOfCavitySettings`.
+
+        Parameters
+        ----------
+        var
+            An array holding the variables to try.
+        status : str, optional
+            mmmh
+
+        Returns
+        -------
+        SetOfCavitySettings | None
+            Object holding the settings of all the cavities.
+
+        """
         reference = [x for x in self.variable_names if "phi" in x][0]
         original_settings = [
             cavity.cavity_settings for cavity in self.compensating_elements

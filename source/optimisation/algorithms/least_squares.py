@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""We define :class:`LeastSquares`, a simple and fast optimisation method."""
-from dataclasses import dataclass
+"""Define :class:`LeastSquares`, a simple and fast optimisation method."""
 import logging
+from dataclasses import dataclass
 
-from scipy.optimize import least_squares, Bounds
 import numpy as np
+from scipy.optimize import Bounds, least_squares
 
-from optimisation.algorithms.algorithm import OptimisationAlgorithm
 from failures.set_of_cavity_settings import SetOfCavitySettings
+from optimisation.algorithms.algorithm import OptimisationAlgorithm
 
 
 @dataclass
@@ -36,11 +36,12 @@ class LeastSquares(OptimisationAlgorithm):
 
     def __post_init__(self) -> None:
         """Set additional information."""
+        super().__post_init__()
         self.supports_constraints = False
 
-    def optimise(self) -> tuple[bool,
-                                SetOfCavitySettings,
-                                dict[str, list[float]]]:
+    def optimise(
+        self,
+    ) -> tuple[bool, SetOfCavitySettings, dict[str, list[float]]]:
         """
         Set up the optimisation and solve the problem.
 
@@ -58,14 +59,14 @@ class LeastSquares(OptimisationAlgorithm):
         kwargs = self._algorithm_parameters()
         x_0, bounds = self._format_variables()
 
-        solution = least_squares(fun=self._wrapper_residuals,
-                                 x0=x_0,
-                                 bounds=bounds,
-                                 **kwargs)
+        solution = least_squares(
+            fun=self._wrapper_residuals, x0=x_0, bounds=bounds, **kwargs
+        )
 
         self.solution = solution
         optimized_cavity_settings = self._create_set_of_cavity_settings(
-            solution.x)
+            solution.x
+        )
         # TODO: output some info could be much more clear by using the __str__
         # methods of the various objects.
 
@@ -73,27 +74,31 @@ class LeastSquares(OptimisationAlgorithm):
         self._output_some_info(objectives_values)
 
         success = self.solution.success
-        info = {'X': self.solution.x.tolist(),
-                'F': self.solution.fun.tolist(),
-                'objectives_values': objectives_values,
-                }
+        info = {
+            "X": self.solution.x.tolist(),
+            "F": self.solution.fun.tolist(),
+            "objectives_values": objectives_values,
+        }
         return success, optimized_cavity_settings, info
 
     def _algorithm_parameters(self) -> dict:
         """Create the ``kwargs`` for the optimisation."""
-        kwargs = {'jac': '2-point',     # Default
-                  # 'trf' not ideal as jac is not sparse. 'dogbox' may have
-                  # difficulties with rank-defficient jacobian.
-                  'method': 'dogbox',
-                  'ftol': 1e-10,
-                  'gtol': 1e-8,
-                  'xtol': 1e-8,
-                  # 'x_scale': 'jac',
-                  # 'loss': 'arctan',
-                  'diff_step': None, 'tr_solver': None, 'tr_options': {},
-                  'jac_sparsity': None,
-                  'verbose': 0,
-                  }
+        kwargs = {
+            "jac": "2-point",  # Default
+            # 'trf' not ideal as jac is not sparse. 'dogbox' may have
+            # difficulties with rank-defficient jacobian.
+            "method": "dogbox",
+            "ftol": 1e-10,
+            "gtol": 1e-8,
+            "xtol": 1e-8,
+            # 'x_scale': 'jac',
+            # 'loss': 'arctan',
+            "diff_step": None,
+            "tr_solver": None,
+            "tr_options": {},
+            "jac_sparsity": None,
+            "verbose": 0,
+        }
         return kwargs
 
     def _format_variables(self) -> tuple[np.ndarray, Bounds]:

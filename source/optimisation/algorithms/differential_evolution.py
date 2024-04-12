@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""This modules holds :class:`DifferentialEvolution`."""
-from dataclasses import dataclass
+"""Define :class:`DifferentialEvolution`."""
 import logging
+from dataclasses import dataclass
 
-from scipy.optimize import differential_evolution, Bounds
 import numpy as np
+from scipy.optimize import Bounds, differential_evolution
 
-from optimisation.algorithms.algorithm import OptimisationAlgorithm
 from failures.set_of_cavity_settings import SetOfCavitySettings
+from optimisation.algorithms.algorithm import OptimisationAlgorithm
 
 
 @dataclass
@@ -23,13 +23,13 @@ class DifferentialEvolution(OptimisationAlgorithm):
 
     def __post_init__(self) -> None:
         """Set additional information."""
+        super().__post_init__()
         self.supports_constraints = False
 
-    def optimise(self) -> tuple[bool,
-                                SetOfCavitySettings,
-                                dict[str, list[float]]]:
-        """
-        Set up the optimisation and solve the problem.
+    def optimise(
+        self,
+    ) -> tuple[bool, SetOfCavitySettings, dict[str, list[float]]]:
+        """Set up the optimisation and solve the problem.
 
         Returns
         -------
@@ -46,29 +46,30 @@ class DifferentialEvolution(OptimisationAlgorithm):
         x_0, bounds = self._format_variables()
 
         solution = differential_evolution(
-            func=self._norm_wrapper_residuals,
-            x0=x_0,
-            bounds=bounds,
-            **kwargs)
+            func=self._norm_wrapper_residuals, x0=x_0, bounds=bounds, **kwargs
+        )
 
         self.solution = solution
         optimized_cavity_settings = self._create_set_of_cavity_settings(
-            solution.x)
+            solution.x
+        )
         # TODO: output some info could be much more clear by using the __str__
         # methods of the various objects.
 
         self._output_some_info()
 
         success = self.solution.success
-        info = {'X': self.solution.x.tolist(),
-                'F': self.solution.fun.tolist(),
-                }
+        info = {
+            "X": self.solution.x.tolist(),
+            "F": self.solution.fun.tolist(),
+        }
         return success, optimized_cavity_settings, info
 
     def _algorithm_parameters(self) -> dict:
         """Create the ``kwargs`` for the optimisation."""
-        kwargs = {'disp': True,
-                  }
+        kwargs = {
+            "disp": True,
+        }
         return kwargs
 
     def _format_variables(self) -> tuple[np.ndarray, Bounds]:

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds a variation of :class:`DownhillSimplex`.
+"""Define a Downhill Simplex with penalty.
 
 It is not intended to be used with ``phi_s fit``. Approach is here to make the
 residues grow when the constraints are not respected.
 
 """
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -26,21 +25,25 @@ class DownhillSimplexPenalty(DownhillSimplex):
 
     def __post_init__(self) -> None:
         """Set additional information."""
+        super().__post_init__()
         self.supports_constraints = True
 
-        if 'phi_s' in self.variable_names:
-            logging.error("This algorithm is not intended to work with synch "
-                          "phase as variables, but rather as constraint.")
+        if "phi_s" in self.variable_names:
+            logging.error(
+                "This algorithm is not intended to work with synch "
+                "phase as variables, but rather as constraint."
+            )
 
     def _algorithm_parameters(self) -> dict:
         """Create the ``kwargs`` for the optimisation."""
-        kwargs = {'method': 'Nelder-Mead',
-                  'options': {
-                      'adaptive': True,
-                      'disp': True,
-                      'maxiter': 2000 * len(self.variables),
-                  },
-                  }
+        kwargs = {
+            "method": "Nelder-Mead",
+            "options": {
+                "adaptive": True,
+                "disp": True,
+                "maxiter": 2000 * len(self.variables),
+            },
+        }
         return kwargs
 
     def _norm_wrapper_residuals(self, var: np.ndarray) -> np.array:
@@ -55,8 +58,9 @@ class DownhillSimplexPenalty(DownhillSimplex):
     def _penalty(self, constraints_evaluations: np.ndarray) -> float:
         """Compute appropriate penalty."""
         violated_constraints = constraints_evaluations[
-            np.where(constraints_evaluations > 0.)]
+            np.where(constraints_evaluations > 0.0)
+        ]
         n_violated = violated_constraints.shape[0]
         if n_violated == 0:
-            return 1.
-        return 1. + np.sum(n_violated) * 10.
+            return 1.0
+        return 1.0 + np.sum(n_violated) * 10.0
