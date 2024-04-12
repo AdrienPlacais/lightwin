@@ -36,6 +36,30 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
         super().__init__(several_cavity_settings)
         self._ordered_cav, self._ordered_settings = self._order()
 
+    def __getattr__(self, key: str) -> list[float]:
+        """Override the default ``getattr`` to access some quantities.
+
+        .. note::
+            ``__getattr__`` is called after the ``__get_attribute__`` method,
+            when the latter did not lead to a valid output.
+
+        .. todo::
+            Add ``CAVITY_SETTINGS_GETTABLE_ATTRIBUTES`` to the __dir__. Also,
+            may set this tuple from CavitySettings.__class__.__dir__ or
+            something.
+
+        """
+        if key not in CAVITY_SETTINGS_GETTABLE_ATTRIBUTES:
+            raise AttributeError
+
+        return [getattr(settings, key) for settings in self._ordered_settings]
+
+    def __dir__(self) -> Sequence[str]:
+        """Return the stored variables and some of :class:`CavitySettings`."""
+        return sorted(
+            dir(self.__class__) + list(CAVITY_SETTINGS_GETTABLE_ATTRIBUTES)
+        )
+
     @classmethod
     def from_cavity_settings(
         cls,
@@ -126,24 +150,6 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
         for cavity, setting in self.items():
             absolute_index = cavity.idx["elt_idx"]
             setting.index = absolute_index
-
-    def __getattr__(self, key: str) -> list[float]:
-        """Override the default ``getattr`` to access some quantities.
-
-        .. note::
-            ``__getattr__`` is called after the ``__get_attribute__`` method,
-            when the latter did not lead to a valid output.
-
-        .. todo::
-            Add ``CAVITY_SETTINGS_GETTABLE_ATTRIBUTES`` to the __dir__. Also,
-            may set this tuple from CavitySettings.__class__.__dir__ or
-            something.
-
-        """
-        if key not in CAVITY_SETTINGS_GETTABLE_ATTRIBUTES:
-            raise AttributeError
-
-        return [getattr(settings, key) for settings in self._ordered_settings]
 
     def _order(self) -> tuple[Sequence[FieldMap], Sequence[CavitySettings]]:
         """Return all the :class:`Element` in ``self`` in good order."""
