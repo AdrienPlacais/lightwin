@@ -17,25 +17,20 @@ at the entry of its :class:`.ListOfElements`.
     Cleaner Accelerator factory (use class, not just a function).
 
 """
-from pathlib import Path
 import logging
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
 import config_manager as con
-
-from beam_calculation.simulation_output.simulation_output import \
-    SimulationOutput
-
+from beam_calculation.simulation_output.simulation_output import SimulationOutput
 from core.elements.element import Element
-from core.list_of_elements.list_of_elements import ListOfElements
 from core.list_of_elements.factory import ListOfElementsFactory
-from core.list_of_elements.helper import (elt_at_this_s_idx,
-                                          equivalent_elt)
-
-from util.helper import recursive_items, recursive_getter
+from core.list_of_elements.helper import elt_at_this_s_idx, equivalent_elt
+from core.list_of_elements.list_of_elements import ListOfElements
+from util.helper import recursive_getter, recursive_items
 
 
 class Accelerator:
