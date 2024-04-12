@@ -16,9 +16,10 @@ It's purpose is to hold information on a failure and to fix it.
 import logging
 from typing import Any
 
-from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput)
 import config_manager as con
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.factory import ListOfElementsFactory
@@ -31,7 +32,8 @@ from optimisation.design_space.design_space import DesignSpace
 from optimisation.design_space.factory import DesignSpaceFactory
 from optimisation.design_space.variable import Variable
 from optimisation.objective.factory import (
-    get_objectives_and_residuals_function)
+    get_objectives_and_residuals_function,
+)
 from optimisation.objective.objective import Objective
 
 
@@ -64,17 +66,18 @@ class Fault:
 
     """
 
-    def __init__(self,
-                 reference_elts: ListOfElements,
-                 reference_simulation_output: SimulationOutput,
-                 files_from_full_list_of_elements: dict[str, Any],
-                 wtf: dict[str, Any],
-                 design_space_factory: DesignSpaceFactory,
-                 broken_elts: ListOfElements,
-                 failed_elements: list[Element],
-                 compensating_elements: list[Element],
-                 list_of_elements_factory: ListOfElementsFactory,
-                 ) -> None:
+    def __init__(
+        self,
+        reference_elts: ListOfElements,
+        reference_simulation_output: SimulationOutput,
+        files_from_full_list_of_elements: dict[str, Any],
+        wtf: dict[str, Any],
+        design_space_factory: DesignSpaceFactory,
+        broken_elts: ListOfElements,
+        failed_elements: list[Element],
+        compensating_elements: list[Element],
+        list_of_elements_factory: ListOfElementsFactory,
+    ) -> None:
         """
         Create the Fault object.
 
@@ -105,22 +108,26 @@ class Fault:
         """
         assert all([element.can_be_retuned for element in failed_elements])
         self.failed_elements = failed_elements
-        assert all([element.can_be_retuned
-                    for element in compensating_elements])
+        assert all(
+            [element.can_be_retuned for element in compensating_elements]
+        )
         self.compensating_elements = compensating_elements
 
-        reference_elements = [equivalent_elt(reference_elts, element)
-                              for element in self.compensating_elements]
-        design_space = design_space_factory.run(compensating_elements,
-                                                reference_elements)
+        reference_elements = [
+            equivalent_elt(reference_elts, element)
+            for element in self.compensating_elements
+        ]
+        design_space = design_space_factory.run(
+            compensating_elements, reference_elements
+        )
 
         self.variables = design_space.variables
         self.constraints = design_space.constraints
         self.compute_constraints = design_space.compute_constraints
 
-        objective_preset = wtf['objective_preset']
+        objective_preset = wtf["objective_preset"]
         assert isinstance(objective_preset, str)
-        elts_of_compensation_zone, self.objectives, self.compute_residuals = \
+        elts_of_compensation_zone, self.objectives, self.compute_residuals = (
             get_objectives_and_residuals_function(
                 objective_preset=objective_preset,
                 reference_elts=reference_elts,
@@ -130,6 +137,7 @@ class Fault:
                 compensating_elements=compensating_elements,
                 design_space_kw=design_space_factory.design_space_kw,
             )
+        )
 
         self.elts: ListOfElements = list_of_elements_factory.subset_list_run(
             elts_of_compensation_zone,
@@ -138,8 +146,9 @@ class Fault:
         )
         return
 
-    def fix(self, optimisation_algorithm: OptimisationAlgorithm
-            ) -> tuple[bool, SetOfCavitySettings, dict]:
+    def fix(
+        self, optimisation_algorithm: OptimisationAlgorithm
+    ) -> tuple[bool, SetOfCavitySettings, dict]:
         """Fix the :class:`Fault`.
 
         Parameters
@@ -161,40 +170,47 @@ class Fault:
         success, optimized_cavity_settings, self.info = outputs
         return success, optimized_cavity_settings, self.info
 
-    def update_elements_status(self, optimisation: str,
-                               success: bool | None = None) -> None:
+    def update_elements_status(
+        self, optimisation: str, success: bool | None = None
+    ) -> None:
         """Update status of compensating and failed elements."""
-        if optimisation not in ('not started', 'finished'):
-            logging.error("{optimisation =} not understood. Not changing any "
-                          "status...")
+        if optimisation not in ("not started", "finished"):
+            logging.error(
+                "{optimisation =} not understood. Not changing any "
+                "status..."
+            )
             return
 
-        if optimisation == 'not started':
+        if optimisation == "not started":
             elements = self.failed_elements + self.compensating_elements
-            status = ['failed' for _ in self.failed_elements]
-            status += ['compensate (in progress)'
-                       for _ in self.compensating_elements]
+            status = ["failed" for _ in self.failed_elements]
+            status += [
+                "compensate (in progress)" for _ in self.compensating_elements
+            ]
 
-            allowed = ('nominal', 'rephased (in progress)', 'rephased (ok)')
-            status_is_invalid = [cav.get('status') not in allowed
-                                 for cav in elements]
+            allowed = ("nominal", "rephased (in progress)", "rephased (ok)")
+            status_is_invalid = [
+                cav.get("status") not in allowed for cav in elements
+            ]
             if any(status_is_invalid):
-                logging.error("At least one compensating or failed element is "
-                              "already compensating or faulty, probably in"
-                              "another Fault object. Updating its status "
-                              "anyway...")
+                logging.error(
+                    "At least one compensating or failed element is "
+                    "already compensating or faulty, probably in"
+                    "another Fault object. Updating its status "
+                    "anyway..."
+                )
 
-        elif optimisation == 'finished':
+        elif optimisation == "finished":
             assert success is not None
 
             elements = self.compensating_elements
-            status = ['compensate (ok)' for _ in elements]
+            status = ["compensate (ok)" for _ in elements]
             if not success:
-                status = ['compensate (not ok)' for _ in elements]
+                status = ["compensate (not ok)" for _ in elements]
 
         for cav, stat in zip(elements, status):
             cav.update_status(stat)
-        self.elts.store_settings_in_dat(self.elts.files['dat_file'], save=True)
+        self.elts.store_settings_in_dat(self.elts.files["dat_file"], save=True)
 
     def get_x_sol_in_real_phase(self, reference_phase: str) -> None:
         """Get least-square solutions in rel/abs phases instead of synchronous.
@@ -202,19 +218,17 @@ class Fault:
         .. todo::
             Still useful?
 
+        .. deprecated:: 0.6.16
+            Info contained in :class:`.CavitySettings`
+
         """
         # First half of X array: phase of elements (relative or synchronous
         # according to the value of wtf['phi_s fit']).
         # Second half is the norms of elements
         x_in_real_phase = self.info["X"].copy()
 
-        # key = 'phi_0_rel'
-        # if con.FLAG_PHI_ABS:
-            # key = 'phi_0_abs'
-
         for i, cav in enumerate(self.compensating_elements):
             assert isinstance(cav, FieldMap)
-            # x_in_real_phase[i] = cav.rf_field.phi_0[key]
             x_in_real_phase[i] = getattr(cav.cavity_settings, reference_phase)
             # second half of the array remains untouched
-        self.info['X_in_real_phase'] = x_in_real_phase
+        self.info["X_in_real_phase"] = x_in_real_phase
