@@ -43,7 +43,7 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
     @classmethod
     def from_incomplete_set(
         cls,
-        set_of_cavity_settings: Self | None,
+        set_of_cavity_settings: Self | dict[FieldMap, CavitySettings] | None,
         cavities: Sequence[FieldMap],
         use_a_copy_for_nominal_settings: bool = True,
     ) -> Self:
@@ -59,6 +59,13 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
             In fact, may be useless. In the future, the nominal cavities will
             also have their own :class:`.CavitySettings` in the compensation
             zone.
+
+        .. todo::
+            Should create the full SetOfCavitySettings directly from the
+            OptimisationAlgorithm. For now, the OptimisationAlgorithm creates a
+            first SetOfCavitySettings. Then, the BeamCalculator calls this
+            method to generate a new SetOfCavitySettings. Ugly, especially
+            given the fact that OptimisationAlgorithm has its ListOfElements.
 
         Parameters
         ----------
