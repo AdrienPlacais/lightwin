@@ -15,6 +15,16 @@ from core.elements.field_maps.cavity_settings import CavitySettings
 
 FieldMap = TypeVar("FieldMap")
 
+CAVITY_SETTINGS_GETTABLE_ATTRIBUTES = (
+    "v_cav_mv",
+    "phi_0_abs",
+    "phi_0_rel",
+    "phi_bunch",
+    "phi_ref",
+    "phi_rf",
+    "phi_s",
+)
+
 
 class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
     """Hold several cavity settings, to try during optimisation process."""
@@ -24,6 +34,7 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
     ) -> None:
         """Create the proper dictionary."""
         super().__init__(several_cavity_settings)
+        self._ordered_cav, self._ordered_settings = self._order()
 
     @classmethod
     def from_cavity_settings(
@@ -115,6 +126,30 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
         for cavity, setting in self.items():
             absolute_index = cavity.idx["elt_idx"]
             setting.index = absolute_index
+
+    def __getattr__(self, key: str) -> list[float]:
+        """Override the default ``getattr`` to access some quantities.
+
+        .. note::
+            ``__getattr__`` is called after the ``__get_attribute__`` method,
+            when the latter did not lead to a valid output.
+
+        .. todo::
+            Add ``CAVITY_SETTINGS_GETTABLE_ATTRIBUTES`` to the __dir__. Also,
+            may set this tuple from CavitySettings.__class__.__dir__ or
+            something.
+
+        """
+        if key not in CAVITY_SETTINGS_GETTABLE_ATTRIBUTES:
+            raise AttributeError
+
+        return [getattr(settings, key) for settings in self._ordered_settings]
+
+    def _order(self) -> tuple[Sequence[FieldMap], Sequence[CavitySettings]]:
+        """Return all the :class:`Element` in ``self`` in good order."""
+        ordered_cav = sorted(self.keys(), key=lambda cav: cav.idx["elt_idx"])
+        ordered_settings = [self[cav] for cav in ordered_cav]
+        return ordered_cav, ordered_settings
 
 
 def _settings_getter(
