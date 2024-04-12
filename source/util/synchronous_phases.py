@@ -2,16 +2,17 @@
 # -*- coding: utf-8 -*-
 """Define various functions to compute the synchronous phase."""
 import cmath
-import math
 import logging
+import math
 
 # from beam_calculation.simulation_output.simulation_output import \
 #     SimulationOutput
 
 
-def phi_s_legacy(integrated_field: complex | float) -> dict[str, float]:
-    """
-    Compute the synchronous phase with its historical definition.
+def phi_s_legacy(
+    integrated_field: complex | float, *args, **kwargs
+) -> dict[str, float]:
+    """Compute the cavity parameters with phi_s historical definition.
 
     Parameters
     ----------
@@ -25,14 +26,12 @@ def phi_s_legacy(integrated_field: complex | float) -> dict[str, float]:
 
     """
     polar_itg = cmath.polar(integrated_field)
-    cav_params = {'v_cav_mv': polar_itg[0],
-                  'phi_s': polar_itg[1]}
+    cav_params = {"v_cav_mv": polar_itg[0], "phi_s": polar_itg[1]}
     return cav_params
 
 
-def phi_s_lagniel(simulation_output: object) -> float:
-    """
-    Compute synchronous phase with new model proposed by JM Lagniel.
+def phi_s_lagniel(simulation_output: object, *args, **kwargs) -> float:
+    """Compute cavity parameters with phi_s model proposed by JM Lagniel.
 
     See  Longitudinal beam dynamics at high accelerating fields, what changes?
     ROSCOFF 2021.
@@ -50,13 +49,16 @@ def phi_s_lagniel(simulation_output: object) -> float:
         Corrected synchronous phase of the cavity.
 
     """
+    raise NotImplementedError
     logging.error("phi_s_lagniel not implemented")
     transf_mat_21 = simulation_output.transf_mat_21
     delta_w_kin = simulation_output.delta_w_kin
     return transf_mat_21 / delta_w_kin
 
 
-def phi_s_from_tracewin_file(simulation_output: object) -> float:
+def phi_s_from_tracewin_file(
+    simulation_output: object, *args, **kwargs
+) -> float:
     """Get the synchronous phase from a TraceWin output file.
 
     It is up to you to edit the ``tracewin.ini`` file in order to have the
@@ -66,12 +68,12 @@ def phi_s_from_tracewin_file(simulation_output: object) -> float:
     logging.error("phi_s_tracewin not implemented")
     filepath = simulation_output.filepath
     del filepath
-    return -math.pi / 4.
+    return -math.pi / 4.0
 
 
 SYNCHRONOUS_PHASE_FUNCTIONS = {
-    'legacy': phi_s_legacy,
-    'historical': phi_s_legacy,
-    'lagniel': phi_s_lagniel,
-    'tracewin': phi_s_from_tracewin_file,
+    "legacy": phi_s_legacy,
+    "historical": phi_s_legacy,
+    "lagniel": phi_s_lagniel,
+    "tracewin": phi_s_from_tracewin_file,
 }  #:
