@@ -14,7 +14,9 @@ from tests.reference import compare_with_other
 import config_manager
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import BeamCalculatorsFactory
-from beam_calculation.simulation_output.simulation_output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import WithFaults
 from failures.fault_scenario import FaultScenario, fault_scenario_factory
@@ -27,7 +29,7 @@ params = [
     pytest.param(("generic_envelope3d", True), marks=pytest.mark.smoke),
     pytest.param(
         ("generic_tracewin", False),
-        marks=(pytest.mark.smoke, pytest.mark.slow),
+        marks=(pytest.mark.smoke, pytest.mark.slow, pytest.mark.tracewin),
     ),
 ]
 
