@@ -20,7 +20,6 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.accelerator.accelerator import Accelerator
-from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -140,13 +139,17 @@ class Envelope1D(BeamCalculator):
         )
 
         for elt in elts:
-            rf_field_kwargs = self._proper_cavity_settings(
-                elt, set_of_cavity_settings, phi_abs, w_kin
+            cavity_settings = self._proper_cavity_settings(
+                elt, set_of_cavity_settings
             )
+            rf_field_kwargs = {}
+            if cavity_settings is not None:
+                rf_field_kwargs = self._adapt_cavity_settings(
+                    elt, cavity_settings, phi_abs, w_kin
+                )
 
-            elt_results = elt.beam_calc_param[
-                self.id
-            ].transf_mat_function_wrapper(w_kin, **rf_field_kwargs)
+            func = elt.beam_calc_param[self.id].transf_mat_function_wrapper
+            elt_results = func(w_kin, **rf_field_kwargs)
 
             single_elts_results.append(elt_results)
             rf_fields.append(rf_field_kwargs)
@@ -220,33 +223,6 @@ class Envelope1D(BeamCalculator):
         """Return False."""
         return False
 
-    def _proper_cavity_settings(
-        self,
-        element: Element,
-        set_of_cavity_settings: SetOfCavitySettings | None,
-        *args,
-        **kwargs,
-    ) -> dict:
-        """Take proper :class:`.CavitySettings`, format it for solver."""
-        if not isinstance(element, FieldMap):
-            return {}
-        if element.status == "failed":
-            return {}
-
-        cavity_settings = element.cavity_settings
-        if (
-            set_of_cavity_settings is not None
-            and element in set_of_cavity_settings
-        ):
-            cavity_settings = set_of_cavity_settings.get(element)
-        assert isinstance(
-            cavity_settings, CavitySettings
-        ), f"{type(cavity_settings) = }"
-
-        return self._adapt_cavity_settings(
-            element, cavity_settings, *args, **kwargs
-        )
-
     def _adapt_cavity_settings(
         self,
         field_map: FieldMap,
@@ -260,12 +236,6 @@ class Envelope1D(BeamCalculator):
         dictionary.
 
         """
-        if cavity_settings.status == "none":
-            logging.critical("Does 'none' status exists?")
-            return {}
-        if cavity_settings.status == "failed":
-            return {}
-
         cavity_settings.phi_bunch = phi_bunch_abs
 
         rf_parameters_as_dict = {
@@ -278,7 +248,33 @@ class Envelope1D(BeamCalculator):
             "phi_0_abs": cavity_settings.phi_0_abs,
             "k_e": cavity_settings.k_e,
         }
-        cavity_settings.set_phi_s_calculators(
+        cavity_settings.instantiate_cavity_parameters_calculator(
             self.id, w_kin_in, **rf_parameters_as_dict
         )
         return rf_parameters_as_dict
+
+    def _post_treat_cavity_settings(
+        self, cavity_settings: CavitySettings, results: dict
+    ) -> None:
+        """Compute synchronous phase and accelerating field."""
+        v_cav_mv, phi_s = self.compute_cavity_parameters(results)
+        cavity_settings.v_cav_mv = v_cav_mv
+        cavity_settings.phi_s = phi_s
+
+    def compute_cavity_parameters(self, results: dict) -> tuple[float, float]:
+        """Compute the cavity parameters by calling :meth:`_phi_s_func`.
+
+        Parameters
+        ----------
+        results
+            The dictionary of results as returned by the transfer matrix
+            function wrapper.
+
+        Returns
+        -------
+        tuple[float, float]
+            Accelerating voltage in MV and synchronous phase in radians.
+
+        """
+        v_cav, phi_s = self._phi_s_func(**results)
+        return v_cav * 1e-6, phi_s

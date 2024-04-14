@@ -152,9 +152,14 @@ class Envelope3D(BeamCalculator):
         )
 
         for elt in elts:
-            rf_field_kwargs = self._proper_cavity_settings(
-                elt, set_of_cavity_settings, phi_abs, w_kin
+            cavity_settings = self._proper_cavity_settings(
+                elt, set_of_cavity_settings
             )
+            rf_field_kwargs = {}
+            if cavity_settings is not None:
+                rf_field_kwargs = self._adapt_cavity_settings(
+                    elt, cavity_settings, phi_abs, w_kin
+                )
 
             elt_results = elt.beam_calc_param[
                 self.id
@@ -227,33 +232,6 @@ class Envelope3D(BeamCalculator):
         """Return True."""
         return True
 
-    def _proper_cavity_settings(
-        self,
-        element: Element,
-        set_of_cavity_settings: SetOfCavitySettings | None,
-        *args,
-        **kwargs,
-    ) -> dict:
-        """Take proper :class:`.CavitySettings`, format it for solver."""
-        if not isinstance(element, FieldMap):
-            return {}
-        if element.status == "failed":
-            return {}
-
-        cavity_settings = element.cavity_settings
-        if (
-            set_of_cavity_settings is not None
-            and element in set_of_cavity_settings
-        ):
-            cavity_settings = set_of_cavity_settings.get(element)
-        assert isinstance(
-            cavity_settings, CavitySettings
-        ), f"{type(cavity_settings) = }"
-
-        return self._adapt_cavity_settings(
-            element, cavity_settings, *args, **kwargs
-        )
-
     def _adapt_cavity_settings(
         self,
         field_map: FieldMap,
@@ -266,13 +244,11 @@ class Envelope3D(BeamCalculator):
         For the transfer matrix function of :class:`Envelope3D`, we need a
         dictionary.
 
-        """
-        if cavity_settings.status == "none":
-            logging.critical("Does 'none' status exists?")
-            return {}
-        if cavity_settings.status == "failed":
-            return {}
+        .. todo::
+            Maybe :class:`.Envelope3D` could inherit from :class:`.Envelope1D`
+            and this method would be written outnonly once.
 
+        """
         cavity_settings.phi_bunch = phi_bunch_abs
 
         rf_parameters_as_dict = {
@@ -285,7 +261,7 @@ class Envelope3D(BeamCalculator):
             "phi_0_abs": cavity_settings.phi_0_abs,
             "k_e": cavity_settings.k_e,
         }
-        cavity_settings.set_phi_s_calculators(
+        cavity_settings.instantiate_cavity_parameters_calculator(
             self.id, w_kin_in, **rf_parameters_as_dict
         )
         return rf_parameters_as_dict

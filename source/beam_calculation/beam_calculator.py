@@ -27,9 +27,12 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.accelerator.accelerator import Accelerator
+from core.elements.element import Element
+from core.elements.field_maps.cavity_settings import CavitySettings
 from core.elements.field_maps.cavity_settings_factory import (
     CavitySettingsFactory,
 )
+from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
@@ -297,3 +300,16 @@ class BeamCalculator(ABC):
         _field_map_factory = _element_factory.field_map_factory
         cavity_settings_factory = _field_map_factory.cavity_settings_factory
         return cavity_settings_factory
+
+    def _proper_cavity_settings(
+        self,
+        element: Element,
+        set_of_cavity_settings: SetOfCavitySettings,
+    ) -> CavitySettings | None:
+        """Take proper :class:`.CavitySettings`."""
+        if not isinstance(element, FieldMap):
+            return None
+        if element.status == "failed":
+            return None
+        cavity_settings = set_of_cavity_settings.get(element)
+        return cavity_settings

@@ -270,38 +270,34 @@ class TraceWin(BeamCalculator):
 
         rf_fields = []
         for elt in elts:
-            if isinstance(set_of_cavity_settings, SetOfCavitySettings):
-                cavity_settings = set_of_cavity_settings.get(elt)
-                if cavity_settings is not None:
-                    rf_fields.append(
-                        {
-                            "k_e": cavity_settings.k_e,
-                            "phi_0_abs": cavity_settings.phi_0_abs,
-                            "phi_0_rel": cavity_settings.phi_0_rel,
-                        }
-                    )
-                    continue
-
-            if isinstance(elt, FieldMap):
-                rf_fields.append(
-                    {
-                        "k_e": elt.cavity_settings.k_e,
-                        "phi_0_abs": elt.cavity_settings.phi_0_abs,
-                        "phi_0_rel": elt.cavity_settings.phi_0_rel,
-                    }
-                )
+            cavity_settings = self._proper_cavity_settings(
+                elt, set_of_cavity_settings
+            )
+            if cavity_settings is None:
+                rf_fields.append({})
                 continue
-            rf_fields.append({})
+
+            rf_fields.append(
+                {
+                    "k_e": cavity_settings.k_e,
+                    "phi_0_abs": cavity_settings.phi_0_abs,
+                    "phi_0_rel": cavity_settings.phi_0_rel,
+                }
+            )
 
         command, path_cal = self._tracewin_full_command(
             elts, set_of_cavity_settings, **specific_kwargs
         )
-        is_a_fit = set_of_cavity_settings is not None
+        is_a_fit = use_a_copy_for_nominal_settings
         exception = _run_in_bash(command, output_command=not is_a_fit)
 
         # check in which order those two methods should be called
         simulation_output = self._generate_simulation_output(
-            elts, path_cal, rf_fields, exception
+            elts,
+            path_cal,
+            rf_fields,
+            exception,
+            set_of_cavity_settings=set_of_cavity_settings,
         )
         self._save_cavities_entry_phases(
             set_of_cavity_settings, elts.l_cav, simulation_output
