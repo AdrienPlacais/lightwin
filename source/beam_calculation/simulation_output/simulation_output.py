@@ -3,9 +3,6 @@
 """Define a class to store outputs from different :class:`.BeamCalculator`.
 
 .. todo::
-    Clarify difference cav_params vs rf_fields
-
-.. todo::
     Do I really need the `r_zz_elt` key??
 
 .. todo::
@@ -136,8 +133,7 @@ class SimulationOutput:
         return get_nth_parent(self.out_path, nth=2)
 
     def has(self, key: str) -> bool:
-        """
-        Tell if the required attribute is in this class.
+        """Tell if the required attribute is in this class.
 
         We also call the :meth:`.BeamParameters.has`, as it is designed to
         handle the alias (such as ``twiss_zdelta`` <=> ``zdelta.twiss``).
