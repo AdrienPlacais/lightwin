@@ -101,16 +101,17 @@ class ElementEnvelope1DParameters(ElementBeamCalculatorParameters):
         self,
         r_zz: np.ndarray,
         gamma_phi: np.ndarray,
-        itg_field: float | None,
+        integrated_field: float | None,
     ) -> dict:
         """Convert the results given by the transf_mat function to dict."""
-        assert itg_field is None
+        assert integrated_field is None
         w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
         results = {
             "r_zz": r_zz,
             "cav_params": None,
             "w_kin": w_kin,
             "phi_rel": gamma_phi[:, 1],
+            "integrated_field": integrated_field,
         }
         return results
 
@@ -216,23 +217,23 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         self,
         r_zz: np.ndarray,
         gamma_phi: np.ndarray,
-        itg_field: float | None,
+        integrated_field: float | None,
     ) -> dict:
-        """
-        Convert the results given by the transf_mat function to dict.
+        """Convert the results given by the transf_mat function to a dict.
 
         Overrides the default method defined in the ABC.
 
         """
-        assert itg_field is not None
+        assert integrated_field is not None
         w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
         gamma_phi[:, 1] = self._rf_to_bunch(gamma_phi[:, 1])
-        cav_params = self.compute_cavity_parameters(itg_field)
+        cav_params = self.compute_cavity_parameters(integrated_field)
         results = {
             "r_zz": r_zz,
             "cav_params": cav_params,
             "w_kin": w_kin,
             "phi_rel": gamma_phi[:, 1],
+            "integrated_field": integrated_field,
         }
         return results
 
@@ -244,14 +245,14 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         def _new_transfer_matrix_results_to_dict(
             r_zz: np.ndarray,
             gamma_phi: np.ndarray,
-            itg_field: float | None,
+            integrated_field: float | None,
         ) -> dict:
             """Convert the results given by the transf_mat function to dict.
 
             Overrides the default method defined in the ABC.
 
             """
-            assert itg_field is None
+            assert integrated_field is None
             w_kin = convert.energy(gamma_phi[:, 0], "gamma to kin")
             cav_params = self.compute_cavity_parameters(np.NaN)
             results = {
@@ -259,6 +260,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
                 "cav_params": cav_params,
                 "w_kin": w_kin,
                 "phi_rel": gamma_phi[:, 1],
+                "integrated_field": integrated_field,
             }
             return results
 

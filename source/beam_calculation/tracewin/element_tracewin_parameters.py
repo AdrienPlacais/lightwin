@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Store the solver parameters for :class:`.TraceWin`.
+"""Store the solver parameters for :class:`.TraceWin`.
 
 .. note::
     TraceWin does not need this to run. It is a placeholder, to keep
@@ -12,15 +11,16 @@ Store the solver parameters for :class:`.TraceWin`.
 """
 import logging
 from typing import Any, Sequence
+
 import numpy as np
 
 from beam_calculation.parameters.element_parameters import (
-    ElementBeamCalculatorParameters)
+    ElementBeamCalculatorParameters,
+)
 
 
 class ElementTraceWinParameters(ElementBeamCalculatorParameters):
-    """
-    Holds meshing and indexes of elements.
+    """Hold meshing and indexes of elements.
 
     Unnecessary for TraceWin, but useful to link the meshing in TraceWin to
     other simulations. Hence, it is not created by the init_solver_parameters
@@ -29,11 +29,13 @@ class ElementTraceWinParameters(ElementBeamCalculatorParameters):
 
     """
 
-    def __init__(self,
-                 length_m: float,
-                 z_of_this_element_from_tw: np.ndarray,
-                 s_in: int,
-                 s_out: int) -> None:
+    def __init__(
+        self,
+        length_m: float,
+        z_of_this_element_from_tw: np.ndarray,
+        s_in: int,
+        s_out: int,
+    ) -> None:
         """Instantiate object.
 
         Parameters
@@ -55,11 +57,13 @@ class ElementTraceWinParameters(ElementBeamCalculatorParameters):
         self.rel_mesh = self.abs_mesh - self.abs_mesh[0]
 
         if np.abs(length_m - self.rel_mesh[-1]) > 1e-2:
-            logging.debug("Mismatch between length of the linac in the `.out` "
-                          "file and what is expected. Maybe an error was "
-                          "raised during execution of `TraceWin` and the "
-                          "`.out` file is incomplete? In this case, check "
-                          "`_add_dummy_data` in `tracewin` module.")
+            logging.debug(
+                "Mismatch between length of the linac in the `.out` "
+                "file and what is expected. Maybe an error was "
+                "raised during execution of `TraceWin` and the "
+                "`.out` file is incomplete? In this case, check "
+                "`_add_dummy_data` in `tracewin` module."
+            )
 
         self.s_in = s_in
         self.s_out = s_out
