@@ -14,7 +14,6 @@ See Also
 NewRfField
 
 """
-import cmath
 import logging
 import math
 from collections.abc import Callable
@@ -41,15 +40,6 @@ ALLOWED_STATUS = (
     "compensate (ok)",
     "compensate (not ok)",
 )  #:
-
-
-def compute_cavity_parameters(
-    integrated_field: complex,
-) -> tuple[float, float]:
-    """Compute the synchronous phase and accelerating voltage."""
-    polar = cmath.polar(integrated_field)
-    v_cav, phi_s = polar[0], polar[1]
-    return v_cav, phi_s
 
 
 class CavitySettings:
@@ -485,10 +475,10 @@ class CavitySettings:
         self._phi_s = phi_s_calc(self.phi_0_rel)
         return self._phi_s
 
-    def set_phi_s_calculators(
+    def instantiate_cavity_parameters_calculator(
         self, solver_id: str, w_kin: float, **kwargs
     ) -> None:
-        """Set the functions that compute synchronous phase.
+        """Set the functions that compute synchronous phase and acc voltage.
 
         This function must be called every time the kinetic energy at the
         entrance of the cavity is changed (like this occurs during optimisation
