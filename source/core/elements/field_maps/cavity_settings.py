@@ -20,6 +20,7 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any, Self
 
+import numpy as np
 from scipy.optimize import minimize_scalar
 
 from util.phases import (
@@ -73,6 +74,7 @@ class CavitySettings:
         freq_bunch_mhz: float,
         freq_cavity_mhz: float | None = None,
         transf_mat_func_wrappers: dict[str, Callable] | None = None,
+        phi_s_funcs: dict[str, Callable] | None = None,
     ) -> None:
         """Instantiate the object.
 
@@ -94,6 +96,17 @@ class CavitySettings:
             Frequency of the cavity in MHz. The default is None, which happens
             when the :class:`.ListOfElements` is under creation and we did not
             process the ``FREQ`` commands yet.
+        transf_mat_func_wrappers : dict[str, Callable] | None, optional
+            A dictionary which keys are the different :class:`.BeamCalculator`
+            ids, and values are corresponding functions to compute propagation
+            of the beam. The default is None, in which case attribute is not
+            set.
+        phi_s_funcs : dict[str, Callable] | None, optional
+            A dictionary which keys are the different :class:`.BeamCalculator`
+            ids, and values are corresponding functions to compute synchronous
+            phase and accelerating voltage from the ouput of corresponding
+            ``transf_mat_func_wrapper``. The default is None, in which case
+            attribute is not set.
 
         """
         self.k_e = k_e
@@ -103,8 +116,8 @@ class CavitySettings:
 
         self._phi_0_abs: float | None
         self._phi_0_rel: float | None
-        self._phi_s: float | None
-        self._v_cav_mv: float | None
+        self._phi_s: float
+        self._v_cav_mv: float
         self._phi_rf: float
         self._phi_bunch: float
 
@@ -113,6 +126,9 @@ class CavitySettings:
         self.transf_mat_func_wrappers: dict[str, Callable] = {}
         if transf_mat_func_wrappers is not None:
             self.transf_mat_func_wrappers = transf_mat_func_wrappers
+        self.phi_s_funcs: dict[str, Callable] = {}
+        if phi_s_funcs is not None:
+            self.phi_s_funcs = phi_s_funcs
         self._phi_0_rel_to_phi_s: Callable
         self._phi_s_to_phi_0_rel: Callable
 
@@ -154,7 +170,7 @@ class CavitySettings:
         return check
 
     @classmethod
-    def from_other_cavity_setttings(
+    def from_other_cavity_settings(
         cls, other: Self, reference: str = ""
     ) -> Self:
         """Create settings with same settings as provided."""
@@ -167,7 +183,54 @@ class CavitySettings:
             other.status,
             other._freq_bunch_mhz,
             other.freq_cavity_mhz,
-            other.transf_mat_func_wrappers,
+            transf_mat_func_wrappers=other.transf_mat_func_wrappers,
+            phi_s_funcs=other.phi_s_funcs,
+        )
+        return settings
+
+    @classmethod
+    def from_optimisation_algorithm(
+        cls,
+        base: Self,
+        k_e: float,
+        phi: float,
+        status: str,
+        reference: str = "",
+    ) -> Self:
+        """Create settings based on ``base`` with different ``k_e``, ``phi_0``.
+
+        Parameters
+        ----------
+        base : Self
+            The reference :class:`CavitySettings`. A priori, this is the
+            nominal settings.
+        k_e : float
+            New field amplitude.
+        phi : float
+            New reference phase. Its nature is defined by ``reference``.
+        status : {"compensate (in progress)", "compensate (ok)", "compensate \
+    (not ok)"}
+            Status of the created settings.
+        reference : {"phi_0_rel", "phi_0_abs", "phi_s"}
+            The phase used as a reference.
+
+        Returns
+        -------
+        Self
+            A new :class:`CavitySettings` with modified amplitude and phase.
+
+        """
+        if not reference:
+            reference = base.reference
+        settings = cls(
+            k_e,
+            phi,
+            reference,
+            status,
+            base._freq_bunch_mhz,
+            base.freq_cavity_mhz,
+            base.transf_mat_func_wrappers,
+            base.phi_s_funcs,
         )
         return settings
 
@@ -306,11 +369,11 @@ class CavitySettings:
         """Reset the phases that are not the reference to None."""
         if self.reference == "phi_0_abs":
             self._phi_0_rel = None
-            self._phi_s = None
+            delattr(self, "phi_s")
             return
         if self.reference == "phi_0_rel":
             self._phi_0_abs = None
-            self._phi_s = None
+            delattr(self, "phi_s")
             return
         if self.reference == "phi_s":
             self._phi_0_abs = None
@@ -346,6 +409,8 @@ class CavitySettings:
         self._status = value
         if value == "failed":
             self.k_e = 0.0
+            self.phi_s = np.NaN
+            self.v_cav_mv = np.NaN
 
         # logging.warning("Check that beam_calc_param is still updated."
         # "As in FieldMap.update_status")
@@ -401,22 +466,28 @@ class CavitySettings:
         if self._phi_0_rel is not None:
             return self._phi_0_rel
 
-        if not hasattr(self, "_phi_rf"):
-            return None
-
         if self._phi_0_abs is not None:
+            if not hasattr(self, "phi_rf"):
+                logging.error(
+                    f"{self = }: cannot compute phi_0_rel from phi_0_abs if "
+                    "phi_rf is not defined. Returning None..."
+                )
+                return None
             self.phi_0_rel = phi_0_abs_to_rel(self._phi_0_abs, self._phi_rf)
             return self._phi_0_rel
 
-        if self._phi_s is None:
-            logging.error("No phase was initialized. Returning None...")
+        if not hasattr(self, "_phi_s"):
+            logging.error(
+                f"{self = }: phi_0_abs, phi_0_rel, phi_s are all uninitialized"
+                ". Returning None..."
+            )
             return None
 
         phi_0_from_phi_s_calc = getattr(self, "_phi_s_to_phi_0_rel", None)
         if phi_0_from_phi_s_calc is None:
             logging.error(
-                "You must set a function to compute phi_0_rel from "
-                "phi_s with CavitySettings.set_phi_s_calculators"
+                f"{self = }: you must set a function to compute phi_0_rel from"
+                " phi_s with CavitySettings.set_phi_s_calculators"
                 " method."
             )
             return None
@@ -436,6 +507,13 @@ class CavitySettings:
         """Set the synchronous phase to desired value."""
         self._phi_s = value
 
+    @phi_s.deleter
+    def phi_s(self) -> None:
+        """Delete the synchronous phase."""
+        if not hasattr(self, "_phi_s"):
+            return
+        del self._phi_s
+
     @phi_s.getter
     def phi_s(self) -> float | None:
         """Get the synchronous phase, and compute it if necessary.
@@ -449,7 +527,7 @@ class CavitySettings:
         set_phi_s_calculators
 
         """
-        if self._phi_s is not None:
+        if hasattr(self, "_phi_s"):
             return self._phi_s
 
         if not hasattr(self, "_phi_rf"):
@@ -466,9 +544,8 @@ class CavitySettings:
         phi_s_calc = getattr(self, "_phi_0_rel_to_phi_s", None)
         if phi_s_calc is None:
             logging.error(
-                "You must set a function to compute phi_s from "
-                "phi_0_rel with CavitySettings.set_phi_s_calculators"
-                " method."
+                "You must set a function to compute phi_s from phi_0_rel with "
+                "CavitySettings.instantiate_cavity_parameters_calculator()"
             )
             return None
 
@@ -490,8 +567,7 @@ class CavitySettings:
         set_beam_calculator
 
         """
-        if "phi_0_rel" in kwargs:
-            del kwargs["phi_0_rel"]
+        kwargs = _clean_beam_calc_kwargs(kwargs)
         transf_mat_function_wrapper = self.transf_mat_func_wrappers.get(
             solver_id, None
         )
@@ -502,13 +578,21 @@ class CavitySettings:
                 "CavitySettings.set_beam_calculator."
             )
             return None
+        phi_s_func = self.phi_s_funcs.get(solver_id, None)
+        if phi_s_func is None:
+            logging.error(
+                f"No function to compute synchronous phase matching "
+                f"{solver_id = } was found. You must set it with "
+                "CavitySettings.set_beam_calculator."
+            )
+            return None
 
         def phi_0_rel_to_phi_s(phi_0_rel: float) -> float:
             """Compute propagation of the beam, deduce synchronous phase."""
             results = transf_mat_function_wrapper(
                 phi_0_rel=phi_0_rel, w_kin_in=w_kin, **kwargs
             )
-            phi_s = results["cav_params"]["phi_s"]
+            phi_s = phi_s_func(**results)[0]
             return phi_s
 
         def _residue_func(phi_0_rel: float, phi_s: float) -> float:
@@ -529,17 +613,41 @@ class CavitySettings:
         self._phi_0_rel_to_phi_s = phi_0_rel_to_phi_s
         self._phi_s_to_phi_0_rel = phi_s_to_phi_0_rel
 
-    def set_beam_calculator(
-        self, solver_id: str, transf_mat_function_wrapper: Callable
+    def set_cavity_parameter_methods(
+        self,
+        solver_id: str,
+        transf_mat_function_wrapper: Callable,
+        phi_s_func: Callable | None = None,
     ) -> None:
-        """Add or modify a function to compute beam propagation.
+        """Add or modify functions to propagate beam, compute cav parameters.
 
-        Must be called at the creation of the corresponding
-        :class:`.ElementBeamCalculatorParameters` to compute synchronous
-        phases.
+        This function is called within two contexts:
+            - When initializing the :class:`.BeamCalculator` specific
+            parameters (:class:`.ElementBeamCalculatorParameters`).
+            - When re-initalizing the :class:`.ElementBeamCalculatorParameters`
+            because the ``status`` of the cavity changed, and in particular
+            when it switches to ``'failed'``. In this case, the ``phi_s_func``
+            is not altered.
+
+        Parameters
+        ----------
+        solver_id : str
+            The name of the solver for which functions must be changed.
+        transf_mat_function_wrapper : Callable
+            A function that compute the propagation of the beam.
+        phi_s_func : Callable | None, optional
+            A function that takes in the ouptut of
+            ``transf_mat_function_wrapper`` and return the accelerating voltage
+            in MV and the synchronous phase in rad. The default is None, which
+            happens when we break the cavity and only the
+            ``transf_mat_function_wrapper`` needs to be updated. In this case,
+            the synchronous phase function is left unchanged.
 
         """
         self.transf_mat_func_wrappers[solver_id] = transf_mat_function_wrapper
+        if phi_s_func is None:
+            return
+        self.phi_s_funcs[solver_id] = phi_s_func
 
     @property
     def v_cav_mv(self) -> None:
@@ -563,11 +671,8 @@ class CavitySettings:
         set_phi_s_calculators
 
         """
-        if self._v_cav_mv is not None:
+        if hasattr(self, "_v_cav_mv"):
             return self._v_cav_mv
-
-        if not hasattr(self, "_phi_rf"):
-            return None
 
         # We omit the _ in front of phi_0_rel to compute it if necessary
         if self.phi_0_rel is None:
@@ -705,3 +810,10 @@ class CavitySettings:
     #     * - ``'compensate (not ok)'``
     #       - new ``k_e`` and ``phi_0`` were found, optimisation algorithm is
     #         not happy with it
+
+
+def _clean_beam_calc_kwargs(kwargs: dict) -> dict:
+    """Remove keyword arguments present by default but messing with phi_s."""
+    if "phi_0_rel" in kwargs:
+        del kwargs["phi_0_rel"]
+    return kwargs

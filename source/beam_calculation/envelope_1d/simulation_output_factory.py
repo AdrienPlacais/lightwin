@@ -86,15 +86,22 @@ class SimulationOutputFactoryEnvelope1D(SimulationOutputFactory):
         gamma_kin = synch_trajectory.gamma
         assert isinstance(gamma_kin, np.ndarray)
 
-        cav_params = [results["cav_params"] for results in single_elts_results]
         cav_params = {
             "v_cav_mv": [
-                cav_param["v_cav_mv"] if cav_param is not None else None
-                for cav_param in cav_params
+                (
+                    set_of_cavity_settings[elt].v_cav_mv
+                    if elt in set_of_cavity_settings
+                    else None
+                )
+                for elt in elts
             ],
             "phi_s": [
-                cav_param["phi_s"] if cav_param is not None else None
-                for cav_param in cav_params
+                (
+                    set_of_cavity_settings[elt].phi_s
+                    if elt in set_of_cavity_settings
+                    else None
+                )
+                for elt in elts
             ],
         }
 

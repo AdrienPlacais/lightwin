@@ -30,7 +30,6 @@ from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
 from util.helper import recursive_getter
 
-
 # warning: doublon with cavity_settings.ALLOWED_STATUS
 IMPLEMENTED_STATUS = (
     # Cavity settings not changed from .dat
@@ -52,13 +51,15 @@ IMPLEMENTED_STATUS = (
 class FieldMap(Element):
     """A generic ``FIELD_MAP``."""
 
-    def __init__(self,
-                 line: list[str],
-                 dat_idx: int,
-                 default_field_map_folder: Path,
-                 cavity_settings: CavitySettings,
-                 name: str | None = None,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        line: list[str],
+        dat_idx: int,
+        default_field_map_folder: Path,
+        cavity_settings: CavitySettings,
+        name: str | None = None,
+        **kwargs,
+    ) -> None:
         """Set most of attributes defined in ``TraceWin``."""
         super().__init__(line, dat_idx, name)
         n_attributes = len(line) - 1
@@ -66,7 +67,7 @@ class FieldMap(Element):
 
         self.geometry = int(line[1])
         self.length_m = 1e-3 * float(line[2])
-        self.aperture_flag = int(line[8])               # K_a
+        self.aperture_flag = int(line[8])  # K_a
         self.cavity_settings = cavity_settings
 
         self.field_map_folder = default_field_map_folder
@@ -82,7 +83,7 @@ class FieldMap(Element):
     @property
     def is_accelerating(self) -> bool:
         """Tell if the cavity is working."""
-        if self.status == 'failed':
+        if self.status == "failed":
             return False
         return True
 
@@ -94,21 +95,25 @@ class FieldMap(Element):
     def update_status(self, new_status: str) -> None:
         """Change the status of the cavity.
 
-        We also ensure that the value new_status is correct. If the new value
-        is 'failed', we also set the norm of the electric field to 0.
+        We use
+        :meth:`.ElementBeamCalculatorParameters.re_set_for_broken_cavity`
+        method.
+        If ``k_e``, ``phi_s``, ``v_cav_mv`` are altered, this is performed in
+        :meth:`.CavitySettings.status` ``setter``.
 
         """
         assert new_status in IMPLEMENTED_STATUS
 
         self.cavity_settings.status = new_status
-        if new_status != 'failed':
+        if new_status != "failed":
             return
 
         for solver_id, beam_calc_param in self.beam_calc_param.items():
-            beam_calc_param.re_set_for_broken_cavity()
-            self.cavity_settings.set_beam_calculator(
+            new_transf_mat_func = beam_calc_param.re_set_for_broken_cavity()
+            self.cavity_settings.set_cavity_parameter_methods(
                 solver_id,
-                beam_calc_param.transf_mat_function_wrapper)
+                new_transf_mat_func,
+            )
         return
 
     def set_full_path(self, extensions: dict[str, list[str]]) -> None:
@@ -126,18 +131,20 @@ class FieldMap(Element):
 
         """
         self.field_map_file_name = [
-            Path(self.field_map_folder,
-                 self.field_map_file_name).with_suffix('.' + ext)
+            Path(self.field_map_folder, self.field_map_file_name).with_suffix(
+                "." + ext
+            )
             for extension in extensions.values()
             for ext in extension
         ]
 
-    def keep_cavity_settings(self,
-                             rf_field: dict | None = None,
-                             v_cav_mv: float | None = None,
-                             phi_s: float | None = None,
-                             cavity_settings: CavitySettings | None = None
-                             ) -> None:
+    def keep_cavity_settings(
+        self,
+        rf_field: dict | None = None,
+        v_cav_mv: float | None = None,
+        phi_s: float | None = None,
+        cavity_settings: CavitySettings | None = None,
+    ) -> None:
         """Keep the cavity settings that were found."""
         if cavity_settings is not None:
             self.cavity_settings = cavity_settings
@@ -147,19 +154,21 @@ class FieldMap(Element):
         if rf_field == {}:
             return
 
-        self.cavity_settings.phi_0_abs = rf_field['phi_0_abs']
-        self.cavity_settings.phi_0_rel = rf_field['phi_0_rel']
-        self.cavity_settings.k_e = rf_field['k_e']
+        self.cavity_settings.phi_0_abs = rf_field["phi_0_abs"]
+        self.cavity_settings.phi_0_rel = rf_field["phi_0_rel"]
+        self.cavity_settings.k_e = rf_field["k_e"]
         assert phi_s is not None
         self.cavity_settings.phi_s = phi_s
         assert v_cav_mv is not None
         self.cavity_settings.v_cav_mv = v_cav_mv
 
-    def get(self,
-            *keys: str,
-            to_numpy: bool = True,
-            none_to_nan: bool = False,
-            **kwargs: bool | str | None) -> Any:
+    def get(
+        self,
+        *keys: str,
+        to_numpy: bool = True,
+        none_to_nan: bool = False,
+        **kwargs: bool | str | None,
+    ) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
@@ -182,7 +191,7 @@ class FieldMap(Element):
         val = {key: [] for key in keys}
 
         for key in keys:
-            if key == 'name':
+            if key == "name":
                 val[key] = self.name
                 continue
 
@@ -198,9 +207,14 @@ class FieldMap(Element):
             if not to_numpy and isinstance(val[key], np.ndarray):
                 val[key] = val[key].tolist()
 
-        out = [np.array(val[key]) if to_numpy and not isinstance(val[key], str)
-               else val[key]
-               for key in keys]
+        out = [
+            (
+                np.array(val[key])
+                if to_numpy and not isinstance(val[key], str)
+                else val[key]
+            )
+            for key in keys
+        ]
         if none_to_nan:
             out = [x if x is not None else np.NaN for x in out]
 

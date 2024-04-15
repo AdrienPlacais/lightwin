@@ -21,7 +21,6 @@ list of implemented algorithms in the :mod:`config.optimisation.algorithm`.
     should be set at the ``OptimisationAlgorithm`` instanciation.
 
 """
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -165,7 +164,7 @@ optional
     def _create_set_of_cavity_settings(
         self,
         var: np.ndarray,
-        status="compensate (in progress)",
+        status: str = "compensate (in progress)",
     ) -> SetOfCavitySettings | None:
         """Transform ``var`` into generic :class:`.SetOfCavitySettings`.
 
@@ -186,21 +185,14 @@ optional
         original_settings = [
             cavity.cavity_settings for cavity in self.compensating_elements
         ]
-        freq_cavities_mhz = [
-            settings.freq_cavity_mhz for settings in original_settings
-        ]
-        transf_mat_func_wrappers = [
-            settings.transf_mat_func_wrappers for settings in original_settings
-        ]
 
         assert self.cavity_settings_factory is not None
         several_cavity_settings = (
             self.cavity_settings_factory.from_optimisation_algorithm(
-                var,
-                reference,
-                freq_cavities_mhz,
+                base_settings=original_settings,
+                var=var,
+                reference=reference,
                 status=status,
-                transf_mat_func_wrappers=transf_mat_func_wrappers,
             )
         )
         return SetOfCavitySettings.from_cavity_settings(

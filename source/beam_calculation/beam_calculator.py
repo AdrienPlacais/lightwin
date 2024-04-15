@@ -307,9 +307,4 @@ class BeamCalculator(ABC):
         set_of_cavity_settings: SetOfCavitySettings,
     ) -> CavitySettings | None:
         """Take proper :class:`.CavitySettings`."""
-        if not isinstance(element, FieldMap):
-            return None
-        if element.status == "failed":
-            return None
-        cavity_settings = set_of_cavity_settings.get(element)
-        return cavity_settings
+        return set_of_cavity_settings.get(element, None)

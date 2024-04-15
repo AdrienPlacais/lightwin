@@ -192,5 +192,5 @@ def _settings_getter(
 
     return set_of_cavity_settings.get(
         cavity,
-        CavitySettings.from_other_cavity_setttings(cavity.cavity_settings),
+        CavitySettings.from_other_cavity_settings(cavity.cavity_settings),
     )

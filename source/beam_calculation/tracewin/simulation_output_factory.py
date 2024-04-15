@@ -17,9 +17,6 @@ from beam_calculation.simulation_output.simulation_output import (
 from beam_calculation.tracewin.beam_parameters_factory import (
     BeamParametersFactoryTraceWin,
 )
-from beam_calculation.tracewin.element_tracewin_parameters import (
-    ElementTraceWinParameters,
-)
 from beam_calculation.tracewin.element_tracewin_parameters_factory import (
     ElementTraceWinParametersFactory,
 )

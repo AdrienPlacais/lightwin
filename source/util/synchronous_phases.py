@@ -5,32 +5,39 @@ import cmath
 import logging
 import math
 
-# from beam_calculation.simulation_output.simulation_output import \
-#     SimulationOutput
+import numpy as np
 
 
 def phi_s_legacy(
-    integrated_field: complex | float, *args, **kwargs
-) -> dict[str, float]:
+    integrated_field: complex | None, *args, **kwargs
+) -> tuple[float, float]:
     """Compute the cavity parameters with phi_s historical definition.
 
     Parameters
     ----------
-    integrated_field : complex
-        Complex electric field felt by the synchronous particle.
+    integrated_field : complex | None
+        Complex electric field felt by the synchronous particle. It is None
+        if the cavity is failed.
 
     Returns
     -------
+    v_cav_mv : float
+        Accelerating voltage in MV. It is ``np.NaN`` if ``integrated_field`` is
+        None.
     phi_s : float
-        Synchronous phase of the cavity.
+        Synchronous phase of the cavity in rad. It is ``np.NaN`` if
+        ``integrated_field`` is None.
 
     """
+    if integrated_field is None:
+        return np.NaN, np.NaN
     polar_itg = cmath.polar(integrated_field)
-    cav_params = {"v_cav_mv": polar_itg[0], "phi_s": polar_itg[1]}
-    return cav_params
+    return polar_itg[0], polar_itg[1]
 
 
-def phi_s_lagniel(simulation_output: object, *args, **kwargs) -> float:
+def phi_s_lagniel(
+    simulation_output: object, *args, **kwargs
+) -> tuple[float, float]:
     """Compute cavity parameters with phi_s model proposed by JM Lagniel.
 
     See  Longitudinal beam dynamics at high accelerating fields, what changes?
@@ -58,17 +65,18 @@ def phi_s_lagniel(simulation_output: object, *args, **kwargs) -> float:
 
 def phi_s_from_tracewin_file(
     simulation_output: object, *args, **kwargs
-) -> float:
+) -> tuple[float, float]:
     """Get the synchronous phase from a TraceWin output file.
 
     It is up to you to edit the ``tracewin.ini`` file in order to have the
     synchronous phase that you want.
 
     """
+    raise NotImplementedError
     logging.error("phi_s_tracewin not implemented")
     filepath = simulation_output.filepath
     del filepath
-    return -math.pi / 4.0
+    return 14.0, -math.pi / 4.0
 
 
 SYNCHRONOUS_PHASE_FUNCTIONS = {

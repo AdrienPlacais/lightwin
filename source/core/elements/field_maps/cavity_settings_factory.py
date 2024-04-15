@@ -39,34 +39,21 @@ class CavitySettingsFactory:
 
     def from_optimisation_algorithm(
         self,
+        base_settings: Sequence[CavitySettings],
         var: np.ndarray,
         reference: str,
-        freq_cavities_mhz: Sequence[float],
         status: str,
-        transf_mat_func_wrappers: Sequence[dict[str, Callable]],
     ) -> list[CavitySettings]:
         """Create the cavity settings to try during an optimisation."""
         amplitudes = list(var[var.shape[0] // 2 :])
         phases = list(var[: var.shape[0] // 2])
-        variables = zip(
-            amplitudes,
-            phases,
-            freq_cavities_mhz,
-            transf_mat_func_wrappers,
-            strict=True,
-        )
+        variables = zip(base_settings, amplitudes, phases, strict=True)
 
         several_cavity_settings = [
-            CavitySettings(
-                k_e,
-                phi,
-                reference,
-                status,
-                self.freq_bunch_mhz,
-                freq_cavity_mhz,
-                wrapper,
+            CavitySettings.from_optimisation_algorithm(
+                base, k_e, phi, status, reference
             )
-            for k_e, phi, freq_cavity_mhz, wrapper in variables
+            for base, k_e, phi in variables
         ]
         return several_cavity_settings
 
@@ -81,7 +68,7 @@ class CavitySettingsFactory:
 
         """
         new_cavity_settings = [
-            CavitySettings.from_other_cavity_setttings(other, reference)
+            CavitySettings.from_other_cavity_settings(other, reference)
             for other in cavity_settings
         ]
         return new_cavity_settings

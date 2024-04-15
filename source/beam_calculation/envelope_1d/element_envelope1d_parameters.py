@@ -201,8 +201,10 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         super().__init__(transf_mat_function, elt.length_m, n_steps, **kwargs)
         self._transf_mat_module = transf_mat_module
         self.field_map_file_name = str(elt.field_map_file_name)
-        elt.cavity_settings.set_beam_calculator(
-            self.solver_id, self.transf_mat_function_wrapper
+        elt.cavity_settings.set_cavity_parameter_methods(
+            self.solver_id,
+            self.transf_mat_function_wrapper,
+            self.compute_cavity_parameters,
         )
 
     def transfer_matrix_arguments(self) -> tuple[float, int]:
@@ -237,7 +239,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         }
         return results
 
-    def re_set_for_broken_cavity(self) -> None:
+    def re_set_for_broken_cavity(self) -> Callable:
         """Make beam calculator call Drift func instead of FieldMap."""
         self.transf_mat_function = self._transf_mat_module.z_drift
         self.transfer_matrix_kw = lambda: {}
@@ -267,7 +269,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         self._transfer_matrix_results_to_dict = (
             _new_transfer_matrix_results_to_dict
         )
-        return
+        return self.transf_mat_function
 
 
 class BendEnvelope1DParameters(ElementEnvelope1DParameters):

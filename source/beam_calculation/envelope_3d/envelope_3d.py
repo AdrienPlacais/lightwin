@@ -22,7 +22,6 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.accelerator.accelerator import Accelerator
-from core.elements.element import Element
 from core.elements.field_maps.cavity_settings import CavitySettings
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -161,9 +160,12 @@ class Envelope3D(BeamCalculator):
                     elt, cavity_settings, phi_abs, w_kin
                 )
 
-            elt_results = elt.beam_calc_param[
-                self.id
-            ].transf_mat_function_wrapper(w_kin, **rf_field_kwargs)
+            func = elt.beam_calc_param[self.id].transf_mat_function_wrapper
+            elt_results = func(w_kin, **rf_field_kwargs)
+            if cavity_settings is not None:
+                v_cav_mv, phi_s = self._compute_cavity_parameters(elt_results)
+                cavity_settings.v_cav_mv = v_cav_mv
+                cavity_settings.phi_s = phi_s
 
             single_elts_results.append(elt_results)
             rf_fields.append(rf_field_kwargs)
@@ -250,6 +252,8 @@ class Envelope3D(BeamCalculator):
 
         """
         cavity_settings.phi_bunch = phi_bunch_abs
+        if cavity_settings.status == "failed":
+            return {}
 
         rf_parameters_as_dict = {
             "omega0_rf": field_map.cavity_settings.omega0_rf,
@@ -265,3 +269,22 @@ class Envelope3D(BeamCalculator):
             self.id, w_kin_in, **rf_parameters_as_dict
         )
         return rf_parameters_as_dict
+
+    def _compute_cavity_parameters(self, results: dict) -> tuple[float, float]:
+        """Compute the cavity parameters by calling :meth:`_phi_s_func`.
+
+        Parameters
+        ----------
+        results
+            The dictionary of results as returned by the transfer matrix
+            function wrapper.
+
+        Returns
+        -------
+        tuple[float, float]
+            Accelerating voltage in MV and synchronous phase in radians. If the
+            cavity is failed, two ``np.NaN`` are returned.
+
+        """
+        v_cav_mv, phi_s = self._phi_s_func(**results)
+        return v_cav_mv, phi_s
