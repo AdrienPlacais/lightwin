@@ -284,10 +284,6 @@ class TraceWin(BeamCalculator):
         self._save_cavities_entry_phases(
             set_of_cavity_settings, elts.l_cav, simulation_output
         )
-        logging.critical(
-            "implement the saving of set of cavity settings in "
-            "the SimulationOutput"
-        )
         return simulation_output
 
     def post_optimisation_run_with_this(
