@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-We define factory and presets to handle variables, constraints, limits, etc..
+"""Define factory and presets to handle variables, constraints, limits, etc..
 
 .. note::
     If you add your own DesignSpaceFactory preset, do not forget to add it to
@@ -21,7 +20,10 @@ from core.elements.element import Element
 from core.list_of_elements.helper import equivalent_elt
 from optimisation.design_space.constraint import Constraint
 from optimisation.design_space.design_space import DesignSpace
-from optimisation.design_space.helper import LIMITS_CALCULATORS, same_value_as_nominal
+from optimisation.design_space.helper import (
+    LIMITS_CALCULATORS,
+    same_value_as_nominal,
+)
 from optimisation.design_space.variable import Variable
 
 
