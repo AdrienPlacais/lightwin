@@ -209,7 +209,7 @@ class CavitySettings:
         phi : float
             New reference phase. Its nature is defined by ``reference``.
         status : {"compensate (in progress)", "compensate (ok)", "compensate \
-    (not ok)"}
+                (not ok)"}
             Status of the created settings.
         reference : {"phi_0_rel", "phi_0_abs", "phi_s"}
             The phase used as a reference.
@@ -487,7 +487,7 @@ class CavitySettings:
         if phi_0_from_phi_s_calc is None:
             logging.error(
                 f"{self = }: you must set a function to compute phi_0_rel from"
-                " phi_s with CavitySettings.set_phi_s_calculators"
+                " phi_s with CavitySettings.set_cavity_parameters_methods"
                 " method."
             )
             return None
@@ -524,7 +524,7 @@ class CavitySettings:
 
         See Also
         --------
-        set_phi_s_calculators
+        set_cavity_parameters_methods
 
         """
         if hasattr(self, "_phi_s"):
@@ -568,24 +568,10 @@ class CavitySettings:
 
         """
         kwargs = _clean_beam_calc_kwargs(kwargs)
-        transf_mat_function_wrapper = self.transf_mat_func_wrappers.get(
-            solver_id, None
+        transf_mat_function_wrapper = _get_valid_func(
+            self, "transf_mat_func_wrappers", solver_id
         )
-        if transf_mat_function_wrapper is None:
-            logging.error(
-                f"No function to compute beam propagation matching "
-                f"{solver_id = } was found. You must set it with "
-                "CavitySettings.set_beam_calculator."
-            )
-            return None
-        phi_s_func = self.phi_s_funcs.get(solver_id, None)
-        if phi_s_func is None:
-            logging.error(
-                f"No function to compute synchronous phase matching "
-                f"{solver_id = } was found. You must set it with "
-                "CavitySettings.set_beam_calculator."
-            )
-            return None
+        phi_s_func = _get_valid_func(self, "phi_s_funcs", solver_id)
 
         def phi_0_rel_to_phi_s(phi_0_rel: float) -> float:
             """Compute propagation of the beam, deduce synchronous phase."""
@@ -668,7 +654,7 @@ class CavitySettings:
 
         See Also
         --------
-        set_phi_s_calculators
+        set_cavity_parameters_methods
 
         """
         if hasattr(self, "_v_cav_mv"):
@@ -817,3 +803,17 @@ def _clean_beam_calc_kwargs(kwargs: dict) -> dict:
     if "phi_0_rel" in kwargs:
         del kwargs["phi_0_rel"]
     return kwargs
+
+
+def _get_valid_func(obj: object, func_name: str, solver_id: str) -> Callable:
+    """Get the function in ``func_name`` for ``solver_id``."""
+    all_funcs = getattr(obj, func_name, None)
+    assert isinstance(all_funcs, dict), (
+        f"Attribute {func_name} of {object} should be a dict[str, Callable] "
+        f"but is {all_funcs}."
+    )
+    func = all_funcs.get(solver_id, None)
+    assert isinstance(
+        func, Callable
+    ), f"No Callable {func_name} was found in {object} for {solver_id = }"
+    return func
