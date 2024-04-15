@@ -55,7 +55,6 @@ class SimulationOutputFactoryEnvelope1D(SimulationOutputFactory):
         self,
         elts: ListOfElements,
         single_elts_results: list[dict],
-        rf_fields: list[dict],
         set_of_cavity_settings: SetOfCavitySettings,
     ) -> SimulationOutput:
         """Transform the outputs of BeamCalculator to a SimulationOutput.
@@ -127,7 +126,6 @@ class SimulationOutputFactoryEnvelope1D(SimulationOutputFactory):
             is_3d=False,
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
-            rf_fields=rf_fields,
             beam_parameters=beam_parameters,
             element_to_index=element_to_index,
             transfer_matrix=transfer_matrix,

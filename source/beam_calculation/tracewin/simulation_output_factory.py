@@ -66,7 +66,6 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
         self,
         elts: ListOfElements,
         path_cal: Path,
-        rf_fields: list[dict[str, float | None]],
         exception: bool,
         set_of_cavity_settings: SetOfCavitySettings,
     ) -> SimulationOutput:
@@ -79,10 +78,6 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
             Contains all elements or only a fraction or all the elements.
         path_cal : Path
             Path to results folder.
-        rf_fields : list[dict[str, float | None]]
-            List of dicts which are empty if corresponding element has no rf
-            field, and has keys ``'k_e'``, ``'phi_0_abs'`` and ``'phi_0_rel'``
-            otherwise.
         exception : bool
             Indicates if the run was unsuccessful or not.
 
@@ -116,9 +111,6 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
         )
 
         cavity_parameters = self._create_cavity_parameters(path_cal, len(elts))
-        rf_fields = self._complete_list_of_rf_fields(
-            rf_fields, cavity_parameters
-        )
 
         element_to_index = self._generate_element_to_index_func(elts)
 
@@ -139,7 +131,6 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
             z_abs=results["z(m)"],
             synch_trajectory=synch_trajectory,
             cav_params=cavity_parameters,
-            rf_fields=rf_fields,
             beam_parameters=beam_parameters,
             element_to_index=element_to_index,
             transfer_matrix=transfer_matrix,
@@ -215,37 +206,6 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
             cavity_parameters, n_elts
         )
         return cavity_parameters
-
-    def _complete_list_of_rf_fields(
-        self,
-        rf_fields: list[dict[str, float | None]],
-        cavity_parameters: dict[str, list[float | None]],
-    ) -> list[dict[float | None]]:
-        """Create a list with rf field properties, as :class:`Envelope1D`."""
-        for i, (v_cav_mv, phi_s, phi_0) in enumerate(
-            zip(
-                cavity_parameters["v_cav_mv"],
-                cavity_parameters["phi_s"],
-                cavity_parameters["phi_0"],
-            )
-        ):
-            if v_cav_mv is None:
-                continue
-
-            # patch for superpose_map
-            if "k_e" not in rf_fields[i]:
-                cavity_parameters["v_cav_mv"][i] = None
-                cavity_parameters["phi_s"][i] = None
-                cavity_parameters["phi_0"][i] = None
-                continue
-
-            if rf_fields[i]["k_e"] < 1e-10:
-                continue
-            rf_fields[i]["v_cav_mv"] = v_cav_mv
-            rf_fields[i]["phi_s"] = phi_s
-            rf_fields[i]["phi_0_abs"] = phi_0
-
-        return rf_fields
 
 
 # =============================================================================

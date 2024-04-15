@@ -268,23 +268,6 @@ class TraceWin(BeamCalculator):
             use_a_copy_for_nominal_settings=use_a_copy_for_nominal_settings,
         )
 
-        rf_fields = []
-        for elt in elts:
-            cavity_settings = self._proper_cavity_settings(
-                elt, set_of_cavity_settings
-            )
-            if cavity_settings is None:
-                rf_fields.append({})
-                continue
-
-            rf_fields.append(
-                {
-                    "k_e": cavity_settings.k_e,
-                    "phi_0_abs": cavity_settings.phi_0_abs,
-                    "phi_0_rel": cavity_settings.phi_0_rel,
-                }
-            )
-
         command, path_cal = self._tracewin_full_command(
             elts, set_of_cavity_settings, **specific_kwargs
         )
@@ -295,7 +278,6 @@ class TraceWin(BeamCalculator):
         simulation_output = self._generate_simulation_output(
             elts,
             path_cal,
-            rf_fields,
             exception,
             set_of_cavity_settings=set_of_cavity_settings,
         )

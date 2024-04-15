@@ -139,7 +139,6 @@ class Envelope3D(BeamCalculator):
 
         """
         single_elts_results = []
-        rf_fields = []
 
         w_kin = elts.w_kin_in
         phi_abs = elts.phi_abs_in
@@ -168,13 +167,12 @@ class Envelope3D(BeamCalculator):
                 cavity_settings.phi_s = phi_s
 
             single_elts_results.append(elt_results)
-            rf_fields.append(rf_field_kwargs)
 
             phi_abs += elt_results["phi_rel"][-1]
             w_kin = elt_results["w_kin"][-1]
 
         simulation_output = self._generate_simulation_output(
-            elts, single_elts_results, rf_fields, set_of_cavity_settings
+            elts, single_elts_results, set_of_cavity_settings
         )
         return simulation_output
 

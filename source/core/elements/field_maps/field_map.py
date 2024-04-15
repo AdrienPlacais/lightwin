@@ -138,29 +138,10 @@ class FieldMap(Element):
             for ext in extension
         ]
 
-    def keep_cavity_settings(
-        self,
-        rf_field: dict | None = None,
-        v_cav_mv: float | None = None,
-        phi_s: float | None = None,
-        cavity_settings: CavitySettings | None = None,
-    ) -> None:
+    def keep_cavity_settings(self, cavity_settings: CavitySettings) -> None:
         """Keep the cavity settings that were found."""
-        if cavity_settings is not None:
-            self.cavity_settings = cavity_settings
-            return
-
-        assert rf_field is not None
-        if rf_field == {}:
-            return
-
-        self.cavity_settings.phi_0_abs = rf_field["phi_0_abs"]
-        self.cavity_settings.phi_0_rel = rf_field["phi_0_rel"]
-        self.cavity_settings.k_e = rf_field["k_e"]
-        assert phi_s is not None
-        self.cavity_settings.phi_s = phi_s
-        assert v_cav_mv is not None
-        self.cavity_settings.v_cav_mv = v_cav_mv
+        assert cavity_settings is not None
+        self.cavity_settings = cavity_settings
 
     def get(
         self,

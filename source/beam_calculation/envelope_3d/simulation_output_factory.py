@@ -54,7 +54,6 @@ class SimulationOutputFactoryEnvelope3D(SimulationOutputFactory):
         self,
         elts: ListOfElements,
         single_elts_results: list[dict],
-        rf_fields: list[dict],
         set_of_cavity_settings: SetOfCavitySettings,
     ) -> SimulationOutput:
         """
@@ -124,7 +123,6 @@ class SimulationOutputFactoryEnvelope3D(SimulationOutputFactory):
             is_3d=True,
             synch_trajectory=synch_trajectory,
             cav_params=cav_params,
-            rf_fields=rf_fields,
             beam_parameters=beam_parameters,
             element_to_index=element_to_index,
             transfer_matrix=transfer_matrix,

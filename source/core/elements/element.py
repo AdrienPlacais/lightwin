@@ -19,6 +19,7 @@ import logging
 from typing import Any
 
 import numpy as np
+
 from beam_calculation.parameters.element_parameters import (
     ElementBeamCalculatorParameters,
 )
@@ -151,26 +152,10 @@ class Element(Instruction):
 
     def keep_cavity_settings(
         self,
-        rf_field: dict | None = None,
-        v_cav_mv: float | None = None,
-        phi_s: float | None = None,
-        cavity_settings: CavitySettings | None = None,
+        cavity_settings: CavitySettings,
     ) -> None:
         """Save data calculated by :func:`BeamCalculator.run_with_this`."""
-        if rf_field is not None and rf_field != {}:
-            raise ValueError(
-                f"You tried to give {self.name} a {rf_field = }, "
-                "but this element default keep_cavity_settings "
-                "was not overriden. Are you sure it can have a "
-                "rf_field?"
-            )
-        if cavity_settings is not None:
-            raise ValueError(
-                f"You tried to give {self.name} a "
-                f"{cavity_settings = }, but this element default "
-                "keep_cavity_settings was not overriden. Are you "
-                "sure it can have a rf_field?"
-            )
+        raise NotImplementedError("Please override this method.")
 
     @property
     def is_accelerating(self) -> bool:

@@ -54,9 +54,6 @@ class SimulationOutput:
     cav_params : dict[str, float | None] | None
         Holds amplitude, synchronous phase, absolute phase, relative phase of
         cavities.
-    rf_fields : list[dict] | None
-        Holds amplitude, synchronous phase, absolute phase, relative phase of
-        cavities.
     beam_parameters : BeamParameters | None
         Holds emittance, Twiss parameters, envelopes in the various phase
         spaces.
@@ -67,6 +64,8 @@ class SimulationOutput:
         arrays attributes of this class: ``z_abs``, ``beam_parameters``
         attributes, etc.  Used to easily `get` the desired properties at the
         proper position.
+    set_of_cavity_settings : SetOfCavitySettings
+        The cavity parameters used for the simulation.
     transfer_matrix : TransferMatrix
          Holds absolute and relative transfer matrices in all planes.
     z_abs : np.ndarray | None, optional
@@ -87,13 +86,12 @@ class SimulationOutput:
     synch_trajectory: ParticleFullTrajectory
 
     cav_params: dict[str, float | None] | None
-    rf_fields: list[dict] | None
 
     beam_parameters: BeamParameters
 
     element_to_index: Callable[[str | Element, str | None], int | slice] | None
+    set_of_cavity_settings: SetOfCavitySettings
 
-    set_of_cavity_settings: SetOfCavitySettings | None = None
     transfer_matrix: TransferMatrix | None = None
     z_abs: np.ndarray | None = None
     in_tw_fashion: pd.DataFrame | None = None
@@ -101,7 +99,6 @@ class SimulationOutput:
 
     def __post_init__(self) -> None:
         """Save complementary data, such as `Element` indexes."""
-        del self.rf_fields
         self.elt_idx: list[int]
         if self.cav_params is None:
             logging.error(
