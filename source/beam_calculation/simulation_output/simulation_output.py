@@ -101,6 +101,7 @@ class SimulationOutput:
 
     def __post_init__(self) -> None:
         """Save complementary data, such as `Element` indexes."""
+        del self.rf_fields
         self.elt_idx: list[int]
         if self.cav_params is None:
             logging.error(
