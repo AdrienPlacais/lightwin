@@ -18,7 +18,6 @@
 """
 import logging
 import math
-import os.path
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Self
@@ -43,7 +42,7 @@ class SimulationOutput:
 
     Attributes
     ----------
-    out_folder : str
+    out_folder : Path
         Results folder used by the :class:`.BeamCalculator` that created this.
     is_multiparticle : bool
         Tells if the simulation is a multiparticle simulation.
@@ -79,7 +78,7 @@ class SimulationOutput:
 
     """
 
-    out_folder: str
+    out_folder: Path
     is_multiparticle: bool
     is_3d: bool
 
@@ -109,7 +108,7 @@ class SimulationOutput:
             self.elt_idx = [
                 i for i, _ in enumerate(self.cav_params["v_cav_mv"], start=1)
             ]
-        self.out_path: str | None = None
+        self.out_path: Path | None = None
 
     def __str__(self) -> str:
         """Give a resume of the data that is stored."""
@@ -124,11 +123,11 @@ class SimulationOutput:
         return self.__str__()
 
     @property
-    def beam_calculator_information(self) -> str:
+    def beam_calculator_information(self) -> Path:
         """Use ``out_path`` to retrieve info on :class:`BeamCalculator`."""
         if self.out_path is None:
             return self.out_folder
-        return get_nth_parent(self.out_path, nth=2)
+        return self.out_path.absolute().parents[1]
 
     def has(self, key: str) -> bool:
         """Tell if the required attribute is in this class.
@@ -296,11 +295,3 @@ def _to_deg(
             math.degrees(angle) if angle is not None else None for angle in val
         ]
     return np.rad2deg(val)
-
-
-def get_nth_parent(filepath: str, nth: int) -> str:
-    """Return the path of current folder + n."""
-    path_as_list = list(Path(filepath).parts)
-    new_path_as_list = path_as_list[-nth:]
-    new_path = os.path.join(*new_path_as_list)
-    return new_path
