@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define helper functions applying on elements."""
+import logging
+
 from core.elements.element import Element
 
 
-def give_name_to_elements(elts: list[Element]) -> None:
+def give_name_to_elements(
+    elts: list[Element], warn_default_element_names: bool = True
+) -> None:
     """Give to every :class:`.Element the name TraceWin would give it."""
     civil_register: dict[str, int] = {}
     for elt in elts:
@@ -19,6 +23,17 @@ def give_name_to_elements(elts: list[Element]) -> None:
         nth = civil_register.get(name := elt._id, 0) + 1
         elt._default_name = f"{name}{nth}"
         civil_register[name] = nth
+
+    if not warn_default_element_names:
+        return
+
+    if (fallback_name := Element._id) not in civil_register:
+        return
+    logging.warning(
+        f"Used a fallback name for {civil_register[fallback_name]} elements. "
+        "Check that every subclass of Element that you use overrides the "
+        "default Element._id = {fallback_name}."
+    )
 
 
 def force_a_section_for_every_element(
