@@ -34,6 +34,7 @@ ALGORITHM_SELECTOR: dict[str, ABCMeta] = {
     "least_squares_penalty": LeastSquaresPenalty,
     "nsga": NSGA,
     "downhill_simplex": DownhillSimplex,
+    "downhill_simplex_penalty": DownhillSimplexPenalty,
     "nelder_mead": DownhillSimplex,
     "nelder_mead_penalty": DownhillSimplexPenalty,
     "differential_evolution": DifferentialEvolution,
