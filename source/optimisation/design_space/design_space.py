@@ -11,9 +11,13 @@ from typing import Any, Self, overload
 import numpy as np
 import pandas as pd
 
-from beam_calculation.simulation_output.simulation_output import SimulationOutput
+from beam_calculation.simulation_output.simulation_output import (
+    SimulationOutput,
+)
 from optimisation.design_space.constraint import Constraint
-from optimisation.design_space.design_space_parameter import DesignSpaceParameter
+from optimisation.design_space.design_space_parameter import (
+    DesignSpaceParameter,
+)
 from optimisation.design_space.variable import Variable
 
 
