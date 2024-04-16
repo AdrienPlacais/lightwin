@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds :class:`Element`, declined in Drift, FieldMap, etc.
-
-.. todo::
-    rf_param should also return phi_rf_rel. Will be necessary for non-synch
-    particles.
+"""Define base :class:`Element`, declined in Drift, FieldMap, etc.
 
 .. todo::
     clean the patch for the 'name'. my has and get methods do not work with
@@ -29,7 +24,9 @@ from util.helper import recursive_getter, recursive_items
 class Element(Instruction):
     """Generic element."""
 
-    _id = "ELT"
+    base_name = "ELT"
+    increment_elt_idx = True
+    increment_lattice_idx = True
 
     def __init__(
         self,
@@ -68,10 +65,8 @@ class Element(Instruction):
 
         new_idx = {
             "elt_idx": None,
-            "increment_elt_idx": True,
             "lattice": None,
             "idx_in_lattice": None,
-            "increment_lattice_idx": True,
             "section": None,
         }
         self.idx = self.idx | new_idx

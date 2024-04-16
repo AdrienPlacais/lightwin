@@ -820,7 +820,7 @@ def _get_valid_func(obj: object, func_name: str, solver_id: str) -> Callable:
     )
     func = all_funcs.get(solver_id, None)
     assert isinstance(func, Callable), (
-        f"No Callable {func_name} was found in {object} for {solver_id = }"
+        f"No Callable {func_name} was found in {object} for {solverbase_name = }"
         "Check CavitySettings.set_cavity_parameters_methods and"
         "CavitySettings.set_cavity_parameters_arguments"
     )

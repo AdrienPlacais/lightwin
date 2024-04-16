@@ -212,7 +212,7 @@ class ListOfElements(list):
     def _set_element_indexes(self) -> None:
         """Set the element index."""
         elts_with_a_number = list(
-            filter(lambda elt: elt.idx["increment_elt_idx"], self)
+            filter(lambda elt: elt.increment_elt_idx, self)
         )
 
         for i, elt in enumerate(elts_with_a_number):

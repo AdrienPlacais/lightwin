@@ -8,7 +8,7 @@ from core.elements.element import Element
 class Solenoid(Element):
     """A partially defined solenoid."""
 
-    _id = "SOL"
+    base_name = "SOL"
 
     def __init__(
         self,

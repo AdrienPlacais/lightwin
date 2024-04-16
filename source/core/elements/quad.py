@@ -7,7 +7,7 @@ from core.elements.element import Element
 class Quad(Element):
     """A partially defined quadrupole."""
 
-    _id = "QP"
+    base_name = "QP"
 
     def __init__(
         self,

@@ -8,7 +8,7 @@ from core.elements.element import Element
 class Drift(Element):
     """A simple drift tube."""
 
-    _id = "DR"
+    base_name = "DR"
 
     def __init__(
         self,
