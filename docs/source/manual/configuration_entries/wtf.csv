@@ -4,4 +4,3 @@ Entry,Type,Description,Allowed values,Mandatory?
 ``idx``,str,Indicates if the given index are element or cavity index,``element`` or ``cavity``,✅
 ``failed``,int,Index of failed cavities,,✅
 ``objective_preset``,str,Objectives for the optimisation algorithm,:data:`~config.optimisation.objective.objective_presets`,✅
-``phi_s_fit``,bool,If synchronous phase should be in Variables,,✅
