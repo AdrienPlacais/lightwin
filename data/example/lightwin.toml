@@ -42,7 +42,6 @@ idx = "cavity"
 k = 3
 objective_preset = "simple_ADS"
 optimisation_algorithm = "downhill_simplex"
-phi_s_fit = false
 strategy = "k out of n"
 
 [generic_design_space]

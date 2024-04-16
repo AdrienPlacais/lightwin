@@ -41,18 +41,13 @@ IMPLEMENTED_OPTIMISATION_ALGORITHMS = (
 
 def test(
     idx: str,
-    # failed: list[list[int]] | list[list[list[int]]],
     strategy: str,
     objective_preset: str,
     optimisation_algorithm: str,
-    phi_s_fit: bool | None = None,
     **wtf_kw,
 ) -> None:
     """Test the ``wtf`` ``.toml`` entries."""
     assert idx in ("cavity", "element")
-    # check_type(list, 'wtf', failed)
-    # if len(failed) == 0:
-    #     logging.warning("No fault was given.")
 
     assert strategy in IMPLEMENTED_STRATEGIES
     strategy_testers = {
@@ -66,14 +61,6 @@ def test(
 
     assert objective_preset in IMPLEMENTED_OBJECTIVE_PRESETS
     assert optimisation_algorithm in IMPLEMENTED_OPTIMISATION_ALGORITHMS
-
-    if phi_s_fit is None:
-        logging.error(
-            "Please explicitly precise if you want to fit synch "
-            "phases or not (equivalent of SET_SYNCH_PHASE)."
-            "Setting default: False."
-        )
-        phi_s_fit = False
 
 
 def _test_k_out_of_n(k: int, **wtf_kw) -> None:

@@ -4,9 +4,6 @@
 This module holds :class:`Element`, declined in Drift, FieldMap, etc.
 
 .. todo::
-    check FLAG_PHI_S_FIT
-
-.. todo::
     rf_param should also return phi_rf_rel. Will be necessary for non-synch
     particles.
 

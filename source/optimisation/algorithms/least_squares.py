@@ -13,24 +13,19 @@ from optimisation.algorithms.algorithm import OptimisationAlgorithm
 
 @dataclass
 class LeastSquares(OptimisationAlgorithm):
-    """
-    Plain least-squares method, efficient for small problems.
-
-    It does not support constraints. One approach to put constraints on the
-    synchronous phase is to set ``phi_s_fit`` to ``True``, making the
-    synchronous phase a bounded variable.
+    """Plain least-squares method, efficient for small problems.
 
     Notes
     -----
-    Works very well with :class:`Envelope1D`, has issues converging with
-    :class:`TraceWin`.
+    Works very well with :class:`.Envelope1D`, has issues converging with
+    :class:`.TraceWin`.
 
     All the attributes but ``solution`` are inherited from the Abstract Base
-    Class :class:`OptimisationAlgorithm`.
+    Class :class:`.OptimisationAlgorithm`.
 
     See also
     --------
-    :class:`LeastSquaresPenalty`
+    :class:`.LeastSquaresPenalty`
 
     """
 
