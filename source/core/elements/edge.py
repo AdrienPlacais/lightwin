@@ -8,6 +8,7 @@ from core.elements.element import Element
 class Edge(Element):
     """A dummy object."""
 
+    base_name = "EDG"
     increment_lattice_idx = False
 
     def __init__(
