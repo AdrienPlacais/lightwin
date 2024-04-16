@@ -7,7 +7,8 @@
     a dedicated object.
 
 .. todo::
-    Check behavior with rephased
+    Similar to synchronous phase, allow for V_cav to be "master" instead of
+    k_e.
 
 See Also
 --------
@@ -45,9 +46,6 @@ ALLOWED_STATUS = (
 
 class CavitySettings:
     """Hold the cavity parameters that can vary during optimisation.
-
-    .. todo::
-        Maybe set deletters?
 
     .. todo::
         Which syntax for when I want to compute the value of a property but not
@@ -129,7 +127,7 @@ class CavitySettings:
         self.phi_s_funcs: dict[str, Callable] = {}
         if phi_s_funcs is not None:
             self.phi_s_funcs = phi_s_funcs
-        self._phi_0_rel_to_phi_s: Callable
+        self._phi_0_rel_to_cavity_parameters: Callable
         self._phi_s_to_phi_0_rel: Callable
 
         self._freq_bunch_mhz = freq_bunch_mhz
@@ -412,12 +410,6 @@ class CavitySettings:
             self.phi_s = np.NaN
             self.v_cav_mv = np.NaN
 
-        # logging.warning("Check that beam_calc_param is still updated."
-        # "As in FieldMap.update_status")
-        # this function changes the transfer matrix function, and the function
-        # that converts results to a dictionary for EnvelopeiD. Does nothing
-        # with TraceWin.
-
         self._check_consistency_of_status_and_reference()
 
     # =============================================================================
@@ -541,7 +533,7 @@ class CavitySettings:
             )
             return None
 
-        phi_s_calc = getattr(self, "_phi_0_rel_to_phi_s", None)
+        phi_s_calc = getattr(self, "_phi_0_rel_to_cavity_parameters", None)
         if phi_s_calc is None:
             logging.error(
                 "You must set a function to compute phi_s from phi_0_rel with "
@@ -595,40 +587,56 @@ class CavitySettings:
     def set_cavity_parameters_arguments(
         self, solver_id: str, w_kin: float, **kwargs
     ) -> None:
-        """Adapt the cavity parameters methods to beam with ``w_kin``.
+        r"""Adapt the cavity parameters methods to beam with ``w_kin``.
 
         This function must be called every time the kinetic energy at the
         entrance of the cavity is changed (like this occurs during optimisation
         process) or when the synchronous phase must be calculated with another
         solver.
 
+        Parameters
+        ----------
+        solver_id : str
+            Name of the solver that will compute :math:`V_\mathrm{cav}` and
+            :math:`\phi_s`.
+        w_kin : float
+            Kinetic energy of the synchronous particle at the entry of the
+            cavity.
+        kwargs :
+            Other keyword arguments that will be passed to the function that
+            will compute propagation of the beam in the :class:`.FieldMap`.
+            Note that you should check that ``phi_0_rel`` key should be removed
+            in your :class:`.BeamCalculator`, to avoid a clash in the
+            :func:`phi_0_rel_to_cavity_parameters`.
+
         See Also
         --------
         set_cavity_parameters_methods
 
         """
-        # kwargs = _clean_beam_calc_kwargs(kwargs)
         transf_mat_function_wrapper = _get_valid_func(
             self, "transf_mat_func_wrappers", solver_id
         )
         phi_s_func = _get_valid_func(self, "phi_s_funcs", solver_id)
 
-        def phi_0_rel_to_phi_s(phi_0_rel: float) -> float:
-            """Compute propagation of the beam, deduce synchronous phase."""
+        def phi_0_rel_to_cavity_parameters(
+            phi_0_rel: float,
+        ) -> tuple[float, float]:
+            """Compute propagation of the beam, deduce v_cav and phi_s."""
             results = transf_mat_function_wrapper(
                 phi_0_rel=phi_0_rel, w_kin_in=w_kin, **kwargs
             )
-            phi_s = phi_s_func(**results)[1]
-            return phi_s
+            cavity_parameters = phi_s_func(**results)
+            return cavity_parameters
 
         def _residue_func(phi_0_rel: float, phi_s: float) -> float:
             """Compute difference between given and calculated ``phi_s``."""
-            calculated_phi_s = phi_0_rel_to_phi_s(phi_0_rel)
+            calculated_phi_s = phi_0_rel_to_cavity_parameters(phi_0_rel)[1]
             residue = diff_angle(phi_s, calculated_phi_s)
             return residue**2
 
         def phi_s_to_phi_0_rel(phi_s: float) -> float:
-            """Call recursively ``phi_0_rel_to_phi_s`` to find ``phi_s``."""
+            """Optimise to find ``phi_0_rel`` matching ``phi_s``."""
             out = minimize_scalar(
                 _residue_func, bounds=(0.0, 2.0 * math.pi), args=(phi_s,)
             )
@@ -636,7 +644,7 @@ class CavitySettings:
                 logging.error("Synch phase not found")
             return out.x
 
-        self._phi_0_rel_to_phi_s = phi_0_rel_to_phi_s
+        self._phi_0_rel_to_cavity_parameters = phi_0_rel_to_cavity_parameters
         self._phi_s_to_phi_0_rel = phi_s_to_phi_0_rel
 
     @property
@@ -682,8 +690,6 @@ class CavitySettings:
             return None
 
         raise NotImplementedError()
-        self._v_cav_mv = v_cav_mv_calc(self.phi_0_rel)
-        return self._v_cav_mv
 
     # =============================================================================
     # Phase of synchronous particle
@@ -776,9 +782,6 @@ class CavitySettings:
             self.phi_bunch >= 0.0
         ), "The phase of the synchronous particle should never be negative."
 
-    # def _clean_beam_calc_kwargs(self, kwargs: dict) -> dict:
-    #     """Remove"""
-
     # .. list-table:: Meaning of status
     #     :widths: 40, 60
     #     :header-rows: 1
@@ -803,13 +806,6 @@ class CavitySettings:
     #     * - ``'compensate (not ok)'``
     #       - new ``k_e`` and ``phi_0`` were found, optimisation algorithm is
     #         not happy with it
-
-
-# def _clean_beam_calc_kwargs(kwargs: dict) -> dict:
-#     """Remove keyword arguments present by default but messing with phi_s."""
-#     if "phi_0_rel" in kwargs:
-#         del kwargs["phi_0_rel"]
-#     return kwargs
 
 
 def _get_valid_func(obj: object, func_name: str, solver_id: str) -> Callable:

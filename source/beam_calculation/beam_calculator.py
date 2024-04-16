@@ -32,7 +32,6 @@ from core.elements.field_maps.cavity_settings import CavitySettings
 from core.elements.field_maps.cavity_settings_factory import (
     CavitySettingsFactory,
 )
-from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
