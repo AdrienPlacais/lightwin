@@ -27,9 +27,11 @@ from core.elements.dummy import DummyElement
 from core.elements.element import Element
 from core.elements.factory import IMPLEMENTED_ELEMENTS, ElementFactory
 from core.elements.field_maps.field_map import FieldMap
-from core.elements.helper import (force_a_lattice_for_every_element,
-                                  force_a_section_for_every_element,
-                                  give_name_to_elements)
+from core.elements.helper import (
+    force_a_lattice_for_every_element,
+    force_a_section_for_every_element,
+    give_name_to_elements,
+)
 from core.instruction import Comment, Dummy, Instruction
 from tracewin_utils.electromagnetic_fields import load_electromagnetic_fields
 
@@ -37,13 +39,15 @@ from tracewin_utils.electromagnetic_fields import load_electromagnetic_fields
 class InstructionsFactory:
     """Define a factory class to easily create commands and elements."""
 
-    def __init__(self,
-                 freq_bunch_mhz: float,
-                 default_field_map_folder: Path,
-                 load_field_maps: bool,
-                 field_maps_in_3d: bool,
-                 load_cython_field_maps: bool,
-                 **factory_kw: Any) -> None:
+    def __init__(
+        self,
+        freq_bunch_mhz: float,
+        default_field_map_folder: Path,
+        load_field_maps: bool,
+        field_maps_in_3d: bool,
+        load_cython_field_maps: bool,
+        **factory_kw: Any,
+    ) -> None:
         """Instantiate the command and element factories.
 
         Parameters
@@ -81,28 +85,32 @@ class InstructionsFactory:
 
         # factories
         self._command_factory = CommandFactory(
-            default_field_map_folder=default_field_map_folder,
-            **factory_kw)
+            default_field_map_folder=default_field_map_folder, **factory_kw
+        )
         self.element_factory = ElementFactory(
             default_field_map_folder=default_field_map_folder,
             freq_bunch_mhz=freq_bunch_mhz,
-            **factory_kw)
+            **factory_kw,
+        )
 
         self._load_field_maps = load_field_maps
         if field_maps_in_3d:
-            raise NotImplementedError("No solver can handle 3D field maps yet."
-                                      " Except TraceWin, but you do not need "
-                                      "to load the field maps with this solver"
-                                      ", it does it itself.")
+            raise NotImplementedError(
+                "No solver can handle 3D field maps yet."
+                " Except TraceWin, but you do not need "
+                "to load the field maps with this solver"
+                ", it does it itself."
+            )
         self._field_maps_in_3d = field_maps_in_3d
         self._load_cython_field_maps = load_cython_field_maps
 
         self._cython: bool = con.FLAG_CYTHON
         # would be better without config dependency
 
-    def run(self,
-            dat_content: list[list[str]],
-            ) -> list[Instruction]:
+    def run(
+        self,
+        dat_content: list[list[str]],
+    ) -> list[Instruction]:
         """
         Create all the elements and commands.
 
@@ -115,8 +123,10 @@ class InstructionsFactory:
             List containing all the lines of ``dat_filepath``.
 
         """
-        instructions = [self._call_proper_factory(line, dat_idx)
-                        for dat_idx, line in enumerate(dat_content)]
+        instructions = [
+            self._call_proper_factory(line, dat_idx)
+            for dat_idx, line in enumerate(dat_content)
+        ]
 
         new = apply_commands(instructions, self._freq_bunch_mhz)
         # Remove lines after 'end'
@@ -135,10 +145,9 @@ class InstructionsFactory:
 
         return instructions
 
-    def _call_proper_factory(self,
-                             line: list[str],
-                             dat_idx: int,
-                             **instruction_kw: str) -> Instruction:
+    def _call_proper_factory(
+        self, line: list[str], dat_idx: int, **instruction_kw: str
+    ) -> Instruction:
         """Create proper :class:`.Instruction`, or :class:`.Dummy`.
 
         We go across every word of ``line``, and create the first instruction
@@ -165,42 +174,48 @@ class InstructionsFactory:
             or :class:`.Comment`.
 
         """
-        if line == ['']:
+        if line == [""]:
             return Comment(line, dat_idx)
 
         for word in line:
             word = word.upper()
             if word in IMPLEMENTED_COMMANDS:
-                return self._command_factory.run(line,
-                                                 dat_idx,
-                                                 **instruction_kw)
+                return self._command_factory.run(
+                    line, dat_idx, **instruction_kw
+                )
             if word in IMPLEMENTED_ELEMENTS:
-                return self.element_factory.run(line,
-                                                dat_idx,
-                                                **instruction_kw)
-            if ';' in word:
+                return self.element_factory.run(
+                    line, dat_idx, **instruction_kw
+                )
+            if ";" in word:
                 return Comment(line, dat_idx)
 
         return Dummy(line, dat_idx, warning=True)
 
     def _handle_lattice_and_section(self, elts: list[Element]) -> None:
         """Ensure that every element has proper lattice, section indexes."""
-        elts_without_dummies = [elt for elt in elts
-                                if not isinstance(elt, DummyElement)]
+        elts_without_dummies = [
+            elt for elt in elts if not isinstance(elt, DummyElement)
+        ]
         force_a_section_for_every_element(elts_without_dummies)
         force_a_lattice_for_every_element(elts_without_dummies)
 
-    def _check_every_elt_has_lattice_and_section(self, elts: list[Element]
-                                                 ) -> None:
+    def _check_every_elt_has_lattice_and_section(
+        self, elts: list[Element]
+    ) -> None:
         """Check that every element has a lattice and section index."""
         for elt in elts:
-            if elt.get('lattice', to_numpy=False) is None:
-                logging.error("At least one Element is outside of any lattice."
-                              " This may cause problems...")
+            if elt.get("lattice", to_numpy=False) is None:
+                logging.error(
+                    "At least one Element is outside of any lattice."
+                    " This may cause problems..."
+                )
                 break
 
         for elt in elts:
-            if elt.get('section', to_numpy=False) is None:
-                logging.error("At least one Element is outside of any section."
-                              " This may cause problems...")
+            if elt.get("section", to_numpy=False) is None:
+                logging.error(
+                    "At least one Element is outside of any section."
+                    " This may cause problems..."
+                )
                 break
