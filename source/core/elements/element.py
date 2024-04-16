@@ -65,10 +65,10 @@ class Element(Instruction):
         # TODO: init the indexes to -1 or something, to help type hinting
         # dict with pure type: int
         new_idx = {
-            "elt_idx": None,
-            "lattice": None,
+            "elt_idx": -1,
+            "lattice": -1,
             "idx_in_lattice": -1,
-            "section": None,
+            "section": -1,
         }
         self.idx = self.idx | new_idx
         self.beam_calc_param: dict[str, ElementBeamCalculatorParameters] = {}

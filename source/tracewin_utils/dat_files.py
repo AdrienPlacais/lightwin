@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds function to load, modify and create .dat structure files.
+"""Define holds function to load, modify and create .dat structure files.
 
 .. todo::
     Insert line skip at each section change in the output.dat
@@ -18,9 +17,8 @@ Non-exhaustive list of non implemented commands:
 
 """
 import logging
-from pathlib import Path
-
 import math
+from pathlib import Path
 
 from core.commands.command import Command
 from core.elements.element import Element
@@ -28,11 +26,12 @@ from core.elements.field_maps.field_map import FieldMap
 from core.instruction import Dummy, Instruction
 
 
-def update_field_maps_in_dat(elts: object,
-                             new_phases: dict[FieldMap, float],
-                             new_k_e: dict[FieldMap, float],
-                             new_abs_phase_flag: dict[FieldMap, int]
-                             ) -> None:
+def update_field_maps_in_dat(
+    elts: object,
+    new_phases: dict[FieldMap, float],
+    new_k_e: dict[FieldMap, float],
+    new_abs_phase_flag: dict[FieldMap, int],
+) -> None:
     """Create a new dat with given elements and settings.
 
     In constrary to ``dat_filecontent_from_smaller_list_of_elements``, does not
@@ -43,11 +42,11 @@ def update_field_maps_in_dat(elts: object,
 
     """
     dat_content: list[list[str]] = []
-    for instruction in elts.files['elts_n_cmds']:
+    for instruction in elts.files["elts_n_cmds"]:
         line = instruction.line
 
         # remove personalized name to always have same arg position
-        if len(line) > 1 and ':' in line[0]:
+        if len(line) > 1 and ":" in line[0]:
             del line[0]
 
         if instruction in new_phases:
@@ -58,8 +57,10 @@ def update_field_maps_in_dat(elts: object,
             line[10] = str(new_abs_phase_flag[instruction])
 
         # read personalized name
-        if hasattr(instruction, '_personalized_name') \
-                and instruction._personalized_name is not None:
+        if (
+            hasattr(instruction, "_personalized_name")
+            and instruction._personalized_name is not None
+        ):
             line.insert(0, f"{instruction._personalized_name} :")
 
         dat_content.append(line)
@@ -76,17 +77,20 @@ def dat_filecontent_from_smaller_list_of_elements(
     it is the job of :func:`update_field_maps_in_dat`.
 
     """
-    indexes_to_keep = [elt.get('dat_idx', to_numpy=False) for elt in elts]
+    indexes_to_keep = [elt.get("dat_idx", to_numpy=False) for elt in elts]
     last_index = indexes_to_keep[-1] + 1
 
     new_dat_filecontent: list[list[str]] = []
     new_instructions: list[Instruction] = []
     for instruction in original_instructions[:last_index]:
-        element_to_keep = (isinstance(instruction, Element | Dummy)
-                           and instruction.idx['dat_idx'] in indexes_to_keep)
+        element_to_keep = (
+            isinstance(instruction, Element | Dummy)
+            and instruction.idx["dat_idx"] in indexes_to_keep
+        )
 
-        useful_command = (isinstance(instruction, Command)
-                          and instruction.concerns_one_of(indexes_to_keep))
+        useful_command = isinstance(
+            instruction, Command
+        ) and instruction.concerns_one_of(indexes_to_keep)
 
         if not (element_to_keep or useful_command):
             continue
@@ -100,10 +104,11 @@ def dat_filecontent_from_smaller_list_of_elements(
     return new_dat_filecontent, new_instructions
 
 
-def save_dat_filecontent_to_dat(dat_content: list[list[str]],
-                                dat_path: Path) -> None:
+def save_dat_filecontent_to_dat(
+    dat_content: list[list[str]], dat_path: Path
+) -> None:
     """Save the content of the updated dat to a `.dat`."""
-    with open(dat_path, 'w', encoding='utf-8') as file:
+    with open(dat_path, "w", encoding="utf-8") as file:
         for line in dat_content:
-            file.write(' '.join(line) + '\n')
+            file.write(" ".join(line) + "\n")
     logging.info(f"New dat saved in {dat_path}.")

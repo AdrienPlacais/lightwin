@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds all the commands.
+"""Define the base class from which all commands will inherit.
 
 .. warning::
     As for now, if ``is_implemented`` is ``False``, the command will still
@@ -38,39 +37,33 @@ class Command(Instruction):
 
     is_implemented: bool
 
-    def __init__(self,
-                 line: list[str],
-                 dat_idx: int,
-                 is_implemented: bool,
-                 **kwargs) -> None:
+    def __init__(
+        self, line: list[str], dat_idx: int, is_implemented: bool, **kwargs
+    ) -> None:
         """Instantiate mandatory attributes."""
         super().__init__(line, dat_idx, is_implemented, **kwargs)
-        self.idx['influenced'] = slice(0, 1)
+        self.influenced = slice(0, 1)
         self.is_implemented = is_implemented
 
     @abstractmethod
-    def set_influenced_elements(self,
-                                instructions: list[Instruction],
-                                **kwargs: float
-                                ) -> None:
+    def set_influenced_elements(
+        self, instructions: list[Instruction], **kwargs: float
+    ) -> None:
         """Determine the index of the elements concerned by :func:`apply`."""
-        self.idx['influenced'] = slice(0, 1)
+        self.influenced = slice(0, 1)
 
     @abstractmethod
-    def apply(self,
-              instructions: list[Instruction],
-              **kwargs: float
-              ) -> list[Instruction]:
+    def apply(
+        self, instructions: list[Instruction], **kwargs: float
+    ) -> list[Instruction]:
         """Apply the command."""
         return instructions
 
     def concerns_one_of(self, dat_indexes: list[int]) -> bool:
-        """
-        Tell if ``self`` concerns an element, which ``dat_idx`` is given.
+        """Tell if ``self`` concerns an element, which ``dat_idx`` is given.
 
-        Internally, we convert the ``self.idx['influenced']`` from a
-        :class:`set` to a :class:`list` object and check intersections with
-        ``dat_indexes``.
+        Internally, we convert the ``self.influenced`` from a :class:`set` to
+        a :class:`list` object and check intersections with ``dat_indexes``.
 
         Parameters
         ----------
@@ -79,8 +72,7 @@ class Command(Instruction):
             creation.
 
         """
-        idx_influenced = range(self.idx['influenced'].start,
-                               self.idx['influenced'].stop)
+        idx_influenced = range(self.influenced.start, self.influenced.stop)
         idx_influenced = [i for i in idx_influenced]
 
         intersect = list(set(idx_influenced).intersection(dat_indexes))

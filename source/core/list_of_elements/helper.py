@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-In this module we define some helper functions to filter list of elements.
+"""Define some helper functions to filter list of elements.
 
 .. todo::
     Filtering consistency.
 
 """
 import logging
-from typing import Any, Sequence, Type, TypeGuard
 from functools import partial
+from typing import Any, Sequence, Type, TypeGuard
 
 import numpy as np
 
@@ -20,7 +19,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 
 def is_list_of(elts: Sequence, type_to_check: Type) -> TypeGuard[Type]:
     """Check that all items of ``elts`` are of type ``type_to_check``."""
-    if not hasattr(elts, '__iter__'):
+    if not hasattr(elts, "__iter__"):
         return False
     return all([isinstance(elt, type_to_check) for elt in elts])
 
@@ -32,18 +31,18 @@ def is_list_of_elements(elts: Sequence) -> TypeGuard[list[Element]]:
     return is_list_of(elts, Element)
 
 
-def is_list_of_list_of_elements(elts: Sequence
-                                ) -> TypeGuard[list[list[Element]]]:
+def is_list_of_list_of_elements(
+    elts: Sequence,
+) -> TypeGuard[list[list[Element]]]:
     """Check that input is a nested list of :class:`.Element`."""
     return all([is_list_of_elements(sub_elts) for sub_elts in elts])
 
 
 def filter_out(
-        elts: ListOfElements | list[Element] | list[list[Element]],
-        to_exclude: tuple[type]
-        ) -> Any:
-    """
-    Filter out types while keeping the input list structure.
+    elts: ListOfElements | list[Element] | list[list[Element]],
+    to_exclude: tuple[type],
+) -> Any:
+    """Filter out types while keeping the input list structure.
 
     .. note::
         Function not used anymore. Keeping it just in case.
@@ -62,10 +61,10 @@ def filter_out(
     return out
 
 
-def filter_elts(elts: ListOfElements | list[Element],
-                type_to_check: Type) -> list[Type]:
-    """
-    Filter elements according to their type.
+def filter_elts(
+    elts: ListOfElements | list[Element], type_to_check: Type
+) -> list[Type]:
+    """Filter elements according to their type.
 
     .. note::
         Used only for :func:`filter_cav`, may be simpler?
@@ -77,9 +76,9 @@ def filter_elts(elts: ListOfElements | list[Element],
 filter_cav = partial(filter_elts, type_to_check=FieldMap)
 
 
-def elt_at_this_s_idx(elts: ListOfElements | list[Element],
-                      s_idx: int, show_info: bool = False
-                      ) -> Element | None:
+def elt_at_this_s_idx(
+    elts: ListOfElements | list[Element], s_idx: int, show_info: bool = False
+) -> Element | None:
     """Give the element where the given index is.
 
     Parameters
@@ -98,21 +97,22 @@ def elt_at_this_s_idx(elts: ListOfElements | list[Element],
 
     """
     for elt in elts:
-        if s_idx in range(elt.idx['s_in'], elt.idx['s_out']):
+        if s_idx in range(elt.idx["s_in"], elt.idx["s_out"]):
             if show_info:
                 logging.info(
                     f"Mesh index {s_idx} is in {elt.get('elt_info')}.\n"
-                    f"Indexes of this elt: {elt.get('idx')}.")
+                    f"Indexes of this elt: {elt.get('idx')}."
+                )
             return elt
 
     logging.warning(f"Mesh index {s_idx} not found.")
     return None
 
 
-def equivalent_elt_idx(elts: ListOfElements | list[Element],
-                       elt: Element | str) -> int:
-    """
-    Return the index of element from ``elts`` corresponding to ``elt``.
+def equivalent_elt_idx(
+    elts: ListOfElements | list[Element], elt: Element | str
+) -> int:
+    """Return the index of element from ``elts`` corresponding to ``elt``.
 
     .. important::
         This routine uses the name of the element and not its adress. So
@@ -159,10 +159,10 @@ def equivalent_elt_idx(elts: ListOfElements | list[Element],
     raise IOError(f"Element {elt} not found in this list of elements.")
 
 
-def equivalent_elt(elts: ListOfElements | list[Element],
-                   elt: Element | str) -> Element:
-    """
-    Return the element from ``elts`` corresponding to ``elt``.
+def equivalent_elt(
+    elts: ListOfElements | list[Element], elt: Element | str
+) -> Element:
+    """Return the element from ``elts`` corresponding to ``elt``.
 
     .. important::
         This routine uses the name of the element and not its adress. So
@@ -197,11 +197,10 @@ def equivalent_elt(elts: ListOfElements | list[Element],
     return out_elt
 
 
-def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
-                              r_zz_elt: list[np.ndarray], n_steps: int
-                              ) -> np.ndarray:
-    """
-    Compute cumulated transfer matrix.
+def indiv_to_cumul_transf_mat(
+    tm_cumul_in: np.ndarray, r_zz_elt: list[np.ndarray], n_steps: int
+) -> np.ndarray:
+    """Compute cumulated transfer matrix.
 
     Parameters
     ----------
@@ -222,6 +221,7 @@ def indiv_to_cumul_transf_mat(tm_cumul_in: np.ndarray,
     cumulated_transfer_matrices = np.full((n_steps, 2, 2), np.NaN)
     cumulated_transfer_matrices[0] = tm_cumul_in
     for i in range(1, n_steps):
-        cumulated_transfer_matrices[i] = \
+        cumulated_transfer_matrices[i] = (
             r_zz_elt[i - 1] @ cumulated_transfer_matrices[i - 1]
+        )
     return cumulated_transfer_matrices

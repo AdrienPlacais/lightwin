@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Define some functions to set initial values/limits in DesignSpaceFactory.
+"""Set initial values/limits in DesignSpaceFactory.
 
 .. todo::
     check docstrings ref [1]
 
 """
 import math
+
 import numpy as np
 
 from core.elements.element import Element
 
 
-def same_value_as_nominal(variable: str,
-                          reference_element: Element,
-                          **kwargs,
-                          ) -> float:
+def same_value_as_nominal(
+    variable: str,
+    reference_element: Element,
+    **kwargs,
+) -> float:
     """Return ``variable`` value in ``reference_element``.
 
     This is generally a good initial value for optimisation.
@@ -26,12 +27,13 @@ def same_value_as_nominal(variable: str,
     return reference_value
 
 
-def phi_s_limits(reference_element: Element,
-                 max_increase_sync_phase_in_percent: float,
-                 max_absolute_sync_phase_in_deg: float = 0.,
-                 min_absolute_sync_phase_in_deg: float = -90.,
-                 **kwargs,
-                 ) -> tuple[float, float]:
+def phi_s_limits(
+    reference_element: Element,
+    max_increase_sync_phase_in_percent: float,
+    max_absolute_sync_phase_in_deg: float = 0.0,
+    min_absolute_sync_phase_in_deg: float = -90.0,
+    **kwargs,
+) -> tuple[float, float]:
     r"""Return classic limits for the synchronous phase.
 
     Minimum is ``min_absolute_sync_phase_in_deg``, which is -90 degrees by
@@ -57,11 +59,12 @@ def phi_s_limits(reference_element: Element,
         Lower and upper limits for the synchronous phase.
 
     """
-    reference_phi_s = same_value_as_nominal('phi_s', reference_element)
+    reference_phi_s = same_value_as_nominal("phi_s", reference_element)
     phi_s_min = math.radians(min_absolute_sync_phase_in_deg)
     phi_s_max = min(
         math.radians(max_absolute_sync_phase_in_deg),
-        reference_phi_s * (1. - 1e-2 * max_increase_sync_phase_in_percent))
+        reference_phi_s * (1.0 - 1e-2 * max_increase_sync_phase_in_percent),
+    )
     return (phi_s_min, phi_s_max)
 
 
@@ -74,16 +77,16 @@ def phi_0_limits(**kwargs) -> tuple[float, float]:
         Always :math:`(-2\pi, 2\pi)`.
 
     """
-    return (-2. * math.pi, 2. * math.pi)
+    return (-2.0 * math.pi, 2.0 * math.pi)
 
 
 def k_e_limits(
-        reference_element: Element,
-        max_decrease_k_e_in_percent: float,
-        max_increase_k_e_in_percent: float,
-        maximum_k_e_is_calculated_wrt_maximum_k_e_of_section: bool = False,
-        reference_elements: list[Element] | None = None,
-        **kwargs
+    reference_element: Element,
+    max_decrease_k_e_in_percent: float,
+    max_increase_k_e_in_percent: float,
+    maximum_k_e_is_calculated_wrt_maximum_k_e_of_section: bool = False,
+    reference_elements: list[Element] | None = None,
+    **kwargs,
 ) -> tuple[float, float]:
     r"""Get classic limits for ``k_e``.
 
@@ -113,38 +116,44 @@ def k_e_limits(
     # Superconducting Linacs," in Proceedings of LINAC2022, 2022, pp. 552–555.
 
     """
-    reference_k_e = same_value_as_nominal('k_e', reference_element)
-    min_k_e = reference_k_e * (1. - 1e-2 * max_decrease_k_e_in_percent)
-    max_k_e = reference_k_e * (1. + 1e-2 * max_increase_k_e_in_percent)
+    reference_k_e = same_value_as_nominal("k_e", reference_element)
+    min_k_e = reference_k_e * (1.0 - 1e-2 * max_decrease_k_e_in_percent)
+    max_k_e = reference_k_e * (1.0 + 1e-2 * max_increase_k_e_in_percent)
 
     if not maximum_k_e_is_calculated_wrt_maximum_k_e_of_section:
         return (min_k_e, max_k_e)
 
-    section_idx = reference_element.idx['section']
-    assert isinstance(section_idx, int)
+    section_idx = reference_element.idx["section"]
     assert reference_elements is not None
-    max_k_e_of_section = _get_maximum_k_e_of_section(section_idx,
-                                                     reference_elements)
-    max_k_e = max_k_e_of_section * (1. + 1e-2 * max_increase_k_e_in_percent)
+    max_k_e_of_section = _get_maximum_k_e_of_section(
+        section_idx, reference_elements
+    )
+    max_k_e = max_k_e_of_section * (1.0 + 1e-2 * max_increase_k_e_in_percent)
     return (min_k_e, max_k_e)
 
 
-def _get_maximum_k_e_of_section(section_idx: int,
-                                reference_elements: list[Element],
-                                ) -> float:
+def _get_maximum_k_e_of_section(
+    section_idx: int,
+    reference_elements: list[Element],
+) -> float:
     """Get the maximum ``k_e`` of section."""
-    elements_in_current_section = list(filter(
-        lambda element: element.idx['section'] == section_idx,
-        reference_elements))
-    k_e_in_current_section = [element.get('k_e', to_numpy=False)
-                              for element in elements_in_current_section]
+    elements_in_current_section = list(
+        filter(
+            lambda element: element.idx["section"] == section_idx,
+            reference_elements,
+        )
+    )
+    k_e_in_current_section = [
+        element.get("k_e", to_numpy=False)
+        for element in elements_in_current_section
+    ]
     maximum_k_e = np.nanmax(k_e_in_current_section)
     return maximum_k_e
 
 
 LIMITS_CALCULATORS = {
-    'phi_s': phi_s_limits,
-    'phi_0_abs': phi_0_limits,
-    'phi_0_rel': phi_0_limits,
-    'k_e': k_e_limits,
+    "phi_s": phi_s_limits,
+    "phi_0_abs": phi_0_limits,
+    "phi_0_rel": phi_0_limits,
+    "k_e": k_e_limits,
 }

@@ -189,12 +189,12 @@ def set_of_cavity_settings_to_command(
 
     Parameters
     ----------
-    set_of_cavity_settings
+    set_of_cavity_settings : SetOfCavitySettings
         All the new cavity settings.
-    phi_bunch_first_element
+    phi_bunch_first_element : float
         Phase of synchronous particle at entry of first element of
         :class:`.ListOfElements` under study.
-    idx_first_element
+    idx_first_element : int
         Index of first element of :class:`.ListOfElements` under study.
 
     Returns
@@ -255,23 +255,20 @@ def _cavity_settings_to_command(
         phi_0 = math.degrees(phi_0)
 
     elt_idx = field_map.idx["elt_idx"]
-    assert isinstance(elt_idx, int)
-
-    alter_kwargs = {
-        'k_e': cavity_settings.k_e,
-        'phi_0': phi_0
-        }
+    alter_kwargs = {"k_e": cavity_settings.k_e, "phi_0": phi_0}
     tracewin_command = _alter_element(elt_idx - delta_index, alter_kwargs)
     return tracewin_command
 
 
-ARGS_POSITIONS = {'phi_0': 3,
-                  'k_e': 6,
-                  }  #:
+ARGS_POSITIONS = {
+    "phi_0": 3,
+    "k_e": 6,
+}  #:
 
 
-def _alter_element(index: int,
-                   alter_kwargs: dict[str, float | int]) -> Sequence[str]:
+def _alter_element(
+    index: int, alter_kwargs: dict[str, float | int]
+) -> Sequence[str]:
     """Create the command piece to modify the element at ``index``.
 
     Parameters
@@ -292,8 +289,10 @@ def _alter_element(index: int,
     """
     for val in alter_kwargs:
         assert val is not None, "Prefer np.NaN for values to skip."
-    kwargs = {f"ele[{index + 1}][{ARGS_POSITIONS[arg]}]": value
-              for arg, value in alter_kwargs.items()}
+    kwargs = {
+        f"ele[{index + 1}][{ARGS_POSITIONS[arg]}]": value
+        for arg, value in alter_kwargs.items()
+    }
     return variables_to_command(warn_skipped=False, **kwargs)
 
 

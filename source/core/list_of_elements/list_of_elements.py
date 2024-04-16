@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Here we define a ``list`` of :class:`.Element`, with some additional methods.
+"""Define a ``list`` of :class:`.Element`, with some additional methods.
 
 Two objects can have a :class:`ListOfElements` as attribute:
     - :class:`.Accelerator`: holds all the :class:`.Element` of the linac.
@@ -293,15 +292,13 @@ def _group_elements_by_lattice(
 ) -> list[list[Element]]:
     """Regroup the Element belonging to the same Lattice."""
     idx_first_lattice = elts[0].idx["lattice"]
-    assert idx_first_lattice is not None
     idx_last_lattice = elts[-1].idx["lattice"]
-    assert idx_last_lattice is not None
     n_lattices = idx_last_lattice + 1
     by_lattice = [
         list(
             filter(
                 lambda elt: (
-                    elt.idx["lattice"] is not None
+                    elt.idx["lattice"] >= 0
                     and elt.idx["lattice"] == current_lattice
                 ),
                 elts,

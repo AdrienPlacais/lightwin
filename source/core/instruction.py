@@ -18,16 +18,18 @@ class Instruction(ABC):
     """An object corresponding to a line in a ``.dat`` file."""
 
     line: list[str]
-    idx: dict[str, int | bool | None]
+    idx: dict[str, int]
 
-    def __init__(self,
-                 line: list[str],
-                 dat_idx: int,
-                 is_implemented: bool,
-                 name: str | None = None) -> None:
+    def __init__(
+        self,
+        line: list[str],
+        dat_idx: int,
+        is_implemented: bool,
+        name: str | None = None,
+    ) -> None:
         """Instantiate corresponding line and line number in ``.dat`` file."""
         self.line = line
-        self.idx = {'dat_idx': dat_idx}
+        self.idx = {"dat_idx": dat_idx}
         self.is_implemented = is_implemented
 
         self._personalized_name = name
@@ -45,7 +47,7 @@ class Instruction(ABC):
     def name(self) -> str:
         """Give personal. name of instruction if exists, default otherwise."""
         if self._personalized_name is None:
-            if hasattr(self, '_default_name'):
+            if hasattr(self, "_default_name"):
                 return self._default_name
             return str(self.line)
         return self._personalized_name
@@ -54,11 +56,12 @@ class Instruction(ABC):
 class Dummy(Instruction):
     """An object corresponding to a non-implemented element or command."""
 
-    def __init__(self,
-                 line: list[str],
-                 dat_idx: int,
-                 warning: bool = False,
-                 ) -> None:
+    def __init__(
+        self,
+        line: list[str],
+        dat_idx: int,
+        warning: bool = False,
+    ) -> None:
         """Create the dummy object, raise a warning if necessary.
 
         Parameters
@@ -74,14 +77,16 @@ class Dummy(Instruction):
         """
         super().__init__(line, dat_idx, is_implemented=False)
         if warning:
-            logging.warning("A dummy element was added as the corresponding "
-                            "element or command is not implemented. If the "
-                            "BeamCalculator is not TraceWni, this may be a "
-                            "problem. In particular if the missing element "
-                            "has a length that is non-zero. You can disable "
-                            "this warning in tracewin_utils.dat_files._create"
-                            "_element_n_command_objects. Line with a problem:"
-                            f"\n{line}")
+            logging.warning(
+                "A dummy element was added as the corresponding "
+                "element or command is not implemented. If the "
+                "BeamCalculator is not TraceWni, this may be a "
+                "problem. In particular if the missing element "
+                "has a length that is non-zero. You can disable "
+                "this warning in tracewin_utils.dat_files._create"
+                "_element_n_command_objects. Line with a problem:"
+                f"\n{line}"
+            )
 
 
 class Comment(Dummy):

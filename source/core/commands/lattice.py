@@ -3,11 +3,10 @@
 """Define ``LATTICE`` and ``LATTICE_END`` instructions."""
 import logging
 
-from core.instruction import Instruction
 from core.commands.command import Command
 from core.commands.superpose_map import SuperposeMap
-from core.instruction import Comment
 from core.elements.element import Element
+from core.instruction import Comment, Instruction
 
 
 class Lattice(Command):
@@ -23,48 +22,51 @@ class Lattice(Command):
             self.n_macro_lattice = int(line[2])
 
             if self.n_macro_lattice > 1:
-                logging.warning("Macro-lattice not implemented. LightWin will "
-                                "consider that number of macro-lattice per "
-                                "lattice is 1 or 0.")
+                logging.warning(
+                    "Macro-lattice not implemented. LightWin will "
+                    "consider that number of macro-lattice per "
+                    "lattice is 1 or 0."
+                )
 
-    def set_influenced_elements(self,
-                                instructions: list[Instruction],
-                                **kwargs: float
-                                ) -> None:
+    def set_influenced_elements(
+        self, instructions: list[Instruction], **kwargs: float
+    ) -> None:
         """Determine the index of the elements concerned by :func:`apply`."""
-        start = self.idx['dat_idx'] + 1
+        start = self.idx["dat_idx"] + 1
         stop = start
         for instruction in instructions[start:]:
             if isinstance(instruction, Lattice | LatticeEnd):
-                self.idx['influenced'] = slice(start, stop)
+                self.influenced = slice(start, stop)
                 return
 
             stop += 1
-        self.idx['influenced'] = slice(start, stop)
+        self.influenced = slice(start, stop)
 
-    def apply(self,
-              instructions: list[Instruction],
-              **kwargs: float
-              ) -> list[Instruction]:
+    def apply(
+        self, instructions: list[Instruction], **kwargs: float
+    ) -> list[Instruction]:
         """Set lattice section number of elements in current lattice."""
-        index = self.idx['dat_idx']
+        index = self.idx["dat_idx"]
 
-        current_lattice_number = self._current_lattice_number(instructions,
-                                                              index)
+        current_lattice_number = self._current_lattice_number(
+            instructions, index
+        )
         current_section_number = self._current_section_number(instructions)
 
         index_in_current_lattice = 0
-        for instruction in instructions[self.idx['influenced']]:
+        for instruction in instructions[self.influenced]:
             if isinstance(instruction, SuperposeMap):
-                logging.error("SuperposeMap not implemented. Will mess with "
-                              "indexes...")
+                logging.error(
+                    "SuperposeMap not implemented. Will mess with "
+                    "indexes..."
+                )
 
             if isinstance(instruction, (Command, Comment)):
                 continue
 
-            instruction.idx['lattice'] = current_lattice_number
-            instruction.idx['section'] = current_section_number
-            instruction.idx['idx_in_lattice'] = index_in_current_lattice
+            instruction.idx["lattice"] = current_lattice_number
+            instruction.idx["section"] = current_section_number
+            instruction.idx["idx_in_lattice"] = index_in_current_lattice
 
             index_in_current_lattice += 1
             if index_in_current_lattice == self.n_lattice:
@@ -73,19 +75,22 @@ class Lattice(Command):
 
         return instructions
 
-    def _current_section_number(self,
-                                instructions: list[Instruction],
-                                ) -> int:
+    def _current_section_number(
+        self,
+        instructions: list[Instruction],
+    ) -> int:
         """Get section number of ``self``."""
-        all_lattice_commands = list(filter(
-            lambda instruction: isinstance(instruction, Lattice),
-            instructions))
+        all_lattice_commands = list(
+            filter(
+                lambda instruction: isinstance(instruction, Lattice),
+                instructions,
+            )
+        )
         return all_lattice_commands.index(self)
 
-    def _current_lattice_number(self,
-                                instructions: list[Instruction],
-                                index: int
-                                ) -> int:
+    def _current_lattice_number(
+        self, instructions: list[Instruction], index: int
+    ) -> int:
         """
         Get lattice number of current object.
 
@@ -105,8 +110,9 @@ class Lattice(Command):
 
         for instruction in reversed_instructions_before_self:
             if isinstance(instruction, Element):
-                previous_lattice_number = instruction.get('lattice',
-                                                          to_numpy=False)
+                previous_lattice_number = instruction.get(
+                    "lattice", to_numpy=False
+                )
 
                 if previous_lattice_number is not None:
                     return previous_lattice_number + 1
@@ -120,23 +126,21 @@ class LatticeEnd(Command):
         """Call mother ``__init__`` method."""
         super().__init__(line, dat_idx, is_implemented=True)
 
-    def set_influenced_elements(self,
-                                instructions: list[Instruction],
-                                **kwargs: float
-                                ) -> None:
+    def set_influenced_elements(
+        self, instructions: list[Instruction], **kwargs: float
+    ) -> None:
         """Determine the index of the elements concerned by :func:`apply`."""
-        start = self.idx['dat_idx']
+        start = self.idx["dat_idx"]
         stop = start
         for instruction in instructions[start:]:
             if isinstance(instruction, Lattice):
-                self.idx['influenced'] = slice(start, stop)
+                self.influenced = slice(start, stop)
                 return
             stop += 1
-        self.idx['influenced'] = slice(start, stop)
+        self.influenced = slice(start, stop)
 
-    def apply(self,
-              instructions: list[Instruction],
-              **kwargs: float
-              ) -> list[Instruction]:
+    def apply(
+        self, instructions: list[Instruction], **kwargs: float
+    ) -> list[Instruction]:
         """Do nothing, everything is handled by :class:`Lattice`."""
         return instructions

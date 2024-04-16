@@ -43,7 +43,7 @@ def force_a_section_for_every_element(
     idx_section = 0
     for elt in elts_without_dummies:
         idx = elt.idx["section"]
-        if idx is None:
+        if idx < 0:
             elt.idx["section"] = idx_section
             continue
         idx_section = idx
@@ -53,8 +53,7 @@ def force_a_section_for_every_element(
 def force_a_lattice_for_every_element(
     elts_without_dummies: list[Element],
 ) -> None:
-    """
-    Give a lattice index to every element.
+    """Give a lattice index to every element.
 
     Elements before the first LATTICE command will be in the same lattice as
     the elements after the first LATTICE command.
@@ -107,7 +106,7 @@ def force_a_lattice_for_every_element(
     idx_lattice = 0
     for elt in elts_without_dummies:
         idx = elt.idx["lattice"]
-        if idx is None:
+        if idx < 0:
             elt.idx["lattice"] = idx_lattice
             continue
         idx_lattice = idx

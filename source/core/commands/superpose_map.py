@@ -6,6 +6,7 @@ import logging
 from core.commands.command import Command
 from core.commands.dummy_command import DummyCommand
 from core.electric_field import NewRfField
+from core.elements.dummy import DummyElement
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.superposed_field_map import SuperposedFieldMap
@@ -59,7 +60,7 @@ class SuperposeMap(Command):
             )
         )[0]
         stop = next_element_but_not_field_map.idx["dat_idx"]
-        self.idx["influenced"] = slice(start, stop)
+        self.influenced = slice(start, stop)
 
     def apply(
         self, instructions: list[Instruction], **kwargs: float
@@ -73,10 +74,10 @@ class SuperposeMap(Command):
         is replaced by a SuperposedFieldMap.
 
         """
-        instructions_to_merge = instructions[self.idx["influenced"]]
+        instructions_to_merge = instructions[self.influenced]
         total_length = self._total_length(instructions_to_merge)
 
-        instructions[self.idx["influenced"]], number_of_superposed = (
+        instructions[self.influenced], number_of_superposed = (
             self._update_class(instructions_to_merge, total_length)
         )
 
@@ -88,7 +89,7 @@ class SuperposeMap(Command):
         )
         self._decrement_lattice_indexes(elts_after_self, number_of_superposed)
 
-        instructions[self.idx["influenced"]] = instructions_to_merge
+        instructions[self.influenced] = instructions_to_merge
         return instructions
 
     def _total_length(self, instructions_to_merge: list[Instruction]) -> float:
@@ -146,7 +147,7 @@ class SuperposeMap(Command):
     ) -> None:
         """Decrement some lattice numbers to take removed elts into account."""
         for i, elt in enumerate(elts_after_self):
-            if elt.idx["lattice"] is None:
+            if elt.idx["lattice"] < 0:
                 continue
 
             if not elt.increment_lattice_idx:
