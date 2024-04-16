@@ -29,6 +29,7 @@ from util.phases import (
     phi_0_abs_to_rel,
     phi_0_rel_to_abs,
     phi_bunch_to_phi_rf,
+    phi_rf_to_phi_bunch,
 )
 
 ALLOWED_REFERENCES = ("phi_0_abs", "phi_0_rel", "phi_s")  #:
@@ -305,7 +306,7 @@ class CavitySettings:
         self.bunch_phase_to_rf_phase = bunch_phase_to_rf_phase
 
         rf_phase_to_bunch_phase = partial(
-            phi_bunch_to_phi_rf, self._freq_bunch_mhz / freq_cavity_mhz
+            phi_rf_to_phi_bunch, self._freq_bunch_mhz / freq_cavity_mhz
         )
         self.rf_phase_to_bunch_phase = rf_phase_to_bunch_phase
 
