@@ -6,7 +6,7 @@ import logging
 from core.instruction import Instruction
 from core.commands.command import Command
 from core.commands.superpose_map import SuperposeMap
-
+from core.instruction import Comment
 from core.elements.element import Element
 
 
@@ -59,13 +59,12 @@ class Lattice(Command):
                 logging.error("SuperposeMap not implemented. Will mess with "
                               "indexes...")
 
-            if isinstance(instruction, Command):
+            if isinstance(instruction, (Command, Comment)):
                 continue
 
-            if isinstance(instruction, Element):
-                instruction.idx['lattice'] = current_lattice_number
-                instruction.idx['section'] = current_section_number
-                instruction.idx['idx_in_lattice'] = index_in_current_lattice
+            instruction.idx['lattice'] = current_lattice_number
+            instruction.idx['section'] = current_section_number
+            instruction.idx['idx_in_lattice'] = index_in_current_lattice
 
             index_in_current_lattice += 1
             if index_in_current_lattice == self.n_lattice:

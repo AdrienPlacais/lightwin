@@ -35,8 +35,7 @@ class Element(Instruction):
         name: str | None = None,
         **kwargs: str,
     ) -> None:
-        """
-        Init parameters common to all elements.
+        """Init parameters common to all elements.
 
         Parameters
         ----------
@@ -63,10 +62,12 @@ class Element(Instruction):
         # accelerating field.
         self.new_rf_field = NewRfField()
 
+        # TODO: init the indexes to -1 or something, to help type hinting
+        # dict with pure type: int
         new_idx = {
             "elt_idx": None,
             "lattice": None,
-            "idx_in_lattice": None,
+            "idx_in_lattice": -1,
             "section": None,
         }
         self.idx = self.idx | new_idx
