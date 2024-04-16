@@ -13,7 +13,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from config.toml.helper import check_type, find_file
+from config.helper import check_type, find_file
 
 IMPLEMENTED_DESIGN_SPACE_PRESETS = (
     "unconstrained",

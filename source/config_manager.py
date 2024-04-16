@@ -34,14 +34,14 @@ from typing import Any
 
 import numpy as np
 
-import config.toml.beam
-import config.toml.beam_calculator
-import config.toml.design_space
-import config.toml.evaluators
-import config.toml.files
-import config.toml.plots
-import config.toml.wtf
-from config.toml.helper import dict_for_pretty_output
+import config.beam
+import config.beam_calculator
+import config.design_space
+import config.evaluators
+import config.files
+import config.plots
+import config.wtf
+from config.helper import dict_for_pretty_output
 
 # Values that will be available everywhere
 FLAG_CYTHON = bool
@@ -101,7 +101,7 @@ def process_config(
         override = {}
     _override_some_toml_entries(configuration, warn_mismatch, **override)
     config_folder = config_path.parent
-    _process_config_toml(configuration, config_folder)
+    _process_config(configuration, config_folder)
     return configuration
 
 
@@ -143,19 +143,19 @@ def _override_some_toml_entries(
             conf_subdict[key] = val
 
 
-def _process_config_toml(
+def _process_config(
     toml_entries: dict[str, dict[str, Any]], config_folder: Path
 ) -> None:
     """Test all the given configuration keys."""
     associated_modules = {
-        "files": config.toml.files,
-        "plots": config.toml.plots,
-        "beam_calculator": config.toml.beam_calculator,
-        "beam": config.toml.beam,
-        "wtf": config.toml.wtf,
-        "design_space": config.toml.design_space,
-        "beam_calculator_post": config.toml.beam_calculator,
-        "evaluators": config.toml.evaluators,
+        "files": config.files,
+        "plots": config.plots,
+        "beam_calculator": config.beam_calculator,
+        "beam": config.beam,
+        "wtf": config.wtf,
+        "design_space": config.design_space,
+        "beam_calculator_post": config.beam_calculator,
+        "evaluators": config.evaluators,
     }
 
     for key, config_dict in toml_entries.items():

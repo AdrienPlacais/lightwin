@@ -8,7 +8,7 @@
 """
 import logging
 
-from config.toml.helper import check_type
+from config.helper import check_type
 
 IMPLEMENTED_STRATEGIES = (
     "k out of n",
