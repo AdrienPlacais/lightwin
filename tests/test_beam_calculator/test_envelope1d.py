@@ -8,8 +8,10 @@
 from pathlib import Path
 from typing import Any
 
-import config_manager
 import pytest
+from tests.reference import compare_with_reference
+
+import config_manager
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.factory import BeamCalculatorsFactory
 from beam_calculation.simulation_output.simulation_output import (
@@ -17,8 +19,6 @@ from beam_calculation.simulation_output.simulation_output import (
 )
 from core.accelerator.accelerator import Accelerator
 from core.accelerator.factory import NoFault
-
-from tests.reference import compare_with_reference
 
 DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
@@ -129,13 +129,13 @@ class TestSolver1D:
     def test_phi_s(self, simulation_output: SimulationOutput) -> None:
         """Verify that synchronous phase in last cavity is correct."""
         return compare_with_reference(
-            simulation_output, "phi_s", elt="ELT142", tol=self._phi_s_tol
+            simulation_output, "phi_s", elt="FM142", tol=self._phi_s_tol
         )
 
     def test_v_cav(self, simulation_output: SimulationOutput) -> None:
         """Verify that accelerating voltage in last cavity is correct."""
         return compare_with_reference(
-            simulation_output, "v_cav_mv", elt="ELT142", tol=self._v_cav_tol
+            simulation_output, "v_cav_mv", elt="FM142", tol=self._v_cav_tol
         )
 
     def test_r_zdelta(self, simulation_output: SimulationOutput) -> None:

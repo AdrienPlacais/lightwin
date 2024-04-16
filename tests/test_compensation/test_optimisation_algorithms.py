@@ -142,7 +142,7 @@ class TestOptimisationAlgorithms:
     ) -> None:
         """Test the initialisation."""
         return compare_with_other(
-            *simulation_outputs, key="phi_s", tol=self._phi_s_tol, elt="ELT142"
+            *simulation_outputs, key="phi_s", tol=self._phi_s_tol, elt="FM142"
         )
 
     def test_v_cav(
@@ -153,5 +153,5 @@ class TestOptimisationAlgorithms:
             *simulation_outputs,
             key="v_cav_mv",
             tol=self._v_cav_tol,
-            elt="ELT142",
+            elt="FM142",
         )

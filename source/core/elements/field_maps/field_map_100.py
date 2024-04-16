@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""This module defines a field map with 1D rf electric field."""
+"""Define a field map with 1D rf electric field."""
 from core.elements.field_maps.field_map import FieldMap
 
 

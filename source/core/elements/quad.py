@@ -7,11 +7,15 @@ from core.elements.element import Element
 class Quad(Element):
     """A partially defined quadrupole."""
 
-    def __init__(self,
-                 line: list[str],
-                 dat_idx: int,
-                 name: str | None = None,
-                 **kwargs: str) -> None:
+    _id = "QP"
+
+    def __init__(
+        self,
+        line: list[str],
+        dat_idx: int,
+        name: str | None = None,
+        **kwargs: str,
+    ) -> None:
         """Check number of attributes, set gradient."""
         super().__init__(line, dat_idx, name)
         n_attributes = len(line) - 1

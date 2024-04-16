@@ -2,52 +2,42 @@
 # -*- coding: utf-8 -*-
 """Define helper functions applying on elements."""
 from core.elements.element import Element
-from core.elements.diagnostic import Diagnostic
-from core.elements.drift import Drift
-from core.elements.field_maps.field_map import FieldMap
-from core.elements.quad import Quad
-from core.elements.solenoid import Solenoid
-
-CIVIL_REGISTER = {
-    Quad: 'QP',
-    Diagnostic: 'D',
-    Drift: 'DR',
-    FieldMap: 'FM',
-    Solenoid: 'SOL',
-}  #:
 
 
 def give_name_to_elements(elts: list[Element]) -> None:
-    """Give a name (the same as TW) to every element."""
-    for key, value in CIVIL_REGISTER.items():
-        sub_list = list(filter(lambda elt: isinstance(elt, key), elts))
-        for i, elt in enumerate(sub_list, start=1):
-            if elt._personalized_name is None:
-                elt._default_name = value + str(i)
+    """Give to every :class:`.Element the name TraceWin would give it."""
+    civil_register: dict[str, int] = {}
+    for elt in elts:
+        if (name := elt._personalized_name) is not None:
+            assert name not in civil_register, (
+                f"You are trying to give to {elt = } the personalized name "
+                f"{name}, which is already taken."
+            )
+            civil_register[name] = 1
+            continue
 
-    other_elements = list(filter(lambda elt: type(elt) not in CIVIL_REGISTER,
-                          elts))
-    for i, elt in enumerate(other_elements, start=1):
-        if elt._personalized_name is None:
-            elt._default_name = 'ELT' + str(i)
-    return
+        nth = civil_register.get(name := elt._id, 0) + 1
+        elt._default_name = f"{name}{nth}"
+        civil_register[name] = nth
 
 
-def force_a_section_for_every_element(elts_without_dummies: list[Element]
-                                      ) -> None:
+def force_a_section_for_every_element(
+    elts_without_dummies: list[Element],
+) -> None:
     """Give a section index to every element."""
     idx_section = 0
     for elt in elts_without_dummies:
-        idx = elt.idx['section']
+        idx = elt.idx["section"]
         if idx is None:
-            elt.idx['section'] = idx_section
+            elt.idx["section"] = idx_section
             continue
         idx_section = idx
     return
 
 
-def force_a_lattice_for_every_element(elts_without_dummies: list[Element]
-                                      ) -> None:
+def force_a_lattice_for_every_element(
+    elts_without_dummies: list[Element],
+) -> None:
     """
     Give a lattice index to every element.
 
@@ -101,8 +91,8 @@ def force_a_lattice_for_every_element(elts_without_dummies: list[Element]
     """
     idx_lattice = 0
     for elt in elts_without_dummies:
-        idx = elt.idx['lattice']
+        idx = elt.idx["lattice"]
         if idx is None:
-            elt.idx['lattice'] = idx_lattice
+            elt.idx["lattice"] = idx_lattice
             continue
         idx_lattice = idx

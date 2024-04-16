@@ -29,6 +29,8 @@ from util.helper import recursive_getter, recursive_items
 class Element(Instruction):
     """Generic element."""
 
+    _id = "ELT"
+
     def __init__(
         self,
         line: list[str],

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """Define a class to easily create :class:`.FieldMap` objects.
 
-This element has it's own factory as I expect that creating field maps will
+This element has its own factory as I expect that creating field maps will
 become very complex in the future: 3D, superposed fields...
 
 .. todo::
-    This will be subclassed, as the differennt solver do not have the same
+    This will be subclassed, as the different solvers do not have the same
     needs. :class:`.TraceWin` does not need to load the electromagnetic fields,
     so every ``FIELD_MAP`` is implemented.
     :class:`.Envelope1D` cannot support 3D.
@@ -42,10 +42,9 @@ def warn_once(geometry: int):
 
     """
     logging.warning(
-        f"3D field maps ({geometry = }) not implemented "
-        "yet. If solver is Envelope1D or Envelope3D, "
-        "only the longitudinal rf electric field will be "
-        "used (equivalent of 'FIELD_MAP 100')."
+        f"3D field maps ({geometry = }) not implemented yet. If solver is "
+        "Envelope1D or Envelope3D, only the longitudinal rf electric field "
+        "will be used (equivalent of 'FIELD_MAP 100')."
     )
 
 

@@ -51,6 +51,8 @@ IMPLEMENTED_STATUS = (
 class FieldMap(Element):
     """A generic ``FIELD_MAP``."""
 
+    _id = "FM"
+
     def __init__(
         self,
         line: list[str],

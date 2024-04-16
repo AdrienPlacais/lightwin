@@ -69,8 +69,7 @@ class ElementFactory:
     def _personalized_name(
         self, line: list[str]
     ) -> tuple[str | None, list[str]]:
-        """
-        Extract the user-defined name of the Element if there is one.
+        """Extract the user-defined name of the element if there is one.
 
         .. todo::
             Make this robust.
