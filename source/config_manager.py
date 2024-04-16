@@ -34,13 +34,6 @@ from typing import Any
 
 import numpy as np
 
-import config.ini.beam
-import config.ini.beam_calculator
-import config.ini.evaluators
-import config.ini.files
-import config.ini.optimisation.design_space
-import config.ini.plots
-import config.ini.wtf
 import config.toml.beam
 import config.toml.beam_calculator
 import config.toml.design_space
@@ -77,7 +70,7 @@ def process_config(
     config_keys: dict[str, str],
     warn_mismatch: bool = False,
     override: (
-        dict[str, dict[str, dict[str, str | int | float | bool | list]]] | None
+        dict[str, dict[str, str | int | float | bool | list]] | None
     ) = None,
 ) -> dict[str, dict[str, Any]]:
     """Load and test the configuration file.
@@ -85,8 +78,7 @@ def process_config(
     Parameters
     ----------
     config_path : Path
-        Path to the configuration file. It must be a ``.ini`` or a ``.toml``
-        file. ``.toml`` is prefered, as ``.ini`` will soon be deprecated.
+        Path to the configuration file. It must be a ```.toml`` file.
     config_keys : dict[str, str]
         Associate the name of LightWin's group of parameters to the entry in
         the configuration file.
@@ -104,24 +96,13 @@ def process_config(
         :class:`.BeamCalculator`.
 
     """
-    if config_path.suffix == ".ini":
-        logging.warning(
-            "ini configuration format will soon be deprecated. "
-            "Please switch to .toml, it will be easier for "
-            "everyone."
-        )
-        return _process_config_ini(config_path, config_keys)
-
-    if config_path.suffix == ".toml":
-        configuration = _load_correct_toml_entries(config_path, config_keys)
-        if override is None:
-            override = {}
-        _override_some_toml_entries(configuration, warn_mismatch, **override)
-        config_folder = config_path.parent
-        _process_config_toml(configuration, config_folder)
-        return configuration
-
-    raise IOError(f"{config_path.suffix = } while it should be .ini or .toml")
+    configuration = _load_correct_toml_entries(config_path, config_keys)
+    if override is None:
+        override = {}
+    _override_some_toml_entries(configuration, warn_mismatch, **override)
+    config_folder = config_path.parent
+    _process_config_toml(configuration, config_folder)
+    return configuration
 
 
 def _load_correct_toml_entries(
@@ -197,132 +178,6 @@ def _process_config_toml(
     _make_global(**toml_entries)
 
 
-def _process_config_ini(
-    config_path: Path,
-    config_keys: dict[str, str],
-) -> dict[str, dict[str, Any]]:
-    """
-    Frontend for config: load ``.ini``, test it, return its content as dicts.
-
-    Parameters
-    ----------
-    config_path : Path
-        Path to the .ini file.
-    config_keys : dict[str, str]
-        Associate the name of the Sections in the config_file to the proper
-        configurations.
-        Mandatory keys are:
-            - ``files``: related to input/output files.
-            - ``plots``: what should be plotted.
-            - ``beam_calculator``: everything related to the tool that will\
-                compute the propagation of the beam.
-            - ``beam``: the initial beam properties.
-            - ``wtf``: for 'what to fit'. Everything related to the fault\
-                compensation methodology.
-            - ``evaluators_post``: to set the tests that are run on the newly\
-                found settings. Can be empty.
-        Optional keys are:
-            - ``beam_calculator_post``: for an additional simulation once the\
-                fault are compensated. Usually, this simulation should be more\
-                precise but take more time.
-
-    Returns
-    -------
-    output_dict : dict
-        A dict of dicts. The 'sub' dicts are:
-            - ``files`` : dict
-                Information on the files, project folders.
-            - ``plots`` : dict
-                The quantities to plot.
-            - ``beam_calculator`` : dict
-                Holds the beam_calculator used for simulation.
-            - ``beam`` : dict
-                Dictionary holding all beam parameters.
-            - ``wtf`` : dict
-                Dictionary holding all wtf parameters.
-            - ``beam_calculator_post`` : dict
-                Holds beam_calculator parameters for the post treatment
-                simulation.
-            - ``evaluators`` : dict
-                Holds the name of the tests/evaluations presets that will be
-                run during and after the simulation.
-
-    """
-    # Load config
-    # the converters key allows to have methods to directly convert the strings
-    # in the .ini to the proper type
-    config = configparser.ConfigParser(
-        converters={
-            "liststr": lambda x: [i.strip() for i in x.split(",")],
-            "tuplestr": lambda x: tuple([i.strip() for i in x.split(",")]),
-            "listint": lambda x: [int(i.strip()) for i in x.split(",")],
-            "listfloat": lambda x: [float(i.strip()) for i in x.split(",")],
-            "faults": lambda x: [
-                [int(i.strip()) for i in y.split(",")] for y in x.split(",\n")
-            ],
-            "groupedfaults": lambda x: [
-                [[int(i.strip()) for i in z.split(",")] for z in y.split("|")]
-                for y in x.split(",\n")
-            ],
-            "matrixfloat": lambda x: np.array(
-                [
-                    [float(i.strip()) for i in y.split(",")]
-                    for y in x.split(",\n")
-                ]
-            ),
-            "path": lambda x: Path(x),
-        },
-        allow_no_value=True,
-    )
-    # FIXME listlistint and matrixfloat: same kind of input, but very different
-    # outputs!!
-    config.read(config_path)
-
-    _test_config(config, config_keys)
-    output_dict = _config_to_dict(config, config_keys)
-
-    # Remove unused Sections, save resulting file
-    _ = [
-        config.remove_section(key)
-        for key in list(config.keys())
-        if key not in config_keys.keys()
-    ]
-
-    with open(
-        Path(output_dict["files"]["project_folder"], "lighwin.ini"),
-        "w",
-        encoding="utf-8",
-    ) as file:
-        config.write(file)
-
-    _make_global(**output_dict)
-    return output_dict
-
-
-def _test_config(
-    config: configparser.ConfigParser, config_keys: dict[str, str]
-) -> None:
-    """Run all the configuration tests, and save the config if ok."""
-    for key, val in config_keys.items():
-        if val is None:
-            continue
-        tester = TESTERS[key]
-        tester(config[val])
-
-
-def _config_to_dict(
-    config: configparser.ConfigParser, config_keys: dict[str, str]
-) -> dict:
-    """To convert the configparser into the formats required by LightWin."""
-    output_dict = {}
-    for key, val in config_keys.items():
-        to_dict = DICTIONARIZERS[key]
-        if val is None:
-            continue
-        output_dict[key] = to_dict(config[val])
-    return output_dict
-
-
 def _make_global(
     beam: dict, beam_calculator: dict | None = None, **kwargs
 ) -> None:
@@ -348,29 +203,3 @@ def _make_global(
     N_STEPS_PER_CELL = beam_calculator.get("n_steps_per_cell", None)
     METHOD = beam_calculator.get("method", None)
     logging.warning("default flags for tracewin")
-
-
-# =============================================================================
-# Dictionaries
-# =============================================================================
-TESTERS = {
-    "files": config.ini.files.test,
-    "plots": config.ini.plots.test,
-    "beam_calculator": config.ini.beam_calculator.test,
-    "beam": config.ini.beam.test,
-    "wtf": config.ini.wtf.test,
-    "design_space": config.ini.optimisation.design_space.test,
-    "beam_calculator_post": config.ini.beam_calculator.test,
-    "evaluators": config.ini.evaluators.test,
-}
-
-DICTIONARIZERS = {
-    "files": config.ini.files.config_to_dict,
-    "plots": config.ini.plots.config_to_dict,
-    "beam_calculator": config.ini.beam_calculator.config_to_dict,
-    "beam": config.ini.beam.config_to_dict,
-    "wtf": config.ini.wtf.config_to_dict,
-    "design_space": config.ini.optimisation.design_space.config_to_dict,
-    "beam_calculator_post": config.ini.beam_calculator.config_to_dict,
-    "evaluators": config.ini.evaluators.config_to_dict,
-}
