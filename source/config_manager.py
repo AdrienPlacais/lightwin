@@ -22,11 +22,7 @@ In particular:
 .. todo::
     Remove global variables.
 
-.. todo::
-    Find a way to override the entries in the ``.toml`` before testing.
-
 """
-import configparser
 import logging
 import tomllib
 from pathlib import Path
@@ -45,8 +41,6 @@ from config.helper import dict_for_pretty_output
 
 # Values that will be available everywhere
 FLAG_CYTHON = bool
-METHOD = str
-N_STEPS_PER_CELL = int()
 
 E_MEV, E_REST_MEV, INV_E_REST_MEV = float(), float(), float()
 GAMMA_INIT = float()
@@ -198,8 +192,5 @@ def _make_global(
     if beam_calculator is None:
         return
 
-    global FLAG_CYTHON, N_STEPS_PER_CELL, METHOD
+    global FLAG_CYTHON
     FLAG_CYTHON = beam_calculator.get("flag_cython", None)
-    N_STEPS_PER_CELL = beam_calculator.get("n_steps_per_cell", None)
-    METHOD = beam_calculator.get("method", None)
-    logging.warning("default flags for tracewin")
