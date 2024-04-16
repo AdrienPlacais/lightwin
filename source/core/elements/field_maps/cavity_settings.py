@@ -545,67 +545,20 @@ class CavitySettings:
         if phi_s_calc is None:
             logging.error(
                 "You must set a function to compute phi_s from phi_0_rel with "
-                "CavitySettings.instantiate_cavity_parameters_calculator()"
+                "CavitySettings.set_cavity_parameters_arguments()"
             )
             return None
 
         self._phi_s = phi_s_calc(self.phi_0_rel)
         return self._phi_s
 
-    def instantiate_cavity_parameters_calculator(
-        self, solver_id: str, w_kin: float, **kwargs
-    ) -> None:
-        """Set the functions that compute synchronous phase and acc voltage.
-
-        This function must be called every time the kinetic energy at the
-        entrance of the cavity is changed (like this occurs during optimisation
-        process) or when the synchronous phase must be calculated with another
-        solver.
-
-        See Also
-        --------
-        set_beam_calculator
-
-        """
-        kwargs = _clean_beam_calc_kwargs(kwargs)
-        transf_mat_function_wrapper = _get_valid_func(
-            self, "transf_mat_func_wrappers", solver_id
-        )
-        phi_s_func = _get_valid_func(self, "phi_s_funcs", solver_id)
-
-        def phi_0_rel_to_phi_s(phi_0_rel: float) -> float:
-            """Compute propagation of the beam, deduce synchronous phase."""
-            results = transf_mat_function_wrapper(
-                phi_0_rel=phi_0_rel, w_kin_in=w_kin, **kwargs
-            )
-            phi_s = phi_s_func(**results)[0]
-            return phi_s
-
-        def _residue_func(phi_0_rel: float, phi_s: float) -> float:
-            """Compute difference between given and calculated ``phi_s``."""
-            calculated_phi_s = phi_0_rel_to_phi_s(phi_0_rel)
-            residue = diff_angle(phi_s, calculated_phi_s)
-            return residue**2
-
-        def phi_s_to_phi_0_rel(phi_s: float) -> float:
-            """Call recursively ``phi_0_rel_to_phi_s`` to find ``phi_s``."""
-            out = minimize_scalar(
-                _residue_func, bounds=(0.0, 2.0 * math.pi), args=(phi_s,)
-            )
-            if not out.success:
-                logging.error("Synch phase not found")
-            return out.x
-
-        self._phi_0_rel_to_phi_s = phi_0_rel_to_phi_s
-        self._phi_s_to_phi_0_rel = phi_s_to_phi_0_rel
-
-    def set_cavity_parameter_methods(
+    def set_cavity_parameters_methods(
         self,
         solver_id: str,
         transf_mat_function_wrapper: Callable,
         phi_s_func: Callable | None = None,
     ) -> None:
-        """Add or modify functions to propagate beam, compute cav parameters.
+        """Set the generic methods to compute beam propagation, cavity params.
 
         This function is called within two contexts:
             - When initializing the :class:`.BeamCalculator` specific
@@ -629,11 +582,62 @@ class CavitySettings:
             ``transf_mat_function_wrapper`` needs to be updated. In this case,
             the synchronous phase function is left unchanged.
 
+        See Also
+        --------
+        set_cavity_parameters_arguments
+
         """
         self.transf_mat_func_wrappers[solver_id] = transf_mat_function_wrapper
         if phi_s_func is None:
             return
         self.phi_s_funcs[solver_id] = phi_s_func
+
+    def set_cavity_parameters_arguments(
+        self, solver_id: str, w_kin: float, **kwargs
+    ) -> None:
+        """Adapt the cavity parameters methods to beam with ``w_kin``.
+
+        This function must be called every time the kinetic energy at the
+        entrance of the cavity is changed (like this occurs during optimisation
+        process) or when the synchronous phase must be calculated with another
+        solver.
+
+        See Also
+        --------
+        set_cavity_parameters_methods
+
+        """
+        # kwargs = _clean_beam_calc_kwargs(kwargs)
+        transf_mat_function_wrapper = _get_valid_func(
+            self, "transf_mat_func_wrappers", solver_id
+        )
+        phi_s_func = _get_valid_func(self, "phi_s_funcs", solver_id)
+
+        def phi_0_rel_to_phi_s(phi_0_rel: float) -> float:
+            """Compute propagation of the beam, deduce synchronous phase."""
+            results = transf_mat_function_wrapper(
+                phi_0_rel=phi_0_rel, w_kin_in=w_kin, **kwargs
+            )
+            phi_s = phi_s_func(**results)[1]
+            return phi_s
+
+        def _residue_func(phi_0_rel: float, phi_s: float) -> float:
+            """Compute difference between given and calculated ``phi_s``."""
+            calculated_phi_s = phi_0_rel_to_phi_s(phi_0_rel)
+            residue = diff_angle(phi_s, calculated_phi_s)
+            return residue**2
+
+        def phi_s_to_phi_0_rel(phi_s: float) -> float:
+            """Call recursively ``phi_0_rel_to_phi_s`` to find ``phi_s``."""
+            out = minimize_scalar(
+                _residue_func, bounds=(0.0, 2.0 * math.pi), args=(phi_s,)
+            )
+            if not out.success:
+                logging.error("Synch phase not found")
+            return out.x
+
+        self._phi_0_rel_to_phi_s = phi_0_rel_to_phi_s
+        self._phi_s_to_phi_0_rel = phi_s_to_phi_0_rel
 
     @property
     def v_cav_mv(self) -> None:
@@ -672,7 +676,7 @@ class CavitySettings:
         if v_cav_mv_calc is None:
             logging.error(
                 "You must set a function to compute v_cav_mv from "
-                "phi_0_rel with CavitySettings.set_v_cav_mv_calculators"
+                "phi_0_rel with CavitySettings.set_cavity_parameters_arguments"
                 " method."
             )
             return None
@@ -772,6 +776,9 @@ class CavitySettings:
             self.phi_bunch >= 0.0
         ), "The phase of the synchronous particle should never be negative."
 
+    # def _clean_beam_calc_kwargs(self, kwargs: dict) -> dict:
+    #     """Remove"""
+
     # .. list-table:: Meaning of status
     #     :widths: 40, 60
     #     :header-rows: 1
@@ -798,11 +805,11 @@ class CavitySettings:
     #         not happy with it
 
 
-def _clean_beam_calc_kwargs(kwargs: dict) -> dict:
-    """Remove keyword arguments present by default but messing with phi_s."""
-    if "phi_0_rel" in kwargs:
-        del kwargs["phi_0_rel"]
-    return kwargs
+# def _clean_beam_calc_kwargs(kwargs: dict) -> dict:
+#     """Remove keyword arguments present by default but messing with phi_s."""
+#     if "phi_0_rel" in kwargs:
+#         del kwargs["phi_0_rel"]
+#     return kwargs
 
 
 def _get_valid_func(obj: object, func_name: str, solver_id: str) -> Callable:
@@ -810,10 +817,14 @@ def _get_valid_func(obj: object, func_name: str, solver_id: str) -> Callable:
     all_funcs = getattr(obj, func_name, None)
     assert isinstance(all_funcs, dict), (
         f"Attribute {func_name} of {object} should be a dict[str, Callable] "
-        f"but is {all_funcs}."
+        f"but is {all_funcs}. "
+        "Check CavitySettings.set_cavity_parameters_methods and"
+        "CavitySettings.set_cavity_parameters_arguments"
     )
     func = all_funcs.get(solver_id, None)
-    assert isinstance(
-        func, Callable
-    ), f"No Callable {func_name} was found in {object} for {solver_id = }"
+    assert isinstance(func, Callable), (
+        f"No Callable {func_name} was found in {object} for {solver_id = }"
+        "Check CavitySettings.set_cavity_parameters_methods and"
+        "CavitySettings.set_cavity_parameters_arguments"
+    )
     return func

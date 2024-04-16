@@ -247,11 +247,23 @@ class Envelope1D(BeamCalculator):
             "section_idx": field_map.idx["section"],
             "n_cell": field_map.new_rf_field.n_cell,
             "bunch_to_rf": field_map.cavity_settings.bunch_phase_to_rf_phase,
-            "phi_0_rel": cavity_settings.phi_0_rel,
-            "phi_0_abs": cavity_settings.phi_0_abs,
+            # NOTE we prepend a _ to the phi_0 to avoid computing them if not
+            # necessary
+            # "phi_0_rel": cavity_settings._phi_0_rel,
+            # "phi_0_abs": cavity_settings._phi_0_abs,
             "k_e": cavity_settings.k_e,
         }
-        cavity_settings.instantiate_cavity_parameters_calculator(
+        if cavity_settings.reference == "phi_s":
+            cavity_settings.set_cavity_parameters_arguments(
+                self.id, w_kin_in, **rf_parameters_as_dict
+            )
+            rf_parameters_as_dict["phi_0_rel"] = cavity_settings.phi_0_rel
+            rf_parameters_as_dict["phi_0_abs"] = cavity_settings.phi_0_abs
+            return rf_parameters_as_dict
+
+        rf_parameters_as_dict["phi_0_rel"] = cavity_settings.phi_0_rel
+        rf_parameters_as_dict["phi_0_abs"] = cavity_settings.phi_0_abs
+        cavity_settings.set_cavity_parameters_arguments(
             self.id, w_kin_in, **rf_parameters_as_dict
         )
         return rf_parameters_as_dict

@@ -207,7 +207,7 @@ class FieldMapEnvelope3DParameters(ElementEnvelope3DParameters):
         n_steps = self.n_cell * n_steps_per_cell
         super().__init__(transf_mat_function, elt.length_m, n_steps, **kwargs)
         self._transf_mat_module = transf_mat_module
-        elt.cavity_settings.set_cavity_parameter_methods(
+        elt.cavity_settings.set_cavity_parameters_methods(
             self.solver_id,
             self.transf_mat_function_wrapper,
             self.compute_cavity_parameters,

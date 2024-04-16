@@ -68,7 +68,7 @@ class OptimisationAlgorithm(ABC):
     compute_residuals : Callable[[SimulationOutput], Any]
         Method to compute residuals from a :class:`SimulationOutput`.
     compute_constraints : Callable[[SimulationOutput], np.ndarray] | None, \
-optional
+    optional
         Method to compute constraint violation. The default is None.
     folder : str | None, optional
         Where history, phase space and other optimisation information will be

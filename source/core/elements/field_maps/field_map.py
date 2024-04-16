@@ -110,7 +110,7 @@ class FieldMap(Element):
 
         for solver_id, beam_calc_param in self.beam_calc_param.items():
             new_transf_mat_func = beam_calc_param.re_set_for_broken_cavity()
-            self.cavity_settings.set_cavity_parameter_methods(
+            self.cavity_settings.set_cavity_parameters_methods(
                 solver_id,
                 new_transf_mat_func,
             )

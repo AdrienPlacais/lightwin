@@ -263,7 +263,7 @@ class Envelope3D(BeamCalculator):
             "phi_0_abs": cavity_settings.phi_0_abs,
             "k_e": cavity_settings.k_e,
         }
-        cavity_settings.instantiate_cavity_parameters_calculator(
+        cavity_settings.set_cavity_parameters_arguments(
             self.id, w_kin_in, **rf_parameters_as_dict
         )
         return rf_parameters_as_dict

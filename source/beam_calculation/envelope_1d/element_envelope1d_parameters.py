@@ -201,7 +201,7 @@ class FieldMapEnvelope1DParameters(ElementEnvelope1DParameters):
         super().__init__(transf_mat_function, elt.length_m, n_steps, **kwargs)
         self._transf_mat_module = transf_mat_module
         self.field_map_file_name = str(elt.field_map_file_name)
-        elt.cavity_settings.set_cavity_parameter_methods(
+        elt.cavity_settings.set_cavity_parameters_methods(
             self.solver_id,
             self.transf_mat_function_wrapper,
             self.compute_cavity_parameters,
