@@ -27,13 +27,10 @@ from optimisation.design_space.helper import (
 from optimisation.design_space.variable import Variable
 
 
-# =============================================================================
-# Factories / presets
-# =============================================================================
 @dataclass
 class DesignSpaceFactory(ABC):
     """
-    A base class to handle :class:`Variable` and :class:`Constraint` creation.
+    Base class to handle :class:`.Variable` and :class:`.Constraint` creation.
 
     Attributes
     ----------
@@ -247,25 +244,21 @@ class DesignSpaceFactory(ABC):
         return design_space
 
 
+# =============================================================================
+# Unconstrained design spaces
+# =============================================================================
 @dataclass
-class Unconstrained(DesignSpaceFactory):
-    r"""
-    Factory to set amplitude and absolute phase of elements, no :math:`\phi_s`.
-
-    If you want to use :class:`.TraceWin` for the optimisation process, you may
-    be better of with the equivalent :class:`.UnconstrainedRel`.
-
-    """
+class AbsPhaseAmplitude(DesignSpaceFactory):
+    r"""Optimise over :math:`\phi_{0,\,\mathrm{abs}}` and :math:`k_e`."""
 
     variables_names = ("phi_0_abs", "k_e")
 
 
 @dataclass
-class UnconstrainedRel(DesignSpaceFactory):
-    r"""
-    Factory to set amplitude and relative phase of elements, no :math:`\phi_s`.
+class RelPhaseAmplitude(DesignSpaceFactory):
+    r"""Optimise over :math:`\phi_{0,\,\mathrm{rel}}` and :math:`k_e`.
 
-    The same as :class:`.Unconstrained`, but the phase variable is
+    The same as :class:`AbsPhaseAmplitude`, but the phase variable is
     :math:`\phi_{0,\,\mathrm{rel}}` instead of :math:`\phi_{0,\,\mathrm{abs}}`.
     It may be better for convergence, because it makes cavities more
     independent.
@@ -276,20 +269,56 @@ class UnconstrainedRel(DesignSpaceFactory):
 
 
 @dataclass
-class ConstrainedSyncPhase(DesignSpaceFactory):
-    """Factory to set k_e and phase of elements, with phi_s constraint."""
+class SyncPhaseAmplitude(DesignSpaceFactory):
+    r"""Optimise over :math:`\phi_s` and :math:`k_e`.
+
+    Synchronous phases outside of the bounds will not ocurr, without setting
+    any :class:`.Constraint`. This kind of optimisation takes more time as we
+    need, for every iteration of the :class:`.OptimisationAlgorithm`, to find
+    the :math:`\phi_{0,\,\mathrm{rel}}` that corresponds to the desired
+    :math:`\phi_s`.
+
+    """
+
+    variables_names = ("phi_s", "k_e")
+
+
+# =============================================================================
+# Design spaces with constraints; OptimisationAlgorithm must support it!
+# =============================================================================
+@dataclass
+class AbsPhaseAmplitudeWithConstrainedSyncPhase(DesignSpaceFactory):
+    r"""
+    Optimise :math:`\phi_{0,\,\mathrm{abs}}`, :math:`k_e`. :math:`\phi_s` is constrained.
+
+    .. warning::
+        The selected :class:`.OptimisationAlgorithm` must support the
+        constraints.
+
+    """
 
     variables_names = ("phi_0_abs", "k_e")
     constraints_names = ("phi_s",)
 
 
 @dataclass
-class SyncPhaseAsVariable(DesignSpaceFactory):
-    """Factory to set k_e and phi_s of elements, no constraint."""
+class RelPhaseAmplitudeWithConstrainedSyncPhase(DesignSpaceFactory):
+    r"""
+    Optimise :math:`\phi_{0,\,\mathrm{rel}}`, :math:`k_e`. :math:`\phi_s` is constrained.
 
-    variables_names = ("phi_s", "k_e")
+    .. warning::
+        The selected :class:`.OptimisationAlgorithm` must support the
+        constraints.
+
+    """
+
+    variables_names = ("phi_0_rel", "k_e")
+    constraints_names = ("phi_s",)
 
 
+# =============================================================================
+# To create ``variables.csv`` and ``constraints.csv``
+# =============================================================================
 @dataclass
 class Everything(DesignSpaceFactory):
     """This class creates all possible variables and constraints.
@@ -317,75 +346,61 @@ class Everything(DesignSpaceFactory):
         return super().run(*args, **kwargs)
 
 
-# should not exist
+# =============================================================================
+# Deprecated aliases
+# =============================================================================
 @dataclass
-class FM4_MYRRHA(DesignSpaceFactory):
-    """Factory to set reduce design space around a pre-existing solution."""
+class Unconstrained(AbsPhaseAmplitude):
+    """Deprecated alias to :class:`AbsPhaseAmplitude`.
 
-    variables_names = ("phi_0_abs", "k_e")
+    .. deprecated:: 0.6.16
+        Prefer :class:`AbsPhaseAmplitude`.
 
-    def __post_init__(self):
-        """Check that we are in the proper case."""
-        super().__post_init__()
+    """
 
-    def run(
-        self, compensating_elements: list[Element], *args, **kwargs
-    ) -> DesignSpace:
-        """Classic run but check name of compensating elements first."""
-        assert [str(elt) for elt in compensating_elements] == [
-            "FM1",
-            "FM2",
-            "FM3",
-            "FM5",
-            "FM6",
-        ]
-        return super().run(
-            *args, compensating_elements=compensating_elements, **kwargs
-        )
 
-    def _run_variables(
-        self, compensating_elements: list[Element]
-    ) -> list[Variable]:
-        """Set up all the required variables."""
-        variables = []
-        my_initial_values = {
-            "phi_0_abs": {
-                "FM1": 1.2428429564125352,
-                "FM2": 5.849758478693384,
-                "FM3": 1.370628110261926,
-                "FM5": 3.323382937071699,
-                "FM6": 2.611163043271624,
-            },
-            "k_e": {
-                "FM1": 1.614713,
-                "FM2": 1.607485,
-                "FM3": 1.9268,
-                "FM5": 1.942578,
-                "FM6": 1.851571,
-            },
-        }
-        tol = 1e-3
+@dataclass
+class UnconstrainedRel(RelPhaseAmplitude):
+    """Deprecated alias to :class:`RelPhaseAmplitude`.
 
-        for var_name in self.variables_names:
-            for element in compensating_elements:
-                my_initial_value = my_initial_values[var_name][str(element)]
-                variable = Variable(
-                    name=var_name,
-                    element_name=str(element),
-                    x_0=my_initial_value,
-                    limits=(my_initial_value - tol, my_initial_value + tol),
-                )
-                variables.append(variable)
-        return variables
+    .. deprecated:: 0.6.16
+        Prefer :class:`RelPhaseAmplitude`.
+
+    """
+
+
+@dataclass
+class SyncPhaseAsVariable(SyncPhaseAmplitude):
+    """Deprecated alias to :class:`SyncPhaseAmplitude`.
+
+    .. deprecated:: 0.6.16
+        Prefer :class:`SyncPhaseAmplitude`.
+
+    """
+
+
+@dataclass
+class ConstrainedSyncPhase(AbsPhaseAmplitudeWithConstrainedSyncPhase):
+    """Deprecated alias to :class:`AbsPhaseAmplitudeWithConstrainedSyncPhase`.
+
+    .. deprecated:: 0.6.16
+        Prefer :class:`AbsPhaseAmplitudeWithConstrainedSyncPhase`.
+
+    """
 
 
 DESIGN_SPACE_FACTORY_PRESETS = {
+    "abs_phase_amplitude": AbsPhaseAmplitude,
+    "rel_phase_amplitude": RelPhaseAmplitude,
+    "sync_phase_amplitude": SyncPhaseAmplitude,
+    "abs_phase_amplitude_with_constrained_sync_phase": AbsPhaseAmplitudeWithConstrainedSyncPhase,
+    "rel_phase_amplitude_with_constrained_sync_phase": RelPhaseAmplitudeWithConstrainedSyncPhase,
+    "everything": Everything,
+    # Deprecated
     "unconstrained": Unconstrained,
     "unconstrained_rel": UnconstrainedRel,
     "constrained_sync_phase": ConstrainedSyncPhase,
     "sync_phase_as_variable": SyncPhaseAsVariable,
-    "FM4_MYRRHA": FM4_MYRRHA,
-    "everything": Everything,
 }  #:
 
 
