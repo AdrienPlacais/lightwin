@@ -56,16 +56,16 @@ def sort_and_gather_faults(
     fault_idx : list[int] | list[list[int]]
         The indexes of the cavities to fix.
     idx : {'element', 'cavity'}
-        Entry for ``idx`` in the ``.ini`` file. Tells if the entry
+        Entry for ``idx`` in the ``.toml`` file. Tells if the entry
         ``failed = 10`` means that the 10th element is broken, or that the 10th
         cavity is broken.
     strategy : str
-        Entry for ``strategy`` in the ``.ini`` file.
+        Entry for ``strategy`` in the ``.toml`` file.
     comp_idx : list[list[int]] | None, optional
         List of compensating cavities. Only used with manual strategy. The
         default is None.
     wtf : Any
-        The wtf dictionary from the ``.ini`` config file.
+        The wtf dictionary from the ``.toml`` config file.
 
     Returns
     -------
@@ -154,7 +154,7 @@ def _manual(
     This function is different from the other strategy func, as all
     responsibilities rely on the user. Here, he/she is the one that select
     which compensating cavities will be used for every failure.
-    In the ``.ini`` file, first line of ``manual list`` entry will compensate
+    In the ``.toml`` file, first line of ``manual list`` entry will compensate
     first line of ``failed``, etc.
 
     Example
@@ -231,7 +231,7 @@ def _k_out_of_n(
     k : int
         Number of compensating cavities per failed cavity.
     wtf : dict
-        Dictionary defined in the LightWin ``.ini`` file.
+        Dictionary defined in the LightWin ``.toml`` file.
 
     Returns
     -------
@@ -272,7 +272,7 @@ def _l_neighboring_lattices(
     """Select full lattices neighboring the failed cavities.
 
     Every fault will be compensated by ``l`` full lattices, direct neighbors of
-    the errors [1, 2]. You must provide l, which must be even.
+    the errors [1, 2]. You must provide ``l``, which must be even.
 
     .. todo::
         Handle non-even ``l``, plus a way to select if the extra lattice should
@@ -297,7 +297,7 @@ def _l_neighboring_lattices(
     l : int
         The (even) number of lattices per failed cavity.
     wtf : dict
-        Dictionary defined in the LightWin ``.ini`` file.
+        Dictionary defined in the LightWin ``.toml`` file.
 
     Returns
     -------
