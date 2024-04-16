@@ -1,7 +1,7 @@
-config.toml.files module
+config.evaluators module
 ========================
 
-.. automodule:: config.toml.files
+.. automodule:: config.evaluators
    :members:
    :undoc-members:
    :show-inheritance:

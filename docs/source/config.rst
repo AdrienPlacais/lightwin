@@ -6,11 +6,17 @@ config package
    :undoc-members:
    :show-inheritance:
 
-Subpackages
------------
+Submodules
+----------
 
 .. toctree::
    :maxdepth: 4
 
-   config.ini
-   config.toml
+   config.beam
+   config.beam_calculator
+   config.design_space
+   config.evaluators
+   config.files
+   config.helper
+   config.plots
+   config.wtf

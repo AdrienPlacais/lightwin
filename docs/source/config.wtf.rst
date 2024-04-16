@@ -1,7 +1,7 @@
-envelope3d module
+config.wtf module
 =================
 
-.. automodule:: envelope3d
+.. automodule:: config.wtf
    :members:
    :undoc-members:
    :show-inheritance:
