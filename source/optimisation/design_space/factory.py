@@ -6,12 +6,9 @@
     If you add your own DesignSpaceFactory preset, do not forget to add it to
     the list of supported presets in :mod:`config.optimisation.design_space`.
 
-.. todo::
-    fix incorrect overriding of variables_names and constraints_names
-
 """
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -48,8 +45,15 @@ class DesignSpaceFactory(ABC):
 
     def __post_init__(self):
         """Declare complementary variables."""
+        self.variables_names: Sequence[str]
         self.variables_filepath: Path
+        if not hasattr(self, "variables_names"):
+            raise IOError("You must define at least one variable name.")
+
+        self.constraints_names: Sequence[str]
         self.constraints_filepath: Path
+        if not hasattr(self, "constraints_names"):
+            self.constraints_names = ()
 
         from_file = self.design_space_kw["from_file"]
         if from_file:
@@ -60,17 +64,6 @@ class DesignSpaceFactory(ABC):
     ) -> None:
         """Check that given elements can be retuned."""
         assert all([elt.can_be_retuned for elt in compensating_elements])
-
-    @property
-    @abstractmethod
-    def variables_names(self) -> Sequence[str]:
-        """Return the name of the variables."""
-        pass
-
-    @property
-    def constraints_names(self) -> Sequence[str]:
-        """Return the name of the constraints."""
-        return ()
 
     def use_files(
         self,
@@ -397,10 +390,10 @@ DESIGN_SPACE_FACTORY_PRESETS = {
     "rel_phase_amplitude_with_constrained_sync_phase": RelPhaseAmplitudeWithConstrainedSyncPhase,
     "everything": Everything,
     # Deprecated
-    "unconstrained": Unconstrained,
-    "unconstrained_rel": UnconstrainedRel,
-    "constrained_sync_phase": ConstrainedSyncPhase,
-    "sync_phase_as_variable": SyncPhaseAsVariable,
+    "unconstrained": AbsPhaseAmplitude,
+    "unconstrained_rel": RelPhaseAmplitude,
+    "constrained_sync_phase": AbsPhaseAmplitudeWithConstrainedSyncPhase,
+    "sync_phase_as_variable": SyncPhaseAmplitude,
 }  #:
 
 
