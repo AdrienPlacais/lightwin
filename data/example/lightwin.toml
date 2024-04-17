@@ -45,7 +45,7 @@ optimisation_algorithm = "downhill_simplex"
 strategy = "k out of n"
 
 [generic_design_space]
-design_space_preset = "unconstrained"
+design_space_preset = "abs_phase_amplitude"
 from_file = false
 max_absolute_sync_phase_in_deg = 0.0
 max_decrease_k_e_in_percent = 20.0
@@ -55,12 +55,12 @@ maximum_k_e_is_calculated_wrt_maximum_k_e_of_section = true
 min_absolute_sync_phase_in_deg = -90.0
 
 [tiny_design_space]
-design_space_preset = "unconstrained_rel"
+design_space_preset = "rel_phase_amplitude"
 from_file = true
 variables_filepath = "variables.csv"
 
 [fit_phi_s_design_space]
-design_space_preset = "sync_phase_as_variable"
+design_space_preset = "sync_phase_amplitude"
 from_file = false
 max_absolute_sync_phase_in_deg = 0.0
 max_decrease_k_e_in_percent = 20.0
