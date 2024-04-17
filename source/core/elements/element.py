@@ -22,7 +22,24 @@ from util.helper import recursive_getter, recursive_items
 
 
 class Element(Instruction):
-    """Generic element."""
+    """Generic element.
+
+    Attributes
+    ----------
+    base_name : str, optional
+        Short name for the element according to TraceWin. Should be overriden.
+        The default is ``"ELT"``.
+    increment_elt_idx : bool, optional
+        If the element should be considered when counting the elements. If
+        False, ``elt_idx`` will keep  its default value of ``-1``. The default
+        is True. As for now, there is no element with this attribute set to
+        False.
+    increment_lattice_idx : bool, optional
+        If the element should be considered when determining the lattice.
+        Should be True for physical elements, such as ``DRIFT``, and False for
+        other elements such as ``DIAGNOSTIC``. The default is True.
+
+    """
 
     base_name = "ELT"
     increment_elt_idx = True
