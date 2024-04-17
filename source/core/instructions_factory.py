@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Define methods to easily create :class:`.Command` or :class:`.Element`.
+"""Define methods to easily create :class:`.Command` or :class:`.Element`.
 
 .. todo::
     Instantiate this in :class:`.BeamCalculator`. It could be initialized with
@@ -17,6 +16,8 @@ Define methods to easily create :class:`.Command` or :class:`.Element`.
 
 """
 import logging
+from collections.abc import Sequence
+from itertools import zip_longest
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,10 @@ from core.elements.helper import (
     give_name_to_elements,
 )
 from core.instruction import Comment, Dummy, Instruction
+from core.list_of_elements.helper import (
+    group_elements_by_section,
+    group_elements_by_section_and_lattice,
+)
 from tracewin_utils.electromagnetic_fields import load_electromagnetic_fields
 
 
@@ -96,10 +101,9 @@ class InstructionsFactory:
         self._load_field_maps = load_field_maps
         if field_maps_in_3d:
             raise NotImplementedError(
-                "No solver can handle 3D field maps yet."
-                " Except TraceWin, but you do not need "
-                "to load the field maps with this solver"
-                ", it does it itself."
+                "No solver can handle 3D field maps yet. Except TraceWin, but "
+                "you do not need to load the field maps with this solver, it "
+                "does it itself."
             )
         self._field_maps_in_3d = field_maps_in_3d
         self._load_cython_field_maps = load_cython_field_maps
@@ -107,12 +111,8 @@ class InstructionsFactory:
         self._cython: bool = con.FLAG_CYTHON
         # would be better without config dependency
 
-    def run(
-        self,
-        dat_content: list[list[str]],
-    ) -> list[Instruction]:
-        """
-        Create all the elements and commands.
+    def run(self, dat_content: list[list[str]]) -> list[Instruction]:
+        """Create all the elements and commands.
 
         .. todo::
             Check if the return value from ``apply_commands`` is necessary.
@@ -138,6 +138,7 @@ class InstructionsFactory:
         give_name_to_elements(elts)
         self._handle_lattice_and_section(elts)
         self._check_every_elt_has_lattice_and_section(elts)
+        self._check_last_lattice_of_every_lattice_is_complete(elts)
 
         if self._load_field_maps:
             field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
@@ -205,17 +206,46 @@ class InstructionsFactory:
     ) -> None:
         """Check that every element has a lattice and section index."""
         for elt in elts:
-            if elt.get("lattice", to_numpy=False) is None:
+            if elt.idx["lattice"] == -1:
                 logging.error(
-                    "At least one Element is outside of any lattice."
-                    " This may cause problems..."
+                    "At least one Element is outside of any lattice. This may "
+                    "cause problems..."
                 )
                 break
 
         for elt in elts:
-            if elt.get("section", to_numpy=False) is None:
+            if elt.idx["section"] == -1:
                 logging.error(
-                    "At least one Element is outside of any section."
-                    " This may cause problems..."
+                    "At least one Element is outside of any section. This may "
+                    "cause problems..."
                 )
                 break
+
+    def _check_last_lattice_of_every_lattice_is_complete(
+        self, elts: Sequence[Element]
+    ) -> None:
+        """Check that last lattice of every section is complete."""
+        by_section_and_lattice = group_elements_by_section_and_lattice(
+            group_elements_by_section(elts)
+        )
+        for sec, lattices in enumerate(by_section_and_lattice):
+            if len(lattices) <= 1:
+                continue
+            if (ultim := len(lattices[-1])) == (penult := len(lattices[-2])):
+                continue
+            joined = "\n".join(
+                (
+                    f"{str(x):>20}\t{str(y):<20}"
+                    for x, y in zip_longest(
+                        lattices[-2], lattices[-1], fillvalue="-"
+                    )
+                )
+            )
+            joined = f"{'Penultimate:':>20}\t{'Ultimate:':<20}\n" + joined
+            logging.warning(
+                f"Lattice length mismatch in the {sec}th section. The last "
+                f"lattice of this section has {ultim} elements, while "
+                f"penultimate has {penult} elements. This may create problems "
+                "if you rely on lattices identification to compensate faults. "
+                f"\n{joined}"
+            )
