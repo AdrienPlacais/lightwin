@@ -30,16 +30,16 @@ class Lattice(Command):
     def set_influenced_elements(
         self, instructions: list[Instruction], **kwargs: float
     ) -> None:
-        """Determine the index of the elements concerned by :func:`apply`."""
-        start = self.idx["dat_idx"] + 1
-        stop = start
-        for instruction in instructions[start:]:
-            if isinstance(instruction, Lattice | LatticeEnd):
-                self.influenced = slice(start, stop)
-                return
+        """Determine the index of the elements concerned by :func:`apply`.
 
-            stop += 1
-        self.influenced = slice(start, stop)
+        Here, this is all the elements between this command and the next
+        ``LATTICE`` or ``LATTICE_END`` instruction.
+
+        """
+        start = self.idx["dat_idx"] + 1
+        self.influenced = self._indexes_between_this_command_and(
+            instructions[start:], Lattice, LatticeEnd
+        )
 
     def apply(
         self, instructions: list[Instruction], **kwargs: float
@@ -91,7 +91,7 @@ class Lattice(Command):
     ) -> int:
         """Get lattice number of current object.
 
-        We look for :class:`Element` in ``instructions``in reversed order,
+        We look for :class:`Element` in ``instructions`` in reversed order,
         starting from ``self``. We take the first non negative lattice index
         that we find, and return it + 1.
         If we do not find anything, this is because no :class:`Element` had a
@@ -106,7 +106,7 @@ class Lattice(Command):
         reversed_instructions_before_self = instructions_before_self[::-1]
 
         for instruction in reversed_instructions_before_self:
-            if isinstance(instruction, Element):
+            if isinstance(element := instruction, Element):
                 previous_lattice_number = instruction.idx["lattice"]
 
                 if previous_lattice_number >= 0:
@@ -124,18 +124,30 @@ class LatticeEnd(Command):
     def set_influenced_elements(
         self, instructions: list[Instruction], **kwargs: float
     ) -> None:
-        """Determine the index of the elements concerned by :func:`apply`."""
-        start = self.idx["dat_idx"]
-        stop = start
-        for instruction in instructions[start:]:
-            if isinstance(instruction, Lattice):
-                self.influenced = slice(start, stop)
-                return
-            stop += 1
-        self.influenced = slice(start, stop)
+        """Determine the index of the elements concerned by :func:`apply`.
+
+        Here, this is all the elements that are between this command and the
+        next ``LATTICE`` instruction.
+
+        """
+        start = self.idx["dat_idx"] + 1
+        self.influenced = self._indexes_between_this_command_and(
+            instructions[start:], Lattice
+        )
 
     def apply(
         self, instructions: list[Instruction], **kwargs: float
     ) -> list[Instruction]:
-        """Do nothing, everything is handled by :class:`Lattice`."""
+        """Reset the lattice index of every influenced element.
+
+        .. todo::
+            As for now, the effect of this command will be overriden by the
+            _force_a_lattice_for_every_element. See how I should handle this...
+
+        """
+        for instruction in instructions[self.influenced]:
+            if not isinstance(element := instruction, Element):
+                continue
+            element.idx["lattice"] = -1
+            element.idx["idx_in_lattice"] = -1
         return instructions
