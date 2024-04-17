@@ -162,12 +162,18 @@ cython_debug/
 
 # LightWin
 archives/
-data/
+
+data/from_tracewin_examples/
+data/example/*.py
+data/example/results/
+data/example/results_tests/
+
 docs/source/manual/notebooks/*.py
 images/
 source/build/
 source/untitled*.py
 *.c
+*.cal
 *.json
 *.old
 *.pdf
