@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - New design space `"rel_phase_amplitude_with_constrained_sync_phase"`
+- Pytest for basic compensation with all `BeamCalculator`
+- Pytest for every `Design Space`
 
 ### Changed
 
@@ -24,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Lattices and their indexes correctly set.
+- Synchronous phases correctly calculated and updated; can be used as a variable again.
 
 ### Security
 
