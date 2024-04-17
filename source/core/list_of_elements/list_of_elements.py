@@ -22,6 +22,11 @@ import numpy as np
 from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
+from core.list_of_elements.helper import (
+    group_elements_by_lattice,
+    group_elements_by_section,
+    group_elements_by_section_and_lattice,
+)
 from core.particle import ParticleInitialState
 from tracewin_utils.dat_files import (
     save_dat_filecontent_to_dat,
@@ -201,9 +206,9 @@ class ListOfElements(list):
 
     def _first_init(self) -> None:
         """Set structure, elements name, some indexes."""
-        by_section = _group_elements_by_section(self)
-        self.by_lattice = _group_elements_by_lattice(self)
-        self.by_section_and_lattice = _group_elements_by_section_and_lattice(
+        by_section = group_elements_by_section(self)
+        self.by_lattice = group_elements_by_lattice(self)
+        self.by_section_and_lattice = group_elements_by_section_and_lattice(
             by_section
         )
         self._set_element_indexes()
@@ -263,47 +268,3 @@ class ListOfElements(list):
             elt_or_cmd.line for elt_or_cmd in self.files["elts_n_cmds"]
         ]
         save_dat_filecontent_to_dat(dat_content, dat_file)
-
-
-def _group_elements_by_section(
-    elts: list[Element],
-) -> list[list[Element]]:
-    """Group elements by section."""
-    n_sections = elts[-1].idx["section"] + 1
-    by_section = [
-        list(filter(lambda elt: elt.idx["section"] == current_section, elts))
-        for current_section in range(n_sections)
-    ]
-    return by_section
-
-
-def _group_elements_by_section_and_lattice(
-    by_section: list[list[Element]],
-) -> list[list[list[Element]]]:
-    """Regroup Elements by Section and then by Lattice."""
-    by_section_and_lattice = [
-        _group_elements_by_lattice(section) for section in by_section
-    ]
-    return by_section_and_lattice
-
-
-def _group_elements_by_lattice(
-    elts: list[Element],
-) -> list[list[Element]]:
-    """Regroup the Element belonging to the same Lattice."""
-    idx_first_lattice = elts[0].idx["lattice"]
-    idx_last_lattice = elts[-1].idx["lattice"]
-    n_lattices = idx_last_lattice + 1
-    by_lattice = [
-        list(
-            filter(
-                lambda elt: (
-                    elt.idx["lattice"] >= 0
-                    and elt.idx["lattice"] == current_lattice
-                ),
-                elts,
-            )
-        )
-        for current_lattice in range(idx_first_lattice, n_lattices)
-    ]
-    return by_lattice

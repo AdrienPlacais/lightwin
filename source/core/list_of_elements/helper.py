@@ -8,13 +8,16 @@
 """
 import logging
 from functools import partial
-from typing import Any, Sequence, Type, TypeGuard
+from typing import Any, Sequence, Type, TypeGuard, TypeVar
 
 import numpy as np
 
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
-from core.list_of_elements.list_of_elements import ListOfElements
+
+# from core.list_of_elements.list_of_elements import ListOfElements
+
+ListOfElements = TypeVar("ListOfElements")
 
 
 def is_list_of(elts: Sequence, type_to_check: Type) -> TypeGuard[Type]:
@@ -26,7 +29,9 @@ def is_list_of(elts: Sequence, type_to_check: Type) -> TypeGuard[Type]:
 
 def is_list_of_elements(elts: Sequence) -> TypeGuard[list[Element]]:
     """Check that all elements of input are :class:`.Element`."""
-    if isinstance(elts, ListOfElements):
+    # if isinstance(elts, ListOfElements):
+    #     return True
+    if hasattr(elts, "input_particle"):
         return True
     return is_list_of(elts, Element)
 
@@ -39,7 +44,7 @@ def is_list_of_list_of_elements(
 
 
 def filter_out(
-    elts: ListOfElements | list[Element] | list[list[Element]],
+    elts: ListOfElements | Sequence[Element] | Sequence[Sequence[Element]],
     to_exclude: tuple[type],
 ) -> Any:
     """Filter out types while keeping the input list structure.
@@ -62,7 +67,7 @@ def filter_out(
 
 
 def filter_elts(
-    elts: ListOfElements | list[Element], type_to_check: Type
+    elts: ListOfElements | Sequence[Element], type_to_check: Type
 ) -> list[Type]:
     """Filter elements according to their type.
 
@@ -77,7 +82,9 @@ filter_cav = partial(filter_elts, type_to_check=FieldMap)
 
 
 def elt_at_this_s_idx(
-    elts: ListOfElements | list[Element], s_idx: int, show_info: bool = False
+    elts: ListOfElements | Sequence[Element],
+    s_idx: int,
+    show_info: bool = False,
 ) -> Element | None:
     """Give the element where the given index is.
 
@@ -225,3 +232,43 @@ def indiv_to_cumul_transf_mat(
             r_zz_elt[i - 1] @ cumulated_transfer_matrices[i - 1]
         )
     return cumulated_transfer_matrices
+
+
+def group_elements_by_section(elts: Sequence[Element]) -> list[list[Element]]:
+    """Group elements by section."""
+    n_sections = elts[-1].idx["section"] + 1
+    by_section = [
+        list(filter(lambda elt: elt.idx["section"] == current_section, elts))
+        for current_section in range(n_sections)
+    ]
+    return by_section
+
+
+def group_elements_by_section_and_lattice(
+    by_section: Sequence[Sequence[Element]],
+) -> list[list[list[Element]]]:
+    """Regroup Elements by Section and then by Lattice."""
+    by_section_and_lattice = [
+        group_elements_by_lattice(section) for section in by_section
+    ]
+    return by_section_and_lattice
+
+
+def group_elements_by_lattice(elts: Sequence[Element]) -> list[list[Element]]:
+    """Regroup the Element belonging to the same Lattice."""
+    idx_first_lattice = elts[0].idx["lattice"]
+    idx_last_lattice = elts[-1].idx["lattice"]
+    n_lattices = idx_last_lattice + 1
+    by_lattice = [
+        list(
+            filter(
+                lambda elt: (
+                    elt.idx["lattice"] >= 0
+                    and elt.idx["lattice"] == current_lattice
+                ),
+                elts,
+            )
+        )
+        for current_lattice in range(idx_first_lattice, n_lattices)
+    ]
+    return by_lattice
