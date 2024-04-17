@@ -8,13 +8,13 @@
 
 """
 from abc import abstractmethod
+from collections.abc import Sequence
 
 from core.instruction import Instruction
 
 
 class Command(Instruction):
-    """
-    A generic Command class.
+    """A generic Command class.
 
     Parameters
     ----------
@@ -45,12 +45,16 @@ class Command(Instruction):
         self.influenced = slice(0, 1)
         self.is_implemented = is_implemented
 
-    @abstractmethod
     def set_influenced_elements(
         self, instructions: list[Instruction], **kwargs: float
     ) -> None:
         """Determine the index of the elements concerned by :func:`apply`."""
-        self.influenced = slice(0, 1)
+        start = self.idx["dat_idx"] + 1
+        influenced = self._indexes_between_this_command_and(
+            instructions[start:], type(self)
+        )
+        self.influenced = influenced
+        return
 
     @abstractmethod
     def apply(
@@ -77,3 +81,40 @@ class Command(Instruction):
 
         intersect = list(set(idx_influenced).intersection(dat_indexes))
         return len(intersect) > 0
+
+    def _indexes_between_this_command_and(
+        self,
+        instructions_after_self: Sequence[Instruction],
+        *stop_types: type,
+    ) -> slice:
+        """
+        Determine the indexes of the instructions affected by an instruction.
+
+        We return the indexes of instructions between the first of
+        ``instructions`` and the first instruction which type is in
+        ``stop_types``.
+
+        Parameters
+        ----------
+        instructions_after_self : Sequence[Instruction]
+            All instructions after ``self`` (``self`` not included).
+        stop_types : type
+            Type(s) of commands after which ``self`` has no influence. If not
+            provided, we set it to the type of ``self``. In other words, a
+            ``FREQ`` influences every element up to the following ``FREQ``.
+
+        Returns
+        -------
+        slice
+            All the indexes of the instrutions that will be affected by self.
+
+        """
+        if len(stop_types) == 0:
+            stop_types = (type(self),)
+        start = self.idx["dat_idx"] + 1
+        i = 0
+        for i, instruction in enumerate(instructions_after_self):
+            if isinstance(instruction, stop_types):
+                break
+        influenced = slice(start, start + i)
+        return influenced
