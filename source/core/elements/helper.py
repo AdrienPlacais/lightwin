@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """Define helper functions applying on elements."""
 import logging
+from collections.abc import Sequence
 
 from core.elements.element import Element
 
 
 def give_name_to_elements(
-    elts: list[Element], warn_default_element_names: bool = True
+    elts: Sequence[Element], warn_default_element_names: bool = True
 ) -> None:
     """Give to every :class:`.Element the name TraceWin would give it."""
     civil_register: dict[str, int] = {}
@@ -36,12 +37,10 @@ def give_name_to_elements(
     )
 
 
-def force_a_section_for_every_element(
-    elts_without_dummies: list[Element],
-) -> None:
+def force_a_section_for_every_element(elts: Sequence[Element]) -> None:
     """Give a section index to every element."""
     idx_section = 0
-    for elt in elts_without_dummies:
+    for elt in elts:
         idx = elt.idx["section"]
         if idx < 0:
             elt.idx["section"] = idx_section
@@ -50,9 +49,7 @@ def force_a_section_for_every_element(
     return
 
 
-def force_a_lattice_for_every_element(
-    elts_without_dummies: list[Element],
-) -> None:
+def force_a_lattice_for_every_element(elts: Sequence[Element]) -> None:
     """Give a lattice index to every element.
 
     Elements before the first LATTICE command will be in the same lattice as
@@ -104,7 +101,7 @@ def force_a_lattice_for_every_element(
           - 1
     """
     idx_lattice = 0
-    for elt in elts_without_dummies:
+    for elt in elts:
         idx = elt.idx["lattice"]
         if idx < 0:
             elt.idx["lattice"] = idx_lattice
