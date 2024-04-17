@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.16]
+## [0.6.16] 2024-04-17
 
 ### Added
 - New design space `"rel_phase_amplitude_with_constrained_sync_phase"`
@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Support for `.ini` configuration files.
+- `"phi_s_fit"` entry in configuration (use the proper design space config entry instead)
 
 ### Fixed
 - Lattices and their indexes correctly set.
