@@ -16,13 +16,18 @@ from typing import Any
 from config.helper import check_type, find_file
 
 IMPLEMENTED_DESIGN_SPACE_PRESETS = (
+    "abs_phase_amplitude",
+    "rel_phase_amplitude",
+    "sync_phase_amplitude",
+    "abs_phase_amplitude_with_constrained_sync_phase",
+    "rel_phase_amplitude_with_constrained_sync_phase",
+    "everything",
+    # outdated
     "unconstrained",
     "unconstrained_rel",
     "constrained_sync_phase",
     "sync_phase_as_variable",
-    "FM4_MYRRHA",
     "experimental",
-    "everything",
 )
 
 
@@ -36,8 +41,8 @@ def test(
     if design_space_preset not in IMPLEMENTED_DESIGN_SPACE_PRESETS:
         logging.error(
             f"{design_space_preset = } is not in "
-            f"{IMPLEMENTED_DESIGN_SPACE_PRESETS = }. Program will "
-            "try and continue anyway..."
+            f"{IMPLEMENTED_DESIGN_SPACE_PRESETS = }. Program will try and "
+            "continue anyway..."
         )
         return
 
