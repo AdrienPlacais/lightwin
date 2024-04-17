@@ -23,9 +23,8 @@ class Lattice(Command):
 
             if self.n_macro_lattice > 1:
                 logging.warning(
-                    "Macro-lattice not implemented. LightWin will "
-                    "consider that number of macro-lattice per "
-                    "lattice is 1 or 0."
+                    "Macro-lattice not implemented. LightWin will consider "
+                    "that number of macro-lattice per lattice is 1 or 0."
                 )
 
     def set_influenced_elements(
@@ -57,16 +56,18 @@ class Lattice(Command):
         for instruction in instructions[self.influenced]:
             if isinstance(instruction, SuperposeMap):
                 logging.error(
-                    "SuperposeMap not implemented. Will mess with "
-                    "indexes..."
+                    "SuperposeMap not implemented. Will mess with indexes..."
                 )
 
             if isinstance(instruction, (Command, Comment)):
                 continue
+            assert isinstance(element := instruction, Element)
+            if not element.increment_lattice_idx:
+                continue
 
-            instruction.idx["lattice"] = current_lattice_number
-            instruction.idx["section"] = current_section_number
-            instruction.idx["idx_in_lattice"] = index_in_current_lattice
+            element.idx["lattice"] = current_lattice_number
+            element.idx["section"] = current_section_number
+            element.idx["idx_in_lattice"] = index_in_current_lattice
 
             index_in_current_lattice += 1
             if index_in_current_lattice == self.n_lattice:
@@ -75,10 +76,7 @@ class Lattice(Command):
 
         return instructions
 
-    def _current_section_number(
-        self,
-        instructions: list[Instruction],
-    ) -> int:
+    def _current_section_number(self, instructions: list[Instruction]) -> int:
         """Get section number of ``self``."""
         all_lattice_commands = list(
             filter(
@@ -91,12 +89,11 @@ class Lattice(Command):
     def _current_lattice_number(
         self, instructions: list[Instruction], index: int
     ) -> int:
-        """
-        Get lattice number of current object.
+        """Get lattice number of current object.
 
         We look for :class:`Element` in ``instructions``in reversed order,
-        starting from ``self``. We take the first non None lattice index that
-        we find, and return it + 1.
+        starting from ``self``. We take the first non negative lattice index
+        that we find, and return it + 1.
         If we do not find anything, this is because no :class:`Element` had a
         defined lattice number before.
 
@@ -110,11 +107,9 @@ class Lattice(Command):
 
         for instruction in reversed_instructions_before_self:
             if isinstance(instruction, Element):
-                previous_lattice_number = instruction.get(
-                    "lattice", to_numpy=False
-                )
+                previous_lattice_number = instruction.idx["lattice"]
 
-                if previous_lattice_number is not None:
+                if previous_lattice_number >= 0:
                     return previous_lattice_number + 1
         return 0
 
