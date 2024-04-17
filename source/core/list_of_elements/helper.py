@@ -234,9 +234,23 @@ def indiv_to_cumul_transf_mat(
     return cumulated_transfer_matrices
 
 
-def group_elements_by_section(elts: Sequence[Element]) -> list[list[Element]]:
+def group_elements_by_section(
+    elts: Sequence[Element], n_to_check: int = 10
+) -> Sequence[Sequence[Element]]:
     """Group elements by section."""
-    n_sections = elts[-1].idx["section"] + 1
+    n_sections = (
+        _get_first_key_of_idx_dict_higher_than(
+            elts,
+            index_name="section",
+            first_or_last="last",
+            higher_than=-1,
+            n_to_check=n_to_check,
+        )
+        + 1
+    )
+    if n_sections <= 0:
+        return [elts]
+
     by_section = [
         list(filter(lambda elt: elt.idx["section"] == current_section, elts))
         for current_section in range(n_sections)
@@ -256,14 +270,18 @@ def group_elements_by_section_and_lattice(
 
 def group_elements_by_lattice(elts: Sequence[Element]) -> list[list[Element]]:
     """Regroup the Element belonging to the same Lattice."""
-    idx_first_lattice = elts[0].idx["lattice"]
-    idx_last_lattice = elts[-1].idx["lattice"]
+    idx_first_lattice = _get_first_key_of_idx_dict_higher_than(
+        elts, index_name="lattice", first_or_last="first", higher_than=-1
+    )
+    idx_last_lattice = _get_first_key_of_idx_dict_higher_than(
+        elts, index_name="lattice", first_or_last="last", higher_than=-1
+    )
     n_lattices = idx_last_lattice + 1
     by_lattice = [
         list(
             filter(
                 lambda elt: (
-                    elt.idx["lattice"] >= 0
+                    elt.increment_lattice_idx
                     and elt.idx["lattice"] == current_lattice
                 ),
                 elts,
@@ -272,3 +290,61 @@ def group_elements_by_lattice(elts: Sequence[Element]) -> list[list[Element]]:
         for current_lattice in range(idx_first_lattice, n_lattices)
     ]
     return by_lattice
+
+
+def _get_first_key_of_idx_dict_higher_than(
+    elts: Sequence[Element],
+    *,
+    index_name: str,
+    first_or_last: str,
+    higher_than: int = -1,
+    n_to_check: int = 10,
+) -> int:
+    """Take first valid idx in ``n_to_check`` first/last elements of ``elts``.
+
+    Typical usage is getting the number of sections or lattice by taking the
+    last element with a section/lattice index higher than -1.
+
+    Parameters
+    ----------
+    elts : Sequence[Element]
+        List of elements to check.
+    index_name : str
+        Name of the index to get. Must be a key of :attr:`.Element.idx`.
+    first_or_last : {'first', 'last'}
+        If we want to check the ``n_to_check`` first or last elements.
+    higher_than : int, optional
+        The index under which the value is invalid. The default is -1, which is
+        the initialisation index for all the values of the ``idx`` dictionary.
+    n_to_check : int, optional
+        Number of elements in which we will look for the index.
+
+    Returns
+    -------
+    int
+        The first valid index that is found.
+
+    """
+    assert first_or_last in ("first", "last")
+    elts_to_check = elts[: n_to_check + 1]
+    if first_or_last == "last":
+        elts_to_check = elts[: -n_to_check - 1 : -1]
+
+    index = -1
+    for elt in elts_to_check:
+        index = elt.idx.get(index_name, None)
+        if index is None:
+            logging.warning(
+                f"Could not find key {index_name} in {elt} idx dictionary "
+                f"because it does not exist. {elt.idx = }."
+            )
+            continue
+        if index > higher_than:
+            return index
+
+    logging.warning(
+        f"There is no element with an attribute idx['{index_name}'] higher "
+        f"than {higher_than} in the {n_to_check} {first_or_last} elements of "
+        "provided list of elements."
+    )
+    return -1
