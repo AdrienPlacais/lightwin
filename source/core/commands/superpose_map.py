@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Define a useless command to serve as place holder."""
 import logging
+from collections.abc import Sequence
 
 from core.commands.command import Command
 from core.commands.dummy_command import DummyCommand
@@ -143,9 +144,15 @@ class SuperposeMap(Command):
         return instructions_to_merge, number_of_superposed
 
     def _decrement_lattice_indexes(
-        self, elts_after_self: list[Element], number_of_superposed: int
+        self, elts_after_self: Sequence[Element], number_of_superposed: int
     ) -> None:
-        """Decrement some lattice numbers to take removed elts into account."""
+        """Decrement some lattice numbers to take removed elts into account.
+
+        .. todo::
+            Check if this still works, as lattice and idx_in_lattice are now
+            initialized with -1 instead of None.
+
+        """
         for i, elt in enumerate(elts_after_self):
             if elt.idx["lattice"] < 0:
                 continue
