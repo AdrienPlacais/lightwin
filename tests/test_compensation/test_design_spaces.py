@@ -29,10 +29,31 @@ DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
 params = [
-    pytest.param(("unconstrained",), marks=pytest.mark.smoke),
-    pytest.param(("unconstrained_rel",), marks=pytest.mark.smoke),
-    pytest.param(("constrained_sync_phase",), marks=pytest.mark.smoke),
-    pytest.param(("sync_phase_as_variable",), marks=pytest.mark.smoke),
+    pytest.param(
+        ("abs_phase_amplitude",),
+        marks=pytest.mark.smoke,
+        id="vars: phi_0_abs and k_e",
+    ),
+    pytest.param(
+        ("rel_phase_amplitude",),
+        marks=pytest.mark.smoke,
+        id="vars: phi_0_rel and k_e",
+    ),
+    pytest.param(
+        ("sync_phase_amplitude",),
+        marks=pytest.mark.smoke,
+        id="vars: phi_s and k_e",
+    ),
+    pytest.param(
+        ("abs_phase_amplitude_with_constrained_sync_phase",),
+        marks=pytest.mark.smoke,
+        id="vars: phi_0_abs and k_e; constr: phi_s",
+    ),
+    pytest.param(
+        ("rel_phase_amplitude_with_constrained_sync_phase",),
+        marks=pytest.mark.smoke,
+        id="vars: phi_0_rel and k_e; constr: phi_s",
+    ),
 ]
 
 
