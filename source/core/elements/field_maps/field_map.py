@@ -251,10 +251,10 @@ class FieldMap(Element):
         """Give the position of the arguments in the ``FIELD_MAP ``command."""
         indexes = {"phase": 3, "k_e": 6, "abs_phase_flag": 10}
 
-        if not hasattr(self, "_personalized_name"):
-            return indexes
-        for key in indexes:
-            indexes[key] += 1
+        # if not hasattr(self, "_personalized_name"):
+        #     return indexes
+        # for key in indexes:
+        #     indexes[key] += 1
         return indexes
 
     def _phase_for_line(self, which_phase: str) -> tuple[float, int]:
