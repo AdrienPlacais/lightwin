@@ -40,6 +40,23 @@ def update_field_maps_in_dat(
     .. todo::
         handle personalized name of elements better
 
+    .. note::
+        If a :class:`.FieldMap` is not found in ``new_phases``/``new_k_e``/
+        ``new_abs_phase_flag``, its phase/amplitude/phase flag will not be
+        modified.
+
+    Parameters
+    ----------
+    elts : object
+        List of elements to save.
+    new_phases : dict[FieldMap, float]
+        New phases; can be absolute or relative entry phase. Synchronous phases
+        not implemented yet.
+    new_k_e : dict[FieldMap, float]
+        New amplitudes.
+    new_abs_phase_flag : dict[FieldMap, int]
+        New absolute phase flag.
+
     """
     dat_content: list[list[str]] = []
     for instruction in elts.files["elts_n_cmds"]:
