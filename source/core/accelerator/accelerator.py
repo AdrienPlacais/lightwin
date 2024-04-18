@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds :class:`Accelerator`, the highest-level class of LightWin.
+"""Define :class:`Accelerator`, the highest-level class of LightWin.
 
 It holds, well... an accelerator. This accelerator has a
 :class:`.ListOfElements`. For each :class:`.BeamCalculator` defined, it has a
@@ -181,7 +180,9 @@ class Accelerator:
         }
         return _special_getters
 
-    def keep_settings(self, simulation_output: SimulationOutput) -> None:
+    def keep_settings(
+        self, simulation_output: SimulationOutput, output_phase: str
+    ) -> None:
         """Save cavity parameters in Elements and new .dat file.
 
         .. todo::
@@ -189,7 +190,6 @@ class Accelerator:
 
         """
         set_of_cavity_settings = simulation_output.set_of_cavity_settings
-        assert set_of_cavity_settings is not None
         for cavity, settings in set_of_cavity_settings.items():
             cavity.cavity_settings = settings
 
@@ -200,7 +200,10 @@ class Accelerator:
             self._accelerator_path / simulation_output.out_folder / filename
         )
 
-        self.elts.store_settings_in_dat(dat_file, save=True)
+        logging.warning("Manually set which_phase")
+        self.elts.store_settings_in_dat(
+            dat_file, which_phase="phi_0_rel", save=True
+        )
 
     def keep_simulation_output(
         self, simulation_output: SimulationOutput, beam_calculator_id: str

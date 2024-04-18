@@ -249,7 +249,9 @@ class FaultScenario(list):
                 self.fix_acc.elts, ref_simulation_output=ref_simulation_output
             )
 
-            self.fix_acc.keep_settings(simulation_output)
+            self.fix_acc.keep_settings(
+                simulation_output, output_phase=self._reference_phase
+            )
             self.fix_acc.simulation_outputs[self.beam_calculator.id] = (
                 simulation_output
             )

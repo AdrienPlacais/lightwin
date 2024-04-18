@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Define the class :class:`Fault`.
+"""Define the class :class:`Fault`.
 
-It's purpose is to hold information on a failure and to fix it.
+Its purpose is to hold information on a failure and to fix it.
 
 .. todo::
     not clear what happens here. separate __init__ in several functions
@@ -205,4 +204,7 @@ class Fault:
         for cav, stat in zip(elements, status):
             cav.update_status(stat)
 
-        self.elts.store_settings_in_dat(self.elts.files["dat_file"], save=True)
+        logging.warning("Manually set which_phase")
+        self.elts.store_settings_in_dat(
+            self.elts.files["dat_file"], which_phase="phi_0_rel", save=True
+        )

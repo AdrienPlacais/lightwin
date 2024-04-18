@@ -274,8 +274,10 @@ class BeamCalculator(ABC):
             accelerator.elts, ref_simulation_output
         )
         if keep_settings:
-            accelerator.keep_settings(simulation_output)
             accelerator.keep_simulation_output(simulation_output, self.id)
+            accelerator.keep_settings(
+                simulation_output, output_phase=self.reference_phase
+            )
 
         end_time = time.monotonic()
         delta_t = datetime.timedelta(seconds=end_time - start_time)

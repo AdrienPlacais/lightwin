@@ -28,10 +28,7 @@ from core.list_of_elements.helper import (
     group_elements_by_section_and_lattice,
 )
 from core.particle import ParticleInitialState
-from tracewin_utils.dat_files import (
-    save_dat_filecontent_to_dat,
-    update_field_maps_in_dat,
-)
+from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 from tracewin_utils.interface import list_of_elements_to_command
 from util.helper import recursive_getter, recursive_items
 
@@ -237,8 +234,23 @@ class ListOfElements(list):
                 continue
             settings.reference = new_reference_phase
 
-    def store_settings_in_dat(self, dat_file: Path, save: bool = True) -> None:
-        """Update the dat file, save it if asked.
+    def store_settings_in_dat(
+        self,
+        dat_file: Path,
+        which_phase: str = "phi_0_abs",
+        save: bool = True,
+    ) -> None:
+        r"""Update the ``dat`` file, save it if asked.
+
+        Parameters
+        ----------
+        dat_file : Path
+            Where the output ``.dat`` should be saved.
+        which_phase : {'phi_0_abs', 'phi_0_rel', 'phi_s', 'as_in_settings',
+                \ 'as_in_original_dat'}
+            Which phase should be putted in the output ``.dat``.
+        save : bool, optional
+            If the output file should be created. The default is True.
 
         Important notice
         ----------------
@@ -247,24 +259,10 @@ class ListOfElements(list):
         cavity with the intended phase in :class:`.TraceWin`.
 
         """
-        new_phases = {
-            cavity: cavity.cavity_settings.phi_ref for cavity in self.l_cav
-        }
-        new_k_e = {cavity: cavity.cavity_settings.k_e for cavity in self.l_cav}
-        new_abs_phase_flag = {
-            cavity: int(cavity.cavity_settings.reference == "phi_0_abs")
-            for cavity in self.l_cav
-        }
-
-        update_field_maps_in_dat(
-            self,
-            new_phases=new_phases,
-            new_k_e=new_k_e,
-            new_abs_phase_flag=new_abs_phase_flag,
-        )
-
         self.files["dat_file"] = dat_file
         dat_content = [
-            elt_or_cmd.line for elt_or_cmd in self.files["elts_n_cmds"]
+            elt_or_cmd.to_line(which_phase=which_phase, inplace=False)
+            for elt_or_cmd in self.files["elts_n_cmds"]
         ]
-        save_dat_filecontent_to_dat(dat_content, dat_file)
+        if save:
+            save_dat_filecontent_to_dat(dat_content, dat_file)

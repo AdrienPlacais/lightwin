@@ -318,7 +318,9 @@ class TraceWin(BeamCalculator):
         """
         optimized_cavity_settings.re_set_elements_index_to_absolute_value()
 
-        full_elts.store_settings_in_dat(full_elts.files["dat_file"])
+        full_elts.store_settings_in_dat(
+            full_elts.files["dat_file"], which_phase=self.reference_phase
+        )
 
         simulation_output = self.run_with_this(
             optimized_cavity_settings, full_elts, **specific_kwargs
