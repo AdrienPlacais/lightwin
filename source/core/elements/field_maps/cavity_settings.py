@@ -233,11 +233,15 @@ class CavitySettings:
         )
         return settings
 
-    def _attr_to_str(self, attr_name: str) -> str:
+    def _attr_to_str(self, attr_name: str, to_deg: bool = True) -> str:
         """Give the attribute as string."""
         attr_val = getattr(self, attr_name, None)
         if attr_val is None:
             return f"{attr_name}: {'None':>7}"
+        if to_deg and "phi" in attr_name:
+            attr_val = math.degrees(attr_val)
+            if attr_val > 180.0:
+                attr_val -= 360.0
         return f"{attr_name}: {attr_val:3.5f}"
 
     def has(self, key: str) -> bool:
@@ -476,8 +480,8 @@ class CavitySettings:
             )
             return None
 
-        phi_0_from_phi_s_calc = getattr(self, "_phi_s_to_phi_0_rel", None)
-        if phi_0_from_phi_s_calc is None:
+        phi_s_to_phi_0_rel = getattr(self, "_phi_s_to_phi_0_rel", None)
+        if phi_s_to_phi_0_rel is None:
             logging.error(
                 f"{self = }: you must set a function to compute phi_0_rel from"
                 " phi_s with CavitySettings.set_cavity_parameters_methods"
@@ -485,7 +489,7 @@ class CavitySettings:
             )
             return None
 
-        self.phi_0_rel = phi_0_from_phi_s_calc(self._phi_s)
+        self.phi_0_rel = phi_s_to_phi_0_rel(self._phi_s)
         return self._phi_0_rel
 
     # =============================================================================
