@@ -179,13 +179,6 @@ class FaultScenario(list):
         first_failed_cavity = self[0].failed_elements[0]
         first_failed_index = cavities.index(first_failed_cavity)
 
-        # old:
-        # cavities_to_rephase = [cav for cav in cavities[first_failed_index:]
-        # if cav.get('status') == 'nominal']
-        # may remove this if proven unneccessary
-        for cav in cavities:
-            assert cav.status == "nominal"
-        # new:
         cavities_to_rephase = cavities[first_failed_index:]
         for cav in cavities_to_rephase:
             cav.update_status("rephased (in progress)")
