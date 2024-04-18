@@ -20,7 +20,6 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.elements.element import Element
-from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.helper import equivalent_elt
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -205,4 +204,5 @@ class Fault:
 
         for cav, stat in zip(elements, status):
             cav.update_status(stat)
+
         self.elts.store_settings_in_dat(self.elts.files["dat_file"], save=True)
