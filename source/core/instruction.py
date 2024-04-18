@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Here we define a dummy :class:`.Element`/:class:`.Command`.
+"""Define a dummy :class:`.Element`/:class:`.Command`.
 
 We use it to keep track of non-implemented elements/commands.
 
@@ -51,6 +50,10 @@ class Instruction(ABC):
                 return self._default_name
             return str(self.line)
         return self._personalized_name
+
+    def to_line(self, *args, **kwargs) -> list[str]:
+        """Convert the object back into a ``.dat`` line."""
+        return self.line
 
 
 class Dummy(Instruction):
