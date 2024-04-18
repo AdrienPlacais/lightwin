@@ -150,9 +150,7 @@ class Envelope3D(BeamCalculator):
         )
 
         for elt in elts:
-            cavity_settings = self._proper_cavity_settings(
-                elt, set_of_cavity_settings
-            )
+            cavity_settings = set_of_cavity_settings.get(elt, None)
             rf_field_kwargs = {}
             if cavity_settings is not None:
                 rf_field_kwargs = self._adapt_cavity_settings(

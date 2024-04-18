@@ -299,11 +299,3 @@ class BeamCalculator(ABC):
         _field_map_factory = _element_factory.field_map_factory
         cavity_settings_factory = _field_map_factory.cavity_settings_factory
         return cavity_settings_factory
-
-    def _proper_cavity_settings(
-        self,
-        element: Element,
-        set_of_cavity_settings: SetOfCavitySettings,
-    ) -> CavitySettings | None:
-        """Take proper :class:`.CavitySettings`."""
-        return set_of_cavity_settings.get(element, None)

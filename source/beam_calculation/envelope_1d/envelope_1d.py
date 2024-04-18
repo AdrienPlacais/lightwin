@@ -138,17 +138,19 @@ class Envelope1D(BeamCalculator):
         )
 
         for elt in elts:
-            cavity_settings = self._proper_cavity_settings(
-                elt, set_of_cavity_settings
-            )
+            cavity_settings = set_of_cavity_settings.get(elt, None)
             rf_field_kwargs = {}
             if cavity_settings is not None:
                 rf_field_kwargs = self._adapt_cavity_settings(
                     elt, cavity_settings, phi_abs, w_kin
                 )
+            # Technically: if we made a phi_s fit, following lines are useless
+            # elt_results already calculated
+            # v_cav, phi_s already calculated
 
             func = elt.beam_calc_param[self.id].transf_mat_function_wrapper
             elt_results = func(w_kin, **rf_field_kwargs)
+
             if cavity_settings is not None:
                 v_cav_mv, phi_s = self._compute_cavity_parameters(elt_results)
                 cavity_settings.v_cav_mv = v_cav_mv
