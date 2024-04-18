@@ -16,7 +16,6 @@ It's purpose is to hold information on a failure and to fix it.
 import logging
 from typing import Any
 
-import config_manager as con
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
@@ -27,14 +26,10 @@ from core.list_of_elements.helper import equivalent_elt
 from core.list_of_elements.list_of_elements import ListOfElements
 from failures.set_of_cavity_settings import SetOfCavitySettings
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
-from optimisation.design_space.constraint import Constraint
-from optimisation.design_space.design_space import DesignSpace
 from optimisation.design_space.factory import DesignSpaceFactory
-from optimisation.design_space.variable import Variable
 from optimisation.objective.factory import (
     get_objectives_and_residuals_function,
 )
-from optimisation.objective.objective import Objective
 
 
 class Fault:
