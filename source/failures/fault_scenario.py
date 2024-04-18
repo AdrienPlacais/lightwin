@@ -254,7 +254,6 @@ class FaultScenario(list):
                 simulation_output
             )
 
-            fault.get_x_sol_in_real_phase(self._reference_phase)
             fault.update_elements_status(optimisation="finished", success=True)
 
             if not self.beam_calculator.flag_phi_abs:

@@ -206,24 +206,3 @@ class Fault:
         for cav, stat in zip(elements, status):
             cav.update_status(stat)
         self.elts.store_settings_in_dat(self.elts.files["dat_file"], save=True)
-
-    def get_x_sol_in_real_phase(self, reference_phase: str) -> None:
-        """Get least-square solutions in rel/abs phases instead of synchronous.
-
-        .. todo::
-            Still useful?
-
-        .. deprecated:: 0.6.16
-            Info contained in :class:`.CavitySettings`
-
-        """
-        # First half of X array: phase of elements (relative or synchronous
-        # according to the value of wtf['phi_s fit']).
-        # Second half is the norms of elements
-        x_in_real_phase = self.info["X"].copy()
-
-        for i, cav in enumerate(self.compensating_elements):
-            assert isinstance(cav, FieldMap)
-            x_in_real_phase[i] = getattr(cav.cavity_settings, reference_phase)
-            # second half of the array remains untouched
-        self.info["X_in_real_phase"] = x_in_real_phase
