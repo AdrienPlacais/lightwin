@@ -309,6 +309,17 @@ class FaultScenario(list):
 
         for cav in rephased_cavities_between_two_faults:
             cav.update_status("rephased (ok)")
+        return
+        # New implementation to test
+        idx_start = elts.index(fault.elts[-1])
+        for elt in elts[idx_start:]:
+            if elt.nature != "FIELD_MAP":
+                continue
+            if elt.status == "rephased (in progress)":
+                elt.update_status("rephased (ok)")
+                continue
+            if "compensate" in elt.status or "failed" in elt.status:
+                return
 
     def _transfer_phi0_from_ref_to_broken(self) -> None:
         """Transfer the entry phases from reference linac to broken.
