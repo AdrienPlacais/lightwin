@@ -20,10 +20,10 @@ DATA_DIR = Path("data", "example")
 TEST_DIR = Path("tests")
 
 params = [
-    pytest.param(("downhill_simplex",), marks=pytest.mark.smoke),
     pytest.param(
-        ("least_squares",),
+        ("downhill_simplex",), marks=pytest.mark.smoke, id="Downhill Simplex"
     ),
+    pytest.param(("least_squares",), id="Least Squares"),
 ]
 
 
