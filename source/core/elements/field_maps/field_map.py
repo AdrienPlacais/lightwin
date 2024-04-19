@@ -77,6 +77,7 @@ class FieldMap(Element):
         self.field_map_file_name = Path(line[9])
 
         self.new_rf_field: NewRfField
+        self._can_be_retuned: bool = True
 
     @property
     def status(self) -> str:
@@ -93,7 +94,12 @@ class FieldMap(Element):
     @property
     def can_be_retuned(self) -> bool:
         """Tell if we can modify the element's tuning."""
-        return True
+        return self._can_be_retuned
+
+    @can_be_retuned.setter
+    def can_be_retuned(self, value: bool) -> None:
+        """Forbid this cavity from being retuned (or re-allow it)."""
+        self._can_be_retuned = value
 
     def update_status(self, new_status: str) -> None:
         """Change the status of the cavity.
