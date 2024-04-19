@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Define an object to evaluate quality of a set of cavity settings.
+"""Define an object to evaluate quality of a set of cavity settings.
 
 .. note::
     We do not directly evaluate a :class:`.SetOfCavitySettings` though, but
@@ -11,22 +10,22 @@ Define an object to evaluate quality of a set of cavity settings.
     different factories for evaluation during the fit and evaluation after
 
 """
+import logging
 from abc import ABC
 from dataclasses import dataclass
 from functools import partial
-import logging
 from pathlib import Path
 from typing import Any, Callable
 
 import numpy as np
-from matplotlib.figure import Figure
 from matplotlib.axes._axes import Axes
+from matplotlib.figure import Figure
 
+import util.dicts_output as dic
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from evaluator.post_treaters import do_nothing
-import util.dicts_output as dic
 from util.helper import resample
 from visualization import plot
 
@@ -34,9 +33,10 @@ from visualization import plot
 # =============================================================================
 # Helpers
 # =============================================================================
-def _need_to_resample(value: np.ndarray | float,
-                      ref_value: np.ndarray | float,
-                      ) -> bool:
+def _need_to_resample(
+    value: np.ndarray | float,
+    ref_value: np.ndarray | float,
+) -> bool:
     """Determine if we need to resample ``value`` or ``ref_value``."""
     if isinstance(value, float) or isinstance(ref_value, float):
         return False
@@ -48,8 +48,7 @@ def _need_to_resample(value: np.ndarray | float,
 
 
 def _return_value_should_be_plotted(partial_function: Callable) -> bool:
-    """
-    Determine if keyword 'to_plot' was passed and is True.
+    """Determine if keyword 'to_plot' was passed and is True.
 
     This function only works on functions defined by ``functools.partial``. If
     it is not (lambda function, "classic" function), we consider that the
@@ -62,26 +61,29 @@ def _return_value_should_be_plotted(partial_function: Callable) -> bool:
         return False
 
     keywords = partial_function.keywords
-    if 'to_plot' not in keywords:
+    if "to_plot" not in keywords:
         return False
 
-    return keywords['to_plot']
+    return keywords["to_plot"]
 
 
-def _limits_given_in_functoolspartial_args(partial_function: Callable
-                                           ) -> tuple[np.ndarray | float, ...]:
+def _limits_given_in_functoolspartial_args(
+    partial_function: Callable,
+) -> tuple[np.ndarray | float, ...]:
     """Extract the limits given to a test function."""
     if not isinstance(partial_function, partial):
         logging.error("Given function must be a functools.partial func.")
         return (np.NaN, np.NaN)
 
     keywords = partial_function.keywords
-    if 'limits' in keywords:
-        return keywords['limits']
+    if "limits" in keywords:
+        return keywords["limits"]
 
-    limits = [keywords[key] for key in keywords.keys()
-              if key in ['lower_limit', 'upper_limit', 'objective_value']
-              ]
+    limits = [
+        keywords[key]
+        for key in keywords.keys()
+        if key in ["lower_limit", "upper_limit", "objective_value"]
+    ]
     assert len(limits) in (1, 2)
     return tuple(limits)
 
@@ -91,8 +93,7 @@ def _limits_given_in_functoolspartial_args(partial_function: Callable
 # =============================================================================
 @dataclass
 class SimulationOutputEvaluator(ABC):
-    """
-    A base class for all the possible types of tests.
+    """A base class for all the possible types of tests.
 
     Arguments
     ---------
@@ -139,17 +140,19 @@ class SimulationOutputEvaluator(ABC):
 
     value_getter: Callable[[SimulationOutput], Any]
     ref_simulation_output: SimulationOutput
-    ref_value_getter: Callable[[SimulationOutput, SimulationOutput],
-                               Any] | None = None
+    ref_value_getter: (
+        Callable[[SimulationOutput, SimulationOutput], Any] | None
+    ) = None
 
-    post_treaters: tuple[Callable[[np.ndarray | float, np.ndarray | float],
-                                  np.ndarray | float], ...
-                         ] = (do_nothing,)
+    post_treaters: tuple[
+        Callable[[np.ndarray | float, np.ndarray | float], np.ndarray | float],
+        ...,
+    ] = (do_nothing,)
 
     tester: Callable[[np.ndarray | float], bool | float | None] | None = None
 
-    descriptor: str = ''
-    markdown: str = ''
+    descriptor: str = ""
+    markdown: str = ""
 
     plt_kwargs: dict[str, Any] | None = None
     raise_error_if_value_getter_returns_none: bool = True
@@ -157,37 +160,41 @@ class SimulationOutputEvaluator(ABC):
     def __post_init__(self):
         """Check inputs, create plot if a ``fignum`` was provided."""
         if self.descriptor is None:
-            logging.warning("No descriptor was given for this evaluator, which"
-                            " may be confusing in the long run.")
-        self.descriptor = ' '.join(self.descriptor.split())
+            logging.warning(
+                "No descriptor was given for this evaluator, which"
+                " may be confusing in the long run."
+            )
+        self.descriptor = " ".join(self.descriptor.split())
 
         if not isinstance(self.post_treaters, tuple):
-            logging.warning("You must provide a tuple of post_treaters, even "
-                            "if you want to perform only one operation. "
-                            "Remember: `(lala)` is not a tuple, but `(lala,)` "
-                            "is. Transforming input into a tuple and hoping "
-                            "for the best...")
+            logging.warning(
+                "You must provide a tuple of post_treaters, even "
+                "if you want to perform only one operation. "
+                "Remember: `(lala)` is not a tuple, but `(lala,)` "
+                "is. Transforming input into a tuple and hoping "
+                "for the best..."
+            )
             self.post_treaters = tuple(self.post_treaters)
 
         if self.plt_kwargs is None:
             self.plt_kwargs = {}
         self.plt_kwargs = {
-            'axnum': 2,
-            'clean_fig': True,
-            'sharex': True,
+            "axnum": 2,
+            "clean_fig": True,
+            "sharex": True,
         } | self.plt_kwargs
 
         self._fig: Figure | None = None
         self.main_ax: Axes | None = None
-        self._create_plot(
-            **self.plt_kwargs)
+        self._create_plot(**self.plt_kwargs)
 
     def __repr__(self) -> str:
         """Output the descriptor string."""
         return self.descriptor
 
-    def run(self, simulation_output: SimulationOutput
-            ) -> np.ndarray | bool | float | None:
+    def run(
+        self, simulation_output: SimulationOutput
+    ) -> np.ndarray | bool | float | None:
         """
         Run the test.
 
@@ -218,14 +225,12 @@ class SimulationOutputEvaluator(ABC):
 
         if _need_to_resample(y_data, y_ref_data):
             x_data, y_data, _, y_ref_data = self._resampled(
-                x_data,
-                y_data,
-                y_ref_data)
+                x_data, y_data, y_ref_data
+            )
 
-        y_data = self._apply_post_treatments(x_data,
-                                             y_data,
-                                             y_ref_data,
-                                             **plt_kw)
+        y_data = self._apply_post_treatments(
+            x_data, y_data, y_ref_data, **plt_kw
+        )
 
         if self.tester is not None:
             y_data = self._apply_test(x_data, y_data, **plt_kw)
@@ -233,51 +238,57 @@ class SimulationOutputEvaluator(ABC):
         self._save_plot(simulation_output.out_path, **self.plt_kwargs)
         return y_data
 
-    def _get_data(self,
-                  simulation_output: SimulationOutput,
-                  ) -> tuple[np.ndarray,
-                             np.ndarray | float | None]:
+    def _get_data(
+        self,
+        simulation_output: SimulationOutput,
+    ) -> tuple[np.ndarray, np.ndarray | float | None]:
         """Get da data."""
-        x_data = simulation_output.get('z_abs')
+        x_data = simulation_output.get("z_abs")
         try:
             y_data = self.value_getter(simulation_output)
         except IndexError:
-            logging.error("Mismatch between x_data and y_data shapes. Current "
-                          "quantity is probably a mismatch_factor, which "
-                          "was interpolated. Returning None.")
+            logging.error(
+                "Mismatch between x_data and y_data shapes. Current "
+                "quantity is probably a mismatch_factor, which "
+                "was interpolated. Returning None."
+            )
             y_data = None
         return x_data, y_data
 
-    def _get_ref_data(self,
-                      simulation_output: SimulationOutput
-                      ) -> np.ndarray | float | None:
+    def _get_ref_data(
+        self, simulation_output: SimulationOutput
+    ) -> np.ndarray | float | None:
         """Get da reference data."""
         if self.ref_value_getter is None:
             return None
-        y_ref_data = self.ref_value_getter(self.ref_simulation_output,
-                                           simulation_output)
+        y_ref_data = self.ref_value_getter(
+            self.ref_simulation_output, simulation_output
+        )
         return y_ref_data
 
-    def _resampled(self,
-                   x_data: np.ndarray,
-                   y_data: np.ndarray | float,
-                   y_ref_data: np.ndarray | float,
-                   ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def _resampled(
+        self,
+        x_data: np.ndarray,
+        y_data: np.ndarray | float,
+        y_ref_data: np.ndarray | float,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Resample data."""
-        x_ref_data = self.ref_simulation_output.get('z_abs')
+        x_ref_data = self.ref_simulation_output.get("z_abs")
         x_data, y_data, x_ref_data, y_ref_data = resample(
             x_data,
             np.atleast_1d(y_data),
             x_ref_data,
-            np.atleast_1d(y_ref_data))
+            np.atleast_1d(y_ref_data),
+        )
         return x_data, y_data, x_ref_data, y_ref_data
 
-    def _apply_post_treatments(self,
-                               x_data: np.ndarray | float,
-                               y_data: np.ndarray | float,
-                               y_ref_data: np.ndarray | float,
-                               **plot_kw: str,
-                               ) -> np.ndarray | float:
+    def _apply_post_treatments(
+        self,
+        x_data: np.ndarray | float,
+        y_data: np.ndarray | float,
+        y_ref_data: np.ndarray | float,
+        **plot_kw: str,
+    ) -> np.ndarray | float:
         """Apply all the ``post_treaters`` functions.
 
         Can also plot the post-treated data after all or some of the
@@ -293,11 +304,12 @@ class SimulationOutputEvaluator(ABC):
                 self._add_a_value_plot(x_data, y_data, **plot_kw)
         return y_data
 
-    def _apply_test(self,
-                    x_data: np.ndarray,
-                    y_data: np.ndarray | float,
-                    **plot_kw: str,
-                    ) -> bool | float | None:
+    def _apply_test(
+        self,
+        x_data: np.ndarray,
+        y_data: np.ndarray | float,
+        **plot_kw: str,
+    ) -> bool | float | None:
         """Apply da testing functions.
 
         Can also plot the test results if asked.
@@ -311,9 +323,7 @@ class SimulationOutputEvaluator(ABC):
             self._add_a_limit_plot(x_data, limits, **plot_kw)
         return y_data
 
-    def _create_plot(self,
-                     fignum: int | None = None,
-                     **kwargs) -> None:
+    def _create_plot(self, fignum: int | None = None, **kwargs) -> None:
         """Prepare the plot."""
         if fignum is None:
             return
@@ -327,27 +337,28 @@ class SimulationOutputEvaluator(ABC):
         self.main_ax = axx[0]
         self._struct_ax = axx[1]
 
-    def _add_structure_plot(self,
-                            simulation_output: SimulationOutput,
-                            ) -> None:
+    def _add_structure_plot(
+        self,
+        simulation_output: SimulationOutput,
+    ) -> None:
         """Add a plot of the structure in the bottom ax."""
-        elts = simulation_output.element_to_index.keywords['_elts']
-        plot.clean_axes((self._struct_ax, ))
-        self._struct_ax.set_xlabel(dic.markdown['z_abs'])
+        elts = simulation_output.element_to_index.keywords["_elts"]
+        plot.clean_axes((self._struct_ax,))
+        self._struct_ax.set_xlabel(dic.markdown["z_abs"])
         plot._plot_structure(elts, self._struct_ax)
 
-    def _add_a_value_plot(self,
-                          z_data: np.ndarray,
-                          value: np.ndarray | float,
-                          **plot_kw: str,
-                          ) -> None:
+    def _add_a_value_plot(
+        self,
+        z_data: np.ndarray,
+        value: np.ndarray | float,
+        **plot_kw: str,
+    ) -> None:
         """Add (treated) data to the plot."""
         assert self.main_ax is not None
         if isinstance(value, float) or value.shape == ():
-            self.main_ax.axhline(value,
-                                 xmin=z_data[0],
-                                 xmax=z_data[-1],
-                                 **plot_kw)
+            self.main_ax.axhline(
+                value, xmin=z_data[0], xmax=z_data[-1], **plot_kw
+            )
             self.main_ax.relim()
             self.main_ax.autoscale()
             return
@@ -355,43 +366,49 @@ class SimulationOutputEvaluator(ABC):
         self.main_ax.relim()
         self.main_ax.autoscale()
 
-    def _add_a_limit_plot(self,
-                          z_data: np.ndarray,
-                          limit: tuple[np.ndarray | float,
-                                       np.ndarray | float],
-                          **plot_kw: str) -> None:
+    def _add_a_limit_plot(
+        self,
+        z_data: np.ndarray,
+        limit: tuple[np.ndarray | float, np.ndarray | float],
+        **plot_kw: str,
+    ) -> None:
         """Add limits to the plot."""
         assert self.main_ax is not None
 
         for lim in limit:
             if isinstance(lim, float) or lim.shape == ():
-                self.main_ax.axhline(lim,
-                                     xmin=z_data[0],
-                                     xmax=z_data[-1],
-                                     c='r',
-                                     ls='--',
-                                     lw=5,
-                                     **plot_kw)
+                self.main_ax.axhline(
+                    lim,
+                    xmin=z_data[0],
+                    xmax=z_data[-1],
+                    c="r",
+                    ls="--",
+                    lw=5,
+                    **plot_kw,
+                )
                 continue
             self.main_ax.plot(z_data, lim, **plot_kw)
         # self.main_ax.relim()
         # self.main_ax.autoscale()
 
-    def _save_plot(self,
-                   out_path: Path,
-                   fignum: int | None = None,
-                   savefig: bool = False,
-                   **kwargs
-                   ) -> None:
+    def _save_plot(
+        self,
+        out_path: Path,
+        fignum: int | None = None,
+        savefig: bool = False,
+        **kwargs,
+    ) -> None:
         """Save the figure if asked, and if ``out_path`` is defined."""
         if not savefig or self._fig is None:
             return
 
         if out_path is None:
-            logging.error("The attribute `out_path` from `SimulationOutput` is"
-                          " not defined, hence I cannot save the Figure. Did "
-                          "you call the method "
-                          "`Accelerator.keep_simulation_output`?")
+            logging.error(
+                "The attribute `out_path` from `SimulationOutput` is"
+                " not defined, hence I cannot save the Figure. Did "
+                "you call the method "
+                "`Accelerator.keep_simulation_output`?"
+            )
             return
 
         filename = f"simulation_output_evaluator_{fignum}.png"

@@ -40,20 +40,24 @@ class SimulationOutputEvaluatorFactory:
 
     def run_from_preset(self, preset_name: str) -> SimulationOutputEvaluator:
         """Create an evaluator from a preset."""
-        assert preset_name in SIMULATION_OUTPUT_EVALUATOR_PRESETS, \
-            f"{preset_name = } was not found in evaluator.simulation_output."\
+        assert preset_name in SIMULATION_OUTPUT_EVALUATOR_PRESETS, (
+            f"{preset_name = } was not found in evaluator.simulation_output."
             "SIMULATION_OUTPUT_EVALUATOR_PRESETS."
+        )
         evaluator_kw = SIMULATION_OUTPUT_EVALUATOR_PRESETS[preset_name]
         return self.run_from_kw(**evaluator_kw)
 
-    def run_all(self,
-                presets_names: Sequence[str],
-                evaluators_kw: Sequence[dict[str, Any]]
-                ) -> ListOfSimulationOutputEvaluators:
+    def run_all(
+        self,
+        presets_names: Sequence[str],
+        evaluators_kw: Sequence[dict[str, Any]],
+    ) -> ListOfSimulationOutputEvaluators:
         """Create all the simulation output evaluators."""
-        evaluators_from_presets = [self.run_from_preset(preset_name)
-                                   for preset_name in presets_names]
-        evaluators_from_kw = [self.run_from_kw(**evaluator_kw)
-                              for evaluator_kw in evaluators_kw]
+        evaluators_from_presets = [
+            self.run_from_preset(preset_name) for preset_name in presets_names
+        ]
+        evaluators_from_kw = [
+            self.run_from_kw(**evaluator_kw) for evaluator_kw in evaluators_kw
+        ]
         all_evaluators = evaluators_from_presets + evaluators_from_kw
         return ListOfSimulationOutputEvaluators(all_evaluators)
