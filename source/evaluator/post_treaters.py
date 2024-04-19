@@ -11,28 +11,46 @@ from typing import overload
 
 import numpy as np
 
+from evaluator.types import (
+    post_treated_value_t,
+    post_treater_t,
+    ref_value_t,
+    tester_t,
+    value_t,
+)
 
-@overload
-def do_nothing(*args: float, **kwargs: bool) -> float: ...
 
-
-@overload
-def do_nothing(*args: np.ndarray, **kwargs: bool) -> np.ndarray: ...
-
-
+# @overload
+# def do_nothing(*args: float, **kwargs: bool) -> float: ...
+#
+#
+# @overload
+# def do_nothing(*args: np.ndarray, **kwargs: bool) -> np.ndarray: ...
+#
+#
+# def do_nothing(
+#     *args: np.ndarray | float, **kwargs: bool
+# ) -> np.ndarray | float:
+#     """Hold the place for a post treater.
+#
+#     If you want to plot the data as imported from the
+#     :class:`.SimulationOutput`, set the first of the ``post_treaters`` keys to:
+#     partial(_do_nothing, to_plot=True)
+#
+#     """
+#     assert args[0] is not None
+#     return args[0]
 def do_nothing(
-    *args: np.ndarray | float | None, **kwargs: bool
-) -> np.ndarray | float:
-    """
-    Do nothing.
+    value: value_t, ref_value: ref_value_t, **kwargs: bool
+) -> post_treated_value_t:
+    """Hold the place for a post treater.
 
     If you want to plot the data as imported from the
     :class:`.SimulationOutput`, set the first of the ``post_treaters`` keys to:
     partial(_do_nothing, to_plot=True)
 
     """
-    assert args[0] is not None
-    return args[0]
+    return value
 
 
 def set_first_value_to(

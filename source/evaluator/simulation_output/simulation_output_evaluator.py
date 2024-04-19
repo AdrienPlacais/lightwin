@@ -12,13 +12,14 @@
 """
 import logging
 from abc import ABC
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable
 
 import numpy as np
-from matplotlib.axes._axes import Axes
+from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 import util.dicts_output as dic
@@ -26,6 +27,13 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from evaluator.post_treaters import do_nothing
+from evaluator.types import (
+    post_treated_value_t,
+    post_treater_t,
+    ref_value_t,
+    tester_t,
+    value_t,
+)
 from util.helper import resample
 from visualization import plot
 
@@ -33,13 +41,11 @@ from visualization import plot
 # =============================================================================
 # Helpers
 # =============================================================================
-def _need_to_resample(
-    value: np.ndarray | float,
-    ref_value: np.ndarray | float,
-) -> bool:
+def _need_to_resample(value: value_t, ref_value: ref_value_t) -> bool:
     """Determine if we need to resample ``value`` or ``ref_value``."""
     if isinstance(value, float) or isinstance(ref_value, float):
         return False
+    assert isinstance(value, np.ndarray) and isinstance(ref_value, np.ndarray)
     if value.shape == () or ref_value.shape == ():
         return False
     if value.shape == ref_value.shape:
@@ -69,7 +75,7 @@ def _return_value_should_be_plotted(partial_function: Callable) -> bool:
 
 def _limits_given_in_functoolspartial_args(
     partial_function: Callable,
-) -> tuple[np.ndarray | float, ...]:
+) -> Sequence[np.ndarray | float]:
     """Extract the limits given to a test function."""
     if not isinstance(partial_function, partial):
         logging.error("Given function must be a functools.partial func.")
@@ -97,7 +103,7 @@ class SimulationOutputEvaluator(ABC):
 
     Arguments
     ---------
-    value_getter : Callable[[SimulationOutput], Any]
+    value_getter : Callable[[SimulationOutput], value_t]
         A function that takes the simulation output under study as argument,
         and returns the value to be studied.
     ref_simulation_output : SimulationOutput
@@ -105,22 +111,20 @@ class SimulationOutputEvaluator(ABC):
         the user to verify that the :class:`.BeamCalculator` is the same
         between the reference and the fixed :class:`.SimulationOutput`.
     ref_value_getter : Callable[[SimulationOutput, SimulationOutput],\
-                                 Any] | None, optional
+                                 ref_value_t] | None, optional
         A function that takes the reference simulation ouput and the simulation
         output under study as arguments, and returns the reference value. In
         general, only the first argument will be used. The second argument can
         be used in specific cases, eg for the mismatch factor.  The default is
         None.
-    post_treaters: tuple[Callable[[np.ndarray | float, np.ndarray | float],\
-                                   np.ndarray | float], ...], optional
+    post_treaters: Sequence[post_treater_t], optional
         A tuple of functions that will be called one after each other and
         applied on ``value``, which is returned by ``value_getter``. First
         argument must be ``value``, second argument ``ref_value``. They return
         an update ``value``, which is passed to the next function in
         ``post_treaters``. The default is a tuple containing only
         :func:`._do_nothing`.
-    tester : Callable[[np.ndarray | float], bool | float | None] | None, \
-            optional
+    tester : tester_t | None, optional
         A function that takes post-treated ``value`` and test it. It can return
         a boolean or a float. The default is None.
     fignum : int | None, optional
@@ -138,18 +142,14 @@ class SimulationOutputEvaluator(ABC):
 
     """
 
-    value_getter: Callable[[SimulationOutput], Any]
+    value_getter: Callable[[SimulationOutput], value_t]
     ref_simulation_output: SimulationOutput
     ref_value_getter: (
-        Callable[[SimulationOutput, SimulationOutput], Any] | None
+        Callable[[SimulationOutput, SimulationOutput], ref_value_t] | None
     ) = None
 
-    post_treaters: tuple[
-        Callable[[np.ndarray | float, np.ndarray | float], np.ndarray | float],
-        ...,
-    ] = (do_nothing,)
-
-    tester: Callable[[np.ndarray | float], bool | float | None] | None = None
+    post_treaters: Sequence[post_treater_t] = (do_nothing,)
+    tester: tester_t | None = None
 
     descriptor: str = ""
     markdown: str = ""
@@ -159,30 +159,9 @@ class SimulationOutputEvaluator(ABC):
 
     def __post_init__(self):
         """Check inputs, create plot if a ``fignum`` was provided."""
-        if self.descriptor is None:
-            logging.warning(
-                "No descriptor was given for this evaluator, which"
-                " may be confusing in the long run."
-            )
-        self.descriptor = " ".join(self.descriptor.split())
-
-        if not isinstance(self.post_treaters, tuple):
-            logging.warning(
-                "You must provide a tuple of post_treaters, even "
-                "if you want to perform only one operation. "
-                "Remember: `(lala)` is not a tuple, but `(lala,)` "
-                "is. Transforming input into a tuple and hoping "
-                "for the best..."
-            )
-            self.post_treaters = tuple(self.post_treaters)
-
-        if self.plt_kwargs is None:
-            self.plt_kwargs = {}
-        self.plt_kwargs = {
-            "axnum": 2,
-            "clean_fig": True,
-            "sharex": True,
-        } | self.plt_kwargs
+        self.descriptor = _descriptor(self.descriptor)
+        self.post_treaters = _post_treaters(self.post_treaters)
+        self.plt_kwargs = kwargs(self.plt_kwargs)
 
         self._fig: Figure | None = None
         self.main_ax: Axes | None = None
@@ -194,9 +173,8 @@ class SimulationOutputEvaluator(ABC):
 
     def run(
         self, simulation_output: SimulationOutput
-    ) -> np.ndarray | bool | float | None:
-        """
-        Run the test.
+    ) -> np.ndarray | bool | float:
+        """Run the test.
 
         It can return a bool (test passed with success or not), or a float. The
         former is useful for production purposes, when you want to sort the
@@ -214,7 +192,7 @@ class SimulationOutputEvaluator(ABC):
         if y_data is None:
             if self.raise_error_if_value_getter_returns_none:
                 logging.error(f"A value misses in test: {self}. Skipping...")
-            return None
+            return np.NaN
 
         y_ref_data = self._get_ref_data(simulation_output)
         if y_ref_data is None:
@@ -414,3 +392,36 @@ class SimulationOutputEvaluator(ABC):
         filename = f"simulation_output_evaluator_{fignum}.png"
         filepath = Path(out_path, filename)
         plot._savefig(self._fig, filepath)
+
+
+def _descriptor(descriptor: str) -> str:
+    """Clean the given string, raise warning if it is empty."""
+    if not descriptor:
+        logging.warning(
+            "No descriptor was given for this evaluator, which may be "
+            "confusing in the long run."
+        )
+    descriptor = " ".join(descriptor.split())
+    return descriptor
+
+
+def _post_treaters(
+    post_treaters: post_treater_t | Sequence[post_treater_t],
+) -> Sequence[post_treater_t]:
+    """Check that we have a tuple, convert it to tuple if not."""
+    if isinstance(post_treaters, Sequence):
+        return post_treaters
+    return (post_treaters,)
+
+
+def kwargs(plt_kwargs: dict[str, Any] | None) -> dict[str, Any]:
+    """Test plot kwargs, add some default values."""
+    if plt_kwargs is None:
+        plt_kwargs = {}
+
+    default_kwargs = {
+        "axnum": 2,
+        "clean_fig": True,
+        "sharex": True,
+    }
+    return plt_kwargs | default_kwargs
