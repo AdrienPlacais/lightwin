@@ -500,6 +500,7 @@ def remove_artists(axe: ax_type) -> None:
     """Remove lines and plots, but keep labels and grids."""
     for artist in axe.lines:
         artist.remove()
+    axe.set_prop_cycle(None)
 
 
 def _autoscale_based_on(axx: ax_type, to_ignore: str) -> None:
