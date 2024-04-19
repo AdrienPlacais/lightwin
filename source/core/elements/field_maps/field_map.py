@@ -231,9 +231,7 @@ class FieldMap(Element):
             current object.
 
         """
-        line = self.line
-        if not inplace:
-            line = [x for x in self.line]
+        line = super().to_line(*args, inplace=inplace, **kwargs)
 
         _phases = self._phase_for_line(which_phase)
         new_values = {

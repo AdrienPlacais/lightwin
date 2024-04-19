@@ -51,9 +51,20 @@ class Instruction(ABC):
             return str(self.line)
         return self._personalized_name
 
-    def to_line(self, *args, **kwargs) -> list[str]:
+    def to_line(
+        self, *args, inplace: bool = False, with_name: bool = False, **kwargs
+    ) -> list[str]:
         """Convert the object back into a ``.dat`` line."""
-        return self.line
+        line = self.line
+        if not inplace:
+            line = [x for x in self.line]
+        if with_name:
+            raise NotImplementedError
+            assert not inplace, (
+                "I am afraid that {with_name = } associated with {inplace = } "
+                "may lead to inserting the name of the element several times."
+            )
+        return line
 
 
 class Dummy(Instruction):
