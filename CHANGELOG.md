@@ -5,14 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.17] 2024-04-19
+
+### Added
+- Switch between different phases at `.dat` save.
+
+### Fixed
+- With the `"sync_phase_amplitude"` design space, the synchronous phases were saved in the `.dat` and labelled as relative phase (no `SET_SYNC_PHASE`).
+
 ## [0.6.16] 2024-04-17
 
 ### Added
 - New design space `"rel_phase_amplitude_with_constrained_sync_phase"`
 - Pytest for basic compensation with all `BeamCalculator`
 - Pytest for every `Design Space`
-
-### Changed
 
 ### Deprecated
 - Some design space names are not to be used.
@@ -29,18 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lattices and their indexes correctly set.
 - Synchronous phases correctly calculated and updated; can be used as a variable again.
 
-### Security
-
-## [0.0.0] 1312-01-01
-
-### Added
-
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
+<!-- ## [0.0.0] 1312-01-01 -->
+<!---->
+<!-- ### Added -->
+<!---->
+<!-- ### Changed -->
+<!---->
+<!-- ### Deprecated -->
+<!---->
+<!-- ### Removed -->
+<!---->
+<!-- ### Fixed -->
+<!---->
+<!-- ### Security -->
