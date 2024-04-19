@@ -71,8 +71,7 @@ class Fault:
         compensating_elements: list[Element],
         list_of_elements_factory: ListOfElementsFactory,
     ) -> None:
-        """
-        Create the Fault object.
+        """Create the Fault object.
 
         Parameters
         ----------
@@ -169,8 +168,7 @@ class Fault:
         """Update status of compensating and failed elements."""
         if optimisation not in ("not started", "finished"):
             logging.error(
-                "{optimisation =} not understood. Not changing any "
-                "status..."
+                "{optimisation = } not understood. Not changing any status..."
             )
             return
 
@@ -187,10 +185,9 @@ class Fault:
             ]
             if any(status_is_invalid):
                 logging.error(
-                    "At least one compensating or failed element is "
-                    "already compensating or faulty, probably in"
-                    "another Fault object. Updating its status "
-                    "anyway..."
+                    "At least one compensating or failed element is already "
+                    "compensating or faulty, probably in another Fault object."
+                    " Updating its status anyway..."
                 )
 
         elif optimisation == "finished":
@@ -203,8 +200,3 @@ class Fault:
 
         for cav, stat in zip(elements, status):
             cav.update_status(stat)
-
-        logging.warning("Manually set which_phase")
-        self.elts.store_settings_in_dat(
-            self.elts.files["dat_file"], which_phase="phi_0_rel", save=True
-        )

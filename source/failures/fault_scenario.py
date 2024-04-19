@@ -209,9 +209,19 @@ class FaultScenario(list):
         return optimisation_algorithms
 
     def _break_cavities(self) -> None:
-        """Break the cavities."""
+        """Break the cavities.
+
+        ..todo ::
+            At this step I do not save the ``.dat`` anymore. Was it useful for
+            something?
+
+        """
         for fault in self:
             fault.update_elements_status(optimisation="not started")
+        logging.warning("Not storing elements in dat")
+        # self.elts.store_settings_in_dat(
+        #     self.elts.files["dat_file"], which_phase="phi_0_rel", save=True
+        # )
 
     def fix_all(self) -> None:
         """
@@ -257,6 +267,12 @@ class FaultScenario(list):
             )
 
             fault.update_elements_status(optimisation="finished", success=True)
+            logging.warning("Manually set which_phase")
+            fault.elts.store_settings_in_dat(
+                fault.elts.files["dat_file"],
+                which_phase=self._reference_phase,
+                save=True,
+            )
 
             if not self.beam_calculator.flag_phi_abs:
                 # Tell LW to keep the new phase of the rephased cavities
