@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - You can forbid a cavity from being retuned (ex: a rebuncher which is here to rebunch, not to try funny beamy things). Just set `my_cavity.can_be_retuned = False`.
 
+### Changed
+- New typing features impose the use of Python 3.12.
+
 ### Fixed
 - Colors in Evaluator plots are now reset between executions
 

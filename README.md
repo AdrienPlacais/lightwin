@@ -39,3 +39,8 @@ To generate an interactive documentation, you you will need following packages:
 
 Go to the `LightWin/docs` folder and run: `make html`.
 On Windows, `make.bat html` should do the trick (untested).
+
+## Testing
+Required packages:
+  - `pytest`
+Go to the `LightWin` folder and run: `pytest`.
