@@ -23,3 +23,4 @@ Submodules
    evaluator.list_of_simulation_output_evaluators
    evaluator.post_treaters
    evaluator.testers
+   evaluator.types

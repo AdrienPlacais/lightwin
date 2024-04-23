@@ -1,6 +1,6 @@
 Entry,Type,Description,Allowed values,Mandatory?
 ``optimisation_algorithm``,str,Name of optimisation algorithm,:data:`~optimisation.algorithms.factory.algorithms`,✅
 ``strategy``,str,How compensating cavities are selected,:data:`~config.failures.strategy.strategies`,✅
-``idx``,str,Indicates if the given index are element or cavity index,``element`` or ``cavity``,✅
-``failed``,int,Index of failed cavities,,✅
+``id_nature``,str,Indicates if failed is element index/cavity index/name,``element`` or ``cavity`` or ``name``,✅
+``failed``,list[list[int]] | list[list[str]],Index of failed cavities,,✅
 ``objective_preset``,str,Objectives for the optimisation algorithm,:data:`~config.optimisation.objective.objective_presets`,✅

@@ -40,14 +40,19 @@ IMPLEMENTED_OPTIMISATION_ALGORITHMS = (
 
 
 def test(
-    idx: str,
+    id_nature: str,
     strategy: str,
     objective_preset: str,
     optimisation_algorithm: str,
+    tie_politics: str = "upstream first",
+    idx: str = "",
     **wtf_kw,
 ) -> None:
     """Test the ``wtf`` ``.toml`` entries."""
-    assert idx in ("cavity", "element")
+    assert id_nature in ("cavity", "element", "name")
+    assert tie_politics in ("upstream first", "downstream first")
+    if idx:
+        logging.error("Deprecated, use 'id_nature' instead.")
 
     assert strategy in IMPLEMENTED_STRATEGIES
     strategy_testers = {
@@ -74,10 +79,10 @@ def _test_manual(
     """Test that the manual method can work."""
     check_type(list, "wtf", failed, manual_list)
     assert len(failed) == len(manual_list), (
-        "Discrepancy between the number of FaultScenarios and "
-        "the number of corresponding list of compensating "
-        "cavities. In other words: 'failed[i]' and 'manual list[i]' "
-        "entries must have the same number of elements."
+        "Discrepancy between the number of FaultScenarios and the number of "
+        "corresponding list of compensating cavities. In other words: "
+        "'failed[i]' and 'manual list[i]' entries must have the same number "
+        "of elements."
     )
 
     for scenarios, grouped_compensating_cavities in zip(failed, manual_list):
@@ -94,16 +99,18 @@ def _test_manual(
             check_type(int, "wtf", compensating_cavity)
 
 
-def _test_l_neighboring_lattices(l: int, **wtf_kw) -> None:
+def _test_l_neighboring_lattices(
+    l: int, min_number_of_cavities_in_lattice: int = 1, **wtf_kw
+) -> None:
     check_type(int, "wtf", l)
-    assert l % 2 == 0, f"{l = } should be even."
+    check_type(int, "wtf", min_number_of_cavities_in_lattice)
 
 
 def _test_global(**wtf_kw) -> None:
     """Test if global compensation will work."""
-    logging.error("Not really implemented in fact.")
+    logging.error("Not tested.")
 
 
 def _test_global_downstream(**wtf_kw) -> None:
     """Test if global compensation with only downstream cavities will work."""
-    logging.error("Not really implemented in fact.")
+    logging.error("Not tested.")

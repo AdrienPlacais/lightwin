@@ -22,6 +22,11 @@ Instructions in `util/setup.py`.
 It can also be used to compile some `pymoo` functions to speed them up.
 Just install `cython` prior to `pymoo`, and the compilation should be done automatically when installing `pymoo`.
 
+## Packages for developers
+- `sphinx_rtd_theme`
+- `myst-parser`
+- `nbsphinx`
+
 ## Installation of a package
 If you manage your installation with `pip`:
 `pip install package`

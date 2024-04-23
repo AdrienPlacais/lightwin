@@ -14,8 +14,9 @@ Two objects can have a :class:`ListOfElements` as attribute:
 
 """
 import logging
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, overload
 
 import numpy as np
 
@@ -23,6 +24,7 @@ from core.beam_parameters.initial_beam_parameters import InitialBeamParameters
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
 from core.list_of_elements.helper import (
+    first,
     group_elements_by_lattice,
     group_elements_by_section,
     group_elements_by_section_and_lattice,
@@ -31,6 +33,10 @@ from core.particle import ParticleInitialState
 from tracewin_utils.dat_files import save_dat_filecontent_to_dat
 from tracewin_utils.interface import list_of_elements_to_command
 from util.helper import recursive_getter, recursive_items
+
+element_id = int | str
+elements_id = Sequence[int] | Sequence[str]
+nested_elements_id = Sequence[Sequence[int]] | Sequence[Sequence[str]]
 
 
 class ListOfElements(list):
@@ -108,9 +114,18 @@ class ListOfElements(list):
         return self.input_particle.phi_abs
 
     @property
-    def l_cav(self):
+    def l_cav(self) -> list[FieldMap]:
         """Easy access to the list of cavities."""
         return self._l_cav
+
+    @property
+    def tunable_cavities(self) -> list[FieldMap]:
+        """All the elements that can be used for compensation.
+
+        For now, only :class:`.FieldMap`. But in the future... Who knows?
+
+        """
+        return [cavity for cavity in self.l_cav if cavity.can_be_retuned]
 
     @property
     def tracewin_command(self) -> list[str]:
@@ -266,3 +281,65 @@ class ListOfElements(list):
         ]
         if save:
             save_dat_filecontent_to_dat(dat_content, dat_file)
+
+    @overload
+    def take(self, ids: int, id_nature: Literal["cavity"]) -> FieldMap: ...
+
+    @overload
+    def take(
+        self, ids: Sequence[int], id_nature: Literal["cavity"]
+    ) -> list[FieldMap]: ...
+
+    @overload
+    def take(self, ids: int, id_nature: Literal["element"]) -> Element: ...
+
+    @overload
+    def take(
+        self, ids: Sequence[int], id_nature: Literal["element"]
+    ) -> list[Element]: ...
+
+    @overload
+    def take(self, ids: str, id_nature: Literal["name"]) -> Element: ...
+
+    @overload
+    def take(
+        self, ids: Sequence[str], id_nature: Literal["name"]
+    ) -> list[Element]: ...
+
+    @overload
+    def take(
+        self,
+        ids: nested_elements_id,
+        id_nature: Literal["cavity", "element", "name"],
+    ) -> list[Sequence[Element]]: ...
+
+    def take(
+        self,
+        ids: element_id | elements_id | nested_elements_id,
+        id_nature: Literal["cavity", "element", "name"],
+    ) -> (
+        Element
+        | list[Element]
+        | list[Sequence[Element]]
+        | FieldMap
+        | list[FieldMap]
+        | list[Sequence[FieldMap]]
+    ):
+        """Convert list of indexes or names to a list of :class:`.Element`."""
+        if isinstance(ids, Sequence) and not isinstance(ids, str):
+            return [self.take(idx, id_nature) for idx in ids]
+
+        match id_nature:
+            case "cavity":
+                assert isinstance(ids, int)
+                output = self.l_cav[ids]
+            case "element":
+                assert isinstance(ids, int)
+                output = self[ids]
+            case "name":
+                name = ids
+                assert isinstance(name, str)
+                output = first(self, condition=lambda elt: elt.name == name)
+            case _:
+                raise IOError(f"{id_nature = } not understood.")
+        return output

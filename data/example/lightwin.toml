@@ -37,8 +37,8 @@ sigma = [
 ]
 
 [generic_wtf]
-failed = [[10]]
-idx = "cavity"
+failed = [["FM10"]]
+id_nature = "name"
 k = 3
 objective_preset = "simple_ADS"
 optimisation_algorithm = "downhill_simplex"

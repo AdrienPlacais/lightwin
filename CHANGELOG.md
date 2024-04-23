@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - You can forbid a cavity from being retuned (ex: a rebuncher which is here to rebunch, not to try funny beamy things). Just set `my_cavity.can_be_retuned = False`.
+- By default, a lattice without any retunable cavity is skipped when selecting the compensating cavities; this behavior can be modified by setting a `min_number_of_cavities_in_lattice` with `l neighboring lattices` method in the configuration.
 
 ### Changed
 - New typing features impose the use of Python 3.12.
+- The `idx` key in the `wtf` dictionary is now called `id_nature`, which can be one of the following:
+    - `cavity`: we consider that `failed = [[10]]` means "the 10th cavity is down".
+    - `element`: we consider that `failed = [[10]]` means "the 10th element is down". If the 10th element is not a cavity, an error is raised.
+    - `name`: we consider that `failed = [["FM10"]]` means "the first element which name is 'FM10' is down".
 
 ### Fixed
 - Colors in Evaluator plots are now reset between executions

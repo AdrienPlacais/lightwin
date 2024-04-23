@@ -7,6 +7,7 @@
 
 """
 import logging
+from collections.abc import Callable, Iterable
 from functools import partial
 from typing import Any, Sequence, Type, TypeGuard, TypeVar
 
@@ -14,8 +15,6 @@ import numpy as np
 
 from core.elements.element import Element
 from core.elements.field_maps.field_map import FieldMap
-
-# from core.list_of_elements.list_of_elements import ListOfElements
 
 ListOfElements = TypeVar("ListOfElements")
 
@@ -41,6 +40,13 @@ def is_list_of_list_of_elements(
 ) -> TypeGuard[list[list[Element]]]:
     """Check that input is a nested list of :class:`.Element`."""
     return all([is_list_of_elements(sub_elts) for sub_elts in elts])
+
+
+def is_list_of_list_of_field_maps(
+    elts: Sequence,
+) -> TypeGuard[list[list[FieldMap]]]:
+    """Check that input is a nested list of :class:`.Element`."""
+    return all([is_list_of(sub_elts, FieldMap) for sub_elts in elts])
 
 
 def filter_out(
@@ -348,3 +354,53 @@ def _get_first_key_of_idx_dict_higher_than(
         "provided list of elements."
     )
     return -1
+
+
+def first[
+    T
+](
+    iterable: Iterable[T],
+    default: T | None = None,
+    condition: Callable[[T], bool] = lambda _: True,
+) -> T:
+    """Return the first item in ``iterable`` satisfying ``condition``.
+
+    If the condition is not given, returns the first item of
+    the iterable.
+
+    If the ``default`` argument is given and the iterable is empty,
+    or if it has no items matching the condition, the `default` argument
+    is returned if it matches the condition.
+
+    The ``default`` argument being None is the same as it not being given.
+
+    Raises ``StopIteration`` if no item satisfying the condition is found
+    and default is not given or doesn't satisfy the condition.
+
+    >>> first( (1,2,3), condition=lambda x: x % 2 == 0)
+    2
+    >>> first(range(3, 100))
+    3
+    >>> first( () )
+    Traceback (most recent call last):
+    ...
+    StopIteration
+    >>> first([], default=1)
+    1
+    >>> first([], default=1, condition=lambda x: x % 2 == 0)
+    Traceback (most recent call last):
+    ...
+    StopIteration
+    >>> first([1,3,5], default=1, condition=lambda x: x % 2 == 0)
+    Traceback (most recent call last):
+    ...
+    StopIteration
+    """
+
+    try:
+        return next(x for x in iterable if condition(x))
+    except StopIteration:
+        if default is not None and condition(default):
+            return default
+        else:
+            raise

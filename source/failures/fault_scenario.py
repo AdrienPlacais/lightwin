@@ -9,6 +9,7 @@ the required :class:`FaultScenario` objects.
 import datetime
 import logging
 import time
+from collections.abc import Sequence
 from typing import Any
 
 from beam_calculation.beam_calculator import BeamCalculator
@@ -24,6 +25,7 @@ from evaluator.list_of_simulation_output_evaluators import (
 )
 from failures import strategy
 from failures.fault import Fault
+from failures.set_of_cavity_settings import FieldMap
 from optimisation.algorithms.algorithm import OptimisationAlgorithm
 from optimisation.algorithms.factory import optimisation_algorithm_factory
 from optimisation.design_space.factory import (
@@ -89,14 +91,14 @@ class FaultScenario(list):
         self.info = {}
         self.optimisation_time: datetime.timedelta
 
-        indexes = strategy.sort_and_gather_faults(
-            fix=fix_acc, fault_idx=fault_idx, comp_idx=comp_idx, **wtf
+        cavities = strategy.failed_and_compensating(
+            fix_acc.elts, failed=fault_idx, compensating_manual=comp_idx, **wtf
         )
         faults = self._set_faults(
-            indexes,
             self._get_reference(),
             beam_calculator.list_of_elements_factory,
             design_space_factory,
+            *cavities,
         )
         super().__init__(faults)
         self._set_optimisation_algorithms()
@@ -111,38 +113,36 @@ class FaultScenario(list):
 
     def _set_faults(
         self,
-        indexes: tuple[list[list[int]], list[list[int]]],
         reference_simulation_output: SimulationOutput,
         list_of_elements_factory: ListOfElementsFactory,
         design_space_factory: DesignSpaceFactory,
+        *cavities: Sequence[Sequence[FieldMap]],
     ) -> list[Fault]:
         """Create the :class:`.Fault` objects.
 
         Parameters
         ----------
-        indexes : tuple[list[list[int]], list[list[int]]]
-            The indexes of faults, the indexes of corresponding compensating
-            cavities. As returned by :func:`.strategy.sort_and_gather_faults`.
         reference_simulation_output : SimulationOutput
             The simulation of the nominal linac we'll try to match.
         list_of_elements_factory : ListOfElementsFactory
             An object that can create :class:`.ListOfElements`.
         design_space_factory : DesignSpaceFactory
             An object that can create :class:`.DesignSpace`.
+        *cavities : Sequence[Sequence[FieldMap]]
+            First if the list of gathered failed cavities. Second is the list
+            of corresponding compensating cavities.
 
         Returns
         -------
         list[Fault]
 
         """
-        gathered_fault_idx, gathered_comp_idx = indexes
         faults = []
         files_from_full_list_of_elements = self.fix_acc.elts.files
 
-        for fault, comp in zip(gathered_fault_idx, gathered_comp_idx):
-            faulty_cavities = [self.fix_acc.l_cav[i] for i in fault]
-            compensating_cavities = [self.fix_acc.l_cav[i] for i in comp]
-
+        for faulty_cavities, compensating_cavities in zip(
+            *cavities, strict=True
+        ):
             fault = Fault(
                 reference_elts=self.ref_acc.elts,
                 reference_simulation_output=reference_simulation_output,
