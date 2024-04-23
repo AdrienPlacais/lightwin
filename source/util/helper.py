@@ -7,8 +7,9 @@
 
 """
 import logging
-from collections.abc import Iterable, Generator
-from typing import Iterator, Any
+from collections.abc import Generator, Iterable
+from typing import Any, Iterator
+
 import numpy as np
 import pandas as pd
 
@@ -22,7 +23,7 @@ def recursive_items(dictionary: dict[Any, Any]) -> Iterator[str]:
         if isinstance(value, dict):
             yield key
             yield from recursive_items(value)
-        elif hasattr(value, 'has'):
+        elif hasattr(value, "has"):
             yield key
             yield from recursive_items(vars(value))
             # for ListOfElements:
@@ -32,8 +33,9 @@ def recursive_items(dictionary: dict[Any, Any]) -> Iterator[str]:
             yield key
 
 
-def recursive_getter(wanted_key: str, dictionary: dict,
-                     **kwargs: bool | str | int) -> Any:
+def recursive_getter(
+    wanted_key: str, dictionary: dict, **kwargs: bool | str | int
+) -> Any:
     """Get first key in a possibly nested dictionary."""
     for key, value in dictionary.items():
         if wanted_key == key:
@@ -44,7 +46,7 @@ def recursive_getter(wanted_key: str, dictionary: dict,
             if corresp_value is not None:
                 return corresp_value
 
-        elif hasattr(value, 'get'):
+        elif hasattr(value, "get"):
             corresp_value = value.get(wanted_key, **kwargs)
             if corresp_value is not None:
                 return corresp_value
@@ -54,7 +56,7 @@ def recursive_getter(wanted_key: str, dictionary: dict,
 # =============================================================================
 # For lists manipulations
 # =============================================================================
-def flatten(nest: Iterable) -> Iterator:
+def flatten[T](nest: Iterable[T]) -> Iterator[T]:
     """Flatten nested list of lists of..."""
     for _in in nest:
         if isinstance(_in, Iterable) and not isinstance(_in, (str, bytes)):
@@ -63,17 +65,17 @@ def flatten(nest: Iterable) -> Iterator:
             yield _in
 
 
-def chunks(lst: list[Any], n_size: int) -> Generator[list[Any], int, None]:
-    """
-    Yield successive ``n_size``-ed chunks from ``lst``.
+def chunks[T](lst: list[T], n_size: int) -> Generator[list[T], int, None]:
+    """Yield successive ``n_size``-ed chunks from ``lst``.
 
     https://stackoverflow.com/questions/312443/how-do-i-split-a-list-into-equally-sized-chunks
+
     """
     for i in range(0, len(lst), n_size):
-        yield lst[i:i + n_size]
+        yield lst[i : i + n_size]
 
 
-def remove_duplicates(iterable: Iterable) -> Iterator:
+def remove_duplicates[T](iterable: Iterable[T]) -> Iterator[T]:
     """Create an iterator without duplicates.
 
     Taken from:
@@ -92,23 +94,23 @@ def remove_duplicates(iterable: Iterable) -> Iterator:
 # Messages functions
 # =============================================================================
 # TODO: transform inputs into strings if they are not already strings
-def printc(*args: str, color: str = 'cyan') -> None:
+def printc(*args: str, color: str = "cyan") -> None:
     """Print colored messages."""
     dict_c = {
-        'red': '\x1B[31m',
-        'blue': '\x1b[34m',
-        'green': '\x1b[32m',
-        'magenta': '\x1b[35m',
-        'cyan': '\x1b[36m',
-        'normal': '\x1b[0m',
+        "red": "\x1B[31m",
+        "blue": "\x1b[34m",
+        "green": "\x1b[32m",
+        "magenta": "\x1b[35m",
+        "cyan": "\x1b[36m",
+        "normal": "\x1b[0m",
     }
-    print(dict_c[color] + args[0] + dict_c['normal'], end=' ')
+    print(dict_c[color] + args[0] + dict_c["normal"], end=" ")
     for arg in args[1:]:
-        print(arg, end=' ')
-    print('')
+        print(arg, end=" ")
+    print("")
 
 
-def pd_output(message: pd.DataFrame, header: str = '') -> str:
+def pd_output(message: pd.DataFrame, header: str = "") -> str:
     """Give a string describing a pandas dataframe."""
     tot = 100
     my_output = header + "\n" + "-" * tot + "\n" + message.to_string()
@@ -118,21 +120,22 @@ def pd_output(message: pd.DataFrame, header: str = '') -> str:
 
 # TODO: replace nan by ' ' when there is a \n in a pd DataFrame header
 # def printd(message: str, header: str = '') -> None:
-    # """Print delimited message."""
-    # pd.options.display.float_format = '{:.6f}'.format
-    # pd.options.display.max_columns = 10
-    # pd.options.display.max_colwidth = 18
-    # pd.options.display.width = 250
+# """Print delimited message."""
+# pd.options.display.float_format = '{:.6f}'.format
+# pd.options.display.max_columns = 10
+# pd.options.display.max_colwidth = 18
+# pd.options.display.width = 250
 
-    # # tot = 100
-    # # my_output = header + "\n" + "-" * tot + "\n" + message.to_string()
-    # # my_output += "\n" + "-" * tot
-    # my_output = pd_output(message, header)
-    # logging.info(my_output)
+# # tot = 100
+# # my_output = header + "\n" + "-" * tot + "\n" + message.to_string()
+# # my_output += "\n" + "-" * tot
+# my_output = pd_output(message, header)
+# logging.info(my_output)
 
 
-def resample(x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
-             ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def resample(
+    x_1: np.ndarray, y_1: np.ndarray, x_2: np.ndarray, y_2: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Downsample y_highres(olution) to x_1 or x_2 (the one with low res)."""
     assert x_1.shape == y_1.shape
     assert x_2.shape == y_2.shape
@@ -181,16 +184,21 @@ def save_energy_phase_tm(lin: object) -> None:
     lin : Accelerator object
         Object of corresponding to desired output.
     """
-    n_z = lin.get('z_abs').shape[0]
-    data = np.column_stack((lin.get('z_abs'), lin.get('w_kin'),
-                            lin.get('phi_abs_array'),
-                            np.reshape(lin.transf_mat['tm_cumul'], (n_z, 4))
-                            ))
-    filepath = lin.files['results_folder'] + lin.name \
-        + '_energy_phase_tm.txt'
-    filepath = filepath.replace(' ', '_')
-    header = 's [m] \t W_kin [MeV] \t phi_abs [rad]' \
-        + '\t M_11 \t M_12 \t M_21 \t M_22'
+    n_z = lin.get("z_abs").shape[0]
+    data = np.column_stack(
+        (
+            lin.get("z_abs"),
+            lin.get("w_kin"),
+            lin.get("phi_abs_array"),
+            np.reshape(lin.transf_mat["tm_cumul"], (n_z, 4)),
+        )
+    )
+    filepath = lin.files["results_folder"] + lin.name + "_energy_phase_tm.txt"
+    filepath = filepath.replace(" ", "_")
+    header = (
+        "s [m] \t W_kin [MeV] \t phi_abs [rad]"
+        + "\t M_11 \t M_12 \t M_21 \t M_22"
+    )
     np.savetxt(filepath, data, header=header)
     logging.info(f"Energy, phase and TM saved in {filepath}")
 
@@ -208,13 +216,15 @@ def save_vcav_and_phis(lin: object) -> None:
     """
     printc("helper.save_vcav_and_phis warning:", "s [m] not saved.")
     # data = lin.get('abs', 'v_cav_mv', 'phi_s', to_deg=True)
-    data = lin.get('v_cav_mv', 'phi_s', to_deg=True)
+    data = lin.get("v_cav_mv", "phi_s", to_deg=True)
     data = np.column_stack((data[0], data[1]))
 
-    filepath = lin.files['results_folder'] + lin.name + '_Vcav_and_phis.txt'
-    filepath = filepath.replace(' ', '_')
+    filepath = lin.files["results_folder"] + lin.name + "_Vcav_and_phis.txt"
+    filepath = filepath.replace(" ", "_")
 
-    header = 's [m] \t V_cav [MV] \t phi_s [deg]'
+    header = "s [m] \t V_cav [MV] \t phi_s [deg]"
     np.savetxt(filepath, data, header=header)
-    logging.info("Cavities accelerating field and synch. phase saved in "
-                 + f"{filepath}")
+    logging.info(
+        "Cavities accelerating field and synch. phase saved in "
+        + f"{filepath}"
+    )
