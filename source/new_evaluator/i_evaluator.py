@@ -1,15 +1,15 @@
 """Define the base object for every evaluator."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable, Sequence
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from beam_calculation.simulation_output.simulation_output import (
-    SimulationOutput,
-)
+from core.list_of_elements.list_of_elements import ListOfElements
+from plotter.pd_plotter import PandasPlotter
 from util.dicts_output import markdown
 
 
@@ -20,11 +20,14 @@ class IEvaluator(ABC):
     _y_quantity: str
     _fignum: int
     _plot_kwargs: dict[str, str | bool | float]
-    _axes_num: int = 0
+    _axes_index: int = 0
 
-    def __init__(self, plotter: object | None = None) -> None:
+    def __init__(self, plotter: PandasPlotter | None = None) -> None:
         """Instantiate the ``plotter`` object."""
         self._plotter = plotter
+        if not hasattr(self, "_plot_kwargs"):
+            self._plot_kwargs = {}
+        self._ref_xdata: Iterable[float]
 
     def __str__(self) -> str:
         """Give a detailed description of what this class does."""
@@ -53,26 +56,29 @@ class IEvaluator(ABC):
         data = self.get(*args, **kwargs)
         post_treated = self.post_treat(data)
         assert isinstance(post_treated, np.ndarray)
-        as_df = pd.DataFrame(data=post_treated)
+        assert hasattr(self, "_ref_xdata")
+        as_df = pd.DataFrame(data=post_treated, index=self._ref_xdata)
         return as_df
 
-    def plot(self, *args: Any, **kwargs: Any) -> None:
+    def plot(
+        self,
+        *args: Any,
+        elts: ListOfElements | None = None,
+        save_path: Path | None = None,
+        **kwargs: Any,
+    ) -> None:
         """Plot the post treated data using ``plotter``."""
-        data = self.get(*args, **kwargs)
-        post_treated_data = self.post_treat(data, *args, **kwargs)
-
-        assert self._plotter is not None, "Please provide a plotter object."
-        plot_2d = getattr(self._plotter, "plot_2d", None)
         assert isinstance(
-            plot_2d, Callable
-        ), "plotter object must have a Callable plot_2d method"
-
-        plot_2d(
-            post_treated_data,
-            y_label=self._markdown,
+            self._plotter, PandasPlotter
+        ), "Please provide a plotter object."
+        self._plotter.plot(
+            self.to_pandas(*args, **kwargs),
+            ylabel=self._markdown,
             fignum=self._fignum,
-            axes_num=self._axes_num,
-            **self.plot_kwargs,
+            axes_index=self._axes_index,
+            elts=elts,
+            save_path=save_path,
+            **self._plot_kwargs,
         )
 
     def run(self, *args: Any, **kwargs: Any) -> Iterable[bool | np.bool_]:

@@ -8,6 +8,7 @@ from beam_calculation.simulation_output.simulation_output import (
 )
 from core.elements.element import Element
 from new_evaluator.i_evaluator import IEvaluator
+from plotter.pd_plotter import PandasPlotter
 
 
 class ISimulationOutputEvaluator(IEvaluator):
@@ -20,7 +21,7 @@ class ISimulationOutputEvaluator(IEvaluator):
     _get_kwargs: dict[str, bool | str | None]
 
     def __init__(
-        self, reference: SimulationOutput, plotter: object | None = None
+        self, reference: SimulationOutput, plotter: PandasPlotter | None = None
     ) -> None:
         """Instantiate with a reference simulation output."""
         super().__init__(plotter)
