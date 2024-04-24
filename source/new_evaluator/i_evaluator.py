@@ -1,7 +1,7 @@
 """Define the base object for every evaluator."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable
 from typing import Any
 
 import numpy as np
@@ -14,25 +14,10 @@ from util.dicts_output import markdown
 
 
 class IEvaluator(ABC):
-    """Base class for all evaluators.
+    """Base class for all evaluators."""
 
-    Attributes
-    ----------
-    quantity : str
-        Name of the quantity; by default, this is the string that is passed to
-        the :class:`.SimulationOutput` or :class:`.SetOfCavitySettings` method.
-    markdown : str
-        A markdown string used as label in the plots.
-    fignum, axes_num : int
-        Number of the Figure and the Axes for plotter to know where to plot.
-    plot_kwargs : dict[str, str | bool | int]
-        Keyworg arguments passed to the ``plotter``.
-    plotter : object | None, optional
-        An object that can plot data. Not implemented yet.
-
-    """
-
-    _quantity: str
+    _x_quantity: str
+    _y_quantity: str
     _fignum: int
     _plot_kwargs: dict[str, str | bool | float]
     _axes_num: int = 0
@@ -52,16 +37,16 @@ class IEvaluator(ABC):
     @property
     def _markdown(self) -> str:
         """Give a markdown representation of object, with units."""
-        return markdown[self._quantity]
+        return markdown[self._y_quantity]
 
     @abstractmethod
     def get(self, *args: Any, **kwargs: Any) -> Iterable[float]:
         """Get the base data."""
         pass
 
-    def post_treat(self, data: Iterable[float]) -> Iterable[float]:
+    def post_treat(self, ydata: Iterable[float]) -> Iterable[float]:
         """Perform operations on data. By default, return data as is."""
-        return data
+        return ydata
 
     def to_pandas(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
         """Give the post-treated data as a pandas dataframe."""
