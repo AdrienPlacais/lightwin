@@ -19,6 +19,7 @@ class PowerLoss(ISimulationOutputEvaluator):
 
     _y_quantity = "pow_lost"
     _fignum = 101
+    _constant_limits = True
 
     def __init__(
         self,
@@ -72,6 +73,7 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
     _y_quantity = "eps_phiw"
     _to_deg = False
     _fignum = 110
+    _constant_limits = True
 
     def __init__(
         self,

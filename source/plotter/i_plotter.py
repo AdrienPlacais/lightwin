@@ -26,6 +26,7 @@ class IPlotter(ABC):
     def plot(
         self,
         data: Any,
+        axes: Any | None = None,
         ref_data: Any | None = None,
         save_path: Path | None = None,
         elts: ListOfElements | None = None,
@@ -133,6 +134,23 @@ class IPlotter(ABC):
         """Save the created figure."""
 
     @final
+    def plot_limits(
+        self,
+        data: Any,
+        axes: Any,
+        constant_limits: bool,
+        color: str = "red",
+        ls: str = "dashed",
+        **kwargs: Any,
+    ) -> Any:
+        """Represent acceptable lower and upper limits."""
+        if constant_limits:
+            return self.plot_constants(
+                axes, data, color=color, ls=ls, **kwargs
+            )
+        return self.plot(data, axes, color=color, ls=ls, **kwargs)
+
+    @final
     def plot_constants(
         self,
         axes: Any,
@@ -140,16 +158,19 @@ class IPlotter(ABC):
         color: str = "red",
         ls: str = "dashed",
         **kwargs,
-    ) -> None:
+    ) -> Any:
         """Add one or several constants to a plot."""
         if isinstance(constants, float | int):
             constants = (constants,)
 
         for constant in constants:
-            self._actual_constant_plot(axes, constant, color, ls, **kwargs)
+            axes = self._actual_constant_plot(
+                axes, constant, color, ls, **kwargs
+            )
+        return axes
 
     @abstractmethod
     def _actual_constant_plot(
         self, axes: Any, constant: float, color: str, ls: str, **kwargs
-    ) -> None:
+    ) -> Any:
         """Add one constant to a plot."""

@@ -24,6 +24,7 @@ class ISimulationOutputEvaluator(IEvaluator):
     _elt: str | Element | None = None
     _pos: str | None = None
     _get_kwargs: dict[str, bool | str | None]
+    _constant_limits: bool
 
     def __init__(
         self, reference: SimulationOutput, plotter: PandasPlotter | None = None
@@ -100,9 +101,10 @@ class ISimulationOutputEvaluator(IEvaluator):
             if isinstance(axes, Sequence):
                 axes = axes[self._axes_index]
 
-            self._plotter.plot_constants(  # type: ignore
-                axes,
-                constants=limit,
+            self._plotter.plot_limits(  # type: ignore
+                data=limits,
+                axes=axes,
+                constant_limits=self._constant_limits,
                 **limits_kw,  # type: ignore
             )
         return axes
