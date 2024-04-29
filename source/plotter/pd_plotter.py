@@ -48,7 +48,7 @@ class PandasPlotter(IPlotter):
             **kwargs,
         )
 
-    def _actual_plotting(
+    def _actual_plot(
         self,
         data: pd.DataFrame,
         ylabel: str,
@@ -94,3 +94,17 @@ class PandasPlotter(IPlotter):
     ) -> None:
         """Add the sections on the structure plot."""
         return plot_section(axes, elts, x_axis)
+
+    def _actual_constant_plot(
+        self,
+        axes: Axes | Sequence[Axes],
+        constant: float,
+        color: str,
+        ls: str,
+        **kwargs,
+    ) -> None:
+        """Add one constant plot."""
+        if not isinstance(axes, Sequence):
+            axes = (axes,)
+        for axe in axes:
+            axe.axhline(constant, xmin=0, xmax=1, color=color, ls=ls, **kwargs)

@@ -1,7 +1,7 @@
 """Define the base class for all plotters."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import Any, final
 
@@ -70,11 +70,11 @@ class IPlotter(ABC):
         axes = self._setup_fig(fignum, title)
 
         if ref_data is not None:
-            self._actual_plotting(
+            self._actual_plot(
                 ref_data, axes=axes, axes_index=axes_index, **plot_kwargs
             )
 
-        self._actual_plotting(
+        self._actual_plot(
             data, axes=axes, axes_index=axes_index, **plot_kwargs
         )
 
@@ -97,7 +97,7 @@ class IPlotter(ABC):
         """
 
     @abstractmethod
-    def _actual_plotting(
+    def _actual_plot(
         self,
         data: Any,
         ylabel: str,
@@ -107,10 +107,6 @@ class IPlotter(ABC):
         **plot_kwargs: Any,
     ) -> Any:
         """Create the plot itself."""
-
-    @abstractmethod
-    def save_figure(self, axes: Any, save_path: Path) -> None:
-        """Save the created figure."""
 
     @abstractmethod
     def _plot_structure(
@@ -130,3 +126,29 @@ class IPlotter(ABC):
         self, axes: Any, elts: ListOfElements, x_axis: str
     ) -> None:
         """Add the sections on the structure plot."""
+
+    @abstractmethod
+    def save_figure(self, axes: Any, save_path: Path) -> None:
+        """Save the created figure."""
+
+    @final
+    def plot_constants(
+        self,
+        axes: Any,
+        constants: Iterable[float] | float,
+        color: str = "red",
+        ls: str = "dashed",
+        **kwargs,
+    ) -> None:
+        """Add one or several constants to a plot."""
+        if isinstance(constants, float | int):
+            constants = (constants,)
+
+        for constant in constants:
+            self._actual_constant_plot(axes, constant, color, ls, **kwargs)
+
+    @abstractmethod
+    def _actual_constant_plot(
+        self, axes: Any, constant: float, color: str, ls: str, **kwargs
+    ) -> None:
+        """Add one constant to a plot."""
