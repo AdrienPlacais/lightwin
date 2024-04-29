@@ -1,5 +1,9 @@
 """Define the base object for :class:`.SimulationOutput` evaluators."""
 
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Any, override
+
 import numpy as np
 import numpy.typing as npt
 
@@ -7,6 +11,7 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.elements.element import Element
+from core.list_of_elements.list_of_elements import ListOfElements
 from new_evaluator.i_evaluator import IEvaluator
 from plotter.pd_plotter import PandasPlotter
 
@@ -67,3 +72,37 @@ class ISimulationOutputEvaluator(IEvaluator):
             self._get_n_interpolate(x, **kwargs) for x in simulation_outputs
         ]
         return np.column_stack(y_data)
+
+    @override
+    def plot(
+        self,
+        *simulation_outputs: SimulationOutput,
+        elts: ListOfElements | None = None,
+        save_path: Path | None = None,
+        limits: Sequence[Sequence[float] | None] | None = None,
+        limits_kw: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Plot the post treated data using ``plotter``."""
+        if limits is None:
+            limits = [None for _ in simulation_outputs]
+        else:
+            if limits_kw is None:
+                limits_kw = {}
+
+        axes = None
+        for simulation_output, limit in zip(simulation_outputs, limits):
+            axes = super().plot(
+                simulation_output, elts=elts, save_path=save_path, **kwargs
+            )
+            if limit is None:
+                continue
+            if isinstance(axes, Sequence):
+                axes = axes[self._axes_index]
+
+            self._plotter.plot_constants(  # type: ignore
+                axes,
+                constants=limit,
+                **limits_kw,  # type: ignore
+            )
+        return axes

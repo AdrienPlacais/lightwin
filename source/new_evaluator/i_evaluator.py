@@ -66,12 +66,12 @@ class IEvaluator(ABC):
         elts: ListOfElements | None = None,
         save_path: Path | None = None,
         **kwargs: Any,
-    ) -> None:
+    ) -> Any:
         """Plot the post treated data using ``plotter``."""
         assert isinstance(
             self._plotter, PandasPlotter
         ), "Please provide a plotter object."
-        self._plotter.plot(
+        return self._plotter.plot(
             self.to_pandas(*args, **kwargs),
             ylabel=self._markdown,
             fignum=self._fignum,
@@ -82,6 +82,13 @@ class IEvaluator(ABC):
             **self._plot_kwargs,
         )
 
-    def run(self, *args: Any, **kwargs: Any) -> Iterable[bool | np.bool_]:
+    def run(
+        self,
+        *args: Any,
+        plot_kwargs: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> Iterable[bool | np.bool_]:
         """Test if the object(s) under evaluation pass(es) the test."""
+        if plot_kwargs is not None:
+            self.plot(*args, **plot_kwargs)
         return (True,)

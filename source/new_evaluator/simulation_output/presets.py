@@ -1,7 +1,7 @@
 """Create some generic evaluators for :class:`.SimulationOutput.`"""
 
 from collections.abc import Iterable
-from typing import override
+from typing import Any, override
 
 import numpy as np
 import numpy.typing as npt
@@ -94,8 +94,8 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
     def __repr__(self) -> str:
         """Give a short description of what this class does."""
         return (
-            "Relative increase of eps_phiw < "
-            f"{self._max_percentage_rel_increase:0.2f}%"
+            r"Relative increase of $\epsilon_{\phi W} < "
+            f"{self._max_percentage_rel_increase:0.2f}$%"
         )
 
     @override
@@ -108,14 +108,28 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
             return post_treated
         raise ValueError
 
-    def run(self, *simulation_outputs, **kwargs) -> Iterable[np.bool_]:
+    def run(
+        self,
+        *simulation_outputs,
+        plot_kwargs: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> Iterable[np.bool_]:
         """Assert that longitudinal emittance does not grow too much."""
         ydata = self.get(*simulation_outputs, **kwargs)
         post_treated = self.post_treat(ydata)
+        upper_limit = 1e2 * self._max_percentage_rel_increase
+        tests = np.all(post_treated < upper_limit, axis=0)
 
-        tests = np.all(
-            post_treated < 1e2 * self._max_percentage_rel_increase, axis=0
-        )
         if isinstance(tests, bool):
             tests = np.array([tests])
+
+        if plot_kwargs is not None:
+            upper_limits = [(upper_limit,) for _ in simulation_outputs]
+            limits_kw = {"label": ("Upper limit",)}
+            self.plot(
+                *simulation_outputs,
+                limits=upper_limits,
+                limits_kw=limits_kw,
+                **plot_kwargs,
+            )
         return tests

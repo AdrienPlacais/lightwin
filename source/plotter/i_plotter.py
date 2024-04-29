@@ -85,6 +85,7 @@ class IPlotter(ABC):
 
         if save_path is not None:
             self.save_figure(axes, save_path)
+        return axes
 
     @abstractmethod
     def _setup_fig(self, fignum: int, title: str, **kwargs) -> Sequence[Any]:
