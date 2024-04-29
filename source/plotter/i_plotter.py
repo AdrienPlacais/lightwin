@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, final
 
 from core.list_of_elements.list_of_elements import ListOfElements
 from util.dicts_output import markdown
@@ -22,26 +22,58 @@ class IPlotter(ABC):
         """Instantiate some base attributes."""
         self._elts = elts
 
+    @final
     def plot(
         self,
-        data: Sequence[float],
-        ref_data: Sequence[float] | None = None,
+        data: Any,
+        ref_data: Any | None = None,
         save_path: Path | None = None,
         elts: ListOfElements | None = None,
         fignum: int = 1,
         axes_index: int = 0,
         **plot_kwargs: Any,
     ) -> Any:
-        """Plot the provided data."""
+        """Plot the provided data.
+
+        Parameters
+        ----------
+        data : Any
+            Data to be plotted. According to the subclass, it can be a numpy
+            array, a pandas dataframe...
+        ref_data : Sequence[float] | None, optional
+            Reference data, to plot if provided.
+        save_path : Path | None, optional
+            Where the figure will be saved. The default is None, in which case
+            figure is not plotted.
+        elts : ListOfElements | None, optional
+            Elements to plot if :attr:`_structure` is True. If not provided, we
+            take default :attr:`_elts` instead. Note that the colour of the
+            failed, compensating, rephased cavities is given by this object.
+            The default is None.
+        fignum : int, optional
+            Figure number. The default is 1.
+        axes_index : int, optional
+            Axes identifier. The default is 0, corresponding to the topmost
+            sub-axes.
+        plot_kwargs : Any, optional
+            Other keyword arguments passed to the :meth:`_actual_plotting`.
+
+        Returns
+        -------
+        Any
+            The created axes object(s).
+
+        """
         axes = self._setup_fig(fignum)
-        self._actual_plotting(
-            data, axes=axes, axes_index=axes_index, **plot_kwargs
-        )
 
         if ref_data is not None:
             self._actual_plotting(
                 ref_data, axes=axes, axes_index=axes_index, **plot_kwargs
             )
+
+        self._actual_plotting(
+            data, axes=axes, axes_index=axes_index, **plot_kwargs
+        )
 
         if self._structure:
             if elts is None:
@@ -54,7 +86,7 @@ class IPlotter(ABC):
     @abstractmethod
     def _actual_plotting(
         self,
-        data: Sequence[float] | Sequence[Sequence[float]],
+        data: Any,
         ylabel: str,
         axes: Any,
         axes_index: int,
