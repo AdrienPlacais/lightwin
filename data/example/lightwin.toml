@@ -37,7 +37,7 @@ sigma = [
 ]
 
 [generic_wtf]
-failed = [["FM10"]]
+failed = [["FM11"]]
 id_nature = "name"
 k = 3
 objective_preset = "simple_ADS"
