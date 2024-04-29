@@ -34,6 +34,20 @@ class PandasPlotter(IPlotter):
         """Instantiate some common attributes."""
         super().__init__(elts)
 
+    def _setup_fig(self, fignum: int, title: str, **kwargs) -> list[Axes]:
+        """Setup the figure and axes."""
+        axnum = 2
+        if not self._structure:
+            axnum = 1
+        return create_fig_if_not_exists(
+            axnum,
+            title=title,
+            sharex=self._sharex,
+            num=fignum,
+            clean_fig=True,
+            **kwargs,
+        )
+
     def _actual_plotting(
         self,
         data: pd.DataFrame,
@@ -80,12 +94,3 @@ class PandasPlotter(IPlotter):
     ) -> None:
         """Add the sections on the structure plot."""
         return plot_section(axes, elts, x_axis)
-
-    def _setup_fig(self, fignum: int, **kwargs) -> list[Axes]:
-        """Setup the figure and axes."""
-        axnum = 2
-        if not self._structure:
-            axnum = 1
-        return create_fig_if_not_exists(
-            axnum, sharex=self._sharex, num=fignum, clean_fig=True, **kwargs
-        )

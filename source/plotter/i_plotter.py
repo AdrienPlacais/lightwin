@@ -31,6 +31,7 @@ class IPlotter(ABC):
         elts: ListOfElements | None = None,
         fignum: int = 1,
         axes_index: int = 0,
+        title: str = "",
         **plot_kwargs: Any,
     ) -> Any:
         """Plot the provided data.
@@ -55,6 +56,8 @@ class IPlotter(ABC):
         axes_index : int, optional
             Axes identifier. The default is 0, corresponding to the topmost
             sub-axes.
+        title : str, optional
+            Title of the figure. The default is an empty string.
         plot_kwargs : Any, optional
             Other keyword arguments passed to the :meth:`_actual_plotting`.
 
@@ -64,7 +67,7 @@ class IPlotter(ABC):
             The created axes object(s).
 
         """
-        axes = self._setup_fig(fignum)
+        axes = self._setup_fig(fignum, title)
 
         if ref_data is not None:
             self._actual_plotting(
@@ -82,6 +85,16 @@ class IPlotter(ABC):
 
         if save_path is not None:
             self.save_figure(axes, save_path)
+
+    @abstractmethod
+    def _setup_fig(self, fignum: int, title: str, **kwargs) -> Sequence[Any]:
+        """Create the figure.
+
+        This method should create the figure with figure number ``fignum``,
+        with title ``title``, and eventual keyword arguments. It must return
+        one or several axes where data can be plotted.
+
+        """
 
     @abstractmethod
     def _actual_plotting(
@@ -117,7 +130,3 @@ class IPlotter(ABC):
         self, axes: Any, elts: ListOfElements, x_axis: str
     ) -> None:
         """Add the sections on the structure plot."""
-
-    @abstractmethod
-    def _setup_fig(self, fignum: int, **kwargs) -> Sequence[Any]:
-        """Create the figure."""

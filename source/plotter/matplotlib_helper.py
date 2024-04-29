@@ -174,19 +174,22 @@ def plot_section(
 
 def create_fig_if_not_exists(
     axnum: int | Sequence[int],
+    title: str = "",
     sharex: bool = False,
     num: int = 1,
     clean_fig: bool = False,
     **kwargs: bool | str | int,
 ) -> list[Axes]:
-    """
-    Check if figures were already created, create it if not.
+    """Check if figures were already created, create it if not.
 
     Parameters
     ----------
     axnum : int | Sequence[int]
         Axes indexes as understood by fig.add_subplot or number of desired
         axes.
+    title : str, optional
+        Title of the figure. The default is an empty string. It will not
+        override a pre-existing title.
     sharex : boolean, optional
         If x axis should be shared. The default is False.
     num : int, optional
@@ -206,7 +209,9 @@ def create_fig_if_not_exists(
         if clean_fig:
             clean_figure([num])
         return axlist
+
     fig = plt.figure(num)
+    fig.suptitle(title)
     axlist = [fig.add_subplot(axnum[0])]
     shared_ax = None
     if sharex:
