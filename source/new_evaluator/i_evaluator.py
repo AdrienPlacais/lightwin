@@ -1,7 +1,7 @@
 """Define the base object for every evaluator."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -78,6 +78,7 @@ class IEvaluator(ABC):
             axes_index=self._axes_index,
             elts=elts,
             save_path=save_path,
+            title=str(self),
             **self._plot_kwargs,
         )
 
