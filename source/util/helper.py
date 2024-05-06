@@ -7,7 +7,7 @@
 
 """
 import logging
-from collections.abc import Generator, Iterable
+from collections.abc import Generator, Iterable, Sequence
 from typing import Any, Iterator
 
 import numpy as np
@@ -116,6 +116,43 @@ def pd_output(message: pd.DataFrame, header: str = "") -> str:
     my_output = header + "\n" + "-" * tot + "\n" + message.to_string()
     my_output += "\n" + "-" * tot
     return my_output
+
+
+def pascal_case(message: str) -> str:
+    """Convert a string to Pascal case (as class names).
+
+    Examples
+    --------
+    >>> pascal_case("bonjoure sa_vA")
+    "BonjoureSaVa"
+
+    """
+    return "".join(x for x in message.title() if x not in (" ", "_"))
+
+
+def get_constructor(name: str, constructors: dict[str, type]) -> type:
+    """Get the proper class from a string and dict of classes."""
+    pascal_name = pascal_case(name)
+
+    if pascal_name in constructors:
+        return constructors[pascal_name]
+    if name in constructors:
+        constructor = constructors[name]
+        logging.warning(
+            f"{constructor = } matches the provided {name = }, but consider"
+            f"calling it {pascal_name} for consistency."
+        )
+        return constructor
+    raise KeyError(
+        f"Neither {pascal_name = } nor {name = } is in {constructors = }"
+    )
+
+
+def get_constructors(
+    names: Iterable[str], constructors: dict[str, type]
+) -> Generator[type, None, None]:
+    """Get several class constructors from their names."""
+    return (get_constructor(name, constructors) for name in names)
 
 
 # TODO: replace nan by ' ' when there is a \n in a pd DataFrame header
