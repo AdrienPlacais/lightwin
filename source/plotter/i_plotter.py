@@ -1,4 +1,9 @@
-"""Define the base class for all plotters."""
+"""Define the base class for all plotters.
+
+.. todo::
+    Remove the ``elts`` argument??
+
+"""
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
@@ -18,9 +23,10 @@ class IPlotter(ABC):
     _structure = True
     _sections = True
 
-    def __init__(self, elts: ListOfElements) -> None:
+    def __init__(self, elts: ListOfElements | None = None) -> None:
         """Instantiate some base attributes."""
-        self._elts = elts
+        if elts is not None:
+            self._elts = elts
 
     @final
     def plot(
@@ -119,6 +125,10 @@ class IPlotter(ABC):
     ) -> None:
         """Add a plot to show the structure of the linac."""
         if elts is None:
+            assert hasattr(self, "_elts"), (
+                "Please provide at least a defaut ListOfElements for structure"
+                " plots."
+            )
             elts = self._elts
         if self._sections:
             self._plot_sections(axes, elts, x_axis)

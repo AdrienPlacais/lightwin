@@ -30,7 +30,7 @@ class PandasPlotter(IPlotter):
 
     """
 
-    def __init__(self, elts: ListOfElements) -> None:
+    def __init__(self, elts: ListOfElements | None = None) -> None:
         """Instantiate some common attributes."""
         super().__init__(elts)
 
@@ -83,6 +83,10 @@ class PandasPlotter(IPlotter):
         """Add a plot to show the structure of the linac."""
         if elts is None:
             elts = self._elts
+            assert hasattr(self, "_elts"), (
+                "Please provide at least a defaut ListOfElements for structure"
+                " plots."
+            )
         plot_structure(axes[-1], elts, x_axis)
 
         if not self._sections:
