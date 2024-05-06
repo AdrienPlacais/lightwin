@@ -262,8 +262,8 @@ class FaultScenario(list):
             self.fix_acc.keep_settings(
                 simulation_output, output_phase=self._reference_phase
             )
-            self.fix_acc.simulation_outputs[self.beam_calculator.id] = (
-                simulation_output
+            self.fix_acc.keep_simulation_output(
+                simulation_output, self.beam_calculator.id
             )
 
             fault.update_elements_status(optimisation="finished", success=True)
