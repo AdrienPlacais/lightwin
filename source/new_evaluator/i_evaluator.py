@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from core.list_of_elements.list_of_elements import ListOfElements
@@ -97,13 +98,12 @@ class IEvaluator(ABC):
         """Plot other evaluator-specific data."""
         return axes
 
+    @abstractmethod
     def evaluate(
         self,
         *args: Any,
         plot_kwargs: dict[str, Any] | None = None,
         **kwargs: Any,
-    ) -> list[bool]:
+    ) -> tuple[list[bool], npt.NDArray[np.float64]]:
         """Test if the object(s) under evaluation pass(es) the test."""
-        if plot_kwargs is not None:
-            self.plot(*args, **plot_kwargs)
-        return [True]
+        pass

@@ -96,7 +96,6 @@ class SimulationOutputEvaluatorsFactory:
         accelerators: Sequence[Accelerator],
         beam_solver_id: str,
         plot_kwargs: dict[str, Any] | None = None,
-        csv_path: Path | None = None,
         csv_kwargs: dict[str, Any] | None = None,
         **kwargs,
     ) -> pd.DataFrame:
@@ -107,33 +106,33 @@ class SimulationOutputEvaluatorsFactory:
         elts = [x.elts for x in accelerators]
         folders = _out_folders(simulation_outputs)
 
-        tests = [
-            evaluator.evaluate(
-                *simulation_outputs,
-                elts=elts,
-                plot_kwargs=plot_kwargs,
-                png_folders=folders,
-                **kwargs,
-            )
-            for evaluator in evaluators
-        ]
-        tests = {
-            str(evaluator): evaluator.evaluate(
+        tests = {}
+        data_used_for_tests = {}
+        for evaluator in evaluators:
+            test, data = evaluator.evaluate(
                 *simulation_outputs,
                 elts=elts,
                 plot_kwargs=plot_kwargs,
                 **kwargs,
             )
-            for evaluator in evaluators
-        }
-        index = [folder.stem for folder in folders]
+            tests[str(evaluator)] = test
+            data_used_for_tests[str(evaluator)] = data
+        index = [folder.parent.stem for folder in folders]
         tests_as_pd = pd.DataFrame(tests, index=index)
+        data_as_pd = pd.DataFrame(data_used_for_tests, index=index)
 
-        if csv_path is None:
-            csv_path = folders[0].parent / "tests.csv"
         if csv_kwargs is None:
             csv_kwargs = {}
-        pandas_helper.to_csv(tests_as_pd, path=csv_path, **csv_kwargs)
+        pandas_helper.to_csv(
+            tests_as_pd,
+            path=folders[0].parents[1] / "tests.csv",
+            **csv_kwargs,
+        )
+        pandas_helper.to_csv(
+            data_as_pd,
+            path=folders[0].parents[1] / "data_used_for_tests.csv",
+            **csv_kwargs,
+        )
 
         return tests_as_pd
 

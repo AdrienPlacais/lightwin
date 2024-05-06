@@ -1,7 +1,6 @@
 """Create some generic evaluators for :class:`.SimulationOutput.`"""
 
 from collections.abc import Iterable, Sequence
-from pathlib import Path
 from typing import Any, override
 
 import numpy as np
@@ -61,14 +60,13 @@ class PowerLoss(ISimulationOutputEvaluator):
             return ydata
         raise ValueError(f"{ydata = } not understood.")
 
-    # TODO update
     def evaluate(
         self,
         *simulation_outputs,
         elts: Sequence[ListOfElements] | None = None,
         plot_kwargs: dict[str, Any] | None = None,
         **kwargs,
-    ) -> list[bool]:
+    ) -> tuple[list[bool], npt.NDArray[np.float64]]:
         """Assert that lost power is lower than maximum."""
         all_post_treated = self.post_treat(
             self.get(*simulation_outputs, **kwargs)
@@ -78,9 +76,10 @@ class PowerLoss(ISimulationOutputEvaluator):
         if plot_kwargs is None:
             plot_kwargs = {}
 
-        for post_treated in all_post_treated.T:
+        used_for_eval = np.sum(all_post_treated, axis=0)
+        for post_treated in used_for_eval:
             test = self._evaluate_single(
-                np.sum(post_treated),
+                used_for_eval,
                 lower_limit=np.NaN,
                 upper_limit=self._max_loss,
                 **kwargs,
@@ -95,7 +94,7 @@ class PowerLoss(ISimulationOutputEvaluator):
             **plot_kwargs,
             **kwargs,
         )
-        return tests
+        return tests, used_for_eval
 
 
 class LongitudinalEmittance(ISimulationOutputEvaluator):
@@ -147,7 +146,7 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
         elts: Sequence[ListOfElements] | None = None,
         plot_kwargs: dict[str, Any] | None = None,
         **kwargs,
-    ) -> list[bool]:
+    ) -> tuple[list[bool], npt.NDArray[np.float64]]:
         """Assert that longitudinal emittance does not grow too much."""
         all_post_treated = self.post_treat(
             self.get(*simulation_outputs, **kwargs)
@@ -176,7 +175,7 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
             **plot_kwargs,
             **kwargs,
         )
-        return tests
+        return tests, all_post_treated[-1, :]
 
 
 SIMULATION_OUTPUT_EVALUATORS = {
