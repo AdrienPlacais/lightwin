@@ -135,3 +135,9 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
                 **plot_kwargs,
             )
         return tests
+
+
+SIMULATION_OUTPUT_EVALUATORS = {
+    "PowerLoss": PowerLoss,
+    "LongitudinalEmittance": LongitudinalEmittance,
+}
