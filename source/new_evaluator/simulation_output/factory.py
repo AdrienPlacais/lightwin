@@ -5,6 +5,7 @@
 
 """
 
+import logging
 from collections.abc import Collection, Sequence
 from pathlib import Path
 from typing import Any
@@ -104,11 +105,14 @@ class SimulationOutputEvaluatorsFactory:
             x.simulation_outputs[beam_solver_id] for x in accelerators
         ]
         elts = [x.elts for x in accelerators]
+        folders = _out_folders(simulation_outputs)
+
         tests = [
             evaluator.evaluate(
                 *simulation_outputs,
                 elts=elts,
                 plot_kwargs=plot_kwargs,
+                png_folders=folders,
                 **kwargs,
             )
             for evaluator in evaluators
@@ -122,14 +126,11 @@ class SimulationOutputEvaluatorsFactory:
             )
             for evaluator in evaluators
         }
-        index = [x.elts.files["accelerator_path"].stem for x in accelerators]
+        index = [folder.stem for folder in folders]
         tests_as_pd = pd.DataFrame(tests, index=index)
 
         if csv_path is None:
-            csv_path = (
-                accelerators[0].elts.files["accelerator_path"].parent
-                / "tests.csv"
-            )
+            csv_path = folders[0].parent / "tests.csv"
         if csv_kwargs is None:
             csv_kwargs = {}
         pandas_helper.to_csv(tests_as_pd, path=csv_path, **csv_kwargs)
@@ -180,3 +181,20 @@ def _constructors_n_kwargs(
         )
     }
     return constructors_n_kwargs
+
+
+def _out_folders(
+    simulation_outputs: Collection[SimulationOutput],
+) -> list[Path]:
+    """Get the output folders."""
+    paths = []
+    for x in simulation_outputs:
+        if not hasattr(x, "out_path"):
+            logging.error(
+                "You must set the out_path attribute of SimulationOutput "
+                "object. Look at Accelerator.keep_simulation_output."
+            )
+            paths.append(x.out_folder)
+            continue
+        paths.append(x.out_path)
+    return paths

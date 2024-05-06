@@ -108,7 +108,7 @@ class SimulationOutput:
             self.elt_idx = [
                 i for i, _ in enumerate(self.cav_params["v_cav_mv"], start=1)
             ]
-        self.out_path: Path | None = None
+        self.out_path: Path
 
     def __str__(self) -> str:
         """Give a resume of the data that is stored."""
@@ -125,7 +125,7 @@ class SimulationOutput:
     @property
     def beam_calculator_information(self) -> Path:
         """Use ``out_path`` to retrieve info on :class:`BeamCalculator`."""
-        if self.out_path is None:
+        if not hasattr(self, "out_path"):
             return self.out_folder
         return self.out_path.absolute().parents[1]
 

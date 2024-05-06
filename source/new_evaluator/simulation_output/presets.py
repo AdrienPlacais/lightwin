@@ -1,6 +1,7 @@
 """Create some generic evaluators for :class:`.SimulationOutput.`"""
 
 from collections.abc import Iterable, Sequence
+from pathlib import Path
 from typing import Any, override
 
 import numpy as np
@@ -92,6 +93,7 @@ class PowerLoss(ISimulationOutputEvaluator):
             lower_limits=None,
             upper_limits=[self._max_loss for _ in simulation_outputs],
             **plot_kwargs,
+            **kwargs,
         )
         return tests
 
@@ -172,6 +174,7 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
                 self._max_percentage_rel_increase for _ in simulation_outputs
             ],
             **plot_kwargs,
+            **kwargs,
         )
         return tests
 

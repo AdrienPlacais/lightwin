@@ -65,7 +65,7 @@ class IEvaluator(ABC):
         self,
         post_treated: Collection[Iterable[float]],
         elts: Sequence[ListOfElements] | None = None,
-        save_path: Sequence[Path] | None = None,
+        png_folders: Sequence[Path] | None = None,
         **kwargs: Any,
     ) -> Any:
         """Plot evaluated data from all the given objects."""
@@ -75,7 +75,7 @@ class IEvaluator(ABC):
         self,
         data: Any,
         elts: ListOfElements | None,
-        save_path: Path | None = None,
+        png_path: Path | None = None,
         **kwargs,
     ) -> Any:
         """Plot evaluated data from a single object."""
@@ -85,7 +85,7 @@ class IEvaluator(ABC):
             fignum=self._fignum,
             axes_index=self._axes_index,
             elts=elts,
-            save_path=save_path,
+            png_path=png_path,
             title=str(self),
             **kwargs,
             **self._plot_kwargs,

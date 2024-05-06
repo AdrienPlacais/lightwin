@@ -59,7 +59,11 @@ class MatplotlibPlotter(IPlotter):
         )
         return axes
 
-    def save_figure(self, axes: Axes, save_path: Path) -> None:
+    def save_figure(
+        self, axes: Axes | Sequence[Axes], save_path: Path
+    ) -> None:
+        if isinstance(axes, Sequence):
+            axes = axes[0]
         figure = axes.get_figure()
         assert figure is not None
         return figure.savefig(save_path)

@@ -34,7 +34,7 @@ class IPlotter(ABC):
         data: Any,
         axes: Any | None = None,
         ref_data: Any | None = None,
-        save_path: Path | None = None,
+        png_path: Path | None = None,
         elts: ListOfElements | None = None,
         fignum: int = 1,
         axes_index: int = 0,
@@ -50,7 +50,7 @@ class IPlotter(ABC):
             array, a pandas dataframe...
         ref_data : Sequence[float] | None, optional
             Reference data, to plot if provided.
-        save_path : Path | None, optional
+        png_path : Path | None, optional
             Where the figure will be saved. The default is None, in which case
             figure is not plotted.
         elts : ListOfElements | None, optional
@@ -90,8 +90,8 @@ class IPlotter(ABC):
                 elts = self._elts
             self._plot_structure(axes, elts)
 
-        if save_path is not None:
-            self.save_figure(axes, save_path)
+        if png_path is not None:
+            self.save_figure(axes, png_path)
         return axes
 
     @abstractmethod

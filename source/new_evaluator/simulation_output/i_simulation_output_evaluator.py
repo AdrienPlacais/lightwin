@@ -109,13 +109,11 @@ class ISimulationOutputEvaluator(IEvaluator):
         ]
         return np.column_stack(y_data)
 
-    # TODO maybe this method should apply only on a single simulation_output
-    # and should be called only from the run method
     def plot(
         self,
         post_treated: npt.NDArray[np.float64],
         elts: Sequence[ListOfElements] | None = None,
-        save_path: Sequence[Path] | None = None,
+        png_folders: Sequence[Path] | None = None,
         lower_limits: (
             Sequence[Iterable[float]] | Sequence[float] | None
         ) = None,
@@ -148,8 +146,10 @@ class ISimulationOutputEvaluator(IEvaluator):
                 dump_no_numerical_data_to_plot=self._dump_no_numerical_data_to_plot,
                 **kwargs,
             )
-            if save_path is not None:
-                self._plotter.save_figure(axes, save_path[i])
+            if png_folders is not None:
+                self._plotter.save_figure(
+                    axes, png_folders[i] / self.png_filename
+                )
 
     @final
     def _evaluate_single(
@@ -157,6 +157,7 @@ class ISimulationOutputEvaluator(IEvaluator):
         post_treated: npt.NDArray[np.float64],
         lower_limit: npt.NDArray[np.float64] | float = np.NaN,
         upper_limit: npt.NDArray[np.float64] | float = np.NaN,
+        **kwargs,
     ) -> bool:
         """Check that ``post_treated`` is within limits.
 
@@ -191,3 +192,8 @@ class ISimulationOutputEvaluator(IEvaluator):
         )
         test = np.all(is_above_lower & is_under_upper, axis=0)
         return bool(test)
+
+    @property
+    def png_filename(self) -> str:
+        """Give a filename for consistent saving of figures."""
+        return f"{self._y_quantity}.png"
