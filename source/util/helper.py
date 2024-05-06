@@ -7,7 +7,7 @@
 
 """
 import logging
-from collections.abc import Generator, Iterable, Sequence
+from collections.abc import Generator, Iterable
 from typing import Any, Iterator
 
 import numpy as np
@@ -121,9 +121,14 @@ def pd_output(message: pd.DataFrame, header: str = "") -> str:
 def pascal_case(message: str) -> str:
     """Convert a string to Pascal case (as class names).
 
+    .. todo::
+        Second example does not work
+
     Examples
     --------
     >>> pascal_case("bonjoure sa_vA")
+    "BonjoureSaVa"
+    >>> pascal_case("BonjoureSaVa")
     "BonjoureSaVa"
 
     """
@@ -139,7 +144,7 @@ def get_constructor(name: str, constructors: dict[str, type]) -> type:
     if name in constructors:
         constructor = constructors[name]
         logging.warning(
-            f"{constructor = } matches the provided {name = }, but consider"
+            f"{constructor = } matches the provided {name = }, but consider "
             f"calling it {pascal_name} for consistency."
         )
         return constructor
