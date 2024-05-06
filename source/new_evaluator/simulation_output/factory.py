@@ -8,6 +8,8 @@
 from collections.abc import Collection, Sequence
 from typing import Any
 
+import pandas as pd
+
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
@@ -92,7 +94,7 @@ class SimulationOutputEvaluatorsFactory:
         beam_solver_id: str,
         plot_kwargs: dict[str, Any] | None = None,
         **kwargs,
-    ) -> list[list[bool]]:
+    ) -> pd.DataFrame:
         """Evaluate several evaluators."""
         simulation_outputs = [
             x.simulation_outputs[beam_solver_id] for x in accelerators
@@ -107,7 +109,18 @@ class SimulationOutputEvaluatorsFactory:
             )
             for evaluator in evaluators
         ]
-        return tests
+        tests = {
+            str(evaluator): evaluator.evaluate(
+                *simulation_outputs,
+                elts=elts,
+                plot_kwargs=plot_kwargs,
+                **kwargs,
+            )
+            for evaluator in evaluators
+        }
+        index = [x.elts.files["accelerator_path"].stem for x in accelerators]
+        tests_as_pd = pd.DataFrame(tests, index=index)
+        return tests_as_pd
 
 
 def _constructors_n_kwargs(
