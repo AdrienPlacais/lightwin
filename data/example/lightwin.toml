@@ -77,3 +77,8 @@ envelopes = false
 phase = true
 transfer_matrices = false
 twiss = false
+[evaluators]
+simulation_output = [
+   { name = "LongitudinalEmittance", max_percentage_rel_increase = 0.005 },
+   { name = "PowerLoss", max_percentage_increase = 10.0 },
+]

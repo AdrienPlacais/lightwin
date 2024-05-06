@@ -1,7 +1,7 @@
 """Define the base object for every evaluator."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from core.list_of_elements.list_of_elements import ListOfElements
-from plotter.pd_plotter import PandasPlotter
+from plotter.i_plotter import IPlotter
 from util.dicts_output import markdown
 
 
@@ -22,7 +22,7 @@ class IEvaluator(ABC):
     _plot_kwargs: dict[str, str | bool | float]
     _axes_index: int = 0
 
-    def __init__(self, plotter: PandasPlotter | None = None) -> None:
+    def __init__(self, plotter: IPlotter) -> None:
         """Instantiate the ``plotter`` object."""
         self._plotter = plotter
         if not hasattr(self, "_plot_kwargs"):
@@ -60,35 +60,50 @@ class IEvaluator(ABC):
         as_df = pd.DataFrame(data=post_treated, index=self._ref_xdata)
         return as_df
 
+    @abstractmethod
     def plot(
         self,
-        *args: Any,
-        elts: ListOfElements | None = None,
-        save_path: Path | None = None,
+        post_treated: Collection[Iterable[float]],
+        elts: Sequence[ListOfElements] | None = None,
+        save_path: Sequence[Path] | None = None,
         **kwargs: Any,
     ) -> Any:
-        """Plot the post treated data using ``plotter``."""
-        assert isinstance(
-            self._plotter, PandasPlotter
-        ), "Please provide a plotter object."
+        """Plot evaluated data from all the given objects."""
+        pass
+
+    def _plot_single(
+        self,
+        data: Any,
+        elts: ListOfElements | None,
+        save_path: Path | None = None,
+        **kwargs,
+    ) -> Any:
+        """Plot evaluated data from a single object."""
         return self._plotter.plot(
-            self.to_pandas(*args, **kwargs),
+            data,
             ylabel=self._markdown,
             fignum=self._fignum,
             axes_index=self._axes_index,
             elts=elts,
             save_path=save_path,
             title=str(self),
+            **kwargs,
             **self._plot_kwargs,
         )
 
-    def run(
+    def _plot_complementary(
+        self, data: Iterable[float], axes: Any, *args: Any, **kwargs: Any
+    ) -> Any:
+        """Plot other evaluator-specific data."""
+        return axes
+
+    def evaluate(
         self,
         *args: Any,
         plot_kwargs: dict[str, Any] | None = None,
         **kwargs: Any,
-    ) -> Iterable[bool | np.bool_]:
+    ) -> list[bool]:
         """Test if the object(s) under evaluation pass(es) the test."""
         if plot_kwargs is not None:
             self.plot(*args, **plot_kwargs)
-        return (True,)
+        return [True]

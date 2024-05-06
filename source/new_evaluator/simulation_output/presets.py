@@ -1,6 +1,6 @@
 """Create some generic evaluators for :class:`.SimulationOutput.`"""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Any, override
 
 import numpy as np
@@ -9,9 +9,11 @@ import numpy.typing as npt
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
+from core.list_of_elements.list_of_elements import ListOfElements
 from new_evaluator.simulation_output.i_simulation_output_evaluator import (
     ISimulationOutputEvaluator,
 )
+from plotter.pd_plotter import PandasPlotter
 
 
 class PowerLoss(ISimulationOutputEvaluator):
@@ -25,7 +27,7 @@ class PowerLoss(ISimulationOutputEvaluator):
         self,
         max_percentage_increase: float,
         reference: SimulationOutput,
-        plotter: object | None = None,
+        plotter: PandasPlotter = PandasPlotter(),
     ) -> None:
         """Instantiate with a reference simulation output."""
         super().__init__(reference, plotter)
@@ -56,14 +58,41 @@ class PowerLoss(ISimulationOutputEvaluator):
         if ydata.ndim == 2:
             ydata[:, 0] = 0.0
             return ydata
-        raise ValueError
+        raise ValueError(f"{ydata = } not understood.")
 
-    def run(self, *simulation_outputs, **kwargs) -> list[bool]:
+    # TODO update
+    def evaluate(
+        self,
+        *simulation_outputs,
+        elts: Sequence[ListOfElements] | None = None,
+        plot_kwargs: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> list[bool]:
         """Assert that lost power is lower than maximum."""
-        ydata = self.get(*simulation_outputs, **kwargs)
-        post_treated = self.post_treat(ydata)
-        sums = np.sum(post_treated, axis=1)
-        tests = [x <= self._max_loss for x in sums]
+        all_post_treated = self.post_treat(
+            self.get(*simulation_outputs, **kwargs)
+        )
+        tests: list[bool] = []
+
+        if plot_kwargs is None:
+            plot_kwargs = {}
+
+        for post_treated in all_post_treated.T:
+            test = self._evaluate_single(
+                np.sum(post_treated),
+                lower_limit=np.NaN,
+                upper_limit=self._max_loss,
+                **kwargs,
+            )
+            tests.append(test)
+
+        self.plot(
+            all_post_treated,
+            elts,
+            lower_limits=None,
+            upper_limits=[self._max_loss for _ in simulation_outputs],
+            **plot_kwargs,
+        )
         return tests
 
 
@@ -79,7 +108,7 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
         self,
         max_percentage_rel_increase: float,
         reference: SimulationOutput,
-        plotter: object | None = None,
+        plotter: PandasPlotter = PandasPlotter(),
     ) -> None:
         """Instantiate with a reference simulation output."""
         super().__init__(reference, plotter)
@@ -97,7 +126,7 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
         """Give a short description of what this class does."""
         return (
             r"Relative increase of $\epsilon_{\phi W} < "
-            f"{self._max_percentage_rel_increase:0.2f}$%"
+            f"{self._max_percentage_rel_increase:0.4f}$%"
         )
 
     @override
@@ -105,35 +134,45 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
         """Compute relative diff w.r.t. reference value @ z = 0."""
         assert isinstance(ydata, np.ndarray)
         if ydata.ndim in (1, 2):
-            post_treated = (ydata - self._ref_ydata) / self._ref_ydata
+            post_treated = 1e2 * (ydata - self._ref_ydata) / self._ref_ydata
             assert isinstance(ydata, np.ndarray)
             return post_treated
         raise ValueError
 
-    def run(
+    def evaluate(
         self,
         *simulation_outputs,
+        elts: Sequence[ListOfElements] | None = None,
         plot_kwargs: dict[str, Any] | None = None,
         **kwargs,
-    ) -> Iterable[np.bool_]:
+    ) -> list[bool]:
         """Assert that longitudinal emittance does not grow too much."""
-        ydata = self.get(*simulation_outputs, **kwargs)
-        post_treated = self.post_treat(ydata)
-        upper_limit = 1e2 * self._max_percentage_rel_increase
-        tests = np.all(post_treated < upper_limit, axis=0)
+        all_post_treated = self.post_treat(
+            self.get(*simulation_outputs, **kwargs)
+        )
+        tests: list[bool] = []
 
-        if isinstance(tests, bool):
-            tests = np.array([tests])
+        if plot_kwargs is None:
+            plot_kwargs = {}
 
-        if plot_kwargs is not None:
-            upper_limits = [(upper_limit,) for _ in simulation_outputs]
-            limits_kw = {"label": ("Upper limit",)}
-            self.plot(
-                *simulation_outputs,
-                limits=upper_limits,
-                limits_kw=limits_kw,
-                **plot_kwargs,
+        for post_treated in all_post_treated.T:
+            test = self._evaluate_single(
+                post_treated,
+                lower_limit=np.NaN,
+                upper_limit=self._max_percentage_rel_increase,
+                **kwargs,
             )
+            tests.append(test)
+
+        self.plot(
+            all_post_treated,
+            elts,
+            lower_limits=None,
+            upper_limits=[
+                self._max_percentage_rel_increase for _ in simulation_outputs
+            ],
+            **plot_kwargs,
+        )
         return tests
 
 

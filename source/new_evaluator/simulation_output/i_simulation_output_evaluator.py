@@ -1,11 +1,13 @@
 """Define the base object for :class:`.SimulationOutput` evaluators."""
 
-from collections.abc import Sequence
+import logging
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, override
+from typing import Any, final
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
@@ -25,30 +27,63 @@ class ISimulationOutputEvaluator(IEvaluator):
     _pos: str | None = None
     _get_kwargs: dict[str, bool | str | None]
     _constant_limits: bool
+    _dump_no_numerical_data_to_plot: bool = False
 
     def __init__(
-        self, reference: SimulationOutput, plotter: PandasPlotter | None = None
+        self, reference: SimulationOutput, plotter: PandasPlotter
     ) -> None:
         """Instantiate with a reference simulation output."""
         super().__init__(plotter)
-        self._ref_xdata = reference.get(self._x_quantity)
-        self._n_points = len(self._ref_xdata)
-        self._ref_ydata = reference.get(self._y_quantity)
-
         if not hasattr(self, "_get_kwargs"):
             self._get_kwargs = {}
+        self._ref_xdata = self._getter(reference, self._x_quantity)
+        self._n_points = len(self._ref_xdata)
+        self._ref_ydata = self._getter(reference, self._y_quantity)
+
+    @final
+    def _default_dummy(self, quantity: str) -> npt.NDArray[np.float64]:
+        """Give dummy ydata, with expected shape if possible.
+
+        Also, set ``_dump_no_numerical_data_to_plot`` to avoid future pandas
+        plotter errors.
+
+        """
+        self._dump_no_numerical_data_to_plot = True
+        if hasattr(self, "_ref_ydata"):
+            logging.error(
+                f"{quantity = } was not found in the simulation output. "
+                "Maybe the simulation was interrupted? Returning dummy data."
+            )
+            return np.full_like(self._ref_ydata, np.NaN)
+        if hasattr(self, "_ref_xdata"):
+            logging.error(
+                f"Reference {quantity = } was not found in the simulation"
+                " output. Maybe the simulation parameters are invalid, or "
+                "the BeamCalculator does not produce this data? Returning "
+                "dummy data."
+            )
+            return np.full_like(self._ref_xdata, np.NaN)
+        logging.critical(
+            f"Reference {quantity = } data was not found and I could not "
+            "find fallback array ({self._x_quantity}). Returning a very dummy "
+            "array."
+        )
+        return np.full((10,), np.NaN)
 
     def _getter(
-        self, simulation_output, quantity: str
+        self, simulation_output: SimulationOutput, quantity: str
     ) -> npt.NDArray[np.float64]:
         """Call the ``get`` method with proper kwarguments."""
-        return simulation_output.get(
+        data = simulation_output.get(
             quantity,
             to_deg=self._to_deg,
             elt=self._elt,
             pos=self._pos,
             **self._get_kwargs,
         )
+        if data.ndim == 0 or data is None:
+            return self._default_dummy(quantity)
+        return data
 
     def _get_n_interpolate(
         self,
@@ -58,7 +93,7 @@ class ISimulationOutputEvaluator(IEvaluator):
     ) -> npt.NDArray[np.float64]:
         """Give ydata from one simulation, with proper number of points."""
         new_ydata = self._getter(simulation_output, self._y_quantity)
-        if not interp or len(new_ydata == self._n_points):
+        if not interp or len(new_ydata) == self._n_points:
             return new_ydata
 
         new_xdata = self._getter(simulation_output, self._x_quantity)
@@ -74,37 +109,85 @@ class ISimulationOutputEvaluator(IEvaluator):
         ]
         return np.column_stack(y_data)
 
-    @override
+    # TODO maybe this method should apply only on a single simulation_output
+    # and should be called only from the run method
     def plot(
         self,
-        *simulation_outputs: SimulationOutput,
-        elts: ListOfElements | None = None,
-        save_path: Path | None = None,
-        limits: Sequence[Sequence[float] | None] | None = None,
-        limits_kw: dict[str, Any] | None = None,
+        post_treated: npt.NDArray[np.float64],
+        elts: Sequence[ListOfElements] | None = None,
+        save_path: Sequence[Path] | None = None,
+        lower_limits: (
+            Sequence[Iterable[float]] | Sequence[float] | None
+        ) = None,
+        upper_limits: (
+            Sequence[Iterable[float]] | Sequence[float] | None
+        ) = None,
         **kwargs: Any,
     ) -> Any:
-        """Plot the post treated data using ``plotter``."""
-        if limits is None:
-            limits = [None for _ in simulation_outputs]
-        else:
-            if limits_kw is None:
-                limits_kw = {}
+        """Plot all the post treated data using ``plotter``."""
+        style = ["-", "r--", "r:"]
+        for i, data in enumerate(post_treated.T):
+            elements = elts[i] if elts is not None else None
 
-        axes = None
-        for simulation_output, limit in zip(simulation_outputs, limits):
-            axes = super().plot(
-                simulation_output, elts=elts, save_path=save_path, **kwargs
+            data_as_dict = {
+                "Data": data,
+                "Lower limit": (
+                    lower_limits[i] if lower_limits is not None else np.NaN
+                ),
+                "Upper limit": (
+                    upper_limits[i] if upper_limits is not None else np.NaN
+                ),
+            }
+            data_as_pd = pd.DataFrame(
+                data_as_dict, index=self._ref_xdata
+            ).dropna(axis=1)
+            axes = self._plot_single(
+                data_as_pd,
+                elements,
+                style=style,
+                dump_no_numerical_data_to_plot=self._dump_no_numerical_data_to_plot,
+                **kwargs,
             )
-            if limit is None:
-                continue
-            if isinstance(axes, Sequence):
-                axes = axes[self._axes_index]
+            if save_path is not None:
+                self._plotter.save_figure(axes, save_path[i])
 
-            self._plotter.plot_limits(  # type: ignore
-                data=limits,
-                axes=axes,
-                constant_limits=self._constant_limits,
-                **limits_kw,  # type: ignore
-            )
-        return axes
+    @final
+    def _evaluate_single(
+        self,
+        post_treated: npt.NDArray[np.float64],
+        lower_limit: npt.NDArray[np.float64] | float = np.NaN,
+        upper_limit: npt.NDArray[np.float64] | float = np.NaN,
+    ) -> bool:
+        """Check that ``post_treated`` is within limits.
+
+        Parameters
+        ----------
+        post_treated: npt.NDArray[np.float64]
+            Data, already post-treated. If there is ``np.NaN`` in this array,
+            we consider that the test if failed.
+        lower_limit, upper_limit : npt.NDArray[np.float64] | float, optional
+            Min/max value for data. Where it is ``np.NaN``, the test is passed.
+
+        Returns
+        -------
+        test : bool
+            If the data is always within the given limits.
+
+        """
+        is_under_upper = np.full_like(post_treated, True, dtype=bool)
+        np.less_equal(
+            post_treated,
+            upper_limit,
+            where=~np.isnan(upper_limit),
+            out=is_under_upper,
+        )
+
+        is_above_lower = np.full_like(post_treated, True, dtype=bool)
+        np.greater_equal(
+            post_treated,
+            lower_limit,
+            where=~np.isnan(lower_limit),
+            out=is_above_lower,
+        )
+        test = np.all(is_above_lower & is_under_upper, axis=0)
+        return bool(test)
