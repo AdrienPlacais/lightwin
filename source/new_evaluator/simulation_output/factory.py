@@ -6,6 +6,7 @@
 """
 
 from collections.abc import Collection, Sequence
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -22,6 +23,7 @@ from new_evaluator.simulation_output.presets import (
 )
 from plotter.i_plotter import IPlotter
 from plotter.pd_plotter import PandasPlotter
+from util import pandas_helper
 from util.helper import get_constructors
 
 
@@ -90,9 +92,11 @@ class SimulationOutputEvaluatorsFactory:
     def batch_evaluate(
         self,
         evaluators: Collection[ISimulationOutputEvaluator],
-        accelerators: Collection[Accelerator],
+        accelerators: Sequence[Accelerator],
         beam_solver_id: str,
         plot_kwargs: dict[str, Any] | None = None,
+        csv_path: Path | None = None,
+        csv_kwargs: dict[str, Any] | None = None,
         **kwargs,
     ) -> pd.DataFrame:
         """Evaluate several evaluators."""
@@ -120,6 +124,16 @@ class SimulationOutputEvaluatorsFactory:
         }
         index = [x.elts.files["accelerator_path"].stem for x in accelerators]
         tests_as_pd = pd.DataFrame(tests, index=index)
+
+        if csv_path is None:
+            csv_path = (
+                accelerators[0].elts.files["accelerator_path"].parent
+                / "tests.csv"
+            )
+        if csv_kwargs is None:
+            csv_kwargs = {}
+        pandas_helper.to_csv(tests_as_pd, path=csv_path, **csv_kwargs)
+
         return tests_as_pd
 
 
