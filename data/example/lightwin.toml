@@ -80,5 +80,8 @@ twiss = false
 [evaluators]
 simulation_output = [
    { name = "LongitudinalEmittance", max_percentage_rel_increase = 0.005 },
-   { name = "PowerLoss", max_percentage_increase = 10.0 },
+   # { name = "PowerLoss", max_percentage_increase = 10.0 },
+   # { name = "TransverseMismatchFactor", max_mismatch = 1.0 },
+   { name = "LongitudinalMismatchFactor", max_mismatch = 1.0 },
+   { name = "SynchronousPhases", min_phi_s_deg = -90.0, max_phi_s_deg = 0.0 },
 ]
