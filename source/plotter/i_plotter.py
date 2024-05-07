@@ -39,6 +39,7 @@ class IPlotter(ABC):
         fignum: int = 1,
         axes_index: int = 0,
         title: str = "",
+        x_axis: str = "z_abs",
         **plot_kwargs: Any,
     ) -> Any:
         """Plot the provided data.
@@ -88,7 +89,7 @@ class IPlotter(ABC):
         if self._structure:
             if elts is None:
                 elts = self._elts
-            self._plot_structure(axes, elts)
+            self._plot_structure(axes, elts, x_axis=x_axis)
 
         if png_path is not None:
             self.save_figure(axes, png_path)
