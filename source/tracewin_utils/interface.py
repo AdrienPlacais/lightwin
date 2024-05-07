@@ -75,6 +75,8 @@ TYPES = {
     "random_seed": int,
     "partran": int,
     "toutatis": int,
+    "cancel_matching": None,
+    "cancel_matchingP": None,
 }
 
 
@@ -89,6 +91,7 @@ def variables_to_command(
     If `value` is `np.NaN`, it is ignored.
 
     Else, the pair `key`-`value` is added as `key=value` string.
+
     """
     command = []
 
@@ -167,14 +170,14 @@ def beam_parameters_to_command(
 
 
 def particle_initial_state_to_command(w_kin: float) -> list[str]:
-    """
-    Return a TraceWin command from attributes of `ParticleInitialState`.
+    """Return a TraceWin command from attributes of `ParticleInitialState`.
 
     We could use the `zp` command to modify the phase at the entry of the first
     element (when it is not the first element of the linac).
     We rather keep the absolute phase at the beginning of the zone to 0. and
     modify the `.dat` file in `subset_of_pre_existing_list_of_elements`
     function in order to always keep the same relative phi_0.
+
     """
     kwargs = {"energy1": w_kin}
     return variables_to_command(**kwargs)
@@ -309,8 +312,8 @@ def _proper_type(
     if key not in TYPES:
         if not_in_dict_warning:
             logging.warning(
-                f"The {key = } is not understood by TraceWin, or "
-                "it is not implemented yet."
+                f"The {key = } is not understood by TraceWin, or it is not "
+                "implemented yet."
             )
         return np.NaN
 
@@ -322,8 +325,8 @@ def _proper_type(
         return value
 
     logging.warning(
-        f"Input value {value} is a {type(value)} while it should "
-        f"be a {my_type}."
+        f"Input value {value} is a {type(value)} while it should be a "
+        f"{my_type}."
     )
     try:
         value = my_type(value)
@@ -332,7 +335,7 @@ def _proper_type(
 
     except ValueError:
         logging.error(
-            "Unsuccessful type conversion. Returning np.NaN to "
-            "completely ignore key."
+            "Unsuccessful type conversion. Returning np.NaN to completely "
+            "ignore key."
         )
         return np.NaN

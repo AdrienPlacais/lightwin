@@ -86,6 +86,9 @@ IMPLEMENTED_TRACEWIN_ARGUMENTS = (
     "random_seed",
     "partran",
     "toutatis",
+    "algo",
+    "cancel_matching",
+    "cancel_matchingP",
 )
 
 
@@ -142,8 +145,8 @@ def _test_tracewin(
     config_folder: Path,
     simulation_type: str,
     ini_path: str,
-    cal_file: str | None = None,
-    synoptic_file: str | None = None,
+    path_cal: str = "",
+    synoptic_file: str = "",
     partran: int | None = None,
     toutatis: int | None = None,
     **beam_calculator_kw,
@@ -153,13 +156,13 @@ def _test_tracewin(
     _ = _find_file(config_folder, ini_path)
     assert simulation_type in TRACEWIN_EXECUTABLES
 
-    if cal_file is not None:
-        _ = _find_file(config_folder, cal_file)
+    if path_cal:
+        _ = _find_file(config_folder, path_cal)
 
-    if synoptic_file is not None:
+    if synoptic_file:
         logging.error(
-            "Synoptic file not implemented as I am not sure how this"
-            "should work."
+            "Synoptic file not implemented as I am not sure how this should "
+            "work."
         )
     for val in (partran, toutatis):
         if val is not None:
@@ -168,10 +171,15 @@ def _test_tracewin(
     for key in beam_calculator_kw.keys():
         if "Ele" in key:
             logging.error(
-                "Are you trying to use the Ele[n][v] key? Please "
-                "directly modify your `.dat` to avoid clash with "
-                "LightWin."
+                "Are you trying to use the Ele[n][v] key? Please directly "
+                "modify your `.dat` to avoid clash with LightWin."
             )
+            continue
+        if key == "upgrade":
+            logging.warning(
+                "Upgrading TraceWin from LightWin is not recommended."
+            )
+            continue
 
 
 def _edit_configuration_dict_in_place_tracewin(
@@ -191,8 +199,8 @@ def _edit_configuration_dict_in_place_tracewin(
     paths = (
         "executable",
         "ini_path",
-        "cal_file",
         "tab_file",
+        "path_cal",
         "dst_file1",
         "dst_file2",
     )
