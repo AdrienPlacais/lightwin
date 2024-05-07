@@ -277,7 +277,7 @@ class LongitudinalMismatchFactor(ISimulationOutputEvaluator):
 
     _y_quantity = "mismatch_factor_zdelta"
     _to_deg = False
-    _fignum = 111
+    _fignum = 112
     _constant_limits = True
 
     def __init__(
@@ -366,9 +366,96 @@ class LongitudinalMismatchFactor(ISimulationOutputEvaluator):
         return tests, used_for_eval
 
 
+class SynchronousPhases(ISimulationOutputEvaluator):
+    """Check that synchronous phases are within [-90deg, 0deg]."""
+
+    _x_quantity = "elt_idx"
+    _y_quantity = "phi_s"
+    _to_deg = True
+    _fignum = 120
+    _constant_limits = True
+
+    def __init__(
+        self,
+        min_phi_s_deg: float,
+        max_phi_s_deg: float,
+        reference: SimulationOutput,
+        plotter: PandasPlotter = PandasPlotter(),
+    ) -> None:
+        """Instantiate with a reference simulation output."""
+        super().__init__(reference, plotter)
+
+        self._min_phi_s = min_phi_s_deg
+        self._max_phi_s = max_phi_s_deg
+
+    def __repr__(self) -> str:
+        """Give a short description of what this class does."""
+        return (
+            f"All {self._markdown} are within [{self._min_phi_s:0.2f}, "
+            f"{self._max_phi_s:-.2f}] (deg)"
+        )
+
+    def _getter(
+        self, simulation_output: SimulationOutput, quantity: str
+    ) -> npt.NDArray[np.float64]:
+        """Call the ``get`` method with proper kwarguments."""
+        data = super()._getter(simulation_output, quantity)
+        if quantity != "phi_s":
+            return data
+
+        data = [phi_s if phi_s is not None else np.NaN for phi_s in data]
+        return np.array(data)
+
+    @override
+    def post_treat(self, ydata: Iterable[float]) -> npt.NDArray[np.float64]:
+        """Remove the None."""
+        assert isinstance(ydata, np.ndarray)
+        return ydata
+
+    def evaluate(
+        self,
+        *simulation_outputs,
+        elts: Sequence[ListOfElements] | None = None,
+        plot_kwargs: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> tuple[list[bool], npt.NDArray[np.float64]]:
+        """Assert that longitudinal emittance does not grow too much."""
+        all_post_treated = self.post_treat(
+            self.get(*simulation_outputs, **kwargs)
+        )
+        tests: list[bool] = []
+
+        if plot_kwargs is None:
+            plot_kwargs = {}
+
+        for data in all_post_treated.T:
+            test = self._evaluate_single(
+                data,
+                lower_limit=self._min_phi_s,
+                upper_limit=self._max_phi_s,
+                nan_in_data_is_allowed=True,
+                **kwargs,
+            )
+            tests.append(test)
+
+        self.plot(
+            all_post_treated,
+            elts,
+            lower_limits=[self._min_phi_s for _ in simulation_outputs],
+            upper_limits=[self._max_phi_s for _ in simulation_outputs],
+            keep_nan=True,
+            style=["o", "r--", "r:"],
+            x_axis=self._x_quantity,
+            **plot_kwargs,
+            **kwargs,
+        )
+        return tests, np.array([np.NaN for _ in simulation_outputs])
+
+
 SIMULATION_OUTPUT_EVALUATORS = {
     "PowerLoss": PowerLoss,
     "LongitudinalEmittance": LongitudinalEmittance,
     "TransverseMismatchFactor": TransverseMismatchFactor,
     "LongitudinalMismatchFactor": LongitudinalMismatchFactor,
+    "SynchronousPhases": SynchronousPhases,
 }
