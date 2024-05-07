@@ -22,33 +22,33 @@ from core.commands.steerer import Steerer
 from core.commands.superpose_map import SuperposeMap
 
 IMPLEMENTED_COMMANDS = {
-    'ADJUST': DummyCommand,
-    'ADJUST_STEERER': DummyCommand,
-    'DUMMY_COMMAND': DummyCommand,
-    'END': End,
-    'ERROR_BEAM_STAT': DummyCommand,
-    'ERROR_CAV_NCPL_DYN': DummyCommand,
-    'ERROR_CAV_NCPL_STAT': DummyCommand,
-    'ERROR_GAUSSIAN_CUT_OFF': DummyCommand,
-    'ERROR_QUAD_NCPL_STAT': DummyCommand,
-    'FIELD_MAP_PATH': FieldMapPath,
-    'FREQ': Freq,
-    'LATTICE': Lattice,
-    'LATTICE_END': LatticeEnd,
-    'MARKER': Marker,
-    'PLOT_DST': DummyCommand,
-    'SHIFT': Shift,
-    'STEERER': Steerer,
-    'SUPERPOSE_MAP': SuperposeMap,
+    "ADJUST": DummyCommand,
+    "ADJUST_STEERER": DummyCommand,
+    "DUMMY_COMMAND": DummyCommand,
+    "END": End,
+    "ERROR_BEAM_STAT": DummyCommand,
+    "ERROR_CAV_NCPL_DYN": DummyCommand,
+    "ERROR_CAV_NCPL_STAT": DummyCommand,
+    "ERROR_GAUSSIAN_CUT_OFF": DummyCommand,
+    "ERROR_QUAD_NCPL_STAT": DummyCommand,
+    "FIELD_MAP_PATH": FieldMapPath,
+    "FREQ": Freq,
+    "LATTICE": Lattice,
+    "LATTICE_END": LatticeEnd,
+    "MARKER": Marker,
+    "PLOT_DST": DummyCommand,
+    "SHIFT": Shift,
+    "STEERER": Steerer,
+    "SUPERPOSE_MAP": SuperposeMap,
 }  #:
 
 
 class CommandFactory:
     """An object to create :class:`.Command` objects."""
 
-    def __init__(self,
-                 default_field_map_folder: Path,
-                 **factory_kw: Any) -> None:
+    def __init__(
+        self, default_field_map_folder: Path, **factory_kw: Any
+    ) -> None:
         """Do nothing for now.
 
         .. todo::
@@ -59,10 +59,7 @@ class CommandFactory:
         self.default_field_map_folder = default_field_map_folder
         return
 
-    def run(self,
-            line: list[str],
-            dat_idx: int,
-            **command_kw) -> Command:
+    def run(self, line: list[str], dat_idx: int, **command_kw) -> Command:
         """Call proper constructor."""
         name, line = self._personalized_name(line)
         command_creator = IMPLEMENTED_COMMANDS[line[0].upper()]
@@ -71,11 +68,13 @@ class CommandFactory:
             dat_idx,
             default_field_map_folder=self.default_field_map_folder,
             name=name,
-            **command_kw)
+            **command_kw,
+        )
         return command
 
-    def _personalized_name(self,
-                           line: list[str]) -> tuple[str | None, list[str]]:
+    def _personalized_name(
+        self, line: list[str]
+    ) -> tuple[str | None, list[str]]:
         """
         Extract the user-defined name of the Element if there is one.
 
@@ -83,8 +82,8 @@ class CommandFactory:
             Make this robust.
 
         """
-        original_line = ' '.join(line)
-        line_delimited_with_name = original_line.split(':', maxsplit=1)
+        original_line = " ".join(line)
+        line_delimited_with_name = original_line.split(":", maxsplit=1)
 
         if len(line_delimited_with_name) == 2:
             name = line_delimited_with_name[0].strip()
