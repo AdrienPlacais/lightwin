@@ -14,8 +14,8 @@ from beam_calculation.simulation_output.simulation_output import (
 )
 from core.elements.element import Element
 from core.list_of_elements.list_of_elements import ListOfElements
-from new_evaluator.i_evaluator import IEvaluator
-from plotter.pd_plotter import PandasPlotter
+from experimental.new_evaluator.i_evaluator import IEvaluator
+from experimental.plotter.pd_plotter import PandasPlotter
 
 
 class ISimulationOutputEvaluator(IEvaluator):

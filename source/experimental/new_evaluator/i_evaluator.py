@@ -10,7 +10,7 @@ import numpy.typing as npt
 import pandas as pd
 
 from core.list_of_elements.list_of_elements import ListOfElements
-from plotter.i_plotter import IPlotter
+from experimental.plotter.i_plotter import IPlotter
 from util.dicts_output import markdown
 
 

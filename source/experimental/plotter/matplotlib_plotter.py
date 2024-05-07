@@ -8,8 +8,8 @@ import pandas as pd
 from matplotlib.axes import Axes
 
 from core.list_of_elements.list_of_elements import ListOfElements
-from plotter.i_plotter import IPlotter
-from plotter.matplotlib_helper import (
+from experimental.plotter.i_plotter import IPlotter
+from experimental.plotter.matplotlib_helper import (
     create_fig_if_not_exists,
     plot_section,
     plot_structure,

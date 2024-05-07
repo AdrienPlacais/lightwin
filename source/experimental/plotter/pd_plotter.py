@@ -12,7 +12,7 @@ from typing import Any
 import pandas as pd
 from matplotlib.axes import Axes
 
-from plotter.matplotlib_plotter import MatplotlibPlotter
+from experimental.plotter.matplotlib_plotter import MatplotlibPlotter
 from util.dicts_output import markdown
 
 

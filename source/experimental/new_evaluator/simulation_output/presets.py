@@ -10,10 +10,10 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.list_of_elements.list_of_elements import ListOfElements
-from new_evaluator.simulation_output.i_simulation_output_evaluator import (
+from experimental.new_evaluator.simulation_output.i_simulation_output_evaluator import (
     ISimulationOutputEvaluator,
 )
-from plotter.pd_plotter import PandasPlotter
+from experimental.plotter.pd_plotter import PandasPlotter
 
 
 class PowerLoss(ISimulationOutputEvaluator):

@@ -16,14 +16,14 @@ from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
 )
 from core.accelerator.accelerator import Accelerator
-from new_evaluator.simulation_output.i_simulation_output_evaluator import (
+from experimental.new_evaluator.simulation_output.i_simulation_output_evaluator import (
     ISimulationOutputEvaluator,
 )
-from new_evaluator.simulation_output.presets import (
+from experimental.new_evaluator.simulation_output.presets import (
     SIMULATION_OUTPUT_EVALUATORS,
 )
-from plotter.i_plotter import IPlotter
-from plotter.pd_plotter import PandasPlotter
+from experimental.plotter.i_plotter import IPlotter
+from experimental.plotter.pd_plotter import PandasPlotter
 from util import pandas_helper
 from util.helper import get_constructors
 
