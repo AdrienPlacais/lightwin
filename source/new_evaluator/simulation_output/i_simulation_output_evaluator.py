@@ -120,10 +120,13 @@ class ISimulationOutputEvaluator(IEvaluator):
         upper_limits: (
             Sequence[Iterable[float]] | Sequence[float] | None
         ) = None,
+        keep_nan: bool = False,
+        style: Sequence[str] | None = None,
         **kwargs: Any,
     ) -> Any:
         """Plot all the post treated data using ``plotter``."""
-        style = ["-", "r--", "r:"]
+        if style is None:
+            style = ["-", "r--", "r:"]
         for i, data in enumerate(post_treated.T):
             elements = elts[i] if elts is not None else None
 
@@ -136,9 +139,9 @@ class ISimulationOutputEvaluator(IEvaluator):
                     upper_limits[i] if upper_limits is not None else np.NaN
                 ),
             }
-            data_as_pd = pd.DataFrame(
-                data_as_dict, index=self._ref_xdata
-            ).dropna(axis=1)
+            data_as_pd = pd.DataFrame(data_as_dict, index=self._ref_xdata)
+            if not keep_nan:
+                data_as_pd = data_as_pd.dropna(axis=1)
             axes = self._plot_single(
                 data_as_pd,
                 elements,
@@ -157,6 +160,7 @@ class ISimulationOutputEvaluator(IEvaluator):
         post_treated: npt.NDArray[np.float64],
         lower_limit: npt.NDArray[np.float64] | float = np.NaN,
         upper_limit: npt.NDArray[np.float64] | float = np.NaN,
+        nan_in_data_is_allowed: bool = False,
         **kwargs,
     ) -> bool:
         """Check that ``post_treated`` is within limits.
@@ -168,6 +172,9 @@ class ISimulationOutputEvaluator(IEvaluator):
             we consider that the test if failed.
         lower_limit, upper_limit : npt.NDArray[np.float64] | float, optional
             Min/max value for data. Where it is ``np.NaN``, the test is passed.
+        nan_in_data_is_allowed : boolean, optional
+            If the test is valid where ``post_treated`` is NaN. Use for example
+            with synchronous phases, which is Nan when not in a cavity.
 
         Returns
         -------
@@ -176,18 +183,24 @@ class ISimulationOutputEvaluator(IEvaluator):
 
         """
         is_under_upper = np.full_like(post_treated, True, dtype=bool)
+        where = ~np.isnan(upper_limit)
+        if nan_in_data_is_allowed:
+            where = where & ~np.isnan(post_treated)
         np.less_equal(
             post_treated,
             upper_limit,
-            where=~np.isnan(upper_limit),
+            where=where,
             out=is_under_upper,
         )
 
         is_above_lower = np.full_like(post_treated, True, dtype=bool)
+        where = ~np.isnan(lower_limit)
+        if nan_in_data_is_allowed:
+            where = where & ~np.isnan(post_treated)
         np.greater_equal(
             post_treated,
             lower_limit,
-            where=~np.isnan(lower_limit),
+            where=where,
             out=is_above_lower,
         )
         test = np.all(is_above_lower & is_under_upper, axis=0)
