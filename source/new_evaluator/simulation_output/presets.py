@@ -77,9 +77,9 @@ class PowerLoss(ISimulationOutputEvaluator):
             plot_kwargs = {}
 
         used_for_eval = np.sum(all_post_treated, axis=0)
-        for post_treated in used_for_eval:
+        for data in used_for_eval:
             test = self._evaluate_single(
-                used_for_eval,
+                data,
                 lower_limit=np.NaN,
                 upper_limit=self._max_loss,
                 **kwargs,
@@ -178,7 +178,197 @@ class LongitudinalEmittance(ISimulationOutputEvaluator):
         return tests, all_post_treated[-1, :]
 
 
+class TransverseMismatchFactor(ISimulationOutputEvaluator):
+    """Check that mismatch factor at end is not too high."""
+
+    _y_quantity = "mismatch_factor_t"
+    _to_deg = False
+    _fignum = 111
+    _constant_limits = True
+
+    def __init__(
+        self,
+        max_mismatch: float,
+        reference: SimulationOutput,
+        plotter: PandasPlotter = PandasPlotter(),
+    ) -> None:
+        """Instantiate with a reference simulation output."""
+        super().__init__(reference, plotter)
+
+        self._ref_ydata = [0.0, 0.0]
+        self._max_mismatch = max_mismatch
+
+    def __repr__(self) -> str:
+        """Give a short description of what this class does."""
+        return (
+            f"At end of linac, {self._markdown} $< "
+            f"{self._max_mismatch:0.2f}$"
+        )
+
+    @override
+    def _getter(
+        self, simulation_output: SimulationOutput, quantity: str
+    ) -> npt.NDArray[np.float64]:
+        """Call the ``get`` method with proper kwarguments.
+
+        Also skip calculation with reference accelerator, as mismatch will not
+        be defined.
+
+        """
+        data = simulation_output.get(
+            quantity,
+            to_deg=self._to_deg,
+            elt=self._elt,
+            pos=self._pos,
+            **self._get_kwargs,
+        )
+        if data.ndim == 0 or data is None:
+            if simulation_output.out_path.parent.stem == "000000_ref":
+                self._dump_no_numerical_data_to_plot = True
+                return np.full_like(self._ref_xdata, np.NaN)
+            return self._default_dummy(quantity)
+        return data
+
+    @override
+    def post_treat(self, ydata: Iterable[float]) -> npt.NDArray[np.float64]:
+        """Return the unaltered ``ydata``."""
+        assert isinstance(ydata, np.ndarray)
+        return ydata
+
+    def evaluate(
+        self,
+        *simulation_outputs,
+        elts: Sequence[ListOfElements] | None = None,
+        plot_kwargs: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> tuple[list[bool], npt.NDArray[np.float64]]:
+        """Assert that longitudinal emittance does not grow too much."""
+        all_post_treated = self.post_treat(
+            self.get(*simulation_outputs, **kwargs)
+        )
+        tests: list[bool] = []
+
+        if plot_kwargs is None:
+            plot_kwargs = {}
+
+        used_for_eval = all_post_treated[-1, :]
+        for data in used_for_eval:
+            test = self._evaluate_single(
+                data,
+                lower_limit=np.NaN,
+                upper_limit=self._max_mismatch,
+                **kwargs,
+            )
+            tests.append(test)
+
+        self.plot(
+            all_post_treated,
+            elts,
+            lower_limits=None,
+            upper_limits=[self._max_mismatch for _ in simulation_outputs],
+            **plot_kwargs,
+            **kwargs,
+        )
+        return tests, used_for_eval
+
+
+class LongitudinalMismatchFactor(ISimulationOutputEvaluator):
+    """Check that mismatch factor at end is not too high."""
+
+    _y_quantity = "mismatch_factor_zdelta"
+    _to_deg = False
+    _fignum = 111
+    _constant_limits = True
+
+    def __init__(
+        self,
+        max_mismatch: float,
+        reference: SimulationOutput,
+        plotter: PandasPlotter = PandasPlotter(),
+    ) -> None:
+        """Instantiate with a reference simulation output."""
+        super().__init__(reference, plotter)
+
+        self._ref_ydata = [0.0, 0.0]
+        self._max_mismatch = max_mismatch
+
+    def __repr__(self) -> str:
+        """Give a short description of what this class does."""
+        return (
+            f"At end of linac, {self._markdown} $< "
+            f"{self._max_mismatch:0.2f}$"
+        )
+
+    @override
+    def post_treat(self, ydata: Iterable[float]) -> npt.NDArray[np.float64]:
+        """Return the unaltered ``ydata``."""
+        assert isinstance(ydata, np.ndarray)
+        return ydata
+
+    @override
+    def _getter(
+        self, simulation_output: SimulationOutput, quantity: str
+    ) -> npt.NDArray[np.float64]:
+        """Call the ``get`` method with proper kwarguments.
+
+        Also skip calculation with reference accelerator, as mismatch will not
+        be defined.
+
+        """
+        data = simulation_output.get(
+            quantity,
+            to_deg=self._to_deg,
+            elt=self._elt,
+            pos=self._pos,
+            **self._get_kwargs,
+        )
+        if data.ndim == 0 or data is None:
+            if simulation_output.out_path.parent.stem == "000000_ref":
+                self._dump_no_numerical_data_to_plot = True
+                return np.full_like(self._ref_xdata, np.NaN)
+            return self._default_dummy(quantity)
+        return data
+
+    def evaluate(
+        self,
+        *simulation_outputs,
+        elts: Sequence[ListOfElements] | None = None,
+        plot_kwargs: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> tuple[list[bool], npt.NDArray[np.float64]]:
+        """Assert that longitudinal emittance does not grow too much."""
+        all_post_treated = self.post_treat(
+            self.get(*simulation_outputs, **kwargs)
+        )
+        tests: list[bool] = []
+
+        if plot_kwargs is None:
+            plot_kwargs = {}
+
+        used_for_eval = all_post_treated[-1, :]
+        for data in used_for_eval:
+            test = self._evaluate_single(
+                data,
+                lower_limit=np.NaN,
+                upper_limit=self._max_mismatch,
+                **kwargs,
+            )
+            tests.append(test)
+
+        self.plot(
+            all_post_treated,
+            elts,
+            lower_limits=None,
+            upper_limits=[self._max_mismatch for _ in simulation_outputs],
+            **plot_kwargs,
+            **kwargs,
+        )
+        return tests, used_for_eval
+
+
 SIMULATION_OUTPUT_EVALUATORS = {
     "PowerLoss": PowerLoss,
     "LongitudinalEmittance": LongitudinalEmittance,
+    "TransverseMismatchFactor": TransverseMismatchFactor,
+    "LongitudinalMismatchFactor": LongitudinalMismatchFactor,
 }
