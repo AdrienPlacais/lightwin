@@ -47,13 +47,13 @@ class Instruction(ABC):
         )
         if isinstance(self.n_attributes, int):
             assert n_args == self.n_attributes, (
-                f"At line #{idx}, the number of arguments is {n_args}"
+                f"At line #{idx}, the number of arguments is {n_args} "
                 f"instead of {self.n_attributes}. Full instruction:\n"
                 f"{self.line}"
             )
         if isinstance(self.n_attributes, range | Collection):
             assert n_args in self.n_attributes, (
-                f"At line #{idx}, the number of arguments is {n_args}"
+                f"At line #{idx}, the number of arguments is {n_args} "
                 f"but should be in {self.n_attributes}. Full instruction:\n"
                 f"{self.line}"
             )
