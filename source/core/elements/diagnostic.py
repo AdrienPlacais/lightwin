@@ -10,6 +10,7 @@ class Diagnostic(Element):
 
     base_name = "D"
     increment_lattice_idx = False
+    is_implemented = False
 
     def __init__(
         self,

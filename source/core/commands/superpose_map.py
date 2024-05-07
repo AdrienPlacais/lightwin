@@ -24,9 +24,12 @@ class SuperposeMap(Command):
 
     """
 
+    is_implemented = True
+    n_attributes = (1, 6)
+
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """Save position as attribute."""
-        super().__init__(line, dat_idx, is_implemented=True)
+        super().__init__(line, dat_idx)
         self.z_0 = float(line[1]) * 1e-3
 
     def set_influenced_elements(

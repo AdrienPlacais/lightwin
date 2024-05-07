@@ -53,6 +53,7 @@ class FieldMap(Element):
     """A generic ``FIELD_MAP``."""
 
     base_name = "FM"
+    n_attributes = 10
 
     def __init__(
         self,
@@ -65,8 +66,6 @@ class FieldMap(Element):
     ) -> None:
         """Set most of attributes defined in ``TraceWin``."""
         super().__init__(line, dat_idx, name)
-        n_attributes = len(line) - 1
-        assert n_attributes == 10
 
         self.geometry = int(line[1])
         self.length_m = 1e-3 * float(line[2])

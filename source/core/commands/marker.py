@@ -10,6 +10,8 @@ from core.instruction import Instruction
 class Marker(Command):
     """Dummy class."""
 
+    is_implemented = False
+
     def __init__(
         self,
         line: list[str],
@@ -18,7 +20,7 @@ class Marker(Command):
         **kwargs: str,
     ) -> None:
         """Instantiate the dummy command."""
-        super().__init__(line, dat_idx, is_implemented=False, name=name)
+        super().__init__(line, dat_idx, name=name)
 
     def set_influenced_elements(
         self, instructions: list[Instruction], **kwargs: float

@@ -8,7 +8,7 @@ from core.elements.element import Element
 class DummyElement(Element):
     """A dummy object."""
 
-    increment_lattice_idx = True
+    is_implemented = False
 
     def __init__(
         self,

@@ -8,6 +8,7 @@ class Quad(Element):
     """A partially defined quadrupole."""
 
     base_name = "QP"
+    n_attributes = range(3, 10)
 
     def __init__(
         self,
@@ -18,6 +19,4 @@ class Quad(Element):
     ) -> None:
         """Check number of attributes, set gradient."""
         super().__init__(line, dat_idx, name)
-        n_attributes = len(line) - 1
-        assert n_attributes in range(3, 10)
         self.grad = float(line[2])

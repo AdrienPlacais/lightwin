@@ -4,13 +4,13 @@
 
 We use it to keep track of non-implemented elements/commands.
 
-
 .. todo::
     Clarify nature of ``dat_idx``.
 
 """
 import logging
 from abc import ABC
+from collections.abc import Collection
 
 
 class Instruction(ABC):
@@ -18,21 +18,45 @@ class Instruction(ABC):
 
     line: list[str]
     idx: dict[str, int]
+    n_attributes: int | range | Collection
+    is_implemented: bool
 
     def __init__(
         self,
         line: list[str],
         dat_idx: int,
-        is_implemented: bool,
         name: str | None = None,
     ) -> None:
         """Instantiate corresponding line and line number in ``.dat`` file."""
         self.line = line
+        self._assert_correct_number_of_args(dat_idx)
         self.idx = {"dat_idx": dat_idx}
-        self.is_implemented = is_implemented
 
         self._personalized_name = name
         self._default_name: str
+
+    def _assert_correct_number_of_args(self, idx: int) -> None:
+        """Check if given number of arguments is ok."""
+        n_args = len(self.line) - 1
+        if not self.is_implemented:
+            return
+        assert hasattr(self, "n_attributes"), (
+            "You must define the number of allowed attributes for every "
+            f"implemented instruction. Full instruction (line #{idx}, detected"
+            f"type {self.__class__.__name__}):\n{self.line}"
+        )
+        if isinstance(self.n_attributes, int):
+            assert n_args == self.n_attributes, (
+                f"At line #{idx}, the number of arguments is {n_args}"
+                f"instead of {self.n_attributes}. Full instruction:\n"
+                f"{self.line}"
+            )
+        if isinstance(self.n_attributes, range | Collection):
+            assert n_args in self.n_attributes, (
+                f"At line #{idx}, the number of arguments is {n_args}"
+                f"but should be in {self.n_attributes}. Full instruction:\n"
+                f"{self.line}"
+            )
 
     def __str__(self) -> str:
         """Give information on current command."""
@@ -70,6 +94,8 @@ class Instruction(ABC):
 class Dummy(Instruction):
     """An object corresponding to a non-implemented element or command."""
 
+    is_implemented = False
+
     def __init__(
         self,
         line: list[str],
@@ -89,17 +115,16 @@ class Dummy(Instruction):
             is False.
 
         """
-        super().__init__(line, dat_idx, is_implemented=False)
+        super().__init__(line, dat_idx)
         if warning:
             logging.warning(
-                "A dummy element was added as the corresponding "
-                "element or command is not implemented. If the "
-                "BeamCalculator is not TraceWni, this may be a "
-                "problem. In particular if the missing element "
-                "has a length that is non-zero. You can disable "
-                "this warning in tracewin_utils.dat_files._create"
-                "_element_n_command_objects. Line with a problem:"
-                f"\n{line}"
+                "A dummy element was added as the corresponding element or "
+                "command is not implemented. If the BeamCalculator is not "
+                "TraceWin, this may be a problem. In particular if the missing"
+                " element has a length that is non-zero. You can disable this "
+                "warning in tracewin_utils.dat_files._create"
+                f"_element_n_command_objects. Line with a problem (#{dat_idx})"
+                f":\n{line}"
             )
 
 

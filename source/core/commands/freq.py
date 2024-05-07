@@ -11,9 +11,12 @@ from core.instruction import Instruction
 class Freq(Command):
     """Used to get the frequency of every Section."""
 
+    is_implemented = True
+    n_attributes = 1
+
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """Save frequency as attribute."""
-        super().__init__(line, dat_idx, is_implemented=True)
+        super().__init__(line, dat_idx)
         self.f_rf_mhz = float(line[1])
 
     def set_influenced_elements(

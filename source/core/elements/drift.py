@@ -9,6 +9,7 @@ class Drift(Element):
     """A simple drift tube."""
 
     base_name = "DR"
+    n_attributes = (2, 3, 5)
 
     def __init__(
         self,
@@ -19,5 +20,3 @@ class Drift(Element):
     ) -> None:
         """Check that number of attributes is valid."""
         super().__init__(line, dat_idx, name)
-        n_attributes = len(line) - 1
-        assert n_attributes in (2, 3, 5)

@@ -12,9 +12,12 @@ from core.instruction import Comment, Instruction
 class Lattice(Command):
     """Used to get the number of elements per lattice."""
 
+    is_implemented = True
+    n_attributes = 2
+
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """Save lattice structure."""
-        super().__init__(line, dat_idx, is_implemented=True)
+        super().__init__(line, dat_idx)
         self.n_lattice = int(line[1])
 
         self.n_macro_lattice = 1
@@ -117,9 +120,12 @@ class Lattice(Command):
 class LatticeEnd(Command):
     """Define the end of lattice."""
 
+    is_implemented = True
+    n_attributes = 0
+
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """Call mother ``__init__`` method."""
-        super().__init__(line, dat_idx, is_implemented=True)
+        super().__init__(line, dat_idx)
 
     def set_influenced_elements(
         self, instructions: list[Instruction], **kwargs: float

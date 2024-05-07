@@ -11,9 +11,11 @@ from core.instruction import Instruction
 class Steerer(Command):
     """Dummy class."""
 
+    is_implemented = False
+
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """Call the mother ``__init__`` method."""
-        super().__init__(line, dat_idx, is_implemented=False)
+        super().__init__(line, dat_idx)
 
     def set_influenced_elements(
         self, instructions: list[Instruction], **kwargs: float

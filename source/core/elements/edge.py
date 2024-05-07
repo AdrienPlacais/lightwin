@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Define :class:`Edge`. It does nothing."""
+"""Define :class:`Edge`. It does nothing.
+
+.. todo::
+    Check behavior w.r.t. LATTICE.
+
+"""
+
+import logging
 
 from core.elements.element import Element
 
@@ -10,6 +17,7 @@ class Edge(Element):
 
     base_name = "EDG"
     increment_lattice_idx = False
+    is_implemented = False
 
     def __init__(
         self,
@@ -21,3 +29,8 @@ class Edge(Element):
         """Force an element with null-length, with no index."""
         super().__init__(line, dat_idx, name)
         self.length_m = 0.0
+        logging.warning(
+            "Documentation does not mention that EDGE element should be "
+            "ignored by LATTICE. So why did I set increment_lattice_idx to "
+            "False?"
+        )

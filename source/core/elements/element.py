@@ -44,6 +44,7 @@ class Element(Instruction):
     base_name = "ELT"
     increment_elt_idx = True
     increment_lattice_idx = True
+    is_implemented = True
 
     def __init__(
         self,
@@ -68,7 +69,7 @@ class Element(Instruction):
             later.
 
         """
-        super().__init__(line, dat_idx, is_implemented=True, name=name)
+        super().__init__(line, dat_idx, name=name)
 
         self.elt_info = {
             "nature": line[0],

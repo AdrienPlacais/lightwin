@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Define the base class from which all commands will inherit.
-
-.. warning::
-    As for now, if ``is_implemented`` is ``False``, the command will still
-    appear in the ``.dat`` subset! Is this what I want?
-
-"""
+"""Define the base class from which all commands will inherit."""
 from abc import abstractmethod
 from collections.abc import Sequence
 
@@ -22,9 +16,6 @@ class Command(Instruction):
         Dictionary holding useful indexes. Keys are ``'dat_idx'`` (position in
         the ``.dat`` file) and ``'influenced_elements'`` (position in the
         ``.dat`` file of the elements concerned by current command).
-    is_implemented : bool
-        Determine if current command is implemented. If not, it will be skipped
-        and its :func:`apply` method will not be used.
     line : list[str]
         Line in the ``.dat`` file corresponding to current command.
 
@@ -35,15 +26,10 @@ class Command(Instruction):
 
     """
 
-    is_implemented: bool
-
-    def __init__(
-        self, line: list[str], dat_idx: int, is_implemented: bool, **kwargs
-    ) -> None:
+    def __init__(self, line: list[str], dat_idx: int, **kwargs) -> None:
         """Instantiate mandatory attributes."""
-        super().__init__(line, dat_idx, is_implemented, **kwargs)
+        super().__init__(line, dat_idx, **kwargs)
         self.influenced = slice(0, 1)
-        self.is_implemented = is_implemented
 
     def set_influenced_elements(
         self, instructions: list[Instruction], **kwargs: float

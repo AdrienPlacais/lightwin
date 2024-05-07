@@ -26,7 +26,7 @@ from core.commands.factory import IMPLEMENTED_COMMANDS, CommandFactory
 from core.commands.helper import apply_commands
 from core.elements.dummy import DummyElement
 from core.elements.element import Element
-from core.elements.factory import IMPLEMENTED_ELEMENTS, ElementFactory
+from core.elements.factory import ElementFactory, implemented_elements
 from core.elements.field_maps.field_map import FieldMap
 from core.elements.helper import (
     force_a_lattice_for_every_element,
@@ -184,7 +184,7 @@ class InstructionsFactory:
                 return self._command_factory.run(
                     line, dat_idx, **instruction_kw
                 )
-            if word in IMPLEMENTED_ELEMENTS:
+            if word in implemented_elements:
                 return self.element_factory.run(
                     line, dat_idx, **instruction_kw
                 )

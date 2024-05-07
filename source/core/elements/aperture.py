@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds :class:`Aperture`. It does nothing.
-
-.. todo::
-    Should it be ignored by lattice?
-
-"""
+"""Define :class:`Aperture`. It does nothing."""
 
 from core.elements.element import Element
 
@@ -15,6 +9,8 @@ class Aperture(Element):
     """A dummy object."""
 
     base_name = "AP"
+    increment_lattice_idx = False
+    is_implemented = False
 
     def __init__(
         self,

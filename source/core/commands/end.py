@@ -8,9 +8,12 @@ from core.instruction import Instruction
 class End(Command):
     """The end of the linac."""
 
+    is_implemented = True
+    n_attributes = 0
+
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """Call mother ``__init__``."""
-        super().__init__(line, dat_idx, is_implemented=True)
+        super().__init__(line, dat_idx)
 
     def set_influenced_elements(self, *args, **kwargs: float) -> None:
         """Determine the index of the element concerned by :func:`apply`."""

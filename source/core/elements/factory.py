@@ -17,7 +17,7 @@ from core.elements.quad import Quad
 from core.elements.solenoid import Solenoid
 from core.elements.thin_steering import ThinSteering
 
-IMPLEMENTED_ELEMENTS = {
+implemented_elements = {
     "APERTURE": Aperture,
     "BEND": Bend,
     "DRIFT": Drift,
@@ -57,12 +57,12 @@ class ElementFactory:
             default_field_map_folder, freq_bunch_mhz, **factory_kw
         )
         self.field_map_factory = field_map_factory
-        IMPLEMENTED_ELEMENTS["FIELD_MAP"] = field_map_factory.run
+        implemented_elements["FIELD_MAP"] = field_map_factory.run
 
     def run(self, line: list[str], dat_idx: int, **kwargs) -> Element:
         """Call proper constructor."""
         name, line = self._personalized_name(line)
-        element_creator = IMPLEMENTED_ELEMENTS[line[0].upper()]
+        element_creator = implemented_elements[line[0].upper()]
         element = element_creator(line, dat_idx, name, **kwargs)
         return element
 

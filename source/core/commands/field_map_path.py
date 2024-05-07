@@ -12,6 +12,9 @@ from core.instruction import Instruction
 class FieldMapPath(Command):
     """Used to get the base path of field maps."""
 
+    is_implemented = True
+    n_attributes = 1
+
     def __init__(
         self,
         line: list[str],
@@ -20,7 +23,7 @@ class FieldMapPath(Command):
         **kwargs: str,
     ) -> None:
         """Save the given path as attribute."""
-        super().__init__(line, dat_idx, is_implemented=True)
+        super().__init__(line, dat_idx)
         path = Path(line[1])
 
         self.path = path
@@ -36,7 +39,7 @@ class FieldMapPath(Command):
             return
 
         logging.critical(
-            f"The {path = } given in FIELD_MAP_PATH was not " "found"
+            f"The {path = } given in FIELD_MAP_PATH was not found."
         )
 
     def set_influenced_elements(
