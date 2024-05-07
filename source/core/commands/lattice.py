@@ -13,7 +13,7 @@ class Lattice(Command):
     """Used to get the number of elements per lattice."""
 
     is_implemented = True
-    n_attributes = 2
+    n_attributes = (1, 2)
 
     def __init__(self, line: list[str], dat_idx: int, **kwargs: str) -> None:
         """Save lattice structure."""
