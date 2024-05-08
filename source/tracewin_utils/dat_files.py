@@ -5,16 +5,6 @@
 .. todo::
     Insert line skip at each section change in the output.dat
 
-Non-exhaustive list of non implemented commands:
-    'SPACE_CHARGE_COMP',
-    'SET_SYNC_PHASE',
-    'STEERER',
-    'ADJUST',
-    'ADJUST_STEERER',
-    'ADJUST_STEERER_BX',
-    'ADJUST_STEERER_BY',
-    'SET_ADV',
-
 """
 import logging
 from collections.abc import Collection, Sequence
@@ -78,10 +68,19 @@ def _is_useful_command(
     return False
 
 
-def save_dat_filecontent_to_dat(
-    dat_content: list[list[str]], dat_path: Path
+def export_dat_filecontent(
+    dat_content: Collection[Collection[str]], dat_path: Path
 ) -> None:
-    """Save the content of the updated dat to a `.dat`."""
+    """Save the content of the updated dat to a ``.dat``.
+
+    Parameters
+    ----------
+    dat_content : Collection[Collection[str]]
+        Content of the ``.dat``, line per line, word per word.
+    dat_path : Path
+        Where to save the ``.dat``.
+
+    """
     with open(dat_path, "w", encoding="utf-8") as file:
         for line in dat_content:
             file.write(" ".join(line) + "\n")

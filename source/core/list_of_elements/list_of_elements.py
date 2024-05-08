@@ -30,7 +30,7 @@ from core.list_of_elements.helper import (
     group_elements_by_section_and_lattice,
 )
 from core.particle import ParticleInitialState
-from tracewin_utils.dat_files import save_dat_filecontent_to_dat
+from tracewin_utils.dat_files import export_dat_filecontent
 from tracewin_utils.interface import list_of_elements_to_command
 from util.helper import recursive_getter, recursive_items
 
@@ -280,7 +280,7 @@ class ListOfElements(list):
             for elt_or_cmd in self.files["elts_n_cmds"]
         ]
         if save:
-            save_dat_filecontent_to_dat(dat_content, dat_file)
+            export_dat_filecontent(dat_content, dat_file)
 
     @overload
     def take(self, ids: int, id_nature: Literal["cavity"]) -> FieldMap: ...

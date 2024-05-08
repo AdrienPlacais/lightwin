@@ -47,7 +47,7 @@ from core.list_of_elements.list_of_elements import ListOfElements
 from core.particle import ParticleInitialState
 from tracewin_utils.dat_files import (
     dat_filecontent_from_smaller_list_of_elements,
-    save_dat_filecontent_to_dat,
+    export_dat_filecontent,
 )
 
 
@@ -321,7 +321,7 @@ class ListOfElementsFactory:
             "accelerator_path": accelerator_path / tmp_folder,
         }
 
-        save_dat_filecontent_to_dat(dat_content, dat_file)
+        export_dat_filecontent(dat_content, dat_file)
         return files
 
     def _delta_phi_for_tracewin(
