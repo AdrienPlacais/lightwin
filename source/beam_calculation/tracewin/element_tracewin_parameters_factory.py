@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Create the solver parameters for :class:`.TraceWin`."""
-from abc import ABCMeta
-import logging
+from typing import Any
 
 import numpy as np
 
-from beam_calculation.tracewin.element_tracewin_parameters import (
-    ElementTraceWinParameters)
 from beam_calculation.parameters.factory import (
-    ElementBeamCalculatorParametersFactory)
+    ElementBeamCalculatorParametersFactory,
+)
+from beam_calculation.tracewin.element_tracewin_parameters import (
+    ElementTraceWinParameters,
+)
 from core.elements.element import Element
-from core.elements.field_maps.field_map import FieldMap
 
 
 class ElementTraceWinParametersFactory(ElementBeamCalculatorParametersFactory):
@@ -20,13 +20,10 @@ class ElementTraceWinParametersFactory(ElementBeamCalculatorParametersFactory):
     def __init__(self) -> None:
         """Instantiate the class."""
 
-    def run(self,
-            elt: Element,
-            z_element: np.ndarray,
-            s_in: int,
-            s_out: int) -> ElementTraceWinParameters:
-        """
-        Create the parameters for every element.
+    def run(
+        self, elt: Element, z_element: np.ndarray, s_in: int, s_out: int
+    ) -> ElementTraceWinParameters:
+        """Create the parameters for every element.
 
         .. note::
             In contrary to :class:`.Envelope1D` and :class:`.Envelope3D`, this
@@ -40,13 +37,12 @@ class ElementTraceWinParametersFactory(ElementBeamCalculatorParametersFactory):
         :meth:`.SimulationOutputFactoryTraceWin._save_tracewin_meshing_in_elements`
 
         """
-        subclass = self._parameters_subclass(elt)
-        single_element_tracewin_parameters = subclass(elt.length_m,
-                                                      z_element,
-                                                      s_in,
-                                                      s_out)
+        constructor = self._parameters_constructor(elt)
+        single_element_tracewin_parameters = constructor(
+            elt.length_m, z_element, s_in, s_out
+        )
         return single_element_tracewin_parameters
 
-    def _parameters_subclass(self, elt: Element) -> ABCMeta:
+    def _parameters_constructor(self, *args: Any, **kwargs: Any) -> type:
         """Return the same class for every element."""
         return ElementTraceWinParameters

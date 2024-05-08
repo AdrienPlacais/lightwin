@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Define a factory to create the solver parameters for every solver."""
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 from beam_calculation.parameters.element_parameters import (
-    ElementBeamCalculatorParameters
+    ElementBeamCalculatorParameters,
 )
 from core.elements.element import Element
-from core.elements.field_maps.field_map import FieldMap
 
 
 class ElementBeamCalculatorParametersFactory(ABC):
@@ -19,6 +18,6 @@ class ElementBeamCalculatorParametersFactory(ABC):
         pass
 
     @abstractmethod
-    def _parameters_subclass(self, elt: Element) -> ABCMeta:
+    def _parameters_constructor(self, elt: Element, default: type) -> type:
         """Select the parameters adapted to ``elt``."""
         pass
