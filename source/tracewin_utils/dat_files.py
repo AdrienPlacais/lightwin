@@ -7,7 +7,7 @@
 
 """
 import logging
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Container, Iterable, Sequence
 from pathlib import Path
 
 from core.commands.command import Command
@@ -47,7 +47,7 @@ def dat_filecontent_from_smaller_list_of_elements(
 
 
 def _is_needed_element(
-    instruction: Instruction, indexes_to_keep: Collection[int]
+    instruction: Instruction, indexes_to_keep: Container[int]
 ) -> bool:
     """Tell if the instruction is an element that we must keep."""
     if not isinstance(instruction, Element | Dummy):
@@ -58,7 +58,7 @@ def _is_needed_element(
 
 
 def _is_useful_command(
-    instruction: Instruction, indexes_to_keep: Collection[int]
+    instruction: Instruction, indexes_to_keep: Iterable[int]
 ) -> bool:
     """Tell if the current command has an influence on our elements."""
     if not isinstance(instruction, Command):

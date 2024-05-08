@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Define the base class from which all commands will inherit."""
 from abc import abstractmethod
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Iterable, Sequence
 
 from core.instruction import Instruction
 
@@ -49,7 +49,7 @@ class Command(Instruction):
         """Apply the command."""
         return instructions
 
-    def concerns_one_of(self, dat_indexes: Collection[int]) -> bool:
+    def concerns_one_of(self, dat_indexes: Iterable[int]) -> bool:
         """Tell if ``self`` concerns an element, which ``dat_idx`` is given.
 
         Internally, we convert the ``self.influenced`` from a :class:`set` to

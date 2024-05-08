@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-This module holds a class to create :class:`.ListOfElements`.
+"""Define an object to create :class:`.ListOfElements`.
 
 Its main goal is to initialize :class:`.ListOfElements` with the proper input
 synchronous particle and beam properties.
@@ -29,6 +28,7 @@ a full :class:`.ListOfElements` from scratch.
 """
 import logging
 from abc import ABCMeta
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -63,7 +63,7 @@ class ListOfElementsFactory:
         load_field_maps: bool = True,
         field_maps_in_3d: bool = False,
         load_cython_field_maps: bool = False,
-        elements_to_remove: tuple[ABCMeta, ...] = (),
+        elements_to_remove: ABCMeta | tuple[ABCMeta, ...] = (),
     ):
         """Declare and create some mandatory factories.
 
@@ -127,8 +127,8 @@ class ListOfElementsFactory:
 
         """
         logging.info(
-            "First initialisation of ListOfElements, ecompassing all "
-            f"linac. Created with {dat_file = }"
+            "First initialisation of ListOfElements, ecompassing all flinac. "
+            f"Created with {dat_file = }"
         )
 
         dat_filecontent = tracewin_utils.load.complete_dat_file(dat_file)
@@ -161,30 +161,30 @@ class ListOfElementsFactory:
         return list_of_elements
 
     def _filter_out_commands_and_elements_to_remove(
-        self, instructions: list[Instruction]
+        self, instructions: Iterable[Instruction]
     ) -> list[Element]:
         """Create a list of elements, with only the ones implemented."""
-        elts = [
-            elt
-            for elt in instructions
-            if isinstance(elt, Element)
-            and not isinstance(elt, self.elements_to_remove)
-        ]
-        removed_elts = [
-            elt
-            for elt in instructions
-            if isinstance(elt, self.elements_to_remove)
-        ]
+        elts = []
+        removed_elts = []
+        for instruction in instructions:
+            if not isinstance(instruction, Element):
+                continue
+
+            if isinstance(instruction, self.elements_to_remove):
+                removed_elts.append(instruction)
+                continue
+
+            elts.append(instruction)
+
         n_removed = len(removed_elts)
         if n_removed > 0:
             types = set([elt.__class__.__name__ for elt in removed_elts])
             logging.warning(
                 f"Removed {n_removed} elements, according to the "
-                "ListOfElementsFactory.elements_to_remove key. The"
-                f" removed elements have types: {types}."
-                "\nNote that with TraceWin, every Command and "
-                "Element is kept.\nNote that this will likely"
-                "lead to problems when visualising structure."
+                "ListOfElementsFactory.elements_to_remove key. The removed "
+                f"elements have types: {types}.\nNote that with TraceWin, "
+                "every Command and Element is kept.\nNote that this will "
+                "likely lead to problems when visualising structure."
             )
         return elts
 
