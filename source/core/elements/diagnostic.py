@@ -46,6 +46,9 @@ class DiagDCurrent(Diagnostic):
 class DiagPosition(Diagnostic):
     """Measure position."""
 
+    is_implemented = True
+    n_attributes = 4
+
 
 class DiagDPosition(Diagnostic):
     """Measure delta position."""
@@ -247,42 +250,3 @@ class DiagDBeta(Diagnostic):
     """Measure delta beam beta."""
 
     n_attributes = 4
-
-
-IMPLEMENTED_DIAGNOSTICS = {
-    "DIAG_CURRENT": DiagCurrent,
-    "DIAG_DCURRENT": DiagDCurrent,
-    "DIAG_POSITION": DiagPosition,
-    "DIAG_DPOSITION": DiagDPosition,
-    "DIAG_DIVERGENCE": DiagDivergence,
-    "DIAG_DDIVERGENCE": DiagDDivergence,
-    "DIAG_SIZE_FWHM": DiagSizeFWHM,
-    "DIAG_SIZE": DiagSize,
-    "DIAG_SIZEP": DiagSizeP,
-    "DIAG_DSIZE__FWHM": DiagDSizeFWHM,
-    "DIAG_DSIZE": DiagDSize,
-    "DIAG_DSIZE2_FWHM": DiagDSize2FWHM,
-    "DIAG_DSIZE2": DiagDSize2,
-    "DIAG_DSIZE3": DiagDSize3,
-    "DIAG_DPSIZE2": DiagDPSize2,
-    "DIAG_PHASE": DiagPhase,
-    "DIAG_ENERGY": DiagEnergy,
-    "DIAG_DENERGY": DiagDEnergy,
-    "DIAG_DPHASE": DiagDPhase,
-    "DIAG_LUMINOSITY": DiagLuminosity,
-    "DIAG_WAIST": DiagWaist,
-    "DIAG_ACHROMAT": DiagAchromat,
-    "DIAG_EMIT": DiagEmit,
-    "DIAG_EMIT_99": DiagEmit99,
-    "DIAG_HALO": DiagHalo,
-    "DIAG_SET_MATRIX": DiagSetMatrix,
-    "DIAG_TWISS": DiagTwiss,
-    "DIAG_DTWISS": DiagDTwiss,
-    "DIAG_DTWISS2": DiagDTwiss2,
-    "DIAG_SEPARATION": DiagSeparation,
-    "DIAG_SIZE_MAX": DiagSizeMax,
-    "DIAG_SIZE_MIN": DiagSizeMin,
-    "DIAG_PHASE_ADV": DiagPhaseAdv,
-    "DIAG_BETA": DiagBeta,
-    "DIAG_DBETA": DiagDBeta,
-}

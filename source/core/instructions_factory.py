@@ -179,6 +179,9 @@ class InstructionsFactory:
             return Comment(line, dat_idx)
 
         for word in line:
+            if ";" in word:
+                return Comment(line, dat_idx)
+
             word = word.upper()
             if word in IMPLEMENTED_COMMANDS:
                 return self._command_factory.run(
@@ -188,8 +191,15 @@ class InstructionsFactory:
                 return self.element_factory.run(
                     line, dat_idx, **instruction_kw
                 )
-            if ";" in word:
-                return Comment(line, dat_idx)
+            if "DIAG" in word:
+                logging.critical(
+                    "A DIAG was detected but not in implemented_elements."
+                    "Maybe it has a weight and the parenthesis were not"
+                    " correctly detected?"
+                )
+                return self.element_factory.run(
+                    line, dat_idx, **instruction_kw
+                )
 
         return Dummy(line, dat_idx, warning=True)
 

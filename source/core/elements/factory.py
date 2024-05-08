@@ -6,7 +6,43 @@ from typing import Any
 
 from core.elements.aperture import Aperture
 from core.elements.bend import Bend
-from core.elements.diagnostic import Diagnostic
+from core.elements.diagnostic import (
+    DiagAchromat,
+    DiagBeta,
+    DiagCurrent,
+    DiagDBeta,
+    DiagDCurrent,
+    DiagDDivergence,
+    DiagDEnergy,
+    DiagDivergence,
+    DiagDPhase,
+    DiagDPosition,
+    DiagDPSize2,
+    DiagDSize,
+    DiagDSize2,
+    DiagDSize2FWHM,
+    DiagDSize3,
+    DiagDSizeFWHM,
+    DiagDTwiss,
+    DiagDTwiss2,
+    DiagEmit,
+    DiagEmit99,
+    DiagEnergy,
+    DiagHalo,
+    DiagLuminosity,
+    DiagPhase,
+    DiagPhaseAdv,
+    DiagPosition,
+    DiagSeparation,
+    DiagSetMatrix,
+    DiagSize,
+    DiagSizeFWHM,
+    DiagSizeMax,
+    DiagSizeMin,
+    DiagSizeP,
+    DiagTwiss,
+    DiagWaist,
+)
 from core.elements.drift import Drift
 from core.elements.dummy import DummyElement
 from core.elements.edge import Edge
@@ -20,20 +56,42 @@ from core.elements.thin_steering import ThinSteering
 implemented_elements = {
     "APERTURE": Aperture,
     "BEND": Bend,
+    "DIAG_CURRENT": DiagCurrent,
+    "DIAG_DCURRENT": DiagDCurrent,
+    "DIAG_POSITION": DiagPosition,
+    "DIAG_DPOSITION": DiagDPosition,
+    "DIAG_DIVERGENCE": DiagDivergence,
+    "DIAG_DDIVERGENCE": DiagDDivergence,
+    "DIAG_SIZE_FWHM": DiagSizeFWHM,
+    "DIAG_SIZE": DiagSize,
+    "DIAG_SIZEP": DiagSizeP,
+    "DIAG_DSIZE__FWHM": DiagDSizeFWHM,
+    "DIAG_DSIZE": DiagDSize,
+    "DIAG_DSIZE2_FWHM": DiagDSize2FWHM,
+    "DIAG_DSIZE2": DiagDSize2,
+    "DIAG_DSIZE3": DiagDSize3,
+    "DIAG_DPSIZE2": DiagDPSize2,
+    "DIAG_PHASE": DiagPhase,
+    "DIAG_ENERGY": DiagEnergy,
+    "DIAG_DENERGY": DiagDEnergy,
+    "DIAG_DPHASE": DiagDPhase,
+    "DIAG_LUMINOSITY": DiagLuminosity,
+    "DIAG_WAIST": DiagWaist,
+    "DIAG_ACHROMAT": DiagAchromat,
+    "DIAG_EMIT": DiagEmit,
+    "DIAG_EMIT_99": DiagEmit99,
+    "DIAG_HALO": DiagHalo,
+    "DIAG_SET_MATRIX": DiagSetMatrix,
+    "DIAG_TWISS": DiagTwiss,
+    "DIAG_DTWISS": DiagDTwiss,
+    "DIAG_DTWISS2": DiagDTwiss2,
+    "DIAG_SEPARATION": DiagSeparation,
+    "DIAG_SIZE_MAX": DiagSizeMax,
+    "DIAG_SIZE_MIN": DiagSizeMin,
+    "DIAG_PHASE_ADV": DiagPhaseAdv,
+    "DIAG_BETA": DiagBeta,
+    "DIAG_DBETA": DiagDBeta,
     "DRIFT": Drift,
-    "DIAG_ACHROMAT": Diagnostic,
-    "DIAG_DENERGY": Diagnostic,
-    "DIAG_DPHASE": Diagnostic,
-    "DIAG_DSIZE": Diagnostic,
-    "DIAG_DSIZE2": Diagnostic,
-    "DIAG_DSIZE3": Diagnostic,
-    "DIAG_DSIZE4": Diagnostic,
-    "DIAG_ENERGY": Diagnostic,
-    "DIAG_POSITION": Diagnostic,
-    "DIAG_SIZE": Diagnostic,
-    "DIAG_SIZE_MAX": Diagnostic,
-    "DIAG_TWISS": Diagnostic,
-    "DIAG_WAIST": Diagnostic,
     "DUMMY_ELEMENT": DummyElement,
     "EDGE": Edge,
     "FIELD_MAP": FieldMap,  # replaced in ElementFactory initialisation
@@ -62,8 +120,8 @@ class ElementFactory:
     def run(self, line: list[str], dat_idx: int, **kwargs) -> Element:
         """Call proper constructor."""
         name, line = self._personalized_name(line)
-        element_creator = implemented_elements[line[0].upper()]
-        element = element_creator(line, dat_idx, name, **kwargs)
+        element_constructor = _get_constructor(line[0])
+        element = element_constructor(line, dat_idx, name, **kwargs)
         return element
 
     def _personalized_name(
@@ -84,3 +142,11 @@ class ElementFactory:
             return name, cleaned_line
 
         return None, line
+
+
+def _get_constructor(first_word: str) -> type:
+    """Get the proper constructor."""
+    key = first_word.upper()
+    if key in implemented_elements:
+        return implemented_elements[key]
+    raise IOError(f"No Element matching {key} was found.")
