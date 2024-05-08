@@ -17,6 +17,7 @@ Non-exhaustive list of non implemented commands:
 
 """
 import logging
+from collections.abc import Collection, Sequence
 from pathlib import Path
 
 from core.commands.command import Command
@@ -25,14 +26,13 @@ from core.instruction import Dummy, Instruction
 
 
 def dat_filecontent_from_smaller_list_of_elements(
-    original_instructions: list[Instruction],
-    elts: list[Element],
+    original_instructions: Sequence[Instruction],
+    elts: Collection[Element],
 ) -> tuple[list[list[str]], list[Instruction]]:
     """
     Create a ``.dat`` with only elements of ``elts`` (and concerned commands).
 
-    Properties of the FIELD_MAP, i.e. amplitude and phase, remain untouched, as
-    it is the job of :func:`update_field_maps_in_dat`.
+    Properties of the FIELD_MAP, i.e. amplitude and phase, remain untouched.
 
     """
     indexes_to_keep = [elt.get("dat_idx", to_numpy=False) for elt in elts]
@@ -41,16 +41,10 @@ def dat_filecontent_from_smaller_list_of_elements(
     new_dat_filecontent: list[list[str]] = []
     new_instructions: list[Instruction] = []
     for instruction in original_instructions[:last_index]:
-        element_to_keep = (
-            isinstance(instruction, Element | Dummy)
-            and instruction.idx["dat_idx"] in indexes_to_keep
-        )
-
-        useful_command = isinstance(
-            instruction, Command
-        ) and instruction.concerns_one_of(indexes_to_keep)
-
-        if not (element_to_keep or useful_command):
+        if not (
+            _is_needed_element(instruction, indexes_to_keep)
+            or _is_useful_command(instruction, indexes_to_keep)
+        ):
             continue
 
         new_dat_filecontent.append(instruction.line)
@@ -60,6 +54,28 @@ def dat_filecontent_from_smaller_list_of_elements(
     new_dat_filecontent.append(end.line)
     new_instructions.append(end)
     return new_dat_filecontent, new_instructions
+
+
+def _is_needed_element(
+    instruction: Instruction, indexes_to_keep: Collection[int]
+) -> bool:
+    """Tell if the instruction is an element that we must keep."""
+    if not isinstance(instruction, Element | Dummy):
+        return False
+    if instruction.idx["dat_idx"] in indexes_to_keep:
+        return True
+    return False
+
+
+def _is_useful_command(
+    instruction: Instruction, indexes_to_keep: Collection[int]
+) -> bool:
+    """Tell if the current command has an influence on our elements."""
+    if not isinstance(instruction, Command):
+        return False
+    if instruction.concerns_one_of(indexes_to_keep):
+        return True
+    return False
 
 
 def save_dat_filecontent_to_dat(
