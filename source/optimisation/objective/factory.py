@@ -468,6 +468,85 @@ class EnergySyncPhaseMismatch(ObjectiveFactory):
         return objective
 
 
+class EnergySeveralMismatches(ObjectiveFactory):
+    """Match energy and mismatch (the latter on several periods).
+
+    Experimental.
+
+    """
+
+    @property
+    def objective_position_preset(self) -> list[str]:
+        """Set where objective are evaluated."""
+        objective_position_preset = [
+            "end of last altered lattice",
+            "one lattice after last altered lattice",
+        ]
+        return objective_position_preset
+
+    @property
+    def compensation_zone_override_settings(self) -> dict[str, bool]:
+        """Set no particular overridings."""
+        compensation_zone_override_settings = {
+            "full_lattices": False,
+            "full_linac": False,
+            "start_at_beginning_of_linac": False,
+        }
+        return compensation_zone_override_settings
+
+    def _elements_where_objective_are_evaluated(self) -> list[Element]:
+        """Give element at end of compensation zone."""
+        last_element = self.elts_of_compensation_zone[-1]
+        elements_per_lattice = last_element.idx["lattice"]
+        return [
+            self.elts_of_compensation_zone[-1 - elements_per_lattice],
+            last_element,
+        ]
+
+    def get_objectives(self) -> list[Objective]:
+        """Give objects to match kinetic energy and mismatch factor."""
+        last_element = self._elements_where_objective_are_evaluated()[-1]
+        one_lattice_before = self._elements_where_objective_are_evaluated()[0]
+        objectives = [
+            self._get_w_kin(elt=one_lattice_before),
+            self._get_mismatch(elt=one_lattice_before),
+            self._get_mismatch(elt=last_element),
+        ]
+        self._output_objectives(objectives)
+        return objectives
+
+    def _get_w_kin(self, elt: Element) -> Objective:
+        """Return object to match energy."""
+        objective = MinimizeDifferenceWithRef(
+            name=markdown["w_kin"],
+            weight=1.0,
+            get_key="w_kin",
+            get_kwargs={"elt": elt, "pos": "out", "to_numpy": False},
+            reference=self.reference_simulation_output,
+            descriptor="""Minimize diff. of w_kin between ref and fix at the
+            end of the compensation zone.
+            """,
+        )
+        return objective
+
+    def _get_mismatch(self, elt: Element) -> Objective:
+        """Return object to keep mismatch as low as possible."""
+        objective = MinimizeMismatch(
+            name=r"$M_{z\delta}$",
+            weight=1.0,
+            get_key="twiss",
+            get_kwargs={
+                "elt": elt,
+                "pos": "out",
+                "to_numpy": True,
+                "phase_space_name": "zdelta",
+            },
+            reference=self.reference_simulation_output,
+            descriptor="""Minimize mismatch factor in the [z-delta] plane.""",
+        )
+        return objective
+
+
 # =============================================================================
 # Interface with LightWin
 # =============================================================================
@@ -478,6 +557,7 @@ OBJECTIVE_PRESETS = {
     "rephased_ADS": EnergyMismatch,
     "EnergySyncPhaseMismatch": EnergySyncPhaseMismatch,
     "sync_phase_as_objective_ADS": EnergySyncPhaseMismatch,
+    "experimental": EnergySeveralMismatches,
 }
 
 
