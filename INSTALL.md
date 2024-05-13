@@ -22,6 +22,8 @@ Instructions in `util/setup.py`.
 It can also be used to compile some `pymoo` functions to speed them up.
 Just install `cython` prior to `pymoo`, and the compilation should be done automatically when installing `pymoo`.
 
+`pytest` to ensure that everything is working as expected.
+
 ## Packages for developers
 - `sphinx_rtd_theme`
 - `myst-parser`
@@ -52,3 +54,10 @@ If you use Spyder, check this out:
 
 ## TraceWin compatibility
 To run TraceWin, modify the paths in `source/config/beam_calculator.py` so that it matches with your installation.
+
+
+### Test
+When everything is set up, navigate to the `lightwin` dir and run `pytest`.
+If TraceWin is not installed, run `pytest -m "not tracewin"`.
+
+Note that as for now, `pytest` will raise errors if `pymoo` is not installed, and if the `cython` packages are not compiled.
