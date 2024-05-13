@@ -37,82 +37,84 @@ class PhaseSpaceBeamParameters(IPhaseSpaceBeamParameters):
     # sigma: np.ndarray | None = None
 
     @classmethod
-    def from_cumulated_transfer_matrices(cls,
-                                         phase_space_name: str,
-                                         sigma_in: np.ndarray,
-                                         tm_cumul: np.ndarray,
-                                         gamma_kin: np.ndarray,
-                                         beta_kin: np.ndarray,
-                                         ) -> Self:
+    def from_cumulated_transfer_matrices(
+        cls,
+        phase_space_name: str,
+        sigma_in: np.ndarray,
+        tm_cumul: np.ndarray,
+        gamma_kin: np.ndarray,
+        beta_kin: np.ndarray,
+    ) -> Self:
         r"""Compute :math:`\sigma` matrix, and everything from it."""
         sigma = sigma_from_transfer_matrices(sigma_in, tm_cumul)
-        phase_space = cls.from_sigma(phase_space_name,
-                                     sigma,
-                                     gamma_kin,
-                                     beta_kin,
-                                     tm_cumul=tm_cumul)
+        phase_space = cls.from_sigma(
+            phase_space_name, sigma, gamma_kin, beta_kin, tm_cumul=tm_cumul
+        )
         return phase_space
 
     @classmethod
-    def from_sigma(cls,
-                   phase_space_name: str,
-                   sigma: np.ndarray,
-                   gamma_kin: np.ndarray,
-                   beta_kin: np.ndarray,
-                   **kwargs: np.ndarray  # tm_cumul
-                   ) -> Self:
+    def from_sigma(
+        cls,
+        phase_space_name: str,
+        sigma: np.ndarray,
+        gamma_kin: np.ndarray,
+        beta_kin: np.ndarray,
+        **kwargs: np.ndarray,  # tm_cumul
+    ) -> Self:
         """Compute Twiss, eps, envelopes just from sigma matrix."""
-        return super().from_sigma(phase_space_name,
-                                  sigma,
-                                  gamma_kin,
-                                  beta_kin,
-                                  **kwargs)
+        return super().from_sigma(
+            phase_space_name, sigma, gamma_kin, beta_kin, **kwargs
+        )
 
     @classmethod
-    def from_other_phase_space(cls,
-                               other_phase_space: Self,
-                               phase_space_name: str,
-                               gamma_kin: np.ndarray,
-                               beta_kin: np.ndarray,
-                               **kwargs: np.ndarray,  # sigma, tm_cumul
-                               ) -> Self:
+    def from_other_phase_space(
+        cls,
+        other_phase_space: Self,
+        phase_space_name: str,
+        gamma_kin: np.ndarray,
+        beta_kin: np.ndarray,
+        **kwargs: np.ndarray,  # sigma, tm_cumul
+    ) -> Self:
         """Fully initialize from another phase space."""
-        return super().from_other_phase_space(other_phase_space,
-                                              phase_space_name,
-                                              gamma_kin,
-                                              beta_kin,
-                                              **kwargs)
+        return super().from_other_phase_space(
+            other_phase_space, phase_space_name, gamma_kin, beta_kin, **kwargs
+        )
 
     @classmethod
-    def from_averaging_x_and_y(cls,
-                               phase_space_name: str,
-                               x_space: Self,
-                               y_space: Self
-                               ) -> Self:
+    def from_averaging_x_and_y(
+        cls, phase_space_name: str, x_space: Self, y_space: Self
+    ) -> Self:
         """Create average transverse phase space from [xx'] and [yy'].
 
         ``eps`` is always initialized. ``mismatch_factor`` is calculated if it
         was already calculated in ``x_space`` and ``y_space``.
 
         """
-        assert phase_space_name == 't'
-        eps_normalized = .5 * (x_space.eps_normalized + y_space.eps_normalized)
-        eps_no_normalisation = .5 * (x_space.eps_no_normalisation
-                                     + y_space.eps_no_normalisation)
-        envelopes = .5 * (x_space.envelopes + y_space.envelopes)
+        assert phase_space_name == "t"
+        eps_normalized = 0.5 * (
+            x_space.eps_normalized + y_space.eps_normalized
+        )
+        eps_no_normalisation = 0.5 * (
+            x_space.eps_no_normalisation + y_space.eps_no_normalisation
+        )
+        envelopes = 0.5 * (x_space.envelopes + y_space.envelopes)
 
         mismatch_factor = None
-        if x_space.mismatch_factor is not None \
-                and y_space.mismatch_factor is not None:
-            mismatch_factor = .5 * (x_space.mismatch_factor
-                                    + y_space.mismatch_factor)
+        if (
+            x_space.mismatch_factor is not None
+            and y_space.mismatch_factor is not None
+        ):
+            mismatch_factor = 0.5 * (
+                x_space.mismatch_factor + y_space.mismatch_factor
+            )
 
-        phase_space = cls(phase_space_name=phase_space_name,
-                          eps_no_normalisation=eps_no_normalisation,
-                          eps_normalized=eps_normalized,
-                          envelopes=envelopes,
-                          mismatch_factor=mismatch_factor,
-                          )
+        phase_space = cls(
+            phase_space_name=phase_space_name,
+            eps_no_normalisation=eps_no_normalisation,
+            eps_normalized=eps_normalized,
+            envelopes=envelopes,
+            mismatch_factor=mismatch_factor,
+        )
         return phase_space
 
     @property
@@ -191,38 +193,43 @@ class PhaseSpaceBeamParameters(IPhaseSpaceBeamParameters):
         assert self.sigma is not None
         return self.sigma[0]
 
-    def set_mismatch(self,
-                     reference_phase_space: Self,
-                     reference_z_abs: np.ndarray,
-                     z_abs: np.ndarray,
-                     raise_missing_twiss_error: bool = True,
-                     **mismatch_kw: bool,
-                     ) -> None:
+    def set_mismatch(
+        self,
+        reference_phase_space: Self,
+        reference_z_abs: np.ndarray,
+        z_abs: np.ndarray,
+        raise_missing_twiss_error: bool = True,
+        **mismatch_kw: bool,
+    ) -> None:
         """Compute and set the mismatch with ``reference_phase_space``."""
         assert self.phase_space_name == reference_phase_space.phase_space_name
 
         if self.twiss is None:
             if raise_missing_twiss_error:
-                raise IOError("Fixed linac Twiss not calculated in phase space"
-                              f" {self.phase_space_name}. Cannot compute "
-                              "mismatch.")
+                raise IOError(
+                    "Fixed linac Twiss not calculated in phase space"
+                    f" {self.phase_space_name}. Cannot compute "
+                    "mismatch."
+                )
             return None
 
         reference_twiss = reference_phase_space.twiss
         if reference_twiss is None:
             if raise_missing_twiss_error:
-                raise IOError("Reference Twiss not calculated in phase space "
-                              f"{self.phase_space_name}. Cannot compute "
-                              "mismatch.")
+                raise IOError(
+                    "Reference Twiss not calculated in phase space "
+                    f"{self.phase_space_name}. Cannot compute "
+                    "mismatch."
+                )
             return None
 
         assert reference_twiss is not None and self.twiss is not None
 
         if reference_twiss.shape != self.twiss.shape:
-            reference_twiss = resample_twiss_on_fix(reference_z_abs,
-                                                    reference_twiss,
-                                                    z_abs)
+            reference_twiss = resample_twiss_on_fix(
+                reference_z_abs, reference_twiss, z_abs
+            )
 
-        self.mismatch_factor = mismatch_from_arrays(reference_twiss,
-                                                    self.twiss,
-                                                    transp=True)
+        self.mismatch_factor = mismatch_from_arrays(
+            reference_twiss, self.twiss, transp=True
+        )

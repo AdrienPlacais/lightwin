@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Gather beam parameters at the entrance of a :class:`.ListOfElements`.
+"""Gather beam parameters at the entrance of a :class:`.ListOfElements`.
 
 For a list of the units associated with every parameter, see
 :ref:`units-label`.
 
 """
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -16,9 +15,7 @@ import numpy as np
 from tracewin_utils.interface import beam_parameters_to_command
 from util.helper import recursive_items
 
-from .phase_space.i_phase_space_beam_parameters import (
-    IMPLEMENTED_PHASE_SPACES,
-)
+from .phase_space.i_phase_space_beam_parameters import IMPLEMENTED_PHASE_SPACES
 from .phase_space.initial_phase_space_beam_parameters import (
     InitialPhaseSpaceBeamParameters,
 )
@@ -101,12 +98,14 @@ class InitialBeamParameters:
             return hasattr(phase_space, key)
         return key in recursive_items(vars(self))
 
-    def get(self,
-            *keys: str,
-            to_numpy: bool = True,
-            none_to_nan: bool = False,
-            phase_space_name: str | None = None,
-            **kwargs: Any) -> Any:
+    def get(
+        self,
+        *keys: str,
+        to_numpy: bool = True,
+        none_to_nan: bool = False,
+        phase_space_name: str | None = None,
+        **kwargs: Any,
+    ) -> Any:
         """
         Shorthand to get attributes from this class or its attributes.
 
@@ -158,11 +157,13 @@ class InitialBeamParameters:
         else:
             for key in keys:
                 if phase_space_name_hidden_in_key(key):
-                    short_key, phase_space_name = \
+                    short_key, phase_space_name = (
                         separate_var_from_phase_space(key)
-                    assert hasattr(self, phase_space_name), \
-                        f"{phase_space_name = } not set for current "\
+                    )
+                    assert hasattr(self, phase_space_name), (
+                        f"{phase_space_name = } not set for current "
                         + "InitialBeamParameters object."
+                    )
                     phase_space = getattr(self, phase_space_name)
                     val[key] = getattr(phase_space, short_key)
                     continue
@@ -176,8 +177,9 @@ class InitialBeamParameters:
 
         out = [val[key] for key in keys]
         if to_numpy:
-            out = [np.array(val) if isinstance(val, list) else val
-                   for val in out]
+            out = [
+                np.array(val) if isinstance(val, list) else val for val in out
+            ]
             if none_to_nan:
                 out = [val.astype(float) for val in out]
 
@@ -202,11 +204,11 @@ class InitialBeamParameters:
         sigma = np.zeros((6, 6))
 
         sigma_x = np.zeros((2, 2))
-        if self.has('x'):
+        if self.has("x"):
             sigma_x = self.x.sigma
 
         sigma_y = np.zeros((2, 2))
-        if self.has('y'):
+        if self.has("y"):
             sigma_y = self.y.sigma
 
         sigma_zdelta = self.zdelta.sigma
@@ -216,8 +218,9 @@ class InitialBeamParameters:
         sigma[4:, 4:] = sigma_zdelta
         return sigma
 
-    def _create_tracewin_command(self, warn_missing_phase_space: bool = True
-                                 ) -> list[str]:
+    def _create_tracewin_command(
+        self, warn_missing_phase_space: bool = True
+    ) -> list[str]:
         """
         Turn emittance, alpha, beta from the proper phase-spaces into command.
 
@@ -226,14 +229,16 @@ class InitialBeamParameters:
 
         """
         args = []
-        for phase_space_name in ('x', 'y', 'z'):
+        for phase_space_name in ("x", "y", "z"):
             if not self.has(phase_space_name):
                 eps, alpha, beta = np.NaN, np.NaN, np.NaN
                 phase_spaces_are_needed = self.z_abs > 1e-10
                 if warn_missing_phase_space and phase_spaces_are_needed:
-                    logging.warning(f"{phase_space_name} phase space not "
-                                    "defined, keeping default inputs from the "
-                                    "`.ini.`.")
+                    logging.warning(
+                        f"{phase_space_name} phase space not "
+                        "defined, keeping default inputs from the "
+                        "`.ini.`."
+                    )
             else:
                 phase_space = getattr(self, phase_space_name)
                 eps = phase_space.eps
@@ -249,10 +254,10 @@ class InitialBeamParameters:
 # =============================================================================
 def phase_space_name_hidden_in_key(key: str) -> bool:
     """Look for the name of a phase-space in a key name."""
-    if '_' not in key:
+    if "_" not in key:
         return False
 
-    to_test = key.split('_')
+    to_test = key.split("_")
     if to_test[-1] in IMPLEMENTED_PHASE_SPACES:
         return True
     return False
@@ -260,7 +265,7 @@ def phase_space_name_hidden_in_key(key: str) -> bool:
 
 def separate_var_from_phase_space(key: str) -> tuple[str, str]:
     """Separate variable name from phase space name."""
-    splitted = key.split('_')
-    key = '_'.join(splitted[:-1])
+    splitted = key.split("_")
+    key = "_".join(splitted[:-1])
     phase_space = splitted[-1]
     return key, phase_space
