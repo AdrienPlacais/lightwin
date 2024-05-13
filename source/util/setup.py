@@ -15,14 +15,16 @@ matrices_c.cpython-blabla.so`` to ``beam_calculation/envelope1d/``
     of the software. Hence, you must restart the kernel after each compilation.
 
 """
-from setuptools import setup
-from Cython.Build import cythonize
+import os
 import os.path
 
-source_path = "/home/placais/LightWin/source"
-pyx_path = os.path.join(source_path,
-                        "beam_calculation/envelope_1d/transfer_matrices_c.pyx"
-                        )
+from Cython.Build import cythonize
+from setuptools import setup
+
+source_path = os.getcwd()
+pyx_path = os.path.join(
+    source_path, "beam_calculation/envelope_1d/transfer_matrices_c.pyx"
+)
 
 setup(
     ext_modules=cythonize(
