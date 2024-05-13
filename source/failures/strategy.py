@@ -37,7 +37,7 @@ def failed_and_compensating(
 ) -> tuple[list[list[FieldMap]], list[list[FieldMap]]]:
     """Determine the compensating cavities for every failure."""
     failed_cavities = elts.take(failed, id_nature=id_nature)
-    assert [cavity.can_be_retuned for cavity in failed_cavities]
+    assert [cavity.can_be_retuned for cavity in flatten(failed_cavities)]
     elements = elts.tunable_cavities
 
     if strategy == "manual":

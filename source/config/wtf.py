@@ -74,23 +74,27 @@ def _test_k_out_of_n(k: int, **wtf_kw) -> None:
 
 
 def _test_manual(
-    failed: list[list[list[int]]], manual_list: list[list[list[int]]], **wtf_kw
+    failed: list[list[list[int]]],
+    compensating_manual: list[list[list[int]]],
+    **wtf_kw,
 ) -> None:
     """Test that the manual method can work."""
-    check_type(list, "wtf", failed, manual_list)
-    assert len(failed) == len(manual_list), (
+    check_type(list, "wtf", failed, compensating_manual)
+    assert len(failed) == len(compensating_manual), (
         "Discrepancy between the number of FaultScenarios and the number of "
         "corresponding list of compensating cavities. In other words: "
-        "'failed[i]' and 'manual list[i]' entries must have the same number "
+        "'failed[i]' and 'compensating_manual[i]' entries must have the same number "
         "of elements."
     )
 
-    for scenarios, grouped_compensating_cavities in zip(failed, manual_list):
+    for scenarios, grouped_compensating_cavities in zip(
+        failed, compensating_manual
+    ):
         check_type(list, "wtf", scenarios, grouped_compensating_cavities)
         assert len(scenarios) == len(grouped_compensating_cavities), (
             "In a FaultScenario, discrepancy between the number of fault "
             "groups and group of compensating cavities. In other words: "
-            "'failed[i][j]' and 'manual_list[i][j]' entries must have the same"
+            "'failed[i][j]' and 'compensating_manual[i][j]' entries must have the same"
             " number of elements."
         )
         for failure in scenarios:

@@ -474,8 +474,8 @@ def fault_scenario_factory(
     scenarios_fault_idx = wtf.pop("failed")
 
     scenarios_comp_idx = [None for _ in accelerators[1:]]
-    if "manual list" in wtf:
-        scenarios_comp_idx = wtf.pop("manual list")
+    if "compensating_manual" in wtf:
+        scenarios_comp_idx = wtf.pop("compensating_manual")
 
     _ = [
         beam_calculator.init_solver_parameters(accelerator)
