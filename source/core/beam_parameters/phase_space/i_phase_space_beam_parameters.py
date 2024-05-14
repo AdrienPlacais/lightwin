@@ -1,6 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Hold the beam parameters in a single phase space."""
+"""Hold the beam parameters in a single phase space.
+
+For a list of the units associated with every parameter, see
+:ref:`units-label`.
+
+.. note::
+    In this module, angles are stored in deg, not in rad!
+
+"""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Self

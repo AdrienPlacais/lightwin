@@ -5,6 +5,9 @@
 For a list of the units associated with every parameter, see
 :ref:`units-label`.
 
+.. note::
+    In this module, angles are stored in deg, not in rad!
+
 """
 from dataclasses import dataclass
 from typing import Self
