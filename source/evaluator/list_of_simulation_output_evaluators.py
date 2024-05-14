@@ -103,10 +103,10 @@ class ListOfSimulationOutputEvaluators(list):
         other_data: list[list[Any]],
         *simulation_outputs: SimulationOutput,
     ) -> list[list[float | bool | datetime.timedelta]]:
-        data = [
-            [evaluator.run(simulation_output) for evaluator in self]
-            for simulation_output in simulation_outputs
-        ]
+        # data = [
+        #     [evaluator.run(simulation_output) for evaluator in self]
+        #     for simulation_output in simulation_outputs
+        # ]
         # if len(other_data) > 0:
         #     data = [line + other_dat
         #             for line, other_dat in zip(data, other_data)]
