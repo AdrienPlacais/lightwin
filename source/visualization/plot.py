@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a library to produce all these nice plots.
 
 When adding you own presets, do not forget to add them to the list of
@@ -19,6 +17,7 @@ implemented plots in :mod:`config.plots`.
     accelerates or not (ex when quadrupole defined by a field map)
 
 """
+
 import itertools
 import logging
 from pathlib import Path
@@ -98,6 +97,7 @@ PLOT_PRESETS = {
             "struct",
         ],
         "num": 26,
+        "to_deg": False,
         "symetric_plot": True,
     },
     "mismatch_factor": {
@@ -230,7 +230,12 @@ def _single_simulation_data(
     axis: str, simulation_output: SimulationOutput
 ) -> list[float] | None:
     """Get single data array from single SimulationOutput."""
-    data = simulation_output.get(axis, to_numpy=False, to_deg=True)
+    kwargs = {"to_numpy": False, "to_deg": True}
+
+    # patch to avoid envelopes being converted again to degrees
+    if 'envelope_pos' in axis:
+        kwargs["to_deg"] = False
+    data = simulation_output.get(axis, **kwargs)
     return data
 
 
@@ -266,9 +271,8 @@ def _single_accelerator_all_simulations_data(
             x_axis, y_axis, simulation_output
         )
         short_solver = solver.split("(")[0]
-        if "TraceWin" in solver:
-            if "'partran': 0" not in solver:
-                short_solver += " (multipart)"
+        if simulation_output.is_multiparticle:
+            short_solver += " (multipart)"
 
         plt_kw["label"] = " ".join([accelerator.name, short_solver])
         plt_kw["ls"] = ls
