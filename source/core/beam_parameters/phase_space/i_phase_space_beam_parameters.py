@@ -1,38 +1,40 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Hold the beam parameters in a single phase space."""
+"""Hold the beam parameters in a single phase space.
+
+For a list of the units associated with every parameter, see
+:ref:`units-label`.
+
+.. note::
+    In this module, angles are stored in deg, not in rad!
+
+"""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Self
 
 import numpy as np
 
-
 from core.beam_parameters.helper import (
     envelopes_from_sigma,
     envelopes_from_twiss_eps,
     eps_from_other_phase_space,
     eps_from_sigma,
-    mismatch_from_arrays,
-    resample_twiss_on_fix,
-    sigma_from_transfer_matrices,
     twiss_from_other_phase_space,
     twiss_from_sigma,
 )
-from util import converters
 from util.helper import range_vals_object
 
-
-IMPLEMENTED_PHASE_SPACES = ('zdelta', 'z', 'phiw', 'x', 'y', 't',
-                            'phiw99', 'x99', 'y99')  #:
-
-# still used?
-BEAM_PARAMETERS = ('eps_normalized', 'eps_no_normalisation',
-                   'envelopes', 'envelope_pos', 'envelope_energy',
-                   'twiss', 'alpha', 'beta', 'gamma',
-                   'sigma', 'tm_cumul',
-                   'mismatch_factor'
-                   )  #:
+IMPLEMENTED_PHASE_SPACES = (
+    "zdelta",
+    "z",
+    "phiw",
+    "x",
+    "y",
+    "t",
+    "phiw99",
+    "x99",
+    "y99",
+)  #:
 
 
 @dataclass
@@ -53,13 +55,14 @@ class IPhaseSpaceBeamParameters(ABC):
         assert self.phase_space_name in IMPLEMENTED_PHASE_SPACES
 
     @classmethod
-    def from_sigma(cls,
-                   phase_space_name: str,
-                   sigma: np.ndarray,
-                   gamma_kin: np.ndarray | float,
-                   beta_kin: np.ndarray | float,
-                   **kwargs: np.ndarray
-                   ) -> Self:
+    def from_sigma(
+        cls,
+        phase_space_name: str,
+        sigma: np.ndarray,
+        gamma_kin: np.ndarray | float,
+        beta_kin: np.ndarray | float,
+        **kwargs: np.ndarray,
+    ) -> Self:
         """Compute Twiss, eps, envelopes just from sigma matrix."""
         eps_no_normalisation, eps_normalized = eps_from_sigma(
             phase_space_name,
@@ -67,28 +70,28 @@ class IPhaseSpaceBeamParameters(ABC):
             gamma_kin,
             beta_kin,
         )
-        twiss = twiss_from_sigma(phase_space_name,
-                                 sigma,
-                                 eps_no_normalisation)
+        twiss = twiss_from_sigma(phase_space_name, sigma, eps_no_normalisation)
         envelopes = envelopes_from_sigma(phase_space_name, sigma)
-        phase_space = cls(phase_space_name=phase_space_name,
-                          eps_no_normalisation=eps_no_normalisation,
-                          eps_normalized=eps_normalized,
-                          sigma=sigma,
-                          twiss=twiss,
-                          envelopes=envelopes,
-                          **kwargs,
-                          )
+        phase_space = cls(
+            phase_space_name=phase_space_name,
+            eps_no_normalisation=eps_no_normalisation,
+            eps_normalized=eps_normalized,
+            sigma=sigma,
+            twiss=twiss,
+            envelopes=envelopes,
+            **kwargs,
+        )
         return phase_space
 
     @classmethod
-    def from_other_phase_space(cls,
-                               other_phase_space: Self,
-                               phase_space_name: str,
-                               gamma_kin: np.ndarray | float,
-                               beta_kin: np.ndarray | float,
-                               **kwargs: np.ndarray,  # sigma, tm_cumul
-                               ) -> Self:
+    def from_other_phase_space(
+        cls,
+        other_phase_space: Self,
+        phase_space_name: str,
+        gamma_kin: np.ndarray | float,
+        beta_kin: np.ndarray | float,
+        **kwargs: np.ndarray,  # sigma, tm_cumul
+    ) -> Self:
         """Fully initialize from another phase space."""
         other_phase_space_name = other_phase_space.phase_space_name
         eps_other = other_phase_space.eps_normalized
@@ -100,30 +103,41 @@ class IPhaseSpaceBeamParameters(ABC):
             phase_space_name,
             eps_other,
             gamma_kin,
-            beta_kin)
-        twiss = twiss_from_other_phase_space(other_phase_space_name,
-                                             phase_space_name,
-                                             twiss_other,
-                                             gamma_kin,
-                                             beta_kin)
+            beta_kin,
+        )
+        twiss = twiss_from_other_phase_space(
+            other_phase_space_name,
+            phase_space_name,
+            twiss_other,
+            gamma_kin,
+            beta_kin,
+        )
 
         eps_for_envelope = eps_no_normalisation
-        if phase_space_name == 'phiw':
+        if phase_space_name == "phiw":
             eps_for_envelope = eps_normalized
         envelopes = envelopes_from_twiss_eps(twiss, eps_for_envelope)
-        phase_space = cls(phase_space_name=phase_space_name,
-                          eps_no_normalisation=eps_no_normalisation,
-                          eps_normalized=eps_normalized,
-                          twiss=twiss,
-                          envelopes=envelopes,
-                          **kwargs)
+        phase_space = cls(
+            phase_space_name=phase_space_name,
+            eps_no_normalisation=eps_no_normalisation,
+            eps_normalized=eps_normalized,
+            twiss=twiss,
+            envelopes=envelopes,
+            **kwargs,
+        )
         return phase_space
 
     def __str__(self) -> str:
         """Show amplitude of some of the attributes."""
         out = f"\t\tPhase space {self.phase_space_name}:\n"
-        for key in ('alpha', 'beta', 'eps', 'envelope_pos', 'envelope_energy',
-                    'mismatch_factor'):
+        for key in (
+            "alpha",
+            "beta",
+            "eps",
+            "envelope_pos",
+            "envelope_energy",
+            "mismatch_factor",
+        ):
             out += "\t\t\t" + range_vals_object(self, key)
         return out
 

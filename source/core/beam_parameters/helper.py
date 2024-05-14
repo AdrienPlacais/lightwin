@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
-"""
-Define functions useful for beam parameters calculations.
+"""Define functions useful for beam parameters calculations.
 
 For more information on the units that are used in this module, see
 :ref:`units-label`.
 
 """
+
 import logging
 from typing import overload
 
@@ -17,15 +16,16 @@ from util import converters
 # =============================================================================
 # Compute quantities from the sigma beam matrix
 # =============================================================================
-def reconstruct_sigma(phase_space_name: str,
-                      sigma_00: np.ndarray,
-                      sigma_01: np.ndarray,
-                      eps: np.ndarray,
-                      tol: float = 1e-8,
-                      eps_is_normalized: bool = False,
-                      gamma_kin: np.ndarray | None = None,
-                      beta_kin: np.ndarray | None = None,
-                      ) -> np.ndarray:
+def reconstruct_sigma(
+    phase_space_name: str,
+    sigma_00: np.ndarray,
+    sigma_01: np.ndarray,
+    eps: np.ndarray,
+    tol: float = 1e-8,
+    eps_is_normalized: bool = False,
+    gamma_kin: np.ndarray | None = None,
+    beta_kin: np.ndarray | None = None,
+) -> np.ndarray:
     r"""
     Set :math:`\sigma` matrix from the two top components and emittance.
 
@@ -68,16 +68,18 @@ def reconstruct_sigma(phase_space_name: str,
         ``(n, 2, 2)`` full sigma matrix along the linac.
 
     """
-    if phase_space_name not in ('zdelta', 'x', 'y', 'x99', 'y99'):
-        logging.warning("sigma reconstruction in this phase space not tested. "
-                        "You'd better check the units of the output.")
+    if phase_space_name not in ("zdelta", "x", "y", "x99", "y99"):
+        logging.warning(
+            "sigma reconstruction in this phase space not tested. "
+            "You'd better check the units of the output."
+        )
 
     if eps_is_normalized:
         assert gamma_kin is not None
         if beta_kin is None:
-            beta_kin = converters.energy(gamma_kin, 'gamma to beta')
+            beta_kin = converters.energy(gamma_kin, "gamma to beta")
             assert isinstance(beta_kin, np.ndarray)
-        eps /= (beta_kin * gamma_kin)
+        eps /= beta_kin * gamma_kin
 
     sigma = np.zeros((sigma_00.shape[0], 2, 2))
     sigma_00[np.where(np.abs(sigma_00) < tol)] = np.NaN
@@ -86,33 +88,36 @@ def reconstruct_sigma(phase_space_name: str,
     sigma[:, 1, 0] = sigma_01
     sigma[:, 1, 1] = (eps**2 + sigma_01**2) / sigma_00
 
-    if phase_space_name in ('zdelta', 'x', 'y', 'x99', 'y99'):
+    if phase_space_name in ("zdelta", "x", "y", "x99", "y99"):
         sigma *= 1e-6
     assert isinstance(sigma, np.ndarray)
     return sigma
 
 
 @overload
-def eps_from_sigma(phase_space_name: str,
-                   sigma: np.ndarray,
-                   gamma_kin: np.ndarray,
-                   beta_kin: np.ndarray,
-                   ) -> tuple[np.ndarray, np.ndarray]: ...
+def eps_from_sigma(
+    phase_space_name: str,
+    sigma: np.ndarray,
+    gamma_kin: np.ndarray,
+    beta_kin: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]: ...
 
 
 @overload
-def eps_from_sigma(phase_space_name: str,
-                   sigma: np.ndarray,
-                   gamma_kin: float,
-                   beta_kin: float,
-                   ) -> tuple[float, float]: ...
+def eps_from_sigma(
+    phase_space_name: str,
+    sigma: np.ndarray,
+    gamma_kin: float,
+    beta_kin: float,
+) -> tuple[float, float]: ...
 
 
-def eps_from_sigma(phase_space_name: str,
-                   sigma: np.ndarray,
-                   gamma_kin: np.ndarray | float,
-                   beta_kin: np.ndarray | float,
-                   ) -> tuple[np.ndarray | float, np.ndarray | float]:
+def eps_from_sigma(
+    phase_space_name: str,
+    sigma: np.ndarray,
+    gamma_kin: np.ndarray | float,
+    beta_kin: np.ndarray | float,
+) -> tuple[np.ndarray | float, np.ndarray | float]:
     r"""
     Compute emittance from :math:`\sigma` beam matrix.
 
@@ -140,9 +145,10 @@ def eps_from_sigma(phase_space_name: str,
         ``(n, )`` array (or float) of emittance, normalized.
 
     """
-    allowed = ('zdelta', 'x', 'y', 'x99', 'y99')
-    assert phase_space_name in allowed, \
-        f"Phase-space {phase_space_name} not in {allowed = }."
+    allowed = ("zdelta", "x", "y", "x99", "y99")
+    assert (
+        phase_space_name in allowed
+    ), f"Phase-space {phase_space_name} not in {allowed = }."
 
     is_initials = False
     if isinstance(gamma_kin, float):
@@ -150,19 +156,21 @@ def eps_from_sigma(phase_space_name: str,
         sigma = sigma[np.newaxis, :, :]
 
     dets = np.linalg.det(sigma)
-    invalid_idx = np.where(dets < 0.)
+    invalid_idx = np.where(dets < 0.0)
     dets[invalid_idx] = np.NaN
     eps_no_normalisation = np.sqrt(dets)
 
-    if phase_space_name in ('zdelta', ):
+    if phase_space_name in ("zdelta",):
         eps_no_normalisation *= 1e5
-    elif phase_space_name in ('x', 'y', 'x99', 'y99'):
+    elif phase_space_name in ("x", "y", "x99", "y99"):
         eps_no_normalisation *= 1e6
 
-    eps_normalized = converters.emittance(eps_no_normalisation,
-                                          f"normalize {phase_space_name}",
-                                          gamma_kin=gamma_kin,
-                                          beta_kin=beta_kin)
+    eps_normalized = converters.emittance(
+        eps_no_normalisation,
+        f"normalize {phase_space_name}",
+        gamma_kin=gamma_kin,
+        beta_kin=beta_kin,
+    )
     if is_initials:
         return eps_no_normalisation[0], eps_normalized[0]
 
@@ -170,10 +178,12 @@ def eps_from_sigma(phase_space_name: str,
     return eps_no_normalisation, eps_normalized
 
 
-def twiss_from_sigma(phase_space_name: str,
-                     sigma: np.ndarray,
-                     eps_no_normalisation: np.ndarray | float,
-                     tol: float = 1e-8) -> np.ndarray:
+def twiss_from_sigma(
+    phase_space_name: str,
+    sigma: np.ndarray,
+    eps_no_normalisation: np.ndarray | float,
+    tol: float = 1e-8,
+) -> np.ndarray:
     r"""Compute the Twiss parameters using the :math:`\sigma` matrix.
 
     In the :math:`[z-\delta]` phase space, emittance and Twiss are in
@@ -207,8 +217,7 @@ def twiss_from_sigma(phase_space_name: str,
         ``(n, 3)`` (or ``(3, )``) array of Twiss parameters.
 
     """
-    assert phase_space_name in ('zdelta', 'x', 'y', 'x99', 'y99')
-
+    assert phase_space_name in ("zdelta", "x", "y", "x99", "y99")
 
     is_initial = False
     if isinstance(eps_no_normalisation, float):
@@ -223,11 +232,13 @@ def twiss_from_sigma(phase_space_name: str,
         if np.abs(divisor) < tol:
             divisor = np.NaN
 
-        twiss[i, :] = np.array(
-            [-sigma[i, 1, 0], sigma[i, 0, 0], sigma[i, 1, 1]]
-        ) / divisor * 1e6
+        twiss[i, :] = (
+            np.array([-sigma[i, 1, 0], sigma[i, 0, 0], sigma[i, 1, 1]])
+            / divisor
+            * 1e6
+        )
 
-    if phase_space_name == 'zdelta':
+    if phase_space_name == "zdelta":
         twiss[:, 0] *= 1e-1
         twiss[:, 2] *= 1e-2
 
@@ -238,9 +249,10 @@ def twiss_from_sigma(phase_space_name: str,
 
 # TODO would be possible to skip this with TW, where envelope_pos is
 # already known
-def envelopes_from_sigma(phase_space_name: str,
-                         sigma: np.ndarray,
-                         ) -> np.ndarray:
+def envelopes_from_sigma(
+    phase_space_name: str,
+    sigma: np.ndarray,
+) -> np.ndarray:
     r"""
     Compute the envelopes.
 
@@ -269,11 +281,10 @@ def envelopes_from_sigma(phase_space_name: str,
         sigma = sigma[np.newaxis, :, :]
 
     envelope_pos = np.array([np.sqrt(sigm[0, 0]) for sigm in sigma]) * 1e3
-    envelope_energy = np.array([np.sqrt(sigm[1, 1]) for sigm in sigma]
-                               ) * 1e3
+    envelope_energy = np.array([np.sqrt(sigm[1, 1]) for sigm in sigma]) * 1e3
 
-    if phase_space_name == 'zdelta':
-        envelope_energy /= 10.
+    if phase_space_name == "zdelta":
+        envelope_energy /= 10.0
 
     if is_initial:
         return np.array([envelope_pos[0], envelope_energy[0]])
@@ -284,9 +295,10 @@ def envelopes_from_sigma(phase_space_name: str,
 # =============================================================================
 # Compute quantities from the transfer matrix
 # =============================================================================
-def sigma_from_transfer_matrices(sigma_in: np.ndarray,
-                                 tm_cumul: np.ndarray,
-                                 ) -> np.ndarray:
+def sigma_from_transfer_matrices(
+    sigma_in: np.ndarray,
+    tm_cumul: np.ndarray,
+) -> np.ndarray:
     r"""
     Compute the :math:`\sigma` beam matrices over the linac.
 
@@ -319,8 +331,9 @@ def sigma_from_transfer_matrices(sigma_in: np.ndarray,
 # =============================================================================
 # Compute quantities from Twiss and emittance
 # =============================================================================
-def envelopes_from_twiss_eps(twiss: np.ndarray,
-                             eps: np.ndarray | float) -> np.ndarray:
+def envelopes_from_twiss_eps(
+    twiss: np.ndarray, eps: np.ndarray | float
+) -> np.ndarray:
     r"""
     Compute the envelopes from the Twiss parameters and emittance.
 
@@ -352,32 +365,33 @@ def envelopes_from_twiss_eps(twiss: np.ndarray,
 # Compute quantities from another phase space
 # =============================================================================
 @overload
-def eps_from_other_phase_space(other_phase_space_name: str,
-                               phase_space_name: str,
-                               eps_other: np.ndarray,
-                               gamma_kin: np.ndarray,
-                               beta_kin: np.ndarray
-                               ) -> tuple[np.ndarray, np.ndarray]: ...
+def eps_from_other_phase_space(
+    other_phase_space_name: str,
+    phase_space_name: str,
+    eps_other: np.ndarray,
+    gamma_kin: np.ndarray,
+    beta_kin: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]: ...
 
 
 @overload
-def eps_from_other_phase_space(other_phase_space_name: str,
-                               phase_space_name: str,
-                               eps_other: float,
-                               gamma_kin: float,
-                               beta_kin: float
-                               ) -> tuple[float, float]: ...
+def eps_from_other_phase_space(
+    other_phase_space_name: str,
+    phase_space_name: str,
+    eps_other: float,
+    gamma_kin: float,
+    beta_kin: float,
+) -> tuple[float, float]: ...
 
 
-def eps_from_other_phase_space(other_phase_space_name: str,
-                               phase_space_name: str,
-                               eps_other: np.ndarray | float,
-                               gamma_kin: np.ndarray | float,
-                               beta_kin: np.ndarray | float
-                               ) -> tuple[np.ndarray | float,
-                                          np.ndarray | float]:
-    """
-    Convert emittance from another phase space.
+def eps_from_other_phase_space(
+    other_phase_space_name: str,
+    phase_space_name: str,
+    eps_other: np.ndarray | float,
+    gamma_kin: np.ndarray | float,
+    beta_kin: np.ndarray | float,
+) -> tuple[np.ndarray | float, np.ndarray | float]:
+    """Convert emittance from another phase space.
 
     Output emittance is normalized if input is, and is un-normalized if the
     input emittance is not normalized.
@@ -408,26 +422,23 @@ def eps_from_other_phase_space(other_phase_space_name: str,
 
     """
     convert_key = f"{other_phase_space_name} to {phase_space_name}"
-    eps_normalized = converters.emittance(eps_other,
-                                          convert_key,
-                                          gamma_kin=gamma_kin,
-                                          beta_kin=beta_kin)
+    eps_normalized = converters.emittance(
+        eps_other, convert_key, gamma_kin=gamma_kin, beta_kin=beta_kin
+    )
 
     eps_no_normalisation = converters.emittance(
-        eps_normalized,
-        f"de-normalize {phase_space_name}",
-        gamma_kin,
-        beta_kin
+        eps_normalized, f"de-normalize {phase_space_name}", gamma_kin, beta_kin
     )
     return eps_no_normalisation, eps_normalized
 
 
-def twiss_from_other_phase_space(other_phase_space_name: str,
-                                 phase_space_name: str,
-                                 twiss_other: np.ndarray,
-                                 gamma_kin: np.ndarray | float,
-                                 beta_kin: np.ndarray | float
-                                 ) -> np.ndarray:
+def twiss_from_other_phase_space(
+    other_phase_space_name: str,
+    phase_space_name: str,
+    twiss_other: np.ndarray,
+    gamma_kin: np.ndarray | float,
+    beta_kin: np.ndarray | float,
+) -> np.ndarray:
     """Compute Twiss parameters from Twiss parameters in another plane.
 
     Parameters
@@ -456,10 +467,9 @@ def twiss_from_other_phase_space(other_phase_space_name: str,
         is_initial = True
         twiss_other = twiss_other[np.newaxis, :]
 
-    twiss = converters.twiss(twiss_other,
-                             gamma_kin,
-                             convert_key,
-                             beta_kin=beta_kin)
+    twiss = converters.twiss(
+        twiss_other, gamma_kin, convert_key, beta_kin=beta_kin
+    )
     if is_initial:
         return twiss[0, :]
     return twiss
@@ -468,10 +478,9 @@ def twiss_from_other_phase_space(other_phase_space_name: str,
 # =============================================================================
 # Utility
 # =============================================================================
-def mismatch_from_arrays(ref: np.ndarray,
-                         fix: np.ndarray,
-                         transp: bool = False
-                         ) -> np.ndarray:
+def mismatch_from_arrays(
+    ref: np.ndarray, fix: np.ndarray, transp: bool = False
+) -> np.ndarray:
     """Compute the mismatch factor between two ellipses."""
     assert isinstance(ref, np.ndarray)
     assert isinstance(fix, np.ndarray)
@@ -483,19 +492,19 @@ def mismatch_from_arrays(ref: np.ndarray,
 
     # R in TW doc
     __r = ref[1] * fix[2] + ref[2] * fix[1]
-    __r -= 2. * ref[0] * fix[0]
+    __r -= 2.0 * ref[0] * fix[0]
 
     # Forbid R values lower than 2 (numerical error)
     __r = np.atleast_1d(__r)
-    __r[np.where(__r < 2.)] = 2.
+    __r[np.where(__r < 2.0)] = 2.0
 
-    mismatch = np.sqrt(.5 * (__r + np.sqrt(__r**2 - 4.))) - 1.
+    mismatch = np.sqrt(0.5 * (__r + np.sqrt(__r**2 - 4.0))) - 1.0
     return mismatch
 
 
-def resample_twiss_on_fix(z_ref: np.ndarray,
-                          twiss_ref: np.ndarray,
-                          z_fix: np.ndarray) -> np.ndarray:
+def resample_twiss_on_fix(
+    z_ref: np.ndarray, twiss_ref: np.ndarray, z_fix: np.ndarray
+) -> np.ndarray:
     """Interpolate ref Twiss on fix Twiss to compute mismatch afterwards."""
     n_points = z_fix.shape[0]
     out = np.empty((n_points, 3))

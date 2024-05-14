@@ -1,11 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Handle the initial beam parameters of a single phase space.
 
 For a list of the units associated with every parameter, see
 :ref:`units-label`.
 
+.. note::
+    In this module, angles are stored in deg, not in rad!
+
 """
+
 from dataclasses import dataclass
 from typing import Self
 
@@ -38,34 +40,32 @@ class InitialPhaseSpaceBeamParameters(IPhaseSpaceBeamParameters):
         super().__post_init__()
 
     @classmethod
-    def from_sigma(cls,
-                   phase_space_name: str,
-                   sigma: np.ndarray,
-                   gamma_kin: float,
-                   beta_kin: float,
-                   **kwargs: np.ndarray  # tm_cumul
-                   ) -> Self:
+    def from_sigma(
+        cls,
+        phase_space_name: str,
+        sigma: np.ndarray,
+        gamma_kin: float,
+        beta_kin: float,
+        **kwargs: np.ndarray,  # tm_cumul
+    ) -> Self:
         """Compute Twiss, eps, envelopes just from sigma matrix."""
-        return super().from_sigma(phase_space_name,
-                                  sigma,
-                                  gamma_kin,
-                                  beta_kin,
-                                  **kwargs)
+        return super().from_sigma(
+            phase_space_name, sigma, gamma_kin, beta_kin, **kwargs
+        )
 
     @classmethod
-    def from_other_phase_space(cls,
-                               other_phase_space: Self,
-                               phase_space_name: str,
-                               gamma_kin: float,
-                               beta_kin: float,
-                               **kwargs: np.ndarray,  # sigma, tm_cumul
-                               ) -> Self:
+    def from_other_phase_space(
+        cls,
+        other_phase_space: Self,
+        phase_space_name: str,
+        gamma_kin: float,
+        beta_kin: float,
+        **kwargs: np.ndarray,  # sigma, tm_cumul
+    ) -> Self:
         """Fully initialize from another phase space."""
-        return super().from_other_phase_space(other_phase_space,
-                                              phase_space_name,
-                                              gamma_kin,
-                                              beta_kin,
-                                              **kwargs)
+        return super().from_other_phase_space(
+            other_phase_space, phase_space_name, gamma_kin, beta_kin, **kwargs
+        )
 
     @property
     def alpha(self) -> float | None:
