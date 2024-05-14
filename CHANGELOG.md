@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Colors in Evaluator plots are now reset between executions
+- Position envelopes are now plotted in deg instead of degdeg (1degdeg = 180 / pi deg).
 
 ## [0.6.17] 2024-04-19
 
