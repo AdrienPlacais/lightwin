@@ -3,7 +3,7 @@ dat_file = "example.dat"
 project_folder = "results_tests/"
 
 [generic_envelope1d]
-flag_cython = true
+flag_cython = false
 flag_phi_abs = true
 method = "RK"
 n_steps_per_cell = 40
