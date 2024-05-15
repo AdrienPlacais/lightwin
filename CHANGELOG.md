@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `name`: we consider that `failed = [["FM10"]]` means "the first element which name is 'FM10' is down".
 - With the `l neighboring lattices` strategy, `l` can now be odd.
 - You can provide `tie_strategy = "downstream first"` or `tie_strategy = "upstream first"` to favour up/downstream cavities when there is a tie in distance between compensating cavities/lattices and failed.
+- A configuration file is mandatory to select the TraceWin executables.
 
 ### Fixed
 - Colors in Evaluator plots are now reset between executions
