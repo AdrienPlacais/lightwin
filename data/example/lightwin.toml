@@ -17,8 +17,9 @@ tool = "Envelope3D"
 [generic_tracewin]
 hide = true
 ini_path = "example.ini"
+machine_config_file = "machine_config.toml"
 partran = 0
-simulation_type = "noX11 full"
+simulation_type = "noX11_full"
 tool = "TraceWin"
 
 [beam]
