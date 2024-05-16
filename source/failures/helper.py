@@ -1,4 +1,10 @@
-"""Define helper function to ease lists manipulation in :mod:``.strategy``."""
+"""Define helper function to ease lists manipulation in :mod:``.strategy``.
+
+.. note::
+    If you are unsure about how a function works, check out the implementation
+    of the tests in ``lightwin/tests/test_failure/test_helper.py``.
+
+"""
 
 import itertools
 import math
@@ -10,38 +16,48 @@ def _distance_to_ref[
     T
 ](
     element: T,
-    elts_of_interest: Sequence[T],
-    elements: Sequence[T],
+    failed: Sequence[T],
+    all_elements: Sequence[T],
     tie_politics: str,
+    shift: int = 0,
 ) -> tuple[int, int]:
-    """Give distance between the two elements in ``elements``.
+    """Give distance between ``element`` and closest of ``failed``.
 
     Parameters
     ----------
     element : T
         First object from which you want distance. Often, an :class:`.Element`
         of a lattice that will potentially be used for compensation.
-    elts_of_interest : Sequence[T]
+    failed : Sequence[T]
         Second object or list of object from which you want distance. Often, a
         list of failed :class:`.Element` or a list of lattices with a fault.
-    elements : Sequence[T]
+    all_elements : Sequence[T]
         All the elements/lattices/sections.
     tie_politics : {'upstream first', 'downstream first'}
         When two elements have the same position, will you want to have the
         upstream or the downstream first?
+    shift : int, optional
+        Distance increase for downstream elements (``shift < 0``) or upstream
+        elements (``shift > 0``). Used to have a window of compensating
+        cavities which is not centered around the failed elements. The default
+        is 0.
 
     Returns
     -------
-    lowest_distances : int
-        Index-distance between ``element`` and closest element of
-        ``elts_of_interest``. Will be used as a primary sorting key.
+    lowest_distance : int
+        Index-distance between ``element`` and closest element of ``failed``.
+        Will be used as a primary sorting key.
     index : int
         Index of ``element``. Will be used as a secondary index key, to sort
         ties in distance.
 
     """
-    index = elements.index(element)
-    distances = (abs(index - elements.index(elt)) for elt in elts_of_interest)
+    index = all_elements.index(element)
+    distances = (
+        abs(index - (failure_index := all_elements.index(failed_element)))
+        + _penalty(index, failure_index, shift)
+        for failed_element in failed
+    )
     lowest_distance = min(distances)
 
     if tie_politics == "upstream first":
@@ -51,21 +67,63 @@ def _distance_to_ref[
     raise IOError(f"{tie_politics = } not understood.")
 
 
+def _penalty(index: int, failure_index: int, shift: int) -> int:
+    """Give the distance penalty.
+
+    .. note::
+        If ``shift > 0``, upstream elements are penalized.
+        If ``shift < 0``, downstream elements are penalized.
+
+    """
+    if index == failure_index:
+        return 0
+    if (failure_index < index) is not (shift < 0):
+        return 0
+    return abs(shift)
+
+
 def sort_by_position[
     T
 ](
-    elements: Sequence[T],
-    elts_of_interest: Sequence[T],
+    all_elements: Sequence[T],
+    failed: Sequence[T],
     tie_politics: str = "upstream first",
+    shift: int = 0,
 ) -> Sequence[T]:
-    """Sort given list by how far its elements are from ``elements[idx]``."""
+    """Sort given list by how far its elements are from ``elements[idx]``.
+
+    We go across every element in ``all_elements`` and get their index-distance
+    to the closest element of ``failed``. We sort ``all_elements`` by this
+    distance. When there is a tie, we put the more upstream or the more
+    downstream cavity first according to ``tie_politics``.
+
+    Parameters
+    ----------
+    failed : Sequence[T]
+        Second object or list of object from which you want distance. Often, a
+        list of failed :class:`.Element` or a list of lattices with a fault.
+    all_elements : Sequence[T]
+        All the elements/lattices/sections.
+    tie_politics : {'upstream first', 'downstream first'}
+        When two elements have the same position, will you want to have the
+        upstream or the downstream first?
+    shift : int, optional
+        Distance increase for downstream elements (``shift < 0``) or upstream
+        elements (``shift > 0``). Used to have a window of compensating
+        cavities which is not centered around the failed elements. Useful when
+        upstream cavities have more important power margins, or when you want
+        more downstream cavities because a full cryomodule is down. The default
+        is 0.
+
+    """
     sorter = partial(
         _distance_to_ref,
-        elts_of_interest=elts_of_interest,
-        elements=elements,
+        failed=failed,
+        all_elements=all_elements,
         tie_politics=tie_politics,
+        shift=shift,
     )
-    return sorted(elements, key=lambda element: sorter(element))
+    return sorted(all_elements, key=lambda element: sorter(element))
 
 
 def remove_lists_with_less_than_n_elements[
