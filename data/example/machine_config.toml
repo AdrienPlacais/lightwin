@@ -4,6 +4,6 @@ noX11_minimal = "/home/placais/TraceWin/exe/./tracelx64"
 no_run = ""
 x11_full = "/usr/bin/local/bin/TraceWin/./TraceWin"
 
-[lpsc5011w]
+[LPSC5011W]
 X11_full = "/d/tw/TraceWin.exe"
 noX11_full = "/d/tw/TraceWin.exe"
