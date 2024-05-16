@@ -4,9 +4,9 @@ Cython
 To speed things up, Envelope1D has a Cython version that must be compiled.
 You can do so by going to `lightwin/source` and run:
 
-```
-python util/setup.py build_ext --inplace
-```
+.. code-block:: bash
+
+   python util/setup.py build_ext --inplace
 
 A `.so` (Linux) or `.pyd` (Windows) file will be created.
 If it is not done automatically, move the created file in ``beam_calculation/envelope_1d/``:
@@ -19,9 +19,11 @@ If you change your Python version or use another machine, you must recompile.
 .. todo::
    Cython pytests 
 
-Windows
--------
-For Windows users, you may have to go  https://visualstudio.microsoft.com/visual-cpp-build-tools/ and download Build Tools:
+Cython on Windows
+-----------------
+
+If you have a `Microsoft Visual C++ 14.0 or greater is required` error,
+go to https://visualstudio.microsoft.com/visual-cpp-build-tools/ and download Build Tools:
    1. Download and execute `vs_BuildTools.exe`.
    2. Check "C++ Development Desktop".
    3. Install.

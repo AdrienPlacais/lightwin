@@ -14,15 +14,14 @@ for genetic optimisation algorithms.
 Remove related imports in `fault.py` and `fault_scenario.py` to run LightWin without it.
 
 ## Optional packages
-`cython` for `beam_calculation/envelope_1d/`:
-To speed up calculations, the `transfer_matrices_p.py` file has a second version called `transfer_matrices_c.pyx`.
-It can be compiled into C to speed up calculations.
-You will need to compile it yourself at the installation, and every time you update your Python distribution.
-Instructions in `util/setup.py`.
+`cython` to speed up calculations.
+Check :ref:`cython`.
 It can also be used to compile some `pymoo` functions to speed them up.
 Just install `cython` prior to `pymoo`, and the compilation should be done automatically when installing `pymoo`.
 
 `pytest` to ensure that everything is working as expected.
+
+.. _cython: manual/cython.rst
 
 ## Packages for developers
 - `sphinx_rtd_theme`
