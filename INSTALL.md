@@ -39,12 +39,14 @@ The generic procedure is:
 
 As `pymoo` package is currently not on anaconda, create an conda environment and take your packages from `conda-forge`:
 ```
-conda create -n <env_name> -c conda-forge python=3.12
+conda create -n <env-name> -c conda-forge python=3.12
 conda activate <env_name>
-conda install matplotlib numpy pandas scipy pymoo -c conda_forge
+conda install cython matplotlib numpy palettable pandas scipy pymoo pytest -c conda-forge
 ```
 (may be necessary to install the different packages one at a time)
-In `<env-name>`, you will have to precise `-c conda-forge` each time you want to update or install packages.
+Precise `-c conda-forge` each time you want to update or install packages.
+
+On Windows, you may want to run these commands from the Anaconda Prompt.
 
 `pip` and `anaconda` are not compatible!
 Never mix them!
