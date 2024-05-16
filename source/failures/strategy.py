@@ -52,7 +52,7 @@ def failed_and_compensating(
     fun_sort = partial(
         COMPENSATING_SELECTOR[strategy],
         elements=elements,
-        elements_by_lattice=group_elements_by_lattice(elements),
+        elements_gathered_by_lattice=group_elements_by_lattice(elements),
         remove_failed=False,
         **wtf,
     )
@@ -208,6 +208,7 @@ def l_neighboring_lattices[
         lattices_with_a_fault,
         k=l,
         tie_politics=tie_politics,
+        shift=shift,
         remove_failed=False,
     )
 
