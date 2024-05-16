@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Support for the TraceWin command line arguments: `algo`, `cancel_matching` and `cancel_matchingP`
+- You can provide a `shift` key in `wtf` to shift the window of compensating cavities.
+  - Example with 4 compensating lattices:
+    - `shift=0` -> 2 upstream and 2 downstream compensating lattices
+    - `shift=+1` -> 1 upstream and 3 downstream compensating lattices
+    - `shift=-1` -> 3 upstream and 1 downstream compensating lattices
+- `Variable`/`Constraint` limits can be changed after creation with the `change_limits` method.
+
+### Changed
+- A configuration file is mandatory to select the TraceWin executables.
 
 ## [0.6.18] 2024-04-23
 
@@ -31,7 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `name`: we consider that `failed = [["FM10"]]` means "the first element which name is 'FM10' is down".
 - With the `l neighboring lattices` strategy, `l` can now be odd.
 - You can provide `tie_strategy = "downstream first"` or `tie_strategy = "upstream first"` to favour up/downstream cavities when there is a tie in distance between compensating cavities/lattices and failed.
-- A configuration file is mandatory to select the TraceWin executables.
 
 ### Fixed
 - Colors in Evaluator plots are now reset between executions
