@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - A configuration file is mandatory to select the TraceWin executables.
 
+### Fixed
+- SimulationOutput created by TraceWin have a `is_multiparticle` attribute that matches reality.
+
 ## [0.6.18] 2024-04-23
 
 ### Added
