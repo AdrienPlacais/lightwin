@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create a base class for :class:`.Variable` and :class:`.Constraint`."""
+
 import math
 from abc import ABC
 from dataclasses import dataclass
 from typing import Self
 
+import numpy as np
 import pandas as pd
 
 from util.dicts_output import markdown
@@ -13,8 +13,7 @@ from util.dicts_output import markdown
 
 @dataclass
 class DesignSpaceParameter(ABC):
-    """
-    Hold a single variable or constraint.
+    """Hold a single variable or constraint.
 
     Attributes
     ----------
@@ -35,7 +34,12 @@ class DesignSpaceParameter(ABC):
 
     @classmethod
     def from_floats(
-        cls, name: str, element_name: str, x_min: float, x_max: float
+        cls,
+        name: str,
+        element_name: str,
+        x_min: float,
+        x_max: float,
+        x_0: float = np.NaN,
     ) -> Self:
         """Initialize object with ``x_min``, ``x_max`` instead of ``limits``.
 
@@ -83,6 +87,15 @@ class DesignSpaceParameter(ABC):
     def x_max(self) -> float:
         """Return upper variable/constraint bound."""
         return self.limits[1]
+
+    def change_limits(
+        self, x_min: float | None = None, x_max: float | None = None
+    ) -> None:
+        """Change the limits after creation of the object."""
+        self.limits = (
+            x_min if x_min is not None else self.x_min,
+            x_max if x_max is not None else self.x_max,
+        )
 
     @property
     def _fmt_x_min(self) -> float:

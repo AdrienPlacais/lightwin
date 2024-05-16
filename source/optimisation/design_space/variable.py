@@ -6,8 +6,9 @@ It keeps it's name, bounds, initial value, etc.
 
 import logging
 from dataclasses import dataclass
-from typing import Self
+from typing import Any, Self
 
+import numpy as np
 import pandas as pd
 
 from optimisation.design_space.design_space_parameter import (
@@ -49,7 +50,7 @@ class Variable(DesignSpaceParameter):
         element_name: str,
         x_min: float,
         x_max: float,
-        x_0: float,
+        x_0: float = np.NaN,
     ) -> Self:
         """Initialize object with ``x_min``, ``x_max`` instead of ``limits``.
 
