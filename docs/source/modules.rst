@@ -11,6 +11,7 @@ source
    core
    edit_phases_in_dat_file
    evaluator
+   experimental
    failures
    optimisation
    tracewin_utils

@@ -1,0 +1,13 @@
+[lpsc5057x]
+noX11_full = "/usr/local/bin/TraceWin/./TraceWin_noX11"
+noX11_minimal = "/home/placais/TraceWin/exe/./tracelx64"
+no_run = ""
+x11_full = "/usr/bin/local/bin/TraceWin/./TraceWin"
+
+[LPSC5011W]
+X11_full = "D:/tw/TraceWin.exe"
+noX11_full = "D:/tw/TraceWin.exe"
+
+[LPSC0193W]
+X11_full = "C:/Users/placais/Documents/tracewin/TraceWin.exe"
+noX11_full = "C:/Users/placais/Documents/tracewin/TraceWin_noGUI.exe"

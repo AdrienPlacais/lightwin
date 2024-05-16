@@ -2,27 +2,24 @@
 # -*- coding: utf-8 -*-
 """Define function to build the Cython module(s).
 
-To compile, go to ``LightWin/source/`` and enter:
-``python3 util/setup.py build_ext --inplace``
-and manually move the ``build/lib.blabla/beam_calculation/envelope_1d/transfer_
-matrices_c.cpython-blabla.so`` to ``beam_calculation/envelope1d/``
+To compile, go to ``lightwin/source/`` and enter:
+``python util/setup.py build_ext --inplace``.
 
 .. todo::
     Auto move the ``.so``.
 
-.. note::
-    In some interpreters such as Spyder, ``.so`` are loaded at the startup
-    of the software. Hence, you must restart the kernel after each compilation.
-
 """
-from setuptools import setup
-from Cython.Build import cythonize
+import os
 import os.path
 
-source_path = "/home/placais/LightWin/source"
-pyx_path = os.path.join(source_path,
-                        "beam_calculation/envelope_1d/transfer_matrices_c.pyx"
-                        )
+import numpy as np
+from Cython.Build import cythonize
+from setuptools import setup
+
+source_path = os.getcwd()
+pyx_path = os.path.join(
+    source_path, "beam_calculation/envelope_1d/transfer_matrices_c.pyx"
+)
 
 setup(
     ext_modules=cythonize(
@@ -30,5 +27,6 @@ setup(
         # compiler_directives={'boundscheck': False,
         #                      'nonecheck': False,
         #                      'wraparound': False}
-    )
+    ),
+    include_dirs=[np.get_include()],
 )

@@ -126,7 +126,7 @@ class SimulationOutputFactoryTraceWin(SimulationOutputFactory):
 
         simulation_output = SimulationOutput(
             out_folder=self.out_folder,
-            is_multiparticle=True,  # FIXME
+            is_multiparticle=hasattr(beam_parameters, "phiw99"),
             is_3d=True,
             z_abs=results["z(m)"],
             synch_trajectory=synch_trajectory,

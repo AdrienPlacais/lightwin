@@ -26,6 +26,8 @@ If the desired :class:`.BeamCalculator` is :class:`.TraceWin`:
    :header-rows: 1
 
 Check TraceWin's documentation for the list of command line arguments.
+Note that you also need to create a configuration file that will define the path to the ``TraceWin`` executables.
+See `data/examples/machine_config_file.toml` for an example.
 
 .. todo::
    List of allowed tracewin arguments in doc

@@ -3,7 +3,7 @@ dat_file = "example.dat"
 project_folder = "results_tests/"
 
 [generic_envelope1d]
-flag_cython = true
+flag_cython = false
 flag_phi_abs = true
 method = "RK"
 n_steps_per_cell = 40
@@ -17,8 +17,9 @@ tool = "Envelope3D"
 [generic_tracewin]
 hide = true
 ini_path = "example.ini"
+machine_config_file = "machine_config.toml"
 partran = 0
-simulation_type = "noX11 full"
+simulation_type = "noX11_full"
 tool = "TraceWin"
 
 [beam]

@@ -16,6 +16,7 @@ Welcome to LightWin's documentation!
    :glob:
 
    manual/usage
+   manual/cython
    manual/get_method
    manual/configuration
    manual/units

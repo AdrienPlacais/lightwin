@@ -7,6 +7,8 @@
 
 """
 import logging
+import socket
+import tomllib
 from pathlib import Path
 
 from config.helper import check_type
@@ -14,18 +16,6 @@ from config.helper import check_type
 IMPLEMENTED_BEAM_CALCULATORS = ("Envelope1D", "TraceWin", "Envelope3D")  #:
 IMPLEMENTED_ENVELOPE1D_METHODS = ("leapfrog", "RK")  #:
 IMPLEMENTED_ENVELOPE3D_METHODS = ("RK",)  #:
-
-TRACEWIN_EXECUTABLES = {  # Should match with your installation
-    "X11 full": Path("/", "usr", "local", "bin", "TraceWin", "./TraceWin"),
-    "noX11 full": Path(
-        "/", "usr", "local", "bin", "TraceWin", "./TraceWin_noX11"
-    ),
-    "noX11 minimal": Path(
-        "/", "home", "placais", "TraceWin", "exe", "./tracelx64"
-    ),
-    "no run": None,
-}
-simulation_types = tuple(TRACEWIN_EXECUTABLES.keys())  #:
 
 IMPLEMENTED_TRACEWIN_ARGUMENTS = (
     "hide",
@@ -143,18 +133,22 @@ def _edit_configuration_dict_in_place_envelope1d(
 
 def _test_tracewin(
     config_folder: Path,
+    machine_config_file: str,
     simulation_type: str,
     ini_path: str,
     path_cal: str = "",
     synoptic_file: str = "",
     partran: int | None = None,
     toutatis: int | None = None,
+    machine_name: str = "",
     **beam_calculator_kw,
 ) -> None:
     """Test consistency for :class:`.TraceWin` beam calculator."""
     check_type(str, "beam_calculator", simulation_type, ini_path)
     _ = _find_file(config_folder, ini_path)
-    assert simulation_type in TRACEWIN_EXECUTABLES
+    _ = _test_tracewin_executable(
+        config_folder, machine_config_file, simulation_type, machine_name
+    )
 
     if path_cal:
         _ = _find_file(config_folder, path_cal)
@@ -182,6 +176,34 @@ def _test_tracewin(
             continue
 
 
+def _test_tracewin_executable(
+    config_folder: Path,
+    machine_config_file: str,
+    simulation_type: str,
+    machine_name: str = "",
+    **kwargs,
+) -> Path:
+    """Look for the configuration file, check if TW executable exists."""
+    filepath = _find_file(config_folder, machine_config_file)
+    with open(filepath, "rb") as file:
+        config = tomllib.load(file)
+
+    if not machine_name:
+        machine_name = socket.gethostname()
+
+    assert (
+        machine_name in config
+    ), f"{machine_name = } should be in {config.keys() = }"
+    this_machine_config = config[machine_name]
+
+    assert (
+        simulation_type in this_machine_config
+    ), f"{simulation_type = } was not found in {this_machine_config = }"
+    executable = Path(this_machine_config[simulation_type])
+    assert executable.is_file, f"{executable = } was not found"
+    return executable
+
+
 def _edit_configuration_dict_in_place_tracewin(
     beam_calculator_kw: dict, config_folder: Path
 ) -> None:
@@ -192,12 +214,11 @@ def _edit_configuration_dict_in_place_tracewin(
     an entry of ``beam_calculator_kw``.
 
     """
-    beam_calculator_kw["executable"] = TRACEWIN_EXECUTABLES[
-        beam_calculator_kw["simulation_type"]
-    ]
+    beam_calculator_kw["executable"] = _test_tracewin_executable(
+        config_folder=config_folder, **beam_calculator_kw
+    )
 
     paths = (
-        "executable",
         "ini_path",
         "tab_file",
         "path_cal",
@@ -213,7 +234,11 @@ def _edit_configuration_dict_in_place_tracewin(
 
     args_for_tracewin = {}
     args_for_lightwin = {}
-    entries_to_remove = ("simulation_type",)
+    entries_to_remove = (
+        "simulation_type",
+        "machine_config_file",
+        "machine_name",
+    )
 
     for key, value in beam_calculator_kw.items():
         if key in entries_to_remove:

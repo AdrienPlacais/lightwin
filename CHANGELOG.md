@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Support for the TraceWin command line arguments: `algo`, `cancel_matching` and `cancel_matchingP`
+- You can provide a `shift` key in `wtf` to shift the window of compensating cavities.
+  - Example with 4 compensating lattices:
+    - `shift=0` -> 2 upstream and 2 downstream compensating lattices
+    - `shift=+1` -> 1 upstream and 3 downstream compensating lattices
+    - `shift=-1` -> 3 upstream and 1 downstream compensating lattices
+- `Variable`/`Constraint` limits can be changed after creation with the `change_limits` method.
+
+### Changed
+- A configuration file is mandatory to select the TraceWin executables.
+
+### Fixed
+- SimulationOutput created by TraceWin have a `is_multiparticle` attribute that matches reality.
 
 ## [0.6.18] 2024-04-23
 
