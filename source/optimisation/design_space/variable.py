@@ -1,22 +1,20 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-This module holds class:`Variable`, which stores an optimisation variable.
+"""Define :class:`Variable`, which stores an optimisation variable.
 
 It keeps it's name, bounds, initial value, etc.
 
 """
+
 import logging
 from dataclasses import dataclass
 from typing import Self
+
 import pandas as pd
-from ast import literal_eval
 
-from optimisation.design_space.design_space_parameter import \
-    DesignSpaceParameter
+from optimisation.design_space.design_space_parameter import (
+    DesignSpaceParameter,
+)
 
-
-IMPLEMENTED_VARIABLES = ('k_e', 'phi_0_abs', 'phi_0_rel', 'phi_s')  #:
+IMPLEMENTED_VARIABLES = ("k_e", "phi_0_abs", "phi_0_rel", "phi_s")  #:
 
 
 @dataclass
@@ -45,12 +43,14 @@ class Variable(DesignSpaceParameter):
     x_0: float
 
     @classmethod
-    def from_floats(cls,
-                    name: str,
-                    element_name: str,
-                    x_min: float,
-                    x_max: float,
-                    x_0: float) -> Self:
+    def from_floats(
+        cls,
+        name: str,
+        element_name: str,
+        x_min: float,
+        x_max: float,
+        x_0: float,
+    ) -> Self:
         """Initialize object with ``x_min``, ``x_max`` instead of ``limits``.
 
         Parameters
@@ -77,10 +77,9 @@ class Variable(DesignSpaceParameter):
         return cls(name, element_name, (x_min, x_max), x_0)
 
     @classmethod
-    def from_pd_series(cls,
-                       name: str,
-                       element_name: str,
-                       pd_series: pd.Series) -> Self:
+    def from_pd_series(
+        cls, name: str, element_name: str, pd_series: pd.Series
+    ) -> Self:
         """Init object from a pd series (file import)."""
         x_min = pd_series.loc[f"{name}: x_min"]
         x_max = pd_series.loc[f"{name}: x_max"]
