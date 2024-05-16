@@ -70,6 +70,7 @@ def k_out_of_n[
     *,
     k: int,
     tie_politics: str = "upstream first",
+    shift: int = 0,
     remove_failed: bool = True,
     **kwargs,
 ) -> Sequence[T]:
@@ -92,6 +93,11 @@ def k_out_of_n[
     tie_politics : {'upstream first', 'downstream first'}, optional
         When two elements have the same position, will you want to have the
         upstream or the downstream first? The default is ``"upstream first"``.
+    shift : int, optional
+        Distance increase for downstream elements (``shift < 0``) or upstream
+        elements (``shift > 0``). Used to have a window of compensating
+        cavities which is not centered around the failed elements. The default
+        is 0.
 
     Returns
     -------
@@ -101,7 +107,10 @@ def k_out_of_n[
 
     """
     sorted_by_position = sort_by_position(
-        elements, failed_elements, tie_politics=tie_politics
+        elements,
+        failed_elements,
+        tie_politics,
+        shift,
     )
     n = len(failed_elements)
     altered = sorted_by_position[: n + k * n]
@@ -113,11 +122,12 @@ def k_out_of_n[
 def l_neighboring_lattices[
     T
 ](
-    elements_by_lattice: Sequence[Sequence[T]],
+    elements_gathered_by_lattice: Sequence[Sequence[T]],
     failed_elements: Sequence[T],
     *,
     l: int,
     tie_politics: str = "upstream first",
+    shift: int = 0,
     remove_failed: bool = True,
     min_number_of_cavities_in_lattice: int = 1,
     **kwargs,
@@ -147,6 +157,11 @@ def l_neighboring_lattices[
     tie_politics : {'upstream first', 'downstream first'}, optional
         When two elements have the same position, will you want to have the
         upstream or the downstream first? The default is ``"upstream first"``.
+    shift : int, optional
+        Distance increase for downstream elements (``shift < 0``) or upstream
+        elements (``shift > 0``). Used to have a window of compensating
+        cavities which is not centered around the failed elements. The default
+        is 0.
     remove_failed : bool, optional
         To remove the failed lattices from the output. The default is True.
     min_number_of_cavities_in_lattice : int, optional
@@ -164,31 +179,32 @@ def l_neighboring_lattices[
     """
     lattices_with_a_fault = [
         lattice
-        for lattice in elements_by_lattice
+        for lattice in elements_gathered_by_lattice
         if not set(failed_elements).isdisjoint(lattice)
     ]
 
-    elements_by_lattice = [
+    elements_gathered_by_lattice = [
         x
-        for x in elements_by_lattice
+        for x in elements_gathered_by_lattice
         if len(x) >= min_number_of_cavities_in_lattice
         or x in lattices_with_a_fault
     ]
 
     compensating_lattices = k_out_of_n(
-        elements_by_lattice,
+        elements_gathered_by_lattice,
         lattices_with_a_fault,
         k=l,
         tie_politics=tie_politics,
+        shift=shift,
         remove_failed=True,
     )
     for lattice in compensating_lattices:
         if len(lattice) >= min_number_of_cavities_in_lattice:
             continue
-        elements_by_lattice.remove(lattice)
+        elements_gathered_by_lattice.remove(lattice)
 
     altered_lattices = k_out_of_n(
-        elements_by_lattice,
+        elements_gathered_by_lattice,
         lattices_with_a_fault,
         k=l,
         tie_politics=tie_politics,
