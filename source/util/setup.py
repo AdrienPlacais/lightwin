@@ -5,28 +5,15 @@
 To compile, go to ``lightwin/source/`` and enter:
 ``python util/setup.py build_ext --inplace``.
 
-If it is not automatic on your platform, you must manually move the created
-files to the proper location.
-
-Unix:
-    ``build/lib.linux-XXX-cpython=3XX/beam_calculation/envelope_1d/transfer_matrices_c.cpython-3XX-XXXX-linux-gnu.so``
-Windows
-    ``build/lib.win-XXXX-cpython-3XX/beam_calculation/envelope_1d/transfer_matrices_c.cp3XX-win_XXXX.pyd``
-to ``beam_calculation/envelope_1d/``
-
 .. todo::
     Auto move the ``.so``.
-
-.. note::
-    In some interpreters such as Spyder, ``.so`` are loaded at the startup
-    of the software. Hence, you must restart the kernel after each compilation.
 
 """
 import os
 import os.path
 
-from Cython.Build import cythonize
 import numpy as np
+from Cython.Build import cythonize
 from setuptools import setup
 
 source_path = os.getcwd()
@@ -41,5 +28,5 @@ setup(
         #                      'nonecheck': False,
         #                      'wraparound': False}
     ),
-    include_dirs=[np.get_include()]
+    include_dirs=[np.get_include()],
 )
