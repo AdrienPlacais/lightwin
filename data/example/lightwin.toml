@@ -58,7 +58,7 @@ min_absolute_sync_phase_in_deg = -90.0
 [tiny_design_space]
 design_space_preset = "rel_phase_amplitude"
 from_file = true
-variables_filepath = "variables.csv"
+variables_filepath = "variables_centered_around_solution.csv"
 
 [fit_phi_s_design_space]
 design_space_preset = "sync_phase_amplitude"
