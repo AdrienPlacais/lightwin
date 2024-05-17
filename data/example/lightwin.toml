@@ -71,7 +71,7 @@ maximum_k_e_is_calculated_wrt_maximum_k_e_of_section = true
 min_absolute_sync_phase_in_deg = -90.0
 
 [plots_minimal]
-cav = false
+cav = true
 emittance = false
 energy = true
 envelopes = false
