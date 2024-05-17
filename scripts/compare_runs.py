@@ -1,4 +1,11 @@
-"""Define functions to compare several runs using ``evaluations.csv`` files."""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Define functions to compare several runs using ``evaluations.csv`` files.
+
+.. todo::
+    Set up an example.
+
+"""
 
 from pathlib import Path
 
