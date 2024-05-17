@@ -8,7 +8,6 @@
 
 """
 import logging
-import sys
 from collections.abc import Collection
 from pathlib import Path
 
@@ -102,9 +101,7 @@ def compare_beam_calculators(
 
 if __name__ == "__main__":
     this_file_path = Path(__file__)
-    lw_dir = this_file_path.parents[1]
-    sys.path.append(str(lw_dir / "source"))
-    toml_filepath = lw_dir / "data/example/lightwin.toml"
+    toml_filepath = this_file_path.parents[1] / "data/example/lightwin.toml"
     toml_keys = {
         "files": "files",
         "plots": "plots_minimal",
