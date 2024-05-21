@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Test the ``wtf`` (what to fit) key of the config file.
 
 .. todo::
     Specific test for every optimisation method? For now, just trust the user.
 
 """
+
 import logging
 
 from config.helper import check_type
@@ -46,14 +45,13 @@ def test(
     optimisation_algorithm: str,
     tie_politics: str = "upstream first",
     idx: str = "",
+    shift: int = 0,
     **wtf_kw,
 ) -> None:
     """Test the ``wtf`` ``.toml`` entries."""
     assert id_nature in ("cavity", "element", "name")
-    assert tie_politics in ("upstream first", "downstream first")
     if idx:
         logging.error("Deprecated, use 'id_nature' instead.")
-
     assert strategy in IMPLEMENTED_STRATEGIES
     strategy_testers = {
         "k out of n": _test_k_out_of_n,
@@ -66,6 +64,22 @@ def test(
 
     assert objective_preset in IMPLEMENTED_OBJECTIVE_PRESETS
     assert optimisation_algorithm in IMPLEMENTED_OPTIMISATION_ALGORITHMS
+    _test_cavity_selection(tie_politics, shift)
+
+
+def _test_cavity_selection(tie_politics: str, shift: int) -> None:
+    """Test the keywords that alter the selection of compensating cavities."""
+    allowed = ("upstream first", "downstream first")
+    assert tie_politics in allowed, f"{tie_politics = } but {allowed = }"
+
+    if (shift > 0 and tie_politics == "upstream first") or (
+        shift < 0 and tie_politics == "downstream first"
+    ):
+        logging.warning(
+            f"{tie_politics = } is inconsistent with {shift = }. Is this what "
+            "you want? You should double check the compensating cavities for "
+            "the fault you are studying."
+        )
 
 
 def _test_k_out_of_n(k: int, **wtf_kw) -> None:
@@ -83,8 +97,8 @@ def _test_manual(
     assert len(failed) == len(compensating_manual), (
         "Discrepancy between the number of FaultScenarios and the number of "
         "corresponding list of compensating cavities. In other words: "
-        "'failed[i]' and 'compensating_manual[i]' entries must have the same number "
-        "of elements."
+        "'failed[i]' and 'compensating_manual[i]' entries must have the same "
+        "number of elements."
     )
 
     for scenarios, grouped_compensating_cavities in zip(
@@ -94,8 +108,8 @@ def _test_manual(
         assert len(scenarios) == len(grouped_compensating_cavities), (
             "In a FaultScenario, discrepancy between the number of fault "
             "groups and group of compensating cavities. In other words: "
-            "'failed[i][j]' and 'compensating_manual[i][j]' entries must have the same"
-            " number of elements."
+            "'failed[i][j]' and 'compensating_manual[i][j]' entries must have "
+            "the same number of elements."
         )
         for failure in scenarios:
             check_type(int, "wtf", failure)
