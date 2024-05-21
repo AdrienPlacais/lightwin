@@ -94,12 +94,6 @@ class TraceWin(BeamCalculator):
         self._filename = filename
         super().__init__(flag_phi_abs, out_folder, default_field_map_folder)
 
-        if not flag_phi_abs:
-            logging.warning(
-                "TraceWin solver currently cannot work with "
-                "relative phases (last arg of FIELD_MAP should "
-                "be 1)."
-            )
         self.path_cal: Path
         self.dat_file: Path
         self._tracewin_command: list[str] | None = None
