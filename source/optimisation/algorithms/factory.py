@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a factory function to create :class:`.OptimisationAlgorithm`.
 
 .. todo::
     Docstrings
 
 """
+
 import logging
 from abc import ABCMeta
 from functools import partial
@@ -48,10 +47,9 @@ def optimisation_algorithm_factory(
     opti_method: str,
     fault: Fault,
     beam_calculator: BeamCalculator,
-    **kwargs: Any,
+    **wtf: Any,
 ) -> OptimisationAlgorithm:
-    """
-    Create the proper :class:`.OptimisationAlgorithm` instance.
+    """Create the proper :class:`.OptimisationAlgorithm` instance.
 
     Parameters
     ----------
@@ -59,31 +57,32 @@ def optimisation_algorithm_factory(
         Name of the desired optimisation algorithm.
     fault : Fault
         Fault that will be compensated by the optimisation algorithm.
-    compute_beam_propagation : Callable
-        Function that takes in a set of cavity settings and a list of elements,
-        computes the beam propagation with these, and returns a simulation
-        output.
+    beam_calculator : BeamCalculator
+        Object that will be used to computte propagation of the beam.
+    kwargs :
+        Other keyword arguments that will be passed to the
+        :class:`.OptimisationAlgorithm`.
 
     Returns
     -------
-    beam_calculators : OptimisationAlgorithm
-        Proper optimisation algorithm.
+    algorithm : OptimisationAlgorithm
+        Instantiated optimisation algorithm.
 
     """
-    run_with_this = beam_calculator.run_with_this
-    cavity_settings_factory = beam_calculator.cavity_settings_factory
-    new_kwargs = _optimisation_algorithm_kwargs(
-        fault, run_with_this, cavity_settings_factory
+    default_kwargs = _default_kwargs(
+        fault,
+        beam_calculator.run_with_this,
+        beam_calculator.cavity_settings_factory,
     )
-    _check_common_keys(kwargs, new_kwargs)
-    kwargs = new_kwargs | kwargs
+    _check_common_keys(wtf, default_kwargs)
+    final_kwargs = default_kwargs | wtf
 
     algorithm_base_class = ALGORITHM_SELECTOR[opti_method]
-    algorithm: OptimisationAlgorithm = algorithm_base_class(**kwargs)
+    algorithm = algorithm_base_class(**final_kwargs)
     return algorithm
 
 
-def _optimisation_algorithm_kwargs(
+def _default_kwargs(
     fault: Fault,
     run_with_this: Callable,
     cavity_settings_factory: CavitySettingsFactory,
@@ -105,13 +104,13 @@ def _optimisation_algorithm_kwargs(
 
     Returns
     -------
-    new_kwargs : dict[str, Any]
+    default_kwargs : dict[str, Any]
         A dictionary of keyword arguments for the initialisation of
         :class:`.OptimisationAlgorithm`.
 
     """
     compute_beam_propagation = partial(run_with_this, elts=fault.elts)
-    new_kwargs: dict[str, Any] = {
+    default_kwargs: dict[str, Any] = {
         "compensating_elements": fault.compensating_elements,
         "elts": fault.elts,
         "objectives": fault.objectives,
@@ -122,34 +121,33 @@ def _optimisation_algorithm_kwargs(
         "compute_constraints": fault.compute_constraints,
         "cavity_settings_factory": cavity_settings_factory,
     }
-    return new_kwargs
+    return default_kwargs
 
 
 def _check_common_keys(
-    kwargs: dict[str, Any], new_kwargs: dict[str, Any]
+    user_kwargs: dict[str, Any], default_kwargs: dict[str, Any]
 ) -> None:
     """Check keys that are common between the two dictionaries.
 
     Parameters
     ----------
-    kwargs : dict[str, Any]
+    user_kwargs : dict[str, Any]
         kwargs as defined in the
         :meth:`.FaultScenario._set_optimisation_algorithms` (they have
         precedence).
-    new_kwargs : [str, Any]
+    default_kwargs : [str, Any]
         kwargs as defined in the :func:`_optimisation_algorithm_kwargs` (they
         will be overriden as they are considered as "default" or "fallback"
         values).
 
     """
-    keys = set(kwargs.keys())
-    new_keys = set(new_kwargs.keys())
-    common_keys = keys.intersection(new_keys)
+    user_keys = set(user_kwargs.keys())
+    default_keys = set(default_kwargs.keys())
+    common_keys = user_keys.intersection(default_keys)
     if len(common_keys) > 0:
         logging.info(
-            "The following OptimisationAlgorithm arguments are "
-            "set both in FaultScenario (kwargs) and in "
-            "optimisation.algorithms.factory (new_kwargs). We use"
-            " the ones from FaultScenario.\n"
-            f"{common_keys = })"
+            "The following OptimisationAlgorithm arguments are set both in "
+            "FaultScenario (user_kwargs) and in "
+            "optimisation.algorithms.factory (default_kwargs). We use the ones"
+            f" from FaultScenario.\n{common_keys = })"
         )

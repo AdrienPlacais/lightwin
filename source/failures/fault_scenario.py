@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a list-based class holding all the :class:`.Fault` to fix.
 
 We also define :func:`fault_scenario_factory`, a factory function creating all
 the required :class:`FaultScenario` objects.
 
 """
+
 import datetime
 import logging
 import time
@@ -192,17 +191,12 @@ class FaultScenario(list):
             The optimisation algorithm for each fault in ``self``.
 
         """
-        # The kwargs defined here will be given to the
-        # OptimisationAlgorithm.__init__ and will override the defaults defined
-        # in the factory
-        kwargs = {}
-
         opti_method = self.wtf["optimisation_algorithm"]
         assert isinstance(opti_method, str)
 
         optimisation_algorithms = [
             optimisation_algorithm_factory(
-                opti_method, fault, self.beam_calculator, **kwargs
+                opti_method, fault, self.beam_calculator, **self.wtf
             )
             for fault in self
         ]

@@ -107,11 +107,12 @@ class OptimisationAlgorithm(ABC):
         variables: Collection[Variable],
         compute_beam_propagation: ComputeBeamPropagationT,
         compute_residuals: ComputeResidualsT,
+        cavity_settings_factory: CavitySettingsFactory,
         constraints: Collection[Constraint] | None = None,
         compute_constraints: ComputeConstraintsT | None = None,
         folder: Path | None = None,
-        cavity_settings_factory: CavitySettingsFactory | None = None,
         optimisation_algorithm_kwargs: dict[str, Any] | None = None,
+        **kwargs,
     ) -> None:
         """Instantiate the object."""
         assert all([elt.can_be_retuned for elt in compensating_elements])
@@ -242,7 +243,6 @@ class OptimisationAlgorithm(ABC):
             cavity.cavity_settings for cavity in self.compensating_elements
         ]
 
-        assert self.cavity_settings_factory is not None
         several_cavity_settings = (
             self.cavity_settings_factory.from_optimisation_algorithm(
                 base_settings=original_settings,
