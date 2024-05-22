@@ -43,6 +43,7 @@ id_nature = "name"
 k = 3
 objective_preset = "simple_ADS"
 optimisation_algorithm = "downhill_simplex"
+optimisation_algorithm_kwargs = { options = { disp = false, adaptive = true } }
 strategy = "k out of n"
 
 [generic_design_space]
