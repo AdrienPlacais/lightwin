@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `shift=+1` -> 1 upstream and 3 downstream compensating lattices
     - `shift=-1` -> 3 upstream and 1 downstream compensating lattices
 - `Variable`/`Constraint` limits can be changed after creation with the `change_limits` method.
+- You can override the default kwargs in the `OptimisationAlgorithm` actual algo.
 
 ### Changed
 - A configuration file is mandatory to select the TraceWin executables.
