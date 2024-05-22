@@ -4,3 +4,4 @@ Entry,Type,Description,Allowed values,Mandatory?
 ``id_nature``,str,Indicates if failed is element index/cavity index/name,``element`` or ``cavity`` or ``name``,✅
 ``failed``,list[list[int]] | list[list[str]],Index of failed cavities,,✅
 ``objective_preset``,str,Objectives for the optimisation algorithm,:data:`~config.optimisation.objective.objective_presets`,✅
+``optimisation_algorithm_kwargs``,dict,Keyword arguments passed to the actual optimisation method,,❌
