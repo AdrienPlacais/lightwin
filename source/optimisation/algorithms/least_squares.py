@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`LeastSquares`, a simple and fast optimisation method."""
+
 import logging
 from dataclasses import dataclass
 
@@ -8,7 +7,7 @@ import numpy as np
 from scipy.optimize import Bounds, least_squares
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
-from optimisation.algorithms.algorithm import OptimisationAlgorithm
+from optimisation.algorithms.algorithm import OptiInfo, OptimisationAlgorithm
 
 
 @dataclass
@@ -29,16 +28,18 @@ class LeastSquares(OptimisationAlgorithm):
 
     """
 
-    def __post_init__(self) -> None:
-        """Set additional information."""
-        super().__post_init__()
-        self.supports_constraints = False
+    supports_constraints = False
+
+    def __init__(self, *args, **kwargs) -> None:
+        """Instantiate object."""
+        return super().__init__(*args, **kwargs)
 
     def optimise(
         self,
-    ) -> tuple[bool, SetOfCavitySettings, dict[str, list[float]]]:
-        """
-        Set up the optimisation and solve the problem.
+        keep_history: bool = False,
+        save_history: bool = False,
+    ) -> tuple[bool, SetOfCavitySettings | None, OptiInfo]:
+        """Set up the optimisation and solve the problem.
 
         Returns
         -------
@@ -51,11 +52,15 @@ class LeastSquares(OptimisationAlgorithm):
             violation if applicable, etc.
 
         """
-        kwargs = self._algorithm_parameters()
+        if keep_history or save_history:
+            raise NotImplementedError
         x_0, bounds = self._format_variables()
 
         solution = least_squares(
-            fun=self._wrapper_residuals, x0=x_0, bounds=bounds, **kwargs
+            fun=self._wrapper_residuals,
+            x0=x_0,
+            bounds=bounds,
+            **self.optimisation_algorithm_kwargs,
         )
 
         self.solution = solution
@@ -76,7 +81,8 @@ class LeastSquares(OptimisationAlgorithm):
         }
         return success, optimized_cavity_settings, info
 
-    def _algorithm_parameters(self) -> dict:
+    @property
+    def _default_kwargs(self) -> dict:
         """Create the ``kwargs`` for the optimisation."""
         kwargs = {
             "jac": "2-point",  # Default

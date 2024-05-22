@@ -8,7 +8,7 @@
     Mandatory to recompute the synchronous phases.
 
 """
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from typing import Self, TypeVar
 
 from core.elements.field_maps.cavity_settings import CavitySettings
@@ -63,8 +63,8 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
     @classmethod
     def from_cavity_settings(
         cls,
-        several_cavity_settings: Sequence[CavitySettings],
-        compensating_cavities: Sequence[FieldMap],
+        several_cavity_settings: Collection[CavitySettings],
+        compensating_cavities: Collection[FieldMap],
     ) -> Self:
         """Create the proper dictionary."""
         zipper = zip(
@@ -79,7 +79,7 @@ class SetOfCavitySettings(dict[FieldMap, CavitySettings]):
     def from_incomplete_set(
         cls,
         set_of_cavity_settings: Self | dict[FieldMap, CavitySettings] | None,
-        cavities: Sequence[FieldMap],
+        cavities: Collection[FieldMap],
         use_a_copy_for_nominal_settings: bool = True,
     ) -> Self:
         """Create an object with settings for all the field maps.

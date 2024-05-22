@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:``.NSGA``, a genetic algorithm for optimisation."""
+
 import logging
 from dataclasses import dataclass
 from typing import Callable
@@ -19,21 +18,20 @@ from pymoo.optimize import minimize
 from pymoo.termination.default import DefaultMultiObjectiveTermination
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
-from optimisation.algorithms.algorithm import OptimisationAlgorithm
+from optimisation.algorithms.algorithm import OptiInfo, OptimisationAlgorithm
 
 
 @dataclass
 class NSGA(OptimisationAlgorithm):
     """Non-dominated Sorted Genetic Algorithm."""
 
-    def __post_init__(self) -> None:
-        """Set additional information."""
-        super().__post_init__()
-        self.supports_constraints = True
+    supports_constraints = True
 
     def optimise(
         self,
-    ) -> tuple[bool, SetOfCavitySettings, dict[str, list[float]]]:
+        keep_history: bool = False,
+        save_history: bool = False,
+    ) -> tuple[bool, SetOfCavitySettings | None, OptiInfo]:
         """
         Set up the optimisation and solve the problem.
 
@@ -48,6 +46,8 @@ class NSGA(OptimisationAlgorithm):
             violation if applicable, etc.
 
         """
+        if keep_history or save_history:
+            raise NotImplementedError
         problem: Problem = MyElementwiseProblem(
             _wrapper_residuals=self._wrapper_residuals,
             **self._problem_arguments,

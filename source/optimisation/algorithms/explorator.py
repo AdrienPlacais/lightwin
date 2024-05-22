@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`Explorator`, a module to explore the design space.
 
 In order to be consistent with the ABC :class:`.OptimisationAlgorithm`,
@@ -9,16 +7,17 @@ a "brute-force" optimisation algorithm.
 .. todo::
     Make this class more robust. In particular: save all objectives (not just
     the norm), handle export when there is more than two variables, also save
-    complementary data (e.g.: always save phi_s even it is not in the
+    complementary data (e.g.: always save ``phi_s`` even it is not in the
     constraints nor variables).
 
 .. todo::
     Allow for different number of points according to variable.
 
 """
+
 import logging
-import os.path
 from dataclasses import dataclass
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,14 +25,17 @@ from matplotlib import cm
 from mpl_toolkits import mplot3d
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
-from optimisation.algorithms.algorithm import OptimisationAlgorithm
+from optimisation.algorithms.algorithm import (
+    ComputeConstraintsT,
+    OptiInfo,
+    OptimisationAlgorithm,
+)
 from util.dicts_output import markdown
 
 
 @dataclass
 class Explorator(OptimisationAlgorithm):
-    """
-    Method that tries all the possible solutions.
+    """Method that tries all the possible solutions.
 
     Notes
     -----
@@ -45,16 +47,14 @@ class Explorator(OptimisationAlgorithm):
 
     """
 
-    def __post_init__(self) -> None:
-        """Set additional information."""
-        super().__post_init__()
-        self.supports_constraints = True
+    supports_constraints = True
+    compute_constraints: ComputeConstraintsT
 
     def optimise(
         self,
         keep_history: bool = True,
         save_history: bool = True,
-    ) -> tuple[bool, SetOfCavitySettings | None, dict[str, list[float]]]:
+    ) -> tuple[bool, SetOfCavitySettings | None, OptiInfo]:
         """
         Set up the optimisation and solve the problem.
 
@@ -64,7 +64,7 @@ class Explorator(OptimisationAlgorithm):
             Tells if the optimisation algorithm managed to converge.
         optimized_cavity_settings : SetOfCavitySettings | None
             Best solution found by the optimization algorithm.
-        info : dict[str, list[float]]] | None
+        info : OptiInfo
             Gives list of solutions, corresponding objective, convergence
             violation if applicable, etc.
 
@@ -99,20 +99,19 @@ class Explorator(OptimisationAlgorithm):
             "hist_G": None,
         }
         if keep_history:
-            info = info | self._keep_optimization_history(
+            info = info | self._generate_optimisation_history(
                 variables_values, objectives_values, constraints_values
             )
         if save_history:
             if self.folder is None:
                 logging.warning(
-                    "You should provide a folder to the "
-                    "optimisation algorithm to tell it where it "
-                    "should save history. Using a default "
-                    "location..."
+                    "You should provide a folder to the optimisation algorithm"
+                    " to tell it where it should save history. Using a default"
+                    " location..."
                 )
-                self.folder = "/home/placais/LightWin/data"
+                self.folder = Path("/home/placais/LightWin/data")
 
-            my_filepath = os.path.join(self.folder, "optimisation_history.txt")
+            my_filepath = self.folder / "optimisation_history.txt"
             self._save_optimization_history(my_filepath, **info)
 
         if is_plottable:
@@ -130,14 +129,13 @@ class Explorator(OptimisationAlgorithm):
         """Check that we have proper number of vars and objectives."""
         if self.n_obj != 1:
             logging.warning(
-                "The number of objectives is different from 1. "
-                "Hence I will simply plot the norm of objectives."
+                "The number of objectives is different from 1. Hence I will "
+                "simply plot the norm of objectives."
             )
         if self.n_var != 2:
             logging.warning(
-                "Wrong number of variables. Impossible to plot "
-                "it, but I will compute all possible solutions "
-                "anyway."
+                "Wrong number of variables. Impossible to plot it, but I will "
+                "compute all possible solutions anyway."
             )
             return False
         return True
@@ -172,7 +170,7 @@ class Explorator(OptimisationAlgorithm):
         """Give norm of residual and if phi_s constraint is respected."""
         cav_settings = self._create_set_of_cavity_settings(var)
         simulation_output = self.compute_beam_propagation(cav_settings)
-        residuals = self.compute_residuals(simulation_output=simulation_output)
+        residuals = self.compute_residuals(simulation_output)
         constraints_evaluations = self.compute_constraints(simulation_output)
         is_ok = (
             constraints_evaluations[0] < 0.0
@@ -266,22 +264,9 @@ class Explorator(OptimisationAlgorithm):
         """Add the best solution to the plot."""
         axes.scatter3D(var[0], var[1], obj, s=100, c="r")
 
-    def _keep_optimization_history(
-        self,
-        variables_values: np.ndarray,
-        objectives_values: np.ndarray,
-        constraints_values: np.ndarray,
-    ) -> dict[str, np.ndarray]:
-        info_history = {
-            "hist_X": variables_values,
-            "hist_F": objectives_values,
-            "hist_G": constraints_values,
-        }
-        return info_history
-
     def _save_optimization_history(
         self,
-        filepath: str,
+        filepath: Path,
         hist_X: np.ndarray | None = None,
         hist_F: np.ndarray | None = None,
         hist_G: np.ndarray | None = None,
@@ -290,10 +275,9 @@ class Explorator(OptimisationAlgorithm):
     ) -> None:
         if hist_X is None or hist_F is None:
             logging.error(
-                "Variable history and/or objective history are None."
-                " Maybe you forgot to set the keep_history flag to "
-                "True? Or maybe an error occurred during "
-                "optimisation?"
+                "Variable history and/or objective history are None. Maybe you"
+                " forgot to set the keep_history flag to True? Or maybe an "
+                "error occurred during optimisation?"
             )
             return
 

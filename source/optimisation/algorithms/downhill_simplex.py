@@ -1,20 +1,19 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define the Downhill simplex (or Nelder-Mead) algorihm."""
+
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 from scipy.optimize import Bounds, minimize
 
 from failures.set_of_cavity_settings import SetOfCavitySettings
-from optimisation.algorithms.algorithm import OptimisationAlgorithm
+from optimisation.algorithms.algorithm import OptiInfo, OptimisationAlgorithm
 
 
 @dataclass
 class DownhillSimplex(OptimisationAlgorithm):
-    """
-    Downhill simplex method, which does not use derivatives.
+    """Downhill simplex method, which does not use derivatives.
 
     All the attributes but ``solution`` are inherited from the Abstract Base
     Class :class:`OptimisationAlgorithm`.
@@ -25,14 +24,17 @@ class DownhillSimplex(OptimisationAlgorithm):
 
     """
 
-    def __post_init__(self) -> None:
-        """Set additional information."""
-        super().__post_init__()
-        self.supports_constraints = False
+    supports_constraints = False
+
+    def __init__(self, *args, **kwargs) -> None:
+        """Instantiate object."""
+        return super().__init__(*args, **kwargs)
 
     def optimise(
         self,
-    ) -> tuple[bool, SetOfCavitySettings, dict[str, list[float]]]:
+        keep_history: bool = False,
+        save_history: bool = False,
+    ) -> tuple[bool, SetOfCavitySettings | None, OptiInfo]:
         """
         Set up the optimisation and solve the problem.
 
@@ -47,11 +49,15 @@ class DownhillSimplex(OptimisationAlgorithm):
             violation if applicable, etc.
 
         """
-        kwargs = self._algorithm_parameters()
+        if keep_history or save_history:
+            raise NotImplementedError
         x_0, bounds = self._format_variables()
 
         solution = minimize(
-            fun=self._norm_wrapper_residuals, x0=x_0, bounds=bounds, **kwargs
+            fun=self._norm_wrapper_residuals,
+            x0=x_0,
+            bounds=bounds,
+            **self.optimisation_algorithm_kwargs,
         )
 
         self.solution = solution
@@ -75,7 +81,8 @@ class DownhillSimplex(OptimisationAlgorithm):
         }
         return success, optimized_cavity_settings, info
 
-    def _algorithm_parameters(self) -> dict:
+    @property
+    def _default_kwargs(self) -> dict[str, Any]:
         """Create the ``kwargs`` for the optimisation."""
         kwargs = {
             "method": "Nelder-Mead",
