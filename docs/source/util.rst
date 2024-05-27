@@ -19,5 +19,6 @@ Submodules
    util.log_manager
    util.pandas_helper
    util.phases
+   util.pickling
    util.setup
    util.synchronous_phases
