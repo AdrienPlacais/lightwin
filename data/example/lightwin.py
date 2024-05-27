@@ -116,7 +116,7 @@ def _perform_evaluations_new_implementation(
     if evaluator_kw is None:
         with open("lightwin.toml", "rb") as f:
             config = tomllib.load(f)
-        evaluator_kw = config["evaluators"]["simulation_outputs"]
+        evaluator_kw = config["evaluators"]["simulation_output"]
     assert evaluator_kw is not None
     factory = SimulationOutputEvaluatorsFactory(
         evaluator_kw, plotter=PandasPlotter()
@@ -150,7 +150,7 @@ def main(config: dict[str, dict[str, Any]]) -> None:
     tests = _perform_evaluations_new_implementation(
         accelerators,
         beam_calculator_ids,
-        config["evaluators"]["simulation_output"],
+        evaluator_kw=None,
     )
     del tests
 
