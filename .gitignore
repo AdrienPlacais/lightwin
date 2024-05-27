@@ -178,5 +178,6 @@ source/untitled*.py
 *.json
 *.old
 *.pdf
+*.pkl
 *.swp
 *.swo
