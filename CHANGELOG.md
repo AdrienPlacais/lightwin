@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `evaluator` objects are more robust and can be configured from the `.toml`.
 - Plotting is now performed thanks to the `plotter` library.
 
-## [0.6.19] 2024-04-??
+## [0.6.19] 2024-05-27
 
 ### Added
 - Support for the TraceWin command line arguments: `algo`, `cancel_matching` and `cancel_matchingP`
