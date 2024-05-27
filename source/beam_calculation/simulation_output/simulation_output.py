@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a class to store outputs from different :class:`.BeamCalculator`.
 
 .. todo::
@@ -16,6 +14,7 @@
     Maybe the synchronous phase model should appear somewhere in here?
 
 """
+
 import logging
 import math
 from dataclasses import dataclass
@@ -32,6 +31,7 @@ from core.particle import ParticleFullTrajectory
 from core.transfer_matrix.transfer_matrix import TransferMatrix
 from failures.set_of_cavity_settings import SetOfCavitySettings
 from util.helper import range_vals, recursive_getter, recursive_items
+from util.pickling import MyPickler
 
 
 @dataclass
@@ -282,6 +282,30 @@ class SimulationOutput:
         beam_parameters.set_mismatches(
             reference_beam_parameters, *phase_space_names, **mismatch_kw
         )
+
+    def pickle(
+        self, pickler: MyPickler, path: Path | str | None = None
+    ) -> Path:
+        """Pickle (save) the object.
+
+        This is useful for debug and temporary saves; do not use it for long
+        time saving.
+
+        """
+        if path is None:
+            path = self.out_path / "simulation_output.pkl"
+        assert isinstance(path, Path)
+        pickler.pickle(self, path)
+
+        if isinstance(path, str):
+            path = Path(path)
+        return path
+
+    @classmethod
+    def from_pickle(cls, pickler: MyPickler, path: Path | str) -> Self:
+        """Instantiate object from previously pickled file."""
+        simulation_output = pickler.unpickle(path)
+        return simulation_output  # type: ignore
 
 
 def _to_deg(

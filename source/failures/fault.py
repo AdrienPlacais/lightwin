@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define the class :class:`Fault`.
 
 Its purpose is to hold information on a failure and to fix it.
@@ -12,8 +10,10 @@ Its purpose is to hold information on a failure and to fix it.
     compute_constraints
 
 """
+
 import logging
-from typing import Any
+from pathlib import Path
+from typing import Any, Self
 
 from beam_calculation.simulation_output.simulation_output import (
     SimulationOutput,
@@ -28,6 +28,7 @@ from optimisation.design_space.factory import DesignSpaceFactory
 from optimisation.objective.factory import (
     get_objectives_and_residuals_function,
 )
+from util.pickling import MyPickler
 
 
 class Fault:
@@ -200,3 +201,27 @@ class Fault:
 
         for cav, stat in zip(elements, status):
             cav.update_status(stat)
+
+    def pickle(
+        self, pickler: MyPickler, path: Path | str | None = None
+    ) -> Path:
+        """Pickle (save) the object.
+
+        This is useful for debug and temporary saves; do not use it for long
+        time saving.
+
+        """
+        if path is None:
+            path = self.elts.files["accelerator_path"] / "fault.pkl"
+        assert isinstance(path, Path)
+        pickler.pickle(self, path)
+
+        if isinstance(path, str):
+            path = Path(path)
+        return path
+
+    @classmethod
+    def from_pickle(cls, pickler: MyPickler, path: Path | str) -> Self:
+        """Instantiate object from previously pickled file."""
+        fault = pickler.unpickle(path)
+        return fault  # type: ignore

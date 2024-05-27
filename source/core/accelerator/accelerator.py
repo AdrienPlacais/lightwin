@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`Accelerator`, the highest-level class of LightWin.
 
 It holds, well... an accelerator. This accelerator has a
@@ -16,9 +14,10 @@ at the entry of its :class:`.ListOfElements`.
     Cleaner Accelerator factory (use class, not just a function).
 
 """
+
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import numpy as np
 import pandas as pd
@@ -32,6 +31,7 @@ from core.list_of_elements.factory import ListOfElementsFactory
 from core.list_of_elements.helper import elt_at_this_s_idx, equivalent_elt
 from core.list_of_elements.list_of_elements import ListOfElements
 from util.helper import recursive_getter, recursive_items
+from util.pickling import MyPickler
 
 
 class Accelerator:
@@ -62,7 +62,7 @@ class Accelerator:
         self.name = name
         self.simulation_outputs: dict[str, SimulationOutput] = {}
         self.data_in_tw_fashion: pd.DataFrame
-        self._accelerator_path = accelerator_path
+        self.accelerator_path = accelerator_path
 
         kwargs = {
             "w_kin": con.E_MEV,
@@ -197,7 +197,7 @@ class Accelerator:
         assert isinstance(original_dat_file, Path)
         filename = original_dat_file.name
         dat_file = (
-            self._accelerator_path / simulation_output.out_folder / filename
+            self.accelerator_path / simulation_output.out_folder / filename
         )
 
         logging.warning("Manually set which_phase")
@@ -216,7 +216,7 @@ class Accelerator:
 
         """
         simulation_output.out_path = (
-            self._accelerator_path / simulation_output.out_folder
+            self.accelerator_path / simulation_output.out_folder
         )
         self.simulation_outputs[beam_calculator_id] = simulation_output
 
@@ -229,3 +229,27 @@ class Accelerator:
     def equivalent_elt(self, elt: Element | str) -> Element:
         """Return element from ``self.elts`` with the same name as ``elt``."""
         return equivalent_elt(self.elts, elt)
+
+    def pickle(
+        self, pickler: MyPickler, path: Path | str | None = None
+    ) -> Path:
+        """Pickle (save) the object.
+
+        This is useful for debug and temporary saves; do not use it for long
+        time saving.
+
+        """
+        if path is None:
+            path = self.accelerator_path / self.name
+            path = path.with_suffix(".pkl")
+        pickler.pickle(self, path)
+
+        if isinstance(path, str):
+            path = Path(path)
+        return path
+
+    @classmethod
+    def from_pickle(cls, pickler: MyPickler, path: Path | str) -> Self:
+        """Instantiate object from previously pickled file."""
+        accelerator = pickler.unpickle(path)
+        return accelerator  # type: ignore

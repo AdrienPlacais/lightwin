@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a ``list`` of :class:`.Element`, with some additional methods.
 
 Two objects can have a :class:`ListOfElements` as attribute:
@@ -13,10 +11,11 @@ Two objects can have a :class:`ListOfElements` as attribute:
     less good
 
 """
+
 import logging
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Literal, overload
+from typing import Any, Literal, Self, overload
 
 import numpy as np
 
@@ -33,6 +32,7 @@ from core.particle import ParticleInitialState
 from tracewin_utils.dat_files import export_dat_filecontent
 from tracewin_utils.interface import list_of_elements_to_command
 from util.helper import recursive_getter, recursive_items
+from util.pickling import MyPickler
 
 element_id = int | str
 elements_id = Sequence[int] | Sequence[str]
@@ -343,3 +343,27 @@ class ListOfElements(list):
             case _:
                 raise IOError(f"{id_nature = } not understood.")
         return output
+
+    def pickle(
+        self, pickler: MyPickler, path: Path | str | None = None
+    ) -> Path:
+        """Pickle (save) the object.
+
+        This is useful for debug and temporary saves; do not use it for long
+        time saving.
+
+        """
+        if path is None:
+            path = self.files["accelerator_path"] / "list_of_elements.pkl"
+        assert isinstance(path, Path)
+        pickler.pickle(self, path)
+
+        if isinstance(path, str):
+            path = Path(path)
+        return path
+
+    @classmethod
+    def from_pickle(cls, pickler: MyPickler, path: Path | str) -> Self:
+        """Instantiate object from previously pickled file."""
+        list_of_elements = pickler.unpickle(path)
+        return list_of_elements  # type: ignore

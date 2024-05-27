@@ -9,7 +9,8 @@ import datetime
 import logging
 import time
 from collections.abc import Sequence
-from typing import Any
+from pathlib import Path
+from typing import Any, Self
 
 from beam_calculation.beam_calculator import BeamCalculator
 from beam_calculation.simulation_output.simulation_output import (
@@ -32,6 +33,7 @@ from optimisation.design_space.factory import (
     get_design_space_factory,
 )
 from util import debug
+from util.pickling import MyPickler
 
 DISPLAY_CAVITIES_INFO = True
 
@@ -430,6 +432,30 @@ class FaultScenario(list):
         ref_simu = self.ref_acc.simulation_outputs[id_solver_ref]
         fix_simu = self.fix_acc.simulation_outputs[id_solver_fix]
         return ref_simu, fix_simu
+
+    def pickle(
+        self, pickler: MyPickler, path: Path | str | None = None
+    ) -> Path:
+        """Pickle (save) the object.
+
+        This is useful for debug and temporary saves; do not use it for long
+        time saving.
+
+        """
+        if path is None:
+            path = self.fix_acc.accelerator_path / "fault_scenario.pkl"
+        assert isinstance(path, Path)
+        pickler.pickle(self, path)
+
+        if isinstance(path, str):
+            path = Path(path)
+        return path
+
+    @classmethod
+    def from_pickle(cls, pickler: MyPickler, path: Path | str) -> Self:
+        """Instantiate object from previously pickled file."""
+        fault_scenario = pickler.unpickle(path)
+        return fault_scenario  # type: ignore
 
 
 def fault_scenario_factory(
