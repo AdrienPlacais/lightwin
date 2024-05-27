@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define base :class:`Element`, declined in Drift, FieldMap, etc.
 
 .. todo::
@@ -7,6 +5,7 @@
     @property
 
 """
+
 import logging
 from typing import Any
 
@@ -192,14 +191,13 @@ class Element(Instruction):
         """Change the status of the element. To override."""
         if not self.can_be_retuned:
             logging.error(
-                f"You want to give {new_status = } to the element "
-                f"{self.name}, which can't be retuned. Status of "
-                "elements has meaning only if they can be retuned."
+                f"You want to give {new_status = } to the element f{self.name},"
+                " which can't be retuned. Status of elements has meaning only "
+                "if they can be retuned."
             )
             return
 
         logging.error(
-            f"You want to give {new_status = } to the element "
-            f"{self.name}, which update_status method is not "
-            "defined."
+            f"You want to give {new_status = } to the element f{self.name}, "
+            "which update_status method is not defined."
         )
