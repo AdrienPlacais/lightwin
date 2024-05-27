@@ -21,6 +21,8 @@ Just install `cython` prior to `pymoo`, and the compilation should be done autom
 
 `pytest` to ensure that everything is working as expected.
 
+`cloudpickle` to pickle/unpickle some objects (see `util.pickling` documentation).
+
 .. _cython: manual/cython.rst
 
 ## Packages for developers
