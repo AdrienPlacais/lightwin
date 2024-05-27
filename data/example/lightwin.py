@@ -148,9 +148,9 @@ def main(config: dict[str, dict[str, Any]]) -> None:
     _ = plot.factory(accelerators, config["plots"], **kwargs)
 
     tests = _perform_evaluations_new_implementation(
-        config["evaluators"]["simulation_output"],
         accelerators,
         beam_calculator_ids,
+        config["evaluators"]["simulation_output"],
     )
     del tests
 
