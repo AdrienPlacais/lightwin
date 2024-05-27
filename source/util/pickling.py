@@ -17,6 +17,7 @@ TraceWin multiparticle simulation.
     `cloudpickle` module.
 
 Some objects have built-in `pickle` and `unpickle` methods, namely:
+
     - :class:`.Accelerator`
     - :class:`.Fault`
     - :class:`.FaultScenario`
