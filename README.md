@@ -1,8 +1,8 @@
 # LightWin
-LightWin is a tool to automatically find compensation settings for a various set of cavity failures.
+LightWin is a tool to automatically find compensation settings for cavity failures in linacs.
 
 ## General behavior
-The majority of the parameters are handled through a `lightwin_configuration.ini` file.
+The majority of the parameters are handled through a `lightwin.toml` configuration file.
 The `files` entry sets the `.dat` file, which is the same format as `TraceWin`.
 It sets the `Accelerator` object, which holds a `ListOfElements`.
 The latter is a `list` containing all the `_Element`s present in the `.dat.` file.
@@ -24,23 +24,14 @@ Once all `FaultScenario`s are dealt with, a new simulation (more precise) can be
 The keys from `plots` determine which `plt.Figure`s are produced.
 The `evaluators` entry sets a `ListOfSimulationOutputEvaluators` (which is a `list` of `SimulationOutputEvaluator`s), which will run tests to evaluate if the new settins are acceptable.
 
-## How to run
-TODO
-
-## Example
-TODO : file from TW?
+## Installation
+See ``INSTALL.md`` file.
 
 ## Documentation
-To generate an interactive documentation, you you will need following packages:
- - `sphinx`
- - `sphinx_rtd_theme`
- - `myst-parser`
-(see `INSTALL.md` for packages installation).
+Documentation is available [here](https://adrienplacais.github.io/lightwin/index.html)
 
-Go to the `LightWin/docs` folder and run: `make html`.
-On Windows, `make.bat html` should do the trick (untested).
+## How to run
+See [here](https://adrienplacais.github.io/lightwin/manual/usage.html)
 
-## Testing
-Required packages:
-  - `pytest`
-Go to the `LightWin` folder and run: `pytest`.
+## Example
+See the `data/example` folder.
