@@ -1,7 +1,12 @@
+cloudpickle
+cython
 matplotlib
+myst-parser
+nbsphinx
 numpy
 pandas
-scipy
-cython
+palettable
 pymoo
-
+pytest
+scipy
+sphinx_rtd_theme
