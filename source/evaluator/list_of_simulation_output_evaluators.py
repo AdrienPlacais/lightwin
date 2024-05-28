@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define an object to regroup several :class:`.SimulationOutputEvaluator`.
 
 We also define some factory functions to facilitate their creation.
 
 """
+
 import datetime
 import logging
 from pathlib import Path
@@ -59,10 +58,10 @@ class ListOfSimulationOutputEvaluators(list):
     def _unpack_other_evals(
         self,
         other_evals: dict[str, list[Any]] | None,
-    ) -> tuple[list[str] | None, list[list[Any]]] | None:
+    ) -> tuple[list[str], list[list[Any]]]:
         """Extract column names and data."""
         if other_evals is None:
-            return None, None
+            return [], []
         other_columns = list(other_evals.keys())
 
         for other_column in other_columns:
@@ -84,7 +83,7 @@ class ListOfSimulationOutputEvaluators(list):
     ) -> list[str]:
         """Set the indexes of the pandas dataframe."""
         index = [
-            simulation_output.beam_calculator_information
+            str(simulation_output.beam_calculator_information)
             for simulation_output in simulation_outputs
         ]
         return index
@@ -95,8 +94,9 @@ class ListOfSimulationOutputEvaluators(list):
     ) -> list[str]:
         """Set the columns of the pandas dataframe."""
         columns = [evaluator.descriptor for evaluator in self]
-        columns += other_columns
-        return columns
+        if other_columns is None:
+            return columns
+        return columns + other_columns
 
     def _get_evaluations(
         self,
