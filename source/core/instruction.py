@@ -1,13 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define a dummy :class:`.Element`/:class:`.Command`.
 
 We use it to keep track of non-implemented elements/commands.
 
-.. todo::
-    Clarify nature of ``dat_idx``.
-
 """
+
 import logging
 from abc import ABC
 from collections.abc import Collection
@@ -78,17 +74,61 @@ class Instruction(ABC):
     def to_line(
         self, *args, inplace: bool = False, with_name: bool = False, **kwargs
     ) -> list[str]:
-        """Convert the object back into a ``.dat`` line."""
+        """Convert the object back into a ``.dat`` line.
+
+        Parameters
+        ----------
+        inplace : bool, optional
+            To edit the ``self.line`` attribute. The default is False.
+        with_name : bool, optional
+            To add the name of the element to the line. The default is False.
+
+        Returns
+        -------
+        list[str]
+            A line of the ``.dat`` file. The arguments are each an element in
+            the list.
+
+        Raises
+        ------
+        NotImplementedError:
+            ``with_name = True & inplace = True`` currently raises an error as
+            I do not want the name of the element to be inserted several times.
+
+        """
         line = self.line
         if not inplace:
             line = [x for x in self.line]
-        if with_name:
-            raise NotImplementedError
-            assert not inplace, (
-                "I am afraid that {with_name = } associated with {inplace = } "
-                "may lead to inserting the name of the element several times."
-            )
+            if with_name:
+                raise NotImplementedError
+                assert not inplace, (
+                    "I am afraid that {with_name = } associated with {inplace = } "
+                    "may lead to inserting the name of the element several times."
+                )
         return line
+
+    def insert(
+        self,
+        *args,
+        index: int | None = None,
+        dat_filecontent: list[Collection[str]],
+        **kwargs,
+    ) -> None:
+        """Insert the current object in the ``dat_filecontent`` object.
+
+        Parameters
+        ----------
+        index : int | None
+            Position at which the object should be inserted. If not provided,
+            we insert it at :attr:`idx['dat_idx']`.
+
+        dat_filecontent : list[Collection[str]]
+            The list of instructions, in the form of a list of lines.
+
+        """
+        if index is None:
+            index = self.idx["dat_idx"]
+        dat_filecontent.insert(index, self.to_line(*args, **kwargs))
 
 
 class Dummy(Instruction):
