@@ -28,10 +28,10 @@ The `evaluators` entry sets a `ListOfSimulationOutputEvaluators` (which is a `li
 See ``INSTALL.md`` file.
 
 ## Documentation
-Documentation is available [here](https://adrienplacais.github.io/lightwin/index.html)
+Documentation is available [here](https://adrienplacais.github.io/lightwin/html/index.html)
 
 ## How to run
-See [here](https://adrienplacais.github.io/lightwin/manual/usage.html)
+See [here](https://adrienplacais.github.io/lightwin/html/manual/usage.html)
 
 ## Example
 See the `data/example` folder.
