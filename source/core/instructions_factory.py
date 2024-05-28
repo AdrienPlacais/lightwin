@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define methods to easily create :class:`.Command` or :class:`.Element`.
 
 .. todo::
@@ -15,8 +13,10 @@
     for now, forcing loading of cython field maps
 
 """
+
 import logging
-from collections.abc import Sequence
+from abc import ABCMeta
+from collections.abc import Collection, Sequence
 from itertools import zip_longest
 from pathlib import Path
 from typing import Any
@@ -33,7 +33,7 @@ from core.elements.helper import (
     force_a_section_for_every_element,
     give_name_to_elements,
 )
-from core.instruction import Comment, Dummy, Instruction
+from core.instruction import Comment, Dummy, Instruction, LineJump
 from core.list_of_elements.helper import (
     group_elements_by_section,
     group_elements_by_section_and_lattice,
@@ -51,6 +51,7 @@ class InstructionsFactory:
         load_field_maps: bool,
         field_maps_in_3d: bool,
         load_cython_field_maps: bool,
+        elements_to_dump: ABCMeta | tuple[ABCMeta, ...] = (),
         **factory_kw: Any,
     ) -> None:
         """Instantiate the command and element factories.
@@ -72,11 +73,10 @@ class InstructionsFactory:
         load_cython_field_maps : bool
             To load or not the field maps for Cython (useful only with
             :class:`.Envelope1D` and :class:`.Envelope3D` used with Cython).
-        phi_s_definition : str, optional
-            Definition for the synchronous phases that will be used. Allowed
-            values are in
-            :var:`util.synchronous_phases.SYNCHRONOUS_PHASE_FUNCTIONS`. The
-            default is ``'historical'``.
+        elements_to_dump : ABCMeta | tuple[ABCMeta, ...], optional
+            Class of Elements that you want to remove. If you want to skip an
+            Element because it is not implemented, prefer assigning it to a
+            :class:`.DummyElement`. The default is an empty tuple.
         factory_kw : Any
             Other parameters passed to the :class:`.CommandFactory` and
             :class:`.ElementFactory`.
@@ -97,6 +97,7 @@ class InstructionsFactory:
             freq_bunch_mhz=freq_bunch_mhz,
             **factory_kw,
         )
+        self._elements_to_dump = elements_to_dump
 
         self._load_field_maps = load_field_maps
         if field_maps_in_3d:
@@ -111,7 +112,7 @@ class InstructionsFactory:
         self._cython: bool = con.FLAG_CYTHON
         # would be better without config dependency
 
-    def run(self, dat_content: list[list[str]]) -> list[Instruction]:
+    def run(self, dat_content: Collection[list[str]]) -> list[Instruction]:
         """Create all the elements and commands.
 
         .. todo::
@@ -119,7 +120,7 @@ class InstructionsFactory:
 
         Parameters
         ----------
-        dat_content : list[list[str]]
+        dat_content : Collection[list[str]]
             List containing all the lines of ``dat_filepath``.
 
         """
@@ -127,18 +128,14 @@ class InstructionsFactory:
             self._call_proper_factory(line, dat_idx)
             for dat_idx, line in enumerate(dat_content)
         ]
-
-        new = apply_commands(instructions, self._freq_bunch_mhz)
-        # Remove lines after 'end'
-        n_instructions = len(new)
-        instructions = instructions[:n_instructions]
-        assert new == instructions
+        instructions = apply_commands(instructions, self._freq_bunch_mhz)
 
         elts = [elt for elt in instructions if isinstance(elt, Element)]
         give_name_to_elements(elts)
         self._handle_lattice_and_section(elts)
         self._check_every_elt_has_lattice_and_section(elts)
         self._check_last_lattice_of_every_lattice_is_complete(elts)
+        self._filter_out_elements_to_dump(elts)
 
         if self._load_field_maps:
             field_maps = [elt for elt in elts if isinstance(elt, FieldMap)]
@@ -175,8 +172,8 @@ class InstructionsFactory:
             or :class:`.Comment`.
 
         """
-        if line == [""]:
-            return Comment(line, dat_idx)
+        if len(line) == 0:
+            return LineJump(line, dat_idx)
 
         for word in line:
             if ";" in word:
@@ -258,4 +255,23 @@ class InstructionsFactory:
                 f"penultimate has {penult} elements. This may create problems "
                 "if you rely on lattices identification to compensate faults. "
                 f"\n{joined}"
+            )
+
+    def _filter_out_elements_to_dump(self, elts: list[Element]) -> None:
+        """Remove the desired elements."""
+        removed_elts = [
+            elts.pop(i)
+            for i, elt in enumerate(elts)
+            if isinstance(elt, self._elements_to_dump)
+        ]
+        n_removed = len(removed_elts)
+        if n_removed > 0:
+            types = set([elt.__class__.__name__ for elt in removed_elts])
+            logging.warning(
+                f"Removed {n_removed} elements, according to the "
+                "InstructionsFactory._elements_to_dump key. The removed "
+                f"elements have types: {types}.\nNote that with TraceWin, "
+                "every Command and Element is kept.\nNote that this will "
+                "likely lead to problems when visualising structure -- prefer "
+                "setting a Dummy element to ignore non-implemented elements."
             )

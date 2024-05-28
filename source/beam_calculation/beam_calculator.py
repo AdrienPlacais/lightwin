@@ -85,8 +85,7 @@ class BeamCalculator(ABC):
         self._set_up_specific_factories()
 
     def _set_up_common_factories(self) -> None:
-        """
-        Create the factories declared in :meth:`__post_init__`.
+        """Create the factories declared in :meth:`__post_init__`.
 
         .. todo::
             ``default_field_map_folder`` has a wrong default value. Should take
@@ -104,7 +103,7 @@ class BeamCalculator(ABC):
             field_maps_in_3d=False,  # not implemented anyway
             # Different loading of field maps if Cython
             load_cython_field_maps=con.FLAG_CYTHON,
-            elements_to_remove=(),
+            elements_to_dump=(),
         )
 
     @abstractmethod

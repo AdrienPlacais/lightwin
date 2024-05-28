@@ -21,13 +21,12 @@ a full :class:`.ListOfElements` from scratch.
     :class:`.TraceWin` for example.
 
 .. todo::
-    The ``elements_to_remove`` key should be in the configuration file
+    The ``elements_to_dump`` key should be in the configuration file
 
 """
 
 import logging
 from abc import ABCMeta
-from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -62,7 +61,7 @@ class ListOfElementsFactory:
         load_field_maps: bool = True,
         field_maps_in_3d: bool = False,
         load_cython_field_maps: bool = False,
-        elements_to_remove: ABCMeta | tuple[ABCMeta, ...] = (),
+        elements_to_dump: ABCMeta | tuple[ABCMeta, ...] = (),
     ):
         """Declare and create some mandatory factories.
 
@@ -97,8 +96,8 @@ class ListOfElementsFactory:
             load_field_maps,
             field_maps_in_3d,
             load_cython_field_maps,
+            elements_to_dump=elements_to_dump,
         )
-        self.elements_to_remove = elements_to_remove
 
     def whole_list_run(
         self,
@@ -139,7 +138,7 @@ class ListOfElementsFactory:
         }
 
         instructions = self.instructions_factory.run(dat_filecontent)
-        elts = self._filter_out_commands_and_elements_to_remove(instructions)
+        elts = [x for x in instructions if isinstance(x, Element)]
 
         files["elts_n_cmds"] = instructions
 
@@ -158,34 +157,6 @@ class ListOfElementsFactory:
             first_init=True,
         )
         return list_of_elements
-
-    def _filter_out_commands_and_elements_to_remove(
-        self, instructions: Iterable[Instruction]
-    ) -> list[Element]:
-        """Create a list of elements, with only the ones implemented."""
-        elts = []
-        removed_elts = []
-        for instruction in instructions:
-            if not isinstance(instruction, Element):
-                continue
-
-            if isinstance(instruction, self.elements_to_remove):
-                removed_elts.append(instruction)
-                continue
-
-            elts.append(instruction)
-
-        n_removed = len(removed_elts)
-        if n_removed > 0:
-            types = set([elt.__class__.__name__ for elt in removed_elts])
-            logging.warning(
-                f"Removed {n_removed} elements, according to the "
-                "ListOfElementsFactory.elements_to_remove key. The removed "
-                f"elements have types: {types}.\nNote that with TraceWin, "
-                "every Command and Element is kept.\nNote that this will "
-                "likely lead to problems when visualising structure."
-            )
-        return elts
 
     def _whole_list_input_particle(
         self, w_kin: float, phi_abs: float, z_in: float, **kwargs: np.ndarray

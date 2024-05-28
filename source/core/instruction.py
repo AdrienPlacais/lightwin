@@ -1,8 +1,4 @@
-"""Define a dummy :class:`.Element`/:class:`.Command`.
-
-We use it to keep track of non-implemented elements/commands.
-
-"""
+"""Define a master class for :class:`.Element` and :class:`.Command`."""
 
 import logging
 from abc import ABC
@@ -183,3 +179,7 @@ class Comment(Dummy):
 
         """
         super().__init__(line, dat_idx, warning=False)
+
+
+class LineJump(Comment):
+    """An object corresponding to an empty line. Basically a comment."""
