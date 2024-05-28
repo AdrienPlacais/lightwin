@@ -34,6 +34,9 @@ def dat_file(
     ----------
     dat_path : Path
         Filepath to the ``.dat`` file, as understood by TraceWin.
+    keep : {"none", "comments", "empty lines", "all"}, optional
+        To determine which un-necessary lines in the dat file should be kept.
+        The default is `'none'`.
 
     Returns
     -------
