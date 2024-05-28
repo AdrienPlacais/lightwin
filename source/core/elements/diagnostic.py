@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define :class:`Diagnostic`.
 
 As for now, diagnostics are not used by LightWin. However, LightWin can add
@@ -30,9 +28,22 @@ class Diagnostic(Element):
         **kwargs: str,
     ) -> None:
         """Force an element with null-length, with no index."""
+        line, self.weight = self._separate_weight(line)
         super().__init__(line, dat_idx, name)
+
+        # patch to keep weight in `line` attribute if it is present
+        if self.weight != 1.0:
+            self.line.insert(1, f"({self.weight})")
+
         self.length_m = 0.0
         self.number = int(line[1])
+
+    def _separate_weight(self, line: list[str]) -> tuple[list[str], float]:
+        """Detect if a weight is present, separate if from args if so."""
+        weight = 1.0
+        if "(" in line[1]:
+            weight = float(line.pop(1).replace("(", "").replace(")", ""))
+        return line, weight
 
 
 class DiagCurrent(Diagnostic):
