@@ -14,6 +14,7 @@ Welcome to LightWin's documentation!
    :caption: LightWin
    :titlesonly:
    :glob:
+   includeme
 
    manual/usage
    manual/cython
