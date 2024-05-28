@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Define functions for TraceWin CLI."""
+"""Define functions for TraceWin command-line interface."""
+
 import logging
 import math
 from collections.abc import Sequence

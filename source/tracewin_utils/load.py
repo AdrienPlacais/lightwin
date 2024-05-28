@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define functions to load and preprocess the TraceWin files."""
+
 import itertools
 import logging
 import re

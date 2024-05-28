@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Define holds function to load, modify and create .dat structure files.
+"""Define functions to load, modify and create .dat structure files.
 
 .. todo::
     Insert line skip at each section change in the output.dat
 
 """
+
 import logging
 from collections.abc import Collection, Container, Iterable, Sequence
 from pathlib import Path
