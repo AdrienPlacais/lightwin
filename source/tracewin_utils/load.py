@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from typing import Literal
 
 import numpy as np
 
@@ -22,7 +23,11 @@ TRACEWIN_IMPORT_DATA_TABLE = {
 }
 
 
-def dat_file(dat_path: Path) -> list[list[str]]:
+def dat_file(
+    dat_path: Path,
+    *,
+    keep: Literal["none", "comments", "empty lines", "all"] = "none",
+) -> list[list[str]]:
     """Load the dat file and convert it into a list of lines.
 
     Parameters
@@ -42,44 +47,17 @@ def dat_file(dat_path: Path) -> list[list[str]]:
         for line in file:
             line = line.strip()
 
-            if len(line) == 0 or line[0] == ";":
+            if len(line) == 0:
+                if keep in ("empty lines", "all"):
+                    dat_filecontent.append(line)
+                continue
+            if line[0] == ";":
+                if keep in ("comments", "all"):
+                    dat_filecontent.append(line)
                 continue
 
             line = line.split(";")[0]
             # line = line.split(':')[-1]
-            # Remove everything between parenthesis
-            # https://stackoverflow.com/questions/14596884/remove-text-between-and
-            line = re.sub(r"([\(\[]).*?([\)\]])", "", line)
-
-            dat_filecontent.append(line.split())
-    return dat_filecontent
-
-
-def complete_dat_file(dat_path: Path) -> list[list[str]]:
-    """Load the dat file and convert it into a list of lines.
-
-    Parameters
-    ----------
-    dat_path : Path
-        Filepath to the ``.dat`` file, as understood by TraceWin.
-
-    Returns
-    -------
-    dat_filecontent : list[list[str]]
-        List containing all the lines of ``dat_path``.
-
-    """
-    dat_filecontent = []
-
-    with open(dat_path, "r", encoding="utf-8") as file:
-        for line in file:
-            line = line.strip()
-
-            if len(line) == 0 or line[0] == ";":
-                dat_filecontent.append([line])
-                continue
-
-            line = line.split(";")[0]
             # Remove everything between parenthesis
             # https://stackoverflow.com/questions/14596884/remove-text-between-and
             line = re.sub(r"([\(\[]).*?([\)\]])", "", line)

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define an object to create :class:`.ListOfElements`.
 
 Its main goal is to initialize :class:`.ListOfElements` with the proper input
@@ -26,6 +24,7 @@ a full :class:`.ListOfElements` from scratch.
     The ``elements_to_remove`` key should be in the configuration file
 
 """
+
 import logging
 from abc import ABCMeta
 from collections.abc import Iterable
@@ -127,11 +126,11 @@ class ListOfElementsFactory:
 
         """
         logging.info(
-            "First initialisation of ListOfElements, ecompassing all flinac. "
+            "First initialisation of ListOfElements, ecompassing all linac. "
             f"Created with {dat_file = }"
         )
 
-        dat_filecontent = tracewin_utils.load.complete_dat_file(dat_file)
+        dat_filecontent = tracewin_utils.load.dat_file(dat_file, keep="all")
         files = {
             "dat_file": dat_file,
             "dat_content": dat_filecontent,
