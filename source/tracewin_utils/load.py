@@ -48,25 +48,67 @@ def dat_file(
 
     with open(dat_path, "r", encoding="utf-8") as file:
         for line in file:
-            line = line.strip()
+            sliced = slice_dat_line(line)
 
-            if len(line) == 0:
+            if len(sliced) == 0:
                 if keep in ("empty lines", "all"):
-                    dat_filecontent.append(line)
+                    dat_filecontent.append(sliced)
                 continue
             if line[0] == ";":
                 if keep in ("comments", "all"):
-                    dat_filecontent.append(line)
+                    dat_filecontent.append(sliced)
                 continue
-
-            line = line.split(";")[0]
-            # line = line.split(':')[-1]
-            # Remove everything between parenthesis
-            # https://stackoverflow.com/questions/14596884/remove-text-between-and
-            line = re.sub(r"([\(\[]).*?([\)\]])", "", line)
-
-            dat_filecontent.append(line.split())
+            dat_filecontent.append(sliced)
     return dat_filecontent
+
+
+def _strip_comments(line: str) -> str:
+    """Remove comments from a line."""
+    return line.split(";", 1)[0].strip()
+
+
+def _split_named_elements(line: str) -> list[str]:
+    """Split named elements from a line."""
+    pattern = re.compile(r"(\w+)\s*:\s*(.*)")
+    match = pattern.match(line)
+    if match:
+        return [match.group(1)] + match.group(2).split()
+    return []
+
+
+def _split_weighted_elements(line: str) -> list[str]:
+    """Split weighted elements from a line."""
+    pattern = re.compile(r"(\w+)\s*(\(\d+\.?\d*e?-?\d*\))?")
+    matches = pattern.findall(line)
+    result = []
+    for match in matches:
+        result.append(match[0])
+        if match[1]:
+            result.append(match[1].strip())
+    return result
+
+
+def slice_dat_line(line: str) -> list[str]:
+    """Slices a .dat line into its components."""
+    line = line.strip()
+    if not line:
+        return []
+
+    if line.startswith(";"):
+        return [";", line[1:].strip()]
+
+    line = _strip_comments(line)
+
+    named_elements = _split_named_elements(line)
+    if named_elements:
+        return named_elements
+
+    if "(" in line:
+        weighted_elements = _split_weighted_elements(line)
+        if weighted_elements:
+            return weighted_elements
+
+    return line.split()
 
 
 def table_structure_file(
