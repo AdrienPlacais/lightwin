@@ -8,6 +8,9 @@ diagnostics (as well as ADJUST) to the final ``.dat`` in order to perform a
     Functionalities still under implementation. In particular, the number of
     attributes were not checked.
 
+.. note::
+    This is TraceWin's equivalent of :class:`.Objective`.
+
 """
 
 from core.elements.element import Element

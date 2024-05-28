@@ -8,6 +8,9 @@ DIAGNOSTIC commands to perform a beauty pass.
 .. todo::
     How should I save the min/max variables?? For now, use None.
 
+.. note::
+    This is TraceWin's equivalent of :class:`.Variable`.
+
 """
 
 from core.commands.command import Command
