@@ -52,6 +52,10 @@ def config(
             "optimisation_algorithm": optimisation_algorithm,
         },
     }
+    # Remove Downhill Simplex specific kwargs
+    if optimisation_algorithm != "downhill_simplex":
+        override["wtf"]["optimisation_algorithm_kwargs"] = {}
+
     my_config = config_manager.process_config(
         config_path, config_keys, warn_mismatch=True, override=override
     )
