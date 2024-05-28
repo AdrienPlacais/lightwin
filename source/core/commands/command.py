@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Define the base class from which all commands will inherit."""
+
 from abc import abstractmethod
-from collections.abc import Collection, Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 from core.instruction import Instruction
 
