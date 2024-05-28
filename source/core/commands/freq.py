@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Define a useless command to serve as place holder."""
+"""Define a command to set frequency."""
+
 import logging
 
 from core.commands.command import Command
